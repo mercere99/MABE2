@@ -8,12 +8,18 @@
  *  @note Status: PLANNING
  */
 
-#ifndef EMP_EVOLVE_ORGANISM_H
-#define EMP_EVOLVE_ORGANISM_H
+#ifndef MABE_ORGANISM_H
+#define MABE_ORGANISM_H
 
-namespace emp {
+#include "base/assert.h"
+#include "data/VarMap.h"
+#include "tools/string_utils.h"
+
+namespace mabe {
 
   concept OrganismWrapper : Organism {
+    VarMap var_map;
+
     operator double() const { emp_assert(false, "No default fitness conversion available."); return 0.0; } 
     double GetFitness() { return (double) *this; }
     int DoMutations() { emp_assert(false, "No default DoMutations() available."); }
