@@ -38,6 +38,10 @@ namesapce mabe {
     World(const std::string & in_name) : name(in_name) { ; }
     World(const World &) = default;
     World(World &&) = default;
+    ~World() {
+      for (auto x : evals) x.Delete();
+      for (auto x : selects) x.Delete();
+    }
 
     const std::string & GetName() const { return name; }
     
