@@ -13,6 +13,7 @@
 #include <string>
 
 #include "base/vector.h"
+#include "tools/vector_utils.h"
 
 #include "OrganismType.h"
 #include "Population.h"
@@ -24,11 +25,26 @@ namespace mabe {
   private:
     /// Collect all world instances.  Each world will maintain its own environment
     /// (evaluate module), selection module, and populations of current organisms.
-    emp::vector<mabe::World> world_map;
+    emp::vector<mabe::World> worlds;
 
     /// Collect all organism types from all words.  Organism types have distinct
     /// names and can be manipulated as a whole.
-    emp::vector<emp::Ptr<mabe::OrganismTypeBase>> orgtype_map;;
+    emp::vector<emp::Ptr<mabe::OrganismTypeBase>> org_types;
+
+  public:
+    MABE() { }
+    MABE(const MABE &) = delete;
+    MABE(MABE &&) = delete;
+    ~MABE() {
+      for (auto x : org_types) x.Delete();
+    }
+
+    int GetWorldID(const std::string & name) const {
+      return emp::FindEval(worlds, [name](auto w){ return w.GetName() == name; });
+    }
+    int GetOrgTypeID(const std::string & name) const {
+      return emp::FindEval(org_types, [name](auto o){ return o.GetName() == name; });
+    }
   };
 
 }
