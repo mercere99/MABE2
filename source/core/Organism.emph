@@ -1,5 +1,5 @@
 /**
- *  @note This file is part of Empirical, https://github.com/devosoft/Empirical
+ *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
  *  @date 2019
  *
@@ -15,11 +15,21 @@
 #include "data/VarMap.h"
 #include "tools/string_utils.h"
 
+#include "OrganismType.h"
+
 namespace mabe {
 
-  concept OrganismWrapper : Organism {
+  class Organism {
+  private:
     VarMap var_map;
+    emp::Ptr<OrganismType> type_ptr;
 
+  public:
+    OrganismType & GetType() { return *type_ptr; }
+    const OrganismType & GetType() const { return *type_ptr; }
+  };
+
+  concept OrganismWrapper : Organism {
     operator double() const { emp_assert(false, "No default fitness conversion available."); return 0.0; } 
     double GetFitness() { return (double) *this; }
     int DoMutations() { emp_assert(false, "No default DoMutations() available."); }
