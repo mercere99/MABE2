@@ -27,6 +27,15 @@ namespace mabe {
   public:
     OrganismType & GetType() { return *type_ptr; }
     const OrganismType & GetType() const { return *type_ptr; }
+
+    bool HasVar(const std::string & name) const { return var_map.Has(name); }
+    template <typename T> T & GetVar(const std::string & name) { return var_map.Get(name); }
+    template <typename T> const T & GetVar(const std::string & name) const { return var_map.Get(name); }
+
+    template <typename T>
+    void SetVar(const std::string & name, const T & value) {
+      var_map.Set(name, value);
+    }
   };
 
   concept OrganismWrapper : Organism {
