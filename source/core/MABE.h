@@ -29,21 +29,33 @@ namespace mabe {
 
     /// Collect all organism types from all words.  Organism types have distinct
     /// names and can be manipulated as a whole.
-    emp::vector<emp::Ptr<mabe::OrganismTypeBase>> org_types;
+    emp::unordered_map<std::string, emp::Ptr<OrgTypeBase>> org_types;
 
   public:
     MABE() { }
     MABE(const MABE &) = delete;
     MABE(MABE &&) = delete;
     ~MABE() {
-      for (auto x : org_types) x.Delete();
+      for (auto [name,org_type] : org_types) org_type.Delete();
     }
 
     int GetWorldID(const std::string & name) const {
       return emp::FindEval(worlds, [name](auto w){ return w.GetName() == name; });
     }
-    int GetOrgTypeID(const std::string & name) const {
-      return emp::FindEval(org_types, [name](auto o){ return o.GetName() == name; });
+    OrgTypeBase & GetOrgTypeBase(const std::string & type_name) const {
+      emp_assert(emp::Has(org_types, type_name)); // An org type must be created before base retrieved.
+      return org_types[type_name];
+    }
+
+    template <typename ORG_T>
+    OrganismType<ORG_T> & GetOrganismType(const std::string type_name) {
+      auto it = org_types.find(type_name);
+      if (it == org_types.end()) {
+        auto new_type = emp::NewPtr<OrganismType<ORG_T>>(type_name);
+        org_types[type_name] = new_type;
+        return *new_type;
+      }
+      return *(it->second);
     }
   };
 
