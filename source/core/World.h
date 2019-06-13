@@ -23,15 +23,15 @@
 #include "Population.h"
 #include "Modules.h"
 
-namesapce mabe {
+namespace mabe {
 
   class World {
   private:
     std::string name;
 
     emp::vector<mabe::Population> pops;
-    emp::vector<emp::Ptr<EvaluateModule>> evals;
-    emp::vector<emp::Ptr<SelectModule>> selects;
+    emp::vector<emp::Ptr<ModuleEvaluate>> evals;
+    emp::vector<emp::Ptr<ModuleSelect>> selects;
 
   public:
     World(const std::string & in_name) : name(in_name) { ; }
@@ -55,11 +55,11 @@ namesapce mabe {
     }
 
     const Population & GetPopulation(int id) const { return pops[(size_t) id]; }
-    const EvaluateModule & GetEvaluateModule(int id) const { return evals[(size_t) id]; }
-    const SelectModule & GetSelectModule(int id) const { return selects[(size_t) id]; }
+    const ModuleEvaluate & GetModuleEvaluate(int id) const { return evals[(size_t) id]; }
+    const ModuleSelect & GetModuleSelect(int id) const { return selects[(size_t) id]; }
     Population & GetPopulation(int id) { return pops[(size_t) id]; }
-    EvaluateModule & GetEvaluateModule(int id) { return evals[(size_t) id]; }
-    SelectModule & GetSelectModule(int id) { return selects[(size_t) id]; }
+    ModuleEvaluate & GetModuleEvaluate(int id) { return evals[(size_t) id]; }
+    ModuleSelect & GetModuleSelect(int id) { return selects[(size_t) id]; }
   };
 
 }
