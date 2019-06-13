@@ -14,39 +14,25 @@
 
 namespace mabe {
 
-  class OrganismTypeBase {
+  class OrgTypeBase {
   private:
     std::string name;
 
   public:
+    OrgTypeBase(const std::string & in_name) : name(in_name) { ; }
+    virtual ~OrgTypeBase() { ; }
+
     const std::string & GetName() const { return name; }
   };
 
   template <typename ORG_T>
-  class OrganismType : public OrganismTypeBase {
+  class OrganismType : public OrgTypeBase {
+  private:
+
+  public:
+    OrganismType(const std::string & in_name) : OrgTypeBase(in_name) { ; }
   };
 
-   
-  struct OrganismTypeManager {
-    using type_map_t = emp::unordered_map<std::string, emp::Ptr<OrganismTypeBase>>;
-
-    static type_map_t & GetMap() {
-      static type_map_t type_map;
-      return type_map;
-    }    
-
-    template <typename T>
-    static OrganismType<T> & Get(const std::String & name) {
-      type_map_t & type_map = GetMap();
-      auto it = type_map.find(name);
-      if (it == type_map.end()) {
-        auto new_type = emp::NewPtr<OrganismType<T>>(name);
-        type_map[name] = new_type;
-        return *new_type;
-      }
-      return *(it->second);
-    }
-  };
 }
 
 #endif
