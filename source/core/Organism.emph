@@ -29,8 +29,8 @@ namespace mabe {
     const OrgTypeBase & GetType() const { return *type_ptr; }
 
     bool HasVar(const std::string & name) const { return var_map.Has(name); }
-    template <typename T> T & GetVar(const std::string & name) { return var_map.Get(name); }
-    template <typename T> const T & GetVar(const std::string & name) const { return var_map.Get(name); }
+    template <typename T> T & GetVar(const std::string & name) { return var_map.Get<T>(name); }
+    template <typename T> const T & GetVar(const std::string & name) const { return var_map.Get<T>(name); }
 
     template <typename T>
     void SetVar(const std::string & name, const T & value) {
@@ -41,7 +41,6 @@ namespace mabe {
   concept OrganismWrapper : Organism {
     void MABE_Setup() override { }
 
-    operator double() const { emp_assert(false, "No default fitness conversion available."); return 0.0; } 
     double GetFitness() { return (double) *this; }
     std::string ToString() { return emp::to_string(*this); }
     emp::Ptr<Organism> Replicate() { return emp::NewPtr<OrganismWrapper<WRAPPED_T>>(*this); }
