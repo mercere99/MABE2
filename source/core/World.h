@@ -55,11 +55,11 @@ namespace mabe {
     }
 
     const Population & GetPopulation(int id) const { return pops[(size_t) id]; }
-    const ModuleEvaluate & GetModuleEvaluate(int id) const { return evals[(size_t) id]; }
-    const ModuleSelect & GetModuleSelect(int id) const { return selects[(size_t) id]; }
+    const ModuleEvaluate & GetModuleEvaluate(int id) const { return *evals[(size_t) id]; }
+    const ModuleSelect & GetModuleSelect(int id) const { return *selects[(size_t) id]; }
     Population & GetPopulation(int id) { return pops[(size_t) id]; }
-    ModuleEvaluate & GetModuleEvaluate(int id) { return evals[(size_t) id]; }
-    ModuleSelect & GetModuleSelect(int id) { return selects[(size_t) id]; }
+    ModuleEvaluate & GetModuleEvaluate(int id) { return *evals[(size_t) id]; }
+    ModuleSelect & GetModuleSelect(int id) { return *selects[(size_t) id]; }
   };
 
 }
