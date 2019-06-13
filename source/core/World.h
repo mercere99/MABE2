@@ -21,8 +21,7 @@
 #include "tools/vector_utils.h"
 
 #include "Population.h"
-#include "EvaluateModule.h"
-#include "SelectModule.h"
+#include "Modules.h"
 
 namesapce mabe {
 
