@@ -42,9 +42,9 @@ namespace mabe {
     int GetWorldID(const std::string & name) const {
       return emp::FindEval(worlds, [name](auto w){ return w.GetName() == name; });
     }
-    OrgTypeBase & GetOrgTypeBase(const std::string & type_name) const {
+    OrgTypeBase & GetOrgTypeBase(const std::string & type_name) {
       emp_assert(emp::Has(org_types, type_name)); // An org type must be created before base retrieved.
-      return org_types[type_name];
+      return *(org_types[type_name]);
     }
 
     template <typename ORG_T>
