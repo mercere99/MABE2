@@ -33,7 +33,11 @@ namespace mabe {
     };
 
     Population(const std::string & in_name) : name(in_name) { }
-    Population(const Population &) = delete;
+    Population(const Population & in_pop) : name(in_pop.name + "_copy"), orgs(in_pop.orgs.size()) {
+      for (size_t i = 0; i < orgs.size(); i++) {
+        orgs[i] = in_pop.orgs[i]->Clone();
+      }
+    }
     Population(Population &&) = default;
 
     ~Population() { for (auto x : orgs) x.Delete(); }
