@@ -12,9 +12,10 @@
 #include "../source/core/MABE.h"
 
 #include "config/ArgManager.h"
-#include "Evolve/NK.h"
 #include "tools/BitVector.h"
 #include "tools/Random.h"
+
+#include "../source/evaluate/NK.h"
 
 EMP_BUILD_CONFIG( NKConfig,
   GROUP(DEFAULT, "Default settings for NK model"),
