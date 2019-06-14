@@ -1,10 +1,11 @@
 /**
  *  @note This file is part of Empirical, https://github.com/devosoft/Empirical
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2016-2018
+ *  @date 2019
  *
  *  @file  NK.h
  *  @brief This file provides code to build NK-based algorithms.
+ *  @note This file was originally Evolve/NK.h in Epirical.
  *
  *  Two version of landscapes are provided.  NKLandscape pre-calculates the entire landscape, for
  *  easy lookup.  NKLandscapeMemo does lazy evaluation, memorizing values when they're first used.
@@ -18,13 +19,11 @@
 #ifndef EMP_EVO_NK_H
 #define EMP_EVO_NK_H
 
-#include <array>
-
-#include "../base/vector.h"
-#include "../tools/BitVector.h"
-#include "../tools/math.h"
-#include "../tools/memo_function.h"
-#include "../tools/Random.h"
+#include "base/vector.h"
+#include "tools/BitVector.h"
+#include "tools/math.h"
+#include "tools/memo_function.h"
+#include "tools/Random.h"
 
 namespace emp {
 
