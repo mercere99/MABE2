@@ -43,7 +43,7 @@ namespace mabe {
 
     double GetFitness() { return (double) *this; }
     std::string ToString() { return emp::to_string(*this); }
-    emp::Ptr<Organism> Replicate() { return emp::NewPtr<OrganismWrapper<WRAPPED_T>>(*this); }
+    emp::Ptr<Organism> Clone() { return emp::NewPtr<OrganismWrapper<WRAPPED_T>>(*this); }
     int Mutate() { emp_assert(false, "No default Mutate() available."); return -1; }
   };
 
