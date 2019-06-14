@@ -28,7 +28,7 @@ namespace mabe {
     Module() : name("") { ; }
     Module(const Module &) = default;
     Module(Module &&) = default;
-    virtual ~Module() { ; }
+    //virtual ~Module() { ; }
 
     const std::string & GetName() const { return name; }
 
