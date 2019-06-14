@@ -1,5 +1,6 @@
-# Auto-generated backups
+# Auto-generated files
 *~
+.vscode
 
 # Prerequisites
 *.d
@@ -34,4 +35,7 @@
 *.out
 *.app
 
+examples/NK
+
+source/core/Modules.h
 source/core/Organism.h
