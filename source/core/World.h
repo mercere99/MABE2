@@ -29,15 +29,22 @@ namespace mabe {
   private:
     std::string name;
 
-    emp::vector<mabe::Population> pops;
+    emp::vector<emp::Ptr<Population>> pops;
     emp::vector<emp::Ptr<ModuleEvaluate>> evals;
     emp::vector<emp::Ptr<ModuleSelect>> selects;
 
   public:
     World(const std::string & in_name) : name(in_name) { ; }
-    World(const World &) = default;
+    World(const World & in_world) : pops(in_world.pops.size())
+                                  , evals(in_world.evals.size())
+                                  , selects(in_world.selects.size()) {
+      for (size_t i = 0; i < pops.size(); i++) pops[i] = emp::NewPtr<Population>(*in_world.pops[i]);
+      for (size_t i = 0; i < evals.size(); i++) evals[i] = in_world.evals[i]->Clone();
+      for (size_t i = 0; i < selects.size(); i++) selects[i] = in_world.selects[i]->Clone();
+    }
     World(World &&) = default;
     ~World() {
+      for (auto x : pops) x.Delete();
       for (auto x : evals) x.Delete();
       for (auto x : selects) x.Delete();
     }
@@ -45,19 +52,19 @@ namespace mabe {
     const std::string & GetName() const { return name; }
     
     int GetPopID(const std::string & pop_name) const {
-      return emp::FindEval(pops, [pop_name](auto p){ return p.GetName() == pop_name; });
+      return emp::FindEval(pops, [pop_name](const auto & p){ return p->GetName() == pop_name; });
     }
     int GetEvalID(const std::string & e_name) const {
-      return emp::FindEval(evals, [e_name](auto e){ return e->GetName() == e_name; });
+      return emp::FindEval(evals, [e_name](const auto & e){ return e->GetName() == e_name; });
     }
     int GetSelectID(const std::string & s_name) const {
-      return emp::FindEval(selects, [s_name](auto s){ return s->GetName() == s_name; });
+      return emp::FindEval(selects, [s_name](const auto & s){ return s->GetName() == s_name; });
     }
 
-    const Population & GetPopulation(int id) const { return pops[(size_t) id]; }
+    const Population & GetPopulation(int id) const { return *pops[(size_t) id]; }
     const ModuleEvaluate & GetModuleEvaluate(int id) const { return *evals[(size_t) id]; }
     const ModuleSelect & GetModuleSelect(int id) const { return *selects[(size_t) id]; }
-    Population & GetPopulation(int id) { return pops[(size_t) id]; }
+    Population & GetPopulation(int id) { return *pops[(size_t) id]; }
     ModuleEvaluate & GetModuleEvaluate(int id) { return *evals[(size_t) id]; }
     ModuleSelect & GetModuleSelect(int id) { return *selects[(size_t) id]; }
   };
