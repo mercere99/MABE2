@@ -50,18 +50,24 @@ namespace mabe {
   };
 
   concept ModuleEvaluateWrapper : ModuleEvaluate {
-    bool Setup(MABE &) = 0;
-    void Update(MABE &) = 0;
+    bool Setup(MABE &) { /* By default, assume no setup needed. */ return false; };
+    bool Update(MABE &) { /* By default, do nothing at update. */ return false; };
+
+    emp::Ptr<ModuleEvaluate> Clone() { return emp::NewPtr<ModuleEvaluateWrapper<WRAPPED_T>>(*this); }
   };
 
   concept ModuleSelectWrapper : ModuleSelect {
-    bool Setup(MABE &) = 0;
-    void Update(MABE &) = 0;
+    bool Setup(MABE &) { /* By default, assume no setup needed. */ return false; };
+    bool Update(MABE &) { /* By default, do nothing at update. */ return false; };
+
+    emp::Ptr<ModuleSelect> Clone() { return emp::NewPtr<ModuleSelectWrapper<WRAPPED_T>>(*this); }
   };
 
   concept ModuleAnalyzeWrapper : ModuleAnalyze {
-    bool Setup(MABE &) = 0;
-    void Update(MABE &) = 0;
+    bool Setup(MABE &) { /* By default, assume no setup needed. */ return false; };
+    bool Update(MABE &) { /* By default, do nothing at update. */ return false; };
+
+    emp::Ptr<ModuleAnalyze> Clone() { return emp::NewPtr<ModuleAnalyzeWrapper<WRAPPED_T>>(*this); }
   };
 
 }
