@@ -7,14 +7,28 @@
  *  @brief MABE Evaluation module for NK Landscapes
  */
 
-#include "../tools/NK.h"
-
 #ifndef MABE_EVAL_NK_H
 #define MABE_EVAL_NK_H
 
-class EvalNK {
-private:
-public:
-};
+#include "../tools/NK.h"
+
+namespace mabe {
+
+  class EvalNK {
+  private:
+    size_t N;
+    size_t K;
+    NKLandscape landscape;
+
+  public:
+    EvalNK(size_t _N, size_t _K) : N(_N), K(_K) { }
+    ~EvalNK() { }
+
+    void Config(size_t _N, size_t _K) {
+
+    }
+  };
+
+}
 
 #endif
