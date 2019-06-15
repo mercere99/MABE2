@@ -45,14 +45,19 @@ namespace mabe {
       for (auto [name,org_type] : org_types) org_type.Delete();
     }
 
-    // --- Deal with World management.
+    // --- Basic accessors ---
+
+    emp::Random & GetRandom() { return random; }
+
+
+    // --- Deal with World management ---
 
     size_t GetNumWorlds() const { return worlds.size(); }
 
     /// Add a new world with a specific name, make it current, and return its ID.
     int AddWorld(const std::string & name) {
       cur_world = (int) worlds.size();
-      worlds.push_back( emp::NewPtr<mabe::World>(name, *this) );
+      worlds.push_back( emp::NewPtr<mabe::World>(name, *this, random) );
       return cur_world;
     }
 
@@ -103,6 +108,18 @@ namespace mabe {
       }
       return *(it->second);
     }
+
+    // --- Forward module management to current world ---
+    template <typename MOD_T, typename... ARGS>
+    auto & AddEvalModule(ARGS &&... args) {
+      return GetWorld().AddEvalModule<MOD_T>(std::forward<ARGS>(args)...);
+    }
+
+    template <typename MOD_T, typename... ARGS>
+    auto & AddSelectModule(ARGS &&... args) {
+      return GetWorld().AddSelectModule<MOD_T>(std::forward<ARGS>(args)...);
+    }
+
   };
 
 }
