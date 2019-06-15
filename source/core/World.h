@@ -25,6 +25,8 @@
 
 namespace mabe {
 
+  class MABE;
+
   class World {
   private:
     std::string name;
@@ -33,11 +35,13 @@ namespace mabe {
     emp::vector<emp::Ptr<ModuleEvaluate>> evals;
     emp::vector<emp::Ptr<ModuleSelect>> selects;
 
+    emp::Ptr<MABE> mabe_ptr;
   public:
-    World(const std::string & in_name) : name(in_name) { ; }
+    World(const std::string & in_name, MABE & mabe) : name(in_name), mabe_ptr(&mabe) { ; }
     World(const World & in_world) : pops(in_world.pops.size())
                                   , evals(in_world.evals.size())
-                                  , selects(in_world.selects.size()) {
+                                  , selects(in_world.selects.size())
+                                  , mabe_ptr(in_world.mabe_ptr) {
       for (size_t i = 0; i < pops.size(); i++) pops[i] = emp::NewPtr<Population>(*in_world.pops[i]);
       for (size_t i = 0; i < evals.size(); i++) evals[i] = in_world.evals[i]->Clone();
       for (size_t i = 0; i < selects.size(); i++) selects[i] = in_world.selects[i]->Clone();
@@ -67,6 +71,8 @@ namespace mabe {
     Population & GetPopulation(int id) { return *pops[(size_t) id]; }
     ModuleEvaluate & GetModuleEvaluate(int id) { return *evals[(size_t) id]; }
     ModuleSelect & GetModuleSelect(int id) { return *selects[(size_t) id]; }
+
+    MABE & GetMABE() { return *mabe_ptr; }
   };
 
 }
