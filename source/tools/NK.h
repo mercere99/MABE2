@@ -16,8 +16,8 @@
  *    Based on K value, we should be able to do this automatically, so we could merge the two.
  */
 
-#ifndef EMP_EVO_NK_H
-#define EMP_EVO_NK_H
+#ifndef MABE_TOOL_NK_H
+#define MABE_TOOL_NK_H
 
 #include "base/vector.h"
 #include "tools/BitVector.h"
@@ -25,7 +25,7 @@
 #include "tools/memo_function.h"
 #include "tools/Random.h"
 
-namespace emp {
+namespace mabe {
 
   /// An NK Landscape is a popular tool for studying theoretical questions about evolutionary
   /// dynamics. It is a randomly generated fitness landscape on which bitstrings can evolve.
@@ -123,7 +123,7 @@ namespace emp {
     }
 
     /// Get the fitness of a whole bitstring (pass by value so can be modified.)
-    double GetFitness(BitVector genome) const {
+    double GetFitness(emp::BitVector genome) const {
       emp_assert(genome.GetSize() == N, genome.GetSize(), N);
 
       // Use a double-length genome to easily handle wrap-around.
@@ -142,7 +142,7 @@ namespace emp {
 
     void SetState(size_t n, size_t state, double in_fit) { landscape[n][state] = in_fit; }
 
-    void RandomizeStates(Random & random, size_t num_states=1) {
+    void RandomizeStates(emp::Random & random, size_t num_states=1) {
       for (size_t i = 0; i < num_states; i++) {
         SetState(random.GetUInt(N), random.GetUInt(state_count), random.GetDouble());
       }
@@ -158,8 +158,8 @@ namespace emp {
   private:
     const size_t N;
     const size_t K;
-    mutable emp::vector< emp::memo_function<double(const BitVector &)> > landscape;
-    emp::vector<BitVector> masks;
+    mutable emp::vector< emp::memo_function<double(const emp::BitVector &)> > landscape;
+    emp::vector<emp::BitVector> masks;
 
   public:
     NKLandscapeMemo() = delete;
@@ -171,7 +171,7 @@ namespace emp {
       // Each position in the landscape...
       for (size_t n = 0; n < N; n++) {
         // ...should have its own memo_function
-        landscape[n] = [&random](const BitVector &){ return random.GetDouble(); };
+        landscape[n] = [&random](const emp::BitVector &){ return random.GetDouble(); };
         // ...and its own mask.
         masks[n].Resize(N);
         for (size_t k = 0; k < K; k++) masks[n][(n+k)%N] = 1;
@@ -184,11 +184,11 @@ namespace emp {
     size_t GetN() const { return N; }
     size_t GetK() const { return K; }
 
-    double GetFitness(size_t n, const BitVector & state) const {
+    double GetFitness(size_t n, const emp::BitVector & state) const {
       emp_assert(state == (state & masks[n]));
       return landscape[n](state);
     }
-    double GetFitness(const BitVector & genome) const {
+    double GetFitness(const emp::BitVector & genome) const {
       emp_assert(genome.GetSize() == N);
 
       // Otherwise calculate it.
