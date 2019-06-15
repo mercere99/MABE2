@@ -36,12 +36,15 @@ namespace mabe {
     emp::vector<emp::Ptr<ModuleSelect>> selects;
 
     emp::Ptr<MABE> mabe_ptr;
+    emp::Random & random;
   public:
-    World(const std::string & in_name, MABE & mabe) : name(in_name), mabe_ptr(&mabe) { ; }
+    World(const std::string & in_name, MABE & mabe, emp::Random & in_random)
+      : name(in_name), mabe_ptr(&mabe), random(in_random) { ; }
     World(const World & in_world) : pops(in_world.pops.size())
                                   , evals(in_world.evals.size())
                                   , selects(in_world.selects.size())
-                                  , mabe_ptr(in_world.mabe_ptr) {
+                                  , mabe_ptr(in_world.mabe_ptr)
+                                  , random(in_world.random) {
       for (size_t i = 0; i < pops.size(); i++) pops[i] = emp::NewPtr<Population>(*in_world.pops[i]);
       for (size_t i = 0; i < evals.size(); i++) evals[i] = in_world.evals[i]->Clone();
       for (size_t i = 0; i < selects.size(); i++) selects[i] = in_world.selects[i]->Clone();
@@ -73,6 +76,23 @@ namespace mabe {
     ModuleSelect & GetModuleSelect(int id) { return *selects[(size_t) id]; }
 
     MABE & GetMABE() { return *mabe_ptr; }
+
+    // --- Setup new modules ---
+    template <typename MOD_T, typename... ARGS>
+    auto & AddEvalModule(ARGS &&... args) {
+      using mod_t = ModuleEvaluateWrapper<MOD_T>;
+      auto eval_ptr = emp::NewPtr<mod_t>(std::forward<ARGS>(args)...);
+      evals.push_back(eval_ptr);
+      return *eval_ptr;
+    }
+
+    template <typename MOD_T, typename... ARGS>
+    auto & AddSelectModule(ARGS &&... args) {
+      using mod_t = ModuleSelectWrapper<MOD_T>;
+      auto select_ptr = emp::NewPtr<mod_t>(std::forward<ARGS>(args)...);
+      selects.push_back(select_ptr);
+      return *select_ptr;
+    }
   };
 
 }
