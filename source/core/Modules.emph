@@ -51,14 +51,14 @@ namespace mabe {
   };
 
   concept ModuleEvaluateWrapper : ModuleEvaluate {
-    bool Setup(mabe::World &) { /* By default, assume no setup needed. */ return false; }
+    bool Setup(mabe::World & world) { /* By default, assume no setup needed. */ return false; }
     bool Update() { /* By default, do nothing at update. */ return false; }
 
     emp::Ptr<ModuleEvaluate> Clone() { return emp::NewPtr<ModuleEvaluateWrapper<WRAPPED_T>>(*this); }
   };
 
   concept ModuleSelectWrapper : ModuleSelect {
-    bool Setup(mabe::World &) { /* By default, assume no setup needed. */ return false; }
+    bool Setup(mabe::World & world) { /* By default, assume no setup needed. */ return false; }
     bool Update() { /* By default, do nothing at update. */ return false; }
 
     emp::Ptr<ModuleSelect> Clone() { return emp::NewPtr<ModuleSelectWrapper<WRAPPED_T>>(*this); }
