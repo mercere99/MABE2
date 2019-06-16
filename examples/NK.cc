@@ -15,7 +15,7 @@
 #include "tools/BitVector.h"
 #include "tools/Random.h"
 
-#include "../source/evaluate/NK.h"
+#include "../source/evaluate/EvalNK.h"
 
 EMP_BUILD_CONFIG( NKConfig,
   GROUP(DEFAULT, "Default settings for NK model"),
@@ -44,10 +44,9 @@ int main(int argc, char* argv[])
   [[maybe_unused]] const uint32_t MAX_GENS = config.MAX_GENS();
   [[maybe_unused]] const uint32_t MUT_COUNT = config.MUT_COUNT();
 
-  emp::Random random(config.SEED());
-  emp::NKLandscape landscape(N, K, random);
-
-  mabe::MABE mabe_control;
+  mabe::MABE control;
+  control.AddEvalModule<mabe::EvalNK>(N, K);
+  control.Setup();
 
 /*
   // emp::EAWorld<BitOrg, emp::FitCacheOff> pop(random, "NKWorld");
