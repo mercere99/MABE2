@@ -24,9 +24,9 @@ namespace mabe {
     EvalNK(size_t _N, size_t _K) : N(_N), K(_K) { }
     ~EvalNK() { }
 
-    void Config(size_t _N, size_t _K) {
+    bool Setup(mabe::World & world) { landscape.Config(N, K, world.GetRandom()); return true; }
 
-    }
+    bool Update() { return true; }
   };
 
 }
