@@ -56,11 +56,22 @@ namespace mabe {
       for (auto x : selects) x.Delete();
     }
 
+    // --- Basic Accessors ---
+
     const std::string & GetName() const { return name; }
+    MABE & GetMABE() { return *mabe_ptr; }
+    emp::Random & GetRandom() { return random; }
     
+    // --- Population Management ---
+
     int GetPopID(const std::string & pop_name) const {
       return emp::FindEval(pops, [pop_name](const auto & p){ return p->GetName() == pop_name; });
     }
+    const Population & GetPopulation(int id) const { return *pops[(size_t) id]; }
+    Population & GetPopulation(int id) { return *pops[(size_t) id]; }
+
+    // --- Module Management ---
+
     int GetEvalID(const std::string & e_name) const {
       return emp::FindEval(evals, [e_name](const auto & e){ return e->GetName() == e_name; });
     }
@@ -68,16 +79,20 @@ namespace mabe {
       return emp::FindEval(selects, [s_name](const auto & s){ return s->GetName() == s_name; });
     }
 
-    const Population & GetPopulation(int id) const { return *pops[(size_t) id]; }
     const ModuleEvaluate & GetModuleEvaluate(int id) const { return *evals[(size_t) id]; }
     const ModuleSelect & GetModuleSelect(int id) const { return *selects[(size_t) id]; }
-    Population & GetPopulation(int id) { return *pops[(size_t) id]; }
     ModuleEvaluate & GetModuleEvaluate(int id) { return *evals[(size_t) id]; }
     ModuleSelect & GetModuleSelect(int id) { return *selects[(size_t) id]; }
 
-    MABE & GetMABE() { return *mabe_ptr; }
+    // --- Basic Controls ---
+
+    void Setup() {
+      for (auto x : evals) x->Setup(*this);
+      for (auto x : selects) x->Setup(*this);
+    }
 
     // --- Setup new modules ---
+
     template <typename MOD_T, typename... ARGS>
     auto & AddEvalModule(ARGS &&... args) {
       using mod_t = ModuleEvaluateWrapper<MOD_T>;
