@@ -14,6 +14,8 @@
 #include "../core/Modules.h"
 #include "../tools/NK.h"
 
+#include "tools/reference_vector.h"
+
 namespace mabe {
 
   class EvalNK : public Module {
@@ -21,7 +23,7 @@ namespace mabe {
     size_t N;
     size_t K;
     NKLandscape landscape;
-    emp::vector<emp::Ptr<mabe::Population>> eval_pops;
+    emp::reference_vector<mabe::Population> eval_pops;
 
   public:
     EvalNK(size_t _N, size_t _K) : N(_N), K(_K) { }
@@ -29,7 +31,7 @@ namespace mabe {
 
     /// Add an additional population to evaluate.
     EvalNK & AddPopulation( mabe::Population & in_pop ) {
-      eval_pops.push_back( &in_pop );
+      eval_pops.push_back( in_pop );
       return *this;
     }
 
@@ -38,7 +40,7 @@ namespace mabe {
       landscape.Config(N, K, world.GetRandom());
 
       // If no populations have been identified for evaluation, assume pop 0.
-      if (eval_pops.size() == 0) eval_pops.push_back( &(world.GetPopulation(0)) );
+      if (eval_pops.size() == 0) eval_pops.push_back( world.GetPopulation(0) );
 
       return true;
     }
