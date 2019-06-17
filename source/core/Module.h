@@ -3,12 +3,12 @@
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
  *  @date 2019
  *
- *  @file  Modules.h
- *  @brief Concepts that define all of the modules in MABE.
+ *  @file  Module.h
+ *  @brief Base class for all MABE modules.
  */
 
-#ifndef MABE_MODULES_H
-#define MABE_MODULES_H
+#ifndef MABE_MODULE_H
+#define MABE_MODULE_H
 
 #include <string>
 
@@ -45,39 +45,6 @@ namespace mabe {
 
     virtual void Setup(mabe::World & world) { /* By default, assume no setup needed. */ }
     virtual void Update() { /* By default, do nothing at update. */ }
-  };
-
-  class ModuleEvaluate : public Module {    
-  protected:
-    emp::reference_vector<mabe::Population> populations;  ///< Which population do we need to evaluate?
-
-  public:
-    bool IsEvaluate() const { return false; }
-
-    /// Add an additional population to evaluate.
-    ModuleEvaluate & AddPopulation( mabe::Population & in_pop ) {
-      populations.push_back( in_pop );
-      return *this;
-    }
-
-    void InitSetup(mabe::World & world) final {
-      // If no populations have been identified for evaluation, assume pop 0.
-      if (populations.size() == 0) populations.push_back( world.GetPopulation(0) );
-    }
-  };
-
-  class ModuleSelect : public Module {
-  public:
-    bool IsSelect() const { return false; }
-
-    void InitSetup(mabe::World & world) final { }
-  };
-
-  class ModuleAnalyze : public Module {
-  public:
-    bool IsAnalyze() const { return false; }   
-
-    void InitSetup(mabe::World & world) final { }
   };
 
 }
