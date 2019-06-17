@@ -11,42 +11,28 @@
 #define MABE_EVAL_NK_H
 
 #include "../core/MABE.h"
-#include "../core/Modules.h"
+#include "../core/ModuleEvaluate.h"
 #include "../tools/NK.h"
 
 #include "tools/reference_vector.h"
 
 namespace mabe {
 
-  class EvalNK : public Module {
+  class EvalNK : public ModuleEvaluate {
   private:
     size_t N;
     size_t K;
     NKLandscape landscape;
-    emp::reference_vector<mabe::Population> eval_pops;
 
   public:
     EvalNK(size_t _N, size_t _K) : N(_N), K(_K) { }
     ~EvalNK() { }
 
-    /// Add an additional population to evaluate.
-    EvalNK & AddPopulation( mabe::Population & in_pop ) {
-      eval_pops.push_back( in_pop );
-      return *this;
+    void Setup(mabe::World & world) {
+      landscape.Config(N, K, world.GetRandom());  // Setup the fitness landscape.
     }
 
-    bool Setup(mabe::World & world) {
-      // Setup the fitness landscape.
-      landscape.Config(N, K, world.GetRandom());
-
-      // If no populations have been identified for evaluation, assume pop 0.
-      if (eval_pops.size() == 0) eval_pops.push_back( world.GetPopulation(0) );
-
-      return true;
-    }
-
-    bool Update() {
-      return true;
+    void Update() {
     }
   };
 
