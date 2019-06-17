@@ -32,8 +32,7 @@ namespace mabe {
     std::string name;
 
     emp::vector<emp::Ptr<Population>> pops;
-    emp::vector<emp::Ptr<ModuleEvaluate>> evals;
-    emp::vector<emp::Ptr<ModuleSelect>> selects;
+    emp::vector<emp::Ptr<Module>> modules;
 
     emp::Ptr<MABE> mabe_ptr;
     emp::Random & random;
@@ -41,19 +40,16 @@ namespace mabe {
     World(const std::string & in_name, MABE & mabe, emp::Random & in_random)
       : name(in_name), mabe_ptr(&mabe), random(in_random) { ; }
     World(const World & in_world) : pops(in_world.pops.size())
-                                  , evals(in_world.evals.size())
-                                  , selects(in_world.selects.size())
+                                  , modules(in_world.modules.size())
                                   , mabe_ptr(in_world.mabe_ptr)
                                   , random(in_world.random) {
       for (size_t i = 0; i < pops.size(); i++) pops[i] = emp::NewPtr<Population>(*in_world.pops[i]);
-      for (size_t i = 0; i < evals.size(); i++) evals[i] = in_world.evals[i]->Clone();
-      for (size_t i = 0; i < selects.size(); i++) selects[i] = in_world.selects[i]->Clone();
+      for (size_t i = 0; i < modules.size(); i++) modules[i] = in_world.modules[i]->Clone();
     }
     World(World &&) = default;
     ~World() {
       for (auto x : pops) x.Delete();
-      for (auto x : evals) x.Delete();
-      for (auto x : selects) x.Delete();
+      for (auto x : modules) x.Delete();
     }
 
     // --- Basic Accessors ---
@@ -72,42 +68,26 @@ namespace mabe {
 
     // --- Module Management ---
 
-    int GetEvalID(const std::string & e_name) const {
-      return emp::FindEval(evals, [e_name](const auto & e){ return e->GetName() == e_name; });
-    }
-    int GetSelectID(const std::string & s_name) const {
-      return emp::FindEval(selects, [s_name](const auto & s){ return s->GetName() == s_name; });
+    int GetModuleID(const std::string & mod_name) const {
+      return emp::FindEval(modules, [mod_name](const auto & m){ return m->GetName() == mod_name; });
     }
 
-    const ModuleEvaluate & GetModuleEvaluate(int id) const { return *evals[(size_t) id]; }
-    const ModuleSelect & GetModuleSelect(int id) const { return *selects[(size_t) id]; }
-    ModuleEvaluate & GetModuleEvaluate(int id) { return *evals[(size_t) id]; }
-    ModuleSelect & GetModuleSelect(int id) { return *selects[(size_t) id]; }
+    const Module & GetModule(int id) const { return *modules[(size_t) id]; }
+    Module & GetModule(int id) { return *modules[(size_t) id]; }
+
+    template <typename MOD_T, typename... ARGS>
+    auto & AddModule(ARGS &&... args) {
+      auto mod_ptr = emp::NewPtr<MOD_T>(std::forward<ARGS>(args)...);
+      modules.push_back(mod_ptr);
+      return *mod_ptr;
+    }
 
     // --- Basic Controls ---
 
     void Setup() {
-      for (auto x : evals) x->Setup(*this);
-      for (auto x : selects) x->Setup(*this);
+      for (auto x : modules) x->Setup(*this);
     }
 
-    // --- Setup new modules ---
-
-    template <typename MOD_T, typename... ARGS>
-    auto & AddEvalModule(ARGS &&... args) {
-      using mod_t = ModuleEvaluateWrapper<MOD_T>;
-      auto eval_ptr = emp::NewPtr<mod_t>(std::forward<ARGS>(args)...);
-      evals.push_back(eval_ptr);
-      return *eval_ptr;
-    }
-
-    template <typename MOD_T, typename... ARGS>
-    auto & AddSelectModule(ARGS &&... args) {
-      using mod_t = ModuleSelectWrapper<MOD_T>;
-      auto select_ptr = emp::NewPtr<mod_t>(std::forward<ARGS>(args)...);
-      selects.push_back(select_ptr);
-      return *select_ptr;
-    }
   };
 
 }
