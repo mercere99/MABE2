@@ -38,26 +38,23 @@ namespace mabe {
     virtual bool IsEvaluate() const { return false; }
     virtual bool IsSelect() const { return false; }
     virtual bool IsAnalyze() const { return false; }
+
+    virtual bool Setup(mabe::World & world) { /* By default, assume no setup needed. */ return false; }
+    virtual bool Update() { /* By default, do nothing at update. */ return false; }
   };
 
   class ModuleEvaluate : public Module {    
-    virtual bool Setup(mabe::World & world) { /* By default, assume no setup needed. */ return false; }
-    virtual bool Update() { /* By default, do nothing at update. */ return false; }
-
+  public:
     bool IsEvaluate() const { return false; }
   };
 
   class ModuleSelect : public Module {
-    virtual bool Setup(mabe::World & world) { /* By default, assume no setup needed. */ return false; }
-    virtual bool Update() { /* By default, do nothing at update. */ return false; }
-
+  public:
     bool IsSelect() const { return false; }
   };
 
   class ModuleAnalyze : public Module {
-    virtual bool Setup(MABE &) { /* By default, assume no setup needed. */ return false; }
-    virtual bool Update(MABE &) { /* By default, do nothing at update. */ return false; }
-
+  public:
     bool IsAnalyze() const { return false; }   
   };
 
