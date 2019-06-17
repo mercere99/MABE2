@@ -45,7 +45,7 @@ int main(int argc, char* argv[])
   [[maybe_unused]] const uint32_t MUT_COUNT = config.MUT_COUNT();
 
   mabe::MABE control;
-  control.AddEvalModule<mabe::EvalNK>(N, K);
+  control.AddModule<mabe::EvalNK>(N, K);
   control.Setup();
 
 /*
