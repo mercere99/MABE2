@@ -29,9 +29,11 @@ namespace mabe {
     Module() : name("") { ; }
     Module(const Module &) = default;
     Module(Module &&) = default;
-    //virtual ~Module() { ; }
+    virtual ~Module() { ; }
 
     const std::string & GetName() const { return name; }
+
+    virtual emp::Ptr<Module> Clone() { return nullptr; }
 
     virtual bool IsEvaluate() const { return false; }
     virtual bool IsSelect() const { return false; }
@@ -39,36 +41,24 @@ namespace mabe {
   };
 
   class ModuleEvaluate : public Module {    
+    virtual bool Setup(mabe::World & world) { /* By default, assume no setup needed. */ return false; }
+    virtual bool Update() { /* By default, do nothing at update. */ return false; }
+
     bool IsEvaluate() const { return false; }
   };
 
   class ModuleSelect : public Module {
+    virtual bool Setup(mabe::World & world) { /* By default, assume no setup needed. */ return false; }
+    virtual bool Update() { /* By default, do nothing at update. */ return false; }
+
     bool IsSelect() const { return false; }
   };
 
   class ModuleAnalyze : public Module {
-     bool IsAnalyze() const { return false; }   
-  };
+    virtual bool Setup(MABE &) { /* By default, assume no setup needed. */ return false; }
+    virtual bool Update(MABE &) { /* By default, do nothing at update. */ return false; }
 
-  concept ModuleEvaluateWrapper : ModuleEvaluate {
-    bool Setup(mabe::World & world) { /* By default, assume no setup needed. */ return false; }
-    bool Update() { /* By default, do nothing at update. */ return false; }
-
-    emp::Ptr<ModuleEvaluate> Clone() { return emp::NewPtr<ModuleEvaluateWrapper<WRAPPED_T>>(*this); }
-  };
-
-  concept ModuleSelectWrapper : ModuleSelect {
-    bool Setup(mabe::World & world) { /* By default, assume no setup needed. */ return false; }
-    bool Update() { /* By default, do nothing at update. */ return false; }
-
-    emp::Ptr<ModuleSelect> Clone() { return emp::NewPtr<ModuleSelectWrapper<WRAPPED_T>>(*this); }
-  };
-
-  concept ModuleAnalyzeWrapper : ModuleAnalyze {
-    bool Setup(MABE &) { /* By default, assume no setup needed. */ return false; }
-    bool Update(MABE &) { /* By default, do nothing at update. */ return false; }
-
-    emp::Ptr<ModuleAnalyze> Clone() { return emp::NewPtr<ModuleAnalyzeWrapper<WRAPPED_T>>(*this); }
+    bool IsAnalyze() const { return false; }   
   };
 
 }
