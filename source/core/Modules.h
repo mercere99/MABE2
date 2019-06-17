@@ -14,6 +14,7 @@
 
 #include "base/Ptr.h"
 #include "base/vector.h"
+#include "tools/reference_vector.h"
 #include "tools/vector_utils.h"
 
 namespace mabe {
@@ -39,23 +40,44 @@ namespace mabe {
     virtual bool IsSelect() const { return false; }
     virtual bool IsAnalyze() const { return false; }
 
-    virtual bool Setup(mabe::World & world) { /* By default, assume no setup needed. */ return false; }
-    virtual bool Update() { /* By default, do nothing at update. */ return false; }
+    // Internal, initial setup.
+    virtual void InitSetup(mabe::World & world) = 0;
+
+    virtual void Setup(mabe::World & world) { /* By default, assume no setup needed. */ }
+    virtual void Update() { /* By default, do nothing at update. */ }
   };
 
   class ModuleEvaluate : public Module {    
+  protected:
+    emp::reference_vector<mabe::Population> populations;  ///< Which population do we need to evaluate?
+
   public:
     bool IsEvaluate() const { return false; }
+
+    /// Add an additional population to evaluate.
+    ModuleEvaluate & AddPopulation( mabe::Population & in_pop ) {
+      populations.push_back( in_pop );
+      return *this;
+    }
+
+    void InitSetup(mabe::World & world) final {
+      // If no populations have been identified for evaluation, assume pop 0.
+      if (populations.size() == 0) populations.push_back( world.GetPopulation(0) );
+    }
   };
 
   class ModuleSelect : public Module {
   public:
     bool IsSelect() const { return false; }
+
+    void InitSetup(mabe::World & world) final { }
   };
 
   class ModuleAnalyze : public Module {
   public:
     bool IsAnalyze() const { return false; }   
+
+    void InitSetup(mabe::World & world) final { }
   };
 
 }
