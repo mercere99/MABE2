@@ -49,6 +49,9 @@ namespace mabe {
 
     emp::Random & GetRandom() { return random; }
 
+    // --- Basic Controls ---
+
+    void Setup() { for (emp::Ptr<mabe::World> w : worlds) w->Setup(); }
 
     // --- Deal with World management ---
 
@@ -111,13 +114,8 @@ namespace mabe {
 
     // --- Forward module management to current world ---
     template <typename MOD_T, typename... ARGS>
-    auto & AddEvalModule(ARGS &&... args) {
-      return GetWorld().AddEvalModule<MOD_T>(std::forward<ARGS>(args)...);
-    }
-
-    template <typename MOD_T, typename... ARGS>
-    auto & AddSelectModule(ARGS &&... args) {
-      return GetWorld().AddSelectModule<MOD_T>(std::forward<ARGS>(args)...);
+    auto & AddModule(ARGS &&... args) {
+      return GetWorld().AddModule<MOD_T>(std::forward<ARGS>(args)...);
     }
 
   };
