@@ -9,6 +9,10 @@
  * A WORLD maintains one or more populations or organisms, "evaluate" modules
  * to measure phenotypic traits, and a "select" modules to use those traits to
  * affect/determine the organism's reproductive success.
+ * 
+ * Developer notes:
+ * - Populations are stored in a vector of pointers so that if the vector resizes, the positions
+ *   of the actual populations will not change.
  */
 
 #ifndef MABE_WORLD_H
@@ -21,7 +25,7 @@
 #include "tools/vector_utils.h"
 
 #include "Population.h"
-#include "Modules.h"
+#include "Module.h"
 
 namespace mabe {
 
@@ -85,6 +89,7 @@ namespace mabe {
     // --- Basic Controls ---
 
     void Setup() {
+      for (auto x : modules) x->InitSetup(*this);
       for (auto x : modules) x->Setup(*this);
     }
 
