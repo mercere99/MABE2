@@ -4,7 +4,7 @@
  *  @date 2019
  *
  *  @file  Organism.h
- *  @brief A wrapper for dealing with organisms is a generic manner.
+ *  @brief A base class for all organisms in MABE.
  *  @note Status: PLANNING
  */
 
@@ -15,16 +15,18 @@
 #include "data/VarMap.h"
 #include "tools/string_utils.h"
 
-#include "OrganismType.h"
+class OrgTypeBase;
 
 namespace mabe {
 
   class Organism {
-  private:
+  protected:
     emp::VarMap var_map;
     emp::Ptr<OrgTypeBase> type_ptr;
 
   public:
+    virtual ~Organism() { ; }
+
     OrgTypeBase & GetType() { return *type_ptr; }
     const OrgTypeBase & GetType() const { return *type_ptr; }
 
@@ -36,15 +38,18 @@ namespace mabe {
     void SetVar(const std::string & name, const T & value) {
       var_map.Set(name, value);
     }
-  };
 
-  concept OrganismWrapper : Organism {
-    void MABE_Setup() override { }
+    // --- Functions for overriding ---
 
-    double GetFitness() { return (double) *this; }
-    std::string ToString() { return emp::to_string(*this); }
-    emp::Ptr<Organism> Clone() { return emp::NewPtr<OrganismWrapper<WRAPPED_T>>(*this); }
-    int Mutate() { emp_assert(false, "No default Mutate() available."); return -1; }
+    /// We MUST be able to make a copy of organisms for MABE to function.
+    virtual emp::Ptr<Organism> Clone() = 0;  
+
+    /// If we are going to print organisms (to screen or file) we need to be able to convert
+    /// them to strings.
+    virtual std::string ToString() { return "__unknown__"; }
+
+    /// For evolution to function, we need to be able to mutate offspring.
+    virtual int Mutate() { emp_assert(false, "No default Mutate() available."); return -1; }
   };
 
 }
