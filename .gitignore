@@ -36,6 +36,3 @@
 *.app
 
 examples/NK
-
-source/core/Modules.h
-source/core/Organism.h
