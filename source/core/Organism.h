@@ -5,7 +5,7 @@
  *
  *  @file  Organism.h
  *  @brief A base class for all organisms in MABE.
- *  @note Status: PLANNING
+ *  @note Status: ALPHA
  */
 
 #ifndef MABE_ORGANISM_H
@@ -21,8 +21,8 @@ namespace mabe {
 
   class Organism {
   protected:
-    emp::VarMap var_map;
-    emp::Ptr<OrgTypeBase> type_ptr;
+    emp::VarMap var_map;             ///< Map of all dynamic variables assigned to an organism.
+    emp::Ptr<OrgTypeBase> type_ptr;  ///< Pointer the the specific organism type.
 
   public:
     virtual ~Organism() { ; }
@@ -50,6 +50,12 @@ namespace mabe {
 
     /// For evolution to function, we need to be able to mutate offspring.
     virtual int Mutate() { emp_assert(false, "No default Mutate() available."); return -1; }
+
+    /// Generate an output and place it in the VarMap under the provided name (default = "result").
+    virtual size_t GenerateOutput(const std::string & output_name="result") {
+      (void) output_name;
+      return 0;
+    }
   };
 
 }
