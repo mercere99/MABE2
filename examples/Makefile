@@ -62,6 +62,9 @@ clean:
 	rm -rf debug-* *~ *.dSYM $(TARGETS)
 	rm -rf debug-* *~ *.dSYM $(JS_TARGETS)
 
+new: clean
+new: native
+
 # Debugging information
 #print-%: ; @echo $*=$($*)
 print-%: ; @echo '$(subst ','\'',$*=$($*))'
