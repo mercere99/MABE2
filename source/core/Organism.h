@@ -13,6 +13,7 @@
 
 #include "base/assert.h"
 #include "data/VarMap.h"
+#include "meta/TypeID.h"
 #include "tools/string_utils.h"
 
 class OrgTypeBase;
@@ -52,10 +53,12 @@ namespace mabe {
     virtual int Mutate() { emp_assert(false, "No default Mutate() available."); return -1; }
 
     /// Generate an output and place it in the VarMap under the provided name (default = "result").
-    virtual size_t GenerateOutput(const std::string & output_name="result") {
-      (void) output_name;
-      return 0;
-    }
+    /// Arguments are the output name int he VarMap and the output ID.
+    virtual void GenerateOutput(const std::string & ="result", size_t=0) { }
+
+    /// Request output type (multiple types are possible); default to unknown.
+    /// Argument is the output ID.
+    virtual emp::TypeID GetOutputType(size_t=0) { return emp::TypeID(); }
   };
 
 }
