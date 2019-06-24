@@ -37,6 +37,14 @@ namespace mabe {
     /// Don't do mutations unless a mutate function has been set.
     int Mutate() { emp_assert(false, "No default Mutate() available."); return -1; }
 
+    /// A direct encoding always uses itself as the output.
+    void GenerateOutput(const std::string & output_name="result", size_t=0) {
+      var_map.SetVar<T>(output_name, data);
+    }
+
+    /// Request output type (multiple types are possible); default to unknown.
+    /// Argument is the output ID.
+    virtual emp::TypeID GetOutputType(size_t=0) { return emp::GetTypeID<T>(); }
   };
 
 }
