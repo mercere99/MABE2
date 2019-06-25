@@ -24,15 +24,17 @@ namespace mabe {
 
   class Population {
   private:
-    std::string name;
-    emp::vector<emp::Ptr<Organism>> orgs;
+    std::string name;                      ///< Unique name for this population.
+    int id;                                ///< Position in world of this population.
+    emp::vector<emp::Ptr<Organism>> orgs;  ///< Info on all organisms in this population.
+
   public:
     class Position {
       emp::Ptr<Population> pop_ptr;
       size_t pos;
     };
 
-    Population(const std::string & in_name) : name(in_name) { }
+    Population(const std::string & in_name, int in_id=0) : name(in_name), id(in_id) { }
     Population(const Population & in_pop) : name(in_pop.name + "_copy"), orgs(in_pop.orgs.size()) {
       for (size_t i = 0; i < orgs.size(); i++) {
         orgs[i] = in_pop.orgs[i]->Clone();
@@ -42,7 +44,10 @@ namespace mabe {
 
     ~Population() { for (auto x : orgs) x.Delete(); }
 
-    const std::string & GetName() const { return name; }
+    const std::string & GetName() const noexcept { return name; }
+    int GetID() const noexcept { return id; }
+
+    void SetID(int in_id) noexcept { id = in_id; }
   };
 
 }
