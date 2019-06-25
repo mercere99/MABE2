@@ -16,7 +16,7 @@
 #include "meta/TypeID.h"
 #include "tools/string_utils.h"
 
-class OrganismType;
+#include "OrganismType.h"
 
 namespace mabe {
 
