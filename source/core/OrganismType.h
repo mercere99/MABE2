@@ -32,24 +32,45 @@ namespace mabe {
 
     const std::string & GetName() const { return name; }
 
+    // --== Functions to manipulate organisms ==--
+    virtual emp::Ptr<Organism> MakeOrganism(emp::Random &) = 0;
     virtual size_t MutateOrg(Organism &, emp::Random &) = 0;
     virtual std::ostream & PrintOrg(Organism &, std::ostream &) = 0;
     virtual bool Randomize(Organism &, emp::Random &) = 0;
   };
 
+  /// An single type of organism that can have many of its qualities manipulated (and will modify
+  /// all organisms of this type.)
+  /// NOTE: ORG_T must be derived from mabe::Organism.  When we update to C++20, we can enforce
+  ///       this requirement using concepts.
   template <typename ORG_T>
   class OrganismType : public OrgTypeBase {
   private:
-    /// Function to mutate this type of organism.
+    // --== Current versions of user-controled functions to manipulate organisms ==--
+    std::function<emp::Ptr<Organism>(emp::Random & random)> make_org_fun;
     std::function<size_t(ORG_T &, emp::Random & random)> mut_fun;
     std::function<std::ostream & (ORG_T &, std::ostream &)> print_fun;
     std::function<bool(ORG_T &, emp::Random & random)> randomize_fun;
 
   public:
     OrganismType(const std::string & in_name) : OrgTypeBase(in_name) {
+      /// --== Initial versions of user-defined functions ==--
+      make_org_fun = [](emp::Random & random){
+                       auto org = emp::NewPtr<ORG_T>();
+                       org->Randomize();
+                       return org;
+                     };
       mut_fun = [](ORG_T & org, emp::Random & random){ return org.Mutate(random); };
       print_fun = [](ORG_T & org, std::ostream & os){ os << org.ToString(); };
       randomize_fun = [](ORG_T & org, emp::Random & random){ return org.Randomize(random); };
+    }
+
+    emp::Ptr<Organism> MakeOrg(emp::Random & random) {
+      emp_assert(org.GetType() == this);
+      return make_org_fun(random);
+    }
+    void SetMakeOrgFun(std::function<emp::Ptr<Organism>(emp::Random &)> & in_fun) {
+      mut_fun = in_fun;
     }
 
     size_t MutateOrg(Organism & org, emp::Random & random) {
@@ -76,6 +97,7 @@ namespace mabe {
     void SetRandomizeFun(std::function<size_t(ORG_T &, emp::Random &)> & in_fun) {
       mut_fun = in_fun;
     }
+
   };
 
 }
