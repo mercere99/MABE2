@@ -14,6 +14,7 @@
 #include <iostream>
 
 #include "base/unordered_map.h"
+#include "data/VarMap.h"
 #include "tools/Random.h"
 
 namespace mabe {
@@ -32,7 +33,8 @@ namespace mabe {
     const std::string & GetName() const { return name; }
 
     virtual size_t MutateOrg(Organism &, emp::Random &) = 0;
-    virtual void PrintOrg(Organism &, std::ostream &) = 0;
+    virtual std::ostream & PrintOrg(Organism &, std::ostream &) = 0;
+    virtual bool Randomize(Organism &, emp::Random &) = 0;
   };
 
   template <typename ORG_T>
@@ -40,12 +42,14 @@ namespace mabe {
   private:
     /// Function to mutate this type of organism.
     std::function<size_t(ORG_T &, emp::Random & random)> mut_fun;
-    std::function<void(ORG_T &, std::ostream &)> print_fun;
+    std::function<std::ostream & (ORG_T &, std::ostream &)> print_fun;
+    std::function<bool(ORG_T &, emp::Random & random)> randomize_fun;
 
   public:
     OrganismType(const std::string & in_name) : OrgTypeBase(in_name) {
-      mut_fun = [](ORG_T &, emp::Random &){ return 0; }; // No mutation function setup!
+      mut_fun = [](ORG_T & org, emp::Random & random){ return org.Mutate(random); };
       print_fun = [](ORG_T & org, std::ostream & os){ os << org.ToString(); };
+      randomize_fun = [](ORG_T & org, emp::Random & random){ return org.Randomize(random); };
     }
 
     size_t MutateOrg(Organism & org, emp::Random & random) {
@@ -56,12 +60,21 @@ namespace mabe {
       mut_fun = in_fun;
     }
 
-    size_t PrintOrg(Organism & org, std::ostream & os) {
+    std::ostream & PrintOrg(Organism & org, std::ostream & os) {
       emp_assert(org.GetType() == this);
-      return print_fun(((ORG_T &) org, os);
+      print_fun((ORG_T &) org, os);
+      return os;
     }
     void SetPrintFun(std::function<void(ORG_T &, std::ostream &)> & in_fun) {
       print_fun = in_fun;
+    }
+
+    size_t RandomizeOrg(Organism & org, emp::Random & random) {
+      emp_assert(org.GetType() == this);
+      return randomize_fun((ORG_T &) org, random);
+    }
+    void SetRandomizeFun(std::function<size_t(ORG_T &, emp::Random &)> & in_fun) {
+      mut_fun = in_fun;
     }
   };
 
