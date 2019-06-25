@@ -89,7 +89,7 @@ namespace mabe {
     // --- Basic Controls ---
 
     void Setup() {
-      for (auto x : modules) x->InitSetup(*this);
+      for (auto x : modules) x->InternalSetup(*this);
       for (auto x : modules) x->Setup(*this);
     }
 

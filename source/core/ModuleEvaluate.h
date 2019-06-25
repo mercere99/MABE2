@@ -30,7 +30,7 @@ namespace mabe {
       return *this;
     }
 
-    void InitSetup(mabe::World & world) final {
+    void InternalSetup(mabe::World & world) final {
       // If no populations have been identified for evaluation, assume pop 0.
       if (populations.size() == 0) populations.push_back( world.GetPopulation(0) );
     }

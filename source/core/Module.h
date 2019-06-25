@@ -41,7 +41,7 @@ namespace mabe {
     virtual bool IsAnalyze() const { return false; }
 
     // Internal, initial setup.
-    virtual void InitSetup(mabe::World & world) = 0;
+    virtual void InternalSetup(mabe::World & world) = 0;
 
     virtual void Setup(mabe::World & world) { /* By default, assume no setup needed. */ }
     virtual void Update() { /* By default, do nothing at update. */ }

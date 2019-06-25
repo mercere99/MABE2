@@ -21,7 +21,7 @@ namespace mabe {
   public:
     bool IsAnalyze() const { return false; }   
 
-    void InitSetup(mabe::World & world) final { }
+    void InternalSetup(mabe::World & world) final { }
   };
 
 }
