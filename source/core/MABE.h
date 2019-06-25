@@ -31,7 +31,7 @@ namespace mabe {
 
     /// Collect all organism types from all words.  Organism types have distinct
     /// names and can be manipulated as a whole.
-    emp::unordered_map<std::string, emp::Ptr<OrgTypeBase>> org_types;
+    emp::unordered_map<std::string, emp::Ptr<OrganismType>> org_types;
 
     /// Maintain a master random number generator (which may seed others).
     emp::Random random;
@@ -96,16 +96,16 @@ namespace mabe {
 
     // --- Deal with Organism Type ---
 
-    OrgTypeBase & GetOrgTypeBase(const std::string & type_name) {
+    OrganismType & GetOrganismType(const std::string & type_name) {
       emp_assert(emp::Has(org_types, type_name)); // An org type must be created before base retrieved.
       return *(org_types[type_name]);
     }
 
     template <typename ORG_T>
-    OrganismType<ORG_T> & GetOrganismType(const std::string type_name) {
+    OrganismWrapper<ORG_T> & GetOrganismWrapper(const std::string type_name) {
       auto it = org_types.find(type_name);
       if (it == org_types.end()) {
-        auto new_type = emp::NewPtr<OrganismType<ORG_T>>(type_name);
+        auto new_type = emp::NewPtr<OrganismWrapper<ORG_T>>(type_name);
         org_types[type_name] = new_type;
         return *new_type;
       }

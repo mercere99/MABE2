@@ -3,7 +3,7 @@
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
  *  @date 2019
  *
- *  @file  OrganismType.h
+ *  @file  OrganismWrapper.h
  *  @brief Details about how a specific type of organism should function.
  */
 
@@ -21,14 +21,14 @@ namespace mabe {
 
   class Organism;
 
-  class OrgTypeBase {
+  class OrganismType {
   private:
     std::string name;     ///< Name used for this type of organisms.
     emp::VarMap var_map;  ///< Map of run-time values associated with this organism type.
 
   public:
-    OrgTypeBase(const std::string & in_name) : name(in_name) { ; }
-    virtual ~OrgTypeBase() { ; }
+    OrganismType(const std::string & in_name) : name(in_name) { ; }
+    virtual ~OrganismType() { ; }
 
     const std::string & GetName() const { return name; }
 
@@ -44,7 +44,7 @@ namespace mabe {
   /// NOTE: ORG_T must be derived from mabe::Organism.  When we update to C++20, we can enforce
   ///       this requirement using concepts.
   template <typename ORG_T>
-  class OrganismType : public OrgTypeBase {
+  class OrganismWrapper : public OrganismType {
   private:
     // --== Current versions of user-controled functions to manipulate organisms ==--
     std::function<emp::Ptr<Organism>(emp::Random & random)> make_org_fun;
@@ -53,7 +53,7 @@ namespace mabe {
     std::function<bool(ORG_T &, emp::Random & random)> randomize_fun;
 
   public:
-    OrganismType(const std::string & in_name) : OrgTypeBase(in_name) {
+    OrganismWrapper(const std::string & in_name) : OrganismType(in_name) {
       /// --== Initial versions of user-defined functions ==--
       make_org_fun = [](emp::Random & random){
                        auto org = emp::NewPtr<ORG_T>();
@@ -66,7 +66,6 @@ namespace mabe {
     }
 
     emp::Ptr<Organism> MakeOrg(emp::Random & random) {
-      emp_assert(org.GetType() == this);
       return make_org_fun(random);
     }
     void SetMakeOrgFun(std::function<emp::Ptr<Organism>(emp::Random &)> & in_fun) {

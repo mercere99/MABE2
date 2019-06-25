@@ -16,20 +16,20 @@
 #include "meta/TypeID.h"
 #include "tools/string_utils.h"
 
-class OrgTypeBase;
+class OrganismType;
 
 namespace mabe {
 
   class Organism {
   protected:
     emp::VarMap var_map;             ///< Map of all dynamic variables assigned to an organism.
-    emp::Ptr<OrgTypeBase> type_ptr;  ///< Pointer the the specific organism type.
+    emp::Ptr<OrganismType> type_ptr;  ///< Pointer the the specific organism type.
 
   public:
     virtual ~Organism() { ; }
 
-    OrgTypeBase & GetType() { return *type_ptr; }
-    const OrgTypeBase & GetType() const { return *type_ptr; }
+    OrganismType & GetType() { return *type_ptr; }
+    const OrganismType & GetType() const { return *type_ptr; }
 
     bool HasVar(const std::string & name) const { return var_map.Has(name); }
     template <typename T> T & GetVar(const std::string & name) { return var_map.Get<T>(name); }
