@@ -50,7 +50,10 @@ namespace mabe {
     virtual std::string ToString() { return "__unknown__"; }
 
     /// For evolution to function, we need to be able to mutate offspring.
-    virtual int Mutate() { emp_assert(false, "No default Mutate() available."); return -1; }
+    virtual int Mutate(emp::Random &) { emp_assert(false, "No default Mutate() available."); return -1; }
+
+    /// Completely randomize a new organism (typically for initialization)
+    virtual int Randomize(emp::Random &) { emp_assert(false, "No default Randomize() available."); return -1; }
 
     /// Generate an output and place it in the VarMap under the provided name (default = "result").
     /// Arguments are the output name int he VarMap and the output ID.
