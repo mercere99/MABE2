@@ -69,6 +69,11 @@ namespace mabe {
     }
     const Population & GetPopulation(int id) const { return *pops[(size_t) id]; }
     Population & GetPopulation(int id) { return *pops[(size_t) id]; }
+    int AddPopulation(const std::string & name) {
+      int pop_id = (int) pops.size();
+      pops.push_back( emp::NewPtr<Population>(name, pop_id) );
+      return pop_id;
+    }
 
     // --- Module Management ---
 
@@ -89,7 +94,13 @@ namespace mabe {
     // --- Basic Controls ---
 
     void Setup() {
+      // If no populations have been manually setup, make sure we have at least one.
+      if (pops.size() == 0) AddPopulation("main");
+
+      // Allow the module base classes to do any coordinating they need to.
       for (auto x : modules) x->InternalSetup(*this);
+
+      // Allow the user-defined module Setup() member functions run.
       for (auto x : modules) x->Setup(*this);
     }
 
