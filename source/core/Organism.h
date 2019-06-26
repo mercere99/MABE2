@@ -26,10 +26,11 @@ namespace mabe {
     emp::Ptr<OrganismType> type_ptr;  ///< Pointer the the specific organism type.
 
   public:
+    Organism() : type_ptr(nullptr) { ; }
     virtual ~Organism() { ; }
 
-    OrganismType & GetType() { return *type_ptr; }
-    const OrganismType & GetType() const { return *type_ptr; }
+    OrganismType & GetType() { emp_assert(type_ptr); return *type_ptr; }
+    const OrganismType & GetType() const { emp_assert(type_ptr); return *type_ptr; }
 
     bool HasVar(const std::string & name) const { return var_map.Has(name); }
     template <typename T> T & GetVar(const std::string & name) { return var_map.Get<T>(name); }
@@ -39,6 +40,9 @@ namespace mabe {
     void SetVar(const std::string & name, const T & value) {
       var_map.Set(name, value);
     }
+
+    /// Test if this organism represents an empy cell.
+    virtual bool IsEmpty() const noexcept { return false; }
 
     // --- Functions for overriding ---
 
