@@ -38,7 +38,9 @@ namespace mabe {
     std::string name;                      ///< Unique name for this population.
     int id;                                ///< Position in world of this population.
     emp::vector<emp::Ptr<Organism>> orgs;  ///< Info on all organisms in this population.
-    EmptyOrganism empty_org;               ///< Organism to fill in empty cells.
+    bool skip_empty;                       ///< When iterating, should we skip over empty cells?
+
+    EmptyOrganism empty_org;               ///< Organism to fill in empty cells (does have data map!)
 
   public:
     class Iterator {
@@ -131,6 +133,93 @@ namespace mabe {
       const Iterator end() const { return Iterator(pop_ptr, PopSize(), skip_empty); }
     };
 
+    class ConstIterator {
+    private:
+      emp::Ptr<const Population> pop_ptr;
+      size_t pos;
+      bool skip_empty;
+
+    public:
+      ConstIterator(emp::Ptr<const Population> _pop, size_t _pos=0, bool _skip=true)
+        : pop_ptr(_pop), pos(_pos), skip_empty(_skip) { if (skip_empty) ToOccupied(); }
+      ConstIterator(const ConstIterator &) = default;
+      ConstIterator & operator=(const ConstIterator &) = default;
+
+      // Shortcuts to retrieve information from the POPULATION.
+      const std::string & PopName() const { emp_assert(pop_ptr); return pop_ptr->name; }
+      int PopID() const { emp_assert(pop_ptr); return pop_ptr->id; }
+      size_t PopSize() const { emp_assert(pop_ptr); return pop_ptr->orgs.size(); }
+      emp::Ptr<const Organism> OrgPtr() const { emp_assert(pop_ptr); return pop_ptr->orgs[pos]; }
+
+      // Other information about this Constiterator.
+      size_t Pos() const noexcept { return pos; };
+      bool SkipEmpty() const noexcept { return skip_empty; };
+
+      void Pos(size_t in) { pos = in; }
+      void SkipEmpty(bool in) { skip_empty = in; if (skip_empty) ToOccupied(); }
+
+      /// Is the pointed-to cell occupied?
+      bool IsValid() const { return pos < PopSize(); }
+      bool IsEmpty() const { return IsValid() && OrgPtr()->IsEmpty(); }
+      bool IsOccupied() const { return IsValid() && !OrgPtr()->IsEmpty(); }
+
+      /// If on empty cell, advance Constiterator to next non-null position (or the end)
+      void ToOccupied() { while (pos < PopSize() && OrgPtr()->IsEmpty()) ++pos; }
+
+      /// Move to the first empty cell after 'start'.
+      void ToOccupied(size_t start) { pos = start; ToOccupied(); }
+
+      /// Advance Constiterator to the next non-empty cell in the world.
+      ConstIterator & operator++() {
+        ++pos;
+        if (skip_empty) ToOccupied();
+        return *this;
+      }
+
+      /// Backup Constiterator to the previos non-empty cell in the world.
+      ConstIterator & operator--() {
+        --pos;
+        if (skip_empty) {
+          while (pos < PopSize() && OrgPtr()->IsEmpty()) --pos;
+        }
+        return *this;
+      }
+
+      /// ConstIterator comparisons (Constiterators from different populations have no ordinal relationship).
+      bool operator==(const ConstIterator& in) const { return pop_ptr == in.pop_ptr && pos == in.pos; }
+      bool operator!=(const ConstIterator& in) const { return pop_ptr != in.pop_ptr || pos != in.pos; }
+      bool operator< (const ConstIterator& in) const { return pop_ptr == in.pop_ptr && pos <  in.pos; }
+      bool operator<=(const ConstIterator& in) const { return pop_ptr == in.pop_ptr && pos <= in.pos; }
+      bool operator> (const ConstIterator& in) const { return pop_ptr == in.pop_ptr && pos >  in.pos; }
+      bool operator>=(const ConstIterator& in) const { return pop_ptr == in.pop_ptr && pos >= in.pos; }
+
+      /// Return a reference to the organism pointed to by this iterator; may advance iterator.
+      const Organism & operator*() {
+        if (skip_empty) ToOccupied();  // If we only want occupied cells, make sure we're on one.
+        emp_assert(IsValid());      // Make sure we're not outside of the vector.
+        return *(OrgPtr());
+      }
+
+      /// Return a const reference to the organism pointed to by this Constiterator.
+      /// Note that since this version is const, it will NOT advance the Constiterator.
+      const Organism & operator*() const { emp_assert(IsValid()); return *(OrgPtr()); }
+
+      /// Is this Constiterator pointing to a valid cell in the world?
+      operator bool() const { return pos < PopSize() && IsOccupied(); }
+
+      /// Return an Constiterator pointing to the first occupied cell in the world.
+      ConstIterator begin() { return ConstIterator(pop_ptr, 0, skip_empty); }
+
+      /// Return a const Constiterator pointing to the first occupied cell in the world.
+      const ConstIterator begin() const { return ConstIterator(pop_ptr, 0, skip_empty); }
+
+      /// Return an Constiterator pointing to just past the end of the world.
+      ConstIterator end() { return ConstIterator(pop_ptr, PopSize(), skip_empty); }
+
+      /// Return a const Constiterator pointing to just past the end of the world.
+      const ConstIterator end() const { return ConstIterator(pop_ptr, PopSize(), skip_empty); }
+    };
+    
     Population(const std::string & in_name, int in_id=0) : name(in_name), id(in_id) { }
     Population(const Population & in_pop) : name(in_pop.name + "_copy"), orgs(in_pop.orgs.size()) {
       for (size_t i = 0; i < orgs.size(); i++) {
@@ -151,13 +240,13 @@ namespace mabe {
     Iterator begin(bool skip_empty=true) { return Iterator(this, 0, skip_empty); }
 
     /// Return a const iterator pointing to the first occupied cell in the world.
-    const Iterator begin(bool skip_empty=true) const { return Iterator(this, 0, skip_empty); }
+    ConstIterator begin(bool skip_empty=true) const { return ConstIterator(this, 0, skip_empty); }
 
     /// Return an iterator pointing to just past the end of the world.
     Iterator end(bool skip_empty=true) { return Iterator(this, GetSize(), skip_empty); }
 
     /// Return a const iterator pointing to just past the end of the world.
-    const Iterator end(bool skip_empty=true) const { return Iterator(this, GetSize(), skip_empty); }
+    ConstIterator end(bool skip_empty=true) const { return ConstIterator(this, GetSize(), skip_empty); }
 
   };
 
