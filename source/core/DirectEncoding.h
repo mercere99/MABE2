@@ -16,7 +16,7 @@
 namespace mabe {
 
   template <typename T>
-  class DirectEncoding {
+  class DirectEncoding : public Organism {
   protected:
     using this_t = DirectEncoding<T>;
     T data;
