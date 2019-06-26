@@ -16,7 +16,7 @@
 #include "tools/Random.h"
 #include "tools/vector_utils.h"
 
-#include "OrganismType.h"
+#include "OrganismWrapper.h"
 #include "Population.h"
 #include "World.h"
 
@@ -88,8 +88,8 @@ namespace mabe {
     /// If GetWorld() is called with a world name, look up its ID and return it.
     mabe::World & GetWorld(const std::string & name) {
       const int world_id = GetWorldID(name);
-      emp_assert(wolrd_id >= 0 && world_id < worlds.size(),
-                 "Unknown world name; perhaps you need to create it firsts?".
+      emp_assert(world_id >= 0 && world_id < (int) worlds.size(),
+                 "Unknown world name; perhaps you need to create it firsts?",
                  name);
       return GetWorld(world_id);
     }
