@@ -22,11 +22,23 @@
 
 namespace mabe {
 
+  /// An EmptyOrganism is used as a placeholder in an empty cell in a population.
+  class EmptyOrganism : public Organism {
+    emp::Ptr<Organism> Clone() override { emp_assert(false, "Do not clone EmptyOrganism"); return nullptr; }
+    std::string ToString() override { return "[empty]"; }
+    int Mutate(emp::Random &) override { emp_assert(false, "EmptyOrganism cannot Mutate()"); return -1; }
+    int Randomize(emp::Random &) override { emp_assert(false, "EmptyOrganism cannot Randomize()"); return -1; }
+    void GenerateOutput(const std::string &, size_t) override { emp_assert(false, "EmptyOrganism cannot GenerateOutput()"); }
+    emp::TypeID GetOutputType(size_t=0) override { return emp::TypeID(); }
+    bool IsEmpty() const noexcept override { return true; }
+  };
+
   class Population {
   private:
     std::string name;                      ///< Unique name for this population.
     int id;                                ///< Position in world of this population.
     emp::vector<emp::Ptr<Organism>> orgs;  ///< Info on all organisms in this population.
+    EmptyOrganism empty_org;               ///< Organism to fill in empty cells.
 
   public:
     class Iterator {
@@ -43,24 +55,27 @@ namespace mabe {
       Iterator(const Iterator &) = default;
       Iterator & operator=(const Iterator &) = default;
 
-      // Shortcuts to retrieve information from the population.
-      const std::string & PopName() const { return pop_ptr->name; }
-      int PopID() const { return pop_ptr->id; }
+      // Shortcuts to retrieve information from the POPULATION.
+      const std::string & PopName() const { emp_assert(pop_ptr); return pop_ptr->name; }
+      int PopID() const { emp_assert(pop_ptr); return pop_ptr->id; }
       size_t PopSize() const { emp_assert(pop_ptr); return pop_ptr->orgs.size(); }
       emp::Ptr<Organism> OrgPtr() { emp_assert(pop_ptr); return pop_ptr->orgs[pos]; }
       emp::Ptr<const Organism> OrgPtr() const { emp_assert(pop_ptr); return pop_ptr->orgs[pos]; }
 
+      // Other information about this iterator.
       size_t Pos() const noexcept { return pos; };
       bool SkipEmpty() const noexcept { return skip_empty; };
 
       void Pos(size_t in) { pos = in; }
       void SkipEmpty(bool in) { skip_empty = in; if (skip_empty) ToOccupied(); }
 
-      /// IS the pointed-to cell occupied?
-      bool IsOccupied() const { return !OrgPtr().IsNull(); }
+      /// Is the pointed-to cell occupied?
+      bool IsValid() const { return pos < PopSize(); }
+      bool IsEmpty() const { return IsValid() && OrgPtr()->IsEmpty(); }
+      bool IsOccupied() const { return IsValid() && !OrgPtr()->IsEmpty(); }
 
       /// If on empty cell, advance iterator to next non-null position (or the end)
-      void ToOccupied() { while (pos < PopSize() && OrgPtr().IsNull()) ++pos; }
+      void ToOccupied() { while (pos < PopSize() && OrgPtr()->IsEmpty()) ++pos; }
 
       /// Move to the first empty cell after 'start'.
       void ToOccupied(size_t start) { pos = start; ToOccupied(); }
@@ -76,7 +91,7 @@ namespace mabe {
       Iterator & operator--() {
         --pos;
         if (skip_empty) {
-          while (pos < PopSize() && OrgPtr().IsNull()) --pos;
+          while (pos < PopSize() && OrgPtr()->IsEmpty()) --pos;
         }
         return *this;
       }
@@ -91,14 +106,14 @@ namespace mabe {
 
       /// Return a reference to the organism pointed to by this iterator; may advance iterator.
       Organism & operator*() {
-        if (skip_empty) ToOccupied();
-        emp_assert(IsOccupied());
+        if (skip_empty) ToOccupied();  // If we only want occupied cells, make sure we're on one.
+        emp_assert(IsValid());      // Make sure we're not outside of the vector.
         return *(OrgPtr());
       }
 
       /// Return a const reference to the organism pointed to by this iterator.
       /// Note that since this version is const, it will NOT advance the iterator.
-      const Organism & operator*() const { emp_assert(IsOccupied()); return *(OrgPtr()); }
+      const Organism & operator*() const { emp_assert(IsValid()); return *(OrgPtr()); }
 
       /// Is this iterator pointing to a valid cell in the world?
       operator bool() const { return pos < PopSize() && IsOccupied(); }
@@ -128,8 +143,22 @@ namespace mabe {
 
     const std::string & GetName() const noexcept { return name; }
     int GetID() const noexcept { return id; }
+    size_t GetSize() const noexcept { return orgs.size(); }
 
     void SetID(int in_id) noexcept { id = in_id; }
+
+    /// Return an iterator pointing to the first occupied cell in the world.
+    Iterator begin(bool skip_empty=true) { return Iterator(this, 0, skip_empty); }
+
+    /// Return a const iterator pointing to the first occupied cell in the world.
+    const Iterator begin(bool skip_empty=true) const { return Iterator(this, 0, skip_empty); }
+
+    /// Return an iterator pointing to just past the end of the world.
+    Iterator end(bool skip_empty=true) { return Iterator(this, GetSize(), skip_empty); }
+
+    /// Return a const iterator pointing to just past the end of the world.
+    const Iterator end(bool skip_empty=true) const { return Iterator(this, GetSize(), skip_empty); }
+
   };
 
 }
