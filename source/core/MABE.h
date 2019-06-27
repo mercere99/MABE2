@@ -27,7 +27,7 @@ namespace mabe {
     /// Collect all world instances.  Each world will maintain its own environment
     /// (evaluate module), selection module, and populations of current organisms.
     emp::vector<emp::Ptr<mabe::World>> worlds;
-    int cur_world = -1;
+    size_t cur_world = (size_t) -1;
 
     /// Collect all organism types from all words.  Organism types have distinct
     /// names and can be manipulated as a whole.
@@ -53,15 +53,22 @@ namespace mabe {
 
     void Setup() { for (emp::Ptr<mabe::World> w : worlds) w->Setup(); }
 
+    /// By default, update all worlds the specified numebr of updates.
+    void Update(size_t num_updates=1) {
+      for (size_t ud = 0; ud < num_updates; ud++) {
+        for (emp::Ptr<mabe::World> w : worlds) w->Update();
+      }
+    }
+
     // --- Deal with World management ---
 
     size_t GetNumWorlds() const { return worlds.size(); }
 
     /// Add a new world with a specific name, make it current, and return its ID.
-    int AddWorld(const std::string & name) {
+    mabe::World & AddWorld(const std::string & name) {
       cur_world = (int) worlds.size();
-      worlds.push_back( emp::NewPtr<mabe::World>(name, *this, random) );
-      return cur_world;
+      worlds.push_back( emp::NewPtr<mabe::World>(name, *this, random, cur_world) );
+      return *(worlds[cur_world]);
     }
 
     /// Retrieve a world by its ID.
@@ -73,8 +80,8 @@ namespace mabe {
     /// With no arguments, GetWorld() returns the current world or creates
     /// a new world if none have been created yet.
     mabe::World & GetWorld() {
-      if (cur_world == -1) {
-        emp_assert(worlds.size() == 0);
+      if (worlds.size() == 0) {
+        emp_assert(cur_world == (size_t) -1);
         AddWorld("default");
       }
       return GetWorld(cur_world);
