@@ -23,9 +23,12 @@ namespace mabe {
     size_t N;
     size_t K;
     NKLandscape landscape;
+    std::string bits_trait;
+    std::string fitness_trait;
 
   public:
-    EvalNK(size_t _N, size_t _K) : N(_N), K(_K) { }
+    EvalNK(size_t _N, size_t _K, const std::string & _btrait="NK", const std::string & _ftrait="fitness")
+      : N(_N), K(_K), bits_trait(_btrait), fitness_trait(_ftrait) { }
     ~EvalNK() { }
 
     void Setup(mabe::World & world) {
@@ -36,9 +39,9 @@ namespace mabe {
       // Loop through the populations and evaluate each organism.
       for (auto & pop : pops) {
         for (auto & org : pop) {
-          org.GenerateOutput("NK");
-          double fitness = landscape.GetFitness( org.GetVar<emp::BitVector>("NK") );
-          org.SetVar<double>("fitness", fitness);
+          org.GenerateOutput(bits_trait);
+          double fitness = landscape.GetFitness( org.GetVar<emp::BitVector>(bits_trait) );
+          org.SetVar<double>(fitness_trait, fitness);
         }
       }
     }
