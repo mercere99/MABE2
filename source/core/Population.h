@@ -35,10 +35,10 @@ namespace mabe {
 
   class Population {
   private:
-    std::string name;                      ///< Unique name for this population.
-    int id;                                ///< Position in world of this population.
+    std::string name="";                   ///< Unique name for this population.
+    int id = -1;                           ///< Position in world of this population.
     emp::vector<emp::Ptr<Organism>> orgs;  ///< Info on all organisms in this population.
-    bool skip_empty;                       ///< When iterating, should we skip over empty cells?
+    bool skip_empty = false;               ///< When iterating, should we skip over empty cells?
 
     EmptyOrganism empty_org;               ///< Organism to fill in empty cells (does have data map!)
 
@@ -233,20 +233,26 @@ namespace mabe {
     const std::string & GetName() const noexcept { return name; }
     int GetID() const noexcept { return id; }
     size_t GetSize() const noexcept { return orgs.size(); }
+    bool GetSkipEmpty() const noexcept { return skip_empty; }
 
     void SetID(int in_id) noexcept { id = in_id; }
+    void SetSkipEmpty(bool in=true) { skip_empty = in; }
 
     /// Return an iterator pointing to the first occupied cell in the world.
-    Iterator begin(bool skip_empty=true) { return Iterator(this, 0, skip_empty); }
+    Iterator begin() { return Iterator(this, 0, skip_empty); }
+    Iterator begin(bool skip_empty) { return Iterator(this, 0, skip_empty); }
 
     /// Return a const iterator pointing to the first occupied cell in the world.
-    ConstIterator begin(bool skip_empty=true) const { return ConstIterator(this, 0, skip_empty); }
+    ConstIterator begin() const { return ConstIterator(this, 0, skip_empty); }
+    ConstIterator begin(bool skip_empty) const { return ConstIterator(this, 0, skip_empty); }
 
     /// Return an iterator pointing to just past the end of the world.
-    Iterator end(bool skip_empty=true) { return Iterator(this, GetSize(), skip_empty); }
+    Iterator end() { return Iterator(this, GetSize(), skip_empty); }
+    Iterator end(bool skip_empty) { return Iterator(this, GetSize(), skip_empty); }
 
     /// Return a const iterator pointing to just past the end of the world.
-    ConstIterator end(bool skip_empty=true) const { return ConstIterator(this, GetSize(), skip_empty); }
+    ConstIterator end() const { return ConstIterator(this, GetSize(), skip_empty); }
+    ConstIterator end(bool skip_empty) const { return ConstIterator(this, GetSize(), skip_empty); }
 
   };
 
