@@ -33,6 +33,14 @@ namespace mabe {
     }
 
     void Update() {
+      // Loop through the populations and evaluate each organism.
+      for (auto & pop : pops) {
+        for (auto & org : pop) {
+          org.GenerateOutput("NK");
+          double fitness = landscape.GetFitness( org.GetVar<emp::BitVector>("NK") );
+          org.SetVar<double>("fitness", fitness);
+        }
+      }
     }
   };
 
