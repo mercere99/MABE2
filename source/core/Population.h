@@ -36,7 +36,7 @@ namespace mabe {
   class Population {
   private:
     std::string name="";                   ///< Unique name for this population.
-    int id = -1;                           ///< Position in world of this population.
+    size_t id = (size_t) -1;               ///< Position in world of this population.
     emp::vector<emp::Ptr<Organism>> orgs;  ///< Info on all organisms in this population.
     bool skip_empty = false;               ///< When iterating, should we skip over empty cells?
 
@@ -220,10 +220,16 @@ namespace mabe {
       const ConstIterator end() const { return ConstIterator(pop_ptr, PopSize(), skip_empty); }
     };
     
-    Population(const std::string & in_name, int in_id=0) : name(in_name), id(in_id) { }
+    Population(const std::string & in_name, size_t in_id, size_t pop_size) : name(in_name), id(in_id) {
+      orgs.resize(pop_size, &empty_org);
+    }
     Population(const Population & in_pop) : name(in_pop.name + "_copy"), orgs(in_pop.orgs.size()) {
       for (size_t i = 0; i < orgs.size(); i++) {
-        orgs[i] = in_pop.orgs[i]->Clone();
+        if (in_pop.orgs[i]->IsEmpty()) {       // Make sure we always use local empty organism.
+          orgs[i] = &empty_org;
+        } else {                              // Otherwise clone the organism.
+          orgs[i] = in_pop.orgs[i]->Clone();
+        }
       }
     }
     Population(Population &&) = default;
