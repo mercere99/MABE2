@@ -10,43 +10,48 @@
 #include <iostream>
 
 #include "../source/core/MABE.h"
+#include "../source/core/DirectEncoding.h"
 
 #include "config/ArgManager.h"
 #include "tools/BitVector.h"
 #include "tools/Random.h"
 
 #include "../source/evaluate/EvalNK.h"
+#include "../source/select/SelectElite.h"
 
-EMP_BUILD_CONFIG( NKConfig,
-  GROUP(DEFAULT, "Default settings for NK model"),
-  VALUE(K, uint32_t, 10, "Level of epistasis in the NK model"),
-  VALUE(N, uint32_t, 200, "Number of bits in each organisms (must be > K)"), ALIAS(GENOME_SIZE),
-  VALUE(SEED, int, 0, "Random number seed (0 for based on time)"),
-  VALUE(POP_SIZE, uint32_t, 1000, "Number of organisms in the popoulation."),
-  VALUE(MAX_GENS, uint32_t, 2000, "How many generations should we process?"),
-  VALUE(MUT_COUNT, uint32_t, 3, "How many bit positions should be randomized?"), ALIAS(NUM_MUTS),
-)
+// EMP_BUILD_CONFIG( NKConfig,
+//   GROUP(DEFAULT, "Default settings for NK model"),
+//   VALUE(K, uint32_t, 10, "Level of epistasis in the NK model"),
+//   VALUE(N, uint32_t, 200, "Number of bits in each organisms (must be > K)"), ALIAS(GENOME_SIZE),
+//   VALUE(SEED, int, 0, "Random number seed (0 for based on time)"),
+//   VALUE(POP_SIZE, uint32_t, 1000, "Number of organisms in the popoulation."),
+//   VALUE(MAX_GENS, uint32_t, 2000, "How many generations should we process?"),
+//   VALUE(MUT_COUNT, uint32_t, 3, "How many bit positions should be randomized?"), ALIAS(NUM_MUTS),
+// )
 
 using BitOrg = emp::BitVector;
 
 int main(int argc, char* argv[])
 {
-  NKConfig config;
-  config.Read("NK.cfg");
+  // NKConfig config;
+  // config.Read("NK.cfg");
 
-  auto args = emp::cl::ArgManager(argc, argv);
-  if (args.ProcessConfigOptions(config, std::cout, "NK.cfg", "NK-macros.h") == false) exit(0);
-  if (args.TestUnknown() == false) exit(0);  // If there are leftover args, throw an error.
+  // auto args = emp::cl::ArgManager(argc, argv);
+  // if (args.ProcessConfigOptions(config, std::cout, "NK.cfg", "NK-macros.h") == false) exit(0);
+  // if (args.TestUnknown() == false) exit(0);  // If there are leftover args, throw an error.
 
-  const uint32_t N = config.N();
-  const uint32_t K = config.K();
-  [[maybe_unused]] const uint32_t POP_SIZE = config.POP_SIZE();
-  [[maybe_unused]] const uint32_t MAX_GENS = config.MAX_GENS();
-  [[maybe_unused]] const uint32_t MUT_COUNT = config.MUT_COUNT();
+  const uint32_t N = 30;  //config.N();
+  const uint32_t K = 4;   //config.K();
+  // [[maybe_unused]] const uint32_t POP_SIZE = config.POP_SIZE();
+  // [[maybe_unused]] const uint32_t MAX_GENS = config.MAX_GENS();
+  // [[maybe_unused]] const uint32_t MUT_COUNT = config.MUT_COUNT();
 
   mabe::MABE control;
-  control.AddModule<mabe::EvalNK>(N, K);
+  control.AddOrganismType< mabe::DirectEncoding<emp::BitVector> >("Bit Orgs");
+  control.AddModule<mabe::EvalNK>(N, K, "bits", "fitness");
+  control.AddModule<mabe::SelectElite>("fitness");
   control.Setup();
+  control.Update(100);
 
 /*
   // emp::EAWorld<BitOrg, emp::FitCacheOff> pop(random, "NKWorld");
