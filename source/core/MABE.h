@@ -109,7 +109,7 @@ namespace mabe {
     }
 
     template <typename ORG_T>
-    OrganismWrapper<ORG_T> & GetOrganismWrapper(const std::string type_name) {
+    OrganismWrapper<ORG_T> & GetFullOrganismType(const std::string type_name) {
       auto it = org_types.find(type_name);
       if (it == org_types.end()) {
         auto new_type = emp::NewPtr<OrganismWrapper<ORG_T>>(type_name);
@@ -118,6 +118,15 @@ namespace mabe {
       }
       return *(it->second);
     }
+
+    template <typename ORG_T>
+    OrganismWrapper<ORG_T> & AddOrganismType(const std::string type_name) {
+      emp_assert(emp::Has(org_types, type_name) == false);
+      auto new_type = emp::NewPtr<OrganismWrapper<ORG_T>>(type_name);
+      org_types[type_name] = new_type;
+      return *new_type;
+    }
+
 
     // --- Forward module management to current world ---
     template <typename MOD_T, typename... ARGS>
