@@ -26,25 +26,27 @@ namespace mabe {
     DirectEncoding(const DirectEncoding &) = default;
     DirectEncoding(DirectEncoding &&) = default;
     DirectEncoding(const T & in) : data(in) { ; }
-    ~DirectEncoding();
+    ~DirectEncoding() { ; }
 
     /// Use the default constructor for cloning.
-    emp::Ptr<Organism> Clone() { return emp::NewPtr<this_t>(*this); }
+    emp::Ptr<Organism> Clone() override { return emp::NewPtr<this_t>(*this); }
 
     /// Use "to_string" as the default printing mechanism.
-    std::string ToString() { return emp::to_string(data); }
+    std::string ToString() override { return emp::to_string(data); }
 
     /// Don't do mutations unless a mutate function has been set.
-    int Mutate() { emp_assert(false, "No default Mutate() available."); return -1; }
+    int Mutate(emp::Random&) override {
+      emp_assert(false, "No default Mutate() available."); return -1;
+    }
 
     /// A direct encoding always uses itself as the output.
-    void GenerateOutput(const std::string & output_name="result", size_t=0) {
-      var_map.SetVar<T>(output_name, data);
+    void GenerateOutput(const std::string & output_name="result", size_t=0) override {
+      var_map.Set<T>(output_name, data);
     }
 
     /// Request output type (multiple types are possible); default to unknown.
     /// Argument is the output ID.
-    virtual emp::TypeID GetOutputType(size_t=0) { return emp::GetTypeID<T>(); }
+    virtual emp::TypeID GetOutputType(size_t=0) override { return emp::GetTypeID<T>(); }
   };
 
 }
