@@ -26,10 +26,11 @@ namespace mabe {
   private:
     std::string name;
 
-    bool is_evaluation=false;  ///< Does this module perform evaluation on organisms?
-    bool is_selection=false;   ///< Does this module select organisms to reproduce?
-    bool is_placement=false;   ///< Does this module handle offspring placement?
-    bool is_analyze=false;     ///< Does this module record or evaluate data?
+    // What type of module is this (note, some can be more than one!)
+    bool is_evaluate=false;   ///< Does this module perform evaluation on organisms?
+    bool is_select=false;     ///< Does this module select organisms to reproduce?
+    bool is_placement=false;  ///< Does this module handle offspring placement?
+    bool is_analyze=false;    ///< Does this module record or evaluate data?
 
     enum class ReplicationType {
       NO_PREFERENCE, REQUIRE_ASYNC, DEFAULT_ASYNC, DEFAULT_SYNC, REQUIRE_SYNC
@@ -50,6 +51,7 @@ namespace mabe {
     //       INHERETED   - Offspring have this trait initilized to parent's value (vs. using default).
     //       RECORD_LAST - When reproducing keep the previous value.
     //       RESET_BIRTH - Reset to default after giving birth.
+
   public:
     Module() : name("") { ; }
     Module(const Module &) = default;
@@ -60,9 +62,10 @@ namespace mabe {
 
     virtual emp::Ptr<Module> Clone() { return nullptr; }
 
-    virtual bool IsEvaluate() const { return false; }
-    virtual bool IsSelect() const { return false; }
-    virtual bool IsAnalyze() const { return false; }
+    bool IsEvaluate() const { return is_evaluate; }
+    bool IsSelect() const { return is_select; }
+    bool IsPlacement() const { return is_placement; }
+    bool IsAnalyze() const { return is_analyze; }
 
     // Internal, initial setup.
     void InternalSetup(mabe::World & world) {
@@ -73,6 +76,13 @@ namespace mabe {
 
     virtual void Setup(mabe::World &) { /* By default, assume no setup needed. */ }
     virtual void Update() { /* By default, do nothing at update. */ }
+
+    /// Add an additional population to evaluate.
+    Module & AddPopulation( mabe::Population & in_pop ) {
+      pops.push_back( in_pop );
+      return *this;
+    }
+
   };
 
 }
