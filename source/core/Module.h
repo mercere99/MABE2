@@ -44,6 +44,8 @@ namespace mabe {
     /// Store information about organism traits that this module needs to work with.
     struct TraitInfo {
       std::string name="";
+      std::string desc="";
+      emp::TypeID type;
 
       /// Which modules are allowed to read or write this trait?
       enum Access {
@@ -55,16 +57,18 @@ namespace mabe {
       };
       Access access = Access::UNKNOWN;
 
-      /// When should this trait be reset to either the default or a specified value?
-      enum Reset {
-        NEVER,      ///< Trait is inhereted (from first parent) and never automatically reset
-        ON_BIRTH,   ///< Trait is only reset when an organism is first born.
-        ON_DIVIDE,  ///< Trait is reset on birth and when giving birth.
+      /// How should this trait be initialized in a newly-born organism?
+      /// * Injected organisms always use the default value.
+      /// * Modules can moitor signals to make other changes at any time.
+      enum Init {
+        DEFAULT,    ///< Trait is initialized to a pre-set default value.
+        PARENT,     ///< Trait is inhereted (from first parent if more than one)
         TO_AVERAGE, ///< Trait becomes average of all parents on birth.
         TO_MIN,     ///< Trait becomes lowest of all parents on birth.
         TO_MAX      ///< Trait becomes highest of all parents on birth.
       };
-      Reset reset = Reset::NEVER;
+      Init reset = Init::DEFAULT;
+      bool reset_parent = false;  ///< Should the parent ALSO be reset on birth?
 
       /// Which information should we store in the trait as we go?
       enum Archive {
@@ -75,7 +79,37 @@ namespace mabe {
       };
       Archive archive = Archive::NONE;
 
+      virtual bool HasDefault() { return false; }
     };
+
+    template <typename T>
+    struct TypedTraitInfo : public TraitInfo {
+      T default_value;
+      bool has_default;
+
+      TypedTraitInfo(const std::string & in_name) : has_default(false)
+      {
+        name = in_name;
+        type = emp::GetTypeID<T>();
+      }
+
+      TypedTraitInfo(const std::string & in_name, const T & in_default)
+        : default_value(in_default), has_default(true)
+      {
+        name = in_name;
+        type = emp::GetTypeID<T>();
+      }
+
+      bool HasDefault() { return has_default; }
+
+      TypedTraitInfo<T> & SetDefault(const T & in_default) {
+        default_value = in_default;
+        has_default = true;
+        return *this;
+      }
+    };
+
+    emp::vector<TraitInfo *> traits;
 
 
   public:
@@ -116,6 +150,62 @@ namespace mabe {
       pops.push_back( in_pop );
       return *this;
     }
+
+    // --== Trait management ==--
+   
+    /// Add a new trait to this module, specifying its access method, its name, and its description.
+    template <typename T>
+    TypedTraitInfo<T> & AddTrait(TraitInfo::Access access,
+                                 const std::string & name,
+                                 const std::string & desc) {
+      auto new_ptr = emp::NewPtr<TypedTraitInfo<T>>(name, desc);
+      new_ptr->access = access;
+      traits.push_back(new_ptr);
+      return *new_ptr;
+    }
+
+    /// Add a new trait to this module, specifying its access method, its name, and its description
+    /// AND its default value.
+    template <typename T>
+    TypedTraitInfo<T> & AddTrait(TraitInfo::Access access,
+                                 const std::string & name,
+                                 const std::string & desc,
+                                 const T & default_val) {
+      return AddTrait<T>(access, name, desc).SetDefault(default_val);
+    }
+
+    /// Add trait that this module can READ & WRITE this trait.  Others cannot use it.
+    /// Must provide name, description, and a default value to start at.
+    template <typename T>
+    TraitInfo & AddPrivateTrait(const std::string & name, const std::string & desc, const T & default_val) {
+      return AddTrait<T>(TraitInfo::Access::PRIVATE, name, desc, default_val);
+    }
+
+    /// Add trait that this module can READ & WRITE to; other modules can only read.
+    /// Must provide name, description, and a default value to start at.
+    template <typename T>
+    TraitInfo & AddOwnedTrait(const std::string & name, const std::string & desc, const T & default_val) {
+      return AddTrait<T>(TraitInfo::Access::OWNED, name, desc, default_val);
+    }
+   
+    /// Add trait that this module can READ & WRITE this trait; other modules can too.
+    /// Must provide name, description; a default value is optional, but at least one
+    /// module MUST set and it must be consistent across all modules that use it.
+    template <typename T>
+    TraitInfo & AddSharedTrait(const std::string & name, const std::string & desc) {
+      return AddTrait<T>(TraitInfo::Access::SHARED, name, desc);
+    }
+    template <typename T>
+    TraitInfo & AddSharedTrait(const std::string & name, const std::string & desc, const T & default_val) {
+      return AddTrait<T>(TraitInfo::Access::SHARED, name, desc, default_val);
+    }
+   
+    /// Add trait that this module can READ this trait, but another module must WRITE to it.
+    template <typename T>
+    TraitInfo & AddRequiredTrait(const std::string & name, const std::string & desc) {
+      return AddTrait<T>(TraitInfo::Access::REQUIRED, name, desc);
+    }
+
 
   };
 
