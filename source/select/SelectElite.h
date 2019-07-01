@@ -3,26 +3,32 @@
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
  *  @date 2019
  *
- *  @file  EvalNK.h
- *  @brief MABE Evaluation module for NK Landscapes
+ *  @file  SelectElite.h
+ *  @brief MABE module to enable elite selection.
  */
 
-#ifndef MABE_EVAL_NK_H
-#define MABE_EVAL_NK_H
+#ifndef MABE_SELECT_ELITE_H
+#define MABE_SELECT_ELITE_H
 
 #include "../core/MABE.h"
-#include "../core/ModuleSelect.h"
+#include "../core/Module.h"
 
 #include "tools/reference_vector.h"
 
 namespace mabe {
 
-  class SelectElite : public ModuleSelect {
+  /// Add elite selection with the current population.
+  class SelectElite : public Module {
   private:
-    std::string trait;
+    std::string trait;   ///< Which trait should we select on?
+    size_t top_count;    ///< Top how-many should we select?
+    size_t copy_count;   ///< How many copies of each should we make?
 
   public:
-    SelectElite(const std::string & in_trait) : trait(in_trait) { }
+    SelectElite(const std::string & in_trait="fitness") : trait(in_trait) {
+      IsSelect(true);
+      DefaultAsync();
+    }
     ~SelectElite() { }
 
     void Setup(mabe::World & world) {
