@@ -38,22 +38,45 @@ namespace mabe {
     ReplicationType rep_type = ReplicationType::NO_PREFERENCE;
 
     /// Which populations are we operating on?
-    emp::reference_vector<mabe::Population> pops;
-    size_t required_pops = 0;                     ///< How many population are needed?
+    emp::reference_vector<mabe::Population> pops;  ///< Which population are we using?
+    size_t required_pops = 0;                      ///< How many population are needed?
 
-    // @CAO Also need to track which traits are:
-    //       OWNED    - This module can READ & WRITE this trait.  Others can only READ.
-    //       SHARED   - This module can READ & WRITE this trait, but others can also READ & WRITE.
-    //       REQUIRED - This module can READ this trait, but another must WRITE to it.
-    //       PRIVATE  - This module can READ & WRITE this trait.  Others cannot use it.
-    //
-    //      Each trait also need information on how it will be monitored and inhereted.
-    //       LOGGED      - Track all of the values placed in here for later analysis (don't overwrite)
-    //       INHERETED   - Offspring have this trait initilized to parent's value (vs. using default).
-    //       RECORD_LAST - When reproducing keep the previous value.
-    //       RESET_BIRTH - Reset to default after giving birth.
-    //
-    //      Also include information on whether/how each trait should be archived.
+    /// Store information about organism traits that this module needs to work with.
+    struct TraitInfo {
+      std::string name="";
+
+      /// Which modules are allowed to read or write this trait?
+      enum Access {
+        UNKNOWN,   ///< Access level unknown; most likely a problem!
+        OWNED,     ///< Can READ & WRITE this trait; other modules can only read.
+        SHARED,    ///< Can READ & WRITE this trait; other modules can too.
+        REQUIRED,  ///< Can READ this trait, but another module must WRITE to it.
+        PRIVATE    ///< Can READ & WRITE this trait.  Others cannot use it.
+      };
+      Access access = Access::UNKNOWN;
+
+      /// When should this trait be reset to either the default or a specified value?
+      enum Reset {
+        NEVER,      ///< Trait is inhereted (from first parent) and never automatically reset
+        ON_BIRTH,   ///< Trait is only reset when an organism is first born.
+        ON_DIVIDE,  ///< Trait is reset on birth and when giving birth.
+        TO_AVERAGE, ///< Trait becomes average of all parents on birth.
+        TO_MIN,     ///< Trait becomes lowest of all parents on birth.
+        TO_MAX      ///< Trait becomes highest of all parents on birth.
+      };
+      Reset reset = Reset::NEVER;
+
+      /// Which information should we store in the trait as we go?
+      enum Archive {
+        NONE,       ///< Don't store any older information.
+        LAST_RESET, ///< Store value at reset in "last_(name)"
+        ALL_RESET,  ///< Store values at all resets in "archive_(name)"
+        ALL_CHANGE  ///< Store values from every change in "archive_(name)"
+      };
+      Archive archive = Archive::NONE;
+
+    };
+
 
   public:
     Module() : name("") { ; }
