@@ -34,8 +34,8 @@ namespace mabe {
 
     // --== Functions to manipulate organisms ==--
     virtual emp::Ptr<Organism> MakeOrganism(emp::Random &) = 0;
-    virtual size_t MutateOrg(Organism &, emp::Random &) = 0;
-    virtual std::ostream & PrintOrg(Organism &, std::ostream &) = 0;
+    virtual size_t Mutate(Organism &, emp::Random &) = 0;
+    virtual std::ostream & Print(Organism &, std::ostream &) = 0;
     virtual bool Randomize(Organism &, emp::Random &) = 0;
   };
 
