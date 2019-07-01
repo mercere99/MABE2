@@ -61,13 +61,13 @@ namespace mabe {
       /// * Injected organisms always use the default value.
       /// * Modules can moitor signals to make other changes at any time.
       enum Init {
-        DEFAULT,    ///< Trait is initialized to a pre-set default value.
-        PARENT,     ///< Trait is inhereted (from first parent if more than one)
-        TO_AVERAGE, ///< Trait becomes average of all parents on birth.
-        TO_MIN,     ///< Trait becomes lowest of all parents on birth.
-        TO_MAX      ///< Trait becomes highest of all parents on birth.
+        DEFAULT,   ///< Trait is initialized to a pre-set default value.
+        PARENT,    ///< Trait is inhereted (from first parent if more than one)
+        AVERAGE,   ///< Trait becomes average of all parents on birth.
+        MINIMUM,   ///< Trait becomes lowest of all parents on birth.
+        MAXIMUM    ///< Trait becomes highest of all parents on birth.
       };
-      Init reset = Init::DEFAULT;
+      Init init = Init::DEFAULT;
       bool reset_parent = false;  ///< Should the parent ALSO be reset on birth?
 
       /// Which information should we store in the trait as we go?
@@ -75,11 +75,33 @@ namespace mabe {
         NONE,       ///< Don't store any older information.
         LAST_RESET, ///< Store value at reset in "last_(name)"
         ALL_RESET,  ///< Store values at all resets in "archive_(name)"
-        ALL_CHANGE  ///< Store values from every change in "archive_(name)"
+        ALL_CHANGE  ///< Store values from every change in "sequence_(name)"
+        // @CAO: CHANGE not yet impements since hard to track...
       };
       Archive archive = Archive::NONE;
 
       virtual bool HasDefault() { return false; }
+
+      /// Set the current value of this trait to be automatically inthereted by offspring.
+      TraitInfo & SetInheritParent() { init = Init::PARENT; return *this; }
+
+      /// Set the average across parents for this trait to be automatically inthereted by offspring.
+      TraitInfo & SetInheritAverage() { init = Init::AVERAGE; return *this; }
+
+      /// Set the minimum across parents for this trait to be automatically inthereted by offspring.
+      TraitInfo & SetInheritMinimum() { init = Init::MINIMUM; return *this; }
+
+      /// Set the maximum across parents for this trait to be automatically inthereted by offspring.
+      TraitInfo & SetInheritMaximum() { init = Init::MAXIMUM; return *this; }
+
+      /// Set the parent to ALSO reset to the same value as the offspring on divide.
+      TraitInfo & SetParentReset() { reset_parent = true; return *this; }
+
+      /// Set the previous value of this trait to be stored on birth or reset.
+      TraitInfo & SetArchiveLast() { archive = Archive::LAST_RESET; return *this; }
+
+      /// Set ALL previous values of this trait to be store after each reset.
+      TraitInfo & SetArchiveAll() { archive = Archive::ALL_RESET; return *this; }
     };
 
     template <typename T>
@@ -151,6 +173,8 @@ namespace mabe {
       return *this;
     }
 
+  // --------------------- Functions to be used in derived modules ONLY --------------------------
+  protected:
     // --== Trait management ==--
    
     /// Add a new trait to this module, specifying its access method, its name, and its description.
