@@ -40,22 +40,22 @@ namespace mabe {
       /// --== Initial versions of user-defined functions ==--
       make_org_fun = [](emp::Random & random){
                        auto org = emp::NewPtr<ORG_T>();
-                       org->Randomize();
+                       org->Randomize(random);
                        return org;
                      };
       mut_fun = [](ORG_T & org, emp::Random & random){ return org.Mutate(random); };
-      print_fun = [](ORG_T & org, std::ostream & os){ os << org.ToString(); };
+      print_fun = [](ORG_T & org, std::ostream & os) -> std::ostream & { os << org.ToString(); return os; };
       randomize_fun = [](ORG_T & org, emp::Random & random){ return org.Randomize(random); };
     }
 
-    emp::Ptr<Organism> MakeOrg(emp::Random & random) {
+    emp::Ptr<Organism> MakeOrganism(emp::Random & random) override {
       return make_org_fun(random);
     }
     void SetMakeOrgFun(std::function<emp::Ptr<Organism>(emp::Random &)> & in_fun) {
-      mut_fun = in_fun;
+      make_org_fun = in_fun;
     }
 
-    size_t MutateOrg(Organism & org, emp::Random & random) {
+    size_t Mutate(Organism & org, emp::Random & random) override {
       emp_assert(org.GetType() == this);
       return mut_fun((ORG_T &) org, random);
     }
@@ -63,7 +63,7 @@ namespace mabe {
       mut_fun = in_fun;
     }
 
-    std::ostream & PrintOrg(Organism & org, std::ostream & os) {
+    std::ostream & Print(Organism & org, std::ostream & os) override {
       emp_assert(org.GetType() == this);
       print_fun((ORG_T &) org, os);
       return os;
@@ -72,7 +72,7 @@ namespace mabe {
       print_fun = in_fun;
     }
 
-    size_t RandomizeOrg(Organism & org, emp::Random & random) {
+    bool Randomize(Organism & org, emp::Random & random) override {
       emp_assert(org.GetType() == this);
       return randomize_fun((ORG_T &) org, random);
     }
