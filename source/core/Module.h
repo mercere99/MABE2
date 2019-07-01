@@ -23,7 +23,7 @@ namespace mabe {
   class World;
 
   class Module {
-  private:
+  protected:
     std::string name;
 
     // What type of module is this (note, some can be more than one!)
@@ -45,12 +45,15 @@ namespace mabe {
     //       OWNED    - This module can READ & WRITE this trait.  Others can only READ.
     //       SHARED   - This module can READ & WRITE this trait, but others can also READ & WRITE.
     //       REQUIRED - This module can READ this trait, but another must WRITE to it.
+    //       PRIVATE  - This module can READ & WRITE this trait.  Others cannot use it.
     //
     //      Each trait also need information on how it will be monitored and inhereted.
     //       LOGGED      - Track all of the values placed in here for later analysis (don't overwrite)
     //       INHERETED   - Offspring have this trait initilized to parent's value (vs. using default).
     //       RECORD_LAST - When reproducing keep the previous value.
     //       RESET_BIRTH - Reset to default after giving birth.
+    //
+    //      Also include information on whether/how each trait should be archived.
 
   public:
     Module() : name("") { ; }
@@ -67,11 +70,19 @@ namespace mabe {
     bool IsPlacement() const { return is_placement; }
     bool IsAnalyze() const { return is_analyze; }
 
+    Module & IsEvaluate(bool in) noexcept { is_evaluate = in; return *this; }
+    Module & IsSelect(bool in) noexcept { is_select = in; return *this; }
+    Module & IsPlacement(bool in) noexcept { is_placement = in; return *this; }
+    Module & IsAnalyze(bool in) noexcept { is_analyze = in; return *this; }
+
+    Module & RequireAsync() { rep_type = ReplicationType::REQUIRE_ASYNC; return *this; }
+    Module & DefaultAsync() { rep_type = ReplicationType::DEFAULT_ASYNC; return *this; }
+    Module & DefaultSync() { rep_type = ReplicationType::DEFAULT_SYNC; return *this; }
+    Module & RequireSync() { rep_type = ReplicationType::REQUIRE_SYNC; return *this; }
+
     // Internal, initial setup.
     void InternalSetup(mabe::World & world) {
-      // If we need more population, set them up.
-      // @CAO: We need to handle this default more intelligently!
-      if (pops.size() < required_pops) pops.push_back( world.GetPopulation(pops_size()) );
+      // World needs to check if all populations are setup correctly.
     }
 
     virtual void Setup(mabe::World &) { /* By default, assume no setup needed. */ }
