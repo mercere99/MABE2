@@ -11,14 +11,14 @@
 #define MABE_EVAL_NK_H
 
 #include "../core/MABE.h"
-#include "../core/ModuleEvaluate.h"
+#include "../core/Module.h"
 #include "../tools/NK.h"
 
 #include "tools/reference_vector.h"
 
 namespace mabe {
 
-  class EvalNK : public ModuleEvaluate {
+  class EvalNK : public Module {
   private:
     size_t N;
     size_t K;
@@ -28,7 +28,10 @@ namespace mabe {
 
   public:
     EvalNK(size_t _N, size_t _K, const std::string & _btrait="NK", const std::string & _ftrait="fitness")
-      : N(_N), K(_K), bits_trait(_btrait), fitness_trait(_ftrait) { }
+      : N(_N), K(_K), bits_trait(_btrait), fitness_trait(_ftrait)
+    {
+      IsEvaluate(true);
+    }
     ~EvalNK() { }
 
     void Setup(mabe::World & world) {
