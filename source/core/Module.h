@@ -137,8 +137,8 @@ namespace mabe {
 
     // Helper functions
     template <typename... Ts>
-    void AddError(Ts &&... errors) {
-      errors.push_back( emp::to_string( std::forward<Ts>(errors)... ));
+    void AddError(Ts &&... args) {
+      errors.push_back( emp::to_string( std::forward<Ts>(args)... ));
     }
 
   public:
@@ -185,7 +185,7 @@ namespace mabe {
   // --------------------- Functions to be used in derived modules ONLY --------------------------
   protected:
 
-    void SetRequiredPops(size_t in_pops; ) { required_pops = in_pops; }
+    void SetRequiredPops(size_t in_pops) { required_pops = in_pops; }
 
     // --== Trait management ==--
    
