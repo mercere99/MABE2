@@ -34,6 +34,12 @@ namespace mabe {
     bool is_placement=false;  ///< Does this module handle offspring placement?
     bool is_analyze=false;    ///< Does this module record or evaluate data?
 
+    /// Is this module expecting sychronous replication (i.e., discrete generations) or
+    /// asynchronous replication (i.e., overlapping generations)?  The former is more common
+    /// in evolutionary computation, while the latter is more common in artificial life.
+    /// Modules with no-preference will be ignored.  Modules with a requirement will force
+    /// the replication type (and give an error if requirements contradict each other).
+    /// Otherwise the more common default will be used, with synchronous used in case of a tie.
     enum class ReplicationType {
       NO_PREFERENCE, REQUIRE_ASYNC, DEFAULT_ASYNC, DEFAULT_SYNC, REQUIRE_SYNC
     };
@@ -84,6 +90,19 @@ namespace mabe {
       };
       Archive archive = Archive::NONE;
 
+      /// How should these data be summarized in phyla types (such as Genotype)
+      enum TypeRecord {
+        IGNORE,         ///< Don't include this trait in phyla records.
+        DEATH_AVERAGE,  ///< Store average value of organisms at their death.
+        DEATH_SUMMARY,  ///< Store basic summary (min, max, count, ave) of orgs at death.
+        DEATH_FULL,     ///< Store all values for organisms at their death.
+        PARENT_AVERAGE, ///< Store average value of parents at organisms' births.
+        PARENT_SUMMARY, ///< Store basic summary (min, max, count, ave) of parents at birth.
+        PARENT_FULL     ///< Store all values for parents at organisms' births.
+      };
+      TypeRecord type_record = TypeRecord::IGNORE;
+
+      /// Was a default value set for this trait (can only be done in overload that knows type)
       virtual bool HasDefault() { return false; }
 
       /// Set the current value of this trait to be automatically inthereted by offspring.
