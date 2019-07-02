@@ -57,6 +57,7 @@ namespace mabe {
     emp::vector<std::string> errors;
 
     // Helper functions.
+    template <typename... Ts>
     void AddError(Ts &&... args) {
       errors.push_back( emp::to_string( std::forward<Ts>(args)... ));
     }
@@ -129,19 +130,43 @@ namespace mabe {
     MOD_T & AddModule(ARGS &&... args) {
       auto mod_ptr = emp::NewPtr<MOD_T>(std::forward<ARGS>(args)...);
       modules.push_back(mod_ptr);
-      mod_ptr->InternalSetup(*this);
       return *mod_ptr;
     }
 
     // --- Basic Controls ---
 
     void Setup() {
-      // Scan through the modules to make sure they are consistent and determine any automatic
-      // configuration that still needs to be done.
-      size_t required_pops = 0;
+      // STEP 1: Setup populations.
       for (emp::Ptr<Module> mod_ptr : modules) {
         // If this module requires more populations than we currently have, update!
-        required_pops = std::max(required_pops, mod_ptr->GetRequiredPops());
+        size_t min_pops = mod_ptr->GetMinPops();
+        size_t max_pops = mod_ptr->GetMaxPops();
+        size_t cur_pops = mod_ptr->GetNumPops();
+
+        // If the number of populations is already in range, we're done with this module.
+        if (cur_pops >= min_pops && cur_pops <= max_pops) continue;
+
+        // If there are too many populations, this is clearly an error.
+        if (cur_pops > max_pops) {
+          AddError(cur_pops, " populations set in module '", mod_ptr->GetName(),
+                   "', but only ", max_pops, " allowed.");
+          continue;
+        }
+
+        // If we aren't allowed to automatically assign population -or- if there are some
+        // populations specified, but not enough, don't try to guess, just error.
+        if (mod_ptr->DefaultPopsOK() == false || (cur_pops > 0 && cur_pops < min_pops)) {
+          AddError(cur_pops, " populations set in module '", mod_ptr->GetName(),
+                   "', but ", min_pops, " required.");
+          continue;
+        }
+
+        // If we made it this far, just assign population from the beginning.
+        if (pops.size() == 0) AddPopulation("main");
+        while (pops.size() < min_pops) AddPopulation(emp::to_string("pop", pops.size()));
+        for (size_t i = 0; i < min_pops; i++) {
+          mod_ptr->UsePopulation(*(pops[i]));
+        }
       }
 
       // If no populations have been manually setup, make sure we have at least one.
