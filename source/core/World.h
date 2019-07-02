@@ -114,6 +114,13 @@ namespace mabe {
     // --- Basic Controls ---
 
     void Setup() {
+      // Scan through the modules to make sure they are consistent and determine any automatic
+      // configuration that still needs to be done.
+      size_t required_pops = 0;
+      for (emp::Ptr<Module> mod_ptr : modules) {
+        required_pops = std::max(required_pops, mod_ptr->GetRequiredPops();
+      }
+
       // If no populations have been manually setup, make sure we have at least one.
       if (pops.size() == 0) AddPopulation("main");
 
