@@ -149,6 +149,7 @@ namespace mabe {
 
     const std::string & GetName() const { return name; }
     const emp::vector<std::string> & GetErrors() const { return errors; }
+    size_t GetRequiredPops() const { return required_pops; }
 
     virtual emp::Ptr<Module> Clone() { return nullptr; }
 
@@ -183,6 +184,9 @@ namespace mabe {
 
   // --------------------- Functions to be used in derived modules ONLY --------------------------
   protected:
+
+    void SetRequiredPops(size_t in_pops; ) { required_pops = in_pops; }
+
     // --== Trait management ==--
    
     /// Add a new trait to this module, specifying its access method, its name, and its description.
