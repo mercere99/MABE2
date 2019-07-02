@@ -6,13 +6,24 @@
  *  @file  World.h
  *  @brief Controller for an individual World in MABE.
  * 
- * A WORLD maintains one or more populations or organisms, "evaluate" modules
- * to measure phenotypic traits, and a "select" modules to use those traits to
- * affect/determine the organism's reproductive success.
+ *  A WORLD maintains one or more populations of organisms, along with a set of modules that
+ *  control the rules by which those organisms evolve.  Modules types are:
+ *  - Evaluate: Process organisms to measure phenotypic traits
+ *  - Select: Use those traits to affect/determine each organism's reproductive success
+ *  - Placement: Once an organism is selected for reproduction, place the offspring appropriately.
+ *  - Analyze: Track aspects of evolution and perform measurements on populations.
  * 
- * Developer notes:
- * - Populations are stored in a vector of pointers so that if the vector resizes, the positions
- *   of the actual populations will not change.
+ *  World will perform some automatic configuration and error-checking on its components.  We
+ *  have a careful balance between intelligent default behaviors and requiring the user to
+ *  specify any configurations that may be confusing.
+ * 
+ *  For example: Modules must specify which populations they are to act upon UNLESS they only
+ *  work on the main population OR main and a "next generation" population for synchronous
+ *  generations.
+ * 
+ *  Developer notes:
+ *  - Populations are stored in a vector of *pointers* so that if the vector resizes, organisms
+ *    will not change their position in memory.
  */
 
 #ifndef MABE_WORLD_H
@@ -42,6 +53,17 @@ namespace mabe {
     emp::Random & random;
     size_t id;
     size_t cur_pop = (size_t) -1;
+
+    emp::vector<std::string> errors;
+
+    // Helper functions.
+    void AddError(Ts &&... args) {
+      errors.push_back( emp::to_string( std::forward<Ts>(args)... ));
+    }
+    void AddErrors(const emp::vector<std::string> & in_errors) {
+      errors.insert(errors.end(), in_errors.begin(), in_errors.end());
+    }
+
   public:
     World(const std::string & in_name, MABE & mabe, emp::Random & in_random, size_t in_id)
       : name(in_name), mabe_ptr(&mabe), random(in_random), id(in_id) { ; }
@@ -118,6 +140,7 @@ namespace mabe {
       // configuration that still needs to be done.
       size_t required_pops = 0;
       for (emp::Ptr<Module> mod_ptr : modules) {
+        // If this module requires more populations than we currently have, update!
         required_pops = std::max(required_pops, mod_ptr->GetRequiredPops());
       }
 
@@ -126,6 +149,11 @@ namespace mabe {
 
       // Allow the user-defined module Setup() member functions run.
       for (auto x : modules) x->Setup(*this);
+
+      // Final scan for additional errors in any module.
+      for (emp::Ptr<Module> mod_ptr : modules) {
+        if (mod_ptr->HasErrors()) { AddErrors(mod_ptr->GetErrors()); }
+      }
     }
 
     void Update(size_t num_updates=1) {
