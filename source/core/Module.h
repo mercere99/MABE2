@@ -12,10 +12,11 @@
 
 #include <string>
 
+#include "base/map.h"
 #include "base/Ptr.h"
 #include "base/vector.h"
+#include "tools/map_utils.h"
 #include "tools/reference_vector.h"
-#include "tools/vector_utils.h"
 
 namespace mabe {
 
@@ -24,7 +25,8 @@ namespace mabe {
 
   class Module {
   protected:
-    std::string name;
+    std::string name;                 ///< Unique name for this module.
+    emp::vector<std::string> errors;  ///< Has this class detected any configuration errors?
 
     // What type of module is this (note, some can be more than one!)
     bool is_evaluate=false;   ///< Does this module perform evaluation on organisms?
@@ -131,8 +133,13 @@ namespace mabe {
       }
     };
 
-    emp::vector<TraitInfo *> traits;
+    emp::map<std::string, emp::Ptr<TraitInfo>> trait_map;
 
+    // Helper functions
+    template <typename... Ts>
+    void AddError(Ts &&... errors) {
+      errors.push_back( emp::to_string( std::forward<Ts>(errors)... ));
+    }
 
   public:
     Module() : name("") { ; }
@@ -141,6 +148,7 @@ namespace mabe {
     virtual ~Module() { ; }
 
     const std::string & GetName() const { return name; }
+    const emp::vector<std::string> & GetErrors() const { return errors; }
 
     virtual emp::Ptr<Module> Clone() { return nullptr; }
 
@@ -180,11 +188,14 @@ namespace mabe {
     /// Add a new trait to this module, specifying its access method, its name, and its description.
     template <typename T>
     TypedTraitInfo<T> & AddTrait(TraitInfo::Access access,
-                                 const std::string & name,
+                                 const std::string & in_name,
                                  const std::string & desc) {
-      auto new_ptr = emp::NewPtr<TypedTraitInfo<T>>(name, desc);
+      if (emp::Has(trait_map, in_name)) {
+        AddError("Module ", name, " is creating a duplicate trait named '", in_name, "'.");
+      }
+      auto new_ptr = emp::NewPtr<TypedTraitInfo<T>>(in_name, desc);
       new_ptr->access = access;
-      traits.push_back(new_ptr);
+      trait_map[in_name] = new_ptr;
       return *new_ptr;
     }
 
