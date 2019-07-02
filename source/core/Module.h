@@ -41,7 +41,9 @@ namespace mabe {
 
     /// Which populations are we operating on?
     emp::reference_vector<mabe::Population> pops;  ///< Which population are we using?
-    size_t required_pops = 0;                      ///< How many population are needed?
+    size_t min_pops = 0;                           ///< Minimum number of population needed
+    size_t max_pops = 0;                           ///< Maximum number of population allowed
+    bool default_pops_ok = true;                   ///< Is it okay to use default populations?
 
     /// Store information about organism traits that this module needs to work with.
     struct TraitInfo {
@@ -147,16 +149,19 @@ namespace mabe {
     Module(Module &&) = default;
     virtual ~Module() { ; }
 
-    const std::string & GetName() const { return name; }
-    const emp::vector<std::string> & GetErrors() const { return errors; }
-    size_t GetRequiredPops() const { return required_pops; }
+    const std::string & GetName() const noexcept { return name; }
+    bool HasErrors() const { return errors.size(); }
+    const emp::vector<std::string> & GetErrors() const noexcept { return errors; }
+    size_t GetMinPops() const noexcept { return min_pops; }
+    size_t GetMaxPops() const noexcept { return max_pops; }
+    bool DefaultPopsOK() const noexcept { return default_pops_ok; }
 
     virtual emp::Ptr<Module> Clone() { return nullptr; }
 
-    bool IsEvaluate() const { return is_evaluate; }
-    bool IsSelect() const { return is_select; }
-    bool IsPlacement() const { return is_placement; }
-    bool IsAnalyze() const { return is_analyze; }
+    bool IsEvaluate() const noexcept  { return is_evaluate; }
+    bool IsSelect() const noexcept  { return is_select; }
+    bool IsPlacement() const noexcept  { return is_placement; }
+    bool IsAnalyze() const noexcept  { return is_analyze; }
 
     Module & IsEvaluate(bool in) noexcept { is_evaluate = in; return *this; }
     Module & IsSelect(bool in) noexcept { is_select = in; return *this; }
@@ -168,16 +173,17 @@ namespace mabe {
     Module & DefaultSync() { rep_type = ReplicationType::DEFAULT_SYNC; return *this; }
     Module & RequireSync() { rep_type = ReplicationType::REQUIRE_SYNC; return *this; }
 
-    // Internal, initial setup.
-    void InternalSetup(mabe::World & world) {
-      // World needs to check if all populations are setup correctly.
-    }
-
     virtual void Setup(mabe::World &) { /* By default, assume no setup needed. */ }
     virtual void Update() { /* By default, do nothing at update. */ }
 
-    /// Add an additional population to evaluate.
-    Module & AddPopulation( mabe::Population & in_pop ) {
+    // ------------ Population Management ------------
+
+    size_t GetNumPops() const noexcept { return pops.size(); }
+
+    const Population & GetPopulation(size_t id) const { return pops[id]; }
+
+    /// Add an additional population to make use of.
+    Module & UsePopulation( mabe::Population & in_pop ) {
       pops.push_back( in_pop );
       return *this;
     }
@@ -185,7 +191,18 @@ namespace mabe {
   // --------------------- Functions to be used in derived modules ONLY --------------------------
   protected:
 
-    void SetRequiredPops(size_t in_pops) { required_pops = in_pops; }
+    /// Set the number of populations that this module must work on.  If only one number is
+    /// provided, that is the required number; if two that is the range.
+    /// If both number are specified, may include a third arg to indivate if it is okat to use
+    /// the default populations (which assumes the first population is "main" and the second, if
+    /// there is one, is next generation.)
+    void SetRequiredPops(size_t in_min, size_t in_max=0, bool in_default_ok=false) {
+      emp_assert(in_max == 0 || in_max >= in_min);
+      min_pops = in_min;
+      max_pops = in_max;
+      if (max_pops == 0) max_pops = min_pops;  // If maximum was not set, use minimum for both.
+      default_pops_ok = in_default_ok;
+    }
 
     // --== Trait management ==--
    
