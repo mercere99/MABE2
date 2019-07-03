@@ -16,11 +16,16 @@
 
 namespace mabe {
 
-  struct TraitInfo {
-    std::string name="";
-    std::string desc="";
-    emp::TypeID type;
+  class Module;
 
+  class TraitInfo {
+  protected:
+    std::string name="";     ///< Unique name for this trait.
+    std::string desc="";     ///< Description of this trait.
+    emp::TypeID type;        ///< Type identifier for this triat.
+    emp::Ptr<Module> owner;  ///< Pointer to owner module for trait (or creator for a shared trait)
+
+  public:
     /// Which modules are allowed to read or write this trait?
     enum Access {
       UNKNOWN,   ///< Access level unknown; most likely a problem!
@@ -29,7 +34,6 @@ namespace mabe {
       REQUIRED,  ///< Can READ this trait, but another module must WRITE to it.
       PRIVATE    ///< Can READ & WRITE this trait.  Others cannot use it.
     };
-    Access access = Access::UNKNOWN;
 
     /// How should this trait be initialized in a newly-born organism?
     /// * Injected organisms always use the default value.
@@ -41,8 +45,6 @@ namespace mabe {
       MINIMUM,   ///< Trait becomes lowest of all parents on birth.
       MAXIMUM    ///< Trait becomes highest of all parents on birth.
     };
-    Init init = Init::DEFAULT;
-    bool reset_parent = false;  ///< Should the parent ALSO be reset on birth?
 
     /// Which information should we store in the trait as we go?
     enum Archive {
@@ -52,7 +54,6 @@ namespace mabe {
       ALL_CHANGE  ///< Store values from every change in "sequence_(name)"
       // @CAO: CHANGE not yet impements since hard to track...
     };
-    Archive archive = Archive::NONE;
 
     /// How should these data be summarized in phyla types (such as Genotype)
     enum TypeRecord {
@@ -64,10 +65,23 @@ namespace mabe {
       PARENT_SUMMARY, ///< Store basic summary (min, max, count, ave) of parents at birth.
       PARENT_FULL     ///< Store all values for parents at organisms' births.
     };
+
+  protected:
+    Access access = Access::UNKNOWN;
+    Init init = Init::DEFAULT;
+    bool reset_parent = false;  ///< Should the parent ALSO be reset on birth?
+    Archive archive = Archive::NONE;
     TypeRecord type_record = TypeRecord::IGNORE;
+
+  public:
+    TraitInfo & SetDescription(std::string in_desc) { desc = in_desc; return *this; }
+    TraitInfo & SetOwner(emp::Ptr<Module> in_owner) { owner = in_owner; return *this; }
 
     /// Was a default value set for this trait (can only be done in overload that knows type)
     virtual bool HasDefault() { return false; }
+
+    /// Set the access level of this trait to a specified level.
+    TraitInfo & SetAccess(Access in_access) { access = in_access; return *this; }
 
     /// Set the current value of this trait to be automatically inthereted by offspring.
     TraitInfo & SetInheritParent() { init = Init::PARENT; return *this; }
