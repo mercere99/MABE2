@@ -129,12 +129,12 @@ namespace mabe {
     template <typename T>
     TypedTraitInfo<T> & AddTrait(TraitInfo::Access access,
                                  const std::string & in_name,
-                                 const std::string & desc) {
+                                 const std::string & desc="") {
       if (emp::Has(trait_map, in_name)) {
         AddError("Module ", name, " is creating a duplicate trait named '", in_name, "'.");
       }
-      auto new_ptr = emp::NewPtr<TypedTraitInfo<T>>(in_name, desc);
-      new_ptr->access = access;
+      auto new_ptr = emp::NewPtr<TypedTraitInfo<T>>(in_name);
+      new_ptr->SetAccess(access).SetOwner(this).SetDescription(desc);
       trait_map[in_name] = new_ptr;
       return *new_ptr;
     }
@@ -167,7 +167,7 @@ namespace mabe {
     /// Must provide name, description; a default value is optional, but at least one
     /// module MUST set and it must be consistent across all modules that use it.
     template <typename T>
-    TraitInfo & AddSharedTrait(const std::string & name, const std::string & desc) {
+    TraitInfo & AddSharedTrait(const std::string & name, const std::string & desc="") {
       return AddTrait<T>(TraitInfo::Access::SHARED, name, desc);
     }
     template <typename T>
@@ -176,9 +176,10 @@ namespace mabe {
     }
    
     /// Add trait that this module can READ this trait, but another module must WRITE to it.
+    /// That other module should also provide the description for the trait.
     template <typename T>
-    TraitInfo & AddRequiredTrait(const std::string & name, const std::string & desc) {
-      return AddTrait<T>(TraitInfo::Access::REQUIRED, name, desc);
+    TraitInfo & AddRequiredTrait(const std::string & name) {
+      return AddTrait<T>(TraitInfo::Access::REQUIRED, name);
     }
 
 
