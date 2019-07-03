@@ -26,8 +26,9 @@ namespace mabe {
 
   public:
     SelectElite(const std::string & in_trait="fitness") : trait(in_trait) {
-      IsSelect(true);
-      DefaultAsync();
+      IsSelect(true);                  ///< Mark this module as a selection module.
+      DefaultSync();                   ///< This module defaults to synchronous generations.
+      AddRequiredTrait<double>(trait); ///< The fitness trait must be set by another module.
     }
     ~SelectElite() { }
 

@@ -31,6 +31,8 @@ namespace mabe {
       : N(_N), K(_K), bits_trait(_btrait), fitness_trait(_ftrait)
     {
       IsEvaluate(true);
+      AddOwnedTrait<emp::BitVector>(bits_trait, "NK Bit Sequence", emp::BitVector());
+      AddOwnedTrait<double>(fitness_trait, "NK fitness value", 0.0);
     }
     ~EvalNK() { }
 
