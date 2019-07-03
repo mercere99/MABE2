@@ -169,22 +169,25 @@ namespace mabe {
         }
       }
 
-      // If no populations have been manually setup, make sure we have at least one.
-      if (pops.size() == 0) AddPopulation("main");
+      // If no populations have been added at all, nothing will happen!
+      if (pops.size() == 0) AddError("No populations have been added!");
 
       // Allow the user-defined module Setup() member functions run.
-      for (auto x : modules) x->Setup(*this);
+      for (emp::Ptr<Module> mod_ptr : modules) mod_ptr->Setup(*this);
 
-      // Final scan for additional errors in any module.
+      // STEP 2: Setup traits.
+
+      // STEP 3: Collect errors in any module.
       for (emp::Ptr<Module> mod_ptr : modules) {
         if (mod_ptr->HasErrors()) { AddErrors(mod_ptr->GetErrors()); }
       }
+
     }
 
     void Update(size_t num_updates=1) {
       // Run Update on all modules...
       for (size_t ud = 0; ud < num_updates; ud++) {
-        for (auto x : modules) x->Update();
+        for (emp::Ptr<Module> mod_ptr : modules) mod_ptr->Update();
       }
     }
 
