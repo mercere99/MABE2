@@ -36,7 +36,7 @@ namespace mabe {
   class Population {
   private:
     std::string name="";                   ///< Unique name for this population.
-    size_t id = (size_t) -1;               ///< Position in world of this population.
+    size_t world_id = (size_t) -1;         ///< Position in world of this population.
     emp::vector<emp::Ptr<Organism>> orgs;  ///< Info on all organisms in this population.
     bool skip_empty = false;               ///< When iterating, should we skip over empty cells?
 
@@ -220,7 +220,14 @@ namespace mabe {
       const ConstIterator end() const { return ConstIterator(pop_ptr, PopSize(), skip_empty); }
     };
     
-    Population(const std::string & in_name, size_t in_id, size_t pop_size) : name(in_name), id(in_id) {
+  private:
+    /// A placement function takes a position in THIS population and returns an Interator
+    /// indicating where the offspring of the organism at that position should be placed.
+    using placement_fun_t = std::function< Iterator(size_t) >;
+    placement_fun_t placement_fun;
+
+  public:
+    Population(const std::string & in_name, size_t in_id, size_t pop_size) : name(in_name), world_id(in_id) {
       orgs.resize(pop_size, &empty_org);
     }
     Population(const Population & in_pop) : name(in_pop.name + "_copy"), orgs(in_pop.orgs.size()) {
@@ -237,12 +244,45 @@ namespace mabe {
     ~Population() { for (auto x : orgs) x.Delete(); }
 
     const std::string & GetName() const noexcept { return name; }
-    int GetID() const noexcept { return id; }
+    int GetWorldID() const noexcept { return world_id; }
     size_t GetSize() const noexcept { return orgs.size(); }
     bool GetSkipEmpty() const noexcept { return skip_empty; }
 
-    void SetID(int in_id) noexcept { id = in_id; }
+    void SetWorldID(int in_id) noexcept { world_id = in_id; }
     void SetSkipEmpty(bool in=true) { skip_empty = in; }
+
+    Organism & operator[](size_t org_id) { return *(orgs[org_id]); }
+    const Organism & operator[](size_t org_id) const { return *(orgs[org_id]); }
+
+    // All insertions of organisms should come through this function.
+    void AddOrgAt(emp::Ptr<Organism> org_ptr, size_t pos, size_t ppos) {
+      // @CAO: TRIGGER BEFORE PLACEMENT SIGNAL! Include both new organism and parent, if available.
+      RemoveOrgAt(pos);     // Clear out any organism already in this position.
+      orgs[pos] = org_ptr;  // Put the new organism in place.
+      // @CAO: Indicate +1 organism in the population.
+      // @CAO: TRIGGER ON PLACEMENT SIGNAL!
+    }
+
+    // All removal of organisms should come through this function.
+    void RemoveOrgAt(size_t pos) {
+      emp_assert(pos < orgs.size());
+      if (orgs[pos].IsEmpty()) return; // Nothing to remove!
+
+      // @CAO: TRIGGER BEFORE DEATH SIGNAL!
+      orgs[pos].Delete();
+      orgs[pos] = &empty_org;
+      // @CAO Indicate -1 organism in the population.
+    }
+
+    void Resize(size_t new_size) {
+      // Clean up any organisms that may be getting deleted.
+      for (size_t pos = new_size; pos < orgs.size(); pos++) {
+        RemoveOrgAt(pos);
+      }
+
+      // Resize the population, adding in empty cells to any new spaces.
+      orgs.resize(new_size, &empty_org);
+    }
 
     /// Return an iterator pointing to the first occupied cell in the world.
     Iterator begin() { return Iterator(this, 0, skip_empty); }
@@ -260,6 +300,17 @@ namespace mabe {
     ConstIterator end() const { return ConstIterator(this, GetSize(), skip_empty); }
     ConstIterator end(bool skip_empty) const { return ConstIterator(this, GetSize(), skip_empty); }
 
+    /// Organism replication and placement.
+    void SetGrowthPlacement() {
+      placement_fun = [this](size_t id){  };
+    }
+
+    void Replicate(size_t org_id, size_t copy_count) {
+      emp_assert(placement_fun);
+      for (size_t copy_id = 0; copy_id < copy_count; copy_id++) {
+        Iterator target = placement_fun(org_id);
+      }
+    }
   };
 
 }
