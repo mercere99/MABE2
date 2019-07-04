@@ -14,6 +14,7 @@
 #include "../core/Module.h"
 
 #include "tools/reference_vector.h"
+#include "tools/valsort_map.h"
 
 namespace mabe {
 
@@ -25,17 +26,33 @@ namespace mabe {
     size_t copy_count;   ///< How many copies of each should we make?
 
   public:
-    SelectElite(const std::string & in_trait="fitness") : trait(in_trait) {
+    SelectElite(const std::string & in_trait="fitness", size_t tcount=1, size_t ccount=1)
+      : trait(in_trait), top_count(tcount), copy_count(ccount)
+    {
       IsSelect(true);                  ///< Mark this module as a selection module.
       DefaultSync();                   ///< This module defaults to synchronous generations.
       AddRequiredTrait<double>(trait); ///< The fitness trait must be set by another module.
+      SetRequiredPops(1);              ///< Can only run elite selection on one pop at a time.
     }
     ~SelectElite() { }
 
     void Setup(mabe::World & world) {
+      (void) world;
     }
 
     void Update() {
+      // Construct a map of all IDs to their associated fitness values.
+      emp::valsort_map<size_t, double> id_fit_map;
+      for (size_t id = 0; id < pops[0].GetSize(); id++) {
+        if (pops[0][id].IsEmpty()) continue;
+        id_fit_map.Set(id, pops[0][id].GetVar<double>(trait));
+      }
+
+      // Loop through the IDs in fitness order (from highest), replicating each
+      size_t num_reps = 0;
+      for (auto it = id_fit_map.crvbegin(); it != id_fit_map.crvend() && num_reps < top_count; it++) {
+        pops[0].Replicate(it->first, copy_count);
+      }
     }
   };
 
