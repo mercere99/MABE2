@@ -1,67 +1,23 @@
 /**
- *  @note This file is part of Empirical, https://github.com/devosoft/Empirical
- *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2017-2018
- *
- *  @file  World.h
- *  @brief Definition of a base class for a World template for use in evolutionary algorithms.
- *
- *  A definition of the emp::World template, linking in specialized file handling, iterators,
- *  and selection techniques for evolutionary computation applications.
- *
- *
- *  @todo Make sure when mutations occure before placement into the population we can control
+ *  @todo Make sure when mutations occur before placement into the population we can control
  *        whether or not they also affect injected organisms.  (Right now they alwyas do!!)
- *  @todo We should Specialize World so that ANOTHER world can be used as an ORG, with proper
- *        delegation to facilitate demes, pools, islands, etc.
- *  @todo We should be able to have any number of systematics managers, based on various type_trait
- *        information a that we want to track.
- *  @todo Add a signal for DoBirth() for when a birth fails.
- *  @todo Add a signal for population Reset() (and possibly Clear?)
- *  @todo Add a feature to maintain population sorted by each phenotypic trait.  This will allow
- *        us to more rapidly find phenotypic neighbors and know the current extremes for each
- *        phenotype.
  */
 
-#ifndef EMP_EVO_WORLD_H
-#define EMP_EVO_WORLD_H
-
-#include <functional>
-#include <map>
-#include <unordered_map>
-
-#include "../base/Ptr.h"
-#include "../base/vector.h"
-#include "../control/Signal.h"
-#include "../control/SignalControl.h"
-#include "../data/DataFile.h"
-#include "../data/DataManager.h"
-#include "../data/Trait.h"
-#include "../meta/reflection.h"
-#include "../tools/map_utils.h"
-#include "../tools/Random.h"
-#include "../tools/Range.h"
-#include "../tools/random_utils.h"
-#include "../tools/string_utils.h"
-
-// World-specific includes.
-#include "Systematics.h"     // Track relationships among organisms.
-#include "World_iterator.h"  // Allow iteration through organisms in a world.
-#include "World_reflect.h"   // Handle needed reflection on incoming organism classes.
-#include "World_select.h"    // Include all built-in selection functions for World.
-#include "World_structure.h" // Include additional function to setup world structure.
+#ifndef MABE_WORLD_H
+#define MABE_WORLD_H
 
 namespace emp {
 
-  ///  @brief Setup a World with a population of organisms that can evolve or deal with ecological effects.
+  ///  @brief Setup a World with a population of organisms.
   ///
   ///  There are three ways that organisms can enter the population:
   ///   * InjectAt(org, pos) - place the organism at the specified position in the population.
   ///   * Inject(org) - place the organism using a default postion (given other settings).
   ///   * DoBirth(org, parent_pos) - place the organism using current birth settings.
   ///
-  ///  If the population is in EA mode (with synchronous generations), DoBirth will place offspring in
-  ///  a "next generation" placeholder population.  Update() will move orgs into primary population.
+  ///  If the population is in EA mode (with synchronous generations), DoBirth() will
+  ///  place offspring in a "next generation" placeholder population.  Update() will move
+  ///  orgs into primary population.
   ///
   ///  Organisms have a series of functions that are called on them that are chosen:
   ///
@@ -109,9 +65,6 @@ namespace emp {
 
     /// Function type for calculating the distance between two organisms.
     using fun_calc_dist_t       = std::function<double(ORG&,ORG&)>;
-
-    /// Function type for a mutation operator on an organism.
-    using fun_do_mutations_t    = std::function<size_t(ORG&,Random&)>;
 
     /// Function type for printing an organism's info to an output stream.
     using fun_print_org_t       = std::function<void(ORG&,std::ostream &)>;
