@@ -222,7 +222,7 @@ namespace mabe {
     
   private:
     /// A placement function takes a position in THIS population and returns an Interator
-    /// indicating where the offspring of the organism at that position should be placed.
+    /// indicating where the organism at that position should place its offspring.
     using placement_fun_t = std::function< Iterator(size_t) >;
     placement_fun_t placement_fun;
 
@@ -254,6 +254,25 @@ namespace mabe {
     Organism & operator[](size_t org_id) { return *(orgs[org_id]); }
     const Organism & operator[](size_t org_id) const { return *(orgs[org_id]); }
 
+    /// Return an iterator pointing to the first occupied cell in the world.
+    Iterator begin() { return Iterator(this, 0, skip_empty); }
+    Iterator begin(bool skip_empty) { return Iterator(this, 0, skip_empty); }
+
+    /// Return a const iterator pointing to the first occupied cell in the world.
+    ConstIterator begin() const { return ConstIterator(this, 0, skip_empty); }
+    ConstIterator begin(bool skip_empty) const { return ConstIterator(this, 0, skip_empty); }
+
+    /// Return an iterator pointing to just past the end of the world.
+    Iterator end() { return Iterator(this, GetSize(), skip_empty); }
+    Iterator end(bool skip_empty) { return Iterator(this, GetSize(), skip_empty); }
+
+    /// Return a const iterator pointing to just past the end of the world.
+    ConstIterator end() const { return ConstIterator(this, GetSize(), skip_empty); }
+    ConstIterator end(bool skip_empty) const { return ConstIterator(this, GetSize(), skip_empty); }
+
+    Iterator IteratorAt(size_t pos) { return Iterator(this, pos); }
+    ConstIterator ConstIteratorAt(size_t pos) const { return ConstIterator(this, pos); }
+
     // All insertions of organisms should come through this function.
     void AddOrgAt(emp::Ptr<Organism> org_ptr, size_t pos, size_t ppos) {
       // @CAO: TRIGGER BEFORE PLACEMENT SIGNAL! Include both new organism and parent, if available.
@@ -263,7 +282,7 @@ namespace mabe {
       // @CAO: TRIGGER ON PLACEMENT SIGNAL!
     }
 
-    // All removal of organisms should come through this function.
+    /// All removal of organisms should come through this function.
     void RemoveOrgAt(size_t pos) {
       emp_assert(pos < orgs.size());
       if (orgs[pos].IsEmpty()) return; // Nothing to remove!
@@ -284,26 +303,21 @@ namespace mabe {
       orgs.resize(new_size, &empty_org);
     }
 
-    /// Return an iterator pointing to the first occupied cell in the world.
-    Iterator begin() { return Iterator(this, 0, skip_empty); }
-    Iterator begin(bool skip_empty) { return Iterator(this, 0, skip_empty); }
-
-    /// Return a const iterator pointing to the first occupied cell in the world.
-    ConstIterator begin() const { return ConstIterator(this, 0, skip_empty); }
-    ConstIterator begin(bool skip_empty) const { return ConstIterator(this, 0, skip_empty); }
-
-    /// Return an iterator pointing to just past the end of the world.
-    Iterator end() { return Iterator(this, GetSize(), skip_empty); }
-    Iterator end(bool skip_empty) { return Iterator(this, GetSize(), skip_empty); }
-
-    /// Return a const iterator pointing to just past the end of the world.
-    ConstIterator end() const { return ConstIterator(this, GetSize(), skip_empty); }
-    ConstIterator end(bool skip_empty) const { return ConstIterator(this, GetSize(), skip_empty); }
-
-    /// Organism replication and placement.
-    void SetGrowthPlacement() {
-      placement_fun = [this](size_t id){  };
+    /// Add an empty position to the end of the population (and return an iterator to it)
+    Iterator PushEmpty() {
+      size_t pos = orgs.size();
+      orgs.resize(orgs.size()+1, &empty_org);
+      return Iterator(this, pos);
     }
+
+    /// Set the placement function to put offspring at the end of a specified population.
+    /// Organism replication and placement.
+    void SetGrowthPlacement(Population & pop) {
+      placement_fun = [&pop](size_t id){ return pop.PushEmpty() };
+    }
+
+    /// If we don't specific a population to place offspring in, assume they go in the current one.
+    void SetGrowthPlacement() { SetGrowthPlacement(*this); }
 
     void Replicate(size_t org_id, size_t copy_count) {
       emp_assert(placement_fun);
