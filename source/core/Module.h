@@ -5,6 +5,26 @@
  *
  *  @file  Module.h
  *  @brief Base class for all MABE modules.
+ * 
+ *  Development Notes
+ *  - Various On* functions should be automatically detected and run when relevant, including:
+ *     BeforeRepro(Iterator parent_pos) 
+ *       : Parent is about to reporduce.
+ *     OnOffspringReady(Organism & offspring, Iterator parent_pos)
+ *       : Offspring is ready to be placed.
+ *     OnInjectReady(Organism & inject_org)
+ *       : Organism to be injected is ready to be placed.
+ *     BeforePlacement(Organism & org, Iterator target_pos)
+ *       : Placement location has been identified (For birth or inject)
+ *     OnPlacement(Iterator placement_pos)
+ *       : New organism has been placed in the poulation.
+ *     OnUpdate(size_t ud)
+ *       : Regular update is about to occur.
+ *     BeforeDeath(Iterator remove_pos)
+ *       : Organism is about to die.
+ *     OnSwap(Iterator pos1, Iterator pos2)
+ *       : Organism's position in the population is about to move.
+ *     ...
  */
 
 #ifndef MABE_MODULE_H
