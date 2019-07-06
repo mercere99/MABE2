@@ -44,17 +44,19 @@ namespace mabe {
 
   class World {
   private:
-    std::string name;
+    std::string name;                       ///< Unique name for this world.
 
-    emp::vector<emp::Ptr<Population>> pops;
-    emp::vector<emp::Ptr<Module>> modules;
+    emp::vector<emp::Ptr<Population>> pops; ///< Set of populations in this world/
+    emp::vector<emp::Ptr<Module>> modules;  ///< Set of modules that configure this world.
 
-    emp::Ptr<MABE> mabe_ptr;
-    emp::Random & random;
-    size_t id;
-    size_t cur_pop = (size_t) -1;
+    emp::Ptr<MABE> mabe_ptr;                ///< Pointer back to controlling MABE object.
+    emp::Random & random;                   ///< Random number generator.
+    size_t id;                              ///< What is the ID of this world in MABE?
+    size_t cur_pop = (size_t) -1;           ///< Which population in this world is active?
 
-    emp::vector<std::string> errors;
+    emp::vector<std::string> errors;        ///< Log any errors that have occured.
+
+    bool sync_pop = true;                   ///< Default to a synchronous population.
 
     // Helper functions.
     template <typename... Ts>
@@ -136,7 +138,7 @@ namespace mabe {
     // --- Basic Controls ---
 
     void Setup() {
-      // STEP 1: Setup populations.
+      // ############ STEP 1: Setup populations.
       for (emp::Ptr<Module> mod_ptr : modules) {
         // If this module requires more populations than we currently have, update!
         size_t min_pops = mod_ptr->GetMinPops();
@@ -153,7 +155,7 @@ namespace mabe {
           continue;
         }
 
-        // If we aren't allowed to automatically assign population -or- if there are some
+        // If we are not allowed to automatically assign population -or- if there are some
         // populations specified, but not enough, don't try to guess, just error.
         if (mod_ptr->DefaultPopsOK() == false || (cur_pops > 0 && cur_pops < min_pops)) {
           AddError(cur_pops, " populations set in module '", mod_ptr->GetName(),
@@ -172,12 +174,50 @@ namespace mabe {
       // If no populations have been added at all, nothing will happen!
       if (pops.size() == 0) AddError("No populations have been added!");
 
+      // ############ STEP 2: Determine if the population is synchronous or asynchronous.
+      emp::Ptr<Module> async_req_mod = nullptr;
+      emp::Ptr<Module> sync_req_mod = nullptr;
+      size_t prefer_async = 0;
+      size_t prefer_sync = 0;
+
+      for (emp::Ptr<Module> mod_ptr : modules) {
+        switch (mod_ptr->rep_type) {
+          case Module::ReplicationType::NO_PREFERENCE:
+            break;
+          case Module::ReplicationType::REQUIRE_ASYNC:
+            if (sync_req_mod) {
+              AddError("Module ", sync_req_mod->name, " requires synchronous generations, but module ",
+                       mod_ptr->name " requires asynchronous.");
+            }
+            async_req_mod = mod_ptr;
+            sync_pop = false;
+            break;
+          case Module::ReplicationType::DEFAULT_ASYNC:
+            prefer_async++;
+            break;
+          case Module::ReplicationType::DEFAULT_SYNC:
+            prefer_sync;
+            break;
+          case Module::ReplicationType::REQUIRE_SYNC:
+            if (async_req_mod) {
+              AddError("Module ", async_req_mod->name, " requires asynchronous generations, but module ",
+                       mod_ptr->name " requires synchronous.");
+            }
+            sync_req_mod = mod_ptr;
+            sync_pop = true;
+            break;
+        }
+      }
+      // If we don't have any requirements, go with the preference!
+      if (!async_req_mod && !sync_req_mod) sync_pop = prefer_sync >= prefer_async;
+
+      // ############ STEP 3: Run Setup() on all modules.
       // Allow the user-defined module Setup() member functions run.
       for (emp::Ptr<Module> mod_ptr : modules) mod_ptr->Setup(*this);
 
-      // STEP 2: Setup traits.
+      // ############ STEP 4: Setup traits.
 
-      // STEP 3: Collect errors in any module.
+      // ############ STEP 5: Collect errors in any module.
       for (emp::Ptr<Module> mod_ptr : modules) {
         if (mod_ptr->HasErrors()) { AddErrors(mod_ptr->GetErrors()); }
       }
