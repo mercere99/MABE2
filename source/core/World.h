@@ -142,11 +142,11 @@ namespace mabe {
     void Setup_Traits();
 
     void Setup() {
-      // ############ STEP 1: Setup populations.
-      Setup_Populations();
-
-      // ############ STEP 2: Determine if the population is synchronous or asynchronous.
+      // STEP 1: Determine if world updates should have synchronous or asynchronous generations.
       Setup_Synchronisity();
+
+      // STEP 2: Make sure modules have access to the correct number of populations.
+      Setup_Populations();
 
       // ############ STEP 3: Run Setup() on all modules.
       // Allow the user-defined module Setup() member functions run.
@@ -210,11 +210,18 @@ namespace mabe {
   }
 
   void World::Setup_Populations() {
+    // If no populations have been setup by the user, build a "main" population.
+    if (pops.size() == 0) AddPopulation("main_pop");
+
+    // If we are synchronous, also create a "next" population.
+    if (pops.size() == 1 && sync_pop) AddPopulation("next_pop");
+
+    // Now loop through the modules and make sure all populations are assigned.
     for (emp::Ptr<Module> mod_ptr : modules) {
-      // If this module requires more populations than we currently have, update!
+      // Determine how many populations this module has, and how many it needs.
+      size_t cur_pops = mod_ptr->GetNumPops();
       size_t min_pops = mod_ptr->GetMinPops();
       size_t max_pops = mod_ptr->GetMaxPops();
-      size_t cur_pops = mod_ptr->GetNumPops();
 
       // If the number of populations is already in range, we're done with this module.
       if (cur_pops >= min_pops && cur_pops <= max_pops) continue;
@@ -227,23 +234,21 @@ namespace mabe {
       }
 
       // If we are not allowed to automatically assign population -or- if there are some
-      // populations specified, but not enough, don't try to guess, just error.
+      // populations specified, but not enough, don't try to guess, just print error.
       if (mod_ptr->DefaultPopsOK() == false || (cur_pops > 0 && cur_pops < min_pops)) {
         AddError(cur_pops, " populations set in module '", mod_ptr->GetName(),
                   "', but ", min_pops, " required.");
         continue;
       }
 
-      // If we made it this far, just assign population from the beginning.
-      if (pops.size() == 0) AddPopulation("main");
-      while (pops.size() < min_pops) AddPopulation(emp::to_string("pop", pops.size()));
+      // Any additional populations should just be numbered.
+      while (pops.size() < min_pops) AddPopulation(emp::to_string("pop", pops.size()-2));
+
+      // Assign populations to this module.
       for (size_t i = 0; i < min_pops; i++) {
         mod_ptr->UsePopulation(*(pops[i]));
       }
     }
-
-    // If no populations have been added at all, nothing will happen!
-    if (pops.size() == 0) AddError("No populations have been added!");
   }
 
   void World::Setup_Traits() {
