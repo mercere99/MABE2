@@ -36,7 +36,7 @@ namespace mabe {
   class Population {
   private:
     std::string name="";                   ///< Unique name for this population.
-    size_t world_id = (size_t) -1;         ///< Position in world of this population.
+    size_t pop_id = (size_t) -1;           ///< Position in world of this population.
     emp::vector<emp::Ptr<Organism>> orgs;  ///< Info on all organisms in this population.
     bool skip_empty = false;               ///< When iterating, should we skip over empty cells?
 
@@ -59,7 +59,7 @@ namespace mabe {
 
       // Shortcuts to retrieve information from the POPULATION.
       const std::string & PopName() const { emp_assert(pop_ptr); return pop_ptr->name; }
-      int PopID() const { emp_assert(pop_ptr); return pop_ptr->id; }
+      int PopID() const { emp_assert(pop_ptr); return pop_ptr->pop_id; }
       size_t PopSize() const { emp_assert(pop_ptr); return pop_ptr->orgs.size(); }
       emp::Ptr<Organism> OrgPtr() { emp_assert(pop_ptr); return pop_ptr->orgs[pos]; }
       emp::Ptr<const Organism> OrgPtr() const { emp_assert(pop_ptr); return pop_ptr->orgs[pos]; }
@@ -147,7 +147,7 @@ namespace mabe {
 
       // Shortcuts to retrieve information from the POPULATION.
       const std::string & PopName() const { emp_assert(pop_ptr); return pop_ptr->name; }
-      int PopID() const { emp_assert(pop_ptr); return pop_ptr->id; }
+      int PopID() const { emp_assert(pop_ptr); return pop_ptr->pop_id; }
       size_t PopSize() const { emp_assert(pop_ptr); return pop_ptr->orgs.size(); }
       emp::Ptr<const Organism> OrgPtr() const { emp_assert(pop_ptr); return pop_ptr->orgs[pos]; }
 
@@ -227,7 +227,7 @@ namespace mabe {
     placement_fun_t placement_fun;
 
   public:
-    Population(const std::string & in_name, size_t in_id, size_t pop_size) : name(in_name), world_id(in_id) {
+    Population(const std::string & in_name, size_t in_id, size_t pop_size) : name(in_name), pop_id(in_id) {
       orgs.resize(pop_size, &empty_org);
     }
     Population(const Population & in_pop) : name(in_pop.name + "_copy"), orgs(in_pop.orgs.size()) {
@@ -244,11 +244,11 @@ namespace mabe {
     ~Population() { for (auto x : orgs) x.Delete(); }
 
     const std::string & GetName() const noexcept { return name; }
-    int GetWorldID() const noexcept { return world_id; }
+    int GetWorldID() const noexcept { return pop_id; }
     size_t GetSize() const noexcept { return orgs.size(); }
     bool GetSkipEmpty() const noexcept { return skip_empty; }
 
-    void SetWorldID(int in_id) noexcept { world_id = in_id; }
+    void SetWorldID(int in_id) noexcept { pop_id = in_id; }
     void SetSkipEmpty(bool in=true) { skip_empty = in; }
 
     Organism & operator[](size_t org_id) { return *(orgs[org_id]); }
@@ -285,7 +285,7 @@ namespace mabe {
     /// All removal of organisms should come through this function.
     void RemoveOrgAt(size_t pos) {
       emp_assert(pos < orgs.size());
-      if (orgs[pos].IsEmpty()) return; // Nothing to remove!
+      if (orgs[pos]->IsEmpty()) return; // Nothing to remove!
 
       // @CAO: TRIGGER BEFORE DEATH SIGNAL!
       orgs[pos].Delete();
@@ -313,7 +313,7 @@ namespace mabe {
     /// Set the placement function to put offspring at the end of a specified population.
     /// Organism replication and placement.
     void SetGrowthPlacement(Population & pop) {
-      placement_fun = [&pop](size_t id){ return pop.PushEmpty() };
+      placement_fun = [&pop](size_t id){ return pop.PushEmpty(); };
     }
 
     /// If we don't specific a population to place offspring in, assume they go in the current one.
