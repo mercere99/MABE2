@@ -46,6 +46,7 @@ namespace mabe {
   class World;
 
   class Module {
+    friend World;
   protected:
     std::string name;                 ///< Unique name for this module.
     emp::vector<std::string> errors;  ///< Has this class detected any configuration errors?
@@ -63,7 +64,7 @@ namespace mabe {
     /// the replication type (and give an error if requirements contradict each other).
     /// Otherwise the more common default will be used, with synchronous used in case of a tie.
     enum class ReplicationType {
-      NO_PREFERENCE, REQUIRE_ASYNC, DEFAULT_ASYNC, DEFAULT_SYNC, REQUIRE_SYNC
+      NO_PREFERENCE=0, REQUIRE_ASYNC, DEFAULT_ASYNC, DEFAULT_SYNC, REQUIRE_SYNC
     };
     ReplicationType rep_type = ReplicationType::NO_PREFERENCE;
 
