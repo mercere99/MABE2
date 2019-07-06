@@ -187,7 +187,7 @@ namespace mabe {
           case Module::ReplicationType::REQUIRE_ASYNC:
             if (sync_req_mod) {
               AddError("Module ", sync_req_mod->name, " requires synchronous generations, but module ",
-                       mod_ptr->name " requires asynchronous.");
+                       mod_ptr->name, " requires asynchronous.");
             }
             async_req_mod = mod_ptr;
             sync_pop = false;
@@ -196,12 +196,12 @@ namespace mabe {
             prefer_async++;
             break;
           case Module::ReplicationType::DEFAULT_SYNC:
-            prefer_sync;
+            prefer_sync++;
             break;
           case Module::ReplicationType::REQUIRE_SYNC:
             if (async_req_mod) {
               AddError("Module ", async_req_mod->name, " requires asynchronous generations, but module ",
-                       mod_ptr->name " requires synchronous.");
+                       mod_ptr->name, " requires synchronous.");
             }
             sync_req_mod = mod_ptr;
             sync_pop = true;
