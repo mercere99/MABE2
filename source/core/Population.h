@@ -24,7 +24,7 @@ namespace mabe {
 
   /// An EmptyOrganism is used as a placeholder in an empty cell in a population.
   class EmptyOrganism : public Organism {
-    emp::Ptr<Organism> Clone() override { emp_assert(false, "Do not clone EmptyOrganism"); return nullptr; }
+    emp::Ptr<Organism> Clone() const override { emp_assert(false, "Do not clone EmptyOrganism"); return nullptr; }
     std::string ToString() override { return "[empty]"; }
     int Mutate(emp::Random &) override { emp_assert(false, "EmptyOrganism cannot Mutate()"); return -1; }
     int Randomize(emp::Random &) override { emp_assert(false, "EmptyOrganism cannot Randomize()"); return -1; }
@@ -52,7 +52,7 @@ namespace mabe {
       bool skip_empty;
 
     public:
-      Iterator(emp::Ptr<Population> _pop, size_t _pos=0, bool _skip=true)
+      Iterator(emp::Ptr<Population> _pop=nullptr, size_t _pos=0, bool _skip=true)
         : pop_ptr(_pop), pos(_pos), skip_empty(_skip) { if (skip_empty) ToOccupied(); }
       Iterator(const Iterator &) = default;
       Iterator & operator=(const Iterator &) = default;
@@ -71,8 +71,10 @@ namespace mabe {
       void Pos(size_t in) { pos = in; }
       void SkipEmpty(bool in) { skip_empty = in; if (skip_empty) ToOccupied(); }
 
+      /// Is this iterator currently in a legal state?
+      bool IsValid() const { return !pop_ptr.IsNull() && pos < PopSize(); }
+
       /// Is the pointed-to cell occupied?
-      bool IsValid() const { return pos < PopSize(); }
       bool IsEmpty() const { return IsValid() && OrgPtr()->IsEmpty(); }
       bool IsOccupied() const { return IsValid() && !OrgPtr()->IsEmpty(); }
 
@@ -81,6 +83,11 @@ namespace mabe {
 
       /// Move to the first empty cell after 'start'.
       void ToOccupied(size_t start) { pos = start; ToOccupied(); }
+
+      /// Insert an organism into the pointed-at position.
+      void AddOrg(emp::Ptr<Organism> org_ptr, Iterator ppos=Iterator()) {
+        pop_ptr->AddOrgAt(org_ptr, pos, ppos);
+      }
 
       /// Advance iterator to the next non-empty cell in the world.
       Iterator & operator++() {
@@ -223,8 +230,11 @@ namespace mabe {
   private:
     /// A placement function takes a position in THIS population and returns an Interator
     /// indicating where the organism at that position should place its offspring.
-    using placement_fun_t = std::function< Iterator(size_t) >;
-    placement_fun_t placement_fun;
+    using place_birth_fun_t = std::function< Iterator(size_t) >;
+    place_birth_fun_t place_birth_fun;
+
+    using place_inject_fun_t = std::function< Iterator() >;
+    place_inject_fun_t place_inject_fun;
 
   public:
     Population(const std::string & in_name, size_t in_id, size_t pop_size) : name(in_name), pop_id(in_id) {
@@ -273,8 +283,11 @@ namespace mabe {
     Iterator IteratorAt(size_t pos) { return Iterator(this, pos); }
     ConstIterator ConstIteratorAt(size_t pos) const { return ConstIterator(this, pos); }
 
-    // All insertions of organisms should come through this function.
-    void AddOrgAt(emp::Ptr<Organism> org_ptr, size_t pos, size_t ppos) {
+    /// All insertions of organisms should come through AddOrgAt
+    /// Must provide an org_ptr that is now own by the population.
+    /// Must specify the pos in the population to perform the insertion.
+    /// Must specify parent position if it exists (for data tracking); not used with inject.
+    void AddOrgAt(emp::Ptr<Organism> org_ptr, size_t pos, Iterator ppos=Iterator()) {
       // @CAO: TRIGGER BEFORE PLACEMENT SIGNAL! Include both new organism and parent, if available.
       RemoveOrgAt(pos);     // Clear out any organism already in this position.
       orgs[pos] = org_ptr;  // Put the new organism in place.
@@ -313,16 +326,27 @@ namespace mabe {
     /// Set the placement function to put offspring at the end of a specified population.
     /// Organism replication and placement.
     void SetGrowthPlacement(Population & pop) {
-      placement_fun = [&pop](size_t id){ return pop.PushEmpty(); };
+      place_birth_fun = [&pop](size_t id){ return pop.PushEmpty(); };
+      place_inject_fun = [&pop](){ return pop.PushEmpty(); };
     }
 
     /// If we don't specific a population to place offspring in, assume they go in the current one.
     void SetGrowthPlacement() { SetGrowthPlacement(*this); }
 
-    void Replicate(size_t org_id, size_t copy_count) {
-      emp_assert(placement_fun);
+    void Replicate(size_t org_id, size_t copy_count=1) {
+      emp_assert(place_birth_fun);
+      emp_assert(org_id < GetSize());
       for (size_t copy_id = 0; copy_id < copy_count; copy_id++) {
-        Iterator target = placement_fun(org_id);
+        Iterator target = place_birth_fun(org_id);
+        target.AddOrg(orgs[org_id]->Clone(), Iterator(this, org_id));
+      }
+    }
+
+    void Inject(const Organism & org, size_t copy_count=1) {
+      emp_assert(place_inject_fun);
+      for (size_t copy_id = 0; copy_id < copy_count; copy_id++) {
+        Iterator target = place_inject_fun();
+        target.AddOrg(org.Clone());
       }
     }
   };
