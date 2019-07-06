@@ -29,7 +29,7 @@ namespace mabe {
     ~DirectEncoding() { ; }
 
     /// Use the default constructor for cloning.
-    emp::Ptr<Organism> Clone() override { return emp::NewPtr<this_t>(*this); }
+    emp::Ptr<Organism> Clone() const override { return emp::NewPtr<this_t>(*this); }
 
     /// Use "to_string" as the default printing mechanism.
     std::string ToString() override { return emp::to_string(data); }

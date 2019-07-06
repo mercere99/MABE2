@@ -30,7 +30,7 @@ namespace mabe {
     ~OrgNK() { ; }
 
     /// Use the default constructor for cloning.
-    emp::Ptr<Organism> Clone() override { return emp::NewPtr<OrgNK>(*this); }
+    emp::Ptr<Organism> Clone() const override { return emp::NewPtr<OrgNK>(*this); }
 
     /// Use "to_string" to convert.
     std::string ToString() override { return emp::to_string(bits); }
