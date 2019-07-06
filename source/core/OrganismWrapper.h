@@ -56,7 +56,7 @@ namespace mabe {
     }
 
     size_t Mutate(Organism & org, emp::Random & random) override {
-      emp_assert(org.GetType() == this);
+      emp_assert(&(org.GetType()) == this);
       return mut_fun((ORG_T &) org, random);
     }
     void SetMutateFun(std::function<size_t(ORG_T &, emp::Random &)> & in_fun) {
@@ -64,7 +64,7 @@ namespace mabe {
     }
 
     std::ostream & Print(Organism & org, std::ostream & os) override {
-      emp_assert(org.GetType() == this);
+      emp_assert(&(org.GetType()) == this);
       print_fun((ORG_T &) org, os);
       return os;
     }
@@ -73,7 +73,7 @@ namespace mabe {
     }
 
     bool Randomize(Organism & org, emp::Random & random) override {
-      emp_assert(org.GetType() == this);
+      emp_assert(&(org.GetType()) == this);
       return randomize_fun((ORG_T &) org, random);
     }
     void SetRandomizeFun(std::function<size_t(ORG_T &, emp::Random &)> & in_fun) {
