@@ -137,85 +137,23 @@ namespace mabe {
 
     // --- Basic Controls ---
 
+    void Setup_Synchronisity();
+    void Setup_Populations();
+    void Setup_Traits();
+
     void Setup() {
       // ############ STEP 1: Setup populations.
-      for (emp::Ptr<Module> mod_ptr : modules) {
-        // If this module requires more populations than we currently have, update!
-        size_t min_pops = mod_ptr->GetMinPops();
-        size_t max_pops = mod_ptr->GetMaxPops();
-        size_t cur_pops = mod_ptr->GetNumPops();
-
-        // If the number of populations is already in range, we're done with this module.
-        if (cur_pops >= min_pops && cur_pops <= max_pops) continue;
-
-        // If there are too many populations, this is clearly an error.
-        if (cur_pops > max_pops) {
-          AddError(cur_pops, " populations set in module '", mod_ptr->GetName(),
-                   "', but only ", max_pops, " allowed.");
-          continue;
-        }
-
-        // If we are not allowed to automatically assign population -or- if there are some
-        // populations specified, but not enough, don't try to guess, just error.
-        if (mod_ptr->DefaultPopsOK() == false || (cur_pops > 0 && cur_pops < min_pops)) {
-          AddError(cur_pops, " populations set in module '", mod_ptr->GetName(),
-                   "', but ", min_pops, " required.");
-          continue;
-        }
-
-        // If we made it this far, just assign population from the beginning.
-        if (pops.size() == 0) AddPopulation("main");
-        while (pops.size() < min_pops) AddPopulation(emp::to_string("pop", pops.size()));
-        for (size_t i = 0; i < min_pops; i++) {
-          mod_ptr->UsePopulation(*(pops[i]));
-        }
-      }
-
-      // If no populations have been added at all, nothing will happen!
-      if (pops.size() == 0) AddError("No populations have been added!");
+      Setup_Populations();
 
       // ############ STEP 2: Determine if the population is synchronous or asynchronous.
-      emp::Ptr<Module> async_req_mod = nullptr;
-      emp::Ptr<Module> sync_req_mod = nullptr;
-      size_t prefer_async = 0;
-      size_t prefer_sync = 0;
-
-      for (emp::Ptr<Module> mod_ptr : modules) {
-        switch (mod_ptr->rep_type) {
-          case Module::ReplicationType::NO_PREFERENCE:
-            break;
-          case Module::ReplicationType::REQUIRE_ASYNC:
-            if (sync_req_mod) {
-              AddError("Module ", sync_req_mod->name, " requires synchronous generations, but module ",
-                       mod_ptr->name, " requires asynchronous.");
-            }
-            async_req_mod = mod_ptr;
-            sync_pop = false;
-            break;
-          case Module::ReplicationType::DEFAULT_ASYNC:
-            prefer_async++;
-            break;
-          case Module::ReplicationType::DEFAULT_SYNC:
-            prefer_sync++;
-            break;
-          case Module::ReplicationType::REQUIRE_SYNC:
-            if (async_req_mod) {
-              AddError("Module ", async_req_mod->name, " requires asynchronous generations, but module ",
-                       mod_ptr->name, " requires synchronous.");
-            }
-            sync_req_mod = mod_ptr;
-            sync_pop = true;
-            break;
-        }
-      }
-      // If we don't have any requirements, go with the preference!
-      if (!async_req_mod && !sync_req_mod) sync_pop = prefer_sync >= prefer_async;
+      Setup_Synchronisity();
 
       // ############ STEP 3: Run Setup() on all modules.
       // Allow the user-defined module Setup() member functions run.
       for (emp::Ptr<Module> mod_ptr : modules) mod_ptr->Setup(*this);
 
       // ############ STEP 4: Setup traits.
+      Setup_Traits();
 
       // ############ STEP 5: Collect errors in any module.
       for (emp::Ptr<Module> mod_ptr : modules) {
@@ -233,6 +171,84 @@ namespace mabe {
 
   };
 
+  void World::Setup_Synchronisity() {
+    emp::Ptr<Module> async_req_mod = nullptr;
+    emp::Ptr<Module> sync_req_mod = nullptr;
+    size_t prefer_async = 0;
+    size_t prefer_sync = 0;
+
+    for (emp::Ptr<Module> mod_ptr : modules) {
+      switch (mod_ptr->rep_type) {
+        case Module::ReplicationType::NO_PREFERENCE:
+          break;
+        case Module::ReplicationType::REQUIRE_ASYNC:
+          if (sync_req_mod) {
+            AddError("Module ", sync_req_mod->name, " requires synchronous generations, but module ",
+                      mod_ptr->name, " requires asynchronous.");
+          }
+          async_req_mod = mod_ptr;
+          sync_pop = false;
+          break;
+        case Module::ReplicationType::DEFAULT_ASYNC:
+          prefer_async++;
+          break;
+        case Module::ReplicationType::DEFAULT_SYNC:
+          prefer_sync++;
+          break;
+        case Module::ReplicationType::REQUIRE_SYNC:
+          if (async_req_mod) {
+            AddError("Module ", async_req_mod->name, " requires asynchronous generations, but module ",
+                      mod_ptr->name, " requires synchronous.");
+          }
+          sync_req_mod = mod_ptr;
+          sync_pop = true;
+          break;
+      }
+    }
+    // If we don't have any requirements, go with the preference!
+    if (!async_req_mod && !sync_req_mod) sync_pop = prefer_sync >= prefer_async;
+  }
+
+  void World::Setup_Populations() {
+    for (emp::Ptr<Module> mod_ptr : modules) {
+      // If this module requires more populations than we currently have, update!
+      size_t min_pops = mod_ptr->GetMinPops();
+      size_t max_pops = mod_ptr->GetMaxPops();
+      size_t cur_pops = mod_ptr->GetNumPops();
+
+      // If the number of populations is already in range, we're done with this module.
+      if (cur_pops >= min_pops && cur_pops <= max_pops) continue;
+
+      // If there are too many populations, this is clearly an error.
+      if (cur_pops > max_pops) {
+        AddError(cur_pops, " populations set in module '", mod_ptr->GetName(),
+                  "', but only ", max_pops, " allowed.");
+        continue;
+      }
+
+      // If we are not allowed to automatically assign population -or- if there are some
+      // populations specified, but not enough, don't try to guess, just error.
+      if (mod_ptr->DefaultPopsOK() == false || (cur_pops > 0 && cur_pops < min_pops)) {
+        AddError(cur_pops, " populations set in module '", mod_ptr->GetName(),
+                  "', but ", min_pops, " required.");
+        continue;
+      }
+
+      // If we made it this far, just assign population from the beginning.
+      if (pops.size() == 0) AddPopulation("main");
+      while (pops.size() < min_pops) AddPopulation(emp::to_string("pop", pops.size()));
+      for (size_t i = 0; i < min_pops; i++) {
+        mod_ptr->UsePopulation(*(pops[i]));
+      }
+    }
+
+    // If no populations have been added at all, nothing will happen!
+    if (pops.size() == 0) AddError("No populations have been added!");
+  }
+
+  void World::Setup_Traits() {
+
+  }
 }
 
 #endif
