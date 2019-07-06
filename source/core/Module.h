@@ -81,13 +81,17 @@ namespace mabe {
     template <typename... Ts>
     void AddError(Ts &&... args) {
       errors.push_back( emp::to_string( std::forward<Ts>(args)... ));
+      std::cerr << "ERROR: " << errors.back() << std::endl;
     }
 
   public:
-    Module() : name("") { ; }
+    Module(const std::string & in_name) : name(in_name) { ; }
     Module(const Module &) = default;
     Module(Module &&) = default;
-    virtual ~Module() { ; }
+    virtual ~Module() {
+      // Clean up trait information.
+      for (auto & x : trait_map)  x.second.Delete();
+    }
 
     const std::string & GetName() const noexcept { return name; }
     bool HasErrors() const { return errors.size(); }
@@ -133,10 +137,10 @@ namespace mabe {
 
     /// Set the number of populations that this module must work on.  If only one number is
     /// provided, that is the required number; if two that is the range.
-    /// If both number are specified, may include a third arg to indivate if it is okat to use
+    /// If both number are specified, may include a third arg to indivate if it is okay to use
     /// the default populations (which assumes the first population is "main" and the second, if
     /// there is one, is next generation.)
-    void SetRequiredPops(size_t in_min, size_t in_max=0, bool in_default_ok=false) {
+    void SetRequiredPops(size_t in_min, size_t in_max=0, bool in_default_ok=true) {
       emp_assert(in_max == 0 || in_max >= in_min);
       min_pops = in_min;
       max_pops = in_max;
