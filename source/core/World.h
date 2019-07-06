@@ -62,6 +62,7 @@ namespace mabe {
     template <typename... Ts>
     void AddError(Ts &&... args) {
       errors.push_back( emp::to_string( std::forward<Ts>(args)... ));
+      std::cerr << "ERROR: " << errors.back() << std::endl;
     }
     void AddErrors(const emp::vector<std::string> & in_errors) {
       errors.insert(errors.end(), in_errors.begin(), in_errors.end());
@@ -119,6 +120,10 @@ namespace mabe {
       return *(pops[cur_pop]);
     }
 
+    void InjectOrganism(const Organism & org) {
+      GetPopulation().Inject(org);
+    }
+
     // --- Module Management ---
 
     int GetModuleID(const std::string & mod_name) const {
@@ -135,7 +140,7 @@ namespace mabe {
       return *mod_ptr;
     }
 
-    // --- Basic Controls ---
+    // --- Configuration Controls ---
 
     void Setup_Synchronisity();
     void Setup_Populations();
@@ -249,6 +254,9 @@ namespace mabe {
         mod_ptr->UsePopulation(*(pops[i]));
       }
     }
+
+    // Leave main population as current.
+    cur_pop = 0;
   }
 
   void World::Setup_Traits() {

@@ -127,6 +127,11 @@ namespace mabe {
       return *new_type;
     }
 
+    // --- Deal with actual organisms ---
+
+    // Inject a specific organism - pass on to current world.
+    void InjectOrganism(const Organism & org) { GetWorld().InjectOrganism(org); }
+
 
     // --- Forward module management to current world ---
     template <typename MOD_T, typename... ARGS>
