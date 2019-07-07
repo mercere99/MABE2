@@ -1166,6 +1166,7 @@ namespace emp {
     }
   }
 
+/*
   template <typename ORG>
   void World<ORG>::Inject(const genome_t & mem, size_t copy_count) {
     for (size_t i = 0; i < copy_count; i++) {
@@ -1185,6 +1186,7 @@ namespace emp {
     inject_ready_sig.Trigger(*new_org);
     AddOrgAt(new_org, pos);
   }
+*/
 
   template <typename ORG>
   template <typename... ARGS>
@@ -1198,6 +1200,7 @@ namespace emp {
     else new_org.Delete();                      // Otherwise delete the organism.
   }
 
+/*
   // Give birth to (potentially) multiple offspring; return position of last placed.
   // Triggers 'before repro' signal on parent (once) and 'offspring ready' on each offspring.
   // Additional signal triggers occur in AddOrgAt.
@@ -1215,6 +1218,7 @@ namespace emp {
     }
     return pos;
   }
+*/
 
   template<typename ORG>
   void World<ORG>::SetRandom(Random & r) {
