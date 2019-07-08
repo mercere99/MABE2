@@ -58,6 +58,20 @@ namespace mabe {
 
     bool sync_pop = true;                   ///< Default to a synchronous population.
 
+    // Organism placement functions
+
+    using Iterator = Population::Iterator;  ///< Use the same iterator as Population.
+
+    /// A birth placement function takes the new organism and an iterator pointing at a parent
+    /// and returns an Interator indicating where that organism should place its offspring.
+    using birth_pos_fun_t = std::function< Iterator(const Organism &, Iterator) >;
+    birth_pos_fun_t birth_pos_fun;
+
+    /// A birth placement function takes the injected organism and returns an Interator
+    /// indicating where that organism should place its offspring.
+    using inject_pos_fun_t = std::function< Iterator(const Organism &) >;
+    inject_pos_fun_t inject_pos_fun;
+
     // Helper functions.
     template <typename... Ts>
     void AddError(Ts &&... args) {
@@ -120,8 +134,77 @@ namespace mabe {
       return *(pops[cur_pop]);
     }
 
-    void InjectOrganism(const Organism & org) {
-      GetPopulation().Inject(org);
+    /// All insertions of organisms should come through AddOrgAt
+    /// Must provide an org_ptr that is now own by the population.
+    /// Must specify the pos in the population to perform the insertion.
+    /// Must specify parent position if it exists (for data tracking); not used with inject.
+    void AddOrgAt(emp::Ptr<Organism> org_ptr, Iterator pos, Iterator ppos=Iterator()) {
+      // @CAO: TRIGGER BEFORE PLACEMENT SIGNAL! Include both new organism and parent, if available.
+      RemoveOrgAt(pos);     // Clear out any organism already in this position.
+      pos.SetOrg(org_ptr);  // Put the new organism in place.
+      // @CAO: TRIGGER ON PLACEMENT SIGNAL!
+    }
+
+    /// All removal of organisms should come through this function.
+    void RemoveOrgAt(Iterator pos) {
+      emp_assert(pos < orgs.size());
+      if (pos.IsEmpty()) return; // Nothing to remove!
+
+      // @CAO: TRIGGER BEFORE DEATH SIGNAL!
+      pos.ClearOrg();
+    }
+
+
+    void Inject(const Organism & org, size_t copy_count=1) {
+      for (size_t i = 0; i < copy_count; i++) {
+        emp::Ptr<Organism> inject_org = org.Clone();
+        // @CAO: Trigger Inject ready!
+        Iterator pos = inject_pos_fun(*inject_org);
+        if (pos.IsValid()) AddOrgAt( inject_org, pos);
+        else inject_org.Delete();
+      }
+    }
+
+    void InjectAt(const Organism & org, Iterator pos) {
+      emp_assert(pos.IsValid());
+      emp::Ptr<Organism> inject_org = org.Clone();
+      // @CAO: Trigger Inject ready!
+      AddOrgAt( inject_org, pos);
+    }
+
+    // Give birth to (potentially) multiple offspring; return position of last placed.
+    // Triggers 'before repro' signal on parent (once) and 'offspring ready' on each offspring.
+    // Regular signal triggers occur in AddOrgAt.
+    Iterator DoBirth(const Organism & org, Iterator ppos, size_t copy_count=1) {
+      emp_assert(org.IsEmpty() == false); // Empty cells cannot reproduce.
+      // @CAO Trigger before repro signal.
+      Iterator pos;                                        // Position of each offspring placed.
+      for (size_t i = 0; i < copy_count; i++) {            // Loop through offspring, adding each
+        emp::Ptr<Organism> new_org = org.Clone();
+        // @CAO Trigger offspring ready signal.
+        pos = birth_pos_fun(*new_org, ppos);
+
+        if (pos.IsValid()) AddOrgAt(new_org, pos, ppos);   // If placement pos is valid, do so!
+        else new_org.Delete();                             // Otherwise delete the organism.
+      }
+      return pos;
+    }
+
+    /// A shortcut to DoBirth where only the parent position needs to be supplied.
+    Iterator Replicate(Iterator ppos, size_t copy_count=1) {
+      return DoBirth(*ppos, ppos, copy_count);
+    }
+
+    void ResizePop(size_t pop_id, size_t new_size) {
+      emp_assert(pop_id < pops.size());
+
+      // Clean up any organisms that may be getting deleted.
+      const size_t old_size = pops[pop_id]->GetSize();
+      for (size_t pos = new_size; pos < old_size; pos++) {
+        RemoveOrgAt( Iterator(pops[pop_id], pos) );
+      }
+
+      pops[pop_id]->Resize(new_size);
     }
 
     // --- Module Management ---
@@ -139,6 +222,27 @@ namespace mabe {
       modules.push_back(mod_ptr);
       return *mod_ptr;
     }
+
+    // --- Built-in Population Management ---
+
+    /// Set the placement function to put offspring at the end of a specified population.
+    /// Organism replication and placement.
+    void SetGrowthPlacement(size_t target_pop) {
+      // Ignore both the organism and the parent; always insert at the end of the population.
+      birth_pos_fun = [this,target_pop](const Organism &, Iterator) {
+          return pops[target_pop]->PushEmpty();
+        };
+      inject_pos_fun = [this,target_pop](const Organism &) {
+          return pops[target_pop]->PushEmpty();
+        };
+    }
+
+    /// If we don't specific a population to place offspring in, assume they go in the current one.
+    void SetGrowthPlacement() {
+      if (sync_pop) SetGrowthPlacement(1);
+      else SetGrowthPlacement(0);
+    }
+
 
     // --- Configuration Controls ---
 
@@ -170,7 +274,7 @@ namespace mabe {
     void Update(size_t num_updates=1) {
       // Run Update on all modules...
       for (size_t ud = 0; ud < num_updates; ud++) {
-        for (emp::Ptr<Module> mod_ptr : modules) mod_ptr->Update();
+        for (emp::Ptr<Module> mod_ptr : modules) mod_ptr->Update(*this);
       }
     }
 
@@ -223,36 +327,11 @@ namespace mabe {
 
     // Now loop through the modules and make sure all populations are assigned.
     for (emp::Ptr<Module> mod_ptr : modules) {
-      // Determine how many populations this module has, and how many it needs.
-      size_t cur_pops = mod_ptr->GetNumPops();
+      // Determine how many populations this module needs.
       size_t min_pops = mod_ptr->GetMinPops();
-      size_t max_pops = mod_ptr->GetMaxPops();
-
-      // If the number of populations is already in range, we're done with this module.
-      if (cur_pops >= min_pops && cur_pops <= max_pops) continue;
-
-      // If there are too many populations, this is clearly an error.
-      if (cur_pops > max_pops) {
-        AddError(cur_pops, " populations set in module '", mod_ptr->GetName(),
-                  "', but only ", max_pops, " allowed.");
-        continue;
-      }
-
-      // If we are not allowed to automatically assign population -or- if there are some
-      // populations specified, but not enough, don't try to guess, just print error.
-      if (mod_ptr->DefaultPopsOK() == false || (cur_pops > 0 && cur_pops < min_pops)) {
-        AddError(cur_pops, " populations set in module '", mod_ptr->GetName(),
-                  "', but ", min_pops, " required.");
-        continue;
-      }
 
       // Any additional populations should just be numbered.
       while (pops.size() < min_pops) AddPopulation(emp::to_string("pop", pops.size()-2));
-
-      // Assign populations to this module.
-      for (size_t i = 0; i < min_pops; i++) {
-        mod_ptr->UsePopulation(*(pops[i]));
-      }
     }
 
     // Leave main population as current.
