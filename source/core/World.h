@@ -154,6 +154,14 @@ namespace mabe {
       pos.ClearOrg();
     }
 
+    /// All movement of organisms from one population position to another should come through here.
+    void MoveOrg(Iterator from_pos, Iterator to_pos) {
+      emp_assert(from_pos.IsOccupied());
+      // @CAO TRIGGER BEFORE MOVE SIGNAL!
+      RemoveOrgAt(to_pos);
+      to_pos.SetOrg(from_pos);
+      from_pos.ClearOrg();
+    }
 
     void Inject(const Organism & org, size_t copy_count=1) {
       emp_assert(inject_pos_fun);
@@ -206,6 +214,19 @@ namespace mabe {
       }
 
       pops[pop_id]->Resize(new_size);
+    }
+
+    /// Resize a population while clearing all of the organisms in it.
+    void EmptyPop(size_t pop_id, size_t new_size) {
+      emp_assert(pop_id < pops.size());
+      Population & pop = *(pops[pop_id]);
+
+      // Clean up any organisms that may be getting deleted.
+      for (Iterator it = pop.SkipEmpty(true).begin(); it != pop.end(); ++it) {
+        RemoveOrgAt(it);
+      }
+
+      pop.Resize(new_size);
     }
 
     // --- Module Management ---
@@ -288,6 +309,19 @@ namespace mabe {
       // Run Update on all modules...
       for (size_t ud = 0; ud < num_updates; ud++) {
         for (emp::Ptr<Module> mod_ptr : modules) mod_ptr->Update(*this);
+      }
+
+      // If we are running a synchronous world, move the next generation to this one.
+      if (sync_pop) {
+        Population & from_pop = *(pops[1]);
+        Population & to_pop = *(pops[0]);
+
+        EmptyPop(0, to_pop.GetSize());  // Clear out the current main population.      
+        Iterator it_to = to_pop.begin();
+        for (Iterator it_from = from_pop.begin(); it_from != from_pop.end(); ++it_from, ++it_to) {
+          if (it_from.IsOccupied()) MoveOrg(it_from, it_to);
+        }
+      
       }
     }
 
