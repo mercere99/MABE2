@@ -34,6 +34,7 @@ namespace mabe {
   };
 
   class Population {
+    friend class World;
   private:
     std::string name="";                   ///< Unique name for this population.
     size_t pop_id = (size_t) -1;           ///< Position in world of this population.
@@ -148,6 +149,10 @@ namespace mabe {
         return *(OrgPtr());
       }
 
+      /// Return a const reference to the organism pointed to by this iterator.
+      /// Note that since this version is const, it will NOT advance the iterator.
+      const Organism & operator*() const { emp_assert(IsValid()); return *(OrgPtr()); }
+
       /// Allow Iterator to be used as a pointer.
       emp::Ptr<mabe::Organism> operator->() {
         // Make sure a pointer is active before we follow it.
@@ -162,12 +167,11 @@ namespace mabe {
         return OrgPtr();
       }
 
-      /// Return a const reference to the organism pointed to by this iterator.
-      /// Note that since this version is const, it will NOT advance the iterator.
-      const Organism & operator*() const { emp_assert(IsValid()); return *(OrgPtr()); }
-
       /// Is this iterator pointing to a valid cell in the world?
       operator bool() const { return pos < PopSize() && IsOccupied(); }
+
+      /// Iterators can be automatically converted to a pointer to the organism they refer to.
+      operator emp::Ptr<mabe::Organism>() { emp_assert(IsValid()); return OrgPtr(); }
 
       /// Return an iterator pointing to the first occupied cell in the world.
       Iterator begin() { return Iterator(pop_ptr, 0, skip_empty); }
