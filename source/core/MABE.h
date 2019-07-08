@@ -13,6 +13,7 @@
 #include <string>
 
 #include "base/vector.h"
+#include "config/command_line.h"
 #include "tools/Random.h"
 #include "tools/vector_utils.h"
 
@@ -36,8 +37,12 @@ namespace mabe {
     /// Maintain a master random number generator (which may seed others).
     emp::Random random;
 
+    /// Keep the original command-line arguments passed in.
+    emp::vector<std::string> args;
+
   public:
-    MABE() { }
+    MABE(int argc, char* argv[]) : args(emp::cl::args_to_strings(argc, argv)) {
+    }
     MABE(const MABE &) = delete;
     MABE(MABE &&) = delete;
     ~MABE() {
@@ -56,6 +61,7 @@ namespace mabe {
     /// By default, update all worlds the specified numebr of updates.
     void Update(size_t num_updates=1) {
       for (size_t ud = 0; ud < num_updates; ud++) {
+        std::cout << "Update: " << ud << std::endl;
         for (emp::Ptr<mabe::World> w : worlds) w->Update();
       }
     }
@@ -130,7 +136,9 @@ namespace mabe {
     // --- Deal with actual organisms ---
 
     // Inject a specific organism - pass on to current world.
-    void InjectOrganism(const Organism & org) { GetWorld().InjectOrganism(org); }
+    void InjectOrganism(const Organism & org, size_t copy_count=1) {
+      GetWorld().Inject(org, copy_count);
+    }
 
 
     // --- Forward module management to current world ---
