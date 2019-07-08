@@ -74,6 +74,8 @@ namespace mabe {
     TypeRecord type_record = TypeRecord::IGNORE;
 
   public:
+    virtual ~TraitInfo() { ; }
+
     TraitInfo & SetDescription(std::string in_desc) { desc = in_desc; return *this; }
     TraitInfo & SetOwner(emp::Ptr<Module> in_owner) { owner = in_owner; return *this; }
 
