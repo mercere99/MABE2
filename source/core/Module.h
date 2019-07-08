@@ -69,10 +69,7 @@ namespace mabe {
     ReplicationType rep_type = ReplicationType::NO_PREFERENCE;
 
     /// Which populations are we operating on?
-    emp::reference_vector<mabe::Population> pops;  ///< Which population are we using?
     size_t min_pops = 0;                           ///< Minimum number of population needed
-    size_t max_pops = 0;                           ///< Maximum number of population allowed
-    bool default_pops_ok = true;                   ///< Is it okay to use default populations?
 
     /// Which traits is this module working with?
     emp::map<std::string, emp::Ptr<TraitInfo>> trait_map;
@@ -97,8 +94,6 @@ namespace mabe {
     bool HasErrors() const { return errors.size(); }
     const emp::vector<std::string> & GetErrors() const noexcept { return errors; }
     size_t GetMinPops() const noexcept { return min_pops; }
-    size_t GetMaxPops() const noexcept { return max_pops; }
-    bool DefaultPopsOK() const noexcept { return default_pops_ok; }
 
     virtual emp::Ptr<Module> Clone() { return nullptr; }
 
@@ -118,35 +113,13 @@ namespace mabe {
     Module & RequireSync() { rep_type = ReplicationType::REQUIRE_SYNC; return *this; }
 
     virtual void Setup(mabe::World &) { /* By default, assume no setup needed. */ }
-    virtual void Update() { /* By default, do nothing at update. */ }
-
-    // ------------ Population Management ------------
-
-    size_t GetNumPops() const noexcept { return pops.size(); }
-
-    const Population & GetPopulation(size_t id) const { return pops[id]; }
-
-    /// Add an additional population to make use of.
-    Module & UsePopulation( mabe::Population & in_pop ) {
-      pops.push_back( in_pop );
-      return *this;
-    }
+    virtual void Update(mabe::World &) { /* By default, do nothing at update. */ }
 
   // --------------------- Functions to be used in derived modules ONLY --------------------------
   protected:
 
-    /// Set the number of populations that this module must work on.  If only one number is
-    /// provided, that is the required number; if two that is the range.
-    /// If both number are specified, may include a third arg to indivate if it is okay to use
-    /// the default populations (which assumes the first population is "main" and the second, if
-    /// there is one, is next generation.)
-    void SetRequiredPops(size_t in_min, size_t in_max=0, bool in_default_ok=true) {
-      emp_assert(in_max == 0 || in_max >= in_min);
-      min_pops = in_min;
-      max_pops = in_max;
-      if (max_pops == 0) max_pops = min_pops;  // If maximum was not set, use minimum for both.
-      default_pops_ok = in_default_ok;
-    }
+    /// Set the number of populations that this module must work on.
+    void SetMinPops(size_t in_min) { min_pops = in_min; }
 
     // --== Trait management ==--
    
