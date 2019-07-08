@@ -45,7 +45,7 @@ namespace mabe {
 
     void Update(mabe::World & world) {
       // Loop through the population and evaluate each organism.
-      for (auto & org : world.GetPopulation(0)) {
+      for (auto & org : world.GetPopulation(0).SkipEmpty()) {
         org.GenerateOutput(bits_trait);
         double fitness = landscape.GetFitness( org.GetVar<emp::BitVector>(bits_trait) );
         org.SetVar<double>(fitness_trait, fitness);
