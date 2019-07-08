@@ -147,7 +147,7 @@ namespace mabe {
 
     /// All removal of organisms should come through this function.
     void RemoveOrgAt(Iterator pos) {
-      emp_assert(pos < orgs.size());
+      emp_assert(pos.IsValid());
       if (pos.IsEmpty()) return; // Nothing to remove!
 
       // @CAO: TRIGGER BEFORE DEATH SIGNAL!
@@ -156,6 +156,7 @@ namespace mabe {
 
 
     void Inject(const Organism & org, size_t copy_count=1) {
+      emp_assert(inject_pos_fun);
       for (size_t i = 0; i < copy_count; i++) {
         emp::Ptr<Organism> inject_org = org.Clone();
         // @CAO: Trigger Inject ready!
@@ -260,6 +261,18 @@ namespace mabe {
       // ############ STEP 3: Run Setup() on all modules.
       // Allow the user-defined module Setup() member functions run.
       for (emp::Ptr<Module> mod_ptr : modules) mod_ptr->Setup(*this);
+
+      // If none of the modules setup the placement functions, do so now.
+      if (!birth_pos_fun) {
+        birth_pos_fun = [this](const Organism &, Iterator) {
+            return pops[(size_t) sync_pop]->PushEmpty();
+          };
+      }
+      if (!inject_pos_fun) {
+        inject_pos_fun = [this](const Organism &) {
+            return pops[0]->PushEmpty();
+          };
+      }
 
       // ############ STEP 4: Setup traits.
       Setup_Traits();
