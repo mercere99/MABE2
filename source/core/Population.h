@@ -39,6 +39,7 @@ namespace mabe {
     size_t pop_id = (size_t) -1;           ///< Position in world of this population.
     emp::vector<emp::Ptr<Organism>> orgs;  ///< Info on all organisms in this population.
     bool skip_empty = false;               ///< When iterating, should we skip over empty cells?
+    size_t num_orgs = 0;                   ///< How many living organisms are in this population?
 
     EmptyOrganism empty_org;               ///< Organism to fill in empty cells (does have data map!)
 
@@ -85,8 +86,21 @@ namespace mabe {
       void ToOccupied(size_t start) { pos = start; ToOccupied(); }
 
       /// Insert an organism into the pointed-at position.
-      void AddOrg(emp::Ptr<Organism> org_ptr, Iterator ppos=Iterator()) {
-        pop_ptr->AddOrgAt(org_ptr, pos, ppos);
+      // @CAO Redirect to Population?
+      void SetOrg(emp::Ptr<Organism> org_ptr) {
+        emp_assert(pop_ptr->orgs[pos]->IsEmpty()); // Should not overwrite a living cell.
+        emp_assert(org_ptr->IsOccupied());         // Use ClearOrg if you want to empty a cell.
+        pop_ptr->orgs[pos] = org_ptr;
+        pop_ptr->num_orgs++;
+      }
+
+      /// Remove the organism at the pointed-at position.
+      // @CAO Redirect to Population?
+      void ClearOrg() {
+        emp_assert(IsOccupied());
+        pop_ptr->orgs[pos].Delete();
+        pop_ptr->orgs[pos] = &pop_ptr->empty_org;
+        pop_ptr->num_orgs--;
       }
 
       /// Advance iterator to the next non-empty cell in the world.
@@ -96,13 +110,27 @@ namespace mabe {
         return *this;
       }
 
+      /// Postfix++: advance iterator to the next non-empty cell in the world.
+      Iterator operator++(int) {
+        Iterator out = *this;
+        ++pos;
+        if (skip_empty) ToOccupied();
+        return out;
+      }
+
       /// Backup iterator to the previos non-empty cell in the world.
       Iterator & operator--() {
         --pos;
-        if (skip_empty) {
-          while (pos < PopSize() && OrgPtr()->IsEmpty()) --pos;
-        }
+        if (skip_empty) { while (pos < PopSize() && OrgPtr()->IsEmpty()) --pos; }
         return *this;
+      }
+
+      /// Postfix--: Backup iterator to the previos non-empty cell in the world.
+      Iterator operator--(int) {
+        Iterator out = *this;
+        --pos;
+        if (skip_empty) { while (pos < PopSize() && OrgPtr()->IsEmpty()) --pos; }
+        return out;
       }
 
       /// Iterator comparisons (iterators from different populations have no ordinal relationship).
@@ -118,6 +146,20 @@ namespace mabe {
         if (skip_empty) ToOccupied();  // If we only want occupied cells, make sure we're on one.
         emp_assert(IsValid());      // Make sure we're not outside of the vector.
         return *(OrgPtr());
+      }
+
+      /// Allow Iterator to be used as a pointer.
+      emp::Ptr<mabe::Organism> operator->() {
+        // Make sure a pointer is active before we follow it.
+        emp_assert(IsValid());
+        return OrgPtr();
+      }
+
+      /// Follow a pointer to a const target.
+      emp::Ptr<const mabe::Organism> operator->() const {
+        // Make sure a pointer is active before we follow it.
+        emp_assert(IsValid());
+        return OrgPtr();
       }
 
       /// Return a const reference to the organism pointed to by this iterator.
@@ -183,13 +225,28 @@ namespace mabe {
         return *this;
       }
 
+      /// Postfix++: advance iterator to the next non-empty cell in the world.
+      ConstIterator operator++(int) {
+        ConstIterator out = *this;
+        ++pos;
+        if (skip_empty) ToOccupied();
+        return out;
+      }
+
       /// Backup Constiterator to the previos non-empty cell in the world.
       ConstIterator & operator--() {
         --pos;
-        if (skip_empty) {
-          while (pos < PopSize() && OrgPtr()->IsEmpty()) --pos;
-        }
+        if (skip_empty) while (pos < PopSize() && OrgPtr()->IsEmpty()) --pos;
         return *this;
+      }
+
+
+      /// Postfix--: Backup iterator to the previos non-empty cell in the world.
+      ConstIterator operator--(int) {
+        ConstIterator out = *this;
+        --pos;
+        if (skip_empty) { while (pos < PopSize() && OrgPtr()->IsEmpty()) --pos; }
+        return out;
       }
 
       /// ConstIterator comparisons (Constiterators from different populations have no ordinal relationship).
@@ -205,6 +262,13 @@ namespace mabe {
         if (skip_empty) ToOccupied();  // If we only want occupied cells, make sure we're on one.
         emp_assert(IsValid());      // Make sure we're not outside of the vector.
         return *(OrgPtr());
+      }
+
+      /// Follow a pointer to a const target.
+      emp::Ptr<const mabe::Organism> operator->() const {
+        // Make sure a pointer is active before we follow it.
+        emp_assert(IsValid());
+        return OrgPtr();
       }
 
       /// Return a const reference to the organism pointed to by this Constiterator.
@@ -227,15 +291,6 @@ namespace mabe {
       const ConstIterator end() const { return ConstIterator(pop_ptr, PopSize(), skip_empty); }
     };
     
-  private:
-    /// A placement function takes a position in THIS population and returns an Interator
-    /// indicating where the organism at that position should place its offspring.
-    using place_birth_fun_t = std::function< Iterator(size_t) >;
-    place_birth_fun_t place_birth_fun;
-
-    using place_inject_fun_t = std::function< Iterator() >;
-    place_inject_fun_t place_inject_fun;
-
   public:
     Population(const std::string & in_name, size_t in_id, size_t pop_size) : name(in_name), pop_id(in_id) {
       orgs.resize(pop_size, &empty_org);
@@ -257,6 +312,7 @@ namespace mabe {
     int GetWorldID() const noexcept { return pop_id; }
     size_t GetSize() const noexcept { return orgs.size(); }
     bool GetSkipEmpty() const noexcept { return skip_empty; }
+    size_t GetNumOrgs() const noexcept { return num_orgs; }
 
     void SetWorldID(int in_id) noexcept { pop_id = in_id; }
     void SetSkipEmpty(bool in=true) { skip_empty = in; }
@@ -283,34 +339,9 @@ namespace mabe {
     Iterator IteratorAt(size_t pos) { return Iterator(this, pos); }
     ConstIterator ConstIteratorAt(size_t pos) const { return ConstIterator(this, pos); }
 
-    /// All insertions of organisms should come through AddOrgAt
-    /// Must provide an org_ptr that is now own by the population.
-    /// Must specify the pos in the population to perform the insertion.
-    /// Must specify parent position if it exists (for data tracking); not used with inject.
-    void AddOrgAt(emp::Ptr<Organism> org_ptr, size_t pos, Iterator ppos=Iterator()) {
-      // @CAO: TRIGGER BEFORE PLACEMENT SIGNAL! Include both new organism and parent, if available.
-      RemoveOrgAt(pos);     // Clear out any organism already in this position.
-      orgs[pos] = org_ptr;  // Put the new organism in place.
-      // @CAO: Indicate +1 organism in the population.
-      // @CAO: TRIGGER ON PLACEMENT SIGNAL!
-    }
-
-    /// All removal of organisms should come through this function.
-    void RemoveOrgAt(size_t pos) {
-      emp_assert(pos < orgs.size());
-      if (orgs[pos]->IsEmpty()) return; // Nothing to remove!
-
-      // @CAO: TRIGGER BEFORE DEATH SIGNAL!
-      orgs[pos].Delete();
-      orgs[pos] = &empty_org;
-      // @CAO Indicate -1 organism in the population.
-    }
-
+    /// Resize a population; should only be called from world after removed orgs are deleted.
     void Resize(size_t new_size) {
-      // Clean up any organisms that may be getting deleted.
-      for (size_t pos = new_size; pos < orgs.size(); pos++) {
-        RemoveOrgAt(pos);
-      }
+      emp_assert(num_orgs == 0);
 
       // Resize the population, adding in empty cells to any new spaces.
       orgs.resize(new_size, &empty_org);
@@ -323,32 +354,6 @@ namespace mabe {
       return Iterator(this, pos);
     }
 
-    /// Set the placement function to put offspring at the end of a specified population.
-    /// Organism replication and placement.
-    void SetGrowthPlacement(Population & pop) {
-      place_birth_fun = [&pop](size_t id){ return pop.PushEmpty(); };
-      place_inject_fun = [&pop](){ return pop.PushEmpty(); };
-    }
-
-    /// If we don't specific a population to place offspring in, assume they go in the current one.
-    void SetGrowthPlacement() { SetGrowthPlacement(*this); }
-
-    void Replicate(size_t org_id, size_t copy_count=1) {
-      emp_assert(place_birth_fun);
-      emp_assert(org_id < GetSize());
-      for (size_t copy_id = 0; copy_id < copy_count; copy_id++) {
-        Iterator target = place_birth_fun(org_id);
-        target.AddOrg(orgs[org_id]->Clone(), Iterator(this, org_id));
-      }
-    }
-
-    void Inject(const Organism & org, size_t copy_count=1) {
-      emp_assert(place_inject_fun);
-      for (size_t copy_id = 0; copy_id < copy_count; copy_id++) {
-        Iterator target = place_inject_fun();
-        target.AddOrg(org.Clone());
-      }
-    }
   };
 
 }
