@@ -69,8 +69,8 @@ namespace mabe {
       size_t Pos() const noexcept { return pos; };
       bool SkipEmpty() const noexcept { return skip_empty; };
 
-      void Pos(size_t in) { pos = in; }
-      void SkipEmpty(bool in) { skip_empty = in; if (skip_empty) ToOccupied(); }
+      Iterator & Pos(size_t in) { pos = in; return *this; }
+      Iterator & SkipEmpty(bool in) { skip_empty = in; if (skip_empty) ToOccupied(); return *this; }
 
       /// Is this iterator currently in a legal state?
       bool IsValid() const { return !pop_ptr.IsNull() && pos < PopSize(); }
@@ -88,8 +88,8 @@ namespace mabe {
       /// Insert an organism into the pointed-at position.
       // @CAO Redirect to Population?
       void SetOrg(emp::Ptr<Organism> org_ptr) {
-        emp_assert(pop_ptr->orgs[pos]->IsEmpty()); // Should not overwrite a living cell.
-        emp_assert(org_ptr->IsOccupied());         // Use ClearOrg if you want to empty a cell.
+        emp_assert(IsEmpty());            // Must be valid and should not overwrite a living cell.
+        emp_assert(!org_ptr->IsEmpty());  // Use ClearOrg if you want to empty a cell.
         pop_ptr->orgs[pos] = org_ptr;
         pop_ptr->num_orgs++;
       }
@@ -204,8 +204,8 @@ namespace mabe {
       size_t Pos() const noexcept { return pos; };
       bool SkipEmpty() const noexcept { return skip_empty; };
 
-      void Pos(size_t in) { pos = in; }
-      void SkipEmpty(bool in) { skip_empty = in; if (skip_empty) ToOccupied(); }
+      ConstIterator & Pos(size_t in) { pos = in; return *this; }
+      ConstIterator & SkipEmpty(bool in) { skip_empty = in; if (skip_empty) ToOccupied(); return *this; }
 
       /// Is the pointed-to cell occupied?
       bool IsValid() const { return pos < PopSize(); }
@@ -213,10 +213,10 @@ namespace mabe {
       bool IsOccupied() const { return IsValid() && !OrgPtr()->IsEmpty(); }
 
       /// If on empty cell, advance Constiterator to next non-null position (or the end)
-      void ToOccupied() { while (pos < PopSize() && OrgPtr()->IsEmpty()) ++pos; }
+      ConstIterator & ToOccupied() { while (pos < PopSize() && OrgPtr()->IsEmpty()) ++pos; return *this; }
 
       /// Move to the first empty cell after 'start'.
-      void ToOccupied(size_t start) { pos = start; ToOccupied(); }
+      ConstIterator & ToOccupied(size_t start) { pos = start; ToOccupied(); return *this; }
 
       /// Advance Constiterator to the next non-empty cell in the world.
       ConstIterator & operator++() {
@@ -306,7 +306,7 @@ namespace mabe {
     }
     Population(Population &&) = default;
 
-    ~Population() { for (auto x : orgs) x.Delete(); }
+    ~Population() { for (auto x : orgs) if (!x->IsEmpty()) x.Delete(); }
 
     const std::string & GetName() const noexcept { return name; }
     int GetWorldID() const noexcept { return pop_id; }
@@ -315,7 +315,8 @@ namespace mabe {
     size_t GetNumOrgs() const noexcept { return num_orgs; }
 
     void SetWorldID(int in_id) noexcept { pop_id = in_id; }
-    void SetSkipEmpty(bool in=true) { skip_empty = in; }
+
+    Population & SkipEmpty(bool in=true) { skip_empty = in; return *this; }
 
     Organism & operator[](size_t org_id) { return *(orgs[org_id]); }
     const Organism & operator[](size_t org_id) const { return *(orgs[org_id]); }
@@ -340,11 +341,13 @@ namespace mabe {
     ConstIterator ConstIteratorAt(size_t pos) const { return ConstIterator(this, pos); }
 
     /// Resize a population; should only be called from world after removed orgs are deleted.
-    void Resize(size_t new_size) {
+    Population & Resize(size_t new_size) {
       emp_assert(num_orgs == 0);
 
       // Resize the population, adding in empty cells to any new spaces.
       orgs.resize(new_size, &empty_org);
+
+      return *this;
     }
 
     /// Add an empty position to the end of the population (and return an iterator to it)
