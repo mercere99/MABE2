@@ -56,6 +56,8 @@ namespace mabe {
     public:
       Iterator(emp::Ptr<Population> _pop=nullptr, size_t _pos=0, bool _skip=true)
         : pop_ptr(_pop), pos(_pos), skip_empty(_skip) { if (skip_empty) ToOccupied(); }
+      Iterator(Population & _pop, size_t _pos=0, bool _skip=true)
+        : pop_ptr(&_pop), pos(_pos), skip_empty(_skip) { if (skip_empty) ToOccupied(); }
       Iterator(const Iterator &) = default;
       Iterator & operator=(const Iterator &) = default;
 
@@ -284,7 +286,9 @@ namespace mabe {
     };
     
   public:
-    Population(const std::string & in_name, size_t in_id, size_t pop_size) : name(in_name), pop_id(in_id) {
+    Population(const std::string & in_name="", size_t in_id=(size_t) -1, size_t pop_size=0)
+      : name(in_name), pop_id(in_id)
+    {
       orgs.resize(pop_size, &empty_org);
     }
     Population(const Population & in_pop) : name(in_pop.name + "_copy"), orgs(in_pop.orgs.size()) {
@@ -297,6 +301,7 @@ namespace mabe {
       }
     }
     Population(Population &&) = default;
+    Population & operator=(Population &&) = default;
 
     ~Population() { for (auto x : orgs) if (!x->IsEmpty()) x.Delete(); }
 
