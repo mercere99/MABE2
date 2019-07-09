@@ -46,8 +46,8 @@ namespace mabe {
   private:
     std::string name;                       ///< Unique name for this world.
 
-    emp::vector<emp::Ptr<Population>> pops; ///< Set of populations in this world/
-    //emp::vector<Population> pops;           ///< Set of populations in this world.
+    //emp::vector<emp::Ptr<Population>> pops; ///< Set of populations in this world/
+    emp::vector<Population> pops;           ///< Set of populations in this world.
     emp::vector<emp::Ptr<Module>> modules;  ///< Set of modules that configure this world.
 
     emp::Ptr<MABE> mabe_ptr;                ///< Pointer back to controlling MABE object.
@@ -92,8 +92,8 @@ namespace mabe {
                                   , random(in_world.random)
                                   , id(in_world.id) {
       for (size_t pop_id = 0; pop_id < pops.size(); pop_id++) {
-        const Population & from_pop = *in_world.pops[pop_id];
-        Population & to_pop = *pops[pop_id];
+        const Population & from_pop = in_world.pops[pop_id];
+        Population & to_pop = pops[pop_id];
         to_pop.Resize(from_pop.GetSize());
         for (size_t org_id = 0; org_id < from_pop.GetSize(); org_id++) {
           if (from_pop.IsOccupied(org_id)) to_pop.SetOrg(org_id, from_pop[org_id].Clone());
@@ -103,7 +103,6 @@ namespace mabe {
     }
     World(World &&) = default;
     ~World() {
-      for (auto x : pops) x.Delete();
       for (auto x : modules) x.Delete();
     }
 
@@ -121,16 +120,16 @@ namespace mabe {
 
     size_t GetNumPopulations() { return pops.size(); }
     int GetPopID(const std::string & pop_name) const {
-      return emp::FindEval(pops, [pop_name](const auto & p){ return p->GetName() == pop_name; });
+      return emp::FindEval(pops, [pop_name](const auto & p){ return p.GetName() == pop_name; });
     }
-    const Population & GetPopulation(size_t id) const { return *pops[id]; }
-    Population & GetPopulation(size_t id) { return *pops[id]; }
+    const Population & GetPopulation(size_t id) const { return pops[id]; }
+    Population & GetPopulation(size_t id) { return pops[id]; }
 
     /// New populaitons must be given a name and an optional size.
     Population & AddPopulation(const std::string & name, size_t pop_size=0) {
       cur_pop = (int) pops.size();
-      pops.push_back( emp::NewPtr<Population>(name, cur_pop, pop_size) );
-      return *(pops[cur_pop]);
+      pops.emplace_back( name, cur_pop, pop_size );
+      return pops[cur_pop];
     }
 
     /// If GetPopulation() is called without an ID, return the current population or create one.
@@ -139,7 +138,7 @@ namespace mabe {
         emp_assert(cur_pop == (size_t) -1);  // Current population should be default;
         AddPopulation("main");               // Default population is named main.
       }
-      return *(pops[cur_pop]);
+      return pops[cur_pop];
     }
 
     /// All insertions of organisms should come through AddOrgAt
@@ -216,18 +215,18 @@ namespace mabe {
       emp_assert(pop_id < pops.size());
 
       // Clean up any organisms that may be getting deleted.
-      const size_t old_size = pops[pop_id]->GetSize();
+      const size_t old_size = pops[pop_id].GetSize();
       for (size_t pos = new_size; pos < old_size; pos++) {
         RemoveOrgAt( Iterator(pops[pop_id], pos) );
       }
 
-      pops[pop_id]->Resize(new_size);
+      pops[pop_id].Resize(new_size);
     }
 
     /// Resize a population while clearing all of the organisms in it.
     void EmptyPop(size_t pop_id, size_t new_size) {
       emp_assert(pop_id < pops.size());
-      Population & pop = *(pops[pop_id]);
+      Population & pop = pops[pop_id];
 
       // Clean up any organisms that may be getting deleted.
       for (Iterator it = pop.SkipEmpty(true).begin(); it != pop.end(); ++it) {
@@ -260,10 +259,10 @@ namespace mabe {
     void SetGrowthPlacement(size_t target_pop) {
       // Ignore both the organism and the parent; always insert at the end of the population.
       birth_pos_fun = [this,target_pop](const Organism &, Iterator) {
-          return pops[target_pop]->PushEmpty();
+          return pops[target_pop].PushEmpty();
         };
       inject_pos_fun = [this,target_pop](const Organism &) {
-          return pops[target_pop]->PushEmpty();
+          return pops[target_pop].PushEmpty();
         };
     }
 
@@ -294,12 +293,12 @@ namespace mabe {
       // If none of the modules setup the placement functions, do so now.
       if (!birth_pos_fun) {
         birth_pos_fun = [this](const Organism &, Iterator) {
-            return pops[(size_t) sync_pop]->PushEmpty();
+            return pops[(size_t) sync_pop].PushEmpty();
           };
       }
       if (!inject_pos_fun) {
         inject_pos_fun = [this](const Organism &) {
-            return pops[0]->PushEmpty();
+            return pops[0].PushEmpty();
           };
       }
 
@@ -321,8 +320,8 @@ namespace mabe {
 
       // If we are running a synchronous world, move the next generation to this one.
       if (sync_pop) {
-        Population & from_pop = *(pops[1]);
-        Population & to_pop = *(pops[0]);
+        Population & from_pop = pops[1];
+        Population & to_pop = pops[0];
 
         EmptyPop(0, to_pop.GetSize());  // Clear out the current main population.      
         Iterator it_to = to_pop.begin();
