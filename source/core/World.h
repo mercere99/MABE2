@@ -47,6 +47,7 @@ namespace mabe {
     std::string name;                       ///< Unique name for this world.
 
     emp::vector<emp::Ptr<Population>> pops; ///< Set of populations in this world/
+    //emp::vector<Population> pops;           ///< Set of populations in this world.
     emp::vector<emp::Ptr<Module>> modules;  ///< Set of modules that configure this world.
 
     emp::Ptr<MABE> mabe_ptr;                ///< Pointer back to controlling MABE object.
@@ -90,7 +91,14 @@ namespace mabe {
                                   , mabe_ptr(in_world.mabe_ptr)
                                   , random(in_world.random)
                                   , id(in_world.id) {
-      for (size_t i = 0; i < pops.size(); i++) pops[i] = emp::NewPtr<Population>(*in_world.pops[i]);
+      for (size_t pop_id = 0; pop_id < pops.size(); pop_id++) {
+        const Population & from_pop = *in_world.pops[pop_id];
+        Population & to_pop = *pops[pop_id];
+        to_pop.Resize(from_pop.GetSize());
+        for (size_t org_id = 0; org_id < from_pop.GetSize(); org_id++) {
+          if (from_pop.IsOccupied(org_id)) to_pop.SetOrg(org_id, from_pop[org_id].Clone());
+        }
+      }
       for (size_t i = 0; i < modules.size(); i++) modules[i] = in_world.modules[i]->Clone();
     }
     World(World &&) = default;
