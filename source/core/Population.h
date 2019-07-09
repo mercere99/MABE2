@@ -87,22 +87,10 @@ namespace mabe {
       void ToOccupied(size_t start) { pos = start; ToOccupied(); }
 
       /// Insert an organism into the pointed-at position.
-      // @CAO Redirect to Population?
-      void SetOrg(emp::Ptr<Organism> org_ptr) {
-        emp_assert(IsEmpty());            // Must be valid and should not overwrite a living cell.
-        emp_assert(!org_ptr->IsEmpty());  // Use ClearOrg if you want to empty a cell.
-        pop_ptr->orgs[pos] = org_ptr;
-        pop_ptr->num_orgs++;
-      }
+      void SetOrg(emp::Ptr<Organism> org_ptr) { pop_ptr->SetOrg(pos, org_ptr); }
 
       /// Remove the organism at the pointed-at position.
-      // @CAO Redirect to Population?
-      void ClearOrg() {
-        emp_assert(IsOccupied());
-        pop_ptr->orgs[pos].Delete();
-        pop_ptr->orgs[pos] = &pop_ptr->empty_org;
-        pop_ptr->num_orgs--;
-      }
+      void ClearOrg() { pop_ptr->ClearOrg(pos); }
 
       /// Advance iterator to the next non-empty cell in the world.
       Iterator & operator++() {
@@ -318,7 +306,27 @@ namespace mabe {
     bool GetSkipEmpty() const noexcept { return skip_empty; }
     size_t GetNumOrgs() const noexcept { return num_orgs; }
 
+    bool IsEmpty(size_t pos) const { return orgs[pos]->IsEmpty(); }
+    bool IsOccupied(size_t pos) const { return !orgs[pos]->IsEmpty(); }
+
     void SetWorldID(int in_id) noexcept { pop_id = in_id; }
+
+    void SetOrg(size_t pos, emp::Ptr<Organism> org_ptr) {
+      emp_assert(pos < orgs.size());
+      emp_assert(IsEmpty(pos));         // Must be valid and should not overwrite a living cell.
+      emp_assert(!org_ptr->IsEmpty());  // Use ClearOrg if you want to empty a cell.
+      orgs[pos] = org_ptr;
+      num_orgs++;
+    }
+
+    /// Remove the organism at the specified position.
+    void ClearOrg(size_t pos) {
+      emp_assert(pos < orgs.size());
+      emp_assert(IsOccupied(pos));
+      orgs[pos].Delete();
+      orgs[pos] = &empty_org;
+      num_orgs--;
+    }
 
     Population & SkipEmpty(bool in=true) { skip_empty = in; return *this; }
 
