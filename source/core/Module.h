@@ -18,12 +18,18 @@
  *       : Placement location has been identified (For birth or inject)
  *     OnPlacement(Iterator placement_pos)
  *       : New organism has been placed in the poulation.
+ *     OnMutate(Organism & org)
+ *       : Organism has had its genome changed due to mutation.
  *     OnUpdate(size_t ud)
  *       : Regular update is about to occur.
  *     BeforeDeath(Iterator remove_pos)
  *       : Organism is about to die.
  *     OnSwap(Iterator pos1, Iterator pos2)
  *       : Organism's position in the population is about to move.
+ *     BeforePopResize(Population & pop, size_t new_size)
+ *       : Full population is about to be resized.
+ *     OnPopResize(Population & pop, size_t old_size)
+ *       : Full population has just been resized.
  *     ...
  */
 
