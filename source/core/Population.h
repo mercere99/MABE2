@@ -34,12 +34,11 @@ namespace mabe {
   };
 
   class Population {
-    friend class World;
+    friend class WorldBase;
   private:
     std::string name="";                   ///< Unique name for this population.
     size_t pop_id = (size_t) -1;           ///< Position in world of this population.
     emp::vector<emp::Ptr<Organism>> orgs;  ///< Info on all organisms in this population.
-    bool skip_empty = false;               ///< When iterating, should we skip over empty cells?
     size_t num_orgs = 0;                   ///< How many living organisms are in this population?
 
     EmptyOrganism empty_org;               ///< Organism to fill in empty cells (does have data map!)
@@ -48,18 +47,21 @@ namespace mabe {
     class Iterator {
      ///  @todo Add a const interator, and probably a reverse iterator.
      ///  @todo Fix operator-- which can go off of the beginning of the world.
+     friend class WorldBase;
     private:
       emp::Ptr<Population> pop_ptr;
       size_t pos;
       bool skip_empty;
 
     public:
-      Iterator(emp::Ptr<Population> _pop=nullptr, size_t _pos=0, bool _skip=true)
-        : pop_ptr(_pop), pos(_pos), skip_empty(_skip) { if (skip_empty) ToOccupied(); }
-      Iterator(Population & _pop, size_t _pos=0, bool _skip=true)
-        : pop_ptr(&_pop), pos(_pos), skip_empty(_skip) { if (skip_empty) ToOccupied(); }
+      Iterator(emp::Ptr<Population> _pop=nullptr, size_t _pos=0, bool _skip=false)
+        : pop_ptr(_pop), pos(_pos), skip_empty(_skip)
+      {
+        if (skip_empty) ToOccupied();
+      }
+      Iterator(Population & pop, size_t _pos=0, bool _skip=false) : Iterator(&pop, _pos, _skip) {}
       Iterator(const Iterator &) = default;
-      Iterator & operator=(const Iterator &) = default;
+      Iterator & operator=(const Iterator & in) = default;
 
       // Shortcuts to retrieve information from the POPULATION.
       const std::string & PopName() const { emp_assert(pop_ptr); return pop_ptr->name; }
@@ -70,7 +72,12 @@ namespace mabe {
 
       // Other information about this iterator.
       size_t Pos() const noexcept { return pos; };
+      emp::Ptr<Population> PopPtr() noexcept { return pop_ptr; }
       bool SkipEmpty() const noexcept { return skip_empty; };
+
+      std::string ToString() const {
+        return emp::to_string("{pop_ptr=", pop_ptr, ";pos=", pos, ";skip_empty=", skip_empty, "}");
+      }
 
       Iterator & Pos(size_t in) { pos = in; return *this; }
       Iterator & SkipEmpty(bool in) { skip_empty = in; if (skip_empty) ToOccupied(); return *this; }
@@ -87,12 +94,6 @@ namespace mabe {
 
       /// Move to the first empty cell after 'start'.
       void ToOccupied(size_t start) { pos = start; ToOccupied(); }
-
-      /// Insert an organism into the pointed-at position.
-      void SetOrg(emp::Ptr<Organism> org_ptr) { pop_ptr->SetOrg(pos, org_ptr); }
-
-      /// Remove the organism at the pointed-at position.
-      void ClearOrg() { pop_ptr->ClearOrg(pos); }
 
       /// Advance iterator to the next non-empty cell in the world.
       Iterator & operator++() {
@@ -174,6 +175,14 @@ namespace mabe {
 
       /// Return a const iterator pointing to just past the end of the world.
       const Iterator end() const { return Iterator(pop_ptr, PopSize(), skip_empty); }
+
+    private:  // ---== To be used by friend class WorldBase only! ==---
+      /// Insert an organism into the pointed-at position.
+      void SetOrg(emp::Ptr<Organism> org_ptr) { pop_ptr->SetOrg(pos, org_ptr); }
+    
+      /// Remove the organism at the pointed-at position and return it.
+      [[nodiscard]] emp::Ptr<Organism> ExtractOrg() { return pop_ptr->ExtractOrg(pos); }
+
     };
 
     class ConstIterator {
@@ -285,13 +294,26 @@ namespace mabe {
       const ConstIterator end() const { return ConstIterator(pop_ptr, PopSize(), skip_empty); }
     };
     
+    /// Population wrapper to limit to just living organisms.
+    class AlivePop {
+    private:
+      Population & pop;
+    public:
+      AlivePop(Population & _pop) : pop(_pop) { ; }
+      Iterator begin() { return pop.begin_alive(); }
+      Iterator end() { return pop.end_alive(); }
+    };
+
   public:
-    Population(const std::string & in_name="", size_t in_id=(size_t) -1, size_t pop_size=0)
+    Population() { emp_assert(false, "Do not use default constructor on Population!"); }
+    Population(const std::string & in_name, size_t in_id, size_t pop_size=0)
       : name(in_name), pop_id(in_id)
     {
       orgs.resize(pop_size, &empty_org);
     }
-    Population(const Population & in_pop) : name(in_pop.name + "_copy"), orgs(in_pop.orgs.size()) {
+    Population(const Population & in_pop)
+      : name(in_pop.name + "_copy"), pop_id(in_pop.pop_id), orgs(in_pop.orgs.size())
+    {
       for (size_t i = 0; i < orgs.size(); i++) {
         if (in_pop.orgs[i]->IsEmpty()) {       // Make sure we always use local empty organism.
           orgs[i] = &empty_org;
@@ -308,13 +330,44 @@ namespace mabe {
     const std::string & GetName() const noexcept { return name; }
     int GetWorldID() const noexcept { return pop_id; }
     size_t GetSize() const noexcept { return orgs.size(); }
-    bool GetSkipEmpty() const noexcept { return skip_empty; }
     size_t GetNumOrgs() const noexcept { return num_orgs; }
 
     bool IsEmpty(size_t pos) const { return orgs[pos]->IsEmpty(); }
     bool IsOccupied(size_t pos) const { return !orgs[pos]->IsEmpty(); }
 
     void SetWorldID(int in_id) noexcept { pop_id = in_id; }
+
+    Organism & operator[](size_t org_id) { return *(orgs[org_id]); }
+    const Organism & operator[](size_t org_id) const { return *(orgs[org_id]); }
+
+    /// Return an iterator pointing to the first occupied cell in the world.
+    Iterator begin() { return Iterator(this, 0, false); }
+    Iterator begin_alive() { return Iterator(this, 0, true); }
+
+    /// Return a const iterator pointing to the first occupied cell in the world.
+    ConstIterator begin() const { return ConstIterator(this, 0, false); }
+    ConstIterator begin_alive() const { return ConstIterator(this, 0, true); }
+
+    /// Return an iterator pointing to just past the end of the world.
+    Iterator end() { return Iterator(this, GetSize(), false); }
+    Iterator end_alive() { return Iterator(this, GetSize(), true); }
+
+    /// Return a const iterator pointing to just past the end of the world.
+    ConstIterator end() const { return ConstIterator(this, GetSize(), false); }
+    ConstIterator end_alive() const { return ConstIterator(this, GetSize(), true); }
+
+    Iterator IteratorAt(size_t pos, bool skip=false) {
+      return Iterator(this, pos, skip);
+    }
+    ConstIterator ConstIteratorAt(size_t pos, bool skip=false) const {
+      return ConstIterator(this, pos, skip);
+    }
+
+    /// Limit iterators to LIVING organisms.
+    AlivePop Alive() { return AlivePop(*this); }
+
+
+  private:  // ---== To be used by friend class WorldBase only! ==---
 
     void SetOrg(size_t pos, emp::Ptr<Organism> org_ptr) {
       emp_assert(pos < orgs.size());
@@ -324,38 +377,15 @@ namespace mabe {
       num_orgs++;
     }
 
-    /// Remove the organism at the specified position.
-    void ClearOrg(size_t pos) {
+    /// Remove (and return) the organism at pos, but don't delete it.
+    [[nodiscard]] emp::Ptr<Organism> ExtractOrg(size_t pos) {
       emp_assert(pos < orgs.size());
       emp_assert(IsOccupied(pos));
-      orgs[pos].Delete();
+      emp::Ptr<Organism> out_org = orgs[pos];
       orgs[pos] = &empty_org;
       num_orgs--;
+      return out_org;
     }
-
-    Population & SkipEmpty(bool in=true) { skip_empty = in; return *this; }
-
-    Organism & operator[](size_t org_id) { return *(orgs[org_id]); }
-    const Organism & operator[](size_t org_id) const { return *(orgs[org_id]); }
-
-    /// Return an iterator pointing to the first occupied cell in the world.
-    Iterator begin() { return Iterator(this, 0, skip_empty); }
-    Iterator begin(bool skip_empty) { return Iterator(this, 0, skip_empty); }
-
-    /// Return a const iterator pointing to the first occupied cell in the world.
-    ConstIterator begin() const { return ConstIterator(this, 0, skip_empty); }
-    ConstIterator begin(bool skip_empty) const { return ConstIterator(this, 0, skip_empty); }
-
-    /// Return an iterator pointing to just past the end of the world.
-    Iterator end() { return Iterator(this, GetSize(), skip_empty); }
-    Iterator end(bool skip_empty) { return Iterator(this, GetSize(), skip_empty); }
-
-    /// Return a const iterator pointing to just past the end of the world.
-    ConstIterator end() const { return ConstIterator(this, GetSize(), skip_empty); }
-    ConstIterator end(bool skip_empty) const { return ConstIterator(this, GetSize(), skip_empty); }
-
-    Iterator IteratorAt(size_t pos) { return Iterator(this, pos); }
-    ConstIterator ConstIteratorAt(size_t pos) const { return ConstIterator(this, pos); }
 
     /// Resize a population; should only be called from world after removed orgs are deleted.
     Population & Resize(size_t new_size) {
