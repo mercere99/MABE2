@@ -42,7 +42,69 @@ namespace mabe {
 
   class MABE;
 
-  class World {
+  /// WorldBase sets up all population-manipulation functionality for World (nowhere else can
+  /// alter a Population object).  As such, it guarantees that all manipulation calls ultimately
+  /// come through the limited functions defined here.
+
+  class WorldBase {
+  protected:
+    // --- All world signals go here to make sure they are called appropriately ---
+
+  public:
+    using Iterator = Population::Iterator;  ///< Use the same iterator as Population.
+
+    /// All insertions of organisms should come through AddOrgAt
+    /// Must provide an org_ptr that is now own by the population.
+    /// Must specify the pos in the population to perform the insertion.
+    /// Must specify parent position if it exists (for data tracking); not used with inject.
+    void AddOrgAt(emp::Ptr<Organism> org_ptr, Iterator pos, Iterator ppos=Iterator()) {
+      // @CAO: TRIGGER BEFORE PLACEMENT SIGNAL! Include both new organism and parent, if available.
+      ClearOrgAt(pos);      // Clear out any organism already in this position.
+      pos.SetOrg(org_ptr);  // Put the new organism in place.
+      // @CAO: TRIGGER ON PLACEMENT SIGNAL!
+    }
+
+    /// All permanent deletion of organisms from a population should come through here.
+    void ClearOrgAt(Iterator pos) {
+      emp_assert(pos.IsValid());
+      if (pos.IsEmpty()) return; // Nothing to remove!
+
+      // @CAO: TRIGGER BEFORE DEATH SIGNAL!
+      pos.ExtractOrg().Delete();
+    }
+
+    /// All movement of organisms from one population position to another should come through here.
+    void MoveOrg(Iterator from_pos, Iterator to_pos) {
+      emp_assert(from_pos.IsOccupied());
+      // @CAO TRIGGER BEFORE MOVE SIGNAL!
+      ClearOrgAt(to_pos);
+      to_pos.SetOrg( from_pos.ExtractOrg() );
+    }
+
+    void ResizePop(Population & pop, size_t new_size) {
+      // Clean up any organisms that may be getting deleted.
+      const size_t old_size = pop.GetSize();                // Track the starting size.
+      if (old_size == new_size) return;                     // If size isn't changing, we're done!
+
+      // @CAO TRIGGER BEFORE POP RESIZE!
+
+      for (size_t pos = new_size; pos < old_size; pos++) {  // Clear all orgs out of range.
+        ClearOrgAt( Iterator(pop, pos) );
+      }
+
+      pop.Resize(new_size);                                 // Do the actual resize.
+
+      // @CAO TRIGGER AFTER POP RESIZE!
+    }
+
+    Iterator PushEmpty(Population & pop) {
+      // @CAO TRIGGER BEFORE POP RESIZE!
+      return pop.PushEmpty();
+      // @CAO TRIGGER AFTER POP RESIZE!
+    }
+  };
+
+  class World : public WorldBase {
   private:
     std::string name;                       ///< Unique name for this world.
 
@@ -54,10 +116,11 @@ namespace mabe {
     emp::Random & random;                   ///< Random number generator.
     size_t id;                              ///< What is the ID of this world in MABE?
     size_t cur_pop = (size_t) -1;           ///< Which population in this world is active?
+    bool sync_pop = true;                   ///< Default to synchronous generations.
 
+    size_t update = 0;                      ///< How many times has Update() been called?
     emp::vector<std::string> errors;        ///< Log any errors that have occured.
 
-    bool sync_pop = true;                   ///< Default to a synchronous population.
 
     // Organism placement functions
 
@@ -93,10 +156,11 @@ namespace mabe {
                                   , id(in_world.id) {
       for (size_t pop_id = 0; pop_id < pops.size(); pop_id++) {
         const Population & from_pop = in_world.pops[pop_id];
-        Population & to_pop = pops[pop_id];
-        to_pop.Resize(from_pop.GetSize());
+        WorldBase::ResizePop(pops[pop_id], from_pop.GetSize());
         for (size_t org_id = 0; org_id < from_pop.GetSize(); org_id++) {
-          if (from_pop.IsOccupied(org_id)) to_pop.SetOrg(org_id, from_pop[org_id].Clone());
+          if (from_pop.IsOccupied(org_id)) {
+            AddOrgAt(from_pop[org_id].Clone(), Iterator(pops[pop_id], org_id));
+          }
         }
       }
       for (size_t i = 0; i < modules.size(); i++) modules[i] = in_world.modules[i]->Clone();
@@ -112,6 +176,7 @@ namespace mabe {
     MABE & GetMABE() { return *mabe_ptr; }
     emp::Random & GetRandom() noexcept { return random; }
     size_t GetID() const noexcept { return id; }
+    size_t GetUpdate() const noexcept { return update; }
 
     void SetName(const std::string & new_name) { name = new_name; }
     void SetID(size_t new_id) noexcept { id = new_id; }
@@ -141,35 +206,6 @@ namespace mabe {
       return pops[cur_pop];
     }
 
-    /// All insertions of organisms should come through AddOrgAt
-    /// Must provide an org_ptr that is now own by the population.
-    /// Must specify the pos in the population to perform the insertion.
-    /// Must specify parent position if it exists (for data tracking); not used with inject.
-    void AddOrgAt(emp::Ptr<Organism> org_ptr, Iterator pos, Iterator ppos=Iterator()) {
-      // @CAO: TRIGGER BEFORE PLACEMENT SIGNAL! Include both new organism and parent, if available.
-      RemoveOrgAt(pos);     // Clear out any organism already in this position.
-      pos.SetOrg(org_ptr);  // Put the new organism in place.
-      // @CAO: TRIGGER ON PLACEMENT SIGNAL!
-    }
-
-    /// All removal of organisms should come through this function.
-    void RemoveOrgAt(Iterator pos) {
-      emp_assert(pos.IsValid());
-      if (pos.IsEmpty()) return; // Nothing to remove!
-
-      // @CAO: TRIGGER BEFORE DEATH SIGNAL!
-      pos.ClearOrg();
-    }
-
-    /// All movement of organisms from one population position to another should come through here.
-    void MoveOrg(Iterator from_pos, Iterator to_pos) {
-      emp_assert(from_pos.IsOccupied());
-      // @CAO TRIGGER BEFORE MOVE SIGNAL!
-      RemoveOrgAt(to_pos);
-      to_pos.SetOrg(from_pos);
-      from_pos.ClearOrg();
-    }
-
     void Inject(const Organism & org, size_t copy_count=1) {
       emp_assert(inject_pos_fun);
       for (size_t i = 0; i < copy_count; i++) {
@@ -177,7 +213,10 @@ namespace mabe {
         // @CAO: Trigger Inject ready!
         Iterator pos = inject_pos_fun(*inject_org);
         if (pos.IsValid()) AddOrgAt( inject_org, pos);
-        else inject_org.Delete();
+        else {
+          inject_org.Delete();
+          AddError("Invalid position (pop=", pos.PopPtr(), "; pos=", pos.Pos(), "); failed to inject organism ", i, "!");
+        }
       }
     }
 
@@ -192,13 +231,14 @@ namespace mabe {
     // Triggers 'before repro' signal on parent (once) and 'offspring ready' on each offspring.
     // Regular signal triggers occur in AddOrgAt.
     Iterator DoBirth(const Organism & org, Iterator ppos, size_t copy_count=1) {
-      emp_assert(org.IsEmpty() == false); // Empty cells cannot reproduce.
+      emp_assert(birth_pos_fun);           // Must have a value birth_pos_fun
+      emp_assert(org.IsEmpty() == false);  // Empty cells cannot reproduce.
       // @CAO Trigger before repro signal.
       Iterator pos;                                        // Position of each offspring placed.
       for (size_t i = 0; i < copy_count; i++) {            // Loop through offspring, adding each
-        emp::Ptr<Organism> new_org = org.Clone();
+        emp::Ptr<Organism> new_org = org.Clone();          // Clone org to put copy in population
         // @CAO Trigger offspring ready signal.
-        pos = birth_pos_fun(*new_org, ppos);
+        pos = birth_pos_fun(*new_org, ppos);               // Determine location for offspring
 
         if (pos.IsValid()) AddOrgAt(new_org, pos, ppos);   // If placement pos is valid, do so!
         else new_org.Delete();                             // Otherwise delete the organism.
@@ -211,16 +251,10 @@ namespace mabe {
       return DoBirth(*ppos, ppos, copy_count);
     }
 
+    // Shortcut to resize a population by id.
     void ResizePop(size_t pop_id, size_t new_size) {
       emp_assert(pop_id < pops.size());
-
-      // Clean up any organisms that may be getting deleted.
-      const size_t old_size = pops[pop_id].GetSize();
-      for (size_t pos = new_size; pos < old_size; pos++) {
-        RemoveOrgAt( Iterator(pops[pop_id], pos) );
-      }
-
-      pops[pop_id].Resize(new_size);
+      WorldBase::ResizePop(pops[pop_id], new_size);
     }
 
     /// Resize a population while clearing all of the organisms in it.
@@ -229,11 +263,11 @@ namespace mabe {
       Population & pop = pops[pop_id];
 
       // Clean up any organisms that may be getting deleted.
-      for (Iterator it = pop.SkipEmpty(true).begin(); it != pop.end(); ++it) {
-        RemoveOrgAt(it);
+      for (Iterator it = pop.begin_alive(); it != pop.end(); ++it) {
+        ClearOrgAt(it);
       }
 
-      pop.Resize(new_size);
+      WorldBase::ResizePop(pop, new_size);
     }
 
     // --- Module Management ---
@@ -259,10 +293,10 @@ namespace mabe {
     void SetGrowthPlacement(size_t target_pop) {
       // Ignore both the organism and the parent; always insert at the end of the population.
       birth_pos_fun = [this,target_pop](const Organism &, Iterator) {
-          return pops[target_pop].PushEmpty();
+          return PushEmpty(pops[target_pop]);
         };
       inject_pos_fun = [this,target_pop](const Organism &) {
-          return pops[target_pop].PushEmpty();
+          return PushEmpty(pops[target_pop]);
         };
     }
 
@@ -292,13 +326,26 @@ namespace mabe {
 
       // If none of the modules setup the placement functions, do so now.
       if (!birth_pos_fun) {
-        birth_pos_fun = [this](const Organism &, Iterator) {
-            return pops[(size_t) sync_pop].PushEmpty();
-          };
+        if (sync_pop) {
+          std::cout << "Setting up SYNCHRONOUS reproduction." << std::endl;
+          emp_assert(pops.size() >= 2);
+          birth_pos_fun = [this](const Organism &, Iterator) {
+              // Iterator it = pops[1].PushEmpty();
+              // std::cout << "[[" << it.PopID() << ":" << it.Pos() << "]]" << std::endl;
+              // return it;
+              return PushEmpty(pops[1]);   // Synchronous pops reproduce into next generation.
+            };
+        } else {
+          std::cout << "Setting up ASYNCHRONOUS reproduction." << std::endl;
+          emp_assert(pops.size() >= 1);
+          birth_pos_fun = [this](const Organism &, Iterator) {
+              return PushEmpty(pops[0]);;   // Asynchronous offspring go into current population.
+            };
+        }
       }
       if (!inject_pos_fun) {
         inject_pos_fun = [this](const Organism &) {
-            return pops[0].PushEmpty();
+            return PushEmpty(pops[0]);;
           };
       }
 
@@ -312,11 +359,9 @@ namespace mabe {
 
     }
 
-    void Update(size_t num_updates=1) {
+    void Update() {
       // Run Update on all modules...
-      for (size_t ud = 0; ud < num_updates; ud++) {
-        for (emp::Ptr<Module> mod_ptr : modules) mod_ptr->Update(*this);
-      }
+      for (emp::Ptr<Module> mod_ptr : modules) mod_ptr->Update(*this);
 
       // If we are running a synchronous world, move the next generation to this one.
       if (sync_pop) {
@@ -328,8 +373,9 @@ namespace mabe {
         for (Iterator it_from = from_pop.begin(); it_from != from_pop.end(); ++it_from, ++it_to) {
           if (it_from.IsOccupied()) MoveOrg(it_from, it_to);
         }
-      
       }
+
+      update++;
     }
 
   };
