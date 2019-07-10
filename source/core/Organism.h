@@ -47,7 +47,7 @@ namespace mabe {
     // --- Functions for overriding ---
 
     /// We MUST be able to make a copy of organisms for MABE to function.
-    virtual emp::Ptr<Organism> Clone() const = 0;  
+    [[nodiscard]] virtual emp::Ptr<Organism> Clone() const = 0;  
 
     /// If we are going to print organisms (to screen or file) we need to be able to convert
     /// them to strings.
