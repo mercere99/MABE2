@@ -34,38 +34,48 @@ namespace mabe {
     virtual bool IsValue() const { return false; }
     virtual bool IsString() const { return false; }
     virtual bool IsStruct() const { return false; }
+
+    virtual emp::Ptr<ConfigEntry> GetEntry(std::string in_name) {
+      return (in_name == "") ? this : nullptr;
+    }
+    virtual emp::Ptr<const ConfigEntry> GetEntry(std::string in_name) const {
+      return (in_name == "") ? this : nullptr;
+    }
+    virtual bool Has(std::string in_name) const { return (bool) GetEntry(in_name); } 
   };
 
   // Config entry that is a numerical value (double)
-  class ConfigEntry_Value : public ConfigEntry {
+  class ConfigValue : public ConfigEntry {
   protected:
     double value;
   public:
-    ConfigEntry_Value(const std::string & _name, const std::string & _desc)
+    ConfigValue(const std::string & _name, const std::string & _desc)
       : ConfigEntry(_name, _desc) { }
-    ~ConfigEntry_Value() { }
+    ~ConfigValue() { }
 
-    bool IsValue() const { return true; }
+    bool IsValue() const override { return true; }
 
-    ConfigEntry_Value & Set(double in) { value = in; return *this; }
+    double Get() const { return value; }
+    ConfigValue & Set(double in) { value = in; return *this; }
   };
 
-  // Config entry that is a numerical value (double)
-  class ConfigEntry_String : public ConfigEntry {
+  // Config entry that is a string.
+  class ConfigString : public ConfigEntry {
   protected:
     std::string value;
   public:
-    ConfigEntry_String(const std::string & _name, const std::string & _desc)
+    ConfigString(const std::string & _name, const std::string & _desc)
       : ConfigEntry(_name, _desc) { }
-    ~ConfigEntry_String() { }
+    ~ConfigString() { }
 
-    bool IsString() const { return true; }
+    bool IsString() const override { return true; }
 
-    ConfigEntry_Value & Set(const std::string & in) { value = in; return *this; }
+    const std::string & Get() const { return value; }
+    ConfigString & Set(const std::string & in) { value = in; return *this; }
   };
 
   // Set of multiple config entries.
-  class ConfigEntry_Struct : public ConfigEntry {
+  class ConfigStruct : public ConfigEntry {
   protected:
     emp::map< std::string, emp::Ptr<ConfigEntry> > entries;
 
@@ -76,20 +86,54 @@ namespace mabe {
       return *new_ptr;
     }
   public:
-    ConfigEntry_Struct(const std::string & _name, const std::string & _desc)
+    ConfigStruct(const std::string & _name, const std::string & _desc)
       : ConfigEntry(_name, _desc) { }
-    ~ConfigEntry_Struct() { }
+    ~ConfigStruct() { }
 
-    bool IsStruct() const { return true; }
+    bool IsStruct() const override { return true; }
+
+    emp::Ptr<const ConfigEntry> GetEntry(std::string in_name) const override {
+      // If no name is provided, we must be at the correct entry.
+      if (in_name == "") return this;
+
+      // Pop off the scope name (or variable name if no scope)
+      std::string next = emp::string_pop(in_name, '.');
+
+      // See if this next entry is in the var list.
+      auto it = entries.find(next);
+
+      // If this name is unknown, fail!
+      if (it == entries.end()) return nullptr;
+
+      // Otherwise recursively call the entry (If no name is left, the next entry will return itself.)
+      return it->second->GetEntry(in_name);
+    }
+
+    emp::Ptr<ConfigEntry> GetEntry(std::string in_name) override {
+      // If no name is provided, we must be at the correct entry.
+      if (in_name == "") return this;
+
+      // Pop off the scope name (or variable name if no scope)
+      std::string next = emp::string_pop(in_name, '.');
+
+      // See if this next entry is in the var list.
+      auto it = entries.find(next);
+
+      // If this name is unknown, fail!
+      if (it == entries.end()) return nullptr;
+
+      // Otherwise recursively call the entry (If no name is left, the next entry will return itself.)
+      return it->second->GetEntry(in_name);
+    }
 
     auto & AddValue(const std::string & name, const std::string & desc, double value) {
-      return Add<ConfigEntry_Value>(name, desc).Set(value);
+      return Add<ConfigValue>(name, desc).Set(value);
     }
     auto & AddString(const std::string & name, const std::string & desc, const std::string & value) {
-      return Add<ConfigEntry_String>(name, desc).Set(value);
+      return Add<ConfigString>(name, desc).Set(value);
     }
     auto & AddStruct(const std::string & name, const std::string & desc) {
-      return Add<ConfigEntry_Struct>(name, desc);
+      return Add<ConfigStruct>(name, desc);
     }
   };
 
