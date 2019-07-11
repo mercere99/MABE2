@@ -258,11 +258,8 @@ namespace mabe {
     }
 
     /// Resize a population while clearing all of the organisms in it.
-    void EmptyPop(size_t pop_id, size_t new_size) {
-      emp_assert(pop_id < pops.size());
-      Population & pop = pops[pop_id];
-
-      // Clean up any organisms that may be getting deleted.
+    void EmptyPop(Population & pop, size_t new_size) {
+      // Clean up any organisms in the population.
       for (Iterator it = pop.begin_alive(); it != pop.end(); ++it) {
         ClearOrgAt(it);
       }
@@ -368,11 +365,17 @@ namespace mabe {
         Population & from_pop = pops[1];
         Population & to_pop = pops[0];
 
-        EmptyPop(0, to_pop.GetSize());  // Clear out the current main population.      
+        // Clear out the current main population and resize.
+        EmptyPop(to_pop, from_pop.GetSize());  
+
+        // Move the next generation to the main population.
         Iterator it_to = to_pop.begin();
         for (Iterator it_from = from_pop.begin(); it_from != from_pop.end(); ++it_from, ++it_to) {
           if (it_from.IsOccupied()) MoveOrg(it_from, it_to);
         }
+
+        // Clear out the next generation
+        EmptyPop(from_pop, 0);
       }
 
       update++;
