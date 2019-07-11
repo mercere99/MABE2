@@ -61,6 +61,7 @@ namespace mabe {
     bool is_evaluate=false;   ///< Does this module perform evaluation on organisms?
     bool is_select=false;     ///< Does this module select organisms to reproduce?
     bool is_placement=false;  ///< Does this module handle offspring placement?
+    bool is_mutate=false;     ///< Does this module handle triggering mutations?
     bool is_analyze=false;    ///< Does this module record or evaluate data?
 
     /// Is this module expecting sychronous replication (i.e., discrete generations) or
@@ -106,11 +107,13 @@ namespace mabe {
     bool IsEvaluate() const noexcept  { return is_evaluate; }
     bool IsSelect() const noexcept  { return is_select; }
     bool IsPlacement() const noexcept  { return is_placement; }
+    bool IsMutate() const noexcept  { return is_mutate; }
     bool IsAnalyze() const noexcept  { return is_analyze; }
 
     Module & IsEvaluate(bool in) noexcept { is_evaluate = in; return *this; }
     Module & IsSelect(bool in) noexcept { is_select = in; return *this; }
     Module & IsPlacement(bool in) noexcept { is_placement = in; return *this; }
+    Module & IsMutate(bool in) noexcept { is_mutate = in; return *this; }
     Module & IsAnalyze(bool in) noexcept { is_analyze = in; return *this; }
 
     Module & RequireAsync() { rep_type = ReplicationType::REQUIRE_ASYNC; return *this; }
