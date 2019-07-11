@@ -9,14 +9,14 @@
 
 #include <iostream>
 
-#include "../source/core/MABE.h"
-#include "../source/core/DirectEncoding.h"
-
 #include "config/ArgManager.h"
 #include "tools/BitVector.h"
 #include "tools/Random.h"
 
+#include "../source/core/MABE.h"
 #include "../source/evaluate/EvalNK.h"
+#include "../source/orgs/OrgNK.h"
+#include "../source/schema/Mutate.h"
 #include "../source/select/SelectElite.h"
 
 // EMP_BUILD_CONFIG( NKConfig,
@@ -46,11 +46,13 @@ int main(int argc, char* argv[])
   // [[maybe_unused]] const uint32_t MAX_GENS = config.MAX_GENS();
   // [[maybe_unused]] const uint32_t MUT_COUNT = config.MUT_COUNT();
 
-  mabe::MABE control;
-  control.AddOrganismType< mabe::DirectEncoding<emp::BitVector> >("Bit Orgs");
+  mabe::MABE control(argc, argv);
+  control.AddOrganismType<mabe::OrgNK>("BitOrg");
+  control.AddModule<mabe::Mutate>(0, 1);
   control.AddModule<mabe::EvalNK>(N, K, "bits", "fitness");
-  control.AddModule<mabe::SelectElite>("fitness");
+  control.AddModule<mabe::SelectElite>("fitness", 5, 5);
   control.Setup();
+  control.InjectOrganism(mabe::OrgNK(N), 25);
   control.Update(100);
 
 /*
