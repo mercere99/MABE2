@@ -125,6 +125,30 @@ namespace mabe {
         return out;
       }
 
+      // Basic math operations...
+      Iterator operator+(size_t x) {
+        emp_assert(pos + x <= PopSize());
+        return Iterator(pop_ptr, pos+x);
+      }
+
+      Iterator operator-(size_t x) {
+        emp_assert(pos - x <= PopSize());
+        return Iterator(pop_ptr, pos-x);
+      }
+
+      // Compound math operations...
+      Iterator & operator+=(size_t x) {
+        emp_assert(pos + x <= PopSize());
+        pos += x;
+        return *this;
+      }
+
+      Iterator & operator-=(size_t x) {
+        emp_assert(pos - x <= PopSize());
+        pos -= x;
+        return *this;
+      }
+
       /// Iterator comparisons (iterators from different populations have no ordinal relationship).
       bool operator==(const Iterator& in) const { return pop_ptr == in.pop_ptr && pos == in.pos; }
       bool operator!=(const Iterator& in) const { return pop_ptr != in.pop_ptr || pos != in.pos; }
