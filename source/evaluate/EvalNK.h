@@ -44,12 +44,23 @@ namespace mabe {
     }
 
     void Update(mabe::World & world) {
+      emp_assert(world.GetNumPopulations() >= 1);
+
       // Loop through the population and evaluate each organism.
-      for (auto & org : world.GetPopulation(0).SkipEmpty()) {
+      double max_fitness = 0.0;
+      emp::Ptr<Organism> max_org = nullptr;
+      for (Organism & org : world.GetPopulation(0).Alive()) {
         org.GenerateOutput(bits_trait);
         double fitness = landscape.GetFitness( org.GetVar<emp::BitVector>(bits_trait) );
         org.SetVar<double>(fitness_trait, fitness);
-      }      
+
+        if (fitness > max_fitness || !max_org) {
+          max_fitness = fitness;
+          max_org = &org;
+        }
+      }
+
+      std::cout << "Max " << fitness_trait << " = " << max_fitness << std::endl;
     }
   };
 
