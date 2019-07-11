@@ -13,7 +13,6 @@
 #include "../core/MABE.h"
 #include "../core/Module.h"
 
-#include "tools/reference_vector.h"
 #include "tools/valsort_map.h"
 
 namespace mabe {
@@ -46,13 +45,15 @@ namespace mabe {
       using Iterator = Population::Iterator;
       emp::valsort_map<Iterator, double> id_fit_map;
       Population & pop = world.GetPopulation(pop_id);
-      for (auto it = pop.begin(); it != pop.end(); it++) {
-        if (it.IsOccupied()) id_fit_map.Set(it, it->GetVar<double>(trait));          
+      for (auto it = pop.begin_alive(); it != pop.end_alive(); it++) {
+        id_fit_map.Set(it, it->GetVar<double>(trait));
+        std::cout << "Measuring fit " << it->GetVar<double>(trait) << std::endl;
       }
 
       // Loop through the IDs in fitness order (from highest), replicating each
       size_t num_reps = 0;
-      for (auto it = id_fit_map.crvbegin(); it != id_fit_map.crvend() && num_reps < top_count; it++) {
+      for (auto it = id_fit_map.crvbegin(); it != id_fit_map.crvend() && num_reps++ < top_count; it++) {
+        std::cout << "Replicating fit " << it->first->GetVar<double>(trait) << std::endl;
         world.Replicate(it->first, copy_count);
       }
     }
