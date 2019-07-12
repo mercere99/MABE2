@@ -308,10 +308,23 @@ namespace mabe {
 
     World & OutputConfigSettings(std::ostream & os=std::cout, const std::string & prefix="") {
       os << prefix << name << " = {\n";
+
+      // Print info about all populations in the world:
+      os << prefix << "  populations = {\n";
+      for (size_t i = 0; i < pops.size(); i++) {
+        if (i) os << "\n";
+        pops[i].OutputConfigSettings(os, prefix+"    ");
+      }
+      os << prefix << "  }\n\n";
+
+      // Print info about all modules in the world:
+      os << prefix << "  modules = {\n";
       for (size_t i = 0; i < modules.size(); i++) {
         if (i) os << "\n";
-        modules[i]->OutputConfigSettings(os, prefix+"  ");
+        modules[i]->OutputConfigSettings(os, prefix+"    ");
       }
+      os << prefix << "  }" << std::endl;
+
       os << prefix << "}" << std::endl;
 
       return *this;
