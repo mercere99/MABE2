@@ -212,7 +212,10 @@ namespace mabe {
          << prefix << name << " = {\n";
 
       // Print each variable for this module.
-      for (auto c : config_links) c->Write(os, prefix+"  ");
+      for (size_t i = 0; i < config_links.size(); i++) {
+        if (i) os << "\n";          // Skip lines internal to the module.
+        config_links[i]->Write(os, prefix+"  ");  // Print out each config link.
+      }
 
       os << prefix << "}" << std::endl;
 
