@@ -306,6 +306,16 @@ namespace mabe {
 
     // --- Configuration Controls ---
 
+    World & OutputConfigSettings(std::ostream & os=std::cout, const std::string & prefix="") {
+      os << prefix << name << " = {\n";
+      for (auto m : modules) {
+        m->OutputConfigSettings(os, prefix+"  ");
+      }
+      os << prefix << "}" << std::endl;
+
+      return *this;
+    }
+
     void Setup_Synchronisity();
     void Setup_Populations();
     void Setup_Traits();
