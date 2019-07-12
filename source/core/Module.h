@@ -101,7 +101,8 @@ namespace mabe {
     Module(Module &&) = default;
     virtual ~Module() {
       // Clean up trait information.
-      for (auto & x : trait_map)  x.second.Delete();
+      for (auto & x : trait_map) x.second.Delete();
+      for (auto ptr : config_links) ptr.Delete();
     }
 
     const std::string & GetName() const noexcept { return name; }
