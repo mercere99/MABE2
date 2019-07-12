@@ -88,7 +88,7 @@ namespace mabe {
     mabe::World & GetWorld() {
       if (worlds.size() == 0) {
         emp_assert(cur_world == (size_t) -1);
-        AddWorld("default");
+        AddWorld("main_world");
       }
       return GetWorld(cur_world);
     }
@@ -152,7 +152,10 @@ namespace mabe {
     MABE & OutputConfigSettings(std::ostream & os=std::cout, const std::string & prefix="") {
       // @CAO output organism types
       // Ouput worlds.
-      for (auto w : worlds) w->OutputConfigSettings(os, prefix);
+      os << prefix << "worlds = {\n";
+      for (auto w : worlds) w->OutputConfigSettings(os, prefix + "  ");
+      os << prefix << "}" << std::endl;
+
       return *this;
     }
   };
