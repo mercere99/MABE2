@@ -32,6 +32,9 @@ namespace mabe {
 
     virtual void SetValue(double val) = 0;
     virtual void SetString(const std::string & val) = 0;
+
+    /// Print this setting to the designated file.
+    virtual void Write(std::ostream & os=std::cout, const std::string & prefix="") const = 0;
   };
 
   template <typename T>
@@ -43,8 +46,14 @@ namespace mabe {
       : ConfigLink_Base(name, desc), linked_var(var) { }
     ~ConfigLink() { }
 
-    virtual void SetValue(double val) { linked_var = val; }
-    virtual void SetString(const std::string & val) {linked_var = val; }
+    void SetValue(double val) override { linked_var = val; }
+    void SetString(const std::string & val) override { linked_var = emp::from_string<T>(val); }
+
+    void Write(std::ostream & os=std::cout, const std::string & prefix="") const override {
+      if (desc.size()) os << prefix << "# " << desc << "\n";
+      os << prefix << name << " = " << emp::to_string(linked_var) << ";\n\n";
+    }
+
   };
 
 }
