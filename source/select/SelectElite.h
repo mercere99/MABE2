@@ -33,6 +33,9 @@ namespace mabe {
       DefaultSync();                   ///< This module defaults to synchronous generations.
       AddRequiredTrait<double>(trait); ///< The fitness trait must be set by another module.
       SetMinPops(1);                   ///< Must run elite selection on a population.
+
+      LinkConfigVar(top_count,  "top_count",  "Number of top-fitness orgs to be replicated");
+      LinkConfigVar(copy_count, "copy_count", "Number of copies to make of replicated organisms");
     }
     ~SelectElite() { }
 

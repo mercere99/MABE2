@@ -36,6 +36,9 @@ namespace mabe {
       AddOwnedTrait<emp::BitVector>(bits_trait, "NK Bit Sequence", emp::BitVector());
       AddOwnedTrait<double>(fitness_trait, "NK fitness value", 0.0);
       SetMinPops(1);
+
+      LinkConfigVar(N, "N", "Number of bits required in output");
+      LinkConfigVar(K, "K", "Number of bits used in each gene");
     }
     ~EvalNK() { }
 

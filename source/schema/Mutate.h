@@ -26,6 +26,8 @@ namespace mabe {
     {
       IsMutate(true);                   ///< Mark this module as a mutation module.
       DefaultSync();                    ///< This module defaults to synchronous generations.
+
+      LinkConfigVar(skip, "skip", "Number of orgs to exempt from mutating");
     }
 
     void Update(mabe::World & world) {
