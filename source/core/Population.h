@@ -336,7 +336,7 @@ namespace mabe {
       orgs.resize(pop_size, &empty_org);
     }
     Population(const Population & in_pop)
-      : name(in_pop.name + "_copy"), pop_id(in_pop.pop_id), orgs(in_pop.orgs.size())
+      : name(in_pop.name), pop_id(in_pop.pop_id), orgs(in_pop.orgs.size())
     {
       for (size_t i = 0; i < orgs.size(); i++) {
         if (in_pop.orgs[i]->IsEmpty()) {       // Make sure we always use local empty organism.
@@ -389,6 +389,16 @@ namespace mabe {
 
     /// Limit iterators to LIVING organisms.
     AlivePop Alive() { return AlivePop(*this); }
+
+
+    /// Print current configuration settings.
+    Population & OutputConfigSettings(std::ostream & os=std::cout, const std::string & prefix="") {
+      os << prefix << name << " = {\n"
+         << prefix << "  pop_id = " << pop_id << ";\n"
+         << prefix << "  size = " << orgs.size() << ";\n"
+         << prefix << "}\n";
+      return *this;
+    }
 
 
   private:  // ---== To be used by friend class WorldBase only! ==---
