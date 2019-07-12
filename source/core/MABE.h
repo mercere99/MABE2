@@ -147,6 +147,14 @@ namespace mabe {
       return GetWorld().AddModule<MOD_T>(std::forward<ARGS>(args)...);
     }
 
+
+    // Deal with configuration options.
+    MABE & OutputConfigSettings(std::ostream & os=std::cout, const std::string & prefix="") {
+      // @CAO output organism types
+      // Ouput worlds.
+      for (auto w : worlds) w->OutputConfigSettings(os, prefix);
+      return *this;
+    }
   };
 
 }
