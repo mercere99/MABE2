@@ -27,7 +27,7 @@ namespace mabe {
   
     using struct_t = emp::vector< emp::Ptr<ConfigEntry> >;
   public:
-    ConfigEntry(const std::string & _name, const std::string & _desc)
+    ConfigEntry(const std::string & _name, const std::string & _desc="")
       : name(_name), desc(_desc) { }
     virtual ~ConfigEntry() { }
 
@@ -49,7 +49,7 @@ namespace mabe {
   protected:
     double value;
   public:
-    ConfigValue(const std::string & _name, const std::string & _desc)
+    ConfigValue(const std::string & _name, const std::string & _desc="")
       : ConfigEntry(_name, _desc) { }
     ~ConfigValue() { }
 
@@ -64,7 +64,7 @@ namespace mabe {
   protected:
     std::string value;
   public:
-    ConfigString(const std::string & _name, const std::string & _desc)
+    ConfigString(const std::string & _name, const std::string & _desc="")
       : ConfigEntry(_name, _desc) { }
     ~ConfigString() { }
 
@@ -86,7 +86,7 @@ namespace mabe {
       return *new_ptr;
     }
   public:
-    ConfigStruct(const std::string & _name, const std::string & _desc)
+    ConfigStruct(const std::string & _name, const std::string & _desc="")
       : ConfigEntry(_name, _desc) { }
     ~ConfigStruct() { }
 
