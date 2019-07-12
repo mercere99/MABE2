@@ -44,6 +44,8 @@
 #include "tools/map_utils.h"
 #include "tools/reference_vector.h"
 
+#include "../config/Config.h"
+
 #include "TraitInfo.h"
 
 namespace mabe {
@@ -55,6 +57,7 @@ namespace mabe {
     friend World;
   protected:
     std::string name;                 ///< Unique name for this module.
+    std::string desc;                 ///< Description for this module.
     emp::vector<std::string> errors;  ///< Has this class detected any configuration errors?
 
     // What type of module is this (note, some can be more than one!)
@@ -81,6 +84,9 @@ namespace mabe {
     /// Which traits is this module working with?
     emp::map<std::string, emp::Ptr<TraitInfo>> trait_map;
 
+    /// Which configuration settings is this module using?
+    emp::vector< emp::Ptr<mabe::ConfigLink_Base> > config_links;
+
     // Helper functions
     template <typename... Ts>
     void AddError(Ts &&... args) {
@@ -89,7 +95,8 @@ namespace mabe {
     }
 
   public:
-    Module(const std::string & in_name) : name(in_name) { ; }
+    Module(const std::string & in_name, const std::string & in_desc="")
+      : name(in_name), desc(in_desc) { ; }
     Module(const Module &) = default;
     Module(Module &&) = default;
     virtual ~Module() {
@@ -130,7 +137,7 @@ namespace mabe {
     /// Set the number of populations that this module must work on.
     void SetMinPops(size_t in_min) { min_pops = in_min; }
 
-    // --== Trait management ==--
+    // ---== Trait management ==---
    
     /// Add a new trait to this module, specifying its access method, its name, and its description.
     template <typename T>
@@ -189,6 +196,27 @@ namespace mabe {
       return AddTrait<T>(TraitInfo::Access::REQUIRED, name);
     }
 
+    
+    // ---==  Configuration Management ==---
+
+    /// Link a module variable to a configuration setting.
+    template <typename T>
+    Module & LinkConfigVar(T & var, const std::string & name, const std::string & desc="") {
+      config_links.push_back( emp::NewPtr<ConfigLink<T>>(var, name, desc) );
+      return *this;
+    }
+
+    Module & OutputConfigSettings(std::ostream & os=std::cout, const std::string & prefix="") {
+      os << prefix << "# " << desc << "\n"
+         << prefix << name << " = {\n";
+
+      // Print each variable for this module.
+      for (auto c : config_links) c->Write(os, prefix+"  ");
+
+      os << prefix << "}" << std::endl;
+
+      return *this;
+    }
 
   };
 
