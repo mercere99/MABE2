@@ -308,8 +308,9 @@ namespace mabe {
 
     World & OutputConfigSettings(std::ostream & os=std::cout, const std::string & prefix="") {
       os << prefix << name << " = {\n";
-      for (auto m : modules) {
-        m->OutputConfigSettings(os, prefix+"  ");
+      for (size_t i = 0; i < modules.size(); i++) {
+        if (i) os << "\n";
+        modules[i]->OutputConfigSettings(os, prefix+"  ");
       }
       os << prefix << "}" << std::endl;
 
