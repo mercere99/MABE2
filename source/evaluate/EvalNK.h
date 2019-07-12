@@ -30,7 +30,8 @@ namespace mabe {
 
   public:
     EvalNK(size_t _N, size_t _K, const std::string & _btrait="NK", const std::string & _ftrait="fitness")
-      : Module("EvalNK"), N(_N), K(_K), target_pop(0), bits_trait(_btrait), fitness_trait(_ftrait)
+      : Module("EvalNK", "Module to evaluate bitstrings on an NK Fitness Lanscape")
+      , N(_N), K(_K), target_pop(0), bits_trait(_btrait), fitness_trait(_ftrait)
     {
       IsEvaluate(true);
       AddOwnedTrait<emp::BitVector>(bits_trait, "NK Bit Sequence", emp::BitVector());

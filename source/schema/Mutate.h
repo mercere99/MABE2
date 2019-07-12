@@ -22,7 +22,8 @@ namespace mabe {
     size_t skip = 0;    ///< How many organisms should we skip before mutating?
 
   public:
-    Mutate(size_t _pop_id=0, size_t _skip=0) : Module("Mutate"), pop_id(_pop_id), skip(_skip)
+    Mutate(size_t _pop_id=0, size_t _skip=0)
+      : Module("Mutate", "Module to trigger mutations in organisms"), pop_id(_pop_id), skip(_skip)
     {
       IsMutate(true);                   ///< Mark this module as a mutation module.
       DefaultSync();                    ///< This module defaults to synchronous generations.

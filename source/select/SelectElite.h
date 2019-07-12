@@ -27,7 +27,8 @@ namespace mabe {
 
   public:
     SelectElite(const std::string & in_trait="fitness", size_t tcount=1, size_t ccount=1)
-      : Module("SelectElite"), trait(in_trait), top_count(tcount), copy_count(ccount)
+      : Module("SelectElite", "Module to select organisms with the highest value in a trait.")
+      , trait(in_trait), top_count(tcount), copy_count(ccount)
     {
       IsSelect(true);                  ///< Mark this module as a selection module.
       DefaultSync();                   ///< This module defaults to synchronous generations.
