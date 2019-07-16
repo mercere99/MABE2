@@ -68,6 +68,8 @@ namespace mabe {
       if (default_val.size()) os << default_val;
       else os << value;
       os << ";\n";
+
+      return *this;
     }
   };
 
@@ -84,6 +86,17 @@ namespace mabe {
 
     const std::string & Get() const { return value; }
     ConfigString & Set(const std::string & in) { value = in; return *this; }
+
+    ConfigEntry & Write(std::ostream & os=std::cout, const std::string & prefix="") override {
+      os << prefix << name << " = ";
+
+      // If a default value has been provided, print it.  Otherwise print the current value.
+      if (default_val.size()) os << default_val;
+      else os << emp::to_literal(value);
+      os << ";\n";
+
+      return *this;
+    }
   };
 
   // Set of multiple config entries.
@@ -146,6 +159,15 @@ namespace mabe {
     }
     auto & AddStruct(const std::string & name, const std::string & desc) {
       return Add<ConfigStruct>(name, desc);
+    }
+
+    ConfigEntry & Write(std::ostream & os=std::cout, const std::string & prefix="") override {
+      os << prefix << name << " = {\n";
+      for (auto & x : entries) {
+        x.second->Write(os, prefix+"  ");
+      }
+      os << predix << "}\n";
+      return *this;
     }
   };
 
