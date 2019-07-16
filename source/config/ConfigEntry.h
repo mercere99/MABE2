@@ -22,13 +22,14 @@ namespace mabe {
 
   class ConfigEntry {
   protected:
-    std::string name;
-    std::string desc;
+    std::string name;         ///< Unique name for this entry
+    std::string desc;         ///< Description to put in comments for this entry.
+    std::string default_val;  ///< String representing value to use in generated config file.
   
     using struct_t = emp::vector< emp::Ptr<ConfigEntry> >;
   public:
-    ConfigEntry(const std::string & _name, const std::string & _desc="")
-      : name(_name), desc(_desc) { }
+    ConfigEntry(const std::string & _name, const std::string & _desc="", const std::string & _dval="")
+      : name(_name), desc(_desc), default_val(_dval) { }
     virtual ~ConfigEntry() { }
 
     virtual bool IsValue() const { return false; }
@@ -41,7 +42,9 @@ namespace mabe {
     virtual emp::Ptr<const ConfigEntry> GetEntry(std::string in_name) const {
       return (in_name == "") ? this : nullptr;
     }
-    virtual bool Has(std::string in_name) const { return (bool) GetEntry(in_name); } 
+    virtual bool Has(std::string in_name) const { return (bool) GetEntry(in_name); }
+
+    virtual ConfigEntry & Write(std::ostream & os=std::cout, const std::string & prefix="") = 0;
   };
 
   // Config entry that is a numerical value (double)
@@ -57,6 +60,15 @@ namespace mabe {
 
     double Get() const { return value; }
     ConfigValue & Set(double in) { value = in; return *this; }
+
+    ConfigEntry & Write(std::ostream & os=std::cout, const std::string & prefix="") override {
+      os << prefix << name << " = ";
+
+      // If a default value has been provided, print it.  Otherwise print the current value.
+      if (default_val.size()) os << default_val;
+      else os << value;
+      os << ";\n";
+    }
   };
 
   // Config entry that is a string.
