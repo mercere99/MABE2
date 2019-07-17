@@ -69,12 +69,32 @@
 #include "tools/string_utils.h"
 
 #include "ConfigEntry.h"
+#include "ConfigLexer.h"
 #include "ConfigLink.h"
 
 namespace mabe {
 
   class Config {
   protected:
+    std::string filename;             ///< Source for for code to generate.
+    ConfigLexer lexer;                ///< Lexer to process input code.
+    emp::vector<emp::Token> tokens;   ///< Tokenized version of input file.
+    bool debug = false;               ///< Should we print full debug information?
+
+   // AST_Scope ast_root;
+
+    // -- Helper functions --
+    bool HasToken(int pos) const { return (pos >= 0) && (pos < (int) tokens.size()); }
+    bool IsID(int pos) const { return HasToken(pos) && lexer.IsID(tokens[pos]); }
+    bool IsNumber(int pos) const { return HasToken(pos) && lexer.IsNumber(tokens[pos]); }
+    bool IsString(int pos) const { return HasToken(pos) && lexer.IsString(tokens[pos]); }
+    bool IsPP(int pos) const { return HasToken(pos) && lexer.IsPP(tokens[pos]); }
+    char AsChar(int pos) const {
+      return (HasToken(pos) && lexer.IsSymbol(tokens[pos])) ? tokens[pos].lexeme[0] : 0;
+    }
+    const std::string & AsLexeme(int pos) const {
+      return HasToken(pos) ? tokens[pos].lexeme : emp::empty_string();
+    }
 
   public:
 
