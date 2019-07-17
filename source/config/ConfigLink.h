@@ -50,7 +50,7 @@ namespace mabe {
     void SetString(const std::string & val) override { linked_var = emp::from_string<T>(val); }
 
     void Write(std::ostream & os=std::cout, const std::string & prefix="") const override {
-      if (desc.size()) os << prefix << "# " << desc << "\n";
+      if (desc.size()) os << prefix << "// " << desc << "\n";
       os << prefix << name << " = " << emp::to_string(linked_var) << ";\n";
     }
   };
@@ -69,7 +69,7 @@ namespace mabe {
     void SetString(const std::string & val) override { linked_var = emp::from_string<T>(val); }
 
     void Write(std::ostream & os=std::cout, const std::string & prefix="") const override {
-      if (desc.size()) os << prefix << "# " << desc << "\n";
+      if (desc.size()) os << prefix << "// " << desc << "\n";
       os << prefix << name << " = " << emp::to_literal(linked_var) << ";\n";
     }
   };
