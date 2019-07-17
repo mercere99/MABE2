@@ -62,6 +62,7 @@ namespace mabe {
     ConfigValue & Set(double in) { value = in; return *this; }
 
     ConfigEntry & Write(std::ostream & os=std::cout, const std::string & prefix="") override {
+      if (desc.size()) os << prefix << "// " << desc << "\n";
       os << prefix << name << " = ";
 
       // If a default value has been provided, print it.  Otherwise print the current value.
@@ -88,6 +89,7 @@ namespace mabe {
     ConfigString & Set(const std::string & in) { value = in; return *this; }
 
     ConfigEntry & Write(std::ostream & os=std::cout, const std::string & prefix="") override {
+      if (desc.size()) os << prefix << "// " << desc << "\n";
       os << prefix << name << " = ";
 
       // If a default value has been provided, print it.  Otherwise print the current value.
@@ -162,6 +164,8 @@ namespace mabe {
     }
 
     ConfigEntry & Write(std::ostream & os=std::cout, const std::string & prefix="") override {
+      if (desc.size()) os << prefix << "// " << desc << "\n";
+
       os << prefix << name << " = {\n";
       for (auto & x : entries) {
         x.second->Write(os, prefix+"  ");
