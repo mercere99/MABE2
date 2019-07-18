@@ -96,6 +96,54 @@ namespace mabe {
       return HasToken(pos) ? tokens[pos].lexeme : emp::empty_string();
     }
 
+    std::string ConcatLexemes(size_t start_pos, size_t end_pos) const {
+      emp_assert(start_pos <= end_pos);
+      emp_assert(end_pos <= tokens.size());
+      std::stringstream ss;    
+      for (size_t i = start_pos; i < end_pos; i++) {
+        if (i > start_pos) ss << " ";  // No space with labels.
+        ss << tokens[i].lexeme;
+        if (tokens[i].lexeme == ";") ss << " "; // Extra space after semi-colons for now...
+      }
+      return ss.str();
+    }
+
+    template <typename... Ts>
+    void Error(int pos, Ts... args) const {
+      std::cout << "Error (token " << pos << "): " << emp::to_string(std::forward<Ts>(args)...) << "\nAborting." << std::endl;
+      exit(1);
+    }
+
+    template <typename... Ts>
+    void Debug(Ts... args) const {
+      if (debug) std::cout << "DEBUG: " << emp::to_string(std::forward<Ts>(args)...) << std::endl;
+    }
+
+    template <typename... Ts>
+    void Require(bool result, int pos, Ts... args) const {
+      if (!result) { Error(pos, std::forward<Ts>(args)...); }
+    }
+    template <typename... Ts>
+    void RequireID(int pos, Ts... args) const {
+      if (!IsID(pos)) { Error(pos, std::forward<Ts>(args)...); }
+    }
+    template <typename... Ts>
+    void RequireNumber(int pos, Ts... args) const {
+      if (!IsNumber(pos)) { Error(pos, std::forward<Ts>(args)...); }
+    }
+    template <typename... Ts>
+    void RequireString(int pos, Ts... args) const {
+      if (!IsString(pos)) { Error(pos, std::forward<Ts>(args)...); }
+    }
+    template <typename... Ts>
+    void RequireChar(char req_char, int pos, Ts... args) const {
+      if (AsChar(pos) != req_char) { Error(pos, std::forward<Ts>(args)...); }
+    }
+    template <typename... Ts>
+    void RequireLexeme(const std::string & req_str, int pos, Ts... args) const {
+      if (AsLexeme(pos) != req_str) { Error(pos, std::forward<Ts>(args)...); }
+    }
+
   public:
 
   };
