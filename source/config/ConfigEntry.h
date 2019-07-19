@@ -18,6 +18,8 @@
 #include "meta/TypeID.h"
 #include "tools/string_utils.h"
 
+#include "ConfigType.h"
+
 namespace mabe {
 
   class ConfigValue;
@@ -44,6 +46,8 @@ namespace mabe {
     virtual emp::Ptr<ConfigString> AsString() { return nullptr; }
     virtual emp::Ptr<ConfigStruct> AsStruct() { return nullptr; }
 
+    virtual ConfigType GetType() const { return BaseType::VOID; }
+
     virtual emp::Ptr<ConfigEntry> LookupEntry(std::string in_name) {
       return (in_name == "") ? this : nullptr;
     }
@@ -69,6 +73,8 @@ namespace mabe {
     bool IsValue() const override { return true; }
 
     emp::Ptr<ConfigValue> AsValue() override{ return this; }
+
+    ConfigType GetType() const override { return BaseType::VALUE; }
 
     double Get() const { return value; }
     ConfigValue & Set(double in) { value = in; return *this; }
@@ -97,6 +103,8 @@ namespace mabe {
 
     bool IsString() const override { return true; }
     emp::Ptr<ConfigString> AsString() override{ return this; }
+
+    ConfigType GetType() const override { return BaseType::STRING; }
 
     const std::string & Get() const { return value; }
     ConfigString & Set(const std::string & in) { value = in; return *this; }
@@ -132,6 +140,8 @@ namespace mabe {
 
     bool IsStruct() const override { return true; }
     emp::Ptr<ConfigStruct> AsStruct() override{ return this; }
+
+    ConfigType GetType() const override { return BaseType::STRUCT; }
 
     emp::Ptr<const ConfigEntry> LookupEntry(std::string in_name) const override {
       // If no name is provided, we must be at the correct entry.
