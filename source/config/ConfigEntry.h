@@ -36,13 +36,13 @@ namespace mabe {
     virtual bool IsString() const { return false; }
     virtual bool IsStruct() const { return false; }
 
-    virtual emp::Ptr<ConfigEntry> GetEntry(std::string in_name) {
+    virtual emp::Ptr<ConfigEntry> LookupEntry(std::string in_name) {
       return (in_name == "") ? this : nullptr;
     }
-    virtual emp::Ptr<const ConfigEntry> GetEntry(std::string in_name) const {
+    virtual emp::Ptr<const ConfigEntry> LookupEntry(std::string in_name) const {
       return (in_name == "") ? this : nullptr;
     }
-    virtual bool Has(std::string in_name) const { return (bool) GetEntry(in_name); }
+    virtual bool Has(std::string in_name) const { return (bool) LookupEntry(in_name); }
 
     virtual ConfigEntry & Write(std::ostream & os=std::cout, const std::string & prefix="") = 0;
   };
@@ -52,8 +52,10 @@ namespace mabe {
   protected:
     double value;
   public:
-    ConfigValue(const std::string & _name, const std::string & _desc="")
-      : ConfigEntry(_name, _desc) { }
+    ConfigValue(const std::string & _name,
+                const std::string & _desc="",
+                const std::string & _dval="")
+      : ConfigEntry(_name, _desc, _dval) { }
     ~ConfigValue() { }
 
     bool IsValue() const override { return true; }
@@ -119,7 +121,7 @@ namespace mabe {
 
     bool IsStruct() const override { return true; }
 
-    emp::Ptr<const ConfigEntry> GetEntry(std::string in_name) const override {
+    emp::Ptr<const ConfigEntry> LookupEntry(std::string in_name) const override {
       // If no name is provided, we must be at the correct entry.
       if (in_name == "") return this;
 
@@ -133,10 +135,10 @@ namespace mabe {
       if (it == entries.end()) return nullptr;
 
       // Otherwise recursively call the entry (If no name is left, the next entry will return itself.)
-      return it->second->GetEntry(in_name);
+      return it->second->LookupEntry(in_name);
     }
 
-    emp::Ptr<ConfigEntry> GetEntry(std::string in_name) override {
+    emp::Ptr<ConfigEntry> LookupEntry(std::string in_name) override {
       // If no name is provided, we must be at the correct entry.
       if (in_name == "") return this;
 
@@ -150,7 +152,18 @@ namespace mabe {
       if (it == entries.end()) return nullptr;
 
       // Otherwise recursively call the entry (If no name is left, the next entry will return itself.)
-      return it->second->GetEntry(in_name);
+      return it->second->LookupEntry(in_name);
+    }
+
+    emp::Ptr<ConfigEntry> GetEntry(std::string in_name) {
+      // Lookup this next entry is in the var list.
+      auto it = entries.find(in_name);
+
+      // If this name is unknown, fail!
+      if (it == entries.end()) return nullptr;
+
+      // Otherwise recursively call the entry (If no name is left, the next entry will return itself.)
+      return it->second->LookupEntry(in_name);
     }
 
     auto & AddValue(const std::string & name, const std::string & desc, double value) {
