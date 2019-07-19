@@ -20,6 +20,10 @@
 
 namespace mabe {
 
+  class ConfigValue;
+  class ConfigString;
+  class ConfigStruct;
+
   class ConfigEntry {
   protected:
     std::string name;         ///< Unique name for this entry
@@ -35,6 +39,10 @@ namespace mabe {
     virtual bool IsValue() const { return false; }
     virtual bool IsString() const { return false; }
     virtual bool IsStruct() const { return false; }
+
+    virtual emp::Ptr<ConfigValue> AsValue() { return nullptr; }
+    virtual emp::Ptr<ConfigString> AsString() { return nullptr; }
+    virtual emp::Ptr<ConfigStruct> AsStruct() { return nullptr; }
 
     virtual emp::Ptr<ConfigEntry> LookupEntry(std::string in_name) {
       return (in_name == "") ? this : nullptr;
@@ -59,6 +67,8 @@ namespace mabe {
     ~ConfigValue() { }
 
     bool IsValue() const override { return true; }
+
+    emp::Ptr<ConfigValue> AsValue() override{ return this; }
 
     double Get() const { return value; }
     ConfigValue & Set(double in) { value = in; return *this; }
@@ -86,6 +96,7 @@ namespace mabe {
     ~ConfigString() { }
 
     bool IsString() const override { return true; }
+    emp::Ptr<ConfigString> AsString() override{ return this; }
 
     const std::string & Get() const { return value; }
     ConfigString & Set(const std::string & in) { value = in; return *this; }
@@ -120,6 +131,7 @@ namespace mabe {
     ~ConfigStruct() { }
 
     bool IsStruct() const override { return true; }
+    emp::Ptr<ConfigStruct> AsStruct() override{ return this; }
 
     emp::Ptr<const ConfigEntry> LookupEntry(std::string in_name) const override {
       // If no name is provided, we must be at the correct entry.
