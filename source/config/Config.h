@@ -81,7 +81,7 @@ namespace mabe {
     emp::vector<emp::Token> tokens;   ///< Tokenized version of input file.
     bool debug = false;               ///< Should we print full debug information?
 
-   // AST_Scope ast_root;
+   ConfigStruct root_struct;          ///< All variables from the root level.
 
     // -- Helper functions --
     bool HasToken(int pos) const { return (pos >= 0) && (pos < (int) tokens.size()); }
@@ -142,6 +142,35 @@ namespace mabe {
     template <typename... Ts>
     void RequireLexeme(const std::string & req_str, int pos, Ts... args) const {
       if (AsLexeme(pos) != req_str) { Error(pos, std::forward<Ts>(args)...); }
+    }
+
+    // Process the next input in the specified Struct.
+    void ProcessStatement(size_t & pos, ConfigStruct & struct_entry) {
+      if (AsChar(pos) == '.') {
+        ProcessStatement(++pos, root_struct);
+        return;
+      }
+      RequireID(pos, "Statements much begin with a variable.");
+      std::string var_name = AsLexeme(pos++);
+      auto entry_ptr = struct_entry.GetEntry(var_name);
+
+      // If this entry exists, potentially continue.
+      if (!entry_ptr.IsNull()) {
+        if (AsChar(pos) == '.') {
+          if (!entry_ptr->IsStruct()) {
+            Error(pos, "variable ", var_name, " is not a structure!");
+            exit(1);
+          }
+          ProcessStatement(++pos, *entry_ptr->AsStruct());
+          return;
+        }      
+        // @CAO need to add the possibility of indexing into an array.
+      }
+
+      // If we made it here, entry_ptr is either a variable or needs to be made.
+      RequireChar(pos++, '=', "Variable ", var_name, " must be assigned here!");
+
+      // @CAO Do RHS!!
     }
 
   public:
