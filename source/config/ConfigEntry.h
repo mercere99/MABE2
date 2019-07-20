@@ -6,6 +6,11 @@
  *  @file  ConfigEntry.h
  *  @brief Manages a single configuration entry.
  *  @note Status: ALPHA
+ * 
+ * 
+ *  Development Notes:
+ *  - When a ConfigEntry is used for a temporary value, it doesn't acutally need name, desc
+ *    or default_val; we can probably remove these pretty easily to save on memory if needed.
  */
 
 #ifndef MABE_CONFIG_ENTRY_H
@@ -28,7 +33,7 @@ namespace mabe {
 
   class ConfigEntry {
   protected:
-    std::string name;         ///< Unique name for this entry
+    std::string name;         ///< Unique name for this entry; empty name implied temporary.
     std::string desc;         ///< Description to put in comments for this entry.
     std::string default_val;  ///< String representing value to use in generated config file.
   
@@ -42,11 +47,18 @@ namespace mabe {
     virtual bool IsString() const { return false; }
     virtual bool IsStruct() const { return false; }
 
+    // Test if this entry holds a temporary value.
+    bool IsTemporary() const { return name == ""; }
+
     virtual emp::Ptr<ConfigValue> AsValue() { return nullptr; }
     virtual emp::Ptr<ConfigString> AsString() { return nullptr; }
     virtual emp::Ptr<ConfigStruct> AsStruct() { return nullptr; }
 
-    virtual ConfigType GetType() const { return BaseType::VOID; }
+    /// Get the real type of this ConfigEntry
+    virtual ConfigType GetType() const noexcept { return BaseType::VOID; }
+
+    /// Shift the current value to be the new default value.
+    virtual void UpdateDefault() { default_val = ""; }
 
     virtual emp::Ptr<ConfigEntry> LookupEntry(std::string in_name) {
       return (in_name == "") ? this : nullptr;
@@ -74,7 +86,8 @@ namespace mabe {
 
     emp::Ptr<ConfigValue> AsValue() override{ return this; }
 
-    ConfigType GetType() const override { return BaseType::VALUE; }
+    ConfigType GetType() const noexcept override { return BaseType::VALUE; }
+    void UpdateDefault() override { default_val = emp::to_string(value); }
 
     double Get() const { return value; }
     ConfigValue & Set(double in) { value = in; return *this; }
@@ -104,7 +117,8 @@ namespace mabe {
     bool IsString() const override { return true; }
     emp::Ptr<ConfigString> AsString() override{ return this; }
 
-    ConfigType GetType() const override { return BaseType::STRING; }
+    ConfigType GetType() const noexcept override { return BaseType::STRING; }
+    void UpdateDefault() override { default_val = value; }
 
     const std::string & Get() const { return value; }
     ConfigString & Set(const std::string & in) { value = in; return *this; }
@@ -141,7 +155,12 @@ namespace mabe {
     bool IsStruct() const override { return true; }
     emp::Ptr<ConfigStruct> AsStruct() override{ return this; }
 
-    ConfigType GetType() const override { return BaseType::STRUCT; }
+    ConfigType GetType() const noexcept override { return BaseType::STRUCT; }
+    void UpdateDefault() override {
+      // Recursively update all defaults within the structure.
+      for (auto & x : entries) x.second->UpdateDefault();
+      default_val = ""; /* @CAO: Need to spell out? */
+    }
 
     emp::Ptr<const ConfigEntry> LookupEntry(std::string in_name) const override {
       // If no name is provided, we must be at the correct entry.
