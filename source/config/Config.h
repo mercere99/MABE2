@@ -25,17 +25,20 @@
  *     c = .b;           // A variable name beginning with a dot indicates global namespace.
  *   }                   // f has been initialized with seven variables in its scope.
  *   f["new"] = 22;      // You can always add new fields to structures.
+ *   // d["bad"] = 4;    // ERROR - You cannot add fields to non-structures.
  *   k = [ 1 , 2 , 3];   // k is a vector of values (vectors must have all types the same!)
  *   l = k[1];           // Vectors can be indexed into.
  *   m() = a * c;        // Functions have parens after the variable name; evaluated when called.
  *   n(o,p) = o + p;     // Functions may have arguments.
  *   q = 'q';            // Literal chars are translated immediately to their ascii value
  * 
- *   // There are a few pre-defined functions at the global namespace.
- *   r = size(k);        // = 3  (always a value)
- *   s = names(f);       // = ["a","b","c","g","h","i","j"] (vector of strings in alphabetical order)
- *   t = string(c);      // = "17"  (convert value to string)
- *   u = value(t+"00");  // = 1700  (convert string to value)
+ *   // use a : instead of a . to access built-in values.
+ *   r = k:size;         // = 3  (always a value)
+ *   s = f:names;        // = ["a","b","c","g","h","i","j"] (vector of strings in alphabetical order)
+ *   t = c:string;       // = "17"  (convert value to string)
+ *   u = (t+"00"):value; // = 1700  (convert string to value; can use temporaries!)
+ *   // ALSO- :is_string, :is_value, :is_struct, :is_array (return 0 or 1)
+ *   //       :type (returns a string indicating type!)
  * 
  * 
  *  In practice:
@@ -159,7 +162,6 @@ namespace mabe {
         if (AsChar(pos) == '.') {
           if (!entry_ptr->IsStruct()) {
             Error(pos, "variable ", var_name, " is not a structure!");
-            exit(1);
           }
           ProcessStatement(++pos, *entry_ptr->AsStruct());
           return;
