@@ -20,9 +20,12 @@
  *       j = 3;
  *     }
  *     a = "shadow!";    // A variable can be redeclared in other scopes, shadowing the original.
+ *                       //  Note: the LHS assumes current scope; on RHS will search outer scopes.
  *     j = "spooky!";    // A NEW variable since we are out of the namespace of the other j.
+ *     j = .a;           // Change j to "shadow"; an initial . indicates current namespace.
  *     b = i.j;          // Namespaces can be stepped through with dots.
- *     c = .b;           // A variable name beginning with a dot indicates global namespace.
+ *     c = ..a;          // A variable name beginning with a ".." indicates parent namespace.
+ *     c = @f.i.j;       // A variable name beginning with an @ must have its full path specified.
  *   }                   // f has been initialized with seven variables in its scope.
  *   f["new"] = 22;      // You can always add new fields to structures.
  *   // d["bad"] = 4;    // ERROR - You cannot add fields to non-structures.
@@ -32,7 +35,7 @@
  *   n(o,p) = o + p;     // Functions may have arguments.
  *   q = 'q';            // Literal chars are translated immediately to their ascii value
  * 
- *   // use a : instead of a . to access built-in values.
+ *   // use a : instead of a . to access built-in values.  Note a leading colon uses current scope.
  *   r = k:size;         // = 3  (always a value)
  *   s = f:names;        // = ["a","b","c","g","h","i","j"] (vector of strings in alphabetical order)
  *   t = c:string;       // = "17"  (convert value to string)
