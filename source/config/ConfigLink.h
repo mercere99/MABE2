@@ -66,7 +66,7 @@ namespace mabe {
     ~ConfigLink() { }
 
     void SetValue(double val) override { linked_var = val; }
-    void SetString(const std::string & val) override { linked_var = emp::from_string<T>(val); }
+    void SetString(const std::string & val) override { linked_var = val; }
 
     void Write(std::ostream & os=std::cout, const std::string & prefix="") const override {
       if (desc.size()) os << prefix << "// " << desc << "\n";
