@@ -156,14 +156,32 @@ namespace mabe {
     /// If create_ok is true, create any variables that we don't find.  Otherwise continue the
     /// search for them in successively outer (lower) scopes.
     emp::Ptr<ConfigEntry> ProcessVar(size_t & pos,
-                                     ConfigStruct & struct_entry,
+                                     emp::Ptr<ConfigStruct> cur_scope,
                                      bool create_ok=false)
     {
       bool scan_scopes = !create_ok; // By default, we either create a variable OR scan for it.
 
+      // First, check for leading dots.
       if (IsDots(pos)) {
-        scan_scopes = false;  // If we start with a . we are specifying scope; don't scan!
+        scan_scopes = false;             // One or more initial dots specify scope; don't scan!
+        size_t num_dots = GetSize(pos);  // Extra dots shift scope.
+        while (num_dots > 1) {
+          cur_scope = cur_scope->GetScope();
+          if (cur_scope.IsNull()) Error(pos, "Too many dots; goes beyond global scope.");
+        }
+        pos++;
       }
+
+      // Next, we must have a variable name.
+      // @CAO: Or a : ?  E.g., technically "..:size" could give you the parent scope size.
+      RequireID(pos, "Must provide a variable identifier!");
+      std::string var_name = AsLexeme(pos++);
+
+      // Lookup this variable or build it or throw an error.
+      emp::Ptr<ConfigEntry> cur_entry = cur_scope->LookupEntry(var_name, scan_scopes);
+
+      // If this variable just provided a scope, keep going.
+      if (IsDots(pos)) return ProcessVar(pos, cur_scope, create_ok);
 
       // No proper entry was found; return null as an error.
       return nullptr;
