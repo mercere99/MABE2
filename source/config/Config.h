@@ -94,12 +94,15 @@ namespace mabe {
     bool IsID(int pos) const { return HasToken(pos) && lexer.IsID(tokens[pos]); }
     bool IsNumber(int pos) const { return HasToken(pos) && lexer.IsNumber(tokens[pos]); }
     bool IsString(int pos) const { return HasToken(pos) && lexer.IsString(tokens[pos]); }
+    bool IsDots(int pos) const { return HasToken(pos) && lexer.IsDots(tokens[pos]); }
+
     char AsChar(int pos) const {
       return (HasToken(pos) && lexer.IsSymbol(tokens[pos])) ? tokens[pos].lexeme[0] : 0;
     }
     const std::string & AsLexeme(int pos) const {
       return HasToken(pos) ? tokens[pos].lexeme : emp::empty_string();
     }
+    size_t GetSize(int pos) const { return HasToken(pos) ? tokens[pos].lexeme.size() : 0; }
 
     std::string ConcatLexemes(size_t start_pos, size_t end_pos) const {
       emp_assert(start_pos <= end_pos);
@@ -147,6 +150,23 @@ namespace mabe {
     template <typename... Ts>
     void RequireLexeme(const std::string & req_str, int pos, Ts... args) const {
       if (AsLexeme(pos) != req_str) { Error(pos, std::forward<Ts>(args)...); }
+    }
+
+    /// Load a variable name from the provided scope.
+    /// If create_ok is true, create any variables that we don't find.  Otherwise continue the
+    /// search for them in successively outer (lower) scopes.
+    emp::Ptr<ConfigEntry> ProcessVar(size_t & pos,
+                                     ConfigStruct & struct_entry,
+                                     bool create_ok=false)
+    {
+      bool scan_scopes = !create_ok; // By default, we either create a variable OR scan for it.
+
+      if (IsDots(pos)) {
+        scan_scopes = false;  // If we start with a . we are specifying scope; don't scan!
+      }
+
+      // No proper entry was found; return null as an error.
+      return nullptr;
     }
 
     // Process the next input in the specified Struct.
