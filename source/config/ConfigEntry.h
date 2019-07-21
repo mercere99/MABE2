@@ -33,14 +33,17 @@ namespace mabe {
 
   class ConfigEntry {
   protected:
-    std::string name;         ///< Unique name for this entry; empty name implied temporary.
-    std::string desc;         ///< Description to put in comments for this entry.
-    std::string default_val;  ///< String representing value to use in generated config file.
+    std::string name;             ///< Unique name for this entry; empty name implied temporary.
+    std::string desc;             ///< Description to put in comments for this entry.
+    std::string default_val;      ///< String representing value to use in generated config file.
+    emp::Ptr<ConfigStruct> scope; ///< Which scope was this variable defined in?
   
     using struct_t = emp::vector< emp::Ptr<ConfigEntry> >;
   public:
-    ConfigEntry(const std::string & _name, const std::string & _desc="", const std::string & _dval="")
-      : name(_name), desc(_desc), default_val(_dval) { }
+    ConfigEntry(const std::string & _name,
+                const std::string & _desc,
+                emp::Ptr<ConfigStruct> _scope)
+      : name(_name), desc(_desc), scope(_scope) { }
     virtual ~ConfigEntry() { }
 
     virtual bool IsValue() const { return false; }
@@ -50,12 +53,18 @@ namespace mabe {
     // Test if this entry holds a temporary value.
     bool IsTemporary() const { return name == ""; }
 
+    // Identify the structure that this variable was created in.
+    emp::Ptr<ConfigStruct> GetScope() { return scope; }
+
     virtual emp::Ptr<ConfigValue> AsValue() { return nullptr; }
     virtual emp::Ptr<ConfigString> AsString() { return nullptr; }
     virtual emp::Ptr<ConfigStruct> AsStruct() { return nullptr; }
 
     /// Get the real type of this ConfigEntry
     virtual ConfigType GetType() const noexcept { return BaseType::VOID; }
+
+    /// Set the default string for this entry.
+    ConfigEntry & SetDefault(const std::string & in) { default_val = in; return *this; }
 
     /// Shift the current value to be the new default value.
     virtual void UpdateDefault() { default_val = ""; }
@@ -74,12 +83,12 @@ namespace mabe {
   // Config entry that is a numerical value (double)
   class ConfigValue : public ConfigEntry {
   protected:
-    double value;
+    double value = 0.0;
   public:
     ConfigValue(const std::string & _name,
-                const std::string & _desc="",
-                const std::string & _dval="")
-      : ConfigEntry(_name, _desc, _dval) { }
+                const std::string & _desc,
+                emp::Ptr<ConfigStruct> _scope)
+      : ConfigEntry(_name, _desc, _scope) { }
     ~ConfigValue() { }
 
     bool IsValue() const override { return true; }
@@ -110,8 +119,10 @@ namespace mabe {
   protected:
     std::string value;
   public:
-    ConfigString(const std::string & _name, const std::string & _desc="")
-      : ConfigEntry(_name, _desc) { }
+    ConfigString(const std::string & _name,
+                 const std::string & _desc,
+                 emp::Ptr<ConfigStruct> _scope)
+      : ConfigEntry(_name, _desc, _scope) { }
     ~ConfigString() { }
 
     bool IsString() const override { return true; }
@@ -142,14 +153,17 @@ namespace mabe {
     emp::map< std::string, emp::Ptr<ConfigEntry> > entries;
 
     template <typename T>
-    T & Add(const std::string & name, const std::string & desc) {
-      auto new_ptr = emp::NewPtr<T>(name, desc);
+    T & Add(const std::string & name, const std::string & desc, emp::Ptr<ConfigStruct> scope_ptr) {
+      auto new_ptr = emp::NewPtr<T>(name, desc, scope_ptr);
       entries[name] = new_ptr;
       return *new_ptr;
     }
   public:
-    ConfigStruct(const std::string & _name, const std::string & _desc="")
-      : ConfigEntry(_name, _desc) { }
+    ConfigStruct(const std::string & _name,
+                 const std::string & _desc,
+                 emp::Ptr<ConfigStruct> _scope)
+      : ConfigEntry(_name, _desc, _scope) { }
+
     ~ConfigStruct() { }
 
     bool IsStruct() const override { return true; }
@@ -208,13 +222,13 @@ namespace mabe {
     }
 
     auto & AddValue(const std::string & name, const std::string & desc, double value) {
-      return Add<ConfigValue>(name, desc).Set(value);
+      return Add<ConfigValue>(name, desc, this).Set(value);
     }
     auto & AddString(const std::string & name, const std::string & desc, const std::string & value) {
-      return Add<ConfigString>(name, desc).Set(value);
+      return Add<ConfigString>(name, desc, this).Set(value);
     }
     auto & AddStruct(const std::string & name, const std::string & desc) {
-      return Add<ConfigStruct>(name, desc);
+      return Add<ConfigStruct>(name, desc, this);
     }
 
     ConfigEntry & Write(std::ostream & os=std::cout, const std::string & prefix="") override {
@@ -224,7 +238,7 @@ namespace mabe {
       for (auto & x : entries) {
         x.second->Write(os, prefix+"  ");
       }
-      os << predix << "}\n";
+      os << prefix << "}\n";
       return *this;
     }
   };
