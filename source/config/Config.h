@@ -94,7 +94,6 @@ namespace mabe {
     bool IsID(int pos) const { return HasToken(pos) && lexer.IsID(tokens[pos]); }
     bool IsNumber(int pos) const { return HasToken(pos) && lexer.IsNumber(tokens[pos]); }
     bool IsString(int pos) const { return HasToken(pos) && lexer.IsString(tokens[pos]); }
-    bool IsPP(int pos) const { return HasToken(pos) && lexer.IsPP(tokens[pos]); }
     char AsChar(int pos) const {
       return (HasToken(pos) && lexer.IsSymbol(tokens[pos])) ? tokens[pos].lexeme[0] : 0;
     }
