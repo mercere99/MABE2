@@ -69,10 +69,10 @@ namespace mabe {
     /// Shift the current value to be the new default value.
     virtual void UpdateDefault() { default_val = ""; }
 
-    virtual emp::Ptr<ConfigEntry> LookupEntry(std::string in_name) {
+    virtual emp::Ptr<ConfigEntry> LookupEntry(std::string in_name, bool scan_scopes=true) {
       return (in_name == "") ? this : nullptr;
     }
-    virtual emp::Ptr<const ConfigEntry> LookupEntry(std::string in_name) const {
+    virtual emp::Ptr<const ConfigEntry> LookupEntry(std::string in_name, bool scan_scopes=true) const {
       return (in_name == "") ? this : nullptr;
     }
     virtual bool Has(std::string in_name) const { return (bool) LookupEntry(in_name); }
@@ -176,40 +176,7 @@ namespace mabe {
       default_val = ""; /* @CAO: Need to spell out? */
     }
 
-    emp::Ptr<const ConfigEntry> LookupEntry(std::string in_name) const override {
-      // If no name is provided, we must be at the correct entry.
-      if (in_name == "") return this;
-
-      // Pop off the scope name (or variable name if no scope)
-      std::string next = emp::string_pop(in_name, '.');
-
-      // See if this next entry is in the var list.
-      auto it = entries.find(next);
-
-      // If this name is unknown, fail!
-      if (it == entries.end()) return nullptr;
-
-      // Otherwise recursively call the entry (If no name is left, the next entry will return itself.)
-      return it->second->LookupEntry(in_name);
-    }
-
-    emp::Ptr<ConfigEntry> LookupEntry(std::string in_name) override {
-      // If no name is provided, we must be at the correct entry.
-      if (in_name == "") return this;
-
-      // Pop off the scope name (or variable name if no scope)
-      std::string next = emp::string_pop(in_name, '.');
-
-      // See if this next entry is in the var list.
-      auto it = entries.find(next);
-
-      // If this name is unknown, fail!
-      if (it == entries.end()) return nullptr;
-
-      // Otherwise recursively call the entry (If no name is left, the next entry will return itself.)
-      return it->second->LookupEntry(in_name);
-    }
-
+    // Get an entry out of this scope; 
     emp::Ptr<ConfigEntry> GetEntry(std::string in_name) {
       // Lookup this next entry is in the var list.
       auto it = entries.find(in_name);
@@ -217,8 +184,38 @@ namespace mabe {
       // If this name is unknown, fail!
       if (it == entries.end()) return nullptr;
 
-      // Otherwise recursively call the entry (If no name is left, the next entry will return itself.)
-      return it->second->LookupEntry(in_name);
+      // Otherwise return the entry.
+      return it->second;
+    }
+
+    // Lookup a variable, scanning outer scopes if needed
+    emp::Ptr<ConfigEntry> LookupEntry(std::string in_name, bool scan_scopes=true) override {
+      // See if this next entry is in the var list.
+      auto it = entries.find(in_name);
+
+      // If this name is unknown, check with the parent scope!
+      if (it == entries.end()) {
+        if (scope.IsNull() || !scan_scopes) return nullptr;  // No parent?  Just fail...
+        return scope->LookupEntry(in_name);
+      }
+
+      // Otherwise we found it!
+      return it->second;
+    }
+
+    // Lookup a variable, scanning outer scopes if needed (in constant context!)
+    emp::Ptr<const ConfigEntry> LookupEntry(std::string in_name, bool scan_scopes=true) const override {
+      // See if this entry is in the var list.
+      auto it = entries.find(in_name);
+
+      // If this name is unknown, check with the parent scope!
+      if (it == entries.end()) {
+        if (scope.IsNull() || !scan_scopes) return nullptr;  // No parent?  Just fail...
+        return scope->LookupEntry(in_name);
+      }
+
+      // Otherwise we found it!
+      return it->second;
     }
 
     auto & AddValue(const std::string & name, const std::string & desc, double value) {
