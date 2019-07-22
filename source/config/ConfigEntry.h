@@ -77,7 +77,10 @@ namespace mabe {
     }
     virtual bool Has(std::string in_name) const { return (bool) LookupEntry(in_name); }
 
-    virtual ConfigEntry & Write(std::ostream & os=std::cout, const std::string & prefix="") = 0;
+    virtual ConfigEntry & Write(std::ostream & os=std::cout, const std::string & prefix="") {
+      // This can only be a temporary value!  Otherwise a derived class should be used.
+      emp_assert(false, "Temporary value being used for Write.");
+    }
   };
 
   // Config entry that is a numerical value (double)
@@ -218,6 +221,9 @@ namespace mabe {
       return it->second;
     }
 
+    auto & AddPlaceholder(const std::string & name) {
+      return Add<ConfigEntry>(name, "__temp__", this);
+    }
     auto & AddValue(const std::string & name, const std::string & desc, double value) {
       return Add<ConfigValue>(name, desc, this).Set(value);
     }
