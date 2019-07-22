@@ -229,8 +229,45 @@ namespace mabe {
 
     // Process the next input in the specified Struct.
     void ProcessStatement(size_t & pos, ConfigStruct & scope) {
-      // @CAO: For now, assume that a statment is: VAR '=' VALUE ';'
-      //       If first var is a temporary, it needs to be rebuilt once we know type and default.
+      // Basic structure: VAR = VALUE ;
+      emp::Ptr<ConfigEntry> lhs = ProcessVar(pos, &scope, true);
+      RequireChar('=', pos, "Expected '=' after variable '", lhs->GetName(),  "' for assignment.");
+      emp::Ptr<ConfigEntry> rhs = ProcessValue(pos, &scope);
+      RequireChar(';', pos, "Expected ';' at the end of a statement.");
+
+      // If the LHS is a placeholder, fix it!
+      if (lhs->IsPlaceholder()) {
+        // If the RHS is a temporary, we can use it rather than reallocate; otherwise clone it.
+        emp::Ptr<ConfigEntry> new_entry;
+        if (rhs->IsTemporary()) {
+          new_entry = rhs;
+          rhs = nullptr;
+        }
+        else {
+          new_entry = rhs->Clone();
+        }
+
+        // Reset the new entry to have the correct name, etc.
+        const std::string & name = lhs->GetName();
+        new_entry->SetName(name).SetDesc(lhs->GetDesc()).SetDefault(lhs->GetDefaultVal());
+
+        // Replace the placeholder with the new entry in the proper scope.
+        lhs->GetScope()->Replace(name, new_entry);
+        lhs.Delete();
+      }
+
+      // Otherwise if variable already exists, make sure types align.
+      else {
+
+      }
+
+      // Now, actually act on the assignment!
+
+      // If the RHS is a temporary, delete it!
+      if (rhs->IsTemporary()) {
+
+      }
+
     }
 
   public:
