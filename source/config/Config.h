@@ -93,6 +93,7 @@ namespace mabe {
     bool HasToken(int pos) const { return (pos >= 0) && (pos < (int) tokens.size()); }
     bool IsID(int pos) const { return HasToken(pos) && lexer.IsID(tokens[pos]); }
     bool IsNumber(int pos) const { return HasToken(pos) && lexer.IsNumber(tokens[pos]); }
+    bool IsChar(int pos) const { return HasToken(pos) && lexer.IsChar(tokens[pos]); }
     bool IsString(int pos) const { return HasToken(pos) && lexer.IsString(tokens[pos]); }
     bool IsDots(int pos) const { return HasToken(pos) && lexer.IsDots(tokens[pos]); }
 
@@ -191,6 +192,38 @@ namespace mabe {
       if (IsDots(pos)) return ProcessVar(pos, cur_scope, create_ok);
 
       // No proper entry was found; return null as an error.
+      return nullptr;
+    }
+
+    // Load a value from the provided scope, which can come from a variable or a literal.
+    // NOTE: May create temporary ConfigEntries that need to be cleaned up by receiver!
+    emp::Ptr<ConfigEntry> ProcessValue(size_t & pos, emp::Ptr<ConfigStruct> cur_scope) {
+      // Anything that begins with an identifier or dots must represent a variable.  Refer!
+      if (IsID(pos) || IsDots(pos)) return ProcessVar(pos, cur_scope, false);
+
+      // A literal number should have a temporary created with its value.
+      if (IsNumber(pos)) {
+        auto tmp_ptr = emp::NewPtr<ConfigValue>("","",nullptr);  // Create a temporary ConfigEntry
+        tmp_ptr->Set(emp::from_string<double>(AsLexeme(pos)));   // Set entry to the value of token.
+        return tmp_ptr;                                          // And return!
+      }
+
+      // A literal char should be converted to its ASCII value.
+      if (IsChar(pos)) {
+        auto tmp_ptr = emp::NewPtr<ConfigValue>("","",nullptr);  // Create a temporary ConfigEntry
+        char lit_char = emp::from_literal_char(AsLexeme(pos));   // Convert the literal char.
+        tmp_ptr->Set((double) lit_char);                         // Set entry to the value of token.
+        return tmp_ptr;                                          // And return!
+      }
+
+      // A literal string should be converted to a regular string and used.
+      if (IsString(pos)) {
+        auto tmp_ptr = emp::NewPtr<ConfigString>("","",nullptr); // Create a temporary ConfigEntry
+        tmp_ptr->Set(emp::from_literal_string(AsLexeme(pos)));   // Set entry to the value of token.
+        return tmp_ptr;                                          // And return!
+      }
+
+      // No value found!
       return nullptr;
     }
 
