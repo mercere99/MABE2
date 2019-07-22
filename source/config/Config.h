@@ -177,8 +177,15 @@ namespace mabe {
       RequireID(pos, "Must provide a variable identifier!");
       std::string var_name = AsLexeme(pos++);
 
-      // Lookup this variable or build it or throw an error.
+      // Lookup this variable.
       emp::Ptr<ConfigEntry> cur_entry = cur_scope->LookupEntry(var_name, scan_scopes);
+
+      // If we can't find this variable, either build it or throw an error.
+      if (cur_entry.IsNull()) {
+        if (!create_ok) Error(pos, "Variable identifier '", var_name, "' not found.");
+        cur_entry = &cur_scope->AddPlaceholder(var_name);
+        return cur_entry;
+      }
 
       // If this variable just provided a scope, keep going.
       if (IsDots(pos)) return ProcessVar(pos, cur_scope, create_ok);
@@ -188,31 +195,9 @@ namespace mabe {
     }
 
     // Process the next input in the specified Struct.
-    void ProcessStatement(size_t & pos, ConfigStruct & struct_entry) {
-      if (AsChar(pos) == '.') {
-        ProcessStatement(++pos, root_struct);
-        return;
-      }
-      RequireID(pos, "Statements much begin with a variable.");
-      std::string var_name = AsLexeme(pos++);
-      auto entry_ptr = struct_entry.GetEntry(var_name);
-
-      // If this entry exists, potentially continue.
-      if (!entry_ptr.IsNull()) {
-        if (AsChar(pos) == '.') {
-          if (!entry_ptr->IsStruct()) {
-            Error(pos, "variable ", var_name, " is not a structure!");
-          }
-          ProcessStatement(++pos, *entry_ptr->AsStruct());
-          return;
-        }      
-        // @CAO need to add the possibility of indexing into an array.
-      }
-
-      // If we made it here, entry_ptr is either a variable or needs to be made.
-      RequireChar(pos++, '=', "Variable ", var_name, " must be assigned here!");
-
-      // @CAO Do RHS!!
+    void ProcessStatement(size_t & pos, ConfigStruct & scope) {
+      // @CAO: For now, assume that a statment is: VAR '=' VALUE ';'
+      //       If first var is a temporary, it needs to be rebuilt once we know type and default.
     }
 
   public:
