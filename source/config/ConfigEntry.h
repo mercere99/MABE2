@@ -44,7 +44,13 @@ namespace mabe {
                 const std::string & _desc,
                 emp::Ptr<ConfigStruct> _scope)
       : name(_name), desc(_desc), scope(_scope) { }
+    ConfigEntry(const ConfigEntry &) = default;
     virtual ~ConfigEntry() { }
+
+    const std::string & GetName() const { return name; }
+    const std::string & GetDesc() const { return desc; }
+    const std::string & GetDefaultVal() const { return default_val; }
+    emp::Ptr<ConfigStruct> GetScope() { return scope; }
 
     virtual bool IsPlaceholder() const { return false; }
     virtual bool IsValue() const { return false; }
@@ -52,10 +58,8 @@ namespace mabe {
     virtual bool IsStruct() const { return false; }
 
     // Test if this entry holds a temporary value.
+    // @CAO Could also do a nullptr scope?
     bool IsTemporary() const { return name == ""; }
-
-    // Identify the structure that this variable was created in.
-    emp::Ptr<ConfigStruct> GetScope() { return scope; }
 
     virtual emp::Ptr<ConfigValue> AsValue() { return nullptr; }
     virtual emp::Ptr<ConfigString> AsString() { return nullptr; }
@@ -65,10 +69,15 @@ namespace mabe {
     virtual ConfigType GetType() const noexcept { return BaseType::VOID; }
 
     /// Set the default string for this entry.
+    ConfigEntry & SetName(const std::string & in) { name = in; return *this; }
+    ConfigEntry & SetDesc(const std::string & in) { desc = in; return *this; }
     ConfigEntry & SetDefault(const std::string & in) { default_val = in; return *this; }
 
     /// Shift the current value to be the new default value.
     virtual void UpdateDefault() { default_val = ""; }
+
+    /// Change the type of this variable to match another, if allowed.
+    virtual bool UpdateType(ConfigEntry & other) { return false; }
 
     virtual emp::Ptr<ConfigEntry> LookupEntry(std::string in_name, bool scan_scopes=true) {
       return (in_name == "") ? this : nullptr;
@@ -80,6 +89,9 @@ namespace mabe {
 
     /// Write out this entry as part of generating a configuration file.
     virtual ConfigEntry & Write(std::ostream & os=std::cout, const std::string & prefix="") = 0;
+
+    /// Allocate a duplicate of this class.
+    virtual emp::Ptr<ConfigEntry> Clone() = 0;
   };
 
   /// A specialized ConfigEntry where we don't have type details yet.
@@ -89,6 +101,7 @@ namespace mabe {
                       const std::string & _desc,
                       emp::Ptr<ConfigStruct> _scope)
       : ConfigEntry(_name, _desc, _scope) { }
+    ConfigPlaceholder(const ConfigPlaceholder &) = default;
     ~ConfigPlaceholder() { }
 
     bool IsPlaceholder() const override { return true; }
@@ -97,6 +110,8 @@ namespace mabe {
       (void) os;  (void) prefix;
       emp_assert(false, "Temporary value being used for Write.");
     }
+
+    emp::Ptr<ConfigEntry> Clone() override { return emp::NewPtr<ConfigPlaceholder>(*this); }
   };
 
   /// A ConfigEntry that is a numerical value (double)
@@ -108,6 +123,7 @@ namespace mabe {
                 const std::string & _desc,
                 emp::Ptr<ConfigStruct> _scope)
       : ConfigEntry(_name, _desc, _scope) { }
+    ConfigValue(const ConfigValue &) = default;
     ~ConfigValue() { }
 
     bool IsValue() const override { return true; }
@@ -131,6 +147,8 @@ namespace mabe {
 
       return *this;
     }
+
+    emp::Ptr<ConfigEntry> Clone() override { return emp::NewPtr<ConfigValue>(*this); }
   };
 
   // Config entry that is a string.
@@ -142,6 +160,7 @@ namespace mabe {
                  const std::string & _desc,
                  emp::Ptr<ConfigStruct> _scope)
       : ConfigEntry(_name, _desc, _scope) { }
+    ConfigString(const ConfigString &) = default;
     ~ConfigString() { }
 
     bool IsString() const override { return true; }
@@ -164,6 +183,8 @@ namespace mabe {
 
       return *this;
     }
+
+    emp::Ptr<ConfigEntry> Clone() override { return emp::NewPtr<ConfigString>(*this); }
   };
 
   // Set of multiple config entries.
@@ -182,6 +203,8 @@ namespace mabe {
                  const std::string & _desc,
                  emp::Ptr<ConfigStruct> _scope)
       : ConfigEntry(_name, _desc, _scope) { }
+    ConfigStruct(const ConfigStruct &) = default;
+    ConfigStruct(ConfigStruct &&) = default;
 
     ~ConfigStruct() { }
 
@@ -238,7 +261,9 @@ namespace mabe {
     }
 
     auto & AddPlaceholder(const std::string & name) {
-      return Add<ConfigPlaceholder>(name, "__temp__", this);
+      return Add<ConfigPlaceholder>(name,
+                                    "Placeholder variable, to be replaced when we have more information.",
+                                    this);
     }
     auto & AddValue(const std::string & name, const std::string & desc, double value) {
       return Add<ConfigValue>(name, desc, this).Set(value);
@@ -260,6 +285,8 @@ namespace mabe {
       os << prefix << "}\n";
       return *this;
     }
+
+    emp::Ptr<ConfigEntry> Clone() override { return emp::NewPtr<ConfigStruct>(*this); }
   };
 
 }
