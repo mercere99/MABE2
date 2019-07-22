@@ -275,6 +275,13 @@ namespace mabe {
       return Add<ConfigStruct>(name, desc, this);
     }
 
+    ConfigStruct & Replace(const std::string & name, emp::Ptr<ConfigEntry> entry) {
+      emp_assert(Has(name));   // Make sure the entry being replaced actually exists!
+      entries[name].Delete();  // Delete the old entry.
+      entries[name] = entry;   // Assigne the new entry.
+      return *this;
+    }
+
     ConfigEntry & Write(std::ostream & os=std::cout, const std::string & prefix="") override {
       if (desc.size()) os << prefix << "// " << desc << "\n";
 
