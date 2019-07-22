@@ -46,6 +46,7 @@ namespace mabe {
       : name(_name), desc(_desc), scope(_scope) { }
     virtual ~ConfigEntry() { }
 
+    virtual bool IsPlaceholder() const { return false; }
     virtual bool IsValue() const { return false; }
     virtual bool IsString() const { return false; }
     virtual bool IsStruct() const { return false; }
@@ -77,13 +78,28 @@ namespace mabe {
     }
     virtual bool Has(std::string in_name) const { return (bool) LookupEntry(in_name); }
 
-    virtual ConfigEntry & Write(std::ostream & os=std::cout, const std::string & prefix="") {
-      // This can only be a temporary value!  Otherwise a derived class should be used.
+    /// Write out this entry as part of generating a configuration file.
+    virtual ConfigEntry & Write(std::ostream & os=std::cout, const std::string & prefix="") = 0;
+  };
+
+  /// A specialized ConfigEntry where we don't have type details yet.
+  class ConfigPlaceholder : public ConfigEntry {
+  public:
+    ConfigPlaceholder(const std::string & _name,
+                      const std::string & _desc,
+                      emp::Ptr<ConfigStruct> _scope)
+      : ConfigEntry(_name, _desc, _scope) { }
+    ~ConfigPlaceholder() { }
+
+    bool IsPlaceholder() const override { return true; }
+
+    ConfigEntry & Write(std::ostream & os=std::cout, const std::string & prefix="") override {
+      (void) os;  (void) prefix;
       emp_assert(false, "Temporary value being used for Write.");
     }
   };
 
-  // Config entry that is a numerical value (double)
+  /// A ConfigEntry that is a numerical value (double)
   class ConfigValue : public ConfigEntry {
   protected:
     double value = 0.0;
@@ -222,7 +238,7 @@ namespace mabe {
     }
 
     auto & AddPlaceholder(const std::string & name) {
-      return Add<ConfigEntry>(name, "__temp__", this);
+      return Add<ConfigPlaceholder>(name, "__temp__", this);
     }
     auto & AddValue(const std::string & name, const std::string & desc, double value) {
       return Add<ConfigValue>(name, desc, this).Set(value);
