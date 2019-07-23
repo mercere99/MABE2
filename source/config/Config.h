@@ -229,6 +229,8 @@ namespace mabe {
 
     // Process the next input in the specified Struct.
     void ProcessStatement(size_t & pos, ConfigStruct & scope) {
+      size_t start_pos = pos; // Track the starting position for semantic errors.
+
       // Basic structure: VAR = VALUE ;
       emp::Ptr<ConfigEntry> lhs = ProcessVar(pos, &scope, true);
       RequireChar('=', pos, "Expected '=' after variable '", lhs->GetName(),  "' for assignment.");
@@ -258,15 +260,20 @@ namespace mabe {
 
       // Otherwise if variable already exists, make sure types align.
       else {
-
+        if (lhs->GetType() != rhs->GetType()) {
+          Error(start_pos, "Type mis-match in assignment to ", lhs->GetName());
+        }
       }
 
-      // Now, actually act on the assignment!
+      // If we didn't just move over the RHS...
+      if (!rhs.IsNull()) {
+        // Act on the assignment!
+        lhs->CopyValue(*rhs);
 
-      // If the RHS is a temporary, delete it!
-      if (rhs->IsTemporary()) {
-
+        // If the RHS is a temporary, delete it!
+        if (rhs->IsTemporary()) rhs.Delete();
       }
+
 
     }
 
