@@ -85,7 +85,7 @@ namespace mabe {
     std::string filename;             ///< Source for for code to generate.
     ConfigLexer lexer;                ///< Lexer to process input code.
     emp::vector<emp::Token> tokens;   ///< Tokenized version of input file.
-    bool debug = false;               ///< Should we print full debug information?
+    bool debug = true;               ///< Should we print full debug information?
 
    ConfigStruct root_struct;          ///< All variables from the root level.
 
@@ -169,11 +169,31 @@ namespace mabe {
 
     /// Keep processing statments until there aren't any more or we leave this scope. 
     void ProcessStatementList(size_t & pos, ConfigStruct & scope) {
+      Debug("Running ProcessStatementList(", pos, ",", scope.GetName(), ")");
       while (pos < tokens.size() && AsChar(pos) != '}') ProcessStatement(pos, scope);
     }
 
   public:
-    
+    Config(std::string in_filename="")
+      : filename(in_filename)
+      , root_struct("global", "Outer-most, global scope.", nullptr)
+    {
+      if (filename != "") Load(filename);
+    }
+
+    void Load(std::string filename) {
+      Debug("Running Load(", filename, ")");
+      std::ifstream file(filename);           // Load the provided file.
+      tokens = lexer.Tokenize(file);          // Convert to more-usable tokens.
+      file.close();                           // Close the file (now that it's converted)
+      size_t pos = 0;                         // Start at the beginning of the file.
+      ProcessStatementList(pos, root_struct); // Process, starting from the outer scope.
+    }
+
+    Config & Write(std::ostream & os=std::cout) {
+      root_struct.Write(os);
+      return *this;
+    }
   };
 
   //////////////////////////////////////////////////////////
@@ -185,6 +205,8 @@ namespace mabe {
                                            emp::Ptr<ConfigStruct> cur_scope,
                                            bool create_ok)
   {
+    Debug("Running ProcessVar(", pos, ",", cur_scope->GetName(), ",", create_ok, ")");
+
     bool scan_scopes = !create_ok; // By default, we either create a variable OR scan for it.
 
     // First, check for leading dots.
@@ -214,46 +236,57 @@ namespace mabe {
     }
 
     // If this variable just provided a scope, keep going.
-    if (IsDots(pos)) return ProcessVar(pos, cur_scope, create_ok);
+    if (IsDots(pos)) cur_entry = ProcessVar(pos, cur_scope, create_ok);
 
-    // No proper entry was found; return null as an error.
-    return nullptr;
+    // Return the variable!
+    return cur_entry;
   }
 
 
   // Load a value from the provided scope, which can come from a variable or a literal.
   emp::Ptr<ConfigEntry> Config::ProcessValue(size_t & pos, emp::Ptr<ConfigStruct> cur_scope) {
+      Debug("Running ProcessValue(", pos, ",", cur_scope->GetName(), ")");
+
     // Anything that begins with an identifier or dots must represent a variable.  Refer!
     if (IsID(pos) || IsDots(pos)) return ProcessVar(pos, cur_scope, false);
 
     // A literal number should have a temporary created with its value.
     if (IsNumber(pos)) {
+      Debug("...value is a number: ", AsLexeme(pos));
       auto tmp_ptr = emp::NewPtr<ConfigValue>("","",nullptr);  // Create a temporary ConfigEntry
       tmp_ptr->Set(emp::from_string<double>(AsLexeme(pos)));   // Set entry to the value of token.
+      pos++;                                                   // Move on to the next token.
       return tmp_ptr;                                          // And return!
     }
 
     // A literal char should be converted to its ASCII value.
     if (IsChar(pos)) {
+      Debug("...value is a char: ", AsLexeme(pos));
       auto tmp_ptr = emp::NewPtr<ConfigValue>("","",nullptr);  // Create a temporary ConfigEntry
       char lit_char = emp::from_literal_char(AsLexeme(pos));   // Convert the literal char.
       tmp_ptr->Set((double) lit_char);                         // Set entry to the value of token.
+      pos++;                                                   // Move on to the next token.
       return tmp_ptr;                                          // And return!
     }
 
     // A literal string should be converted to a regular string and used.
     if (IsString(pos)) {
+      Debug("...value is a string: ", AsLexeme(pos));
       auto tmp_ptr = emp::NewPtr<ConfigString>("","",nullptr); // Create a temporary ConfigEntry
       tmp_ptr->Set(emp::from_literal_string(AsLexeme(pos)));   // Set entry to the value of token.
+      pos++;                                                   // Move on to the next token.
       return tmp_ptr;                                          // And return!
     }
 
-    // No value found!
+    Error(pos, "Expected a value, found: ", AsLexeme(pos));
+
     return nullptr;
   }
 
   // Process the next input in the specified Struct.
   void Config::ProcessStatement(size_t & pos, ConfigStruct & scope) {
+    Debug("Running ProcessStatement(", pos, ",", scope.GetName(), ")");
+
     size_t start_pos = pos; // Track the starting position for semantic errors.
 
     // Allow a statement with an empty line.
@@ -264,29 +297,33 @@ namespace mabe {
 
     // Otherwise, basic structure: VAR = VALUE ;
     emp::Ptr<ConfigEntry> lhs = ProcessVar(pos, &scope, true);
-    RequireChar('=', pos, "Expected '=' after variable '", lhs->GetName(),  "' for assignment.");
+    RequireChar('=', pos++, "Expected '=' after variable '", lhs->GetName(),  "' for assignment.");
     emp::Ptr<ConfigEntry> rhs = ProcessValue(pos, &scope);
-    RequireChar(';', pos, "Expected ';' at the end of a statement.");
+    RequireChar(';', pos++, "Expected ';' at the end of a statement.");
 
     // If the LHS is a placeholder, fix it!
     if (lhs->IsPlaceholder()) {
+      Debug("...LHS of statement is a placeholder.");
       // If the RHS is a temporary, we can use it rather than reallocate; otherwise clone it.
       emp::Ptr<ConfigEntry> new_entry;
-      if (rhs->IsTemporary()) {
+      if (rhs->IsTemporary()) {  // If the RHS is temporary, just move it over to the new entry.
+        Debug("...RHS of statement is temporary.");        
         new_entry = rhs;
         rhs = nullptr;
       }
       else {
+        Debug("...RHS of statement is NOT temporary (", rhs->GetName(), ").");
         new_entry = rhs->Clone();
       }
 
       // Reset the new entry to have the correct name, etc.
       const std::string & name = lhs->GetName();
       new_entry->SetName(name).SetDesc(lhs->GetDesc()).SetDefault(lhs->GetDefaultVal());
+      Debug("...Set the name of the new entry to: ", name);
 
       // Replace the placeholder with the new entry in the proper scope.
       lhs->GetScope()->Replace(name, new_entry);
-      lhs.Delete();
+      lhs = nullptr;
     }
 
     // Otherwise if variable already exists, make sure types align.
@@ -296,8 +333,8 @@ namespace mabe {
       }
     }
 
-    // If we didn't just move over the RHS...
-    if (!rhs.IsNull()) {
+    // If we didn't just move over the RHS and it wasn't a placeholder...
+    if (!rhs.IsNull() && !lhs.IsNull()) {
       // Act on the assignment!
       lhs->CopyValue(*rhs);
 
