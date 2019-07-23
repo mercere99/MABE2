@@ -17,6 +17,7 @@
 #include "tools/Random.h"
 #include "tools/vector_utils.h"
 
+#include "../config/Config.h"
 #include "OrganismWrapper.h"
 #include "Population.h"
 #include "World.h"
@@ -40,8 +41,14 @@ namespace mabe {
     /// Keep the original command-line arguments passed in.
     emp::vector<std::string> args;
 
+    Config config;
   public:
     MABE(int argc, char* argv[]) : args(emp::cl::args_to_strings(argc, argv)) {
+      if (args.size() > 1) {
+        config.Load(args[1]);
+        config.Write();
+        exit(0);
+      }
     }
     MABE(const MABE &) = delete;
     MABE(MABE &&) = delete;
