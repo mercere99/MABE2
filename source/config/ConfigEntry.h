@@ -27,6 +27,7 @@
 
 namespace mabe {
 
+  class ConfigPlaceholder;
   class ConfigValue;
   class ConfigString;
   class ConfigStruct;
@@ -61,6 +62,7 @@ namespace mabe {
     // @CAO Could also do a nullptr scope?
     bool IsTemporary() const { return name == ""; }
 
+    virtual emp::Ptr<ConfigPlaceholder> AsPlaceholder() { return nullptr; }
     virtual emp::Ptr<ConfigValue> AsValue() { return nullptr; }
     virtual emp::Ptr<ConfigString> AsString() { return nullptr; }
     virtual emp::Ptr<ConfigStruct> AsStruct() { return nullptr; }
@@ -79,6 +81,9 @@ namespace mabe {
     /// Change the type of this variable to match another, if allowed.
     virtual bool UpdateType(ConfigEntry & other) { return false; }
 
+    /// Change the value of this variable to match the one passed in, if possible.
+    virtual ConfigEntry & CopyValue(ConfigEntry & val) = 0;
+
     virtual emp::Ptr<ConfigEntry> LookupEntry(std::string in_name, bool scan_scopes=true) {
       return (in_name == "") ? this : nullptr;
     }
@@ -91,7 +96,7 @@ namespace mabe {
     virtual ConfigEntry & Write(std::ostream & os=std::cout, const std::string & prefix="") = 0;
 
     /// Allocate a duplicate of this class.
-    virtual emp::Ptr<ConfigEntry> Clone() = 0;
+    virtual emp::Ptr<ConfigEntry> Clone() const = 0;
   };
 
   /// A specialized ConfigEntry where we don't have type details yet.
@@ -105,13 +110,19 @@ namespace mabe {
     ~ConfigPlaceholder() { }
 
     bool IsPlaceholder() const override { return true; }
+    emp::Ptr<ConfigPlaceholder> AsPlaceholder() override { return this; }
+
+    virtual ConfigEntry & CopyValue(ConfigEntry & val) {
+      emp_error("Do not update placeholder values before setting type!");
+      return *this;
+    }
 
     ConfigEntry & Write(std::ostream & os=std::cout, const std::string & prefix="") override {
       (void) os;  (void) prefix;
       emp_assert(false, "Temporary value being used for Write.");
     }
 
-    emp::Ptr<ConfigEntry> Clone() override { return emp::NewPtr<ConfigPlaceholder>(*this); }
+    emp::Ptr<ConfigEntry> Clone() const override { return emp::NewPtr<ConfigPlaceholder>(*this); }
   };
 
   /// A ConfigEntry that is a numerical value (double)
@@ -127,14 +138,19 @@ namespace mabe {
     ~ConfigValue() { }
 
     bool IsValue() const override { return true; }
-
-    emp::Ptr<ConfigValue> AsValue() override{ return this; }
+    emp::Ptr<ConfigValue> AsValue() override { return this; }
 
     ConfigType GetType() const noexcept override { return BaseType::VALUE; }
     void UpdateDefault() override { default_val = emp::to_string(value); }
 
     double Get() const { return value; }
     ConfigValue & Set(double in) { value = in; return *this; }
+
+    virtual ConfigEntry & CopyValue(ConfigEntry & val) {
+      emp_assert(val.IsValue());
+      value = val.AsValue()->Get();
+      return *this;
+    }
 
     ConfigEntry & Write(std::ostream & os=std::cout, const std::string & prefix="") override {
       if (desc.size()) os << prefix << "// " << desc << "\n";
@@ -148,7 +164,7 @@ namespace mabe {
       return *this;
     }
 
-    emp::Ptr<ConfigEntry> Clone() override { return emp::NewPtr<ConfigValue>(*this); }
+    emp::Ptr<ConfigEntry> Clone() const override { return emp::NewPtr<ConfigValue>(*this); }
   };
 
   // Config entry that is a string.
@@ -172,6 +188,12 @@ namespace mabe {
     const std::string & Get() const { return value; }
     ConfigString & Set(const std::string & in) { value = in; return *this; }
 
+    virtual ConfigEntry & CopyValue(ConfigEntry & val) {
+      emp_assert(val.IsString());
+      value = val.AsString()->Get();
+      return *this;
+    }
+
     ConfigEntry & Write(std::ostream & os=std::cout, const std::string & prefix="") override {
       if (desc.size()) os << prefix << "// " << desc << "\n";
       os << prefix << name << " = ";
@@ -184,7 +206,7 @@ namespace mabe {
       return *this;
     }
 
-    emp::Ptr<ConfigEntry> Clone() override { return emp::NewPtr<ConfigString>(*this); }
+    emp::Ptr<ConfigEntry> Clone() const override { return emp::NewPtr<ConfigString>(*this); }
   };
 
   // Set of multiple config entries.
@@ -203,7 +225,11 @@ namespace mabe {
                  const std::string & _desc,
                  emp::Ptr<ConfigStruct> _scope)
       : ConfigEntry(_name, _desc, _scope) { }
-    ConfigStruct(const ConfigStruct &) = default;
+    ConfigStruct(const ConfigStruct & in) : ConfigEntry(in) {
+      for (const auto & x : in.entries) {
+        entries[x.first] = x.second->Clone();
+      }
+    }
     ConfigStruct(ConfigStruct &&) = default;
 
     ~ConfigStruct() { }
@@ -216,6 +242,17 @@ namespace mabe {
       // Recursively update all defaults within the structure.
       for (auto & x : entries) x.second->UpdateDefault();
       default_val = ""; /* @CAO: Need to spell out? */
+    }
+
+    virtual ConfigEntry & CopyValue(ConfigEntry & val) {
+      emp_assert(val.IsStruct());
+      entries.clear();  // Erase anything currently in this struct.
+      // Need to systematically duplicate all entires.
+      ConfigStruct & from = *(val.AsStruct());
+      for (auto & x : from.entries) {
+        entries[x.first] = x.second->Clone();
+      }
+      return *this;
     }
 
     // Get an entry out of this scope; 
@@ -293,7 +330,7 @@ namespace mabe {
       return *this;
     }
 
-    emp::Ptr<ConfigEntry> Clone() override { return emp::NewPtr<ConfigStruct>(*this); }
+    emp::Ptr<ConfigEntry> Clone() const override { return emp::NewPtr<ConfigStruct>(*this); }
   };
 
 }
