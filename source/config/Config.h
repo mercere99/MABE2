@@ -160,22 +160,27 @@ namespace mabe {
                                      emp::Ptr<ConfigStruct> cur_scope,
                                      bool create_ok=false);
 
-    // Load a value from the provided scope, which can come from a variable or a literal.
-    // NOTE: May create temporary ConfigEntries that need to be cleaned up by receiver!
+    /// Load a value from the provided scope, which can come from a variable or a literal.
+    /// NOTE: May create temporary ConfigEntries that need to be cleaned up by receiver!
     emp::Ptr<ConfigEntry> ProcessValue(size_t & pos, emp::Ptr<ConfigStruct> cur_scope);
 
-    // Process the next input in the specified Struct.
+    /// Process the next input in the specified Struct.
     void ProcessStatement(size_t & pos, ConfigStruct & scope);
 
-  public:
+    /// Keep processing statments until there aren't any more or we leave this scope. 
+    void ProcessStatementList(size_t & pos, ConfigStruct & scope) {
+      while (pos < tokens.size() && AsChar(pos) != '}') ProcessStatement(pos, scope);
+    }
 
+  public:
+    
   };
 
   //////////////////////////////////////////////////////////
   //  --==  Config member function Implementations!  ==--
 
 
-  /// Load a variable name from the provided scope.
+  // Load a variable name from the provided scope.
   emp::Ptr<ConfigEntry> Config::ProcessVar(size_t & pos,
                                            emp::Ptr<ConfigStruct> cur_scope,
                                            bool create_ok)
@@ -300,5 +305,6 @@ namespace mabe {
       if (rhs->IsTemporary()) rhs.Delete();
     }
   }
+
 }
 #endif
