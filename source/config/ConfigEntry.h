@@ -120,6 +120,7 @@ namespace mabe {
     ConfigEntry & Write(std::ostream & os=std::cout, const std::string & prefix="") override {
       (void) os;  (void) prefix;
       emp_assert(false, "Temporary value being used for Write.");
+      return *this;
     }
 
     emp::Ptr<ConfigEntry> Clone() const override { return emp::NewPtr<ConfigPlaceholder>(*this); }
