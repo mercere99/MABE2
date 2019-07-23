@@ -158,128 +158,147 @@ namespace mabe {
     /// search for them in successively outer (lower) scopes.
     emp::Ptr<ConfigEntry> ProcessVar(size_t & pos,
                                      emp::Ptr<ConfigStruct> cur_scope,
-                                     bool create_ok=false)
-    {
-      bool scan_scopes = !create_ok; // By default, we either create a variable OR scan for it.
-
-      // First, check for leading dots.
-      if (IsDots(pos)) {
-        scan_scopes = false;             // One or more initial dots specify scope; don't scan!
-        size_t num_dots = GetSize(pos);  // Extra dots shift scope.
-        while (num_dots > 1) {
-          cur_scope = cur_scope->GetScope();
-          if (cur_scope.IsNull()) Error(pos, "Too many dots; goes beyond global scope.");
-        }
-        pos++;
-      }
-
-      // Next, we must have a variable name.
-      // @CAO: Or a : ?  E.g., technically "..:size" could give you the parent scope size.
-      RequireID(pos, "Must provide a variable identifier!");
-      std::string var_name = AsLexeme(pos++);
-
-      // Lookup this variable.
-      emp::Ptr<ConfigEntry> cur_entry = cur_scope->LookupEntry(var_name, scan_scopes);
-
-      // If we can't find this variable, either build it or throw an error.
-      if (cur_entry.IsNull()) {
-        if (!create_ok) Error(pos, "Variable identifier '", var_name, "' not found.");
-        cur_entry = &cur_scope->AddPlaceholder(var_name);
-        return cur_entry;
-      }
-
-      // If this variable just provided a scope, keep going.
-      if (IsDots(pos)) return ProcessVar(pos, cur_scope, create_ok);
-
-      // No proper entry was found; return null as an error.
-      return nullptr;
-    }
+                                     bool create_ok=false);
 
     // Load a value from the provided scope, which can come from a variable or a literal.
     // NOTE: May create temporary ConfigEntries that need to be cleaned up by receiver!
-    emp::Ptr<ConfigEntry> ProcessValue(size_t & pos, emp::Ptr<ConfigStruct> cur_scope) {
-      // Anything that begins with an identifier or dots must represent a variable.  Refer!
-      if (IsID(pos) || IsDots(pos)) return ProcessVar(pos, cur_scope, false);
-
-      // A literal number should have a temporary created with its value.
-      if (IsNumber(pos)) {
-        auto tmp_ptr = emp::NewPtr<ConfigValue>("","",nullptr);  // Create a temporary ConfigEntry
-        tmp_ptr->Set(emp::from_string<double>(AsLexeme(pos)));   // Set entry to the value of token.
-        return tmp_ptr;                                          // And return!
-      }
-
-      // A literal char should be converted to its ASCII value.
-      if (IsChar(pos)) {
-        auto tmp_ptr = emp::NewPtr<ConfigValue>("","",nullptr);  // Create a temporary ConfigEntry
-        char lit_char = emp::from_literal_char(AsLexeme(pos));   // Convert the literal char.
-        tmp_ptr->Set((double) lit_char);                         // Set entry to the value of token.
-        return tmp_ptr;                                          // And return!
-      }
-
-      // A literal string should be converted to a regular string and used.
-      if (IsString(pos)) {
-        auto tmp_ptr = emp::NewPtr<ConfigString>("","",nullptr); // Create a temporary ConfigEntry
-        tmp_ptr->Set(emp::from_literal_string(AsLexeme(pos)));   // Set entry to the value of token.
-        return tmp_ptr;                                          // And return!
-      }
-
-      // No value found!
-      return nullptr;
-    }
+    emp::Ptr<ConfigEntry> ProcessValue(size_t & pos, emp::Ptr<ConfigStruct> cur_scope);
 
     // Process the next input in the specified Struct.
-    void ProcessStatement(size_t & pos, ConfigStruct & scope) {
-      size_t start_pos = pos; // Track the starting position for semantic errors.
-
-      // Basic structure: VAR = VALUE ;
-      emp::Ptr<ConfigEntry> lhs = ProcessVar(pos, &scope, true);
-      RequireChar('=', pos, "Expected '=' after variable '", lhs->GetName(),  "' for assignment.");
-      emp::Ptr<ConfigEntry> rhs = ProcessValue(pos, &scope);
-      RequireChar(';', pos, "Expected ';' at the end of a statement.");
-
-      // If the LHS is a placeholder, fix it!
-      if (lhs->IsPlaceholder()) {
-        // If the RHS is a temporary, we can use it rather than reallocate; otherwise clone it.
-        emp::Ptr<ConfigEntry> new_entry;
-        if (rhs->IsTemporary()) {
-          new_entry = rhs;
-          rhs = nullptr;
-        }
-        else {
-          new_entry = rhs->Clone();
-        }
-
-        // Reset the new entry to have the correct name, etc.
-        const std::string & name = lhs->GetName();
-        new_entry->SetName(name).SetDesc(lhs->GetDesc()).SetDefault(lhs->GetDefaultVal());
-
-        // Replace the placeholder with the new entry in the proper scope.
-        lhs->GetScope()->Replace(name, new_entry);
-        lhs.Delete();
-      }
-
-      // Otherwise if variable already exists, make sure types align.
-      else {
-        if (lhs->GetType() != rhs->GetType()) {
-          Error(start_pos, "Type mis-match in assignment to ", lhs->GetName());
-        }
-      }
-
-      // If we didn't just move over the RHS...
-      if (!rhs.IsNull()) {
-        // Act on the assignment!
-        lhs->CopyValue(*rhs);
-
-        // If the RHS is a temporary, delete it!
-        if (rhs->IsTemporary()) rhs.Delete();
-      }
-
-
-    }
+    void ProcessStatement(size_t & pos, ConfigStruct & scope);
 
   public:
 
   };
 
+  //////////////////////////////////////////////////////////
+  //  --==  Config member function Implementations!  ==--
+
+
+  /// Load a variable name from the provided scope.
+  emp::Ptr<ConfigEntry> Config::ProcessVar(size_t & pos,
+                                           emp::Ptr<ConfigStruct> cur_scope,
+                                           bool create_ok)
+  {
+    bool scan_scopes = !create_ok; // By default, we either create a variable OR scan for it.
+
+    // First, check for leading dots.
+    if (IsDots(pos)) {
+      scan_scopes = false;             // One or more initial dots specify scope; don't scan!
+      size_t num_dots = GetSize(pos);  // Extra dots shift scope.
+      while (num_dots > 1) {
+        cur_scope = cur_scope->GetScope();
+        if (cur_scope.IsNull()) Error(pos, "Too many dots; goes beyond global scope.");
+      }
+      pos++;
+    }
+
+    // Next, we must have a variable name.
+    // @CAO: Or a : ?  E.g., technically "..:size" could give you the parent scope size.
+    RequireID(pos, "Must provide a variable identifier!");
+    std::string var_name = AsLexeme(pos++);
+
+    // Lookup this variable.
+    emp::Ptr<ConfigEntry> cur_entry = cur_scope->LookupEntry(var_name, scan_scopes);
+
+    // If we can't find this variable, either build it or throw an error.
+    if (cur_entry.IsNull()) {
+      if (!create_ok) Error(pos, "Variable identifier '", var_name, "' not found.");
+      cur_entry = &cur_scope->AddPlaceholder(var_name);
+      return cur_entry;
+    }
+
+    // If this variable just provided a scope, keep going.
+    if (IsDots(pos)) return ProcessVar(pos, cur_scope, create_ok);
+
+    // No proper entry was found; return null as an error.
+    return nullptr;
+  }
+
+
+  // Load a value from the provided scope, which can come from a variable or a literal.
+  emp::Ptr<ConfigEntry> Config::ProcessValue(size_t & pos, emp::Ptr<ConfigStruct> cur_scope) {
+    // Anything that begins with an identifier or dots must represent a variable.  Refer!
+    if (IsID(pos) || IsDots(pos)) return ProcessVar(pos, cur_scope, false);
+
+    // A literal number should have a temporary created with its value.
+    if (IsNumber(pos)) {
+      auto tmp_ptr = emp::NewPtr<ConfigValue>("","",nullptr);  // Create a temporary ConfigEntry
+      tmp_ptr->Set(emp::from_string<double>(AsLexeme(pos)));   // Set entry to the value of token.
+      return tmp_ptr;                                          // And return!
+    }
+
+    // A literal char should be converted to its ASCII value.
+    if (IsChar(pos)) {
+      auto tmp_ptr = emp::NewPtr<ConfigValue>("","",nullptr);  // Create a temporary ConfigEntry
+      char lit_char = emp::from_literal_char(AsLexeme(pos));   // Convert the literal char.
+      tmp_ptr->Set((double) lit_char);                         // Set entry to the value of token.
+      return tmp_ptr;                                          // And return!
+    }
+
+    // A literal string should be converted to a regular string and used.
+    if (IsString(pos)) {
+      auto tmp_ptr = emp::NewPtr<ConfigString>("","",nullptr); // Create a temporary ConfigEntry
+      tmp_ptr->Set(emp::from_literal_string(AsLexeme(pos)));   // Set entry to the value of token.
+      return tmp_ptr;                                          // And return!
+    }
+
+    // No value found!
+    return nullptr;
+  }
+
+  // Process the next input in the specified Struct.
+  void Config::ProcessStatement(size_t & pos, ConfigStruct & scope) {
+    size_t start_pos = pos; // Track the starting position for semantic errors.
+
+    // Allow a statement with an empty line.
+    if (AsChar(pos) == ';') {
+      pos++;
+      return;
+    }
+
+    // Otherwise, basic structure: VAR = VALUE ;
+    emp::Ptr<ConfigEntry> lhs = ProcessVar(pos, &scope, true);
+    RequireChar('=', pos, "Expected '=' after variable '", lhs->GetName(),  "' for assignment.");
+    emp::Ptr<ConfigEntry> rhs = ProcessValue(pos, &scope);
+    RequireChar(';', pos, "Expected ';' at the end of a statement.");
+
+    // If the LHS is a placeholder, fix it!
+    if (lhs->IsPlaceholder()) {
+      // If the RHS is a temporary, we can use it rather than reallocate; otherwise clone it.
+      emp::Ptr<ConfigEntry> new_entry;
+      if (rhs->IsTemporary()) {
+        new_entry = rhs;
+        rhs = nullptr;
+      }
+      else {
+        new_entry = rhs->Clone();
+      }
+
+      // Reset the new entry to have the correct name, etc.
+      const std::string & name = lhs->GetName();
+      new_entry->SetName(name).SetDesc(lhs->GetDesc()).SetDefault(lhs->GetDefaultVal());
+
+      // Replace the placeholder with the new entry in the proper scope.
+      lhs->GetScope()->Replace(name, new_entry);
+      lhs.Delete();
+    }
+
+    // Otherwise if variable already exists, make sure types align.
+    else {
+      if (lhs->GetType() != rhs->GetType()) {
+        Error(start_pos, "Type mis-match in assignment to ", lhs->GetName());
+      }
+    }
+
+    // If we didn't just move over the RHS...
+    if (!rhs.IsNull()) {
+      // Act on the assignment!
+      lhs->CopyValue(*rhs);
+
+      // If the RHS is a temporary, delete it!
+      if (rhs->IsTemporary()) rhs.Delete();
+    }
+  }
 }
 #endif
