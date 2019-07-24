@@ -318,7 +318,7 @@ namespace mabe {
 
       // Reset the new entry to have the correct name, etc.
       const std::string & name = lhs->GetName();
-      new_entry->SetName(name).SetDesc(lhs->GetDesc()).SetDefault(lhs->GetDefaultVal());
+      new_entry->SetName(name).SetDesc("").SetDefault(lhs->GetDefaultVal());
       Debug("...Set the name of the new entry to: ", name);
 
       // Replace the placeholder with the new entry in the proper scope.
