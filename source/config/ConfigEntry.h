@@ -233,7 +233,10 @@ namespace mabe {
     }
     ConfigStruct(ConfigStruct &&) = default;
 
-    ~ConfigStruct() { }
+    ~ConfigStruct() {
+      // Clear up all entries.
+      for (auto & x : entries) { x.second.Delete(); }
+    }
 
     bool IsStruct() const override { return true; }
     emp::Ptr<ConfigStruct> AsStruct() override{ return this; }
