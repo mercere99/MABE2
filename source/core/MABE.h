@@ -35,15 +35,18 @@ namespace mabe {
     /// names and can be manipulated as a whole.
     emp::unordered_map<std::string, emp::Ptr<OrganismType>> org_types;
 
-    /// Maintain a master random number generator (which may seed others).
-    emp::Random random;
-
-    /// Keep the original command-line arguments passed in.
-    emp::vector<std::string> args;
-
-    Config config;
+    emp::Random random;              ///< Master random number generator
+    emp::vector<std::string> args;   ///< Keep the original command-line arguments passed in.
+    emp::string config_filename;     ///< Name of file with configuration information.
+    Config config;                   ///< Configutation information for this run.
   public:
     MABE(int argc, char* argv[]) : args(emp::cl::args_to_strings(argc, argv)) {
+      // Command line options
+      //  -f filename (for config files)
+      //  -p set parameter (name value)
+      //  -s write settings files
+      //  -l creates population loader script
+      //  -v provides version id
       if (args.size() > 1) {
         config.Load(args[1]);
         config.Write();
@@ -157,7 +160,11 @@ namespace mabe {
 
     // Deal with configuration options.
     MABE & OutputConfigSettings(std::ostream & os=std::cout, const std::string & prefix="") {
+      // Output generic information
+      os << prefix << "seed = " << random.GetSeed() << ";\n";
+
       // @CAO output organism types
+
       // Ouput worlds.
       os << prefix << "worlds = {\n";
       for (auto w : worlds) w->OutputConfigSettings(os, prefix + "  ");
