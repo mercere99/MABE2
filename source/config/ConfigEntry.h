@@ -21,6 +21,7 @@
 #include "base/Ptr.h"
 #include "base/vector.h"
 #include "meta/TypeID.h"
+#include "tools/Range.h"
 #include "tools/string_utils.h"
 
 #include "ConfigType.h"
@@ -126,10 +127,15 @@ namespace mabe {
     emp::Ptr<ConfigEntry> Clone() const override { return emp::NewPtr<ConfigPlaceholder>(*this); }
   };
 
-  /// A ConfigEntry that is a numerical value (double)
+  /// A ConfigEntry that is a numerical value.  We use double for representation, but can place
+  /// constraints to limit actual values (to bool, int, etc)
   class ConfigValue : public ConfigEntry {
   protected:
-    double value = 0.0;
+    double value = 0.0;        ///< Current value of this config entry.
+
+    // If we know the constraints on this parameter we can perform better error checking.
+    emp::Range<double> range;  ///< Min and max values allowed for this config entry.
+    bool integer_only=false;   ///< Should we only allow integer values?
   public:
     ConfigValue(const std::string & _name,
                 const std::string & _desc,
@@ -146,6 +152,10 @@ namespace mabe {
 
     double Get() const { return value; }
     ConfigValue & Set(double in) { value = in; return *this; }
+
+    ConfigValue & SetMin(double min) { range.SetLower(min); return *this; }
+    ConfigValue & SetMax(double max) { range.SetLower(max); return *this; }
+    ConfigValue & IntegerOnly(bool in=true) { interger_only - in; return *this; }
 
     virtual ConfigEntry & CopyValue(ConfigEntry & val) {
       emp_assert(val.IsValue());
@@ -172,6 +182,10 @@ namespace mabe {
   class ConfigString : public ConfigEntry {
   protected:
     std::string value;
+
+    // If we know the constraints on this parameter we can perform better error checking.
+    enum class Type { ANY=0, FILENAME, PATH, URL, ALPHABETIC, ALPHANUMERIC, NUMERIC };
+    type = Type::ANY;
   public:
     ConfigString(const std::string & _name,
                  const std::string & _desc,
@@ -299,6 +313,11 @@ namespace mabe {
 
       // Otherwise we found it!
       return it->second;
+    }
+
+    template <typename T>
+    ConfigValue & LinkValue(T & var, const std::string & name, const std::string & desc, T default_val) {
+      return Add<ConfigValue>(name, desc, this).Set(value);
     }
 
     auto & AddPlaceholder(const std::string & name) {
