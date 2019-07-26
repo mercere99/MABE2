@@ -178,6 +178,19 @@ namespace mabe {
     emp::Ptr<ConfigEntry> Clone() const override { return emp::NewPtr<ConfigValue>(*this); }
   };
 
+  /// A specialization of ConfigValue that links to a real variable.
+  template <typename T>
+  class ConfigValue_Link : public ConfigValue {
+  private:
+    T & var;
+  public:
+    ConfigValue_Link(const std::string & _name,
+                     const std::string & _desc,
+                     emp::Ptr<ConfigStruct> _scope,
+                     T & _var)
+    : var(_var), ConfigValue(_name, _desc, _scope) { ; }
+  };
+
   // Config entry that is a string.
   class ConfigString : public ConfigEntry {
   protected:
@@ -224,14 +237,26 @@ namespace mabe {
     emp::Ptr<ConfigEntry> Clone() const override { return emp::NewPtr<ConfigString>(*this); }
   };
 
+  /// A specialization of ConfigValue that links to a real variable.
+  class ConfigString_Link : public ConfigString {
+  private:
+    std::string & var;
+  public:
+    ConfigString_Link(const std::string & _name,
+                     const std::string & _desc,
+                     emp::Ptr<ConfigStruct> _scope,
+                     str::string & _var)
+    : var(_var), ConfigString(_name, _desc, _scope) { ; }
+  };
+
   // Set of multiple config entries.
   class ConfigStruct : public ConfigEntry {
   protected:
     emp::map< std::string, emp::Ptr<ConfigEntry> > entries;
 
-    template <typename T>
-    T & Add(const std::string & name, const std::string & desc, emp::Ptr<ConfigStruct> scope_ptr) {
-      auto new_ptr = emp::NewPtr<T>(name, desc, scope_ptr);
+    template <typename T, typename... ARGS>
+    T & Add(const std::string & name, ARGS... && args) {
+      auto new_ptr = emp::NewPtr<T>(name, std::forward<ARGS>(args)...);
       entries[name] = new_ptr;
       return *new_ptr;
     }
@@ -316,8 +341,15 @@ namespace mabe {
     }
 
     template <typename T>
-    ConfigValue & LinkValue(T & var, const std::string & name, const std::string & desc, T default_val) {
-      return Add<ConfigValue>(name, desc, this).Set(value);
+    ConfigValue_Link & LinkValue(T & var, const std::string & name, const std::string & desc, T default_val) {
+      return Add<ConfigValue_Link>(name, desc, this, var);
+    }
+
+    ConfigString_Link & LinkString(std::string & var,
+                                   const std::string & name,
+                                   const std::string & desc,
+                                   const std::string & default_val) {
+      return Add<ConfigValue_String>(name, desc, this, var);
     }
 
     auto & AddPlaceholder(const std::string & name) {
