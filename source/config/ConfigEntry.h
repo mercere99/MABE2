@@ -28,23 +28,32 @@
 
 namespace mabe {
 
-  class ConfigPlaceholder;
-  class ConfigValue;
-  class ConfigString;
-  class ConfigStruct;
+  class ConfigScope;
 
   class ConfigEntry {
   protected:
     std::string name;             ///< Unique name for this entry; empty name implied temporary.
     std::string desc;             ///< Description to put in comments for this entry.
     std::string default_val;      ///< String representing value to use in generated config file.
-    emp::Ptr<ConfigStruct> scope; ///< Which scope was this variable defined in?
+    emp::Ptr<ConfigScope> scope;  ///< Which scope was this variable defined in?
   
-    using struct_t = emp::vector< emp::Ptr<ConfigEntry> >;
+    double num_value = 0.0;       ///< Current numerical value of this config entry.
+    std::string str_value = "";   ///< Current string value of this config entry.
+
+    enum class Type { NONE=0, SCOPE,
+                      BOOL, INT, UNSIGNED, DOUBLE,                                    // Values
+                      STRING, FILENAME, PATH, URL, ALPHABETIC, ALPHANUMERIC, NUMERIC  // Strings
+                    };
+    type = Type::NONE;
+
+    // If we know the constraints on this parameter we can perform better error checking.
+    emp::Range<double> range;  ///< Min and max values allowed for this config entry (if numerical).
+    bool integer_only=false;   ///< Should we only allow integer values?
+
   public:
     ConfigEntry(const std::string & _name,
                 const std::string & _desc,
-                emp::Ptr<ConfigStruct> _scope)
+                emp::Ptr<ConfigScope> _scope)
       : name(_name), desc(_desc), scope(_scope) { }
     ConfigEntry(const ConfigEntry &) = default;
     virtual ~ConfigEntry() { }
@@ -52,29 +61,25 @@ namespace mabe {
     const std::string & GetName() const { return name; }
     const std::string & GetDesc() const { return desc; }
     const std::string & GetDefaultVal() const { return default_val; }
-    emp::Ptr<ConfigStruct> GetScope() { return scope; }
+    emp::Ptr<ConfigScope> GetScope() { return scope; }
+    double GetValue() const { return num_value; }
 
-    virtual bool IsPlaceholder() const { return false; }
-    virtual bool IsValue() const { return false; }
+    virtual bool IsNumeric() const { return false; }
+    virtual bool IsBool() const { return false; }
+    virtual bool IsInt() const { return false; }
+    virtual bool IsDouble() const { return false; }
     virtual bool IsString() const { return false; }
-    virtual bool IsStruct() const { return false; }
-
-    // Test if this entry holds a temporary value.
-    // @CAO Could also do a nullptr scope?
-    bool IsTemporary() const { return name == ""; }
-
-    virtual emp::Ptr<ConfigPlaceholder> AsPlaceholder() { return nullptr; }
-    virtual emp::Ptr<ConfigValue> AsValue() { return nullptr; }
-    virtual emp::Ptr<ConfigString> AsString() { return nullptr; }
-    virtual emp::Ptr<ConfigStruct> AsStruct() { return nullptr; }
-
-    /// Get the real type of this ConfigEntry
-    virtual ConfigType GetType() const noexcept { return BaseType::VOID; }
 
     /// Set the default string for this entry.
     ConfigEntry & SetName(const std::string & in) { name = in; return *this; }
     ConfigEntry & SetDesc(const std::string & in) { desc = in; return *this; }
     ConfigEntry & SetDefault(const std::string & in) { default_val = in; return *this; }
+
+    ConfigEntry & SetValue(double in) { value = in; return *this; }
+
+    ConfigEntry & SetMin(double min) { range.SetLower(min); return *this; }
+    ConfigEntry & SetMax(double max) { range.SetLower(max); return *this; }
+    ConfigEntry & IntegerOnly(bool in=true) { interger_only - in; return *this; }
 
     /// Shift the current value to be the new default value.
     virtual void UpdateDefault() { default_val = ""; }
@@ -93,75 +98,8 @@ namespace mabe {
     }
     virtual bool Has(std::string in_name) const { return (bool) LookupEntry(in_name); }
 
-    /// Write out this entry as part of generating a configuration file.
-    virtual ConfigEntry & Write(std::ostream & os=std::cout, const std::string & prefix="") = 0;
-
     /// Allocate a duplicate of this class.
     virtual emp::Ptr<ConfigEntry> Clone() const = 0;
-  };
-
-  /// A specialized ConfigEntry where we don't have type details yet.
-  class ConfigPlaceholder : public ConfigEntry {
-  public:
-    ConfigPlaceholder(const std::string & _name,
-                      const std::string & _desc,
-                      emp::Ptr<ConfigStruct> _scope)
-      : ConfigEntry(_name, _desc, _scope) { }
-    ConfigPlaceholder(const ConfigPlaceholder &) = default;
-    ~ConfigPlaceholder() { }
-
-    bool IsPlaceholder() const override { return true; }
-    emp::Ptr<ConfigPlaceholder> AsPlaceholder() override { return this; }
-
-    virtual ConfigEntry & CopyValue(ConfigEntry & val) {
-      emp_error("Do not update placeholder values before setting type!");
-      return *this;
-    }
-
-    ConfigEntry & Write(std::ostream & os=std::cout, const std::string & prefix="") override {
-      (void) os;  (void) prefix;
-      emp_assert(false, "Temporary value being used for Write.");
-      return *this;
-    }
-
-    emp::Ptr<ConfigEntry> Clone() const override { return emp::NewPtr<ConfigPlaceholder>(*this); }
-  };
-
-  /// A ConfigEntry that is a numerical value.  We use double for representation, but can place
-  /// constraints to limit actual values (to bool, int, etc)
-  class ConfigValue : public ConfigEntry {
-  protected:
-    double value = 0.0;        ///< Current value of this config entry.
-
-    // If we know the constraints on this parameter we can perform better error checking.
-    emp::Range<double> range;  ///< Min and max values allowed for this config entry.
-    bool integer_only=false;   ///< Should we only allow integer values?
-  public:
-    ConfigValue(const std::string & _name,
-                const std::string & _desc,
-                emp::Ptr<ConfigStruct> _scope)
-      : ConfigEntry(_name, _desc, _scope) { }
-    ConfigValue(const ConfigValue &) = default;
-    ~ConfigValue() { }
-
-    bool IsValue() const override { return true; }
-    emp::Ptr<ConfigValue> AsValue() override { return this; }
-
-    ConfigType GetType() const noexcept override { return BaseType::VALUE; }
-    void UpdateDefault() override { default_val = emp::to_string(value); }
-
-    double Get() const { return value; }
-    ConfigValue & Set(double in) { value = in; return *this; }
-
-    ConfigValue & SetMin(double min) { range.SetLower(min); return *this; }
-    ConfigValue & SetMax(double max) { range.SetLower(max); return *this; }
-    ConfigValue & IntegerOnly(bool in=true) { interger_only - in; return *this; }
-
-    virtual ConfigEntry & CopyValue(ConfigEntry & val) {
-      emp_assert(val.IsValue());
-      value = val.AsValue()->Get();
-      return *this;
-    }
 
     ConfigEntry & Write(std::ostream & os=std::cout, const std::string & prefix="") override {
       if (desc.size()) os << prefix << "// " << desc << "\n";
@@ -178,6 +116,21 @@ namespace mabe {
     emp::Ptr<ConfigEntry> Clone() const override { return emp::NewPtr<ConfigValue>(*this); }
   };
 
+  /// ConfigEntry can be linked directly to a real variable.
+  template <typename T> class ConfigEntry_Linked {
+  private:
+    T & var;
+  public:
+    template <typename... ARGS>
+    ConfigEntry_Linked(T & in_var, ARGS... && args)
+    : ConfigEntry(std::forward<ARGS>(args)...), var(in_var) { ; }
+  }
+
+
+
+  //////////////////////--------------/////////////////////////
+
+
   /// A specialization of ConfigValue that links to a real variable.
   template <typename T>
   class ConfigValue_Link : public ConfigValue {
@@ -186,7 +139,7 @@ namespace mabe {
   public:
     ConfigValue_Link(const std::string & _name,
                      const std::string & _desc,
-                     emp::Ptr<ConfigStruct> _scope,
+                     emp::Ptr<ConfigScope> _scope,
                      T & _var)
     : var(_var), ConfigValue(_name, _desc, _scope) { ; }
   };
@@ -194,15 +147,10 @@ namespace mabe {
   // Config entry that is a string.
   class ConfigString : public ConfigEntry {
   protected:
-    std::string value;
-
-    // If we know the constraints on this parameter we can perform better error checking.
-    enum class Type { ANY=0, FILENAME, PATH, URL, ALPHABETIC, ALPHANUMERIC, NUMERIC };
-    type = Type::ANY;
   public:
     ConfigString(const std::string & _name,
                  const std::string & _desc,
-                 emp::Ptr<ConfigStruct> _scope)
+                 emp::Ptr<ConfigScope> _scope)
       : ConfigEntry(_name, _desc, _scope) { }
     ConfigString(const ConfigString &) = default;
     ~ConfigString() { }
@@ -244,13 +192,13 @@ namespace mabe {
   public:
     ConfigString_Link(const std::string & _name,
                      const std::string & _desc,
-                     emp::Ptr<ConfigStruct> _scope,
+                     emp::Ptr<ConfigScope> _scope,
                      str::string & _var)
     : var(_var), ConfigString(_name, _desc, _scope) { ; }
   };
 
   // Set of multiple config entries.
-  class ConfigStruct : public ConfigEntry {
+  class ConfigScope : public ConfigEntry {
   protected:
     emp::map< std::string, emp::Ptr<ConfigEntry> > entries;
 
@@ -261,24 +209,24 @@ namespace mabe {
       return *new_ptr;
     }
   public:
-    ConfigStruct(const std::string & _name,
+    ConfigScope(const std::string & _name,
                  const std::string & _desc,
-                 emp::Ptr<ConfigStruct> _scope)
+                 emp::Ptr<ConfigScope> _scope)
       : ConfigEntry(_name, _desc, _scope) { }
-    ConfigStruct(const ConfigStruct & in) : ConfigEntry(in) {
+    ConfigScope(const ConfigScope & in) : ConfigEntry(in) {
       for (const auto & x : in.entries) {
         entries[x.first] = x.second->Clone();
       }
     }
-    ConfigStruct(ConfigStruct &&) = default;
+    ConfigScope(ConfigScope &&) = default;
 
-    ~ConfigStruct() {
+    ~ConfigScope() {
       // Clear up all entries.
       for (auto & x : entries) { x.second.Delete(); }
     }
 
-    bool IsStruct() const override { return true; }
-    emp::Ptr<ConfigStruct> AsStruct() override{ return this; }
+    bool IsScope() const override { return true; }
+    emp::Ptr<ConfigScope> AsScope() override{ return this; }
 
     ConfigType GetType() const noexcept override { return BaseType::STRUCT; }
     void UpdateDefault() override {
@@ -288,10 +236,10 @@ namespace mabe {
     }
 
     virtual ConfigEntry & CopyValue(ConfigEntry & val) {
-      emp_assert(val.IsStruct());
+      emp_assert(val.IsScope());
       entries.clear();  // Erase anything currently in this struct.
       // Need to systematically duplicate all entires.
-      ConfigStruct & from = *(val.AsStruct());
+      ConfigScope & from = *(val.AsScope());
       for (auto & x : from.entries) {
         entries[x.first] = x.second->Clone();
       }
@@ -363,11 +311,11 @@ namespace mabe {
     auto & AddString(const std::string & name, const std::string & desc, const std::string & value) {
       return Add<ConfigString>(name, desc, this).Set(value);
     }
-    auto & AddStruct(const std::string & name, const std::string & desc) {
-      return Add<ConfigStruct>(name, desc, this);
+    auto & AddScope(const std::string & name, const std::string & desc) {
+      return Add<ConfigScope>(name, desc, this);
     }
 
-    ConfigStruct & Replace(const std::string & name, emp::Ptr<ConfigEntry> entry) {
+    ConfigScope & Replace(const std::string & name, emp::Ptr<ConfigEntry> entry) {
       emp_assert(Has(name));   // Make sure the entry being replaced actually exists!
       entries[name].Delete();  // Delete the old entry.
       entries[name] = entry;   // Assigne the new entry.
@@ -385,7 +333,7 @@ namespace mabe {
       return *this;
     }
 
-    emp::Ptr<ConfigEntry> Clone() const override { return emp::NewPtr<ConfigStruct>(*this); }
+    emp::Ptr<ConfigEntry> Clone() const override { return emp::NewPtr<ConfigScope>(*this); }
   };
 
 }
