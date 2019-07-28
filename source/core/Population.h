@@ -40,6 +40,7 @@ namespace mabe {
     size_t pop_id = (size_t) -1;           ///< Position in world of this population.
     emp::vector<emp::Ptr<Organism>> orgs;  ///< Info on all organisms in this population.
     size_t num_orgs = 0;                   ///< How many living organisms are in this population?
+    size_t max_orgs = (size_t) -1;         ///< Maximum number of orgs allowed in population.
 
     EmptyOrganism empty_org;               ///< Organism to fill in empty cells (does have data map!)
 
@@ -400,6 +401,12 @@ namespace mabe {
       return *this;
     }
 
+    void SetupConfig(ConfigScope & config_scope) {
+      auto & pop_scope = config_scope.AddScope(name, "Specifications for population.");      
+      pop_scope.LinkValue(max_orgs, "max_orgs",
+                         "Maximum number of organisms allowed in population.",
+                         (size_t) -1).SetMin(0);
+    }
 
   private:  // ---== To be used by friend class WorldBase only! ==---
 
