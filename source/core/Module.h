@@ -222,6 +222,15 @@ namespace mabe {
       return *this;
     }
 
+    /// Setup the module-specific configuration options.
+    virtual void SetupConfig(ConfigScope & config_scope) { ; }
+
+    /// Setup the configuration options for MABE.
+    void SetupConfig_Base(ConfigScope & config_scope) {
+      auto & module_scope = config_scope.AddScope(name, desc);
+      SetupConfig(module_scope);
+    }
+
   };
 
 }
