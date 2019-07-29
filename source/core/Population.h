@@ -392,20 +392,11 @@ namespace mabe {
     AlivePop Alive() { return AlivePop(*this); }
 
 
-    /// Print current configuration settings.
-    Population & OutputConfigSettings(std::ostream & os=std::cout, const std::string & prefix="") {
-      os << prefix << name << " = {\n"
-         << prefix << "  pop_id = " << pop_id << ";\n"
-         << prefix << "  size = " << orgs.size() << ";\n"
-         << prefix << "}\n";
-      return *this;
-    }
-
     void SetupConfig(ConfigScope & config_scope) {
-      auto & pop_scope = config_scope.AddScope(name, "Specifications for population.");      
-      pop_scope.LinkValue(max_orgs, "max_orgs",
-                         "Maximum number of organisms allowed in population.",
-                         (size_t) -1).SetMin(0);
+      auto & pop_scope = config_scope.AddScope(name, "Specifications for population.");
+      pop_scope.LinkVar(max_orgs, "max_orgs",
+                        "Maximum number of organisms allowed in population.",
+                        (size_t) -1).SetMin(0);
     }
 
   private:  // ---== To be used by friend class WorldBase only! ==---
