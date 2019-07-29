@@ -37,14 +37,11 @@ namespace mabe {
     std::string default_val;      ///< String representing value to use in generated config file.
     emp::Ptr<ConfigScope> scope;  ///< Which scope was this variable defined in?
   
-    double num_value = 0.0;       ///< Current numerical value of this config entry.
-    std::string str_value = "";   ///< Current string value of this config entry.
-
     enum class Type { NONE=0, SCOPE,
                       BOOL, INT, UNSIGNED, DOUBLE,                                    // Values
                       STRING, FILENAME, PATH, URL, ALPHABETIC, ALPHANUMERIC, NUMERIC  // Strings
                     };
-    type = Type::NONE;
+    Type type = Type::NONE;
 
     // If we know the constraints on this parameter we can perform better error checking.
     emp::Range<double> range;  ///< Min and max values allowed for this config entry (if numerical).
@@ -62,7 +59,7 @@ namespace mabe {
     const std::string & GetDesc() const { return desc; }
     const std::string & GetDefaultVal() const { return default_val; }
     emp::Ptr<ConfigScope> GetScope() { return scope; }
-    double GetValue() const { return num_value; }
+    Type GetType() const noexcept { return type; }
 
     virtual bool IsNumeric() const { return false; }
     virtual bool IsBool() const { return false; }
@@ -75,17 +72,22 @@ namespace mabe {
     ConfigEntry & SetDesc(const std::string & in) { desc = in; return *this; }
     ConfigEntry & SetDefault(const std::string & in) { default_val = in; return *this; }
 
-    ConfigEntry & SetValue(double in) { value = in; return *this; }
+    virtual double AsDouble() const = 0;
+    virtual std::string AsString() const = 0;
+    virtual ConfigEntry & SetValue(double in) = 0;
+    virtual ConfigEntry & SetString(const std::string & in) = 0;
+
+    virtual emp::Ptr<ConfigScope> AsScopePtr() { return nullptr; }
+    ConfigScope & AsScope() {
+      emp_assert(AsScopePtr());
+      return *(AsScopePtr());
+    }
 
     ConfigEntry & SetMin(double min) { range.SetLower(min); return *this; }
     ConfigEntry & SetMax(double max) { range.SetLower(max); return *this; }
-    ConfigEntry & IntegerOnly(bool in=true) { interger_only - in; return *this; }
 
     /// Shift the current value to be the new default value.
     virtual void UpdateDefault() { default_val = ""; }
-
-    /// Change the type of this variable to match another, if allowed.
-    virtual bool UpdateType(ConfigEntry & other) { return false; }
 
     /// Change the value of this variable to match the one passed in, if possible.
     virtual ConfigEntry & CopyValue(ConfigEntry & val) = 0;
@@ -101,30 +103,57 @@ namespace mabe {
     /// Allocate a duplicate of this class.
     virtual emp::Ptr<ConfigEntry> Clone() const = 0;
 
-    ConfigEntry & Write(std::ostream & os=std::cout, const std::string & prefix="") override {
+    virtual ConfigEntry & Write(std::ostream & os=std::cout, const std::string & prefix="") {
       if (desc.size()) os << prefix << "// " << desc << "\n";
       os << prefix << name << " = ";
 
       // If a default value has been provided, print it.  Otherwise print the current value.
       if (default_val.size()) os << default_val;
-      else os << value;
+      else os << AsString();
       os << ";\n";
 
       return *this;
     }
-
-    emp::Ptr<ConfigEntry> Clone() const override { return emp::NewPtr<ConfigValue>(*this); }
   };
 
   /// ConfigEntry can be linked directly to a real variable.
-  template <typename T> class ConfigEntry_Linked {
+  template <typename T>
+  class ConfigEntry_Linked : public ConfigEntry {
   private:
     T & var;
   public:
+    using this_t = ConfigEntry_Linked<T>;
+
     template <typename... ARGS>
-    ConfigEntry_Linked(T & in_var, ARGS... && args)
+    ConfigEntry_Linked(T & in_var, ARGS &&... args)
     : ConfigEntry(std::forward<ARGS>(args)...), var(in_var) { ; }
-  }
+    ConfigEntry_Linked(const this_t &) = default;
+
+    emp::Ptr<ConfigEntry> Clone() const override { return emp::NewPtr<this_t>(*this); }
+
+    double AsDouble() const override { return (double) var; }
+    std::string AsString() const override { return emp::to_string(var); }
+    ConfigEntry & SetValue(double in) override { var = (T) in; return *this; }
+    ConfigEntry & SetString(const std::string & in) override {
+      var = emp::from_string<T>(in);
+      return *this;
+    }
+  };
+
+  /// Specializatin for ConfigEntry linked to a string variable.
+  template <> class ConfigEntry_Linked<std::string> : public ConfigEntry {
+  private:
+    std::string & var;
+  public:
+    template <typename... ARGS>
+    ConfigEntry_Linked(std::string & in_var, ARGS &&... args)
+    : ConfigEntry(std::forward<ARGS>(args)...), var(in_var) { ; }
+
+    double AsDouble() const override { return emp::from_string<double>(var); }
+    std::string AsString() const override { return var; }
+    ConfigEntry & SetValue(double in) override { var = emp::to_string(in); return *this; }
+    ConfigEntry & SetString(const std::string & in) override { var = in; return *this; }
+  };
 
 
   // Set of multiple config entries.
@@ -133,7 +162,7 @@ namespace mabe {
     emp::map< std::string, emp::Ptr<ConfigEntry> > entries;
 
     template <typename T, typename... ARGS>
-    T & Add(const std::string & name, ARGS... && args) {
+    T & Add(const std::string & name, ARGS &&... args) {
       auto new_ptr = emp::NewPtr<T>(name, std::forward<ARGS>(args)...);
       entries[name] = new_ptr;
       return *new_ptr;
@@ -155,25 +184,12 @@ namespace mabe {
       for (auto & x : entries) { x.second.Delete(); }
     }
 
-    bool IsScope() const override { return true; }
-    emp::Ptr<ConfigScope> AsScope() override{ return this; }
+    emp::Ptr<ConfigScope> AsScopePtr() override { return this; }
 
-    ConfigType GetType() const noexcept override { return BaseType::STRUCT; }
     void UpdateDefault() override {
       // Recursively update all defaults within the structure.
       for (auto & x : entries) x.second->UpdateDefault();
       default_val = ""; /* @CAO: Need to spell out? */
-    }
-
-    virtual ConfigEntry & CopyValue(ConfigEntry & val) {
-      emp_assert(val.IsScope());
-      entries.clear();  // Erase anything currently in this struct.
-      // Need to systematically duplicate all entires.
-      ConfigScope & from = *(val.AsScope());
-      for (auto & x : from.entries) {
-        entries[x.first] = x.second->Clone();
-      }
-      return *this;
     }
 
     // Get an entry out of this scope; 
@@ -219,37 +235,8 @@ namespace mabe {
     }
 
     template <typename T>
-    ConfigValue_Link & LinkValue(T & var, const std::string & name, const std::string & desc, T default_val) {
-      return Add<ConfigValue_Link>(name, desc, this, var);
-    }
-
-    ConfigString_Link & LinkString(std::string & var,
-                                   const std::string & name,
-                                   const std::string & desc,
-                                   const std::string & default_val) {
-      return Add<ConfigValue_String>(name, desc, this, var);
-    }
-
-    auto & AddPlaceholder(const std::string & name) {
-      return Add<ConfigPlaceholder>(name,
-                                    "Placeholder variable, to be replaced when we have more information.",
-                                    this);
-    }
-    auto & AddValue(const std::string & name, const std::string & desc, double value) {
-      return Add<ConfigValue>(name, desc, this).Set(value);
-    }
-    auto & AddString(const std::string & name, const std::string & desc, const std::string & value) {
-      return Add<ConfigString>(name, desc, this).Set(value);
-    }
-    auto & AddScope(const std::string & name, const std::string & desc) {
-      return Add<ConfigScope>(name, desc, this);
-    }
-
-    ConfigScope & Replace(const std::string & name, emp::Ptr<ConfigEntry> entry) {
-      emp_assert(Has(name));   // Make sure the entry being replaced actually exists!
-      entries[name].Delete();  // Delete the old entry.
-      entries[name] = entry;   // Assigne the new entry.
-      return *this;
+    ConfigEntry_Linked<T> & LinkVar(T & var, const std::string & name, const std::string & desc, T default_val) {
+      return Add<ConfigEntry_Linked<T>>(name, desc, this, var);
     }
 
     ConfigEntry & Write(std::ostream & os=std::cout, const std::string & prefix="") override {
