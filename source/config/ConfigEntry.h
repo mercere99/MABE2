@@ -72,10 +72,10 @@ namespace mabe {
     ConfigEntry & SetDesc(const std::string & in) { desc = in; return *this; }
     ConfigEntry & SetDefault(const std::string & in) { default_val = in; return *this; }
 
-    virtual double AsDouble() const = 0;
-    virtual std::string AsString() const = 0;
-    virtual ConfigEntry & SetValue(double in) = 0;
-    virtual ConfigEntry & SetString(const std::string & in) = 0;
+    virtual double AsDouble() const { emp_assert(false); return 0.0; };
+    virtual std::string AsString() const { emp_assert(false); return ""; };
+    virtual ConfigEntry & SetValue(double in) { (void) in; emp_assert(false, in); };
+    virtual ConfigEntry & SetString(const std::string & in) { (void) in; emp_assert(false, in); };
 
     virtual emp::Ptr<ConfigScope> AsScopePtr() { return nullptr; }
     ConfigScope & AsScope() {
@@ -88,9 +88,6 @@ namespace mabe {
 
     /// Shift the current value to be the new default value.
     virtual void UpdateDefault() { default_val = ""; }
-
-    /// Change the value of this variable to match the one passed in, if possible.
-    virtual ConfigEntry & CopyValue(ConfigEntry & val) = 0;
 
     virtual emp::Ptr<ConfigEntry> LookupEntry(std::string in_name, bool scan_scopes=true) {
       return (in_name == "") ? this : nullptr;
