@@ -157,7 +157,8 @@ namespace mabe {
     /// search for them in successively outer (lower) scopes.
     emp::Ptr<ConfigEntry> ProcessVar(size_t & pos,
                                      ConfigScope & cur_scope,
-                                     bool create_ok=false);
+                                     bool create_ok=false,
+                                     bool scan_scopes=true);
 
     /// Load a value from the provided scope, which can come from a variable or a literal.
     /// NOTE: May create temporary ConfigEntries that need to be cleaned up by receiver!
@@ -204,7 +205,7 @@ namespace mabe {
                                            ConfigScope & cur_scope,
                                            bool create_ok, bool scan_scopes)
   {
-    Debug("Running ProcessVar(", pos, ",", cur_scope->GetName(), ",", create_ok, ")");
+    Debug("Running ProcessVar(", pos, ",", cur_scope.GetName(), ",", create_ok, ")");
 
     // First, check for leading dots.
     if (IsDots(pos)) {
@@ -218,7 +219,7 @@ namespace mabe {
       pos++;
 
       // Recursively call in the found scope if needed; given leading dot, do not scan scopes.
-      if (scope_ptr != &cur_scope) return ProcessVar(pos, *scope_ptr, create_ok, false);
+      if (scope_ptr.Raw() != &cur_scope) return ProcessVar(pos, *scope_ptr, create_ok, false);
     }
 
     // Next, we must have a variable name.
@@ -227,13 +228,13 @@ namespace mabe {
     std::string var_name = AsLexeme(pos++);
 
     // Lookup this variable.
-    emp::Ptr<ConfigEntry> cur_entry = cur_scope->LookupEntry(var_name, scan_scopes);
+    emp::Ptr<ConfigEntry> cur_entry = cur_scope.LookupEntry(var_name, scan_scopes);
 
     // If we can't find this variable, either build it or throw an error.
     if (cur_entry.IsNull()) {
       Error(pos, "Parameter ", var_name, "does not exist; currently only parameters can be used as variables.");
       // if (!create_ok) Error(pos, "Variable identifier '", var_name, "' not found.");
-      // cur_entry = &cur_scope->AddPlaceholder(var_name);
+      // cur_entry = &cur_scope.AddPlaceholder(var_name);
       // return cur_entry;
     }
 
@@ -244,41 +245,45 @@ namespace mabe {
     return cur_entry;
   }
 
+  emp::Ptr<ConfigEntry_DoubleVar> MakeTempDouble(double val) {
+    auto out_ptr = emp::NewPtr<ConfigEntry_DoubleVar>("temp", val, "double", nullptr);
+    out_ptr->SetTemporary();
+    return out_ptr;    
+  }
+
+  emp::Ptr<ConfigEntry_StringVar> MakeTempString(const std::string & val) {
+    auto out_ptr = emp::NewPtr<ConfigEntry_StringVar>("temp", val, "double", nullptr);
+    out_ptr->SetTemporary();
+    return out_ptr;    
+  }
 
   // Load a value from the provided scope, which can come from a variable or a literal.
-  emp::Ptr<ConfigEntry> Config::ProcessValue(size_t & pos, emp::Ptr<ConfigScope> cur_scope) {
-      Debug("Running ProcessValue(", pos, ",", cur_scope->GetName(), ")");
+  emp::Ptr<ConfigEntry> Config::ProcessValue(size_t & pos, ConfigScope & cur_scope) {
+      Debug("Running ProcessValue(", pos, ",", cur_scope.GetName(), ")");
 
     // Anything that begins with an identifier or dots must represent a variable.  Refer!
-    if (IsID(pos) || IsDots(pos)) return ProcessVar(pos, cur_scope, false);
+    if (IsID(pos) || IsDots(pos)) return ProcessVar(pos, cur_scope, false, true);
 
-    // // A literal number should have a temporary created with its value.
-    // if (IsNumber(pos)) {
-    //   Debug("...value is a number: ", AsLexeme(pos));
-    //   auto tmp_ptr = emp::NewPtr<ConfigValue>("","",nullptr);  // Create a temporary ConfigEntry
-    //   tmp_ptr->Set(emp::from_string<double>(AsLexeme(pos)));   // Set entry to the value of token.
-    //   pos++;                                                   // Move on to the next token.
-    //   return tmp_ptr;                                          // And return!
-    // }
+    // A literal number should have a temporary created with its value.
+    if (IsNumber(pos)) {
+      Debug("...value is a number: ", AsLexeme(pos));
+      double value = emp::from_string<double>(AsLexeme(pos++)); // Calculate value.
+      return MakeTempDouble(value);                             // Return temporary ConfigEntry.
+    }
 
-    // // A literal char should be converted to its ASCII value.
-    // if (IsChar(pos)) {
-    //   Debug("...value is a char: ", AsLexeme(pos));
-    //   auto tmp_ptr = emp::NewPtr<ConfigValue>("","",nullptr);  // Create a temporary ConfigEntry
-    //   char lit_char = emp::from_literal_char(AsLexeme(pos));   // Convert the literal char.
-    //   tmp_ptr->Set((double) lit_char);                         // Set entry to the value of token.
-    //   pos++;                                                   // Move on to the next token.
-    //   return tmp_ptr;                                          // And return!
-    // }
+    // A literal char should be converted to its ASCII value.
+    if (IsChar(pos)) {
+      Debug("...value is a char: ", AsLexeme(pos));
+      char lit_char = emp::from_literal_char(AsLexeme(pos++));  // Convert the literal char.
+      return MakeTempDouble((double) lit_char);                 // Return temporary ConfigEntry.
+    }
 
-    // // A literal string should be converted to a regular string and used.
-    // if (IsString(pos)) {
-    //   Debug("...value is a string: ", AsLexeme(pos));
-    //   auto tmp_ptr = emp::NewPtr<ConfigString>("","",nullptr); // Create a temporary ConfigEntry
-    //   tmp_ptr->Set(emp::from_literal_string(AsLexeme(pos)));   // Set entry to the value of token.
-    //   pos++;                                                   // Move on to the next token.
-    //   return tmp_ptr;                                          // And return!
-    // }
+    // A literal string should be converted to a regular string and used.
+    if (IsString(pos)) {
+      Debug("...value is a string: ", AsLexeme(pos));
+      std::string str = emp::from_literal_string(AsLexeme(pos++)); // Convert the literal string.
+      return MakeTempString(str);                         // Return temporary ConfigEntry.
+    }
 
     Error(pos, "Expected a value, found: ", AsLexeme(pos));
 
@@ -289,15 +294,15 @@ namespace mabe {
   void Config::ProcessStatement(size_t & pos, ConfigScope & scope) {
     Debug("Running ProcessStatement(", pos, ",", scope.GetName(), ")");
 
-    size_t start_pos = pos; // Track the starting position for semantic errors.
+//    size_t start_pos = pos; // Track the starting position for semantic errors.
 
     // Allow a statement with an empty line.
     if (AsChar(pos) == ';') { pos++; return; }
 
     // Otherwise, basic structure: VAR = VALUE ;
-    emp::Ptr<ConfigEntry> lhs = ProcessVar(pos, &scope, true);
+    emp::Ptr<ConfigEntry> lhs = ProcessVar(pos, scope, true, false);
     RequireChar('=', pos++, "Expected '=' after variable '", lhs->GetName(),  "' for assignment.");
-    emp::Ptr<ConfigEntry> rhs = ProcessValue(pos, &scope);
+    emp::Ptr<ConfigEntry> rhs = ProcessValue(pos, scope);
     RequireChar(';', pos++, "Expected ';' at the end of a statement.");
 
     // Act on the assignment!
