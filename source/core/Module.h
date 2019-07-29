@@ -84,9 +84,6 @@ namespace mabe {
     /// Which traits is this module working with?
     emp::map<std::string, emp::Ptr<TraitInfo>> trait_map;
 
-    /// Which configuration settings is this module using?
-    emp::vector< emp::Ptr<mabe::ConfigLink_Base> > config_links;
-
     // Helper functions
     template <typename... Ts>
     void AddError(Ts &&... args) {
@@ -102,7 +99,6 @@ namespace mabe {
     virtual ~Module() {
       // Clean up trait information.
       for (auto & x : trait_map) x.second.Delete();
-      for (auto ptr : config_links) ptr.Delete();
     }
 
     const std::string & GetName() const noexcept { return name; }
@@ -199,28 +195,6 @@ namespace mabe {
 
     
     // ---==  Configuration Management ==---
-
-    /// Link a module variable to a configuration setting.
-    template <typename T>
-    Module & LinkConfigVar(T & var, const std::string & name, const std::string & desc="") {
-      config_links.push_back( emp::NewPtr<ConfigLink<T>>(var, name, desc) );
-      return *this;
-    }
-
-    Module & OutputConfigSettings(std::ostream & os=std::cout, const std::string & prefix="") {
-      os << prefix << "# " << desc << "\n"
-         << prefix << name << " = {\n";
-
-      // Print each variable for this module.
-      for (size_t i = 0; i < config_links.size(); i++) {
-        if (i) os << "\n";          // Skip lines internal to the module.
-        config_links[i]->Write(os, prefix+"  ");  // Print out each config link.
-      }
-
-      os << prefix << "}" << std::endl;
-
-      return *this;
-    }
 
     /// Setup the module-specific configuration options.
     virtual void SetupConfig(ConfigScope & config_scope) { ; }
