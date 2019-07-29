@@ -36,8 +36,9 @@ namespace mabe {
     emp::unordered_map<std::string, emp::Ptr<OrganismType>> org_types;
 
     emp::Random random;              ///< Master random number generator
+    int random_seed;                 ///< Random number seed.
     emp::vector<std::string> args;   ///< Keep the original command-line arguments passed in.
-    emp::string config_filename;     ///< Name of file with configuration information.
+    std::string config_filename;     ///< Name of file with configuration information.
     Config config;                   ///< Configutation information for this run.
   public:
     MABE(int argc, char* argv[]) : args(emp::cl::args_to_strings(argc, argv)) {
@@ -158,19 +159,18 @@ namespace mabe {
     }
 
 
-    // Deal with configuration options.
-    MABE & OutputConfigSettings(std::ostream & os=std::cout, const std::string & prefix="") {
-      // Output generic information
-      os << prefix << "seed = " << random.GetSeed() << ";\n";
+    /// Setup the configuration options for MABE.
+    void SetupConfig(ConfigScope & config_scope) {
+      config_scope.LinkVar(random_seed,
+                           "random_seed",
+                           "Seed for random number generator; use 0 to base on time.",
+                           0).SetMin(0);
+      auto & org_scope = config_scope.AddScope("org_types", "Details about organisms types used in this runs.");
+      for (auto o : org_types) o.second->SetupConfig(org_scope);
 
-      // @CAO output organism types
-
-      // Ouput worlds.
-      os << prefix << "worlds = {\n";
-      for (auto w : worlds) w->OutputConfigSettings(os, prefix + "  ");
-      os << prefix << "}" << std::endl;
-
-      return *this;
+      // Loop through Worlds.
+      auto & worlds_scope = config_scope.AddScope("worlds", "Worlds created for this MABE run.");
+      for (auto w : worlds) w->SetupConfig(worlds_scope);      
     }
   };
 
