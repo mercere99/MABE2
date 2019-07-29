@@ -306,35 +306,11 @@ namespace mabe {
 
     // --- Configuration Controls ---
 
-    World & OutputConfigSettings(std::ostream & os=std::cout, const std::string & prefix="") {
-      os << prefix << name << " = {\n";
-
-      // Print info about all populations in the world:
-      os << prefix << "  populations = {\n";
-      for (size_t i = 0; i < pops.size(); i++) {
-        if (i) os << "\n";
-        pops[i].OutputConfigSettings(os, prefix+"    ");
-      }
-      os << prefix << "  }\n\n";
-
-      // Print info about all modules in the world:
-      os << prefix << "  modules = {\n";
-      for (size_t i = 0; i < modules.size(); i++) {
-        if (i) os << "\n";
-        modules[i]->OutputConfigSettings(os, prefix+"    ");
-      }
-      os << prefix << "  }" << std::endl;
-
-      os << prefix << "}" << std::endl;
-
-      return *this;
-    }
-
     /// Setup the configuration options for this world.
     void SetupConfig(ConfigScope & config_scope) {
       // Call SetupConfig on each Population being used.
       auto & pops_scope = config_scope.AddScope("populations", "Specifications about the populations in this world.");
-      for (auto p : pops) p->SetupConfig(pops_scope);
+      for (auto & p : pops) p.SetupConfig(pops_scope);
 
       // Call the SetupConfig of module base classes (they will call the dervived version)
       auto & mods_scope = config_scope.AddScope("modules", "Specifications about the modules in this world.");
