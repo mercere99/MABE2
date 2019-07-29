@@ -37,11 +37,13 @@ namespace mabe {
       AddOwnedTrait<emp::BitVector>(bits_trait, "NK Bit Sequence", emp::BitVector());
       AddOwnedTrait<double>(fitness_trait, "NK fitness value", 0.0);
       SetMinPops(1);
-
-      LinkConfigVar(N, "N", "Number of bits required in output");
-      LinkConfigVar(K, "K", "Number of bits used in each gene");
     }
     ~EvalNK() { }
+
+    void SetupConfig(ConfigScope & config_scope) override {
+      config_scope.LinkVar(N, "N", "Number of bits required in output", 20);
+      config_scope.LinkVar(K, "K", "Number of bits used in each gene", 3);
+    }
 
     void Setup(mabe::World & world) {
       landscape.Config(N, K, world.GetRandom());  // Setup the fitness landscape.
