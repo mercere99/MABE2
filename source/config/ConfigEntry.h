@@ -106,14 +106,34 @@ namespace mabe {
     /// Allocate a duplicate of this class.
     virtual emp::Ptr<ConfigEntry> Clone() const = 0;
 
-    virtual ConfigEntry & Write(std::ostream & os=std::cout, const std::string & prefix="") {
-      if (desc.size()) os << prefix << "// " << desc << "\n";
+    virtual ConfigEntry & Write(std::ostream & os=std::cout, const std::string & prefix="",
+                                size_t comment_offset=40) {
+      // Print this entry.
       os << prefix << name << " = ";
 
+      // Keep track of how many characters we've printed.
+      size_t char_count = prefix.size() + name.size() + 3;
+
       // If a default value has been provided, print it.  Otherwise print the current value.
-      if (default_val.size()) os << default_val;
-      else os << AsString();
-      os << ";\n";
+      if (default_val.size()) {
+        os << default_val;
+        char_count += default_val.size();
+      }
+      else {
+        os << AsString();
+        char_count += AsString().size();
+      }
+
+      // End each line with a semi-colon.
+      os << ";";
+      char_count++;
+
+      // Print a comment if we have one.
+      if (desc.size()) {
+        while (char_count++ < comment_offset) os << " ";
+        os << "// " << desc;
+      }
+      os << std::endl;
 
       return *this;
     }
