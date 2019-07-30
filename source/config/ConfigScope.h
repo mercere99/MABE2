@@ -107,13 +107,25 @@ namespace mabe {
       return Add<ConfigScope>(name, desc, this);
     }
 
-    ConfigEntry & Write(std::ostream & os=std::cout, const std::string & prefix="") override {
-      if (desc.size()) os << prefix << "// " << desc << "\n";
+    ConfigEntry & Write(std::ostream & os=std::cout, const std::string & prefix="",
+                        size_t comment_offset=40) override {
+      // Open this scope.
+      os << prefix << name << " = { ";
 
-      os << prefix << name << " = {\n";
-      for (auto & x : entries) {
-        x.second->Write(os, prefix+"  ");
+      // Indent the comment for the description (if there is one)
+      if (desc.size()) {
+        size_t char_count = prefix.size() + name.size() + 5;
+        while (char_count++ < comment_offset) os << " ";
+        os << "// " << desc;
       }
+      os << std::endl;
+
+      // Loop through all of the entires in this scope and print them too.
+      for (auto & x : entries) {
+        x.second->Write(os, prefix+"  ", comment_offset);
+      }
+
+      // Close the scope.
       os << prefix << "}\n";
       return *this;
     }
