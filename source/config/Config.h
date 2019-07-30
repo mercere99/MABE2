@@ -86,7 +86,7 @@ namespace mabe {
     emp::vector<emp::Token> tokens;   ///< Tokenized version of input file.
     bool debug = true;                ///< Should we print full debug information?
 
-   ConfigScope root_struct;           ///< All variables from the root level.
+    ConfigScope root_scope;           ///< All variables from the root level.
 
     // -- Helper functions --
     bool HasToken(int pos) const { return (pos >= 0) && (pos < (int) tokens.size()); }
@@ -176,22 +176,32 @@ namespace mabe {
   public:
     Config(std::string in_filename="")
       : filename(in_filename)
-      , root_struct("global", "Outer-most, global scope.", nullptr)
+      , root_scope("global", "Outer-most, global scope.", nullptr)
     {
       if (filename != "") Load(filename);
     }
 
+    ConfigScope & GetRootScope() { return root_scope; }
+    const ConfigScope & GetRootScope() const { return root_scope; }
+
+    // Load a single, specified configuration file.
     void Load(std::string filename) {
       Debug("Running Load(", filename, ")");
       std::ifstream file(filename);           // Load the provided file.
       tokens = lexer.Tokenize(file);          // Convert to more-usable tokens.
       file.close();                           // Close the file (now that it's converted)
       size_t pos = 0;                         // Start at the beginning of the file.
-      ProcessStatementList(pos, root_struct); // Process, starting from the outer scope.
+      ProcessStatementList(pos, root_scope); // Process, starting from the outer scope.
     }
 
+    // Sequentially load a series of configuration files.
+    void Load(const emp::vector<std::string> & filenames) {
+      for ( const std::string & fn : filenames) Load(fn);
+    }
+
+
     Config & Write(std::ostream & os=std::cout) {
-      root_struct.Write(os);
+      root_scope.Write(os);
       return *this;
     }
   };
