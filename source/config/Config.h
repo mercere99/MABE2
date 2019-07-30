@@ -74,7 +74,7 @@
 #include "meta/TypeID.h"
 #include "tools/string_utils.h"
 
-#include "ConfigEntry.h"
+#include "ConfigScope.h"
 #include "ConfigLexer.h"
 
 namespace mabe {
