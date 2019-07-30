@@ -26,6 +26,8 @@ namespace mabe {
 
   class MABE {
   private:
+    std::string VERSION = "0.0.1";
+
     /// Collect all world instances.  Each world will maintain its own environment
     /// (evaluate module), selection module, and populations of current organisms.
     emp::vector<emp::Ptr<mabe::World>> worlds;
@@ -42,44 +44,63 @@ namespace mabe {
     struct ArgInfo {
       std::string name;   /// E.g.: "help" which would be called with "--help"
       std::string flag;   /// E.g.: "h" which would be called with -h
+      std::string args;   /// Type of arguments needed: E.g.: "[filename...]"
       std::string desc;   /// E.g.: "Print the available command-line options for running mabe."
 
-      /// Function to call when triggered.
+      /// Function to call when triggered.  Return bool to indicate if run should continue.
       using fun_t = std::function<bool(const emp::vector<std::string> &)>;
       fun_t action;
 
-      ArgInfo(const std::string & _n, const std::string & _f, const std::string & _d, fun_t _a)
-        : name(_n), flag(_f), desc(_d), action(_a) { }
+      ArgInfo(const std::string & _n, const std::string & _f, const std::string & _a,
+              const std::string & _d, fun_t _action)
+        : name(_n), flag(_f), args(_a), desc(_d), action(_action) { }
     };
     emp::vector<ArgInfo> arg_set;              ///< Map of arguments to the 
     emp::vector<std::string> args;             ///< Command-line arguments passed in.
     emp::vector<std::string> config_filenames; ///< Names of configuration files
+    std::string gen_filename;                  ///< Name of output file to generate.
     bool exit_now = false;                     ///< Do we need to exit?
     Config config;                             ///< Configutation information for this run.
 
     void ShowHelp() {
-      std::cout << "Usage: " << args[0] << " [options]\n"
+      std::cout << "MABE v" << VERSION << "\n"
+                << "Usage: " << args[0] << " [options]\n"
                 << "Options:\n";
       for (const auto & cur_arg : arg_set) {
-        std::cout << "  " << cur_arg.flag << ", " << cur_arg.name
-                  << " : " << cur_arg.desc << std::endl;
+        std::cout << "  " << cur_arg.flag << " " << cur_arg.args
+                  << " : " << cur_arg.desc << " (or " << cur_arg.name << ")"
+                  << std::endl;
       }
+      std::cout << "Note: parameter order matters. Settings and files are applied in the order provided.\n";
       exit_now = true;
     }
 
-    /// ShowHelp varient that takes args for command-line call.
-    bool ShowHelp(const emp::vector<std::string> &) { ShowHelp(); return true; }
-
   public:
     MABE(int argc, char* argv[]) : args(emp::cl::args_to_strings(argc, argv)) {
-      arg_set.emplace_back("--filename", "-f", "Set the names of all configuration files",
+      arg_set.emplace_back("--filename", "-f", "[filename...] ", "Filenames of configuration settings",
         [this](const emp::vector<std::string> & in){ config_filenames = in; return true; } );
+      arg_set.emplace_back("--generate", "-g", "[filename]    ", "Generate a new output file",
+        [this](const emp::vector<std::string> & in) {
+          if (in.size() != 1) {
+            std::cout << "--generate must be followed by a single filename.\n";
+            return false;
+          }
+          gen_filename = in[0];
+          return true;
+        });
+      arg_set.emplace_back("--help", "-h", "              ", "Help; print command-line options for MABE",
+        [this](const emp::vector<std::string> &){ ShowHelp(); return false; } );
+      arg_set.emplace_back("--set", "-s", "[param=value] ", "Set specified parameter",
+        [this](const emp::vector<std::string> &){ emp_assert(false); return true; } );
+      arg_set.emplace_back("--version", "-v", "              ", "Version ID of MABE",
+        [this](const emp::vector<std::string> &){
+          std::cout << "MABE v" << VERSION << "\n";
+          return false;
+        });
       // Command line options
-      //  -f filename (for config files)
-      //  -p set parameter (name value)
-      //  -s write settings files
-      //  -l creates population loader script
-      //  -v provides version id
+      //  -p set parameter (name value)  (-s --set)
+      //  -s write settings files        (-g --generate)
+      //  -l creates population loader script (?)
 
       // Scan through all input argument positions.
       bool show_help = false;
@@ -88,7 +109,7 @@ namespace mabe {
         bool found = false;
         for (auto & cur_arg : arg_set) {
           // If we have a match...
-          if (args[0] == cur_arg.name || args[0] == cur_arg.flag) {
+          if (args[pos] == cur_arg.name || args[pos] == cur_arg.flag) {
             // ...collect all of the options associated with this match.
             emp::vector<std::string> option_args;
             // We want args until we run out or hit another option.
