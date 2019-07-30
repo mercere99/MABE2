@@ -204,6 +204,11 @@ namespace mabe {
       root_scope.Write(os);
       return *this;
     }
+
+    Config & Write(const std::string & filename) {
+      std::ofstream ofile(filename);
+      return Write(ofile);
+    }
   };
 
   //////////////////////////////////////////////////////////
