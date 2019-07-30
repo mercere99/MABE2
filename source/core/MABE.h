@@ -37,22 +37,79 @@ namespace mabe {
 
     emp::Random random;              ///< Master random number generator
     int random_seed;                 ///< Random number seed.
-    emp::vector<std::string> args;   ///< Keep the original command-line arguments passed in.
-    std::string config_filename;     ///< Name of file with configuration information.
-    Config config;                   ///< Configutation information for this run.
+
+    // Config information for command-line arguments.
+    struct ArgInfo {
+      std::string name;   /// E.g.: "help" which would be called with "--help"
+      std::string flag;   /// E.g.: "h" which would be called with -h
+      std::string desc;   /// E.g.: "Print the available command-line options for running mabe."
+
+      /// Function to call when triggered.
+      using fun_t = std::function<bool(const emp::vector<std::string> &)>;
+      fun_t action;
+
+      ArgInfo(const std::string & _n, const std::string & _f, const std::string & _d, fun_t _a)
+        : name(_n), flag(_f), desc(_d), action(_a) { }
+    };
+    emp::vector<ArgInfo> arg_set;              ///< Map of arguments to the 
+    emp::vector<std::string> args;             ///< Command-line arguments passed in.
+    emp::vector<std::string> config_filenames; ///< Names of configuration files
+    bool exit_now = false;                     ///< Do we need to exit?
+    Config config;                             ///< Configutation information for this run.
+
+    void ShowHelp() {
+      std::cout << "Usage: " << args[0] << " [options]\n"
+                << "Options:\n";
+      for (const auto & cur_arg : arg_set) {
+        std::cout << "  " << cur_arg.flag << ", " << cur_arg.name
+                  << " : " << cur_arg.desc << std::endl;
+      }
+      exit_now = true;
+    }
+
+    /// ShowHelp varient that takes args for command-line call.
+    bool ShowHelp(const emp::vector<std::string> &) { ShowHelp(); return true; }
+
   public:
     MABE(int argc, char* argv[]) : args(emp::cl::args_to_strings(argc, argv)) {
+      arg_set.emplace_back("--filename", "-f", "Set the names of all configuration files",
+        [this](const emp::vector<std::string> & in){ config_filenames = in; return true; } );
       // Command line options
       //  -f filename (for config files)
       //  -p set parameter (name value)
       //  -s write settings files
       //  -l creates population loader script
       //  -v provides version id
-      if (args.size() > 1) {
-        config.Load(args[1]);
-        config.Write();
-        exit(0);
+
+      // Scan through all input argument positions.
+      bool show_help = false;
+      for (size_t pos = 1; pos < args.size(); pos++) {
+        // Match the input argument to the function to call.
+        bool found = false;
+        for (auto & cur_arg : arg_set) {
+          // If we have a match...
+          if (args[0] == cur_arg.name || args[0] == cur_arg.flag) {
+            // ...collect all of the options associated with this match.
+            emp::vector<std::string> option_args;
+            // We want args until we run out or hit another option.
+            while (++pos < args.size() && args[pos][0] != '-') {
+              option_args.push_back(args[pos]);
+            }
+
+            // And call the function!
+            cur_arg.action(option_args);
+            found = true;
+            break;            
+          }
+        }
+        if (found == false) {
+          std::cout << "Error: unknown command line argument '" << args[pos] << "'." << std::endl;
+          show_help = true;
+          break;
+        }
       }
+
+      if (show_help) ShowHelp();
     }
     MABE(const MABE &) = delete;
     MABE(MABE &&) = delete;
@@ -67,10 +124,17 @@ namespace mabe {
 
     // --- Basic Controls ---
 
-    void Setup() { for (emp::Ptr<mabe::World> w : worlds) w->Setup(); }
+    void Setup() {
+      if (exit_now) return;
+      SetupConfig(config.GetRootScope());
+      config.Load(config_filenames);
+//        config.Write();
+      for (emp::Ptr<mabe::World> w : worlds) w->Setup();
+    }
 
     /// By default, update all worlds the specified numebr of updates.
     void Update(size_t num_updates=1) {
+      if (exit_now) return;
       for (size_t ud = 0; ud < num_updates; ud++) {
         std::cout << "Update: " << ud << std::endl;
         for (emp::Ptr<mabe::World> w : worlds) w->Update();
@@ -148,6 +212,7 @@ namespace mabe {
 
     // Inject a specific organism - pass on to current world.
     void InjectOrganism(const Organism & org, size_t copy_count=1) {
+      if (exit_now) return;
       GetWorld().Inject(org, copy_count);
     }
 
