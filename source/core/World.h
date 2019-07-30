@@ -308,12 +308,14 @@ namespace mabe {
 
     /// Setup the configuration options for this world.
     void SetupConfig(ConfigScope & config_scope) {
+      auto & world_scope = config_scope.AddScope(name, "");
+
       // Call SetupConfig on each Population being used.
-      auto & pops_scope = config_scope.AddScope("populations", "Specifications about the populations in this world.");
+      auto & pops_scope = world_scope.AddScope("populations", "Specifications about the populations in this world.");
       for (auto & p : pops) p.SetupConfig(pops_scope);
 
       // Call the SetupConfig of module base classes (they will call the dervived version)
-      auto & mods_scope = config_scope.AddScope("modules", "Specifications about the modules in this world.");
+      auto & mods_scope = world_scope.AddScope("modules", "Specifications about the modules in this world.");
       for (auto m : modules) m->SetupConfig_Base(mods_scope);
     }
 
