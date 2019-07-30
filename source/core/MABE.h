@@ -145,12 +145,29 @@ namespace mabe {
 
     // --- Basic Controls ---
 
-    void Setup() {
-      if (exit_now) return;
+    bool Setup() {
+      // If we have already indicated that we should stop; return false from Setup.
+      if (exit_now) return false;
+
+      // Load all of the parameters needed by modules, etc.
       SetupConfig(config.GetRootScope());
+
+      // If we are loading files, do so.
       config.Load(config_filenames);
-//        config.Write();
-      for (emp::Ptr<mabe::World> w : worlds) w->Setup();
+
+      // If we are writing a file, do so.
+      if (gen_filename != "") {
+        config.Write(gen_filename);
+        return false;
+      }
+
+      // Now that parameters are loaded, setup all of the worlds for running.
+      for (emp::Ptr<mabe::World> w : worlds) {
+        w->Setup();
+      }
+
+      // Everything seems to have worked!
+      return true;
     }
 
     /// By default, update all worlds the specified numebr of updates.
