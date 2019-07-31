@@ -20,12 +20,12 @@ namespace mabe {
   // Set of multiple config entries.
   class ConfigScope : public ConfigEntry {
   protected:
-    emp::map< std::string, emp::Ptr<ConfigEntry> > entries;
+    emp::map< std::string, emp::Ptr<ConfigEntry> > entry_map;
 
     template <typename T, typename... ARGS>
     T & Add(const std::string & name, ARGS &&... args) {
       auto new_ptr = emp::NewPtr<T>(name, std::forward<ARGS>(args)...);
-      entries[name] = new_ptr;
+      entry_map[name] = new_ptr;
       return *new_ptr;
     }
   public:
@@ -34,32 +34,32 @@ namespace mabe {
                  emp::Ptr<ConfigScope> _scope)
       : ConfigEntry(_name, _desc, _scope) { }
     ConfigScope(const ConfigScope & in) : ConfigEntry(in) {
-      for (const auto & x : in.entries) {
-        entries[x.first] = x.second->Clone();
+      for (const auto & x : in.entry_map) {
+        entry_map[x.first] = x.second->Clone();
       }
     }
     ConfigScope(ConfigScope &&) = default;
 
     ~ConfigScope() {
       // Clear up all entries.
-      for (auto & x : entries) { x.second.Delete(); }
+      for (auto & x : entry_map) { x.second.Delete(); }
     }
 
     emp::Ptr<ConfigScope> AsScopePtr() override { return this; }
 
     void UpdateDefault() override {
       // Recursively update all defaults within the structure.
-      for (auto & x : entries) x.second->UpdateDefault();
+      for (auto & x : entry_map) x.second->UpdateDefault();
       default_val = ""; /* @CAO: Need to spell out? */
     }
 
     // Get an entry out of this scope; 
     emp::Ptr<ConfigEntry> GetEntry(std::string in_name) {
       // Lookup this next entry is in the var list.
-      auto it = entries.find(in_name);
+      auto it = entry_map.find(in_name);
 
       // If this name is unknown, fail!
-      if (it == entries.end()) return nullptr;
+      if (it == entry_map.end()) return nullptr;
 
       // Otherwise return the entry.
       return it->second;
@@ -68,10 +68,10 @@ namespace mabe {
     // Lookup a variable, scanning outer scopes if needed
     emp::Ptr<ConfigEntry> LookupEntry(std::string in_name, bool scan_scopes=true) override {
       // See if this next entry is in the var list.
-      auto it = entries.find(in_name);
+      auto it = entry_map.find(in_name);
 
       // If this name is unknown, check with the parent scope!
-      if (it == entries.end()) {
+      if (it == entry_map.end()) {
         if (scope.IsNull() || !scan_scopes) return nullptr;  // No parent?  Just fail...
         return scope->LookupEntry(in_name);
       }
@@ -83,10 +83,10 @@ namespace mabe {
     // Lookup a variable, scanning outer scopes if needed (in constant context!)
     emp::Ptr<const ConfigEntry> LookupEntry(std::string in_name, bool scan_scopes=true) const override {
       // See if this entry is in the var list.
-      auto it = entries.find(in_name);
+      auto it = entry_map.find(in_name);
 
       // If this name is unknown, check with the parent scope!
-      if (it == entries.end()) {
+      if (it == entry_map.end()) {
         if (scope.IsNull() || !scan_scopes) return nullptr;  // No parent?  Just fail...
         return scope->LookupEntry(in_name);
       }
@@ -121,7 +121,7 @@ namespace mabe {
       os << std::endl;
 
       // Loop through all of the entires in this scope and print them too.
-      for (auto & x : entries) {
+      for (auto & x : entry_map) {
         x.second->Write(os, prefix+"  ", comment_offset);
       }
 
