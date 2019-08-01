@@ -34,7 +34,7 @@ namespace mabe {
   };
 
   class Population {
-    friend class WorldBase;
+    friend class MABEBase;
   private:
     std::string name="";                   ///< Unique name for this population.
     size_t pop_id = (size_t) -1;           ///< Position in world of this population.
@@ -48,7 +48,7 @@ namespace mabe {
     class Iterator {
      ///  @todo Add a const interator, and probably a reverse iterator.
      ///  @todo Fix operator-- which can go off of the beginning of the world.
-     friend class WorldBase;
+     friend class MABEBase;
     private:
       emp::Ptr<Population> pop_ptr;
       size_t pos;
@@ -201,7 +201,7 @@ namespace mabe {
       /// Return a const iterator pointing to just past the end of the world.
       const Iterator end() const { return Iterator(pop_ptr, PopSize(), skip_empty); }
 
-    private:  // ---== To be used by friend class WorldBase only! ==---
+    private:  // ---== To be used by friend class MABEBase only! ==---
       /// Insert an organism into the pointed-at position.
       void SetOrg(emp::Ptr<Organism> org_ptr) { pop_ptr->SetOrg(pos, org_ptr); }
     
@@ -399,7 +399,7 @@ namespace mabe {
                         (size_t) -1).SetMin(0);
     }
 
-  private:  // ---== To be used by friend class WorldBase only! ==---
+  private:  // ---== To be used by friend class MABEBase only! ==---
 
     void SetOrg(size_t pos, emp::Ptr<Organism> org_ptr) {
       emp_assert(pos < orgs.size());
