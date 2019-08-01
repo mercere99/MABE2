@@ -45,17 +45,17 @@ namespace mabe {
       config_scope.LinkVar(K, "K", "Number of bits used in each gene", 3);
     }
 
-    void Setup(mabe::World & world) {
-      landscape.Config(N, K, world.GetRandom());  // Setup the fitness landscape.
+    void Setup(mabe::MABE & control) {
+      landscape.Config(N, K, control.GetRandom());  // Setup the fitness landscape.
     }
 
-    void Update(mabe::World & world) {
-      emp_assert(world.GetNumPopulations() >= 1);
+    void Update(mabe::MABE & control) {
+      emp_assert(control.GetNumPopulations() >= 1);
 
       // Loop through the population and evaluate each organism.
       double max_fitness = 0.0;
       emp::Ptr<Organism> max_org = nullptr;
-      for (Organism & org : world.GetPopulation(0).Alive()) {
+      for (Organism & org : control.GetPopulation(0).Alive()) {
         org.GenerateOutput(bits_trait);
         double fitness = landscape.GetFitness( org.GetVar<emp::BitVector>(bits_trait) );
         org.SetVar<double>(fitness_trait, fitness);

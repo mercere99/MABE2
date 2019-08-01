@@ -33,13 +33,13 @@ namespace mabe {
       config_scope.LinkVar(skip, "skip", "Number of orgs to exempt from mutating", 0);
     }
 
-    void Update(mabe::World & world) {
-      Population & pop = world.GetPopulation(pop_id);
+    void Update(mabe::MABE & control) {
+      Population & pop = control.GetPopulation(pop_id);
 
       // Loop through the organisms (skipping any at the beginning that we need to) and
       // run Mutate() on each of them.
       for (auto it = pop.begin() + skip; it != pop.end(); it++) {
-        if (it.IsOccupied()) it->Mutate(world.GetRandom());
+        if (it.IsOccupied()) it->Mutate(control.GetRandom());
       }
     }
   };

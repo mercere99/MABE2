@@ -42,15 +42,15 @@ namespace mabe {
       config_scope.LinkVar(copy_count, "copy_count", "Number of copies to make of replicated organisms", 1);
     }
 
-    void Setup(mabe::World & world) {
-      (void) world;
+    void Setup(mabe::MABE & control) {
+      (void) control;
     }
 
-    void Update(mabe::World & world) {
+    void Update(mabe::MABE & control) {
       // Construct a map of all IDs to their associated fitness values.
       using Iterator = Population::Iterator;
       emp::valsort_map<Iterator, double> id_fit_map;
-      Population & pop = world.GetPopulation(pop_id);
+      Population & pop = control.GetPopulation(pop_id);
       for (auto it = pop.begin_alive(); it != pop.end_alive(); it++) {
         id_fit_map.Set(it, it->GetVar<double>(trait));
         std::cout << "Measuring fit " << it->GetVar<double>(trait) << std::endl;
@@ -60,7 +60,7 @@ namespace mabe {
       size_t num_reps = 0;
       for (auto it = id_fit_map.crvbegin(); it != id_fit_map.crvend() && num_reps++ < top_count; it++) {
         std::cout << "Replicating fit " << it->first->GetVar<double>(trait) << std::endl;
-        world.Replicate(it->first, copy_count);
+        control.Replicate(it->first, copy_count);
       }
     }
   };
