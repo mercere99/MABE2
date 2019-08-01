@@ -37,6 +37,10 @@ namespace mabe {
     virtual size_t Mutate(Organism &, emp::Random &) = 0;
     virtual std::ostream & Print(Organism &, std::ostream &) = 0;
     virtual bool Randomize(Organism &, emp::Random &) = 0;
+
+    virtual void SetupConfig(ConfigScope & config_scope) {
+      (void) config_scope;
+    }
   };
 
 }

@@ -40,7 +40,7 @@ int main(int argc, char* argv[])
   // if (args.ProcessConfigOptions(config, std::cout, "NK.cfg", "NK-macros.h") == false) exit(0);
   // if (args.TestUnknown() == false) exit(0);  // If there are leftover args, throw an error.
 
-  const uint32_t N = 30;  //config.N();
+  const uint32_t N = 20;  //config.N();
   const uint32_t K = 4;   //config.K();
   // [[maybe_unused]] const uint32_t POP_SIZE = config.POP_SIZE();
   // [[maybe_unused]] const uint32_t MAX_GENS = config.MAX_GENS();
@@ -50,9 +50,9 @@ int main(int argc, char* argv[])
   control.AddOrganismType<mabe::OrgNK>("BitOrg");
   control.AddModule<mabe::Mutate>(0, 1);
   control.AddModule<mabe::EvalNK>(N, K, "bits", "fitness");
-  control.AddModule<mabe::SelectElite>("fitness", 5, 5);
+  control.AddModule<mabe::SelectElite>("fitness", 20, 10);
   control.Setup();
-  control.InjectOrganism(mabe::OrgNK(N), 25);
+  control.InjectOrganism(mabe::OrgNK(N), 200);
   control.Update(100);
 
 /*
