@@ -51,10 +51,9 @@
 namespace mabe {
 
   class MABE;
-  class World;
 
   class Module {
-    friend World;
+    friend MABE;
   protected:
     std::string name;                 ///< Unique name for this module.
     std::string desc;                 ///< Description for this module.
@@ -125,8 +124,8 @@ namespace mabe {
     Module & DefaultSync() { rep_type = ReplicationType::DEFAULT_SYNC; return *this; }
     Module & RequireSync() { rep_type = ReplicationType::REQUIRE_SYNC; return *this; }
 
-    virtual void Setup(mabe::World &) { /* By default, assume no setup needed. */ }
-    virtual void Update(mabe::World &) { /* By default, do nothing at update. */ }
+    virtual void Setup(mabe::MABE &) { /* By default, assume no setup needed. */ }
+    virtual void Update(mabe::MABE &) { /* By default, do nothing at update. */ }
 
   // --------------------- Functions to be used in derived modules ONLY --------------------------
   protected:
