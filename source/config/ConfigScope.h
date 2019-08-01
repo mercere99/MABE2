@@ -111,6 +111,18 @@ namespace mabe {
       return Add<ConfigScope>(name, desc, this);
     }
 
+    /// Write out all of the parameters contained in this scope.
+    ConfigEntry & WriteContents(std::ostream & os=std::cout, const std::string & prefix="",
+                        size_t comment_offset=40) {
+
+      // Loop through all of the entires in this scope and Write them.
+      for (auto x : entry_list) {
+        x->Write(os, prefix, comment_offset);
+      }
+
+      return *this;
+    }
+
     ConfigEntry & Write(std::ostream & os=std::cout, const std::string & prefix="",
                         size_t comment_offset=40) override {
       // Open this scope.
@@ -124,10 +136,7 @@ namespace mabe {
       }
       os << std::endl;
 
-      // Loop through all of the entires in this scope and print them too.
-      for (auto x : entry_list) {
-        x->Write(os, prefix+"  ", comment_offset);
-      }
+      WriteContents(os, prefix+"  ", comment_offset);
 
       // Close the scope.
       os << prefix << "}\n";
