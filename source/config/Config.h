@@ -176,7 +176,7 @@ namespace mabe {
   public:
     Config(std::string in_filename="")
       : filename(in_filename)
-      , root_scope("global", "Outer-most, global scope.", nullptr)
+      , root_scope("MABE", "Outer-most, global scope.", nullptr)
     {
       if (filename != "") Load(filename);
     }
@@ -201,7 +201,7 @@ namespace mabe {
 
 
     Config & Write(std::ostream & os=std::cout) {
-      root_scope.Write(os);
+      root_scope.WriteContents(os);
       return *this;
     }
 
