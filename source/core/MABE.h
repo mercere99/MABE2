@@ -59,8 +59,21 @@ namespace mabe {
     emp::vector<std::string> args;             ///< Command-line arguments passed in.
     emp::vector<std::string> config_filenames; ///< Names of configuration files
     std::string gen_filename;                  ///< Name of output file to generate.
-    bool exit_now = false;                     ///< Do we need to exit?
     Config config;                             ///< Configutation information for this run.
+
+    // ----------- Helper Functions -----------
+
+    void Exit() {
+      // Cleanup all pointers.
+      for (auto x : worlds) x.Delete();
+      worlds.resize(0);
+
+      for (auto [name,org_type] : org_types) org_type.Delete();
+      org_types.clear();
+
+      // Forcibly exit.
+      exit(0);
+    }
 
     void ShowHelp() {
       std::cout << "MABE v" << VERSION << "\n"
@@ -72,7 +85,7 @@ namespace mabe {
                   << std::endl;
       }
       std::cout << "Note: parameter order matters. Settings and files are applied in the order provided.\n";
-      exit_now = true;
+      Exit();
     }
 
   public:
@@ -145,10 +158,7 @@ namespace mabe {
 
     // --- Basic Controls ---
 
-    bool Setup() {
-      // If we have already indicated that we should stop; return false from Setup.
-      if (exit_now) return false;
-
+    void Setup() {
       // Load all of the parameters needed by modules, etc.
       SetupConfig(config.GetRootScope());
 
@@ -158,21 +168,17 @@ namespace mabe {
       // If we are writing a file, do so.
       if (gen_filename != "") {
         config.Write(gen_filename);
-        return false;
+        Exit();
       }
 
       // Now that parameters are loaded, setup all of the worlds for running.
       for (emp::Ptr<mabe::World> w : worlds) {
         w->Setup();
       }
-
-      // Everything seems to have worked!
-      return true;
     }
 
     /// By default, update all worlds the specified numebr of updates.
     void Update(size_t num_updates=1) {
-      if (exit_now) return;
       for (size_t ud = 0; ud < num_updates; ud++) {
         std::cout << "Update: " << ud << std::endl;
         for (emp::Ptr<mabe::World> w : worlds) w->Update();
@@ -250,7 +256,6 @@ namespace mabe {
 
     // Inject a specific organism - pass on to current world.
     void InjectOrganism(const Organism & org, size_t copy_count=1) {
-      if (exit_now) return;
       GetWorld().Inject(org, copy_count);
     }
 
@@ -268,12 +273,14 @@ namespace mabe {
                            "random_seed",
                            "Seed for random number generator; use 0 to base on time.",
                            0).SetMin(0);
-      auto & org_scope = config_scope.AddScope("org_types", "Details about organisms types used in this runs.");
-      for (auto o : org_types) o.second->SetupConfig(org_scope);
 
       // Loop through Worlds.
       auto & worlds_scope = config_scope.AddScope("worlds", "Worlds created for this MABE run.");
       for (auto w : worlds) w->SetupConfig(worlds_scope);      
+
+      // Loop through organism types.
+      auto & org_scope = config_scope.AddScope("org_types", "Details about organisms types used in this runs.");
+      for (auto o : org_types) o.second->SetupConfig(org_scope);
     }
   };
 
