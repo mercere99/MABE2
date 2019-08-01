@@ -20,11 +20,13 @@ namespace mabe {
   // Set of multiple config entries.
   class ConfigScope : public ConfigEntry {
   protected:
-    emp::map< std::string, emp::Ptr<ConfigEntry> > entry_map;
+    emp::vector< emp::Ptr<ConfigEntry> > entry_list;           ///< Entries in order.
+    emp::map< std::string, emp::Ptr<ConfigEntry> > entry_map;  ///< Entries with easy lookup.
 
     template <typename T, typename... ARGS>
     T & Add(const std::string & name, ARGS &&... args) {
       auto new_ptr = emp::NewPtr<T>(name, std::forward<ARGS>(args)...);
+      entry_list.push_back(new_ptr);
       entry_map[name] = new_ptr;
       return *new_ptr;
     }
@@ -34,22 +36,24 @@ namespace mabe {
                  emp::Ptr<ConfigScope> _scope)
       : ConfigEntry(_name, _desc, _scope) { }
     ConfigScope(const ConfigScope & in) : ConfigEntry(in) {
-      for (const auto & x : in.entry_map) {
-        entry_map[x.first] = x.second->Clone();
+      for (const auto & x : in.entry_list) {
+        auto new_ptr = x->Clone();
+        entry_list.push_back(new_ptr);
+        entry_map[x->GetName()] = new_ptr;
       }
     }
     ConfigScope(ConfigScope &&) = default;
 
     ~ConfigScope() {
       // Clear up all entries.
-      for (auto & x : entry_map) { x.second.Delete(); }
+      for (auto & x : entry_list) { x.Delete(); }
     }
 
     emp::Ptr<ConfigScope> AsScopePtr() override { return this; }
 
     void UpdateDefault() override {
       // Recursively update all defaults within the structure.
-      for (auto & x : entry_map) x.second->UpdateDefault();
+      for (auto & x : entry_list) x->UpdateDefault();
       default_val = ""; /* @CAO: Need to spell out? */
     }
 
@@ -121,8 +125,8 @@ namespace mabe {
       os << std::endl;
 
       // Loop through all of the entires in this scope and print them too.
-      for (auto & x : entry_map) {
-        x.second->Write(os, prefix+"  ", comment_offset);
+      for (auto x : entry_list) {
+        x->Write(os, prefix+"  ", comment_offset);
       }
 
       // Close the scope.
