@@ -1,0 +1,27 @@
+Param random_seed = 475216794;          // Seed for random number generator; use 0 to base on time.
+
+Population sheep;
+Population wolves;
+
+Module:Mutate mutate {
+  skip = 1;                             // Number of orgs to exempt from mutating
+}
+
+Module:EvalNK eval {                    // Module to evaluate bitstrings on an NK Fitness Lanscape
+  N = 20;                               // Number of bits required in output
+  K = 4;                                // Number of bits used in each gene
+}
+
+Module:SelectElite select_wolves {      // Select organisms with the highest value in a trait.
+  top_count = 20;                       // Number of top-fitness orgs to be replicated
+  copy_count = 10;                      // Number of copies to make of replicated organisms
+  population = wolves;
+  trait = "prey_eaten";
+}
+
+Module:SelectElite select_sheep {       // Select organisms with the highest value in a trait.
+  top_count = 20;                       // Number of top-fitness orgs to be replicated
+  copy_count = 10;                      // Number of copies to make of replicated organisms
+  population = sheep;
+  trait = "grass_eaten";
+}
