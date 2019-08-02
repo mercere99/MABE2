@@ -40,5 +40,17 @@ Module::SelectElite select_wolves {     // Select organisms with the highest val
   trait = "prey_eaten";
 }
 
-// Whoops... we wanted a bigger population for wolves...
+// Whoops... we wanted a bigger population for wolves.  We can still modify!
 select_wolves.top_count = 100;
+
+// Example organism types
+OrgType::NKOrg my_org_t {
+  N = 20;
+  p = 0.5;
+}
+
+// A MABE object just defines a bag of components.
+MABE world = [sheep, wolves, mutate, eval, select_sheep, select_wolves];
+world.Inject(sheep, my_org_t);          // Add a starter sheep.
+world.Inject(wolves, my_org_t);         // Add a starter wolf.
+world.Update(1000);                     // Run the world for 1000 updates.
