@@ -32,6 +32,13 @@ namespace mabe {
 
     const std::string & GetName() const { return name; }
 
+    // --== Functions to manipulate config variables ==--
+    template <typename T>
+    OrganismType & AddVar(const std::string & name, const std::string & desc, const T & def_val) {
+      var_map.Add<T>(name, def_val);
+      return *this;
+    }
+
     // --== Functions to manipulate organisms ==--
     virtual emp::Ptr<Organism> MakeOrganism(emp::Random &) = 0;
     virtual size_t Mutate(Organism &, emp::Random &) = 0;
