@@ -316,15 +316,22 @@ namespace mabe {
 
     // Otherwise, basic structure: VAR = VALUE ;
     emp::Ptr<ConfigEntry> lhs = ProcessVar(pos, scope, true, false);
-    RequireChar('=', pos++, "Expected '=' after variable '", lhs->GetName(),  "' for assignment.");
-    emp::Ptr<ConfigEntry> rhs = ProcessValue(pos, scope);
-    RequireChar(';', pos++, "Expected ';' at the end of a statement.");
+    RequireChar('=', pos++, "Expected '=' after variable '", lhs->GetName(), "' for assignment.");
 
-    // Act on the assignment!
-    lhs->CopyValue(*rhs);
+    // If LHS is a scope, collect scope information.
+    if (lhs->IsScope()) {
+      RequireChar('{', pos++, "Expected scope '", lhs->GetName(), "' to be set to a literal scope.");
+      ProcessStatementList(pos, lhs->AsScope());
+      RequireChar('}', pos++, "Expected scope '", lhs->GetName(), "' to end with a '}'.");
+    } else {
+      emp::Ptr<ConfigEntry> rhs = ProcessValue(pos, scope);
+      RequireChar(';', pos++, "Expected ';' at the end of a statement.");
+      lhs->CopyValue(*rhs);
 
-    // If the RHS is a temporary, delete it!
-    if (rhs->IsTemporary()) rhs.Delete();
+      // If the RHS is a temporary, delete it!
+      if (rhs->IsTemporary()) rhs.Delete();
+    }
+
   }
 
 }
