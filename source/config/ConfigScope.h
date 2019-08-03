@@ -49,6 +49,8 @@ namespace mabe {
       for (auto & x : entry_list) { x.Delete(); }
     }
 
+    bool IsScope() const override { return true; }
+
     emp::Ptr<ConfigScope> AsScopePtr() override { return this; }
 
     void UpdateDefault() override {

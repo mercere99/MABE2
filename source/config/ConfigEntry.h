@@ -69,6 +69,8 @@ namespace mabe {
     virtual bool IsDouble() const { return false; }
     virtual bool IsString() const { return false; }
 
+    virtual bool IsScope() const { return false; }
+
     /// Set the default string for this entry.
     ConfigEntry & SetName(const std::string & in) { name = in; return *this; }
     ConfigEntry & SetDesc(const std::string & in) { desc = in; return *this; }
