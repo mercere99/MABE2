@@ -8,8 +8,8 @@
  *  @note Status: PLANNING
  */
 
-#ifndef MABE_DIRECT_ENCODING_H
-#define MABE_DIRECT_ENCODING_H
+#ifndef MABE_ORGANISM_NK_H
+#define MABE_ORGANISM_NK_H
 
 #include "../core/Organism.h"
 
@@ -28,6 +28,11 @@ namespace mabe {
     OrgNK(const emp::BitVector & in) : bits(in) { ; }
     OrgNK(size_t N) : bits(N) { ; }
     ~OrgNK() { ; }
+
+    /// Setup the variables that can change with different types of this organism.
+    static void SetupType(OrganismType & type) {
+      type.AddVar<size_t>("N", "Number of bits in organism", 1);
+    }
 
     /// Use the default constructor for cloning.
     emp::Ptr<Organism> Clone() const override { return emp::NewPtr<OrgNK>(*this); }
