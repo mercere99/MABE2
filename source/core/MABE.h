@@ -175,62 +175,16 @@ namespace mabe {
       errors.insert(errors.end(), in_errors.begin(), in_errors.end());
     }
 
+    void ProcessArgs();
+
+    void Setup_Synchronisity();
+    void Setup_Populations();
+    void Setup_Modules();
+    void Setup_Traits();
+
   public:
     MABE(int argc, char* argv[]) : args(emp::cl::args_to_strings(argc, argv)) {
-      arg_set.emplace_back("--filename", "-f", "[filename...] ", "Filenames of configuration settings",
-        [this](const emp::vector<std::string> & in){ config_filenames = in; return true; } );
-      arg_set.emplace_back("--generate", "-g", "[filename]    ", "Generate a new output file",
-        [this](const emp::vector<std::string> & in) {
-          if (in.size() != 1) {
-            std::cout << "--generate must be followed by a single filename.\n";
-            return false;
-          }
-          gen_filename = in[0];
-          return true;
-        });
-      arg_set.emplace_back("--help", "-h", "              ", "Help; print command-line options for MABE",
-        [this](const emp::vector<std::string> &){ ShowHelp(); return false; } );
-      arg_set.emplace_back("--set", "-s", "[param=value] ", "Set specified parameter",
-        [this](const emp::vector<std::string> &){ emp_assert(false); return true; } );
-      arg_set.emplace_back("--version", "-v", "              ", "Version ID of MABE",
-        [this](const emp::vector<std::string> &){
-          std::cout << "MABE v" << VERSION << "\n";
-          return false;
-        });
-      // Command line options
-      //  -p set parameter (name value)  (-s --set)
-      //  -s write settings files        (-g --generate)
-      //  -l creates population loader script (?)
-
-      // Scan through all input argument positions.
-      bool show_help = false;
-      for (size_t pos = 1; pos < args.size(); pos++) {
-        // Match the input argument to the function to call.
-        bool found = false;
-        for (auto & cur_arg : arg_set) {
-          // If we have a match...
-          if (args[pos] == cur_arg.name || args[pos] == cur_arg.flag) {
-            // ...collect all of the options associated with this match.
-            emp::vector<std::string> option_args;
-            // We want args until we run out or hit another option.
-            while (++pos < args.size() && args[pos][0] != '-') {
-              option_args.push_back(args[pos]);
-            }
-
-            // And call the function!
-            cur_arg.action(option_args);
-            found = true;
-            break;            
-          }
-        }
-        if (found == false) {
-          std::cout << "Error: unknown command line argument '" << args[pos] << "'." << std::endl;
-          show_help = true;
-          break;
-        }
-      }
-
-      if (show_help) ShowHelp();
+      ProcessArgs();
     }
     MABE(const MABE &) = delete;
     MABE(MABE &&) = delete;
@@ -245,65 +199,19 @@ namespace mabe {
     size_t GetUpdate() const noexcept { return update; }
 
     // --- Tools to setup runs ---
-
-    void Setup_Synchronisity();
-    void Setup_Populations();
-    void Setup_Traits();
-
     void Setup() {
-      // Load all of the parameters needed by modules, etc.
-      SetupConfig(config.GetRootScope());
+      SetupConfig(config.GetRootScope());  // Load all of the parameters needed by modules, etc.
+      config.Load(config_filenames);       // Load files, if any.
 
-      // If we are loading files, do so.
-      config.Load(config_filenames);
+      // If we are writing a file, do so and stop.
+      if (gen_filename != "") { config.Write(gen_filename); Exit(); }
 
-      // If we are writing a file, do so.
-      if (gen_filename != "") {
-        config.Write(gen_filename);
-        Exit();
-      }
+      Setup_Synchronisity();  // Should generations be synchronous or asynchronous?
+      Setup_Populations();    // Give modules access to the correct populations.
+      Setup_Modules();        // Run module-specific Setup() and ensure placement is initialized.
+      Setup_Traits();         // Make sure module traits do not clash.
 
-      // Now that parameters are loaded, setup all of the world for running.
-
-      // STEP 1: Determine if updates should have synchronous or asynchronous generations.
-      Setup_Synchronisity();
-
-      // STEP 2: Make sure modules have access to the correct number of populations.
-      Setup_Populations();
-
-      // ############ STEP 3: Run Setup() on all modules.
-      // Allow the user-defined module Setup() member functions run.
-      for (emp::Ptr<Module> mod_ptr : modules) mod_ptr->Setup(*this);
-
-      // If none of the modules setup the placement functions, do so now.
-      if (!birth_pos_fun) {
-        if (sync_pop) {
-          std::cout << "Setting up SYNCHRONOUS reproduction." << std::endl;
-          emp_assert(pops.size() >= 2);
-          birth_pos_fun = [this](const Organism &, Iterator) {
-              // Iterator it = pops[1].PushEmpty();
-              // std::cout << "[[" << it.PopID() << ":" << it.Pos() << "]]" << std::endl;
-              // return it;
-              return PushEmpty(pops[1]);   // Synchronous pops reproduce into next generation.
-            };
-        } else {
-          std::cout << "Setting up ASYNCHRONOUS reproduction." << std::endl;
-          emp_assert(pops.size() >= 1);
-          birth_pos_fun = [this](const Organism &, Iterator) {
-              return PushEmpty(pops[0]);;   // Asynchronous offspring go into current population.
-            };
-        }
-      }
-      if (!inject_pos_fun) {
-        inject_pos_fun = [this](const Organism &) {
-            return PushEmpty(pops[0]);;
-          };
-      }
-
-      // ############ STEP 4: Setup traits.
-      Setup_Traits();
-
-      // ############ STEP 5: Collect errors in any module.
+      // Collect errors in any module.
       for (emp::Ptr<Module> mod_ptr : modules) {
         if (mod_ptr->HasErrors()) { AddErrors(mod_ptr->GetErrors()); }
       }
@@ -511,6 +419,66 @@ namespace mabe {
     }
   };
 
+
+  // ========================== OUT-OF-CLASS DEFINITIONS! ==========================
+
+  void MABE::ProcessArgs() {
+    arg_set.emplace_back("--filename", "-f", "[filename...] ", "Filenames of configuration settings",
+      [this](const emp::vector<std::string> & in){ config_filenames = in; return true; } );
+    arg_set.emplace_back("--generate", "-g", "[filename]    ", "Generate a new output file",
+      [this](const emp::vector<std::string> & in) {
+        if (in.size() != 1) {
+          std::cout << "--generate must be followed by a single filename.\n";
+          return false;
+        }
+        gen_filename = in[0];
+        return true;
+      });
+    arg_set.emplace_back("--help", "-h", "              ", "Help; print command-line options for MABE",
+      [this](const emp::vector<std::string> &){ ShowHelp(); return false; } );
+    arg_set.emplace_back("--set", "-s", "[param=value] ", "Set specified parameter",
+      [this](const emp::vector<std::string> &){ emp_assert(false); return true; } );
+    arg_set.emplace_back("--version", "-v", "              ", "Version ID of MABE",
+      [this](const emp::vector<std::string> &){
+        std::cout << "MABE v" << VERSION << "\n";
+        return false;
+      });
+    // Command line options
+    //  -p set parameter (name value)  (-s --set)
+    //  -s write settings files        (-g --generate)
+    //  -l creates population loader script (?)
+
+    // Scan through all input argument positions.
+    bool show_help = false;
+    for (size_t pos = 1; pos < args.size(); pos++) {
+      // Match the input argument to the function to call.
+      bool found = false;
+      for (auto & cur_arg : arg_set) {
+        // If we have a match...
+        if (args[pos] == cur_arg.name || args[pos] == cur_arg.flag) {
+          // ...collect all of the options associated with this match.
+          emp::vector<std::string> option_args;
+          // We want args until we run out or hit another option.
+          while (++pos < args.size() && args[pos][0] != '-') {
+            option_args.push_back(args[pos]);
+          }
+
+          // And call the function!
+          cur_arg.action(option_args);
+          found = true;
+          break;            
+        }
+      }
+      if (found == false) {
+        std::cout << "Error: unknown command line argument '" << args[pos] << "'." << std::endl;
+        show_help = true;
+        break;
+      }
+    }
+
+    if (show_help) ShowHelp();
+  }
+
   void MABE::Setup_Synchronisity() {
     emp::Ptr<Module> async_req_mod = nullptr;
     emp::Ptr<Module> sync_req_mod = nullptr;
@@ -567,6 +535,36 @@ namespace mabe {
 
     // Leave main population as current.
     cur_pop = 0;
+  }
+
+  void MABE::Setup_Modules() {
+    // Allow the user-defined module Setup() member functions run.
+    for (emp::Ptr<Module> mod_ptr : modules) mod_ptr->Setup(*this);
+
+    // If none of the modules setup the placement functions, do so now.
+    if (!birth_pos_fun) {
+      if (sync_pop) {
+        std::cout << "Setting up SYNCHRONOUS reproduction." << std::endl;
+        emp_assert(pops.size() >= 2);
+        birth_pos_fun = [this](const Organism &, Iterator) {
+            // Iterator it = pops[1].PushEmpty();
+            // std::cout << "[[" << it.PopID() << ":" << it.Pos() << "]]" << std::endl;
+            // return it;
+            return PushEmpty(pops[1]);   // Synchronous pops reproduce into next generation.
+          };
+      } else {
+        std::cout << "Setting up ASYNCHRONOUS reproduction." << std::endl;
+        emp_assert(pops.size() >= 1);
+        birth_pos_fun = [this](const Organism &, Iterator) {
+            return PushEmpty(pops[0]);;   // Asynchronous offspring go into current population.
+          };
+      }
+    }
+    if (!inject_pos_fun) {
+      inject_pos_fun = [this](const Organism &) {
+          return PushEmpty(pops[0]);;
+        };
+    }
   }
 
   void MABE::Setup_Traits() {
