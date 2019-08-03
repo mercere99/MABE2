@@ -3,13 +3,13 @@
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
  *  @date 2019
  *
- *  @file  OrgNK.h
- *  @brief An NK-model based organism (consisting of bits)
- *  @note Status: PLANNING
+ *  @file  BitsOrg.h
+ *  @brief An organism consisting of a series of bits.
+ *  @note Status: ALPHA
  */
 
-#ifndef MABE_ORGANISM_NK_H
-#define MABE_ORGANISM_NK_H
+#ifndef MABE_BITS_ORGANISM_H
+#define MABE_BITS_ORGANISM_H
 
 #include "../core/Organism.h"
 
@@ -17,17 +17,17 @@
 
 namespace mabe {
 
-  class OrgNK : public Organism {
+  class BitsOrg : public Organism {
   protected:
     emp::BitVector bits;
 
   public:
-    OrgNK() { ; }
-    OrgNK(const OrgNK &) = default;
-    OrgNK(OrgNK &&) = default;
-    OrgNK(const emp::BitVector & in) : bits(in) { ; }
-    OrgNK(size_t N) : bits(N) { ; }
-    ~OrgNK() { ; }
+    BitsOrg() { ; }
+    BitsOrg(const BitsOrg &) = default;
+    BitsOrg(BitsOrg &&) = default;
+    BitsOrg(const emp::BitVector & in) : bits(in) { ; }
+    BitsOrg(size_t N) : bits(N) { ; }
+    ~BitsOrg() { ; }
 
     /// Setup the variables that can change with different types of this organism.
     static void SetupType(OrganismType & type) {
@@ -35,7 +35,7 @@ namespace mabe {
     }
 
     /// Use the default constructor for cloning.
-    emp::Ptr<Organism> Clone() const override { return emp::NewPtr<OrgNK>(*this); }
+    emp::Ptr<Organism> Clone() const override { return emp::NewPtr<BitsOrg>(*this); }
 
     /// Use "to_string" to convert.
     std::string ToString() override { return emp::to_string(bits); }
