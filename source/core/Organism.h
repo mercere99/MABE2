@@ -22,14 +22,14 @@ namespace mabe {
 
   class Organism {
   protected:
-    emp::VarMap var_map;             ///< Map of all dynamic variables assigned to an organism.
-    emp::Ptr<OrganismType> type_ptr;  ///< Pointer the the specific organism type.
+    emp::VarMap var_map;                    ///< Map of all dynamic variables assigned to organism
+    emp::Ptr<const OrganismType> type_ptr;  ///< Pointer the the specific organism type
 
   public:
-    Organism() : type_ptr(nullptr) { ; }
+    Organism(emp::Ptr<OrganismType> _ptr) : type_ptr(_ptr) { ; }
     virtual ~Organism() { ; }
 
-    OrganismType & GetType() { emp_assert(type_ptr); return *type_ptr; }
+    const OrganismType & GetType() { emp_assert(type_ptr); return *type_ptr; }
     const OrganismType & GetType() const { emp_assert(type_ptr); return *type_ptr; }
 
     bool HasVar(const std::string & name) const { return var_map.Has(name); }
@@ -47,17 +47,17 @@ namespace mabe {
     // --- Functions for overriding ---
 
     /// We MUST be able to make a copy of organisms for MABE to function.
-    [[nodiscard]] virtual emp::Ptr<Organism> Clone() const = 0;  
+    virtual emp::Ptr<Organism> Clone() const { return type_ptr->CloneOrganism(*this); }
 
     /// If we are going to print organisms (to screen or file) we need to be able to convert
     /// them to strings.
     virtual std::string ToString() { return "__unknown__"; }
 
     /// For evolution to function, we need to be able to mutate offspring.
-    virtual int Mutate(emp::Random &) { emp_assert(false, "No default Mutate() available."); return -1; }
+    virtual int Mutate(emp::Random & random) { return type_ptr->Mutate(*this, random); }
 
     /// Completely randomize a new organism (typically for initialization)
-    virtual int Randomize(emp::Random &) { emp_assert(false, "No default Randomize() available."); return -1; }
+    virtual void Randomize(emp::Random & random) { type_ptr->Randomize(*this, random); }
 
     /// Generate an output and place it in the VarMap under the provided name (default = "result").
     /// Arguments are the output name int he VarMap and the output ID.
