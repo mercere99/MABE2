@@ -15,7 +15,7 @@
 
 #include "../source/core/MABE.h"
 #include "../source/evaluate/EvalNK.h"
-#include "../source/orgs/OrgNK.h"
+#include "../source/orgs/BitsOrg.h"
 #include "../source/schema/Mutate.h"
 #include "../source/select/SelectElite.h"
 
@@ -28,8 +28,6 @@
 //   VALUE(MAX_GENS, uint32_t, 2000, "How many generations should we process?"),
 //   VALUE(MUT_COUNT, uint32_t, 3, "How many bit positions should be randomized?"), ALIAS(NUM_MUTS),
 // )
-
-using BitOrg = emp::BitVector;
 
 int main(int argc, char* argv[])
 {
@@ -47,12 +45,12 @@ int main(int argc, char* argv[])
   // [[maybe_unused]] const uint32_t MUT_COUNT = config.MUT_COUNT();
 
   mabe::MABE control(argc, argv);
-  control.AddOrganismType<mabe::OrgNK>("BitOrg");
+  control.AddOrganismType<mabe::BitsOrgType>("BitOrg");
   control.AddModule<mabe::Mutate>(0, 1);
   control.AddModule<mabe::EvalNK>(N, K, "bits", "fitness");
   control.AddModule<mabe::SelectElite>("fitness", 20, 10);
   control.Setup();
-  control.InjectOrganism(mabe::OrgNK(N), 200);
+  control.Inject("BitOrg", 200);
   control.Update(100);
 
 /*
