@@ -39,11 +39,18 @@ namespace mabe {
       return *this;
     }
 
+    template <typename T>
+    const T & GetVar(const std::string & name) {
+      return var_map.Get<T>(name);
+    }
+
     // --== Functions to manipulate organisms ==--
-    virtual emp::Ptr<Organism> MakeOrganism(emp::Random &) = 0;
-    virtual size_t Mutate(Organism &, emp::Random &) = 0;
-    virtual std::ostream & Print(Organism &, std::ostream &) = 0;
-    virtual bool Randomize(Organism &, emp::Random &) = 0;
+    /// Create a clone of the provided organism.
+    virtual emp::Ptr<Organism> CloneOrganism(const Organism &) const = 0;
+    virtual emp::Ptr<Organism> MakeOrganism(emp::Random &) const = 0;
+    virtual size_t Mutate(Organism &, emp::Random &) const = 0;
+    virtual void Randomize(Organism &, emp::Random &) const = 0;
+    virtual std::ostream & Print(Organism &, std::ostream &) const = 0;
 
     virtual void SetupConfig(ConfigScope & config_scope) {
       (void) config_scope;
