@@ -21,7 +21,6 @@
 #include "../config/Config.h"
 
 #include "Module.h"
-#include "OrganismWrapper.h"
 #include "Population.h"
 
 namespace mabe {
@@ -288,6 +287,19 @@ namespace mabe {
       }
     }
 
+    void Inject(const std::string & type_name, size_t copy_count=1) {
+      const OrganismType & org_type = GetOrganismType(type_name);
+      for (size_t i = 0; i < copy_count; i++) {
+        emp::Ptr<Organism> inject_org = org_type.MakeOrganism(random);
+        Iterator pos = inject_pos_fun(*inject_org);
+        if (pos.IsValid()) AddOrgAt( inject_org, pos);
+        else {
+          inject_org.Delete();
+          AddError("Invalid position (pop=", pos.PopPtr(), "; pos=", pos.Pos(), "); failed to inject organism ", i, "!");
+        }
+      }
+    }
+
     void InjectAt(const Organism & org, Iterator pos) {
       emp_assert(pos.IsValid());
       emp::Ptr<Organism> inject_org = org.Clone();
@@ -379,21 +391,10 @@ namespace mabe {
       return *(org_types[type_name]);
     }
 
-    template <typename ORG_T>
-    OrganismWrapper<ORG_T> & GetFullOrganismType(const std::string type_name) {
-      auto it = org_types.find(type_name);
-      if (it == org_types.end()) {
-        auto new_type = emp::NewPtr<OrganismWrapper<ORG_T>>(type_name);
-        org_types[type_name] = new_type;
-        return *new_type;
-      }
-      return *(it->second);
-    }
-
-    template <typename ORG_T>
-    OrganismWrapper<ORG_T> & AddOrganismType(const std::string type_name) {
+    template <typename ORG_TYPE_T>
+    ORG_TYPE_T & AddOrganismType(const std::string type_name) {
       emp_assert(emp::Has(org_types, type_name) == false);
-      auto new_type = emp::NewPtr<OrganismWrapper<ORG_T>>(type_name);
+      auto new_type = emp::NewPtr<ORG_TYPE_T>(type_name);
       org_types[type_name] = new_type;
       return *new_type;
     }
