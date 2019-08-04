@@ -19,19 +19,9 @@
 #include "base/vector.h"
 
 #include "Organism.h"
+#include "EmptyOrganism.h"
 
 namespace mabe {
-
-  /// An EmptyOrganism is used as a placeholder in an empty cell in a population.
-  class EmptyOrganism : public Organism {
-    emp::Ptr<Organism> Clone() const override { emp_assert(false, "Do not clone EmptyOrganism"); return nullptr; }
-    std::string ToString() override { return "[empty]"; }
-    int Mutate(emp::Random &) override { emp_assert(false, "EmptyOrganism cannot Mutate()"); return -1; }
-    int Randomize(emp::Random &) override { emp_assert(false, "EmptyOrganism cannot Randomize()"); return -1; }
-    void GenerateOutput(const std::string &, size_t) override { emp_assert(false, "EmptyOrganism cannot GenerateOutput()"); }
-    emp::TypeID GetOutputType(size_t=0) override { return emp::TypeID(); }
-    bool IsEmpty() const noexcept override { return true; }
-  };
 
   class Population {
     friend class MABEBase;
