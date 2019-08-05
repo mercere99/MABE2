@@ -51,15 +51,17 @@ namespace mabe {
 
     bool IsScope() const override { return true; }
 
+    /// Set this entry to be a correctly-types scope pointer.
     emp::Ptr<ConfigScope> AsScopePtr() override { return this; }
 
+    /// Update the default value of all settings to be their current values.
     void UpdateDefault() override {
       // Recursively update all defaults within the structure.
       for (auto & x : entry_list) x->UpdateDefault();
       default_val = ""; /* @CAO: Need to spell out? */
     }
 
-    // Get an entry out of this scope; 
+    /// Get an entry out of this scope; 
     emp::Ptr<ConfigEntry> GetEntry(std::string in_name) {
       // Lookup this next entry is in the var list.
       auto it = entry_map.find(in_name);
@@ -71,7 +73,7 @@ namespace mabe {
       return it->second;
     }
 
-    // Lookup a variable, scanning outer scopes if needed
+    /// Lookup a variable, scanning outer scopes if needed
     emp::Ptr<ConfigEntry> LookupEntry(std::string in_name, bool scan_scopes=true) override {
       // See if this next entry is in the var list.
       auto it = entry_map.find(in_name);
@@ -86,7 +88,7 @@ namespace mabe {
       return it->second;
     }
 
-    // Lookup a variable, scanning outer scopes if needed (in constant context!)
+    /// Lookup a variable, scanning outer scopes if needed (in constant context!)
     emp::Ptr<const ConfigEntry> LookupEntry(std::string in_name, bool scan_scopes=true) const override {
       // See if this entry is in the var list.
       auto it = entry_map.find(in_name);
@@ -101,6 +103,8 @@ namespace mabe {
       return it->second;
     }
 
+    /// Linke a variable to a configuration entry - it sets the new default and
+    /// automatically updates when configs are loaded.
     template <typename VAR_T, typename DEFAULT_T>
     ConfigEntry_Linked<VAR_T> & LinkVar(VAR_T & var,
                                     const std::string & name,
@@ -109,11 +113,12 @@ namespace mabe {
       return Add<ConfigEntry_Linked<VAR_T>>(name, var, desc, this);
     }
 
+    /// Add a new scope inside of this one.
     ConfigScope & AddScope(const std::string & name, const std::string & desc) {
       return Add<ConfigScope>(name, desc, this);
     }
 
-    /// Write out all of the parameters contained in this scope.
+    /// Write out all of the parameters contained in this scope to the provided stream.
     ConfigEntry & WriteContents(std::ostream & os=std::cout, const std::string & prefix="",
                         size_t comment_offset=40) {
 
@@ -125,6 +130,7 @@ namespace mabe {
       return *this;
     }
 
+    /// Write out this scope AND it's contents to the provided stream.
     ConfigEntry & Write(std::ostream & os=std::cout, const std::string & prefix="",
                         size_t comment_offset=40) override {
       // Open this scope.
@@ -145,6 +151,7 @@ namespace mabe {
       return *this;
     }
 
+    /// Make a copy of this scope and all of the entries inside it.
     emp::Ptr<ConfigEntry> Clone() const override { return emp::NewPtr<ConfigScope>(*this); }
   };
 
