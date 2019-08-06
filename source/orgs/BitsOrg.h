@@ -49,8 +49,15 @@ namespace mabe {
 
     /// Request output type (multiple types are possible); default to unknown.
     /// Argument is the output ID.
-    virtual emp::TypeID GetOutputType(size_t=0) override {
+    emp::TypeID GetOutputType(size_t=0) override {
       return emp::GetTypeID<emp::BitVector>();
+    }
+
+    /// Setup this organism to load from config.
+    void SetupConfig(ConfigScope & config_scope) override {
+      config_scope.LinkFuns<size_t>([this](){ return bits.size(); },
+                                    [this](const size_t & N){ return bits.Resize(N); },
+                                    "N", "Number of bits in organism", 1);
     }
   };
 
