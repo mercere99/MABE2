@@ -31,6 +31,7 @@ namespace mabe {
     virtual ~OrganismType() { ; }
 
     const std::string & GetName() const { return name; }
+    virtual std::string GetTypeName() const { return "OrganismType (base)"; }
 
     // --== Functions to manipulate config variables ==--
     template <typename T>
