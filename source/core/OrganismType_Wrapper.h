@@ -35,14 +35,20 @@ namespace mabe {
       return (org_t &) org;
     }
 
+    /// Convert this CONST organism to the correct type (after ensuring that it is!)
+    const org_t & ConvertOrg(const Organism & org) const {
+      emp_assert(&(org.GetType()) == this);
+      return (org_t &) org;
+    }
+
     /// Create a clone of the provided organism.
     emp::Ptr<Organism> CloneOrganism(const Organism & org) const override {
-      return emp::NewPtr<org_t>(org);
+      return emp::NewPtr<org_t>( ConvertOrg(org) );
     }
 
     /// Crate a random organism from scratch.
     emp::Ptr<Organism> MakeOrganism(emp::Random & random) const override {
-      auto org_ptr = emp::NewPtr<org_t>();
+      auto org_ptr = emp::NewPtr<org_t>(this);
       Randomize(*org_ptr, random);
       return org_ptr;
     }
