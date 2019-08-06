@@ -3,12 +3,12 @@
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
  *  @date 2019
  *
- *  @file  OrganismType_Wrapper.h
- *  @brief Wrapper to fill in many of the OrganismType details.
+ *  @file  OrganismManager_Wrapper.h
+ *  @brief Wrapper to fill in many of the OrganismManager details.
  */
 
-#ifndef MABE_ORGANISM_TYPE_WRAPPER_H
-#define MABE_ORGANISM_TYPE_WRAPPER_H
+#ifndef MABE_ORGANISM_MANAGER_WRAPPER_H
+#define MABE_ORGANISM_MANAGER_WRAPPER_H
 
 #include <functional>
 #include <iostream>
@@ -22,12 +22,12 @@
 namespace mabe {
 
   template <typename ORG_T>
-  class OrganismType_Wrapper : public OrganismType {
+  class OrganismManager_Wrapper : public OrganismManager {
   public:
     using org_t = ORG_T;
-    using this_t = OrganismType_Wrapper<ORG_T>;
+    using this_t = OrganismManager_Wrapper<ORG_T>;
 
-    OrganismType_Wrapper(const std::string & name) : OrganismType(name) { ; }
+    OrganismManager_Wrapper(const std::string & name) : OrganismManager(name) { ; }
 
     /// Convert this organism to the correct type (after ensuring that it is!)
     org_t & ConvertOrg(Organism & org) const {
