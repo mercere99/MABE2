@@ -96,7 +96,7 @@ namespace mabe {
 
     /// Collection of all organism types from all words.  Organism types have distinct
     /// names and can be manipulated as a whole.
-    emp::unordered_map<std::string, emp::Ptr<OrganismType>> org_types;
+    emp::unordered_map<std::string, emp::Ptr<OrganismManager>> org_managers;
 
     emp::Random random;              ///< Master random number generator
     int random_seed;                 ///< Random number seed.
@@ -145,8 +145,8 @@ namespace mabe {
 
     void Exit() {
       // Cleanup all pointers.
-      for (auto [name,org_type] : org_types) org_type.Delete();
-      org_types.clear();
+      for (auto [name,org_manager] : org_managers) org_manager.Delete();
+      org_managers.clear();
 
       // Forcibly exit.
       exit(0);
@@ -189,7 +189,7 @@ namespace mabe {
     MABE(MABE &&) = delete;
     ~MABE() {
       for (auto x : modules) x.Delete();
-      for (auto [name,org_type] : org_types) org_type.Delete();
+      for (auto [name,org_manager] : org_managers) org_manager.Delete();
     }
 
     // --- Basic accessors ---
@@ -288,9 +288,9 @@ namespace mabe {
     }
 
     void Inject(const std::string & type_name, size_t copy_count=1) {
-      const OrganismType & org_type = GetOrganismType(type_name);
+      const OrganismManager & org_manager = GetOrganismManager(type_name);
       for (size_t i = 0; i < copy_count; i++) {
-        emp::Ptr<Organism> inject_org = org_type.MakeOrganism(random);
+        emp::Ptr<Organism> inject_org = org_manager.MakeOrganism(random);
         Iterator pos = inject_pos_fun(*inject_org);
         if (pos.IsValid()) AddOrgAt( inject_org, pos);
         else {
@@ -386,16 +386,16 @@ namespace mabe {
 
     // --- Deal with Organism Types ---
 
-    OrganismType & GetOrganismType(const std::string & type_name) {
-      emp_assert(emp::Has(org_types, type_name)); // An org type must be created before base retrieved.
-      return *(org_types[type_name]);
+    OrganismManager & GetOrganismManager(const std::string & type_name) {
+      emp_assert(emp::Has(org_managers, type_name)); // An org type must be created before base retrieved.
+      return *(org_managers[type_name]);
     }
 
     template <typename ORG_TYPE_T>
-    ORG_TYPE_T & AddOrganismType(const std::string type_name) {
-      emp_assert(emp::Has(org_types, type_name) == false);
+    ORG_TYPE_T & AddOrganismManager(const std::string type_name) {
+      emp_assert(emp::Has(org_managers, type_name) == false);
       auto new_type = emp::NewPtr<ORG_TYPE_T>(type_name);
-      org_types[type_name] = new_type;
+      org_managers[type_name] = new_type;
       return *new_type;
     }
 
@@ -415,8 +415,8 @@ namespace mabe {
       for (auto m : modules) m->SetupConfig_Base(mods_scope);
 
       // Loop through organism types.
-      auto & org_scope = config_scope.AddScope("org_types", "Details about organisms types used in this runs.");
-      for (auto o : org_types) o.second->SetupConfig(org_scope);
+      auto & org_scope = config_scope.AddScope("org_managers", "Details about organisms types used in this runs.");
+      for (auto o : org_managers) o.second->SetupConfig(org_scope);
     }
   };
 

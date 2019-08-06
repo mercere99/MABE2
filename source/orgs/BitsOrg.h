@@ -12,7 +12,7 @@
 #define MABE_BITS_ORGANISM_H
 
 #include "../core/Organism.h"
-#include "../core/OrganismType_Wrapper.h"
+#include "../core/OrganismManager_Wrapper.h"
 
 #include "tools/BitVector.h"
 #include "tools/random_utils.h"
@@ -20,22 +20,22 @@
 namespace mabe {
 
   class BitsOrg : public Organism {
-    friend class BitsOrgType;
+    friend class BitsOrgManager;
   protected:
     emp::BitVector bits;
 
   public:
-    BitsOrg(emp::Ptr<const OrganismType> ptr) : Organism(ptr) {
-      emp_assert(!type_ptr.IsNull());
+    BitsOrg(emp::Ptr<const OrganismManager> ptr) : Organism(ptr) {
+      emp_assert(!manager_ptr.IsNull());
     }
     BitsOrg(const BitsOrg &) = default;
     BitsOrg(BitsOrg &&) = default;
-    BitsOrg(const emp::BitVector & in, emp::Ptr<const OrganismType> ptr)
+    BitsOrg(const emp::BitVector & in, emp::Ptr<const OrganismManager> ptr)
     : Organism(ptr), bits(in) {
-      emp_assert(!type_ptr.IsNull());
+      emp_assert(!manager_ptr.IsNull());
     }
-    BitsOrg(size_t N, emp::Ptr<const OrganismType> ptr) : Organism(ptr), bits(N) {
-      emp_assert(!type_ptr.IsNull());
+    BitsOrg(size_t N, emp::Ptr<const OrganismManager> ptr) : Organism(ptr), bits(N) {
+      emp_assert(!manager_ptr.IsNull());
     }
     ~BitsOrg() { ; }
 
@@ -61,14 +61,14 @@ namespace mabe {
     }
   };
 
-  class BitsOrgType : public OrganismType_Wrapper<BitsOrg> {
+  class BitsOrgManager : public OrganismManager_Wrapper<BitsOrg> {
   private:
     size_t N;  ///< Number of bits in this type of organism.
-    using base_t = OrganismType_Wrapper<BitsOrg>;
+    using base_t = OrganismManager_Wrapper<BitsOrg>;
   public:
-    BitsOrgType(const std::string & in_name) : base_t(in_name) { ; }
+    BitsOrgManager(const std::string & in_name) : base_t(in_name) { ; }
 
-    std::string GetTypeName() const override { return "BitsOrgType"; }
+    std::string GetTypeName() const override { return "BitsOrgManager"; }
 
     emp::Ptr<Organism> MakeOrganism(emp::Random & random) const override {
       auto org_ptr = emp::NewPtr<BitsOrg>(N, this);
@@ -92,7 +92,7 @@ namespace mabe {
     }
 
     std::ostream & Print(Organism & org, std::ostream & os) const override {
-      emp_assert(&(org.GetType()) == this);
+      emp_assert(&(org.GetManager()) == this);
       os << org.ToString();
       return os;
     }

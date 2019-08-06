@@ -22,7 +22,7 @@
 int main(int argc, char* argv[])
 {
   mabe::MABE world(argc, argv);
-  world.AddOrganismType<mabe::BitsOrgType>("BitOrg");
+  world.AddOrganismManager<mabe::BitsOrgManager>("BitOrg");
   world.AddModule<mabe::Mutate>(0, 1);
   world.AddModule<mabe::EvalNK>(20, 4, "bits", "fitness");
   world.AddModule<mabe::SelectElite>("fitness", 20, 10);

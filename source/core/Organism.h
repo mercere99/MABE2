@@ -16,21 +16,21 @@
 #include "meta/TypeID.h"
 #include "tools/string_utils.h"
 
-#include "OrganismType.h"
+#include "OrganismManager.h"
 
 namespace mabe {
 
   class Organism {
   protected:
     emp::VarMap var_map;                    ///< Map of all dynamic variables assigned to organism
-    emp::Ptr<const OrganismType> type_ptr;  ///< Pointer the the specific organism type
+    emp::Ptr<const OrganismManager> manager_ptr;  ///< Pointer the the specific organism type
 
   public:
-    Organism(emp::Ptr<const OrganismType> _ptr) : type_ptr(_ptr) { ; }
+    Organism(emp::Ptr<const OrganismManager> _ptr) : manager_ptr(_ptr) { ; }
     virtual ~Organism() { ; }
 
-    const OrganismType & GetType() { emp_assert(type_ptr); return *type_ptr; }
-    const OrganismType & GetType() const { emp_assert(type_ptr); return *type_ptr; }
+    const OrganismManager & GetManager() { emp_assert(manager_ptr); return *manager_ptr; }
+    const OrganismManager & GetManager() const { emp_assert(manager_ptr); return *manager_ptr; }
 
     bool HasVar(const std::string & name) const { return var_map.Has(name); }
     template <typename T> T & GetVar(const std::string & name) { return var_map.Get<T>(name); }
@@ -47,17 +47,17 @@ namespace mabe {
     // --- Functions for overriding ---
 
     /// We MUST be able to make a copy of organisms for MABE to function.
-    virtual emp::Ptr<Organism> Clone() const { return type_ptr->CloneOrganism(*this); }
+    virtual emp::Ptr<Organism> Clone() const { return manager_ptr->CloneOrganism(*this); }
 
     /// If we are going to print organisms (to screen or file) we need to be able to convert
     /// them to strings.
     virtual std::string ToString() { return "__unknown__"; }
 
     /// For evolution to function, we need to be able to mutate offspring.
-    virtual int Mutate(emp::Random & random) { return type_ptr->Mutate(*this, random); }
+    virtual int Mutate(emp::Random & random) { return manager_ptr->Mutate(*this, random); }
 
     /// Completely randomize a new organism (typically for initialization)
-    virtual void Randomize(emp::Random & random) { type_ptr->Randomize(*this, random); }
+    virtual void Randomize(emp::Random & random) { manager_ptr->Randomize(*this, random); }
 
     /// Generate an output and place it in the VarMap under the provided name (default = "result").
     /// Arguments are the output name int he VarMap and the output ID.

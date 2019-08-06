@@ -31,13 +31,13 @@ namespace mabe {
 
     /// Convert this organism to the correct type (after ensuring that it is!)
     org_t & ConvertOrg(Organism & org) const {
-      emp_assert(&(org.GetType()) == this);
+      emp_assert(&(org.GetManager()) == this);
       return (org_t &) org;
     }
 
     /// Convert this CONST organism to the correct type (after ensuring that it is!)
     const org_t & ConvertOrg(const Organism & org) const {
-      emp_assert(&(org.GetType()) == this);
+      emp_assert(&(org.GetManager()) == this);
       return (org_t &) org;
     }
 
@@ -55,7 +55,7 @@ namespace mabe {
 
     /// By default print an organism by triggering it's ToString() function.
     std::ostream & Print(Organism & org, std::ostream & os) const override {
-      emp_assert(&(org.GetType()) == this);
+      emp_assert(&(org.GetManager()) == this);
       os << org.ToString();
       return os;
     }
