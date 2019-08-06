@@ -19,39 +19,16 @@
 #include "../source/schema/Mutate.h"
 #include "../source/select/SelectElite.h"
 
-// EMP_BUILD_CONFIG( NKConfig,
-//   GROUP(DEFAULT, "Default settings for NK model"),
-//   VALUE(K, uint32_t, 10, "Level of epistasis in the NK model"),
-//   VALUE(N, uint32_t, 200, "Number of bits in each organisms (must be > K)"), ALIAS(GENOME_SIZE),
-//   VALUE(SEED, int, 0, "Random number seed (0 for based on time)"),
-//   VALUE(POP_SIZE, uint32_t, 1000, "Number of organisms in the popoulation."),
-//   VALUE(MAX_GENS, uint32_t, 2000, "How many generations should we process?"),
-//   VALUE(MUT_COUNT, uint32_t, 3, "How many bit positions should be randomized?"), ALIAS(NUM_MUTS),
-// )
-
 int main(int argc, char* argv[])
 {
-  // NKConfig config;
-  // config.Read("NK.cfg");
-
-  // auto args = emp::cl::ArgManager(argc, argv);
-  // if (args.ProcessConfigOptions(config, std::cout, "NK.cfg", "NK-macros.h") == false) exit(0);
-  // if (args.TestUnknown() == false) exit(0);  // If there are leftover args, throw an error.
-
-  const uint32_t N = 20;  //config.N();
-  const uint32_t K = 4;   //config.K();
-  // [[maybe_unused]] const uint32_t POP_SIZE = config.POP_SIZE();
-  // [[maybe_unused]] const uint32_t MAX_GENS = config.MAX_GENS();
-  // [[maybe_unused]] const uint32_t MUT_COUNT = config.MUT_COUNT();
-
-  mabe::MABE control(argc, argv);
-  control.AddOrganismType<mabe::BitsOrgType>("BitOrg");
-  control.AddModule<mabe::Mutate>(0, 1);
-  control.AddModule<mabe::EvalNK>(N, K, "bits", "fitness");
-  control.AddModule<mabe::SelectElite>("fitness", 20, 10);
-  control.Setup();
-  control.Inject("BitOrg", 200);
-  control.Update(100);
+  mabe::MABE world(argc, argv);
+  world.AddOrganismType<mabe::BitsOrgType>("BitOrg");
+  world.AddModule<mabe::Mutate>(0, 1);
+  world.AddModule<mabe::EvalNK>(20, 4, "bits", "fitness");
+  world.AddModule<mabe::SelectElite>("fitness", 20, 10);
+  world.Setup();
+  world.Inject("BitOrg", 200);
+  world.Update(100);
 
 /*
   // emp::EAWorld<BitOrg, emp::FitCacheOff> pop(random, "NKWorld");
