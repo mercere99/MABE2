@@ -41,17 +41,30 @@ namespace mabe {
       return (org_t &) org;
     }
 
-    /// Create a clone of the provided organism.
+    /// Create a clone of the provided organism; default to using copy constructor.
     emp::Ptr<Organism> CloneOrganism(const Organism & org) const override {
       return emp::NewPtr<org_t>( ConvertOrg(org) );
     }
 
-    /// Crate a random organism from scratch.
+    /// Create a random organism from scratch.  Default to using the base constructor
+    /// (which requires a pointer to the associated organism manager.)
+    emp::Ptr<Organism> MakeOrganism() const override {
+      auto org_ptr = emp::NewPtr<org_t>(this);
+      return org_ptr;
+    }
+
+    /// Create a random organism from scratch.  Default to using the base constructor
+    /// (which requires a pointer to the associated organism manager) and then randomize
+    /// if a random number generator is provided.
     emp::Ptr<Organism> MakeOrganism(emp::Random & random) const override {
       auto org_ptr = emp::NewPtr<org_t>(this);
       Randomize(*org_ptr, random);
       return org_ptr;
     }
+
+    /// Convert an organism to a string for printing; if not overridden, just prints
+    /// "__unknown__".
+    std::string ToString(const Organism &) const override { return "__unknown__"; };
 
     /// By default print an organism by triggering it's ToString() function.
     std::ostream & Print(Organism & org, std::ostream & os) const override {
