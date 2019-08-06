@@ -42,7 +42,7 @@ namespace mabe {
       config_scope.LinkVar(copy_count, "copy_count", "Number of copies to make of replicated organisms", 1);
     }
 
-    void Setup(mabe::MABE & control) {
+    void SetupModule(mabe::MABE & control) {
       (void) control;
     }
 

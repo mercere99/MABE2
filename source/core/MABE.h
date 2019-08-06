@@ -207,7 +207,7 @@ namespace mabe {
 
       Setup_Synchronisity();  // Should generations be synchronous or asynchronous?
       Setup_Populations();    // Give modules access to the correct populations.
-      Setup_Modules();        // Run module-specific Setup() and ensure placement is initialized.
+      Setup_Modules();        // Run SetupModule() on each module; initialize placement if needed.
       Setup_Traits();         // Make sure module traits do not clash.
 
       // Collect errors in any module.
@@ -539,8 +539,8 @@ namespace mabe {
   }
 
   void MABE::Setup_Modules() {
-    // Allow the user-defined module Setup() member functions run.
-    for (emp::Ptr<Module> mod_ptr : modules) mod_ptr->Setup(*this);
+    // Allow the user-defined module SetupModule() member functions run.
+    for (emp::Ptr<Module> mod_ptr : modules) mod_ptr->SetupModule(*this);
 
     // If none of the modules setup the placement functions, do so now.
     if (!birth_pos_fun) {

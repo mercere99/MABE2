@@ -45,7 +45,7 @@ namespace mabe {
       config_scope.LinkVar(K, "K", "Number of bits used in each gene", 3);
     }
 
-    void Setup(mabe::MABE & control) {
+    void SetupModule(mabe::MABE & control) {
       landscape.Config(N, K, control.GetRandom());  // Setup the fitness landscape.
     }
 
