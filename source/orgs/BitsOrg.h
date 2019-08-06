@@ -25,11 +25,18 @@ namespace mabe {
     emp::BitVector bits;
 
   public:
-    BitsOrg(emp::Ptr<OrganismType> ptr) : Organism(ptr) { ; }
+    BitsOrg(emp::Ptr<const OrganismType> ptr) : Organism(ptr) {
+      emp_assert(!type_ptr.IsNull());
+    }
     BitsOrg(const BitsOrg &) = default;
     BitsOrg(BitsOrg &&) = default;
-    BitsOrg(const emp::BitVector & in, emp::Ptr<OrganismType> ptr) : Organism(ptr), bits(in) { ; }
-    BitsOrg(size_t N, emp::Ptr<OrganismType> ptr) : Organism(ptr), bits(N) { ; }
+    BitsOrg(const emp::BitVector & in, emp::Ptr<const OrganismType> ptr)
+    : Organism(ptr), bits(in) {
+      emp_assert(!type_ptr.IsNull());
+    }
+    BitsOrg(size_t N, emp::Ptr<const OrganismType> ptr) : Organism(ptr), bits(N) {
+      emp_assert(!type_ptr.IsNull());
+    }
     ~BitsOrg() { ; }
 
     /// Use "to_string" to convert.
@@ -53,6 +60,8 @@ namespace mabe {
     using base_t = OrganismType_Wrapper<BitsOrg>;
   public:
     BitsOrgType(const std::string & in_name) : base_t(in_name) { ; }
+
+    std::string GetTypeName() const override { return "BitsOrgType"; }
 
     emp::Ptr<Organism> MakeOrganism(emp::Random & random) const override {
       auto org_ptr = emp::NewPtr<BitsOrg>(N, this);

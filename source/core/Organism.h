@@ -26,7 +26,7 @@ namespace mabe {
     emp::Ptr<const OrganismType> type_ptr;  ///< Pointer the the specific organism type
 
   public:
-    Organism(emp::Ptr<OrganismType> _ptr) : type_ptr(_ptr) { ; }
+    Organism(emp::Ptr<const OrganismType> _ptr) : type_ptr(_ptr) { ; }
     virtual ~Organism() { ; }
 
     const OrganismType & GetType() { emp_assert(type_ptr); return *type_ptr; }
