@@ -3,12 +3,12 @@
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
  *  @date 2019
  *
- *  @file  OrganismType.h
- *  @brief Generic interface for determining how a specific type of organism should function.
+ *  @file  OrganismManager.h
+ *  @brief Class to track a category of organism.
  */
 
-#ifndef MABE_ORGANISM_TYPE_H
-#define MABE_ORGANISM_TYPE_H
+#ifndef MABE_ORGANISM_MANAGER_H
+#define MABE_ORGANISM_MANAGER_H
 
 #include <functional>
 #include <iostream>
@@ -21,21 +21,21 @@ namespace mabe {
 
   class Organism;
 
-  class OrganismType {
+  class OrganismManager {
   private:
     std::string name;     ///< Name used for this type of organisms.
     emp::VarMap var_map;  ///< Map of run-time values associated with this organism type.
 
   public:
-    OrganismType(const std::string & in_name) : name(in_name) { ; }
-    virtual ~OrganismType() { ; }
+    OrganismManager(const std::string & in_name) : name(in_name) { ; }
+    virtual ~OrganismManager() { ; }
 
     const std::string & GetName() const { return name; }
-    virtual std::string GetTypeName() const { return "OrganismType (base)"; }
+    virtual std::string GetTypeName() const { return "OrganismManager (base)"; }
 
     // --== Functions to manipulate config variables ==--
     template <typename T>
-    OrganismType & AddVar(const std::string & name, const std::string & desc, const T & def_val) {
+    OrganismManager & AddVar(const std::string & name, const std::string & desc, const T & def_val) {
       var_map.Add<T>(name, def_val);
       return *this;
     }
