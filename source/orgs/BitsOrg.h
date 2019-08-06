@@ -20,7 +20,6 @@
 namespace mabe {
 
   class BitsOrg : public Organism {
-    friend class BitsOrgManager;
   protected:
     emp::BitVector bits;
 
@@ -42,6 +41,19 @@ namespace mabe {
     /// Use "to_string" to convert.
     std::string ToString() override { return emp::to_string(bits); }
 
+    size_t Mutate(emp::Random & random) override {
+      if (bits.size() == 0) return 0;
+      for (size_t i = 0; i < 3; i++) {
+        size_t pos = random.GetUInt(bits.size());
+        bits[pos] = random.P(0.5);
+      }
+      return 3;
+    }
+
+    void Randomize(emp::Random & random) override {
+      emp::RandomizeBitVector(bits, random, 0.5);
+    }
+
     /// Just use the bit sequence as the output.
     void GenerateOutput(const std::string & output_name="result", size_t=0) override {
       var_map.Set<emp::BitVector>(output_name, bits);
@@ -61,43 +73,7 @@ namespace mabe {
     }
   };
 
-  class BitsOrgManager : public OrganismManager_Wrapper<BitsOrg> {
-  private:
-    size_t N;  ///< Number of bits in this type of organism.
-    using base_t = OrganismManager_Wrapper<BitsOrg>;
-  public:
-    BitsOrgManager(const std::string & in_name) : base_t(in_name) { ; }
-
-    std::string GetTypeName() const override { return "BitsOrgManager"; }
-
-    emp::Ptr<Organism> MakeOrganism(emp::Random & random) const override {
-      auto org_ptr = emp::NewPtr<BitsOrg>(N, this);
-      Randomize(*org_ptr, random);
-      return org_ptr;
-    }
-
-    size_t Mutate(Organism & org, emp::Random & random) const override {
-      auto & bits = ConvertOrg(org).bits;
-
-      if (bits.size() == 0) return 0;
-      for (size_t i = 0; i < 3; i++) {
-        size_t pos = random.GetUInt(bits.size());
-        bits[pos] = random.P(0.5);
-      }
-      return 3;
-    }
-
-    void Randomize(Organism & org, emp::Random & random) const override {
-      emp::RandomizeBitVector(ConvertOrg(org).bits, random, 0.5);
-    }
-
-    std::ostream & Print(Organism & org, std::ostream & os) const override {
-      emp_assert(&(org.GetManager()) == this);
-      os << org.ToString();
-      return os;
-    }
-
-  };
+  using BitsOrgManager = OrganismManager_Wrapper<BitsOrg>;
 
 }
 
