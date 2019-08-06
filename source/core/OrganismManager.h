@@ -48,10 +48,18 @@ namespace mabe {
     // --== Functions to manipulate organisms ==--
     /// Create a clone of the provided organism.
     virtual emp::Ptr<Organism> CloneOrganism(const Organism &) const = 0;
+    virtual emp::Ptr<Organism> MakeOrganism() const = 0;
     virtual emp::Ptr<Organism> MakeOrganism(emp::Random &) const = 0;
-    virtual size_t Mutate(Organism &, emp::Random &) const = 0;
-    virtual void Randomize(Organism &, emp::Random &) const = 0;
+    virtual std::string ToString(const Organism &) const = 0;
     virtual std::ostream & Print(Organism &, std::ostream &) const = 0;
+
+    virtual size_t Mutate(Organism &, emp::Random &) const {
+      emp_assert(false, "Mutate() must be overridden for either Organism or OrganismManager.");
+      return 0;
+    }
+    virtual void Randomize(Organism &, emp::Random &) const {
+      emp_assert(false, "Randomize() must be overridden for either Organism or OrganismManager.");
+    }
 
     virtual void SetupConfig(ConfigScope & config_scope) {
       (void) config_scope;
