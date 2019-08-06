@@ -46,22 +46,24 @@ namespace mabe {
 
     // --- Functions for overriding ---
 
-    /// We MUST be able to make a copy of organisms for MABE to function.
+    /// We MUST be able to make a copy of organisms for MABE to function.  If this function
+    /// is not overridden, try to the equivilent function in the organism manager.
     virtual emp::Ptr<Organism> Clone() const { return manager_ptr->CloneOrganism(*this); }
 
     /// If we are going to print organisms (to screen or file) we need to be able to convert
-    /// them to strings.
-    virtual std::string ToString() { return "__unknown__"; }
+    /// them to strings.  If this function is not overridden, try to the equivilent function
+    /// in the organism manager.
+    virtual std::string ToString() { return manager_ptr->ToString(*this); }
 
     /// For evolution to function, we need to be able to mutate offspring.
-    virtual int Mutate(emp::Random & random) { return manager_ptr->Mutate(*this, random); }
+    virtual size_t Mutate(emp::Random & random) { return manager_ptr->Mutate(*this, random); }
 
     /// Completely randomize a new organism (typically for initialization)
     virtual void Randomize(emp::Random & random) { manager_ptr->Randomize(*this, random); }
 
     /// Generate an output and place it in the VarMap under the provided name (default = "result").
     /// Arguments are the output name int he VarMap and the output ID.
-    virtual void GenerateOutput(const std::string & ="result", size_t=0) { }
+    virtual void GenerateOutput(const std::string & ="result", size_t=0) { ; }
 
     /// Request output type (multiple types are possible); default to unknown.
     /// Argument is the output ID.
