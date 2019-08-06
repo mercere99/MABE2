@@ -66,6 +66,13 @@ namespace mabe {
     /// Request output type (multiple types are possible); default to unknown.
     /// Argument is the output ID.
     virtual emp::TypeID GetOutputType(size_t=0) { return emp::TypeID(); }
+
+
+    /// --- Extra functions for when this is used a a prototype organism ---
+    
+    /// Setup organism-specific configuration options.
+    virtual void SetupConfig(ConfigScope & config_scope) { ; }
+
   };
 
 }
