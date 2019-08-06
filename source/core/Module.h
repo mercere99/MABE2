@@ -60,11 +60,12 @@ namespace mabe {
     emp::vector<std::string> errors;  ///< Has this class detected any configuration errors?
 
     // What type of module is this (note, some can be more than one!)
-    bool is_evaluate=false;   ///< Does this module perform evaluation on organisms?
-    bool is_select=false;     ///< Does this module select organisms to reproduce?
-    bool is_placement=false;  ///< Does this module handle offspring placement?
-    bool is_mutate=false;     ///< Does this module handle triggering mutations?
-    bool is_analyze=false;    ///< Does this module record or evaluate data?
+    bool is_evaluate=false;    ///< Does this module perform evaluation on organisms?
+    bool is_select=false;      ///< Does this module select organisms to reproduce?
+    bool is_placement=false;   ///< Does this module handle offspring placement?
+    bool is_mutate=false;      ///< Does this module handle triggering mutations?
+    bool is_analyze=false;     ///< Does this module record or evaluate data?
+    bool is_org_manager=false; ///< Does this module manage a type of organism?
 
     /// Is this module expecting sychronous replication (i.e., discrete generations) or
     /// asynchronous replication (i.e., overlapping generations)?  The former is more common
@@ -77,7 +78,7 @@ namespace mabe {
     };
     ReplicationType rep_type = ReplicationType::NO_PREFERENCE;
 
-    /// Which populations are we operating on?
+    /// How many populations are we operating on?
     size_t min_pops = 0;                           ///< Minimum number of population needed
 
     /// Which traits is this module working with?
@@ -112,19 +113,21 @@ namespace mabe {
     bool IsPlacement() const noexcept  { return is_placement; }
     bool IsMutate() const noexcept  { return is_mutate; }
     bool IsAnalyze() const noexcept  { return is_analyze; }
+    bool IsOrgManager() const noexcept { return is_org_manager; }
 
     Module & IsEvaluate(bool in) noexcept { is_evaluate = in; return *this; }
     Module & IsSelect(bool in) noexcept { is_select = in; return *this; }
     Module & IsPlacement(bool in) noexcept { is_placement = in; return *this; }
     Module & IsMutate(bool in) noexcept { is_mutate = in; return *this; }
     Module & IsAnalyze(bool in) noexcept { is_analyze = in; return *this; }
+    Module & IsOrgManager(bool in) noexcept { is_org_manager = in; return *this; }
 
     Module & RequireAsync() { rep_type = ReplicationType::REQUIRE_ASYNC; return *this; }
     Module & DefaultAsync() { rep_type = ReplicationType::DEFAULT_ASYNC; return *this; }
     Module & DefaultSync() { rep_type = ReplicationType::DEFAULT_SYNC; return *this; }
     Module & RequireSync() { rep_type = ReplicationType::REQUIRE_SYNC; return *this; }
 
-    virtual void Setup(mabe::MABE &) { /* By default, assume no setup needed. */ }
+    virtual void SetupModule(mabe::MABE &) { /* By default, assume no setup needed. */ }
     virtual void Update(mabe::MABE &) { /* By default, do nothing at update. */ }
 
   // --------------------- Functions to be used in derived modules ONLY --------------------------
