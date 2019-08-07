@@ -416,7 +416,10 @@ namespace mabe {
 
       // Loop through organism types.
       auto & org_scope = config_scope.AddScope("org_managers", "Details about organisms types used in this runs.");
-      for (auto o : org_managers) o.second->SetupConfig(org_scope);
+      for (auto o : org_managers) {
+        auto & cur_scope = org_scope.AddScope(o.first, "Organism type");
+        o.second->SetupConfig(cur_scope);
+      }
     }
   };
 
