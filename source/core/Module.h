@@ -7,7 +7,12 @@
  *  @brief Base class for all MABE modules.
  * 
  *  Development Notes
- *  - Various On* functions should be automatically detected and run when relevant, including:
+ *  - Various On* and Before* functions should be automatically detected and run when relevant.
+ *    These include:
+ *     BeforeUpdate(size_t update_ending)
+ *       : Update is ending; new one is about to start
+ *     OnUpdate(size_t new_update)
+ *       : New update has just started.
  *     BeforeRepro(Iterator parent_pos) 
  *       : Parent is about to reporduce.
  *     OnOffspringReady(Organism & offspring, Iterator parent_pos)
@@ -18,18 +23,26 @@
  *       : Placement location has been identified (For birth or inject)
  *     OnPlacement(Iterator placement_pos)
  *       : New organism has been placed in the poulation.
+ *     BeforeMutate(Organism & org)
+ *       : Mutate is about to run on an organism.
  *     OnMutate(Organism & org)
  *       : Organism has had its genome changed due to mutation.
- *     OnUpdate(size_t ud)
- *       : Regular update is about to occur.
  *     BeforeDeath(Iterator remove_pos)
  *       : Organism is about to die.
+ *     BeforeSwap(Iterator pos1, Iterator pos2)
+ *       : Two organisms' positions in the population are about to move.
  *     OnSwap(Iterator pos1, Iterator pos2)
- *       : Organism's position in the population is about to move.
+ *       : Two organisms' positions in the population have just swapped.
  *     BeforePopResize(Population & pop, size_t new_size)
  *       : Full population is about to be resized.
  *     OnPopResize(Population & pop, size_t old_size)
  *       : Full population has just been resized.
+ *     OnNewOrgManager(OrganismManager & org_man)
+ *       : A new type of organism is being added to MABE.
+ *     BeforeExit()
+ *       : Run immediately before MABE is about to exit.
+ *     OnHelp()
+ *       : Run when the --help option is called at startup.
  *     ...
  */
 
