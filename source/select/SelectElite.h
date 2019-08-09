@@ -30,7 +30,7 @@ namespace mabe {
       : Module("SelectElite", "Module to select organisms with the highest value in a trait.")
       , trait(in_trait), top_count(tcount), copy_count(ccount)
     {
-      IsSelect(true);                  ///< Mark this module as a selection module.
+      SetIsSelect(true);                  ///< Mark this module as a selection module.
       DefaultSync();                   ///< This module defaults to synchronous generations.
       AddRequiredTrait<double>(trait); ///< The fitness trait must be set by another module.
       SetMinPops(1);                   ///< Must run elite selection on a population.
