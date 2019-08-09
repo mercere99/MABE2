@@ -22,9 +22,11 @@ namespace mabe {
   class Organism;
 
   class OrganismManager {
-  private:
-    std::string name;     ///< Name used for this type of organisms.
-    emp::VarMap var_map;  ///< Map of run-time values associated with this organism type.
+  protected:
+    std::string name;              ///< Name used for this type of organisms.
+    emp::VarMap var_map;           ///< Map of run-time values associated with this organism type.
+
+    emp::Ptr<Organism> prototype;  ///< Base organism to copy.
 
   public:
     OrganismManager(const std::string & in_name) : name(in_name) { ; }
@@ -61,9 +63,7 @@ namespace mabe {
       emp_assert(false, "Randomize() must be overridden for either Organism or OrganismManager.");
     }
 
-    virtual void SetupConfig(ConfigScope & config_scope) {
-      (void) config_scope;
-    }
+    virtual void SetupConfig(ConfigScope &) { }
   };
 
 }
