@@ -27,7 +27,14 @@ namespace mabe {
     using org_t = ORG_T;
     using this_t = OrganismManager_Wrapper<ORG_T>;
 
-    OrganismManager_Wrapper(const std::string & name) : OrganismManager(name) { ; }
+    OrganismManager_Wrapper(const std::string & name)
+    : OrganismManager(name) {
+      prototype = emp::NewPtr<org_t>(this);
+    }
+
+    ~OrganismManager_Wrapper() {
+      prototype.Delete();
+    }
 
     /// Convert this organism to the correct type (after ensuring that it is!)
     org_t & ConvertOrg(Organism & org) const {
@@ -46,19 +53,17 @@ namespace mabe {
       return emp::NewPtr<org_t>( ConvertOrg(org) );
     }
 
-    /// Create a random organism from scratch.  Default to using the base constructor
-    /// (which requires a pointer to the associated organism manager.)
+    /// Create a random organism from scratch.  Default to using the prototype organism.
     emp::Ptr<Organism> MakeOrganism() const override {
-      auto org_ptr = emp::NewPtr<org_t>(this);
+      auto org_ptr = prototype->Clone();
       return org_ptr;
     }
 
-    /// Create a random organism from scratch.  Default to using the base constructor
-    /// (which requires a pointer to the associated organism manager) and then randomize
-    /// if a random number generator is provided.
+    /// Create a random organism from scratch.  Default to using the prototype organism
+    /// and then randomize if a random number generator is provided.
     emp::Ptr<Organism> MakeOrganism(emp::Random & random) const override {
-      auto org_ptr = emp::NewPtr<org_t>(this);
-      Randomize(*org_ptr, random);
+      auto org_ptr = prototype->Clone();
+      org_ptr->Randomize(random);
       return org_ptr;
     }
 
@@ -72,6 +77,11 @@ namespace mabe {
       os << org.ToString();
       return os;
     }
+
+    void SetupConfig(ConfigScope & config_scope) override {
+      prototype->SetupConfig(config_scope);
+    }
+
   };
 }
 
