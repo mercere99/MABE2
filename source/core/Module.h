@@ -72,13 +72,16 @@ namespace mabe {
     std::string desc;                 ///< Description for this module.
     emp::vector<std::string> errors;  ///< Has this class detected any configuration errors?
 
-    // What type of module is this (note, some can be more than one!)
-    bool is_evaluate=false;    ///< Does this module perform evaluation on organisms?
-    bool is_select=false;      ///< Does this module select organisms to reproduce?
-    bool is_placement=false;   ///< Does this module handle offspring placement?
-    bool is_mutate=false;      ///< Does this module handle triggering mutations?
-    bool is_analyze=false;     ///< Does this module record or evaluate data?
-    bool is_org_manager=false; ///< Does this module manage a type of organism?
+    /// Informative tags about this module.  Expected tags include:
+    ///   "Evaluate"   : Examines organisms and annotates the data map.
+    ///   "Select"     : Chooses organisms to act as parents in for the next generation.
+    ///   "Placement"  : Identifies where new organisms should be placed in the population.
+    ///   "Mutate"     : Modifies organism genomes
+    ///   "Analyze"    : Records data or makes measurements on the population.
+    ///   "Manager"    : Manages a type of organism in the world.
+    ///   "Visualizer" : Displays data for the user.
+    ///   "Interface"  : Provides mechanisms for the user to interact with the world.
+    std::set<std::string> action_tags; ///< Informative tags about this model
 
     /// Is this module expecting sychronous replication (i.e., discrete generations) or
     /// asynchronous replication (i.e., overlapping generations)?  The former is more common
@@ -121,19 +124,30 @@ namespace mabe {
 
     virtual emp::Ptr<Module> Clone() { return nullptr; }
 
-    bool IsEvaluate() const noexcept  { return is_evaluate; }
-    bool IsSelect() const noexcept  { return is_select; }
-    bool IsPlacement() const noexcept  { return is_placement; }
-    bool IsMutate() const noexcept  { return is_mutate; }
-    bool IsAnalyze() const noexcept  { return is_analyze; }
-    bool IsOrgManager() const noexcept { return is_org_manager; }
 
-    Module & IsEvaluate(bool in) noexcept { is_evaluate = in; return *this; }
-    Module & IsSelect(bool in) noexcept { is_select = in; return *this; }
-    Module & IsPlacement(bool in) noexcept { is_placement = in; return *this; }
-    Module & IsMutate(bool in) noexcept { is_mutate = in; return *this; }
-    Module & IsAnalyze(bool in) noexcept { is_analyze = in; return *this; }
-    Module & IsOrgManager(bool in) noexcept { is_org_manager = in; return *this; }
+    bool IsEvaluate() const { return emp::Has(action_tags, "Evaluate"); }
+    bool IsSelect() const { return emp::Has(action_tags, "Select"); }
+    bool IsPlacement() const { return emp::Has(action_tags, "Placement"); }
+    bool IsMutate() const { return emp::Has(action_tags, "Mutate"); }
+    bool IsAnalyze() const { return emp::Has(action_tags, "Analyze"); }
+    bool IsManager() const { return emp::Has(action_tags, "Manager"); }
+    bool IsVisualizer() const { return emp::Has(action_tags, "Visualizer"); }
+    bool IsInterface() const { return emp::Has(action_tags, "Interface"); }
+
+    Module & SetActionTag(const std::string & name, bool setting=true) {
+      if (setting) action_tags.insert(name);
+      else action_tags.erase(name);
+      return *this;
+    }
+
+    Module & SetIsEvaluate(bool in=true) { return SetActionTag("Evaluate", in); }
+    Module & SetIsSelect(bool in=true) { return SetActionTag("Select", in); }
+    Module & SetIsPlacement(bool in=true) { return SetActionTag("Placement", in); }
+    Module & SetIsMutate(bool in=true) { return SetActionTag("Mutate", in); }
+    Module & SetIsAnalyze(bool in=true) { return SetActionTag("Analyze", in); }
+    Module & SetIsManager(bool in=true) { return SetActionTag("Manager", in); }
+    Module & SetIsVisualizer(bool in=true) { return SetActionTag("Visualizer", in); }
+    Module & SetIsInterface(bool in=true) { return SetActionTag("Interface", in); }
 
     Module & RequireAsync() { rep_type = ReplicationType::REQUIRE_ASYNC; return *this; }
     Module & DefaultAsync() { rep_type = ReplicationType::DEFAULT_ASYNC; return *this; }
