@@ -191,9 +191,7 @@ namespace mabe {
     void Setup_Traits();
 
   public:
-    MABE(int argc, char* argv[]) : args(emp::cl::args_to_strings(argc, argv)) {
-      ProcessArgs();
-    }
+    MABE(int argc, char* argv[]) : args(emp::cl::args_to_strings(argc, argv)) { ; }
     MABE(const MABE &) = delete;
     MABE(MABE &&) = delete;
     ~MABE() {
@@ -209,6 +207,7 @@ namespace mabe {
     // --- Tools to setup runs ---
     void Setup() {
       SetupConfig(config.GetRootScope());  // Load all of the parameters needed by modules, etc.
+      ProcessArgs();                       // Deal with command-line inputs.
       config.Load(config_filenames);       // Load files, if any.
 
       // If we are writing a file, do so and stop.
@@ -458,10 +457,6 @@ namespace mabe {
         std::cout << "MABE v" << VERSION << "\n";
         return false;
       });
-    // Command line options
-    //  -p set parameter (name value)  (-s --set)
-    //  -s write settings files        (-g --generate)
-    //  -l creates population loader script (?)
 
     // Scan through all input argument positions.
     bool show_help = false;
