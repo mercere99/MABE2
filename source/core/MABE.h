@@ -165,6 +165,15 @@ namespace mabe {
       Exit();
     }
 
+    void ShowModules() {
+      std::cout << "MABE v" << VERSION << "\n"
+                << "Active modules:\n";
+      for (auto mod_ptr : modules) {
+        std::cout << "  " << mod_ptr->GetName() << " : " << mod_ptr->GetDesc() << "\n";
+      }          
+      Exit();
+    }
+
     template <typename... Ts>
     void AddError(Ts &&... args) {
       errors.push_back( emp::to_string( std::forward<Ts>(args)... ));
@@ -440,6 +449,8 @@ namespace mabe {
       });
     arg_set.emplace_back("--help", "-h", "              ", "Help; print command-line options for MABE",
       [this](const emp::vector<std::string> &){ ShowHelp(); return false; } );
+    arg_set.emplace_back("--modules", "-m", "              ", "Module list",
+      [this](const emp::vector<std::string> &){ ShowModules(); return false; } );
     arg_set.emplace_back("--set", "-s", "[param=value] ", "Set specified parameter",
       [this](const emp::vector<std::string> &){ emp_assert(false); return true; } );
     arg_set.emplace_back("--version", "-v", "              ", "Version ID of MABE",
