@@ -118,6 +118,7 @@ namespace mabe {
     }
 
     const std::string & GetName() const noexcept { return name; }
+    const std::string & GetDesc() const noexcept { return desc; }
     bool HasErrors() const { return errors.size(); }
     const emp::vector<std::string> & GetErrors() const noexcept { return errors; }
     size_t GetMinPops() const noexcept { return min_pops; }
