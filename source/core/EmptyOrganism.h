@@ -20,7 +20,7 @@ namespace mabe {
     EmptyOrganism() : Organism(nullptr) { ; }
     emp::Ptr<Organism> Clone() const override { emp_assert(false, "Do not clone EmptyOrganism"); return nullptr; }
     std::string ToString() override { return "[empty]"; }
-    int Mutate(emp::Random &) override { emp_assert(false, "EmptyOrganism cannot Mutate()"); return -1; }
+    size_t Mutate(emp::Random &) override { emp_assert(false, "EmptyOrganism cannot Mutate()"); return -1; }
     void Randomize(emp::Random &) override { emp_assert(false, "EmptyOrganism cannot Randomize()"); }
     void GenerateOutput(const std::string &, size_t) override { emp_assert(false, "EmptyOrganism cannot GenerateOutput()"); }
     emp::TypeID GetOutputType(size_t=0) override { return emp::TypeID(); }
