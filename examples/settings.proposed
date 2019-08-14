@@ -50,7 +50,9 @@ OrgType::NKOrg my_org_t {
 }
 
 // A MABE object just defines a bag of components.
-MABE world = [sheep, wolves, mutate, eval, select_sheep, select_wolves];
-world.Inject(sheep, my_org_t);          // Add a starter sheep.
+MABE world(sheep, wolves, mutate, eval, select_sheep, select_wolves);
+
+// Inject 20 organisms into population "sheep" and one into populaiton "wolves"
+world.Inject(sheep, my_org_t, 20);          // Add 20 starter sheep.
 world.Inject(wolves, my_org_t);         // Add a starter wolf.
 world.Update(1000);                     // Run the world for 1000 updates.
