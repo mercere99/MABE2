@@ -15,6 +15,7 @@
 #include "base/Ptr.h"
 #include "base/vector.h"
 #include "config/command_line.h"
+#include "control/Signal.h"
 #include "tools/Random.h"
 #include "tools/vector_utils.h"
 
@@ -31,10 +32,45 @@ namespace mabe {
 
   class MABEBase {
   protected:
+    using Iterator = Population::Iterator;  ///< Use the same iterator as Population.
+
     // --- All population signals go in here to make sure they are called appropriately ---
+    // BeforeUpdate(size_t update_ending)
+    emp::Signal<void(size_t)> before_update_sig;
+    // OnUpdate(size_t new_update)
+    emp::Signal<void(size_t)> on_update_sig;
+    // BeforeRepro(Iterator parent_pos) 
+    emp::Signal<void(Iterator)> before_repro_sig;
+    // OnOffspringReady(Organism & offspring, Iterator parent_pos)
+    emp::Signal<void(Organism &, Iterator)> on_offspring_ready_sig;
+    // OnInjectReady(Organism & inject_org)
+    emp::Signal<void(Organism &)> on_inject_ready_sig;
+    // BeforePlacement(Organism & org, Iterator target_pos)
+    emp::Signal<void(Organism &, Iterator)> before_placement_sig;
+    // OnPlacement(Iterator placement_pos)
+    emp::Signal<void(Iterator)> on_placement_sig;
+    // BeforeMutate(Organism & org)
+    emp::Signal<void(Organism &)> before_mutate_sig;
+    // OnMutate(Organism & org)
+    emp::Signal<void(Organism &)> on_mutate_sig;
+    // BeforeDeath(Iterator remove_pos)
+    emp::Signal<void(Iterator)> before_death_sig;
+    // BeforeSwap(Iterator pos1, Iterator pos2)
+    emp::Signal<void(Iterator, Iterator)> before_swap_sig;
+    // OnSwap(Iterator pos1, Iterator pos2)
+    emp::Signal<void(Iterator, Iterator)> on_swap_sig;
+    // BeforePopResize(Population & pop, size_t new_size)
+    emp::Signal<void(Population &, size_t)> before_pop_resize_sig;
+    // OnPopResize(Population & pop, size_t old_size)
+    emp::Signal<void(Population &, size_t)> on_pop_resize_sig;
+    // OnNewOrgManager(OrganismManager & org_man)
+    emp::Signal<void(OrganismManager &)> on_new_org_manager_sig;
+    // BeforeExit()
+    emp::Signal<void()> before_exit_sig;
+    // OnHelp()
+    emp::Signal<void()> on_help_sig;
 
   public:
-    using Iterator = Population::Iterator;  ///< Use the same iterator as Population.
 
     /// All insertions of organisms should come through AddOrgAt
     /// Must provide an org_ptr that is now own by the population.
