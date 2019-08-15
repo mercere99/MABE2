@@ -53,13 +53,13 @@ namespace mabe {
       Population & pop = control.GetPopulation(pop_id);
       for (auto it = pop.begin_alive(); it != pop.end_alive(); it++) {
         id_fit_map.Set(it, it->GetVar<double>(trait));
-        std::cout << "Measuring fit " << it->GetVar<double>(trait) << std::endl;
+        //std::cout << "Measuring fit " << it->GetVar<double>(trait) << std::endl;
       }
 
       // Loop through the IDs in fitness order (from highest), replicating each
       size_t num_reps = 0;
       for (auto it = id_fit_map.crvbegin(); it != id_fit_map.crvend() && num_reps++ < top_count; it++) {
-        std::cout << "Replicating fit " << it->first->GetVar<double>(trait) << std::endl;
+        //std::cout << "Replicating fit " << it->first->GetVar<double>(trait) << std::endl;
         control.Replicate(it->first, copy_count);
       }
     }
