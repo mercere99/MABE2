@@ -59,6 +59,7 @@
 
 #include "../config/Config.h"
 
+#include "Population.h"
 #include "TraitInfo.h"
 
 namespace mabe {
@@ -106,6 +107,8 @@ namespace mabe {
       errors.push_back( emp::to_string( std::forward<Ts>(args)... ));
       std::cerr << "ERROR: " << errors.back() << std::endl;
     }
+
+    using Iterator = Population::Iterator;
 
   public:
     Module(const std::string & in_name, const std::string & in_desc="")
@@ -158,6 +161,25 @@ namespace mabe {
     virtual void SetupModule(mabe::MABE &) { /* By default, assume no setup needed. */ }
     virtual void Update(mabe::MABE &) { /* By default, do nothing at update. */ }
 
+    // Functions to be called based on signals.
+    virtual void BeforeUpdate(size_t) { ; }
+    virtual void OnUpdate(size_t) { ; }
+    virtual void BeforeRepro(Iterator) { ; }
+    virtual void OnOffspringReady(Organism &, Iterator) { ; }
+    virtual void OnInjectReady(Organism &) { ; }
+    virtual void BeforePlacement(Organism &, Iterator) { ; }
+    virtual void OnPlacement(Iterator) { ; }
+    virtual void BeforeMutate(Organism &) { ; }
+    virtual void OnMutate(Organism &) { ; }
+    virtual void BeforeDeath(Iterator) { ; }
+    virtual void BeforeSwap(Iterator, Iterator) { ; }
+    virtual void OnSwap(Iterator, Iterator) { ; }
+    virtual void BeforePopResize(Population &, size_t) { ; }
+    virtual void OnPopResize(Population &, size_t) { ; }
+    virtual void OnNewOrgManager(OrganismManager &) { ; }
+    virtual void BeforeExit() { ; }
+    virtual void OnHelp() { ; }
+ 
   // --------------------- Functions to be used in derived modules ONLY --------------------------
   protected:
 
