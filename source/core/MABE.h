@@ -404,6 +404,60 @@ namespace mabe {
     MOD_T & AddModule(ARGS &&... args) {
       auto mod_ptr = emp::NewPtr<MOD_T>(std::forward<ARGS>(args)...);
       modules.push_back(mod_ptr);
+
+      // Link modules to appropriate signals.
+      if (&MOD_T::BeforeUpdate != &Module::BeforeUpdate) {
+        before_update_sig.AddAction([mod_ptr](size_t update_ending){ mod_ptr->BeforeUpdate(update_ending); });
+      }
+      if (&MOD_T::OnUpdate != &Module::OnUpdate) {
+        on_update_sig.AddAction([mod_ptr](size_t new_update){ mod_ptr->OnUpdate(new_update); });
+      }
+      if (&MOD_T::BeforeRepro != &Module::BeforeRepro) {
+        before_repro_sig.AddAction([mod_ptr](Iterator parent_pos) { mod_ptr->BeforeRepro(parent_pos); });
+      }
+      if (&MOD_T::OnOffspringReady != &Module::OnOffspringReady) {
+        on_offspring_ready_sig.AddAction([mod_ptr](Organism & offspring, Iterator parent_pos){ mod_ptr->OnOffspringReady(offspring, parent_pos); });
+      }
+      if (&MOD_T::OnInjectReady != &Module::OnInjectReady) {
+        on_inject_ready_sig.AddAction([mod_ptr](Organism & inject_org){ mod_ptr->OnInjectReady(inject_org); });
+      }
+      if (&MOD_T::BeforePlacement != &Module::BeforePlacement) {
+        before_placement_sig.AddAction([mod_ptr](Organism & org, Iterator target_pos){ mod_ptr->BeforePlacement(org, target_pos); });
+      }
+      if (&MOD_T::OnPlacement != &Module::OnPlacement) {
+        on_placement_sig.AddAction([mod_ptr](Iterator placement_pos){ mod_ptr->OnPlacement(placement_pos); });
+      }
+      if (&MOD_T::BeforeMutate != &Module::BeforeMutate) {
+        before_mutate_sig.AddAction([mod_ptr](Organism & org){ mod_ptr->BeforeMutate(org); });
+      }
+      if (&MOD_T::OnMutate != &Module::OnMutate) {
+        on_mutate_sig.AddAction([mod_ptr](Organism & org){ mod_ptr->OnMutate(org); });
+      }
+      if (&MOD_T::BeforeDeath != &Module::BeforeDeath) {
+        before_death_sig.AddAction([mod_ptr](Iterator remove_pos){ mod_ptr->BeforeDeath(remove_pos); });
+      }
+      if (&MOD_T::BeforeSwap != &Module::BeforeSwap) {
+        before_swap_sig.AddAction([mod_ptr](Iterator pos1, Iterator pos2){ mod_ptr->BeforeSwap(pos1, pos2); });
+      }
+      if (&MOD_T::OnSwap != &Module::OnSwap) {
+        on_swap_sig.AddAction([mod_ptr](Iterator pos1, Iterator pos2){ mod_ptr->OnSwap(pos1, pos2); });
+      }
+      if (&MOD_T::BeforePopResize != &Module::BeforePopResize) {
+        before_pop_resize_sig.AddAction([mod_ptr](Population & pop, size_t new_size){ mod_ptr->BeforePopResize(pop, new_size); });
+      }
+      if (&MOD_T::OnPopResize != &Module::OnPopResize) {
+        on_pop_resize_sig.AddAction([mod_ptr](Population & pop, size_t old_size){ mod_ptr->OnPopResize(pop, old_size); });
+      }
+      if (&MOD_T::OnNewOrgManager != &Module::OnNewOrgManager) {
+        on_new_org_manager_sig.AddAction([mod_ptr](OrganismManager & org_man){ mod_ptr->OnNewOrgManager(org_man); });
+      }
+      if (&MOD_T::BeforeExit != &Module::BeforeExit) {
+        before_exit_sig.AddAction([mod_ptr](){ mod_ptr->BeforeExit(); });
+      }
+      if (&MOD_T::OnHelp != &Module::OnHelp) {
+        on_help_sig.AddAction([mod_ptr](){ mod_ptr->OnHelp(); });
+      }
+
       return *mod_ptr;
     }
 
