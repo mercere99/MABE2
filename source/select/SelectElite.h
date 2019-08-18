@@ -26,8 +26,8 @@ namespace mabe {
     size_t pop_id = 0;   ///< Which population are we selecting from?
 
   public:
-    SelectElite(const std::string & in_trait="fitness", size_t tcount=1, size_t ccount=1)
-      : Module("SelectElite", "Module to select organisms with the highest value in a trait.")
+    SelectElite(mabe::MABE & control, const std::string & in_trait="fitness", size_t tcount=1, size_t ccount=1)
+      : Module(control, "SelectElite", "Module to select organisms with the highest value in a trait.")
       , trait(in_trait), top_count(tcount), copy_count(ccount)
     {
       SetIsSelect(true);                  ///< Mark this module as a selection module.
@@ -42,11 +42,9 @@ namespace mabe {
       config_scope.LinkVar(copy_count, "copy_count", "Number of copies to make of replicated organisms", 1);
     }
 
-    void SetupModule(mabe::MABE & control) {
-      (void) control;
-    }
+    void SetupModule() override { }
 
-    void Update(mabe::MABE & control) {
+    void OnUpdate(size_t update) override {
       // Construct a map of all IDs to their associated fitness values.
       using Iterator = Population::Iterator;
       emp::valsort_map<Iterator, double> id_fit_map;
