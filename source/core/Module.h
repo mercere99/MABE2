@@ -161,25 +161,96 @@ namespace mabe {
 
     virtual void SetupModule() { /* By default, assume no setup needed. */ }
 
-    // Functions to be called based on signals.
-    virtual void BeforeUpdate(size_t) { std::cout << "Warning: Calling BeforeUpdate() in base class.\n"; }
-    virtual void OnUpdate(size_t) { std::cout << "Warning: Calling OnUpdate() in base class.\n"; }
-    virtual void BeforeRepro(Iterator) { std::cout << "Warning: Calling BeforeRepro() in base class.\n"; }
-    virtual void OnOffspringReady(Organism &, Iterator) { std::cout << "Warning: Calling OnOffspringReady() in base class.\n"; }
-    virtual void OnInjectReady(Organism &) { std::cout << "Warning: Calling OnInjectReady() in base class.\n"; }
-    virtual void BeforePlacement(Organism &, Iterator) { std::cout << "Warning: Calling BeforePlacement() in base class.\n"; }
-    virtual void OnPlacement(Iterator) { std::cout << "Warning: Calling OnPlacement() in base class.\n"; }
-    virtual void BeforeMutate(Organism &) { std::cout << "Warning: Calling BeforeMutate() in base class.\n"; }
-    virtual void OnMutate(Organism &) { std::cout << "Warning: Calling OnMutate() in base class.\n"; }
-    virtual void BeforeDeath(Iterator) { std::cout << "Warning: Calling BeforeDeath() in base class.\n"; }
-    virtual void BeforeSwap(Iterator, Iterator) { std::cout << "Warning: Calling BeforeSwap() in base class.\n"; }
-    virtual void OnSwap(Iterator, Iterator) { std::cout << "Warning: Calling OnSwap() in base class.\n"; }
-    virtual void BeforePopResize(Population &, size_t) { std::cout << "Warning: Calling BeforePopResize() in base class.\n"; }
-    virtual void OnPopResize(Population &, size_t) { std::cout << "Warning: Calling OnPopResize() in base class.\n"; }
-    virtual void OnNewOrgManager(OrganismManager &) { std::cout << "Warning: Calling OnNewOrgManager() in base class.\n"; }
-    virtual void BeforeExit() { std::cout << "Warning: Calling BeforeExit() in base class.\n"; }
-    virtual void OnHelp() { std::cout << "Warning: Calling OnHelp() in base class.\n"; }
- 
+    // Functions to be called based on signals.  Note that the existance of an overridden version
+    // of each function is tracked by an associated bool value that we default to true until the
+    // base version of the function is called.
+
+    // Format:  BeforeUpdate(size_t update_ending)
+    // Trigger: Update is ending; new one is about to start
+    bool has_BeforeUpdate = true;
+    virtual void BeforeUpdate(size_t) { has_BeforeUpdate = false; }    
+
+    // Format:  OnUpdate(size_t new_update)
+    // Trigger: New update has just started.
+    bool has_OnUpdate = true;
+    virtual void OnUpdate(size_t) { has_OnUpdate = false; }    
+
+    // Format:  BeforeRepro(Iterator parent_pos) 
+    // Trigger: Parent is about to reporduce.
+    bool has_BeforeRepro = true;
+    virtual void BeforeRepro(Iterator) { has_BeforeRepro = false; }    
+
+    // Format:  OnOffspringReady(Organism & offspring, Iterator parent_pos)
+    // Trigger: Offspring is ready to be placed.
+    bool has_OnOffspringReady = true;
+    virtual void OnOffspringReady(Organism &, Iterator) { has_OnOffspringReady = false; }    
+
+    // Format:  OnInjectReady(Organism & inject_org)
+    // Trigger: Organism to be injected is ready to be placed.
+    bool has_OnInjectReady = true;
+    virtual void OnInjectReady(Organism &) { has_OnInjectReady = false; }    
+
+    // Format:  BeforePlacement(Organism & org, Iterator target_pos)
+    // Trigger: Placement location has been identified (For birth or inject)
+    bool has_BeforePlacement = true;
+    virtual void BeforePlacement(Organism &, Iterator) { has_BeforePlacement = false; }    
+
+    // Format:  OnPlacement(Iterator placement_pos)
+    // Trigger: New organism has been placed in the poulation.
+    bool has_OnPlacement = true;
+    virtual void OnPlacement(Iterator) { has_OnPlacement = false; }    
+
+    // Format:  BeforeMutate(Organism & org)
+    // Trigger: Mutate is about to run on an organism.
+    bool has_BeforeMutate = true;
+    virtual void BeforeMutate(Organism &) { has_BeforeMutate = false; }    
+
+    // Format:  OnMutate(Organism & org)
+    // Trigger: Organism has had its genome changed due to mutation.
+    bool has_OnMutate = true;
+    virtual void OnMutate(Organism &) { has_OnMutate = false; }    
+
+    // Format:  BeforeDeath(Iterator remove_pos)
+    // Trigger: Organism is about to die.
+    bool has_BeforeDeath = true;
+    virtual void BeforeDeath(Iterator) { has_BeforeDeath = false; }    
+
+    // Format:  BeforeSwap(Iterator pos1, Iterator pos2)
+    // Trigger: Two organisms' positions in the population are about to move.
+    bool has_BeforeSwap = true;
+    virtual void BeforeSwap(Iterator, Iterator) { has_BeforeSwap = false; }    
+
+    // Format:  OnSwap(Iterator pos1, Iterator pos2)
+    // Trigger: Two organisms' positions in the population have just swapped.
+    bool has_OnSwap = true;
+    virtual void OnSwap(Iterator, Iterator) { has_OnSwap = false; }    
+
+    // Format:  BeforePopResize(Population & pop, size_t new_size)
+    // Trigger: Full population is about to be resized.
+    bool has_BeforePopResize = true;
+    virtual void BeforePopResize(Population &, size_t) { has_BeforePopResize = false; }    
+
+    // Format:  OnPopResize(Population & pop, size_t old_size)
+    // Trigger: Full population has just been resized.
+    bool has_OnPopResize = true;
+    virtual void OnPopResize(Population &, size_t) { has_OnPopResize = false; }    
+
+    // Format:  OnNewOrgManager(OrganismManager & org_man)
+    // Trigger: A new type of organism is being added to MABE.
+    bool has_OnNewOrgManager = true;
+    virtual void OnNewOrgManager(OrganismManager &) { has_OnNewOrgManager = false; }    
+
+    // Format:  BeforeExit()
+    // Trigger: Run immediately before MABE is about to exit.
+    bool has_BeforeExit = true;
+    virtual void BeforeExit() { has_BeforeExit = false; }    
+
+    // Format:  OnHelp()
+    // Trigger: Run when the --help option is called at startup.
+    bool has_OnHelp = true;
+    virtual void OnHelp() { has_OnHelp = false; } 
+
+
   // --------------------- Functions to be used in derived modules ONLY --------------------------
   protected:
 
