@@ -22,8 +22,8 @@ namespace mabe {
     size_t skip = 0;    ///< How many organisms should we skip before mutating?
 
   public:
-    Mutate(size_t _pop_id=0, size_t _skip=0)
-      : Module("Mutate", "Module to trigger mutations in organisms"), pop_id(_pop_id), skip(_skip)
+    Mutate(mabe::MABE & control, size_t _pop_id=0, size_t _skip=0)
+      : Module(control, "Mutate", "Module to trigger mutations in organisms"), pop_id(_pop_id), skip(_skip)
     {
       SetIsMutate(true);                   ///< Mark this module as a mutation module.
       DefaultSync();                    ///< This module defaults to synchronous generations.
@@ -33,7 +33,7 @@ namespace mabe {
       config_scope.LinkVar(skip, "skip", "Number of orgs to exempt from mutating", 0);
     }
 
-    void Update(mabe::MABE & control) {
+    void OnUpdate(size_t update) override {
       Population & pop = control.GetPopulation(pop_id);
 
       // Loop through the organisms (skipping any at the beginning that we need to) and
