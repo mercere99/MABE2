@@ -36,39 +36,39 @@ namespace mabe {
 
     // --- All population signals go in here to make sure they are called appropriately ---
     // BeforeUpdate(size_t update_ending)
-    emp::Signal<void(size_t)> before_update_sig;
+    emp::Signal<void(size_t)> before_update_sig;  // TO IMPLEMENT
     // OnUpdate(size_t new_update)
-    emp::Signal<void(size_t)> on_update_sig;
+    emp::Signal<void(size_t)> on_update_sig;  // TO IMPLEMENT
     // BeforeRepro(Iterator parent_pos) 
-    emp::Signal<void(Iterator)> before_repro_sig;
+    emp::Signal<void(Iterator)> before_repro_sig;  // TO IMPLEMENT
     // OnOffspringReady(Organism & offspring, Iterator parent_pos)
-    emp::Signal<void(Organism &, Iterator)> on_offspring_ready_sig;
+    emp::Signal<void(Organism &, Iterator)> on_offspring_ready_sig;  // TO IMPLEMENT
     // OnInjectReady(Organism & inject_org)
-    emp::Signal<void(Organism &)> on_inject_ready_sig;
+    emp::Signal<void(Organism &)> on_inject_ready_sig;  // TO IMPLEMENT
     // BeforePlacement(Organism & org, Iterator target_pos)
-    emp::Signal<void(Organism &, Iterator)> before_placement_sig;
+    emp::Signal<void(Organism &, Iterator)> before_placement_sig;  // TO IMPLEMENT
     // OnPlacement(Iterator placement_pos)
-    emp::Signal<void(Iterator)> on_placement_sig;
+    emp::Signal<void(Iterator)> on_placement_sig;  // TO IMPLEMENT
     // BeforeMutate(Organism & org)
-    emp::Signal<void(Organism &)> before_mutate_sig;
+    emp::Signal<void(Organism &)> before_mutate_sig;  // TO IMPLEMENT
     // OnMutate(Organism & org)
-    emp::Signal<void(Organism &)> on_mutate_sig;
+    emp::Signal<void(Organism &)> on_mutate_sig;  // TO IMPLEMENT
     // BeforeDeath(Iterator remove_pos)
-    emp::Signal<void(Iterator)> before_death_sig;
+    emp::Signal<void(Iterator)> before_death_sig;  // TO IMPLEMENT
     // BeforeSwap(Iterator pos1, Iterator pos2)
-    emp::Signal<void(Iterator, Iterator)> before_swap_sig;
+    emp::Signal<void(Iterator, Iterator)> before_swap_sig;  // TO IMPLEMENT
     // OnSwap(Iterator pos1, Iterator pos2)
-    emp::Signal<void(Iterator, Iterator)> on_swap_sig;
+    emp::Signal<void(Iterator, Iterator)> on_swap_sig;  // TO IMPLEMENT
     // BeforePopResize(Population & pop, size_t new_size)
-    emp::Signal<void(Population &, size_t)> before_pop_resize_sig;
+    emp::Signal<void(Population &, size_t)> before_pop_resize_sig;  // TO IMPLEMENT
     // OnPopResize(Population & pop, size_t old_size)
-    emp::Signal<void(Population &, size_t)> on_pop_resize_sig;
+    emp::Signal<void(Population &, size_t)> on_pop_resize_sig;  // TO IMPLEMENT
     // OnNewOrgManager(OrganismManager & org_man)
-    emp::Signal<void(OrganismManager &)> on_new_org_manager_sig;
+    emp::Signal<void(OrganismManager &)> on_new_org_manager_sig;  // TO IMPLEMENT
     // BeforeExit()
-    emp::Signal<void()> before_exit_sig;
+    emp::Signal<void()> before_exit_sig;  // TO IMPLEMENT
     // OnHelp()
-    emp::Signal<void()> on_help_sig;
+    emp::Signal<void()> on_help_sig;  // TO IMPLEMENT
 
   public:
 
@@ -260,34 +260,39 @@ namespace mabe {
       }
     }
 
-    /// Update MABE the specified number of step.
-    void Update(size_t num_updates=1) {
-      for (size_t ud = 0; ud < num_updates; ud++) {
-        std::cout << "Update: " << ud << std::endl;
+    /// Update MABE a single step.
+    void Update() {
+      before_update_sig.Trigger(update);
 
-        // Run Update on all modules...
-        for (emp::Ptr<Module> mod_ptr : modules) mod_ptr->Update(*this);
+      update++;
+      std::cout << "Update: " << update << std::endl;
 
-        // If we are running a synchronous reproduction, move the next generation to this one.
-        if (sync_pop) {
-          Population & from_pop = pops[1];
-          Population & to_pop = pops[0];
+      // Run Update on all modules...
+      on_update_sig.Trigger(update);
 
-          // Clear out the current main population and resize.
-          EmptyPop(to_pop, from_pop.GetSize());  
+      // If we are running a synchronous reproduction, move the next generation to this one.
+      if (sync_pop) {
+        Population & from_pop = pops[1];
+        Population & to_pop = pops[0];
 
-          // Move the next generation to the main population.
-          Iterator it_to = to_pop.begin();
-          for (Iterator it_from = from_pop.begin(); it_from != from_pop.end(); ++it_from, ++it_to) {
-            if (it_from.IsOccupied()) MoveOrg(it_from, it_to);
-          }
+        // Clear out the current main population and resize.
+        EmptyPop(to_pop, from_pop.GetSize());  
 
-          // Clear out the next generation
-          EmptyPop(from_pop, 0);
+        // Move the next generation to the main population.
+        Iterator it_to = to_pop.begin();
+        for (Iterator it_from = from_pop.begin(); it_from != from_pop.end(); ++it_from, ++it_to) {
+          if (it_from.IsOccupied()) MoveOrg(it_from, it_to);
         }
 
-        update++;
+        // Clear out the next generation
+        EmptyPop(from_pop, 0);
+      }
+    }
 
+    /// Update MABE the specified number of steps.
+    void Update(size_t num_updates) {
+      for (size_t ud = 0; ud < num_updates; ud++) {
+        Update();
       }
     }
 
@@ -402,16 +407,18 @@ namespace mabe {
 
     template <typename MOD_T, typename... ARGS>
     MOD_T & AddModule(ARGS &&... args) {
-      auto mod_ptr = emp::NewPtr<MOD_T>(std::forward<ARGS>(args)...);
+      auto mod_ptr = emp::NewPtr<MOD_T>(*this, std::forward<ARGS>(args)...);
       modules.push_back(mod_ptr);
 
       // Link modules to appropriate signals.
       if (&MOD_T::BeforeUpdate != &Module::BeforeUpdate) {
         before_update_sig.AddAction([mod_ptr](size_t update_ending){ mod_ptr->BeforeUpdate(update_ending); });
-      }
+        std::cout << "Module '" << mod_ptr->GetName() << "' has BeforeUpdate()" << std::endl;
+      } else std::cout << "Module '" << mod_ptr->GetName() << "' DOES NOT have BeforeUpdate()" << std::endl;
       if (&MOD_T::OnUpdate != &Module::OnUpdate) {
         on_update_sig.AddAction([mod_ptr](size_t new_update){ mod_ptr->OnUpdate(new_update); });
-      }
+        std::cout << "Module '" << mod_ptr->GetName() << "' has OnUpdate()" << std::endl;
+      } else std::cout << "Module '" << mod_ptr->GetName() << "' DOES NOT have OnUpdate()" << std::endl;
       if (&MOD_T::BeforeRepro != &Module::BeforeRepro) {
         before_repro_sig.AddAction([mod_ptr](Iterator parent_pos) { mod_ptr->BeforeRepro(parent_pos); });
       }
@@ -638,8 +645,9 @@ namespace mabe {
   }
 
   void MABE::Setup_Modules() {
-    // Allow the user-defined module SetupModule() member functions run.
-    for (emp::Ptr<Module> mod_ptr : modules) mod_ptr->SetupModule(*this);
+    // Allow the user-defined module SetupModule() member functions run.  Goes through
+    // the base class to record the current world.
+    for (emp::Ptr<Module> mod_ptr : modules) mod_ptr->SetupModule();
 
     // If none of the modules setup the placement functions, do so now.
     if (!birth_pos_fun) {
