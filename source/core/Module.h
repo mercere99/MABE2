@@ -71,6 +71,7 @@ namespace mabe {
   protected:
     std::string name;                 ///< Unique name for this module.
     std::string desc;                 ///< Description for this module.
+    mabe::MABE & control;             ///< Reference to main mabe controller using this module
     emp::vector<std::string> errors;  ///< Has this class detected any configuration errors?
 
     /// Informative tags about this module.  Expected tags include:
@@ -111,8 +112,8 @@ namespace mabe {
     using Iterator = Population::Iterator;
 
   public:
-    Module(const std::string & in_name, const std::string & in_desc="")
-      : name(in_name), desc(in_desc) { ; }
+    Module(MABE & in_control, const std::string & in_name, const std::string & in_desc="")
+      : name(in_name), desc(in_desc), control(in_control) { ; }
     Module(const Module &) = default;
     Module(Module &&) = default;
     virtual ~Module() {
@@ -158,27 +159,26 @@ namespace mabe {
     Module & DefaultSync() { rep_type = ReplicationType::DEFAULT_SYNC; return *this; }
     Module & RequireSync() { rep_type = ReplicationType::REQUIRE_SYNC; return *this; }
 
-    virtual void SetupModule(mabe::MABE &) { /* By default, assume no setup needed. */ }
-    virtual void Update(mabe::MABE &) { /* By default, do nothing at update. */ }
+    virtual void SetupModule() { /* By default, assume no setup needed. */ }
 
     // Functions to be called based on signals.
-    virtual void BeforeUpdate(size_t) { ; }
-    virtual void OnUpdate(size_t) { ; }
-    virtual void BeforeRepro(Iterator) { ; }
-    virtual void OnOffspringReady(Organism &, Iterator) { ; }
-    virtual void OnInjectReady(Organism &) { ; }
-    virtual void BeforePlacement(Organism &, Iterator) { ; }
-    virtual void OnPlacement(Iterator) { ; }
-    virtual void BeforeMutate(Organism &) { ; }
-    virtual void OnMutate(Organism &) { ; }
-    virtual void BeforeDeath(Iterator) { ; }
-    virtual void BeforeSwap(Iterator, Iterator) { ; }
-    virtual void OnSwap(Iterator, Iterator) { ; }
-    virtual void BeforePopResize(Population &, size_t) { ; }
-    virtual void OnPopResize(Population &, size_t) { ; }
-    virtual void OnNewOrgManager(OrganismManager &) { ; }
-    virtual void BeforeExit() { ; }
-    virtual void OnHelp() { ; }
+    virtual void BeforeUpdate(size_t) { std::cout << "Warning: Calling BeforeUpdate() in base class.\n"; }
+    virtual void OnUpdate(size_t) { std::cout << "Warning: Calling OnUpdate() in base class.\n"; }
+    virtual void BeforeRepro(Iterator) { std::cout << "Warning: Calling BeforeRepro() in base class.\n"; }
+    virtual void OnOffspringReady(Organism &, Iterator) { std::cout << "Warning: Calling OnOffspringReady() in base class.\n"; }
+    virtual void OnInjectReady(Organism &) { std::cout << "Warning: Calling OnInjectReady() in base class.\n"; }
+    virtual void BeforePlacement(Organism &, Iterator) { std::cout << "Warning: Calling BeforePlacement() in base class.\n"; }
+    virtual void OnPlacement(Iterator) { std::cout << "Warning: Calling OnPlacement() in base class.\n"; }
+    virtual void BeforeMutate(Organism &) { std::cout << "Warning: Calling BeforeMutate() in base class.\n"; }
+    virtual void OnMutate(Organism &) { std::cout << "Warning: Calling OnMutate() in base class.\n"; }
+    virtual void BeforeDeath(Iterator) { std::cout << "Warning: Calling BeforeDeath() in base class.\n"; }
+    virtual void BeforeSwap(Iterator, Iterator) { std::cout << "Warning: Calling BeforeSwap() in base class.\n"; }
+    virtual void OnSwap(Iterator, Iterator) { std::cout << "Warning: Calling OnSwap() in base class.\n"; }
+    virtual void BeforePopResize(Population &, size_t) { std::cout << "Warning: Calling BeforePopResize() in base class.\n"; }
+    virtual void OnPopResize(Population &, size_t) { std::cout << "Warning: Calling OnPopResize() in base class.\n"; }
+    virtual void OnNewOrgManager(OrganismManager &) { std::cout << "Warning: Calling OnNewOrgManager() in base class.\n"; }
+    virtual void BeforeExit() { std::cout << "Warning: Calling BeforeExit() in base class.\n"; }
+    virtual void OnHelp() { std::cout << "Warning: Calling OnHelp() in base class.\n"; }
  
   // --------------------- Functions to be used in derived modules ONLY --------------------------
   protected:
