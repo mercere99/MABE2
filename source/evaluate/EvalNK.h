@@ -29,8 +29,8 @@ namespace mabe {
     std::string fitness_trait;
 
   public:
-    EvalNK(size_t _N, size_t _K, const std::string & _btrait="NK", const std::string & _ftrait="fitness")
-      : Module("EvalNK", "Module to evaluate bitstrings on an NK Fitness Lanscape")
+    EvalNK(mabe::MABE & control, size_t _N, size_t _K, const std::string & _btrait="NK", const std::string & _ftrait="fitness")
+      : Module(control, "EvalNK", "Module to evaluate bitstrings on an NK Fitness Lanscape")
       , N(_N), K(_K), target_pop(0), bits_trait(_btrait), fitness_trait(_ftrait)
     {
       SetIsEvaluate(true);
@@ -45,11 +45,11 @@ namespace mabe {
       config_scope.LinkVar(K, "K", "Number of bits used in each gene", 3);
     }
 
-    void SetupModule(mabe::MABE & control) {
+    void SetupModule() override {
       landscape.Config(N, K, control.GetRandom());  // Setup the fitness landscape.
     }
 
-    void Update(mabe::MABE & control) {
+    void OnUpdate(size_t update) override {
       emp_assert(control.GetNumPopulations() >= 1);
 
       // Loop through the population and evaluate each organism.
