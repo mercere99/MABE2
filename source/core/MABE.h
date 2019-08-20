@@ -34,41 +34,78 @@ namespace mabe {
   protected:
     using Iterator = Population::Iterator;  ///< Use the same iterator as Population.
 
-    // --- All population signals go in here to make sure they are called appropriately ---
+    template <typename... ARGS>
+    struct ModVector : public emp::vector<emp::Ptr<Module>> {
+      typedef void (Module::*ModMemFun)(ARGS...);
+      ModMemFun fun;
+
+      ModVector(ModMemFun _fun) : fun(_fun) { ; }
+
+      template <typename... ARGS2>
+      void Trigger(ARGS2 &&... args) {
+        for (emp::Ptr<Module> mod_ptr : *this) {
+          std::invoke(fun, *mod_ptr, std::forward<ARGS2>(args)...);
+        }
+      }
+    };
+
+    // --- Track which modules need to have each signal type called on them. ---
     // BeforeUpdate(size_t update_ending)
-    emp::Signal<void(size_t)> before_update_sig;  // TO IMPLEMENT
+    ModVector<size_t> before_update_mods; // TO IMPLEMENT
     // OnUpdate(size_t new_update)
-    emp::Signal<void(size_t)> on_update_sig;  // TO IMPLEMENT
+    ModVector<size_t> on_update_mods; // TO IMPLEMENT
     // BeforeRepro(Iterator parent_pos) 
-    emp::Signal<void(Iterator)> before_repro_sig;  // TO IMPLEMENT
+    ModVector<Iterator> before_repro_mods; // TO IMPLEMENT
     // OnOffspringReady(Organism & offspring, Iterator parent_pos)
-    emp::Signal<void(Organism &, Iterator)> on_offspring_ready_sig;  // TO IMPLEMENT
+    ModVector<Organism &,Iterator> on_offspring_ready_mods; // TO IMPLEMENT
     // OnInjectReady(Organism & inject_org)
-    emp::Signal<void(Organism &)> on_inject_ready_sig;  // TO IMPLEMENT
+    ModVector<Organism &> on_inject_ready_mods; // TO IMPLEMENT
     // BeforePlacement(Organism & org, Iterator target_pos)
-    emp::Signal<void(Organism &, Iterator)> before_placement_sig;  // TO IMPLEMENT
+    ModVector<Organism &, Iterator> before_placement_mods; // TO IMPLEMENT
     // OnPlacement(Iterator placement_pos)
-    emp::Signal<void(Iterator)> on_placement_sig;  // TO IMPLEMENT
+    ModVector<Iterator> on_placement_mods; // TO IMPLEMENT
     // BeforeMutate(Organism & org)
-    emp::Signal<void(Organism &)> before_mutate_sig;  // TO IMPLEMENT
+    ModVector<Organism &> before_mutate_mods; // TO IMPLEMENT
     // OnMutate(Organism & org)
-    emp::Signal<void(Organism &)> on_mutate_sig;  // TO IMPLEMENT
+    ModVector<Organism &> on_mutate_mods; // TO IMPLEMENT
     // BeforeDeath(Iterator remove_pos)
-    emp::Signal<void(Iterator)> before_death_sig;  // TO IMPLEMENT
+    ModVector<Iterator> before_death_mods; // TO IMPLEMENT
     // BeforeSwap(Iterator pos1, Iterator pos2)
-    emp::Signal<void(Iterator, Iterator)> before_swap_sig;  // TO IMPLEMENT
+    ModVector<Iterator,Iterator> before_swap_mods; // TO IMPLEMENT
     // OnSwap(Iterator pos1, Iterator pos2)
-    emp::Signal<void(Iterator, Iterator)> on_swap_sig;  // TO IMPLEMENT
+    ModVector<Iterator,Iterator> on_swap_mods; // TO IMPLEMENT
     // BeforePopResize(Population & pop, size_t new_size)
-    emp::Signal<void(Population &, size_t)> before_pop_resize_sig;  // TO IMPLEMENT
+    ModVector<Population &, size_t> before_pop_resize_mods; // TO IMPLEMENT
     // OnPopResize(Population & pop, size_t old_size)
-    emp::Signal<void(Population &, size_t)> on_pop_resize_sig;  // TO IMPLEMENT
+    ModVector<Population &, size_t> on_pop_resize_mods; // TO IMPLEMENT
     // OnNewOrgManager(OrganismManager & org_man)
-    emp::Signal<void(OrganismManager &)> on_new_org_manager_sig;  // TO IMPLEMENT
+    ModVector<OrganismManager &> on_new_org_manager_mods; // TO IMPLEMENT
     // BeforeExit()
-    emp::Signal<void()> before_exit_sig;  // TO IMPLEMENT
+    ModVector<> before_exit_mods; // TO IMPLEMENT
     // OnHelp()
-    emp::Signal<void()> on_help_sig;  // TO IMPLEMENT
+    ModVector<> on_help_mods; // TO IMPLEMENT
+
+
+    // Private constructor so that base class cannot be instantiated directly.
+    MABEBase()
+    : before_update_mods(&Module::BeforeUpdate)
+    , on_update_mods(&Module::OnUpdate)
+    , before_repro_mods(&Module::BeforeRepro)
+    , on_offspring_ready_mods(&Module::OnOffspringReady)
+    , on_inject_ready_mods(&Module::OnInjectReady)
+    , before_placement_mods(&Module::BeforePlacement)
+    , on_placement_mods(&Module::OnPlacement)
+    , before_mutate_mods(&Module::BeforeMutate)
+    , on_mutate_mods(&Module::OnMutate)
+    , before_death_mods(&Module::BeforeDeath)
+    , before_swap_mods(&Module::BeforeSwap)
+    , on_swap_mods(&Module::OnSwap)
+    , before_pop_resize_mods(&Module::BeforePopResize)
+    , on_pop_resize_mods(&Module::OnPopResize)
+    , on_new_org_manager_mods(&Module::OnNewOrgManager)
+    , before_exit_mods(&Module::BeforeExit)
+    , on_help_mods(&Module::OnHelp)
+    { ;  }
 
   public:
 
@@ -262,13 +299,13 @@ namespace mabe {
 
     /// Update MABE a single step.
     void Update() {
-      before_update_sig.Trigger(update);
+      before_update_mods.Trigger(update);
 
       update++;
       std::cout << "Update: " << update << std::endl;
 
       // Run Update on all modules...
-      on_update_sig.Trigger(update);
+      on_update_mods.Trigger(update);
 
       // If we are running a synchronous reproduction, move the next generation to this one.
       if (sync_pop) {
