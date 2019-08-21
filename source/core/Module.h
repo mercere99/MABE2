@@ -176,7 +176,7 @@ namespace mabe {
     virtual void OnUpdate(size_t) { has_OnUpdate = false; }    
 
     // Format:  BeforeRepro(Iterator parent_pos) 
-    // Trigger: Parent is about to reporduce.
+    // Trigger: Parent is about to reproduce.
     bool has_BeforeRepro = true;
     virtual void BeforeRepro(Iterator) { has_BeforeRepro = false; }    
 
@@ -192,11 +192,13 @@ namespace mabe {
 
     // Format:  BeforePlacement(Organism & org, Iterator target_pos)
     // Trigger: Placement location has been identified (For birth or inject)
+    // Args:    Organism to be placed, placement position, parent position (if available)
     bool has_BeforePlacement = true;
-    virtual void BeforePlacement(Organism &, Iterator) { has_BeforePlacement = false; }    
+    virtual void BeforePlacement(Organism &, Iterator, Iterator) { has_BeforePlacement = false; }    
 
     // Format:  OnPlacement(Iterator placement_pos)
     // Trigger: New organism has been placed in the poulation.
+    // Args:    Position new organism was placed.
     bool has_OnPlacement = true;
     virtual void OnPlacement(Iterator) { has_OnPlacement = false; }    
 
