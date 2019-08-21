@@ -402,7 +402,6 @@ namespace mabe {
     /// Remove (and return) the organism at pos, but don't delete it.
     [[nodiscard]] emp::Ptr<Organism> ExtractOrg(size_t pos) {
       emp_assert(pos < orgs.size());
-      emp_assert(IsOccupied(pos));
       emp::Ptr<Organism> out_org = orgs[pos];
       orgs[pos] = &empty_org;
       num_orgs--;
