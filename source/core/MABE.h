@@ -63,15 +63,15 @@ namespace mabe {
     // OnInjectReady(Organism & inject_org)
     ModVector<Organism &> on_inject_ready_mods;
     // BeforePlacement(Organism & org, Iterator target_pos, Iterator parent_pos)
-    ModVector<Organism &, Iterator, Iterator> before_placement_mods; // TO IMPLEMENT
+    ModVector<Organism &, Iterator, Iterator> before_placement_mods;
     // OnPlacement(Iterator placement_pos)
-    ModVector<Iterator> on_placement_mods; // TO IMPLEMENT
+    ModVector<Iterator> on_placement_mods;
     // BeforeMutate(Organism & org)
     ModVector<Organism &> before_mutate_mods; // TO IMPLEMENT
     // OnMutate(Organism & org)
     ModVector<Organism &> on_mutate_mods; // TO IMPLEMENT
     // BeforeDeath(Iterator remove_pos)
-    ModVector<Iterator> before_death_mods; // TO IMPLEMENT
+    ModVector<Iterator> before_death_mods;
     // BeforeSwap(Iterator pos1, Iterator pos2)
     ModVector<Iterator,Iterator> before_swap_mods; // TO IMPLEMENT
     // OnSwap(Iterator pos1, Iterator pos2)
@@ -127,16 +127,18 @@ namespace mabe {
       emp_assert(pos.IsValid());
       if (pos.IsEmpty()) return; // Nothing to remove!
 
-      // @CAO: TRIGGER BEFORE DEATH SIGNAL!
+      before_death_mods.Trigger(pos);
       pos.ExtractOrg().Delete();
     }
 
     /// All movement of organisms from one population position to another should come through here.
-    void MoveOrg(Iterator from_pos, Iterator to_pos) {
-      emp_assert(from_pos.IsOccupied());
-      // @CAO TRIGGER BEFORE MOVE SIGNAL!
-      ClearOrgAt(to_pos);
-      to_pos.SetOrg( from_pos.ExtractOrg() );
+    void SwapOrgs(Iterator pos1, Iterator pos2) {
+      // @CAO TRIGGER BEFORE SWAP SIGNAL!
+      emp::Ptr<Organism> org1 = pos1.ExtractOrg();
+      emp::Ptr<Organism> org2 = pos2.ExtractOrg();
+      if (!org1->IsEmpty()) pos2.SetOrg(org1);
+      if (!org2->IsEmpty()) pos1.SetOrg(org2);
+      // @CAO TRIGGER ON SWAP SIGNAL!
     }
 
     void ResizePop(Population & pop, size_t new_size) {
@@ -362,6 +364,11 @@ namespace mabe {
         AddPopulation("main");               // Default population is named main.
       }
       return pops[cur_pop];
+    }
+
+    void MoveOrg(Iterator from_pos, Iterator to_pos) {
+      ClearOrgAt(to_pos);
+      SwapOrgs(from_pos, to_pos);
     }
 
     void Inject(const Organism & org, size_t copy_count=1) {
