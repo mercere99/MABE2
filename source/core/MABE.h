@@ -57,13 +57,13 @@ namespace mabe {
     // OnUpdate(size_t new_update)
     ModVector<size_t> on_update_mods;
     // BeforeRepro(Iterator parent_pos) 
-    ModVector<Iterator> before_repro_mods; // TO IMPLEMENT
+    ModVector<Iterator> before_repro_mods;
     // OnOffspringReady(Organism & offspring, Iterator parent_pos)
-    ModVector<Organism &,Iterator> on_offspring_ready_mods; // TO IMPLEMENT
+    ModVector<Organism &,Iterator> on_offspring_ready_mods;
     // OnInjectReady(Organism & inject_org)
-    ModVector<Organism &> on_inject_ready_mods; // TO IMPLEMENT
-    // BeforePlacement(Organism & org, Iterator target_pos)
-    ModVector<Organism &, Iterator> before_placement_mods; // TO IMPLEMENT
+    ModVector<Organism &> on_inject_ready_mods;
+    // BeforePlacement(Organism & org, Iterator target_pos, Iterator parent_pos)
+    ModVector<Organism &, Iterator, Iterator> before_placement_mods; // TO IMPLEMENT
     // OnPlacement(Iterator placement_pos)
     ModVector<Iterator> on_placement_mods; // TO IMPLEMENT
     // BeforeMutate(Organism & org)
@@ -116,10 +116,10 @@ namespace mabe {
     /// Must specify the pos in the population to perform the insertion.
     /// Must specify parent position if it exists (for data tracking); not used with inject.
     void AddOrgAt(emp::Ptr<Organism> org_ptr, Iterator pos, Iterator ppos=Iterator()) {
-      // @CAO: TRIGGER BEFORE PLACEMENT SIGNAL! Include both new organism and parent, if available.
+      before_placement_mods.Trigger(*org_ptr, pos, ppos);
       ClearOrgAt(pos);      // Clear out any organism already in this position.
       pos.SetOrg(org_ptr);  // Put the new organism in place.
-      // @CAO: TRIGGER ON PLACEMENT SIGNAL!
+      on_placement_mods.Trigger(pos);
     }
 
     /// All permanent deletion of organisms from a population should come through here.
@@ -368,7 +368,7 @@ namespace mabe {
       emp_assert(inject_pos_fun);
       for (size_t i = 0; i < copy_count; i++) {
         emp::Ptr<Organism> inject_org = org.Clone();
-        // @CAO: Trigger Inject ready!
+        on_inject_ready_mods.Trigger(*inject_org);
         Iterator pos = inject_pos_fun(*inject_org);
         if (pos.IsValid()) AddOrgAt( inject_org, pos);
         else {
@@ -394,7 +394,7 @@ namespace mabe {
     void InjectAt(const Organism & org, Iterator pos) {
       emp_assert(pos.IsValid());
       emp::Ptr<Organism> inject_org = org.Clone();
-      // @CAO: Trigger Inject ready!
+      on_inject_ready_mods.Trigger(*inject_org);
       AddOrgAt( inject_org, pos);
     }
 
@@ -404,11 +404,11 @@ namespace mabe {
     Iterator DoBirth(const Organism & org, Iterator ppos, size_t copy_count=1) {
       emp_assert(birth_pos_fun);           // Must have a value birth_pos_fun
       emp_assert(org.IsEmpty() == false);  // Empty cells cannot reproduce.
-      // @CAO Trigger before repro signal.
+      before_repro_mods.Trigger(ppos);
       Iterator pos;                                        // Position of each offspring placed.
       for (size_t i = 0; i < copy_count; i++) {            // Loop through offspring, adding each
         emp::Ptr<Organism> new_org = org.Clone();          // Clone org to put copy in population
-        // @CAO Trigger offspring ready signal.
+        on_offspring_ready_mods.Trigger(*new_org, ppos);   // Trigger modules with offspring ready
         pos = birth_pos_fun(*new_org, ppos);               // Determine location for offspring
 
         if (pos.IsValid()) AddOrgAt(new_org, pos, ppos);   // If placement pos is valid, do so!
