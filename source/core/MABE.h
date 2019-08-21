@@ -49,11 +49,13 @@ namespace mabe {
       }
     };
 
+    emp::vector<emp::Ptr<Module>> modules;  ///< Collection of ALL modules.
+
     // --- Track which modules need to have each signal type called on them. ---
     // BeforeUpdate(size_t update_ending)
-    ModVector<size_t> before_update_mods; // TO IMPLEMENT
+    ModVector<size_t> before_update_mods;
     // OnUpdate(size_t new_update)
-    ModVector<size_t> on_update_mods; // TO IMPLEMENT
+    ModVector<size_t> on_update_mods;
     // BeforeRepro(Iterator parent_pos) 
     ModVector<Iterator> before_repro_mods; // TO IMPLEMENT
     // OnOffspringReady(Organism & offspring, Iterator parent_pos)
@@ -165,7 +167,6 @@ namespace mabe {
     std::string VERSION = "0.0.1";
 
     emp::vector<Population> pops;           ///< Collection of populations.
-    emp::vector<emp::Ptr<Module>> modules;  ///< Collection of modules.
 
     /// Collection of all organism types from all words.  Organism types have distinct
     /// names and can be manipulated as a whole.
@@ -263,6 +264,8 @@ namespace mabe {
     void Setup_Modules();
     void Setup_Traits();
 
+    void UpdateSignals();
+
   public:
     MABE(int argc, char* argv[]) : args(emp::cl::args_to_strings(argc, argv)) { ; }
     MABE(const MABE &) = delete;
@@ -290,6 +293,8 @@ namespace mabe {
       Setup_Populations();    // Give modules access to the correct populations.
       Setup_Modules();        // Run SetupModule() on each module; initialize placement if needed.
       Setup_Traits();         // Make sure module traits do not clash.
+
+      UpdateSignals();        // Setup the appropriate modules to be linked with each signal.
 
       // Collect errors in any module.
       for (emp::Ptr<Module> mod_ptr : modules) {
@@ -446,61 +451,6 @@ namespace mabe {
     MOD_T & AddModule(ARGS &&... args) {
       auto mod_ptr = emp::NewPtr<MOD_T>(*this, std::forward<ARGS>(args)...);
       modules.push_back(mod_ptr);
-
-      // Link modules to appropriate signals.
-      if (&MOD_T::BeforeUpdate != &Module::BeforeUpdate) {
-        before_update_sig.AddAction([mod_ptr](size_t update_ending){ mod_ptr->BeforeUpdate(update_ending); });
-        std::cout << "Module '" << mod_ptr->GetName() << "' has BeforeUpdate()" << std::endl;
-      } else std::cout << "Module '" << mod_ptr->GetName() << "' DOES NOT have BeforeUpdate()" << std::endl;
-      if (&MOD_T::OnUpdate != &Module::OnUpdate) {
-        on_update_sig.AddAction([mod_ptr](size_t new_update){ mod_ptr->OnUpdate(new_update); });
-        std::cout << "Module '" << mod_ptr->GetName() << "' has OnUpdate()" << std::endl;
-      } else std::cout << "Module '" << mod_ptr->GetName() << "' DOES NOT have OnUpdate()" << std::endl;
-      if (&MOD_T::BeforeRepro != &Module::BeforeRepro) {
-        before_repro_sig.AddAction([mod_ptr](Iterator parent_pos) { mod_ptr->BeforeRepro(parent_pos); });
-      }
-      if (&MOD_T::OnOffspringReady != &Module::OnOffspringReady) {
-        on_offspring_ready_sig.AddAction([mod_ptr](Organism & offspring, Iterator parent_pos){ mod_ptr->OnOffspringReady(offspring, parent_pos); });
-      }
-      if (&MOD_T::OnInjectReady != &Module::OnInjectReady) {
-        on_inject_ready_sig.AddAction([mod_ptr](Organism & inject_org){ mod_ptr->OnInjectReady(inject_org); });
-      }
-      if (&MOD_T::BeforePlacement != &Module::BeforePlacement) {
-        before_placement_sig.AddAction([mod_ptr](Organism & org, Iterator target_pos){ mod_ptr->BeforePlacement(org, target_pos); });
-      }
-      if (&MOD_T::OnPlacement != &Module::OnPlacement) {
-        on_placement_sig.AddAction([mod_ptr](Iterator placement_pos){ mod_ptr->OnPlacement(placement_pos); });
-      }
-      if (&MOD_T::BeforeMutate != &Module::BeforeMutate) {
-        before_mutate_sig.AddAction([mod_ptr](Organism & org){ mod_ptr->BeforeMutate(org); });
-      }
-      if (&MOD_T::OnMutate != &Module::OnMutate) {
-        on_mutate_sig.AddAction([mod_ptr](Organism & org){ mod_ptr->OnMutate(org); });
-      }
-      if (&MOD_T::BeforeDeath != &Module::BeforeDeath) {
-        before_death_sig.AddAction([mod_ptr](Iterator remove_pos){ mod_ptr->BeforeDeath(remove_pos); });
-      }
-      if (&MOD_T::BeforeSwap != &Module::BeforeSwap) {
-        before_swap_sig.AddAction([mod_ptr](Iterator pos1, Iterator pos2){ mod_ptr->BeforeSwap(pos1, pos2); });
-      }
-      if (&MOD_T::OnSwap != &Module::OnSwap) {
-        on_swap_sig.AddAction([mod_ptr](Iterator pos1, Iterator pos2){ mod_ptr->OnSwap(pos1, pos2); });
-      }
-      if (&MOD_T::BeforePopResize != &Module::BeforePopResize) {
-        before_pop_resize_sig.AddAction([mod_ptr](Population & pop, size_t new_size){ mod_ptr->BeforePopResize(pop, new_size); });
-      }
-      if (&MOD_T::OnPopResize != &Module::OnPopResize) {
-        on_pop_resize_sig.AddAction([mod_ptr](Population & pop, size_t old_size){ mod_ptr->OnPopResize(pop, old_size); });
-      }
-      if (&MOD_T::OnNewOrgManager != &Module::OnNewOrgManager) {
-        on_new_org_manager_sig.AddAction([mod_ptr](OrganismManager & org_man){ mod_ptr->OnNewOrgManager(org_man); });
-      }
-      if (&MOD_T::BeforeExit != &Module::BeforeExit) {
-        before_exit_sig.AddAction([mod_ptr](){ mod_ptr->BeforeExit(); });
-      }
-      if (&MOD_T::OnHelp != &Module::OnHelp) {
-        on_help_sig.AddAction([mod_ptr](){ mod_ptr->OnHelp(); });
-      }
 
       return *mod_ptr;
     }
@@ -716,6 +666,47 @@ namespace mabe {
 
   }
   
+  // Function to link signals to the modules that implment responses to those signals.
+  void MABE::UpdateSignals() {
+    before_update_mods.resize(0);
+    on_update_mods.resize(0);
+    before_repro_mods.resize(0);
+    on_offspring_ready_mods.resize(0);
+    on_inject_ready_mods.resize(0);
+    before_placement_mods.resize(0);
+    on_placement_mods.resize(0);
+    before_mutate_mods.resize(0);
+    on_mutate_mods.resize(0);
+    before_death_mods.resize(0);
+    before_swap_mods.resize(0);
+    on_swap_mods.resize(0);
+    before_pop_resize_mods.resize(0);
+    on_pop_resize_mods.resize(0);
+    on_new_org_manager_mods.resize(0);
+    before_exit_mods.resize(0);
+    on_help_mods.resize(0);
+
+    for (emp::Ptr<Module> mod_ptr : modules) {
+      if (mod_ptr->has_BeforeUpdate) before_update_mods.push_back(mod_ptr);
+      if (mod_ptr->has_OnUpdate) on_update_mods.push_back(mod_ptr);
+      if (mod_ptr->has_BeforeRepro) before_repro_mods.push_back(mod_ptr);
+      if (mod_ptr->has_OnOffspringReady) on_offspring_ready_mods.push_back(mod_ptr);
+      if (mod_ptr->has_OnInjectReady) on_inject_ready_mods.push_back(mod_ptr);
+      if (mod_ptr->has_BeforePlacement) before_placement_mods.push_back(mod_ptr);
+      if (mod_ptr->has_OnPlacement) on_placement_mods.push_back(mod_ptr);
+      if (mod_ptr->has_BeforeMutate) before_mutate_mods.push_back(mod_ptr);
+      if (mod_ptr->has_OnMutate) on_mutate_mods.push_back(mod_ptr);
+      if (mod_ptr->has_BeforeDeath) before_death_mods.push_back(mod_ptr);
+      if (mod_ptr->has_BeforeSwap) before_swap_mods.push_back(mod_ptr);
+      if (mod_ptr->has_OnSwap) on_swap_mods.push_back(mod_ptr);
+      if (mod_ptr->has_BeforePopResize) before_pop_resize_mods.push_back(mod_ptr);
+      if (mod_ptr->has_OnPopResize) on_pop_resize_mods.push_back(mod_ptr);
+      if (mod_ptr->has_OnNewOrgManager) on_new_org_manager_mods.push_back(mod_ptr);
+      if (mod_ptr->has_BeforeExit) before_exit_mods.push_back(mod_ptr);
+      if (mod_ptr->has_OnHelp) on_help_mods.push_back(mod_ptr);
+    }
+  }
+
 }
 
 #endif
