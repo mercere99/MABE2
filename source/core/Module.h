@@ -37,8 +37,6 @@
  *       : Full population is about to be resized.
  *     OnPopResize(Population & pop, size_t old_size)
  *       : Full population has just been resized.
- *     OnNewOrgManager(OrganismManager & org_man)
- *       : A new type of organism is being added to MABE.
  *     BeforeExit()
  *       : Run immediately before MABE is about to exit.
  *     OnHelp()
@@ -236,11 +234,6 @@ namespace mabe {
     // Trigger: Full population has just been resized.
     bool has_OnPopResize = true;
     virtual void OnPopResize(Population &, size_t) { has_OnPopResize = false; }    
-
-    // Format:  OnNewOrgManager(OrganismManager & org_man)
-    // Trigger: A new type of organism is being added to MABE.
-    bool has_OnNewOrgManager = true;
-    virtual void OnNewOrgManager(OrganismManager &) { has_OnNewOrgManager = false; }    
 
     // Format:  BeforeExit()
     // Trigger: Run immediately before MABE is about to exit.
