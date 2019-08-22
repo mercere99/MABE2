@@ -80,12 +80,10 @@ namespace mabe {
     ModVector<Population &, size_t> before_pop_resize_mods;
     // OnPopResize(Population & pop, size_t old_size)
     ModVector<Population &, size_t> on_pop_resize_mods;
-    // OnNewOrgManager(OrganismManager & org_man)
-    ModVector<OrganismManager &> on_new_org_manager_mods; // TO IMPLEMENT
     // BeforeExit()
-    ModVector<> before_exit_mods; // TO IMPLEMENT
+    ModVector<> before_exit_mods;
     // OnHelp()
-    ModVector<> on_help_mods; // TO IMPLEMENT
+    ModVector<> on_help_mods;
 
 
     // Private constructor so that base class cannot be instantiated directly.
@@ -104,7 +102,6 @@ namespace mabe {
     , on_swap_mods(&Module::OnSwap)
     , before_pop_resize_mods(&Module::BeforePopResize)
     , on_pop_resize_mods(&Module::OnPopResize)
-    , on_new_org_manager_mods(&Module::OnNewOrgManager)
     , before_exit_mods(&Module::BeforeExit)
     , on_help_mods(&Module::OnHelp)
     { ;  }
@@ -221,6 +218,9 @@ namespace mabe {
     // ----------- Helper Functions -----------
 
     void Exit() {
+      // Trigger functions
+      before_exit_mods.Trigger();
+
       // Cleanup all pointers.
       for (auto [name,org_manager] : org_managers) org_manager.Delete();
       org_managers.clear();
@@ -238,6 +238,7 @@ namespace mabe {
                   << " : " << cur_arg.desc << " (or " << cur_arg.name << ")"
                   << std::endl;
       }
+      on_help_mods.Trigger();
       std::cout << "Note: parameter order matters. Settings and files are applied in the order provided.\n";
       Exit();
     }
@@ -690,7 +691,6 @@ namespace mabe {
     on_swap_mods.resize(0);
     before_pop_resize_mods.resize(0);
     on_pop_resize_mods.resize(0);
-    on_new_org_manager_mods.resize(0);
     before_exit_mods.resize(0);
     on_help_mods.resize(0);
 
@@ -709,7 +709,6 @@ namespace mabe {
       if (mod_ptr->has_OnSwap) on_swap_mods.push_back(mod_ptr);
       if (mod_ptr->has_BeforePopResize) before_pop_resize_mods.push_back(mod_ptr);
       if (mod_ptr->has_OnPopResize) on_pop_resize_mods.push_back(mod_ptr);
-      if (mod_ptr->has_OnNewOrgManager) on_new_org_manager_mods.push_back(mod_ptr);
       if (mod_ptr->has_BeforeExit) before_exit_mods.push_back(mod_ptr);
       if (mod_ptr->has_OnHelp) on_help_mods.push_back(mod_ptr);
     }
