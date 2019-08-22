@@ -32,8 +32,6 @@ namespace mabe {
 
   class MABEBase {
   protected:
-    using Iterator = Population::Iterator;  ///< Use the same iterator as Population.
-
     template <typename... ARGS>
     struct ModVector : public emp::vector<emp::Ptr<Module>> {
       typedef void (Module::*ModMemFun)(ARGS...);
@@ -56,26 +54,26 @@ namespace mabe {
     ModVector<size_t> before_update_sig;
     // OnUpdate(size_t new_update)
     ModVector<size_t> on_update_sig;
-    // BeforeRepro(Iterator parent_pos) 
-    ModVector<Iterator> before_repro_sig;
-    // OnOffspringReady(Organism & offspring, Iterator parent_pos)
-    ModVector<Organism &,Iterator> on_offspring_ready_sig;
+    // BeforeRepro(OrgPosition parent_pos) 
+    ModVector<OrgPosition> before_repro_sig;
+    // OnOffspringReady(Organism & offspring, OrgPosition parent_pos)
+    ModVector<Organism &,OrgPosition> on_offspring_ready_sig;
     // OnInjectReady(Organism & inject_org)
     ModVector<Organism &> on_inject_ready_sig;
-    // BeforePlacement(Organism & org, Iterator target_pos, Iterator parent_pos)
-    ModVector<Organism &, Iterator, Iterator> before_placement_sig;
-    // OnPlacement(Iterator placement_pos)
-    ModVector<Iterator> on_placement_sig;
+    // BeforePlacement(Organism & org, OrgPosition target_pos, OrgPosition parent_pos)
+    ModVector<Organism &, OrgPosition, OrgPosition> before_placement_sig;
+    // OnPlacement(OrgPosition placement_pos)
+    ModVector<OrgPosition> on_placement_sig;
     // BeforeMutate(Organism & org)
     ModVector<Organism &> before_mutate_sig; // TO IMPLEMENT
     // OnMutate(Organism & org)
     ModVector<Organism &> on_mutate_sig; // TO IMPLEMENT
-    // BeforeDeath(Iterator remove_pos)
-    ModVector<Iterator> before_death_sig;
-    // BeforeSwap(Iterator pos1, Iterator pos2)
-    ModVector<Iterator,Iterator> before_swap_sig;
-    // OnSwap(Iterator pos1, Iterator pos2)
-    ModVector<Iterator,Iterator> on_swap_sig;
+    // BeforeDeath(OrgPosition remove_pos)
+    ModVector<OrgPosition> before_death_sig;
+    // BeforeSwap(OrgPosition pos1, OrgPosition pos2)
+    ModVector<OrgPosition,OrgPosition> before_swap_sig;
+    // OnSwap(OrgPosition pos1, OrgPosition pos2)
+    ModVector<OrgPosition,OrgPosition> on_swap_sig;
     // BeforePopResize(Population & pop, size_t new_size)
     ModVector<Population &, size_t> before_pop_resize_sig;
     // OnPopResize(Population & pop, size_t old_size)
@@ -112,7 +110,7 @@ namespace mabe {
     /// Must provide an org_ptr that is now own by the population.
     /// Must specify the pos in the population to perform the insertion.
     /// Must specify parent position if it exists (for data tracking); not used with inject.
-    void AddOrgAt(emp::Ptr<Organism> org_ptr, Iterator pos, Iterator ppos=Iterator()) {
+    void AddOrgAt(emp::Ptr<Organism> org_ptr, OrgPosition pos, OrgPosition ppos=OrgPosition()) {
       before_placement_sig.Trigger(*org_ptr, pos, ppos);
       ClearOrgAt(pos);      // Clear out any organism already in this position.
       pos.SetOrg(org_ptr);  // Put the new organism in place.
@@ -120,7 +118,7 @@ namespace mabe {
     }
 
     /// All permanent deletion of organisms from a population should come through here.
-    void ClearOrgAt(Iterator pos) {
+    void ClearOrgAt(OrgPosition pos) {
       emp_assert(pos.IsValid());
       if (pos.IsEmpty()) return; // Nothing to remove!
 
@@ -129,7 +127,7 @@ namespace mabe {
     }
 
     /// All movement of organisms from one population position to another should come through here.
-    void SwapOrgs(Iterator pos1, Iterator pos2) {
+    void SwapOrgs(OrgPosition pos1, OrgPosition pos2) {
       before_swap_sig.Trigger(pos1, pos2);
       emp::Ptr<Organism> org1 = pos1.ExtractOrg();
       emp::Ptr<Organism> org2 = pos2.ExtractOrg();
@@ -146,7 +144,7 @@ namespace mabe {
       before_pop_resize_sig.Trigger(pop, new_size);
 
       for (size_t pos = new_size; pos < old_size; pos++) {  // Clear all orgs out of range.
-        ClearOrgAt( Iterator(pop, pos) );
+        ClearOrgAt( OrgPosition(pop, pos) );
       }
 
       pop.Resize(new_size);                                 // Do the actual resize.
@@ -154,9 +152,9 @@ namespace mabe {
       on_pop_resize_sig.Trigger(pop, old_size);
     }
 
-    Iterator PushEmpty(Population & pop) {
+    OrgPosition PushEmpty(Population & pop) {
       before_pop_resize_sig.Trigger(pop, pop.GetSize()+1);
-      Iterator it = pop.PushEmpty();
+      OrgPosition it = pop.PushEmpty();
       on_pop_resize_sig.Trigger(pop, pop.GetSize()-1);
       return it;
     }
@@ -180,17 +178,14 @@ namespace mabe {
     size_t update = 0;                      ///< How many times has Update() been called?
     emp::vector<std::string> errors;        ///< Log any errors that have occured.
 
-    // --- Populaiton interaction ---
-    using Iterator = Population::Iterator;  ///< Use the same iterator as Population.
-
     /// A birth placement function takes the new organism and an iterator pointing at a parent
     /// and returns an Interator indicating where that organism should place its offspring.
-    using birth_pos_fun_t = std::function< Iterator(const Organism &, Iterator) >;
+    using birth_pos_fun_t = std::function< OrgPosition(const Organism &, OrgPosition) >;
     birth_pos_fun_t birth_pos_fun;
 
     /// A birth placement function takes the injected organism and returns an Interator
     /// indicating where that organism should place its offspring.
-    using inject_pos_fun_t = std::function< Iterator(const Organism &) >;
+    using inject_pos_fun_t = std::function< OrgPosition(const Organism &) >;
     inject_pos_fun_t inject_pos_fun;
 
 
@@ -325,8 +320,8 @@ namespace mabe {
         EmptyPop(to_pop, from_pop.GetSize());  
 
         // Move the next generation to the main population.
-        Iterator it_to = to_pop.begin();
-        for (Iterator it_from = from_pop.begin(); it_from != from_pop.end(); ++it_from, ++it_to) {
+        OrgPosition it_to = to_pop.begin();
+        for (OrgPosition it_from = from_pop.begin(); it_from != from_pop.end(); ++it_from, ++it_to) {
           if (it_from.IsOccupied()) MoveOrg(it_from, it_to);
         }
 
@@ -368,7 +363,7 @@ namespace mabe {
       return pops[cur_pop];
     }
 
-    void MoveOrg(Iterator from_pos, Iterator to_pos) {
+    void MoveOrg(OrgPosition from_pos, OrgPosition to_pos) {
       ClearOrgAt(to_pos);
       SwapOrgs(from_pos, to_pos);
     }
@@ -378,7 +373,7 @@ namespace mabe {
       for (size_t i = 0; i < copy_count; i++) {
         emp::Ptr<Organism> inject_org = org.Clone();
         on_inject_ready_sig.Trigger(*inject_org);
-        Iterator pos = inject_pos_fun(*inject_org);
+        OrgPosition pos = inject_pos_fun(*inject_org);
         if (pos.IsValid()) AddOrgAt( inject_org, pos);
         else {
           inject_org.Delete();
@@ -391,7 +386,7 @@ namespace mabe {
       const OrganismManager & org_manager = GetOrganismManager(type_name);
       for (size_t i = 0; i < copy_count; i++) {
         emp::Ptr<Organism> inject_org = org_manager.MakeOrganism(random);
-        Iterator pos = inject_pos_fun(*inject_org);
+        OrgPosition pos = inject_pos_fun(*inject_org);
         if (pos.IsValid()) AddOrgAt( inject_org, pos);
         else {
           inject_org.Delete();
@@ -400,7 +395,7 @@ namespace mabe {
       }
     }
 
-    void InjectAt(const Organism & org, Iterator pos) {
+    void InjectAt(const Organism & org, OrgPosition pos) {
       emp_assert(pos.IsValid());
       emp::Ptr<Organism> inject_org = org.Clone();
       on_inject_ready_sig.Trigger(*inject_org);
@@ -410,14 +405,14 @@ namespace mabe {
     // Give birth to (potentially) multiple offspring; return position of last placed.
     // Triggers 'before repro' signal on parent (once) and 'offspring ready' on each offspring.
     // Regular signal triggers occur in AddOrgAt.
-    Iterator DoBirth(const Organism & org, Iterator ppos, size_t copy_count=1) {
+    OrgPosition DoBirth(const Organism & org, OrgPosition ppos, size_t copy_count=1) {
       emp_assert(birth_pos_fun);           // Must have a value birth_pos_fun
       emp_assert(org.IsEmpty() == false);  // Empty cells cannot reproduce.
       before_repro_sig.Trigger(ppos);
-      Iterator pos;                                        // Position of each offspring placed.
+      OrgPosition pos;                                     // Position of each offspring placed.
       for (size_t i = 0; i < copy_count; i++) {            // Loop through offspring, adding each
         emp::Ptr<Organism> new_org = org.Clone();          // Clone org to put copy in population
-        on_offspring_ready_sig.Trigger(*new_org, ppos);   // Trigger modules with offspring ready
+        on_offspring_ready_sig.Trigger(*new_org, ppos);    // Trigger modules with offspring ready
         pos = birth_pos_fun(*new_org, ppos);               // Determine location for offspring
 
         if (pos.IsValid()) AddOrgAt(new_org, pos, ppos);   // If placement pos is valid, do so!
@@ -427,7 +422,7 @@ namespace mabe {
     }
 
     /// A shortcut to DoBirth where only the parent position needs to be supplied.
-    Iterator Replicate(Iterator ppos, size_t copy_count=1) {
+    OrgPosition Replicate(OrgPosition ppos, size_t copy_count=1) {
       return DoBirth(*ppos, ppos, copy_count);
     }
 
@@ -440,7 +435,7 @@ namespace mabe {
     /// Resize a population while clearing all of the organisms in it.
     void EmptyPop(Population & pop, size_t new_size) {
       // Clean up any organisms in the population.
-      for (Iterator it = pop.begin_alive(); it != pop.end(); ++it) {
+      for (OrgPosition it = pop.begin_alive(); it != pop.end(); ++it) {
         ClearOrgAt(it);
       }
 
@@ -470,7 +465,7 @@ namespace mabe {
     /// Organism replication and placement.
     void SetGrowthPlacement(size_t target_pop) {
       // Ignore both the organism and the parent; always insert at the end of the population.
-      birth_pos_fun = [this,target_pop](const Organism &, Iterator) {
+      birth_pos_fun = [this,target_pop](const Organism &, OrgPosition) {
           return PushEmpty(pops[target_pop]);
         };
       inject_pos_fun = [this,target_pop](const Organism &) {
@@ -650,8 +645,8 @@ namespace mabe {
       if (sync_pop) {
         std::cout << "Setting up SYNCHRONOUS reproduction." << std::endl;
         emp_assert(pops.size() >= 2);
-        birth_pos_fun = [this](const Organism &, Iterator) {
-            // Iterator it = pops[1].PushEmpty();
+        birth_pos_fun = [this](const Organism &, OrgPosition) {
+            // OrgPosition it = pops[1].PushEmpty();
             // std::cout << "[[" << it.PopID() << ":" << it.Pos() << "]]" << std::endl;
             // return it;
             return PushEmpty(pops[1]);   // Synchronous pops reproduce into next generation.
@@ -659,7 +654,7 @@ namespace mabe {
       } else {
         std::cout << "Setting up ASYNCHRONOUS reproduction." << std::endl;
         emp_assert(pops.size() >= 1);
-        birth_pos_fun = [this](const Organism &, Iterator) {
+        birth_pos_fun = [this](const Organism &, OrgPosition) {
             return PushEmpty(pops[0]);;   // Asynchronous offspring go into current population.
           };
       }
