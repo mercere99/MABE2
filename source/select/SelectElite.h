@@ -46,8 +46,7 @@ namespace mabe {
 
     void OnUpdate(size_t update) override {
       // Construct a map of all IDs to their associated fitness values.
-      using Iterator = Population::Iterator;
-      emp::valsort_map<Iterator, double> id_fit_map;
+      emp::valsort_map<OrgPosition, double> id_fit_map;
       Population & pop = control.GetPopulation(pop_id);
       for (auto it = pop.begin_alive(); it != pop.end_alive(); it++) {
         id_fit_map.Set(it, it->GetVar<double>(trait));

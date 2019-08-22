@@ -13,25 +13,25 @@
  *       : Update is ending; new one is about to start
  *     OnUpdate(size_t new_update)
  *       : New update has just started.
- *     BeforeRepro(Iterator parent_pos) 
+ *     BeforeRepro(OrgPosition parent_pos) 
  *       : Parent is about to reporduce.
- *     OnOffspringReady(Organism & offspring, Iterator parent_pos)
+ *     OnOffspringReady(Organism & offspring, OrgPosition parent_pos)
  *       : Offspring is ready to be placed.
  *     OnInjectReady(Organism & inject_org)
  *       : Organism to be injected is ready to be placed.
- *     BeforePlacement(Organism & org, Iterator target_pos)
+ *     BeforePlacement(Organism & org, OrgPosition target_pos)
  *       : Placement location has been identified (For birth or inject)
- *     OnPlacement(Iterator placement_pos)
+ *     OnPlacement(OrgPosition placement_pos)
  *       : New organism has been placed in the poulation.
  *     BeforeMutate(Organism & org)
  *       : Mutate is about to run on an organism.
  *     OnMutate(Organism & org)
  *       : Organism has had its genome changed due to mutation.
- *     BeforeDeath(Iterator remove_pos)
+ *     BeforeDeath(OrgPosition remove_pos)
  *       : Organism is about to die.
- *     BeforeSwap(Iterator pos1, Iterator pos2)
+ *     BeforeSwap(OrgPosition pos1, OrgPosition pos2)
  *       : Two organisms' positions in the population are about to move.
- *     OnSwap(Iterator pos1, Iterator pos2)
+ *     OnSwap(OrgPosition pos1, OrgPosition pos2)
  *       : Two organisms' positions in the population have just swapped.
  *     BeforePopResize(Population & pop, size_t new_size)
  *       : Full population is about to be resized.
@@ -107,8 +107,6 @@ namespace mabe {
       std::cerr << "ERROR: " << errors.back() << std::endl;
     }
 
-    using Iterator = Population::Iterator;
-
   public:
     Module(MABE & in_control, const std::string & in_name, const std::string & in_desc="")
       : name(in_name), desc(in_desc), control(in_control) { ; }
@@ -173,32 +171,32 @@ namespace mabe {
     bool has_OnUpdate = true;
     virtual void OnUpdate(size_t) { has_OnUpdate = false; }    
 
-    // Format:  BeforeRepro(Iterator parent_pos) 
+    // Format:  BeforeRepro(OrgPosition parent_pos) 
     // Trigger: Parent is about to reproduce.
     bool has_BeforeRepro = true;
-    virtual void BeforeRepro(Iterator) { has_BeforeRepro = false; }    
+    virtual void BeforeRepro(OrgPosition) { has_BeforeRepro = false; }    
 
-    // Format:  OnOffspringReady(Organism & offspring, Iterator parent_pos)
+    // Format:  OnOffspringReady(Organism & offspring, OrgPosition parent_pos)
     // Trigger: Offspring is ready to be placed.
     bool has_OnOffspringReady = true;
-    virtual void OnOffspringReady(Organism &, Iterator) { has_OnOffspringReady = false; }    
+    virtual void OnOffspringReady(Organism &, OrgPosition) { has_OnOffspringReady = false; }    
 
     // Format:  OnInjectReady(Organism & inject_org)
     // Trigger: Organism to be injected is ready to be placed.
     bool has_OnInjectReady = true;
     virtual void OnInjectReady(Organism &) { has_OnInjectReady = false; }    
 
-    // Format:  BeforePlacement(Organism & org, Iterator target_pos)
+    // Format:  BeforePlacement(Organism & org, OrgPosition target_pos)
     // Trigger: Placement location has been identified (For birth or inject)
     // Args:    Organism to be placed, placement position, parent position (if available)
     bool has_BeforePlacement = true;
-    virtual void BeforePlacement(Organism &, Iterator, Iterator) { has_BeforePlacement = false; }    
+    virtual void BeforePlacement(Organism &, OrgPosition, OrgPosition) { has_BeforePlacement = false; }    
 
-    // Format:  OnPlacement(Iterator placement_pos)
+    // Format:  OnPlacement(OrgPosition placement_pos)
     // Trigger: New organism has been placed in the poulation.
     // Args:    Position new organism was placed.
     bool has_OnPlacement = true;
-    virtual void OnPlacement(Iterator) { has_OnPlacement = false; }    
+    virtual void OnPlacement(OrgPosition) { has_OnPlacement = false; }    
 
     // Format:  BeforeMutate(Organism & org)
     // Trigger: Mutate is about to run on an organism.
@@ -210,20 +208,20 @@ namespace mabe {
     bool has_OnMutate = true;
     virtual void OnMutate(Organism &) { has_OnMutate = false; }    
 
-    // Format:  BeforeDeath(Iterator remove_pos)
+    // Format:  BeforeDeath(OrgPosition remove_pos)
     // Trigger: Organism is about to die.
     bool has_BeforeDeath = true;
-    virtual void BeforeDeath(Iterator) { has_BeforeDeath = false; }    
+    virtual void BeforeDeath(OrgPosition) { has_BeforeDeath = false; }    
 
-    // Format:  BeforeSwap(Iterator pos1, Iterator pos2)
+    // Format:  BeforeSwap(OrgPosition pos1, OrgPosition pos2)
     // Trigger: Two organisms' positions in the population are about to move.
     bool has_BeforeSwap = true;
-    virtual void BeforeSwap(Iterator, Iterator) { has_BeforeSwap = false; }    
+    virtual void BeforeSwap(OrgPosition, OrgPosition) { has_BeforeSwap = false; }    
 
-    // Format:  OnSwap(Iterator pos1, Iterator pos2)
+    // Format:  OnSwap(OrgPosition pos1, OrgPosition pos2)
     // Trigger: Two organisms' positions in the population have just swapped.
     bool has_OnSwap = true;
-    virtual void OnSwap(Iterator, Iterator) { has_OnSwap = false; }    
+    virtual void OnSwap(OrgPosition, OrgPosition) { has_OnSwap = false; }    
 
     // Format:  BeforePopResize(Population & pop, size_t new_size)
     // Trigger: Full population is about to be resized.
