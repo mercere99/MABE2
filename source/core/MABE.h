@@ -73,13 +73,13 @@ namespace mabe {
     // BeforeDeath(Iterator remove_pos)
     ModVector<Iterator> before_death_mods;
     // BeforeSwap(Iterator pos1, Iterator pos2)
-    ModVector<Iterator,Iterator> before_swap_mods; // TO IMPLEMENT
+    ModVector<Iterator,Iterator> before_swap_mods;
     // OnSwap(Iterator pos1, Iterator pos2)
-    ModVector<Iterator,Iterator> on_swap_mods; // TO IMPLEMENT
+    ModVector<Iterator,Iterator> on_swap_mods;
     // BeforePopResize(Population & pop, size_t new_size)
-    ModVector<Population &, size_t> before_pop_resize_mods; // TO IMPLEMENT
+    ModVector<Population &, size_t> before_pop_resize_mods;
     // OnPopResize(Population & pop, size_t old_size)
-    ModVector<Population &, size_t> on_pop_resize_mods; // TO IMPLEMENT
+    ModVector<Population &, size_t> on_pop_resize_mods;
     // OnNewOrgManager(OrganismManager & org_man)
     ModVector<OrganismManager &> on_new_org_manager_mods; // TO IMPLEMENT
     // BeforeExit()
@@ -133,12 +133,12 @@ namespace mabe {
 
     /// All movement of organisms from one population position to another should come through here.
     void SwapOrgs(Iterator pos1, Iterator pos2) {
-      // @CAO TRIGGER BEFORE SWAP SIGNAL!
+      before_swap_mods.Trigger(pos1, pos2);
       emp::Ptr<Organism> org1 = pos1.ExtractOrg();
       emp::Ptr<Organism> org2 = pos2.ExtractOrg();
       if (!org1->IsEmpty()) pos2.SetOrg(org1);
       if (!org2->IsEmpty()) pos1.SetOrg(org2);
-      // @CAO TRIGGER ON SWAP SIGNAL!
+      on_swap_mods.Trigger(pos1, pos2);
     }
 
     void ResizePop(Population & pop, size_t new_size) {
@@ -146,7 +146,7 @@ namespace mabe {
       const size_t old_size = pop.GetSize();                // Track the starting size.
       if (old_size == new_size) return;                     // If size isn't changing, we're done!
 
-      // @CAO TRIGGER BEFORE POP RESIZE!
+      before_pop_resize_mods.Trigger(pop, new_size);
 
       for (size_t pos = new_size; pos < old_size; pos++) {  // Clear all orgs out of range.
         ClearOrgAt( Iterator(pop, pos) );
@@ -154,13 +154,14 @@ namespace mabe {
 
       pop.Resize(new_size);                                 // Do the actual resize.
 
-      // @CAO TRIGGER AFTER POP RESIZE!
+      on_pop_resize_mods.Trigger(pop, old_size);
     }
 
     Iterator PushEmpty(Population & pop) {
-      // @CAO TRIGGER BEFORE POP RESIZE!
-      return pop.PushEmpty();
-      // @CAO TRIGGER AFTER POP RESIZE!
+      before_pop_resize_mods.Trigger(pop, pop.GetSize()+1);
+      Iterator it = pop.PushEmpty();
+      on_pop_resize_mods.Trigger(pop, pop.GetSize()-1);
+      return it;
     }
   };
 
