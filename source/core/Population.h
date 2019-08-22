@@ -36,7 +36,7 @@ namespace mabe {
 
   public:
     class Iterator {
-     ///  @todo Add a const interator, and probably a reverse iterator.
+     ///  @todo Add a reverse iterator.
      ///  @todo Fix operator-- which can go off of the beginning of the world.
      friend class MABEBase;
     private:
@@ -200,17 +200,17 @@ namespace mabe {
 
     };
 
-    class ConstIterator {
+    class const_iterator {
     private:
       emp::Ptr<const Population> pop_ptr;
       size_t pos;
       bool skip_empty;
 
     public:
-      ConstIterator(emp::Ptr<const Population> _pop, size_t _pos=0, bool _skip=true)
+      const_iterator(emp::Ptr<const Population> _pop, size_t _pos=0, bool _skip=true)
         : pop_ptr(_pop), pos(_pos), skip_empty(_skip) { if (skip_empty) ToOccupied(); }
-      ConstIterator(const ConstIterator &) = default;
-      ConstIterator & operator=(const ConstIterator &) = default;
+      const_iterator(const const_iterator &) = default;
+      const_iterator & operator=(const const_iterator &) = default;
 
       // Shortcuts to retrieve information from the POPULATION.
       const std::string & PopName() const { emp_assert(pop_ptr); return pop_ptr->name; }
@@ -222,8 +222,8 @@ namespace mabe {
       size_t Pos() const noexcept { return pos; };
       bool SkipEmpty() const noexcept { return skip_empty; };
 
-      ConstIterator & Pos(size_t in) { pos = in; return *this; }
-      ConstIterator & SkipEmpty(bool in) { skip_empty = in; if (skip_empty) ToOccupied(); return *this; }
+      const_iterator & Pos(size_t in) { pos = in; return *this; }
+      const_iterator & SkipEmpty(bool in) { skip_empty = in; if (skip_empty) ToOccupied(); return *this; }
 
       /// Is the pointed-to cell occupied?
       bool IsValid() const { return pos < PopSize(); }
@@ -231,28 +231,28 @@ namespace mabe {
       bool IsOccupied() const { return IsValid() && !OrgPtr()->IsEmpty(); }
 
       /// If on empty cell, advance Constiterator to next non-null position (or the end)
-      ConstIterator & ToOccupied() { while (pos < PopSize() && OrgPtr()->IsEmpty()) ++pos; return *this; }
+      const_iterator & ToOccupied() { while (pos < PopSize() && OrgPtr()->IsEmpty()) ++pos; return *this; }
 
       /// Move to the first empty cell after 'start'.
-      ConstIterator & ToOccupied(size_t start) { pos = start; ToOccupied(); return *this; }
+      const_iterator & ToOccupied(size_t start) { pos = start; ToOccupied(); return *this; }
 
       /// Advance Constiterator to the next non-empty cell in the world.
-      ConstIterator & operator++() {
+      const_iterator & operator++() {
         ++pos;
         if (skip_empty) ToOccupied();
         return *this;
       }
 
       /// Postfix++: advance iterator to the next non-empty cell in the world.
-      ConstIterator operator++(int) {
-        ConstIterator out = *this;
+      const_iterator operator++(int) {
+        const_iterator out = *this;
         ++pos;
         if (skip_empty) ToOccupied();
         return out;
       }
 
       /// Backup Constiterator to the previos non-empty cell in the world.
-      ConstIterator & operator--() {
+      const_iterator & operator--() {
         --pos;
         if (skip_empty) while (pos < PopSize() && OrgPtr()->IsEmpty()) --pos;
         return *this;
@@ -260,20 +260,20 @@ namespace mabe {
 
 
       /// Postfix--: Backup iterator to the previos non-empty cell in the world.
-      ConstIterator operator--(int) {
-        ConstIterator out = *this;
+      const_iterator operator--(int) {
+        const_iterator out = *this;
         --pos;
         if (skip_empty) { while (pos < PopSize() && OrgPtr()->IsEmpty()) --pos; }
         return out;
       }
 
-      /// ConstIterator comparisons (Constiterators from different populations have no ordinal relationship).
-      bool operator==(const ConstIterator& in) const { return pop_ptr == in.pop_ptr && pos == in.pos; }
-      bool operator!=(const ConstIterator& in) const { return pop_ptr != in.pop_ptr || pos != in.pos; }
-      bool operator< (const ConstIterator& in) const { return pop_ptr == in.pop_ptr && pos <  in.pos; }
-      bool operator<=(const ConstIterator& in) const { return pop_ptr == in.pop_ptr && pos <= in.pos; }
-      bool operator> (const ConstIterator& in) const { return pop_ptr == in.pop_ptr && pos >  in.pos; }
-      bool operator>=(const ConstIterator& in) const { return pop_ptr == in.pop_ptr && pos >= in.pos; }
+      /// const_iterator comparisons (Constiterators from different populations have no ordinal relationship).
+      bool operator==(const const_iterator& in) const { return pop_ptr == in.pop_ptr && pos == in.pos; }
+      bool operator!=(const const_iterator& in) const { return pop_ptr != in.pop_ptr || pos != in.pos; }
+      bool operator< (const const_iterator& in) const { return pop_ptr == in.pop_ptr && pos <  in.pos; }
+      bool operator<=(const const_iterator& in) const { return pop_ptr == in.pop_ptr && pos <= in.pos; }
+      bool operator> (const const_iterator& in) const { return pop_ptr == in.pop_ptr && pos >  in.pos; }
+      bool operator>=(const const_iterator& in) const { return pop_ptr == in.pop_ptr && pos >= in.pos; }
 
       /// Return a reference to the organism pointed to by this iterator; may advance iterator.
       const Organism & operator*() {
@@ -297,16 +297,16 @@ namespace mabe {
       operator bool() const { return pos < PopSize() && IsOccupied(); }
 
       /// Return an Constiterator pointing to the first occupied cell in the world.
-      ConstIterator begin() { return ConstIterator(pop_ptr, 0, skip_empty); }
+      const_iterator begin() { return const_iterator(pop_ptr, 0, skip_empty); }
 
       /// Return a const Constiterator pointing to the first occupied cell in the world.
-      const ConstIterator begin() const { return ConstIterator(pop_ptr, 0, skip_empty); }
+      const const_iterator begin() const { return const_iterator(pop_ptr, 0, skip_empty); }
 
       /// Return an Constiterator pointing to just past the end of the world.
-      ConstIterator end() { return ConstIterator(pop_ptr, PopSize(), skip_empty); }
+      const_iterator end() { return const_iterator(pop_ptr, PopSize(), skip_empty); }
 
       /// Return a const Constiterator pointing to just past the end of the world.
-      const ConstIterator end() const { return ConstIterator(pop_ptr, PopSize(), skip_empty); }
+      const const_iterator end() const { return const_iterator(pop_ptr, PopSize(), skip_empty); }
     };
     
     /// Population wrapper to limit to just living organisms.
@@ -360,22 +360,22 @@ namespace mabe {
     Iterator begin_alive() { return Iterator(this, 0, true); }
 
     /// Return a const iterator pointing to the first occupied cell in the world.
-    ConstIterator begin() const { return ConstIterator(this, 0, false); }
-    ConstIterator begin_alive() const { return ConstIterator(this, 0, true); }
+    const_iterator begin() const { return const_iterator(this, 0, false); }
+    const_iterator begin_alive() const { return const_iterator(this, 0, true); }
 
     /// Return an iterator pointing to just past the end of the world.
     Iterator end() { return Iterator(this, GetSize(), false); }
     Iterator end_alive() { return Iterator(this, GetSize(), true); }
 
     /// Return a const iterator pointing to just past the end of the world.
-    ConstIterator end() const { return ConstIterator(this, GetSize(), false); }
-    ConstIterator end_alive() const { return ConstIterator(this, GetSize(), true); }
+    const_iterator end() const { return const_iterator(this, GetSize(), false); }
+    const_iterator end_alive() const { return const_iterator(this, GetSize(), true); }
 
     Iterator IteratorAt(size_t pos, bool skip=false) {
       return Iterator(this, pos, skip);
     }
-    ConstIterator ConstIteratorAt(size_t pos, bool skip=false) const {
-      return ConstIterator(this, pos, skip);
+    const_iterator ConstIteratorAt(size_t pos, bool skip=false) const {
+      return const_iterator(this, pos, skip);
     }
 
     /// Limit iterators to LIVING organisms.
@@ -427,6 +427,8 @@ namespace mabe {
 
   };
 
+  // Alias Population::Iterator to OrgPosition for more intuitive use outside of Population.
+  using OrgPosition = Population::Iterator;
 }
 
 #endif
