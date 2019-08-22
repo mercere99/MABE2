@@ -35,7 +35,7 @@ namespace mabe {
     EmptyOrganism empty_org;               ///< Organism to fill in empty cells (does have data map!)
 
   public:
-    class Iterator {
+    class iterator {
      ///  @todo Add a reverse iterator.
      ///  @todo Fix operator-- which can go off of the beginning of the world.
      friend class MABEBase;
@@ -45,14 +45,14 @@ namespace mabe {
       bool skip_empty;
 
     public:
-      Iterator(emp::Ptr<Population> _pop=nullptr, size_t _pos=0, bool _skip=false)
+      iterator(emp::Ptr<Population> _pop=nullptr, size_t _pos=0, bool _skip=false)
         : pop_ptr(_pop), pos(_pos), skip_empty(_skip)
       {
         if (skip_empty) ToOccupied();
       }
-      Iterator(Population & pop, size_t _pos=0, bool _skip=false) : Iterator(&pop, _pos, _skip) {}
-      Iterator(const Iterator &) = default;
-      Iterator & operator=(const Iterator & in) = default;
+      iterator(Population & pop, size_t _pos=0, bool _skip=false) : iterator(&pop, _pos, _skip) {}
+      iterator(const iterator &) = default;
+      iterator & operator=(const iterator & in) = default;
 
       // Shortcuts to retrieve information from the POPULATION.
       const std::string & PopName() const { emp_assert(pop_ptr); return pop_ptr->name; }
@@ -70,8 +70,8 @@ namespace mabe {
         return emp::to_string("{pop_ptr=", pop_ptr, ";pos=", pos, ";skip_empty=", skip_empty, "}");
       }
 
-      Iterator & Pos(size_t in) { pos = in; return *this; }
-      Iterator & SkipEmpty(bool in) { skip_empty = in; if (skip_empty) ToOccupied(); return *this; }
+      iterator & Pos(size_t in) { pos = in; return *this; }
+      iterator & SkipEmpty(bool in) { skip_empty = in; if (skip_empty) ToOccupied(); return *this; }
 
       /// Is this iterator currently in a legal state?
       bool IsValid() const { return !pop_ptr.IsNull() && pos < PopSize(); }
@@ -87,66 +87,66 @@ namespace mabe {
       void ToOccupied(size_t start) { pos = start; ToOccupied(); }
 
       /// Advance iterator to the next non-empty cell in the world.
-      Iterator & operator++() {
+      iterator & operator++() {
         ++pos;
         if (skip_empty) ToOccupied();
         return *this;
       }
 
       /// Postfix++: advance iterator to the next non-empty cell in the world.
-      Iterator operator++(int) {
-        Iterator out = *this;
+      iterator operator++(int) {
+        iterator out = *this;
         ++pos;
         if (skip_empty) ToOccupied();
         return out;
       }
 
       /// Backup iterator to the previos non-empty cell in the world.
-      Iterator & operator--() {
+      iterator & operator--() {
         --pos;
         if (skip_empty) { while (pos < PopSize() && OrgPtr()->IsEmpty()) --pos; }
         return *this;
       }
 
       /// Postfix--: Backup iterator to the previos non-empty cell in the world.
-      Iterator operator--(int) {
-        Iterator out = *this;
+      iterator operator--(int) {
+        iterator out = *this;
         --pos;
         if (skip_empty) { while (pos < PopSize() && OrgPtr()->IsEmpty()) --pos; }
         return out;
       }
 
       // Basic math operations...
-      Iterator operator+(size_t x) {
+      iterator operator+(size_t x) {
         emp_assert(pos + x <= PopSize());
-        return Iterator(pop_ptr, pos+x);
+        return iterator(pop_ptr, pos+x);
       }
 
-      Iterator operator-(size_t x) {
+      iterator operator-(size_t x) {
         emp_assert(pos - x <= PopSize());
-        return Iterator(pop_ptr, pos-x);
+        return iterator(pop_ptr, pos-x);
       }
 
       // Compound math operations...
-      Iterator & operator+=(size_t x) {
+      iterator & operator+=(size_t x) {
         emp_assert(pos + x <= PopSize());
         pos += x;
         return *this;
       }
 
-      Iterator & operator-=(size_t x) {
+      iterator & operator-=(size_t x) {
         emp_assert(pos - x <= PopSize());
         pos -= x;
         return *this;
       }
 
-      /// Iterator comparisons (iterators from different populations have no ordinal relationship).
-      bool operator==(const Iterator& in) const { return pop_ptr == in.pop_ptr && pos == in.pos; }
-      bool operator!=(const Iterator& in) const { return pop_ptr != in.pop_ptr || pos != in.pos; }
-      bool operator< (const Iterator& in) const { return pop_ptr == in.pop_ptr && pos <  in.pos; }
-      bool operator<=(const Iterator& in) const { return pop_ptr == in.pop_ptr && pos <= in.pos; }
-      bool operator> (const Iterator& in) const { return pop_ptr == in.pop_ptr && pos >  in.pos; }
-      bool operator>=(const Iterator& in) const { return pop_ptr == in.pop_ptr && pos >= in.pos; }
+      /// iterator comparisons (iterators from different populations have no ordinal relationship).
+      bool operator==(const iterator& in) const { return pop_ptr == in.pop_ptr && pos == in.pos; }
+      bool operator!=(const iterator& in) const { return pop_ptr != in.pop_ptr || pos != in.pos; }
+      bool operator< (const iterator& in) const { return pop_ptr == in.pop_ptr && pos <  in.pos; }
+      bool operator<=(const iterator& in) const { return pop_ptr == in.pop_ptr && pos <= in.pos; }
+      bool operator> (const iterator& in) const { return pop_ptr == in.pop_ptr && pos >  in.pos; }
+      bool operator>=(const iterator& in) const { return pop_ptr == in.pop_ptr && pos >= in.pos; }
 
       /// Return a reference to the organism pointed to by this iterator; may advance iterator.
       Organism & operator*() {
@@ -159,7 +159,7 @@ namespace mabe {
       /// Note that since this version is const, it will NOT advance the iterator.
       const Organism & operator*() const { emp_assert(IsValid()); return *(OrgPtr()); }
 
-      /// Allow Iterator to be used as a pointer.
+      /// Allow iterator to be used as a pointer.
       emp::Ptr<mabe::Organism> operator->() {
         // Make sure a pointer is active before we follow it.
         emp_assert(IsValid());
@@ -180,16 +180,16 @@ namespace mabe {
       operator emp::Ptr<mabe::Organism>() { emp_assert(IsValid()); return OrgPtr(); }
 
       /// Return an iterator pointing to the first occupied cell in the world.
-      Iterator begin() { return Iterator(pop_ptr, 0, skip_empty); }
+      iterator begin() { return iterator(pop_ptr, 0, skip_empty); }
 
       /// Return a const iterator pointing to the first occupied cell in the world.
-      const Iterator begin() const { return Iterator(pop_ptr, 0, skip_empty); }
+      const iterator begin() const { return iterator(pop_ptr, 0, skip_empty); }
 
       /// Return an iterator pointing to just past the end of the world.
-      Iterator end() { return Iterator(pop_ptr, PopSize(), skip_empty); }
+      iterator end() { return iterator(pop_ptr, PopSize(), skip_empty); }
 
       /// Return a const iterator pointing to just past the end of the world.
-      const Iterator end() const { return Iterator(pop_ptr, PopSize(), skip_empty); }
+      const iterator end() const { return iterator(pop_ptr, PopSize(), skip_empty); }
 
     private:  // ---== To be used by friend class MABEBase only! ==---
       /// Insert an organism into the pointed-at position.
@@ -315,8 +315,8 @@ namespace mabe {
       Population & pop;
     public:
       AlivePop(Population & _pop) : pop(_pop) { ; }
-      Iterator begin() { return pop.begin_alive(); }
-      Iterator end() { return pop.end_alive(); }
+      iterator begin() { return pop.begin_alive(); }
+      iterator end() { return pop.end_alive(); }
     };
 
   public:
@@ -356,23 +356,23 @@ namespace mabe {
     const Organism & operator[](size_t org_id) const { return *(orgs[org_id]); }
 
     /// Return an iterator pointing to the first occupied cell in the world.
-    Iterator begin() { return Iterator(this, 0, false); }
-    Iterator begin_alive() { return Iterator(this, 0, true); }
+    iterator begin() { return iterator(this, 0, false); }
+    iterator begin_alive() { return iterator(this, 0, true); }
 
     /// Return a const iterator pointing to the first occupied cell in the world.
     const_iterator begin() const { return const_iterator(this, 0, false); }
     const_iterator begin_alive() const { return const_iterator(this, 0, true); }
 
     /// Return an iterator pointing to just past the end of the world.
-    Iterator end() { return Iterator(this, GetSize(), false); }
-    Iterator end_alive() { return Iterator(this, GetSize(), true); }
+    iterator end() { return iterator(this, GetSize(), false); }
+    iterator end_alive() { return iterator(this, GetSize(), true); }
 
     /// Return a const iterator pointing to just past the end of the world.
     const_iterator end() const { return const_iterator(this, GetSize(), false); }
     const_iterator end_alive() const { return const_iterator(this, GetSize(), true); }
 
-    Iterator IteratorAt(size_t pos, bool skip=false) {
-      return Iterator(this, pos, skip);
+    iterator IteratorAt(size_t pos, bool skip=false) {
+      return iterator(this, pos, skip);
     }
     const_iterator ConstIteratorAt(size_t pos, bool skip=false) const {
       return const_iterator(this, pos, skip);
@@ -419,16 +419,16 @@ namespace mabe {
     }
 
     /// Add an empty position to the end of the population (and return an iterator to it)
-    Iterator PushEmpty() {
+    iterator PushEmpty() {
       size_t pos = orgs.size();
       orgs.resize(orgs.size()+1, &empty_org);
-      return Iterator(this, pos);
+      return iterator(this, pos);
     }
 
   };
 
-  // Alias Population::Iterator to OrgPosition for more intuitive use outside of Population.
-  using OrgPosition = Population::Iterator;
+  // Alias Population::iterator to OrgPosition for more intuitive use outside of Population.
+  using OrgPosition = Population::iterator;
 }
 
 #endif
