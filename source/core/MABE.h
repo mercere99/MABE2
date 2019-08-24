@@ -32,9 +32,9 @@ namespace mabe {
 
   class MABEBase {
   protected:
-    template <typename... ARGS>
+    template <typename RETURN, typename... ARGS>
     struct ModVector : public emp::vector<emp::Ptr<Module>> {
-      typedef void (Module::*ModMemFun)(ARGS...);
+      typedef RETURN (Module::*ModMemFun)(ARGS...);
       ModMemFun fun;
 
       ModVector(ModMemFun _fun) : fun(_fun) { ; }
@@ -51,37 +51,44 @@ namespace mabe {
 
     // --- Track which modules need to have each signal type called on them. ---
     // BeforeUpdate(size_t update_ending)
-    ModVector<size_t> before_update_sig;
+    ModVector<void,size_t> before_update_sig;
     // OnUpdate(size_t new_update)
-    ModVector<size_t> on_update_sig;
+    ModVector<void,size_t> on_update_sig;
     // BeforeRepro(OrgPosition parent_pos) 
-    ModVector<OrgPosition> before_repro_sig;
+    ModVector<void,OrgPosition> before_repro_sig;
     // OnOffspringReady(Organism & offspring, OrgPosition parent_pos)
-    ModVector<Organism &,OrgPosition> on_offspring_ready_sig;
+    ModVector<void,Organism &,OrgPosition> on_offspring_ready_sig;
     // OnInjectReady(Organism & inject_org)
-    ModVector<Organism &> on_inject_ready_sig;
+    ModVector<void,Organism &> on_inject_ready_sig;
     // BeforePlacement(Organism & org, OrgPosition target_pos, OrgPosition parent_pos)
-    ModVector<Organism &, OrgPosition, OrgPosition> before_placement_sig;
+    ModVector<void,Organism &, OrgPosition, OrgPosition> before_placement_sig;
     // OnPlacement(OrgPosition placement_pos)
-    ModVector<OrgPosition> on_placement_sig;
+    ModVector<void,OrgPosition> on_placement_sig;
     // BeforeMutate(Organism & org)
-    ModVector<Organism &> before_mutate_sig; // TO IMPLEMENT
+    ModVector<void,Organism &> before_mutate_sig; // TO IMPLEMENT
     // OnMutate(Organism & org)
-    ModVector<Organism &> on_mutate_sig; // TO IMPLEMENT
+    ModVector<void,Organism &> on_mutate_sig; // TO IMPLEMENT
     // BeforeDeath(OrgPosition remove_pos)
-    ModVector<OrgPosition> before_death_sig;
+    ModVector<void,OrgPosition> before_death_sig;
     // BeforeSwap(OrgPosition pos1, OrgPosition pos2)
-    ModVector<OrgPosition,OrgPosition> before_swap_sig;
+    ModVector<void,OrgPosition,OrgPosition> before_swap_sig;
     // OnSwap(OrgPosition pos1, OrgPosition pos2)
-    ModVector<OrgPosition,OrgPosition> on_swap_sig;
+    ModVector<void,OrgPosition,OrgPosition> on_swap_sig;
     // BeforePopResize(Population & pop, size_t new_size)
-    ModVector<Population &, size_t> before_pop_resize_sig;
+    ModVector<void,Population &, size_t> before_pop_resize_sig;
     // OnPopResize(Population & pop, size_t old_size)
-    ModVector<Population &, size_t> on_pop_resize_sig;
+    ModVector<void,Population &, size_t> on_pop_resize_sig;
     // BeforeExit()
-    ModVector<> before_exit_sig;
+    ModVector<void> before_exit_sig;
     // OnHelp()
-    ModVector<> on_help_sig;
+    ModVector<void> on_help_sig;
+
+    // OrgPosition DoPlaceBirth(Organism &, OrgPosition);
+    ModVector<OrgPosition, Organism &,OrgPosition> do_place_birth_sig;
+    // OrgPosition DoPlaceInject(Organism &)
+    ModVector<OrgPosition, Organism &> do_place_inject_sig;
+    // OrgPosition DoFindNeighbor(OrgPosition) {
+    ModVector<OrgPosition, OrgPosition> do_find_neighbor_sig;
 
 
     // Private constructor so that base class cannot be instantiated directly.
@@ -102,6 +109,9 @@ namespace mabe {
     , on_pop_resize_sig(&Module::OnPopResize)
     , before_exit_sig(&Module::BeforeExit)
     , on_help_sig(&Module::OnHelp)
+    , do_place_birth_sig(&Module::DoPlaceBirth)
+    , do_place_inject_sig(&Module::DoPlaceInject)
+    , do_find_neighbor_sig(&Module::DoFindNeighbor)
     { ;  }
 
   public:
@@ -688,6 +698,9 @@ namespace mabe {
     on_pop_resize_sig.resize(0);
     before_exit_sig.resize(0);
     on_help_sig.resize(0);
+    do_place_birth_sig.resize(0);
+    do_place_inject_sig.resize(0);
+    do_find_neighbor_sig.resize(0);
 
     for (emp::Ptr<Module> mod_ptr : modules) {
       if (mod_ptr->has_BeforeUpdate) before_update_sig.push_back(mod_ptr);
@@ -706,6 +719,10 @@ namespace mabe {
       if (mod_ptr->has_OnPopResize) on_pop_resize_sig.push_back(mod_ptr);
       if (mod_ptr->has_BeforeExit) before_exit_sig.push_back(mod_ptr);
       if (mod_ptr->has_OnHelp) on_help_sig.push_back(mod_ptr);
+
+      if (mod_ptr->has_DoPlaceBirth) do_place_birth_sig.push_back(mod_ptr);
+      if (mod_ptr->has_DoPlaceInject) do_place_inject_sig.push_back(mod_ptr);
+      if (mod_ptr->has_DoFindNeighbor) do_find_neighbor_sig.push_back(mod_ptr);
     }
   }
 
