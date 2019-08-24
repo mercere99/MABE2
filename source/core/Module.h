@@ -244,6 +244,36 @@ namespace mabe {
     virtual void OnHelp() { has_OnHelp = false; } 
 
 
+
+    // Functions to be called based on actions that need to happen.  Each of these
+    // return 'true' if successful or 'false' otherwise.  Modules will be querried in
+    // order until one of them returns 'true'.
+
+    // Function: Place a new organism about to be born.
+    // Args: Organism that will be placed, position of parent, position to place.
+
+    bool has_PlaceBirth = true;
+    virtual bool DoPlaceBirth(Organism &, OrgPosition, OrgPosition &) {
+      has_PlaceBirth = false; return false;
+    }
+
+    // Function: Place a new organism about to be injected.
+    // Args: Organism that will be placed, position to place.
+
+    bool has_PlaceInject = true;
+    virtual bool DoPlaceInject(Organism &, OrgPosition &) {
+      has_PlaceInject = false; return false;
+    }
+
+    // Function: Find a random neighbor to a designated organism.
+    // Args: Position to find neighbor of, position found.
+
+    bool has_FindNeighbor = true;
+    virtual bool DoFindNeighbor(OrgPosition, OrgPosition &) {
+      has_FindNeighbor = false; return false;
+    }
+
+
   // --------------------- Functions to be used in derived modules ONLY --------------------------
   protected:
 
