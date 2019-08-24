@@ -244,33 +244,33 @@ namespace mabe {
     virtual void OnHelp() { has_OnHelp = false; } 
 
 
-
-    // Functions to be called based on actions that need to happen.  Each of these
-    // return 'true' if successful or 'false' otherwise.  Modules will be querried in
-    // order until one of them returns 'true'.
+    // Functions to be called based on actions that need to happen.  Each of these returns a
+    // viable result or an invalid object if need to pass on to the next module.  Modules will
+    // be querried in order until one of them returns a valid result.
 
     // Function: Place a new organism about to be born.
     // Args: Organism that will be placed, position of parent, position to place.
+    // Return: Position to place offspring or an invalid position if failed.
 
-    bool has_PlaceBirth = true;
-    virtual bool DoPlaceBirth(Organism &, OrgPosition, OrgPosition &) {
-      has_PlaceBirth = false; return false;
+    bool has_DoPlaceBirth = true;
+    virtual OrgPosition DoPlaceBirth(Organism &, OrgPosition) {
+      has_DoPlaceBirth = false; return OrgPosition();
     }
 
     // Function: Place a new organism about to be injected.
     // Args: Organism that will be placed, position to place.
 
-    bool has_PlaceInject = true;
-    virtual bool DoPlaceInject(Organism &, OrgPosition &) {
-      has_PlaceInject = false; return false;
+    bool has_DoPlaceInject = true;
+    virtual OrgPosition DoPlaceInject(Organism &) {
+      has_DoPlaceInject = false; return OrgPosition();
     }
 
     // Function: Find a random neighbor to a designated organism.
     // Args: Position to find neighbor of, position found.
 
-    bool has_FindNeighbor = true;
-    virtual bool DoFindNeighbor(OrgPosition, OrgPosition &) {
-      has_FindNeighbor = false; return false;
+    bool has_DoFindNeighbor = true;
+    virtual OrgPosition DoFindNeighbor(OrgPosition) {
+      has_DoFindNeighbor = false; return OrgPosition();
     }
 
 
