@@ -42,8 +42,18 @@ namespace mabe {
       template <typename... ARGS2>
       void Trigger(ARGS2 &&... args) {
         for (emp::Ptr<Module> mod_ptr : *this) {
-          std::invoke(fun, *mod_ptr, std::forward<ARGS2>(args)...);
+          (mod_ptr->*fun)( std::forward<ARGS2>(args)... );
         }
+      }
+
+      template <typename... ARGS2>
+      OrgPosition FindOrgPosition(ARGS2 &&... args) {
+        OrgPosition result;
+        for (emp::Ptr<Module> mod_ptr : *this) {
+          result = (mod_ptr->*fun)(std::forward<ARGS2>(args)...);
+          if (result.IsValid()) break;
+        }
+        return result;
       }
     };
 
@@ -345,6 +355,18 @@ namespace mabe {
       for (size_t ud = 0; ud < num_updates; ud++) {
         Update();
       }
+    }
+
+    // -- World Structure --
+
+    OrgPosition FindBirthPosition(Organism & org, OrgPosition ppos) {
+      return do_place_birth_sig.FindOrgPosition(org, ppos);
+    }
+    OrgPosition FindInjectPosition(Organism & org) {
+      return do_place_inject_sig.FindOrgPosition(org);
+    }
+    OrgPosition FindNeighbor(OrgPosition pos) {
+      return do_find_neighbor_sig.FindOrgPosition(pos);
     }
 
 
