@@ -42,15 +42,16 @@ namespace mabe {
       template <typename... ARGS2>
       void Trigger(ARGS2 &&... args) {
         for (emp::Ptr<Module> mod_ptr : *this) {
-          (mod_ptr->*fun)( std::forward<ARGS2>(args)... );
+          emp_assert(!mod_ptr.IsNull());
+          (mod_ptr.Raw()->*fun)( std::forward<ARGS2>(args)... );
         }
       }
 
       template <typename... ARGS2>
-      OrgPosition FindOrgPosition(ARGS2 &&... args) {
+      OrgPosition FindPosition(ARGS2 &&... args) {
         OrgPosition result;
         for (emp::Ptr<Module> mod_ptr : *this) {
-          result = (mod_ptr->*fun)(std::forward<ARGS2>(args)...);
+          result = (mod_ptr.Raw()->*fun)(std::forward<ARGS2>(args)...);
           if (result.IsValid()) break;
         }
         return result;
@@ -88,6 +89,10 @@ namespace mabe {
     ModVector<void,Population &, size_t> before_pop_resize_sig;
     // OnPopResize(Population & pop, size_t old_size)
     ModVector<void,Population &, size_t> on_pop_resize_sig;
+    // OnError(const std::string & msg)
+    ModVector<void,const std::string &> on_error_sig;
+    // OnWarning(const std::string & msg)
+    ModVector<void,const std::string &> on_warning_sig;
     // BeforeExit()
     ModVector<void> before_exit_sig;
     // OnHelp()
@@ -117,6 +122,8 @@ namespace mabe {
     , on_swap_sig(&Module::OnSwap)
     , before_pop_resize_sig(&Module::BeforePopResize)
     , on_pop_resize_sig(&Module::OnPopResize)
+    , on_error_sig(&Module::OnError)
+    , on_warning_sig(&Moade::OnWarning)
     , before_exit_sig(&Module::BeforeExit)
     , on_help_sig(&Module::OnHelp)
     , do_place_birth_sig(&Module::DoPlaceBirth)
@@ -197,17 +204,6 @@ namespace mabe {
     size_t cur_pop = (size_t) -1;           ///< Which population are we currently working with?
     size_t update = 0;                      ///< How many times has Update() been called?
     emp::vector<std::string> errors;        ///< Log any errors that have occured.
-
-    /// A birth placement function takes the new organism and an iterator pointing at a parent
-    /// and returns an Interator indicating where that organism should place its offspring.
-    using birth_pos_fun_t = std::function< OrgPosition(const Organism &, OrgPosition) >;
-    birth_pos_fun_t birth_pos_fun;
-
-    /// A birth placement function takes the injected organism and returns an Interator
-    /// indicating where that organism should place its offspring.
-    using inject_pos_fun_t = std::function< OrgPosition(const Organism &) >;
-    inject_pos_fun_t inject_pos_fun;
-
 
     // --- Config information for command-line arguments ---
     struct ArgInfo {
@@ -360,13 +356,13 @@ namespace mabe {
     // -- World Structure --
 
     OrgPosition FindBirthPosition(Organism & org, OrgPosition ppos) {
-      return do_place_birth_sig.FindOrgPosition(org, ppos);
+      return do_place_birth_sig.FindPosition(org, ppos);
     }
     OrgPosition FindInjectPosition(Organism & org) {
-      return do_place_inject_sig.FindOrgPosition(org);
+      return do_place_inject_sig.FindPosition(org);
     }
     OrgPosition FindNeighbor(OrgPosition pos) {
-      return do_find_neighbor_sig.FindOrgPosition(pos);
+      return do_find_neighbor_sig.FindPosition(pos);
     }
 
 
@@ -401,15 +397,15 @@ namespace mabe {
     }
 
     void Inject(const Organism & org, size_t copy_count=1) {
-      emp_assert(inject_pos_fun);
       for (size_t i = 0; i < copy_count; i++) {
         emp::Ptr<Organism> inject_org = org.Clone();
         on_inject_ready_sig.Trigger(*inject_org);
-        OrgPosition pos = inject_pos_fun(*inject_org);
+        OrgPosition pos = FindInjectPosition(*inject_org);
         if (pos.IsValid()) AddOrgAt( inject_org, pos);
         else {
           inject_org.Delete();
-          AddError("Invalid position (pop=", pos.PopPtr(), "; pos=", pos.Pos(), "); failed to inject organism ", i, "!");
+          AddError("Invalid position (pop=", pos.PopPtr(), "; pos=", pos.Pos(),
+                   "); failed to inject organism ", i, "!");
         }
       }
     }
@@ -418,12 +414,8 @@ namespace mabe {
       const OrganismManager & org_manager = GetOrganismManager(type_name);
       for (size_t i = 0; i < copy_count; i++) {
         emp::Ptr<Organism> inject_org = org_manager.MakeOrganism(random);
-        OrgPosition pos = inject_pos_fun(*inject_org);
-        if (pos.IsValid()) AddOrgAt( inject_org, pos);
-        else {
-          inject_org.Delete();
-          AddError("Invalid position (pop=", pos.PopPtr(), "; pos=", pos.Pos(), "); failed to inject organism ", i, "!");
-        }
+        Inject(*inject_org);
+        inject_org.Delete();
       }
     }
 
@@ -438,14 +430,13 @@ namespace mabe {
     // Triggers 'before repro' signal on parent (once) and 'offspring ready' on each offspring.
     // Regular signal triggers occur in AddOrgAt.
     OrgPosition DoBirth(const Organism & org, OrgPosition ppos, size_t copy_count=1) {
-      emp_assert(birth_pos_fun);           // Must have a value birth_pos_fun
       emp_assert(org.IsEmpty() == false);  // Empty cells cannot reproduce.
       before_repro_sig.Trigger(ppos);
       OrgPosition pos;                                     // Position of each offspring placed.
       for (size_t i = 0; i < copy_count; i++) {            // Loop through offspring, adding each
         emp::Ptr<Organism> new_org = org.Clone();          // Clone org to put copy in population
         on_offspring_ready_sig.Trigger(*new_org, ppos);    // Trigger modules with offspring ready
-        pos = birth_pos_fun(*new_org, ppos);               // Determine location for offspring
+        pos = FindBirthPosition(*new_org, ppos);           // Determine location for offspring
 
         if (pos.IsValid()) AddOrgAt(new_org, pos, ppos);   // If placement pos is valid, do so!
         else new_org.Delete();                             // Otherwise delete the organism.
@@ -489,26 +480,6 @@ namespace mabe {
       modules.push_back(mod_ptr);
 
       return *mod_ptr;
-    }
-
-    // --- Built-in Population Management ---
-
-    /// Set the placement function to put offspring at the end of a specified population.
-    /// Organism replication and placement.
-    void SetGrowthPlacement(size_t target_pop) {
-      // Ignore both the organism and the parent; always insert at the end of the population.
-      birth_pos_fun = [this,target_pop](const Organism &, OrgPosition) {
-          return PushEmpty(pops[target_pop]);
-        };
-      inject_pos_fun = [this,target_pop](const Organism &) {
-          return PushEmpty(pops[target_pop]);
-        };
-    }
-
-    /// If we don't specific a population to place offspring in, assume they go in the current one.
-    void SetGrowthPlacement() {
-      if (sync_pop) SetGrowthPlacement(1);
-      else SetGrowthPlacement(0);
     }
 
 
@@ -673,29 +644,7 @@ namespace mabe {
     for (emp::Ptr<Module> mod_ptr : modules) mod_ptr->SetupModule();
 
     // If none of the modules setup the placement functions, do so now.
-    if (!birth_pos_fun) {
-      if (sync_pop) {
-        std::cout << "Setting up SYNCHRONOUS reproduction." << std::endl;
-        emp_assert(pops.size() >= 2);
-        birth_pos_fun = [this](const Organism &, OrgPosition) {
-            // OrgPosition it = pops[1].PushEmpty();
-            // std::cout << "[[" << it.PopID() << ":" << it.Pos() << "]]" << std::endl;
-            // return it;
-            return PushEmpty(pops[1]);   // Synchronous pops reproduce into next generation.
-          };
-      } else {
-        std::cout << "Setting up ASYNCHRONOUS reproduction." << std::endl;
-        emp_assert(pops.size() >= 1);
-        birth_pos_fun = [this](const Organism &, OrgPosition) {
-            return PushEmpty(pops[0]);;   // Asynchronous offspring go into current population.
-          };
-      }
-    }
-    if (!inject_pos_fun) {
-      inject_pos_fun = [this](const Organism &) {
-          return PushEmpty(pops[0]);;
-        };
-    }
+    // @CAO: If no modules are marked IsPlacement(), make that the last module.
   }
 
   void MABE::Setup_Traits() {
@@ -718,8 +667,11 @@ namespace mabe {
     on_swap_sig.resize(0);
     before_pop_resize_sig.resize(0);
     on_pop_resize_sig.resize(0);
+    on_error_sig.resize(0);
+    on_warning_sig.resize(0);
     before_exit_sig.resize(0);
     on_help_sig.resize(0);
+    
     do_place_birth_sig.resize(0);
     do_place_inject_sig.resize(0);
     do_find_neighbor_sig.resize(0);
