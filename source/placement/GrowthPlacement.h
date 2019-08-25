@@ -17,8 +17,8 @@ namespace mabe {
 
   class GrowthPlacement : public Module {
   private:
-    size_t from_pop=0;
-    size_t to_pop=1;
+    int from_pop=0;
+    int to_pop=1;
 
   public:
     GrowthPlacement(mabe::MABE & control)
@@ -59,7 +59,7 @@ namespace mabe {
 
       // If the current position is either not a population or not one monitored, don't find!
       if (pop_ptr.IsNull() || pos.PopID() != from_pop) return OrgPosition();
-      return OrgPosition(pop_ptr, control.GetRandom.GetUInt(pop_ptr->GetSize()));
+      return OrgPosition(pop_ptr, control.GetRandom().GetUInt(pop_ptr->GetSize()));
     }
 
 
