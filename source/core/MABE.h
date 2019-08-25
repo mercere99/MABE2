@@ -123,7 +123,7 @@ namespace mabe {
     , before_pop_resize_sig(&Module::BeforePopResize)
     , on_pop_resize_sig(&Module::OnPopResize)
     , on_error_sig(&Module::OnError)
-    , on_warning_sig(&Moade::OnWarning)
+    , on_warning_sig(&Module::OnWarning)
     , before_exit_sig(&Module::BeforeExit)
     , on_help_sig(&Module::OnHelp)
     , do_place_birth_sig(&Module::DoPlaceBirth)
@@ -266,7 +266,7 @@ namespace mabe {
     template <typename... Ts>
     void AddError(Ts &&... args) {
       errors.push_back( emp::to_string( std::forward<Ts>(args)... ));
-      std::cerr << "ERROR: " << errors.back() << std::endl;
+      on_error_sig.Trigger(errors.back());
     }
     void AddErrors(const emp::vector<std::string> & in_errors) {
       errors.insert(errors.end(), in_errors.begin(), in_errors.end());
@@ -410,13 +410,11 @@ namespace mabe {
       }
     }
 
-    void Inject(const std::string & type_name, size_t copy_count=1) {
+    void Inject(const std::string & type_name, size_t copy_count=1) {      
       const OrganismManager & org_manager = GetOrganismManager(type_name);
-      for (size_t i = 0; i < copy_count; i++) {
-        emp::Ptr<Organism> inject_org = org_manager.MakeOrganism(random);
-        Inject(*inject_org);
-        inject_org.Delete();
-      }
+      emp::Ptr<Organism> inject_org = org_manager.MakeOrganism(random);
+      Inject(*inject_org, copy_count);
+      inject_org.Delete();
     }
 
     void InjectAt(const Organism & org, OrgPosition pos) {
@@ -671,7 +669,7 @@ namespace mabe {
     on_warning_sig.resize(0);
     before_exit_sig.resize(0);
     on_help_sig.resize(0);
-    
+
     do_place_birth_sig.resize(0);
     do_place_inject_sig.resize(0);
     do_find_neighbor_sig.resize(0);
