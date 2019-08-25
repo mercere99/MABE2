@@ -37,6 +37,10 @@
  *       : Full population is about to be resized.
  *     OnPopResize(Population & pop, size_t old_size)
  *       : Full population has just been resized.
+ *     OnError(const std::string & msg)
+ *       : An error has occurred and the user should be notified.
+ *     OnWarning(const std::string & msg)
+ *       : A atypical condition has occurred and the user should be notified.
  *     BeforeExit()
  *       : Run immediately before MABE is about to exit.
  *     OnHelp()
@@ -73,14 +77,15 @@ namespace mabe {
     emp::vector<std::string> errors;  ///< Has this class detected any configuration errors?
 
     /// Informative tags about this module.  Expected tags include:
-    ///   "Evaluate"   : Examines organisms and annotates the data map.
-    ///   "Select"     : Chooses organisms to act as parents in for the next generation.
-    ///   "Placement"  : Identifies where new organisms should be placed in the population.
-    ///   "Mutate"     : Modifies organism genomes
-    ///   "Analyze"    : Records data or makes measurements on the population.
-    ///   "Manager"    : Manages a type of organism in the world.
-    ///   "Visualizer" : Displays data for the user.
-    ///   "Interface"  : Provides mechanisms for the user to interact with the world.
+    ///   "Analyze"     : Records data or makes measurements on the population.
+    ///   "ErrorHandle" : Deals with errors as they occur and need to be reported.
+    ///   "Evaluate"    : Examines organisms and annotates the data map.
+    ///   "Interface"   : Provides mechanisms for the user to interact with the world.
+    ///   "ManageOrgs"  : Manages a type of organism in the world.
+    ///   "Mutate"      : Modifies organism genomes
+    ///   "Placement"   : Identifies where new organisms should be placed in the population.
+    ///   "Select"      : Chooses organisms to act as parents in for the next generation.
+    ///   "Visualize"   : Displays data for the user.
     std::set<std::string> action_tags; ///< Informative tags about this model
 
     /// Is this module expecting sychronous replication (i.e., discrete generations) or
@@ -125,15 +130,15 @@ namespace mabe {
 
     virtual emp::Ptr<Module> Clone() { return nullptr; }
 
-
-    bool IsEvaluate() const { return emp::Has(action_tags, "Evaluate"); }
-    bool IsSelect() const { return emp::Has(action_tags, "Select"); }
-    bool IsPlacement() const { return emp::Has(action_tags, "Placement"); }
-    bool IsMutate() const { return emp::Has(action_tags, "Mutate"); }
-    bool IsAnalyze() const { return emp::Has(action_tags, "Analyze"); }
-    bool IsManager() const { return emp::Has(action_tags, "Manager"); }
-    bool IsVisualizer() const { return emp::Has(action_tags, "Visualizer"); }
-    bool IsInterface() const { return emp::Has(action_tags, "Interface"); }
+    bool IsAnalyzeMod() const { return emp::Has(action_tags, "Analyze"); }
+    bool IsErrorHandleMod() const { return emp::Has(action_tags, "ErrorHandle"); }
+    bool IsEvaluateMod() const { return emp::Has(action_tags, "Evaluate"); }
+    bool IsInterfaceMod() const { return emp::Has(action_tags, "Interface"); }
+    bool IsManageMod() const { return emp::Has(action_tags, "ManageOrgs"); }
+    bool IsMutateMod() const { return emp::Has(action_tags, "Mutate"); }
+    bool IsPlacementMod() const { return emp::Has(action_tags, "Placement"); }
+    bool IsSelectMod() const { return emp::Has(action_tags, "Select"); }
+    bool IsVisualizeMod() const { return emp::Has(action_tags, "Visualize"); }
 
     Module & SetActionTag(const std::string & name, bool setting=true) {
       if (setting) action_tags.insert(name);
@@ -141,14 +146,15 @@ namespace mabe {
       return *this;
     }
 
-    Module & SetIsEvaluate(bool in=true) { return SetActionTag("Evaluate", in); }
-    Module & SetIsSelect(bool in=true) { return SetActionTag("Select", in); }
-    Module & SetIsPlacement(bool in=true) { return SetActionTag("Placement", in); }
-    Module & SetIsMutate(bool in=true) { return SetActionTag("Mutate", in); }
-    Module & SetIsAnalyze(bool in=true) { return SetActionTag("Analyze", in); }
-    Module & SetIsManager(bool in=true) { return SetActionTag("Manager", in); }
-    Module & SetIsVisualizer(bool in=true) { return SetActionTag("Visualizer", in); }
-    Module & SetIsInterface(bool in=true) { return SetActionTag("Interface", in); }
+    Module & SetAnalyzeMod(bool in=true) { return SetActionTag("Analyze", in); }
+    Module & SetErrorHandleMod(bool in=true) { return SetActionTag("ErrorHandle", in); }
+    Module & SetEvaluateMod(bool in=true) { return SetActionTag("Evaluate", in); }
+    Module & SetInterfaceMod(bool in=true) { return SetActionTag("Interface", in); }
+    Module & SetManageMod(bool in=true) { return SetActionTag("ManageOrgs", in); }
+    Module & SetMutateMod(bool in=true) { return SetActionTag("Mutate", in); }
+    Module & SetPlacementMod(bool in=true) { return SetActionTag("Placement", in); }
+    Module & SetSelectMod(bool in=true) { return SetActionTag("Select", in); }
+    Module & SetVisualizerMod(bool in=true) { return SetActionTag("Visualize", in); }
 
     Module & RequireAsync() { rep_type = ReplicationType::REQUIRE_ASYNC; return *this; }
     Module & DefaultAsync() { rep_type = ReplicationType::DEFAULT_ASYNC; return *this; }
@@ -232,6 +238,16 @@ namespace mabe {
     // Trigger: Full population has just been resized.
     bool has_OnPopResize = true;
     virtual void OnPopResize(Population &, size_t) { has_OnPopResize = false; }    
+
+    // Format:  OnError(const std::string & msg)
+    // Trigger: An error has occurred and the user should be notified.
+    bool has_OnError = true;
+    virtual void OnError(const std::string &) { has_OnError = false; }
+
+    // Format:  OnWarning(const std::string & msg)
+    // Trigger: A atypical condition has occurred and the user should be notified.
+    bool has_OnWarning = true;
+    virtual void OnWarning(const std::string &) { has_OnWarning = false; }
 
     // Format:  BeforeExit()
     // Trigger: Run immediately before MABE is about to exit.
