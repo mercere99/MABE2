@@ -33,7 +33,7 @@ namespace mabe {
       : Module(control, "EvalNK", "Module to evaluate bitstrings on an NK Fitness Lanscape")
       , N(_N), K(_K), target_pop(0), bits_trait(_btrait), fitness_trait(_ftrait)
     {
-      SetIsEvaluate(true);
+      SetEvaluateMod(true);
       AddOwnedTrait<emp::BitVector>(bits_trait, "NK Bit Sequence", emp::BitVector());
       AddOwnedTrait<double>(fitness_trait, "NK fitness value", 0.0);
       SetMinPops(1);

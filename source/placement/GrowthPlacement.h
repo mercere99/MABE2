@@ -24,7 +24,7 @@ namespace mabe {
     GrowthPlacement(mabe::MABE & control)
       : Module(control, "GrowthPlacement", "Module to place births into the next generation.")
     {
-      SetIsPlacement(true);
+      SetPlacementMod(true);
       RequireSync();
     }
     ~GrowthPlacement() { }

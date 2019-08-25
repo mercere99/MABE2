@@ -25,7 +25,7 @@ namespace mabe {
     Mutate(mabe::MABE & control, size_t _pop_id=0, size_t _skip=0)
       : Module(control, "Mutate", "Module to trigger mutations in organisms"), pop_id(_pop_id), skip(_skip)
     {
-      SetIsMutate(true);                   ///< Mark this module as a mutation module.
+      SetMutateMod(true);                   ///< Mark this module as a mutation module.
       DefaultSync();                    ///< This module defaults to synchronous generations.
     }
 
