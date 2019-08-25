@@ -16,6 +16,7 @@
 #include "../source/core/MABE.h"
 #include "../source/evaluate/EvalNK.h"
 #include "../source/orgs/BitsOrg.h"
+#include "../source/placement/GrowthPlacement.h"
 #include "../source/schema/Mutate.h"
 #include "../source/select/SelectElite.h"
 
@@ -26,6 +27,7 @@ int main(int argc, char* argv[])
   world.AddModule<mabe::Mutate>(0, 1);
   world.AddModule<mabe::EvalNK>(20, 4, "bits", "fitness");
   world.AddModule<mabe::SelectElite>("fitness", 20, 10);
+  world.AddModule<mabe::GrowthPlacement>();
   world.Setup();
   world.Inject("BitOrg", 200);
   world.Update(100);
