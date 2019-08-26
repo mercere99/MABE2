@@ -3,26 +3,26 @@
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
  *  @date 2019
  *
- *  @file  ErrorHandleCL.h
+ *  @file  CommandLine.h
  *  @brief Module to output errors and warnings to the command line.
  */
 
-#ifndef MABE_ERROR_HANDLE_CL_H
-#define MABE_ERROR_HANDLE_CL_H
+#ifndef MABE_COMMAND_LINE_H
+#define MABE_COMMAND_LINE_H
 
 #include "../core/MABE.h"
 #include "../core/Module.h"
 
 namespace mabe {
 
-  class ErrorHandleCL : public Module {
+  class CommandLine : public Module {
   public:
-    ErrorHandleCL(mabe::MABE & control)
-      : Module(control, "ErrorHandleCL", "Module to output errors and warnings to the command line.")
+    CommandLine(mabe::MABE & control)
+      : Module(control, "CommandLine", "Module to handle basic I/O on the command line.")
     {
       SetErrorHandleMod();
     }
-    ~ErrorHandleCL() { }
+    ~CommandLine() { }
 
     void SetupConfig(ConfigScope & config_scope) override {
       // For now, nothing here.
