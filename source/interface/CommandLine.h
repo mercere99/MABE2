@@ -32,6 +32,10 @@ namespace mabe {
       // For now, nothing here.
     }
 
+    void OnUpdate(size_t ud) override {
+      std::cout << "Update: " << ud << std::endl;
+    }
+
     void OnError(const std::string & msg) override {
       std::cerr << "ERROR: " << msg << std::endl;
     }
