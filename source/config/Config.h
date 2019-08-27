@@ -247,7 +247,8 @@ namespace mabe {
 
     // If we can't find this variable, either build it or throw an error.
     if (cur_entry.IsNull()) {
-      Error(pos, "Parameter ", var_name, "does not exist; currently only parameters can be used as variables.");
+      Error(pos, "Parameter '", var_name,
+	    "' does not exist; currently only parameters can be used as variables.");
       // if (!create_ok) Error(pos, "Variable identifier '", var_name, "' not found.");
       // cur_entry = &cur_scope.AddPlaceholder(var_name);
       // return cur_entry;
