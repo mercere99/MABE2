@@ -60,7 +60,7 @@ namespace mabe {
         while (pop[best_id].IsEmpty()) best_id = random.GetUInt(N);
         double best_fit = pop[best_id].GetVar<double>(trait);
 
-        for (size_t test_id=1; test_id < tourny_size; test_id++) {
+        for (size_t test=1; test < tourny_size; test++) {
           size_t test_id = random.GetUInt(N);
           while (pop[test_id].IsEmpty()) test_id = random.GetUInt(N);
           double test_fit = pop[test_id].GetVar<double>(trait);          
