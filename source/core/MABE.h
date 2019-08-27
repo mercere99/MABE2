@@ -263,15 +263,6 @@ namespace mabe {
       Exit();
     }
 
-    template <typename... Ts>
-    void AddError(Ts &&... args) {
-      errors.push_back( emp::to_string( std::forward<Ts>(args)... ));
-      on_error_sig.Trigger(errors.back());
-    }
-    void AddErrors(const emp::vector<std::string> & in_errors) {
-      errors.insert(errors.end(), in_errors.begin(), in_errors.end());
-    }
-
     void ProcessArgs();
 
     void Setup_Synchronisity();
@@ -322,7 +313,6 @@ namespace mabe {
       before_update_sig.Trigger(update);
 
       update++;
-      std::cout << "Update: " << update << std::endl;
 
       // Run Update on all modules...
       on_update_sig.Trigger(update);
@@ -351,6 +341,16 @@ namespace mabe {
       for (size_t ud = 0; ud < num_updates; ud++) {
         Update();
       }
+    }
+
+    // -- Error Handling --
+    template <typename... Ts>
+    void AddError(Ts &&... args) {
+      errors.push_back( emp::to_string( std::forward<Ts>(args)... ));
+      on_error_sig.Trigger(errors.back());
+    }
+    void AddErrors(const emp::vector<std::string> & in_errors) {
+      errors.insert(errors.end(), in_errors.begin(), in_errors.end());
     }
 
     // -- World Structure --
@@ -447,7 +447,7 @@ namespace mabe {
       return DoBirth(*ppos, ppos, copy_count);
     }
 
-    // Shortcut to resize a population by id.
+    /// Shortcut to resize a population by id.
     void ResizePop(size_t pop_id, size_t new_size) {
       emp_assert(pop_id < pops.size());
       MABEBase::ResizePop(pops[pop_id], new_size);
@@ -463,8 +463,30 @@ namespace mabe {
       MABEBase::ResizePop(pop, new_size);
     }
 
+    /// Get a ramdom position from a desginated population.
+    OrgPosition GetRandomPos(Population & pop) {
+      emp_assert(pop.GetSize() > 0);
+      return pop.IteratorAt( random.GetUInt(pop.GetSize()) );
+    }
+
+    /// Get a ramdom position from the population with the specified id.
+    OrgPosition GetRandomPos(size_t pop_id) { return GetRandomPos(GetPopulation(pop_id)); }
+
+    /// Get a ramdom position from a desginated population.
+    OrgPosition GetRandomOrgPos(Population & pop) {
+      emp_assert(pop.GetNumOrgs() > 0, "GetRandomOrgPos cannot be called if there are no orgs.");
+      // @CAO: Something better to do in a sparse population?
+      OrgPosition pos = GetRandomPos(pop);
+      while (pos.IsEmpty()) pos = GetRandomPos(pop);
+      return pos;
+    }
+
+    /// Get a ramdom position from the population with the specified id.
+    OrgPosition GetRandomOrgPos(size_t pop_id) { return GetRandomOrgPos(GetPopulation(pop_id)); }
+
     // --- Module Management ---
 
+    /// Get the unique id of a module with the specified name.
     int GetModuleID(const std::string & mod_name) const {
       return emp::FindEval(modules, [mod_name](const auto & m){ return m->GetName() == mod_name; });
     }
