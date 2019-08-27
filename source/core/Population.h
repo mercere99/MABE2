@@ -408,7 +408,7 @@ namespace mabe {
       emp_assert(pos < orgs.size());
       emp::Ptr<Organism> out_org = orgs[pos];
       orgs[pos] = &empty_org;
-      num_orgs--;
+      if (!out_org->IsEmpty()) num_orgs--;
       return out_org;
     }
 
