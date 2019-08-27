@@ -310,6 +310,8 @@ namespace mabe {
 
     /// Update MABE a single step.
     void Update() {
+      emp_assert(OK(), update);
+
       before_update_sig.Trigger(update);
 
       update++;
@@ -539,6 +541,19 @@ namespace mabe {
         auto & cur_scope = org_scope.AddScope(o.first, "Organism type");
         o.second->SetupConfig(cur_scope);
       }
+    }
+
+
+    // ------ DEBUG FUNCTIONS -----
+    bool OK() {
+      bool result = true;
+
+      // Make sure the populations are all OK.
+      for (size_t pop_id = 0; pop_id < pops.size(); pop_id++) {
+        result &= pops[pop_id].OK();
+      }
+
+      return result;
     }
   };
 
