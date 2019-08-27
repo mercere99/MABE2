@@ -20,19 +20,21 @@
 #include "../source/placement/GrowthPlacement.h"
 #include "../source/schema/Mutate.h"
 #include "../source/select/SelectElite.h"
+#include "../source/select/SelectTournament.h"
 
 int main(int argc, char* argv[])
 {
-  mabe::MABE world(argc, argv);
-  world.AddModule<mabe::CommandLine>();
-  world.AddOrganismManager<mabe::BitsOrgManager>("BitOrg");
-  world.AddModule<mabe::Mutate>(0, 1);
-  world.AddModule<mabe::EvalNK>(20, 4, "bits", "fitness");
-  world.AddModule<mabe::SelectElite>("fitness", 20, 10);
-  world.AddModule<mabe::GrowthPlacement>();
-  world.Setup();
-  world.Inject("BitOrg", 200);
-  world.Update(100);
+  mabe::MABE control(argc, argv);
+  control.AddModule<mabe::CommandLine>();
+  control.AddOrganismManager<mabe::BitsOrgManager>("BitOrg");
+  control.AddModule<mabe::Mutate>(0, 1);
+  control.AddModule<mabe::EvalNK>(20, 4, "bits", "fitness");
+  control.AddModule<mabe::SelectElite>("fitness", 1, 1);
+  control.AddModule<mabe::SelectTournament>("fitness", 7, 199);
+  control.AddModule<mabe::GrowthPlacement>();
+  control.Setup();
+  control.Inject("BitOrg", 200);
+  control.Update(100);
 
 /*
   // emp::EAWorld<BitOrg, emp::FitCacheOff> pop(random, "NKWorld");
