@@ -118,11 +118,12 @@ namespace mabe {
 
       // Basic math operations...
       iterator operator+(size_t x) {
-        emp_assert(pos + x <= PopSize());
+        emp_assert(pos + x <= PopSize(), pos, x, PopSize());
         return iterator(pop_ptr, pos+x);
       }
 
       iterator operator-(size_t x) {
+        emp_assert(pos >= x);
         emp_assert(pos - x <= PopSize());
         return iterator(pop_ptr, pos-x);
       }
@@ -328,7 +329,9 @@ namespace mabe {
     }
     Population(const Population & in_pop)
       : name(in_pop.name), pop_id(in_pop.pop_id), orgs(in_pop.orgs.size())
+      , num_orgs(in_pop.num_orgs), max_orgs(in_pop.max_orgs)
     {
+      emp_assert(in_pop.OK());
       for (size_t i = 0; i < orgs.size(); i++) {
         if (in_pop.orgs[i]->IsEmpty()) {       // Make sure we always use local empty organism.
           orgs[i] = &empty_org;
@@ -336,6 +339,7 @@ namespace mabe {
           orgs[i] = in_pop.orgs[i]->Clone();
         }
       }
+      emp_assert(OK());
     }
     Population(Population &&) = default;
     Population & operator=(Population &&) = default;
@@ -425,6 +429,44 @@ namespace mabe {
       return iterator(this, pos);
     }
 
+  public:
+    // ------ DEBUG FUNCTIONS ------
+    bool OK() const {
+      if (pop_id < 0) {
+        std::cout << "WARNING: Invalid Population ID (pop_id = " << pop_id << ")" << std::endl;
+        return false;
+      }
+
+      if (num_orgs > orgs.size()) {
+        std::cout << "ERROR: Population " << pop_id << " size is " << orgs.size()
+                  << " but num_orgs = " << num_orgs << std::endl;
+        return false;
+      }
+
+      size_t org_count = 0;
+      for (size_t pos = 0; pos < orgs.size(); pos++) {
+        // No vector positions should be NULL (though they may have an empty organism)
+        if (orgs[pos].IsNull()) {
+          std::cout << "ERROR: Population " << pop_id << " as position " << pos
+                    << " has null pointer instead of an organism." << std::endl;
+          return false;
+        }
+
+        // Double check the organism count.
+        if (!orgs[pos]->IsEmpty()) org_count++;
+      }
+
+      // Make sure we counted the correct number of organims in the population.
+      if (num_orgs != org_count) {
+          std::cout << "ERROR: Population " << pop_id << " has num_orgs = " << num_orgs
+                    << ", but audit counts " << org_count << " orgs." << std::endl;
+          return false;
+      }
+
+      // @CAO: Check if num_orgs > max_orgs?
+
+      return true;
+    }
   };
 
   // Alias Population::iterator to OrgPosition for more intuitive use outside of Population.
