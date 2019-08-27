@@ -1,0 +1,78 @@
+// Example built-in parameter.
+Param random_seed = 0;             // Seed for random number generator; use 0 to base on time.
+Param num_updates = 100;           // How long should the run go for?
+
+// Example variables.
+Value pop_size = 200;
+String fitness_trait = "score";
+
+// Example populations
+Population main_pop;
+Population next_pop;
+
+Module::CommandLine cl {           // Module to handle basic I/O on the command line.
+#  target_pop = main_pop;           // Which population do we want to print information on?
+#  target_org = 0;                  // Which organism should we print detailed info on?
+}
+
+// Example modules
+Module::Mutate mutate {
+#  target_pop = main_pop;           // Which population do we want to mutate?
+  skip = 1;                        // Number of orgs to exempt from mutating
+}
+
+Module::EvalNK eval_NK {           // Module to evaluate bitstrings on an NK Fitness Lanscape
+#  target_pop = main_pop;           // Which population do we want to evaluate?
+  N = 100;                         // Number of bits required in output
+  K = 4;                           // Number of bits used in each gene
+  input_trait = "bits";
+  output_trait = "fitness";
+}
+
+Module::EvalAll1s eval_ones {      // Module to evaluate bitstrings on an NK Fitness Lanscape
+#  target_pop = main_pop;           // Which population do we want to evaluate?
+  input_trait = "bits";
+  output_trait = "fitness";
+  //output_trait = "num_ones";
+}
+
+Module::SelectElite elite {        // Module to select organisms with the highest value in a trait.
+#  target_pop = main_pop;           // Which population do we select from?
+  top_count = 1;                   // Number of top-fitness orgs to be replicated
+  copy_count = 1;                  // Number of copies to make of replicated organisms
+  trait = "fitness";
+}
+
+Module::SelectTournament tourny {  // Module to select organisms with the highest value in a tournament.
+#  target_pop = main_pop;           // Which population do we select from?
+  tournament_size = 4;             // Number of orgs in each tournament
+  num_tournaments = 199;           // Number of tournaments to run
+  trait = "fitness";
+}
+
+Module::GrowthPlacement grow {     // Module to place births into the next generation.
+#  parent_pop = main_pop;           // Which population can use this placement method?
+#  offspring_pop = next_pop;        // Which population to we want to place offspring in? 
+}
+
+OrgType::BitOrg bit_orgs {         // Organism type
+  N = 100;                         // Number of bits in organism
+}
+
+// Which modules are we going to actually use?
+Setup(
+      mutate,
+      
+      eval_NK,
+      // eval_ones,
+      
+      elite,
+      tourny,
+      grow
+     )
+	     
+// What organisms are we going to run with?
+Inject(bit_orgs, 200);
+
+// And go!
+Run(100);
