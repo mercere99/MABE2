@@ -11,6 +11,7 @@
 #ifndef MABE_BITS_ORGANISM_H
 #define MABE_BITS_ORGANISM_H
 
+#include "../core/MABE.h"
 #include "../core/Organism.h"
 #include "../core/OrganismManager_Wrapper.h"
 
@@ -66,10 +67,11 @@ namespace mabe {
     }
 
     /// Setup this organism to load from config.
-    void SetupConfig(ConfigScope & config_scope) override {
-      config_scope.LinkFuns<size_t>([this](){ return bits.size(); },
-                                    [this](const size_t & N){ return bits.Resize(N); },
-                                    "N", "Number of bits in organism", 1);
+    void SetupConfig(MABE & control) override {
+      control.GetCurScope().LinkFuns<size_t>("N", 
+                                             [this](){ return bits.size(); },
+                                             [this](const size_t & N){ return bits.Resize(N); },
+                                             "Number of bits in organism", 1);
     }
   };
 
