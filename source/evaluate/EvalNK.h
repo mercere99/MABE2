@@ -40,9 +40,9 @@ namespace mabe {
     }
     ~EvalNK() { }
 
-    void SetupConfig(ConfigScope & config_scope) override {
-      config_scope.LinkVar(N, "N", "Number of bits required in output", 20);
-      config_scope.LinkVar(K, "K", "Number of bits used in each gene", 3);
+    void SetupConfig() override {
+      LinkVar(N, "N", "Number of bits required in output", 20);
+      LinkVar(K, "K", "Number of bits used in each gene", 3);
     }
 
     void SetupModule() override {

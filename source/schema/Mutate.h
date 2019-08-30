@@ -29,8 +29,9 @@ namespace mabe {
       DefaultSync();                    ///< This module defaults to synchronous generations.
     }
 
-    void SetupConfig(ConfigScope & config_scope) override {
-      config_scope.LinkVar(skip, "skip", "Number of orgs to exempt from mutating", 0);
+    void SetupConfig() override {
+      LinkPop(pop_id, "target_pop", "Which population should we mutate?");
+      LinkVar(skip, "skip", "Number of orgs to exempt from mutating", 0);
     }
 
     void OnUpdate(size_t update) override {

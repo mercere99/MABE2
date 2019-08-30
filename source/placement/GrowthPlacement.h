@@ -29,7 +29,7 @@ namespace mabe {
     }
     ~GrowthPlacement() { }
 
-    void SetupConfig(ConfigScope & config_scope) override {
+    void SetupConfig() override {
       // For now, nothing here.
     }
 

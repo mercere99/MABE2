@@ -37,9 +37,9 @@ namespace mabe {
     }
     ~SelectElite() { }
 
-    void SetupConfig(ConfigScope & config_scope) override {
-      config_scope.LinkVar(top_count, "top_count", "Number of top-fitness orgs to be replicated", 1);
-      config_scope.LinkVar(copy_count, "copy_count", "Number of copies to make of replicated organisms", 1);
+    void SetupConfig() override {
+      LinkVar(top_count, "top_count", "Number of top-fitness orgs to be replicated", 1);
+      LinkVar(copy_count, "copy_count", "Number of copies to make of replicated organisms", 1);
     }
 
     void SetupModule() override { }

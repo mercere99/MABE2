@@ -24,7 +24,7 @@ namespace mabe {
     }
     ~CommandLine() { }
 
-    void SetupConfig(ConfigScope & config_scope) override {
+    void SetupConfig() override {
       // For now, nothing here.
     }
 

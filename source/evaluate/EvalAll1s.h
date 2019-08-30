@@ -36,7 +36,7 @@ namespace mabe {
     }
     ~EvalAll1s() { }
 
-    void SetupConfig(ConfigScope & config_scope) override {
+    void SetupConfig() override {
     }
 
     void SetupModule() override {

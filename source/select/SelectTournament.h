@@ -36,9 +36,9 @@ namespace mabe {
     }
     ~SelectTournament() { }
 
-    void SetupConfig(ConfigScope & config_scope) override {
-      config_scope.LinkVar(tourny_size, "tournament_size", "Number of orgs in each tournament", 7);
-      config_scope.LinkVar(num_tournies, "num_tournaments", "Number of tournaments to run", 1);
+    void SetupConfig() override {
+      LinkVar(tourny_size, "tournament_size", "Number of orgs in each tournament", 7);
+      LinkVar(num_tournies, "num_tournaments", "Number of tournaments to run", 1);
     }
 
     void SetupModule() override { }
