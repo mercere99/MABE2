@@ -25,6 +25,8 @@
 int main(int argc, char* argv[])
 {
   mabe::MABE control(argc, argv);
+  control.AddPopulation("main_pop");
+  control.AddPopulation("next_pop");
   control.AddModule<mabe::CommandLine>();
   control.AddOrganismManager<mabe::BitsOrgManager>("BitOrg");
   control.AddModule<mabe::Mutate>(0, 1);
