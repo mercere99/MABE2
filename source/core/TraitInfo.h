@@ -16,14 +16,14 @@
 
 namespace mabe {
 
-  class Module;
+  class ModuleBase;
 
   class TraitInfo {
   protected:
     std::string name="";     ///< Unique name for this trait.
     std::string desc="";     ///< Description of this trait.
     emp::TypeID type;        ///< Type identifier for this triat.
-    emp::Ptr<Module> owner;  ///< Pointer to owner module for trait (or creator for a shared trait)
+    emp::Ptr<ModuleBase> owner;  ///< Pointer to owner module for trait (or creator for a shared trait)
 
   public:
     /// Which modules are allowed to read or write this trait?
@@ -77,7 +77,7 @@ namespace mabe {
     virtual ~TraitInfo() { ; }
 
     TraitInfo & SetDescription(std::string in_desc) { desc = in_desc; return *this; }
-    TraitInfo & SetOwner(emp::Ptr<Module> in_owner) { owner = in_owner; return *this; }
+    TraitInfo & SetOwner(emp::Ptr<ModuleBase> in_owner) { owner = in_owner; return *this; }
 
     /// Was a default value set for this trait (can only be done in overload that knows type)
     virtual bool HasDefault() { return false; }
