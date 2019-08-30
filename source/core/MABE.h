@@ -21,7 +21,7 @@
 
 #include "../config/Config.h"
 
-#include "Module.h"
+#include "ModuleBase.h"
 #include "Population.h"
 
 namespace mabe {
@@ -33,15 +33,15 @@ namespace mabe {
   class MABEBase {
   protected:
     template <typename RETURN, typename... ARGS>
-    struct ModVector : public emp::vector<emp::Ptr<Module>> {
-      typedef RETURN (Module::*ModMemFun)(ARGS...);
+    struct ModVector : public emp::vector<emp::Ptr<ModuleBase>> {
+      typedef RETURN (ModuleBase::*ModMemFun)(ARGS...);
       ModMemFun fun;
 
       ModVector(ModMemFun _fun) : fun(_fun) { ; }
 
       template <typename... ARGS2>
       void Trigger(ARGS2 &&... args) {
-        for (emp::Ptr<Module> mod_ptr : *this) {
+        for (emp::Ptr<ModuleBase> mod_ptr : *this) {
           emp_assert(!mod_ptr.IsNull());
           (mod_ptr.Raw()->*fun)( std::forward<ARGS2>(args)... );
         }
@@ -50,7 +50,7 @@ namespace mabe {
       template <typename... ARGS2>
       OrgPosition FindPosition(ARGS2 &&... args) {
         OrgPosition result;
-        for (emp::Ptr<Module> mod_ptr : *this) {
+        for (emp::Ptr<ModuleBase> mod_ptr : *this) {
           result = (mod_ptr.Raw()->*fun)(std::forward<ARGS2>(args)...);
           if (result.IsValid()) break;
         }
@@ -58,7 +58,7 @@ namespace mabe {
       }
     };
 
-    emp::vector<emp::Ptr<Module>> modules;  ///< Collection of ALL modules.
+    emp::vector<emp::Ptr<ModuleBase>> modules;  ///< Collection of ALL modules.
 
     // --- Track which modules need to have each signal type called on them. ---
     // BeforeUpdate(size_t update_ending)
@@ -108,27 +108,27 @@ namespace mabe {
 
     // Private constructor so that base class cannot be instantiated directly.
     MABEBase()
-    : before_update_sig(&Module::BeforeUpdate)
-    , on_update_sig(&Module::OnUpdate)
-    , before_repro_sig(&Module::BeforeRepro)
-    , on_offspring_ready_sig(&Module::OnOffspringReady)
-    , on_inject_ready_sig(&Module::OnInjectReady)
-    , before_placement_sig(&Module::BeforePlacement)
-    , on_placement_sig(&Module::OnPlacement)
-    , before_mutate_sig(&Module::BeforeMutate)
-    , on_mutate_sig(&Module::OnMutate)
-    , before_death_sig(&Module::BeforeDeath)
-    , before_swap_sig(&Module::BeforeSwap)
-    , on_swap_sig(&Module::OnSwap)
-    , before_pop_resize_sig(&Module::BeforePopResize)
-    , on_pop_resize_sig(&Module::OnPopResize)
-    , on_error_sig(&Module::OnError)
-    , on_warning_sig(&Module::OnWarning)
-    , before_exit_sig(&Module::BeforeExit)
-    , on_help_sig(&Module::OnHelp)
-    , do_place_birth_sig(&Module::DoPlaceBirth)
-    , do_place_inject_sig(&Module::DoPlaceInject)
-    , do_find_neighbor_sig(&Module::DoFindNeighbor)
+    : before_update_sig(&ModuleBase::BeforeUpdate)
+    , on_update_sig(&ModuleBase::OnUpdate)
+    , before_repro_sig(&ModuleBase::BeforeRepro)
+    , on_offspring_ready_sig(&ModuleBase::OnOffspringReady)
+    , on_inject_ready_sig(&ModuleBase::OnInjectReady)
+    , before_placement_sig(&ModuleBase::BeforePlacement)
+    , on_placement_sig(&ModuleBase::OnPlacement)
+    , before_mutate_sig(&ModuleBase::BeforeMutate)
+    , on_mutate_sig(&ModuleBase::OnMutate)
+    , before_death_sig(&ModuleBase::BeforeDeath)
+    , before_swap_sig(&ModuleBase::BeforeSwap)
+    , on_swap_sig(&ModuleBase::OnSwap)
+    , before_pop_resize_sig(&ModuleBase::BeforePopResize)
+    , on_pop_resize_sig(&ModuleBase::OnPopResize)
+    , on_error_sig(&ModuleBase::OnError)
+    , on_warning_sig(&ModuleBase::OnWarning)
+    , before_exit_sig(&ModuleBase::BeforeExit)
+    , on_help_sig(&ModuleBase::OnHelp)
+    , do_place_birth_sig(&ModuleBase::DoPlaceBirth)
+    , do_place_inject_sig(&ModuleBase::DoPlaceInject)
+    , do_find_neighbor_sig(&ModuleBase::DoFindNeighbor)
     { ;  }
 
   public:
@@ -225,6 +225,7 @@ namespace mabe {
     emp::vector<std::string> config_filenames; ///< Names of configuration files
     std::string gen_filename;                  ///< Name of output file to generate.
     Config config;                             ///< Configutation information for this run.
+    emp::Ptr<ConfigScope> cur_scope;           ///< Which config scope are we currently using?
 
     // ----------- Helper Functions -----------
 
@@ -288,9 +289,9 @@ namespace mabe {
 
     // --- Tools to setup runs ---
     void Setup() {
-      SetupConfig(config.GetRootScope());  // Load all of the parameters needed by modules, etc.
-      ProcessArgs();                       // Deal with command-line inputs.
-      config.Load(config_filenames);       // Load files, if any.
+      SetupConfig();                   // Load all of the parameters needed by modules, etc.
+      ProcessArgs();                   // Deal with command-line inputs.
+      config.Load(config_filenames);   // Load files, if any.
 
       // If we are writing a file, do so and stop.
       if (gen_filename != "") { config.Write(gen_filename); Exit(); }
@@ -303,7 +304,7 @@ namespace mabe {
       UpdateSignals();        // Setup the appropriate modules to be linked with each signal.
 
       // Collect errors in any module.
-      for (emp::Ptr<Module> mod_ptr : modules) {
+      for (emp::Ptr<ModuleBase> mod_ptr : modules) {
         if (mod_ptr->HasErrors()) { AddErrors(mod_ptr->GetErrors()); }
       }
     }
@@ -493,8 +494,8 @@ namespace mabe {
       return emp::FindEval(modules, [mod_name](const auto & m){ return m->GetName() == mod_name; });
     }
 
-    const Module & GetModule(int id) const { return *modules[(size_t) id]; }
-    Module & GetModule(int id) { return *modules[(size_t) id]; }
+    const ModuleBase & GetModule(int id) const { return *modules[(size_t) id]; }
+    ModuleBase & GetModule(int id) { return *modules[(size_t) id]; }
 
     template <typename MOD_T, typename... ARGS>
     MOD_T & AddModule(ARGS &&... args) {
@@ -520,27 +521,54 @@ namespace mabe {
       return *new_type;
     }
 
-    /// Setup the configuration options for MABE.
-    void SetupConfig(ConfigScope & config_scope) {
-      config_scope.LinkVar(random_seed,
-                           "random_seed",
-                           "Seed for random number generator; use 0 to base on time.",
-                           0).SetMin(0);
+    /// Access to the current configuration scope.
+    ConfigScope & GetCurScope() { return *cur_scope; }
 
-      // Call SetupConfig on each Population being used.
-      auto & pops_scope = config_scope.AddScope("populations", "Specifications about the populations in this run.");
-      for (auto & p : pops) p.SetupConfig(pops_scope);
+    /// Add a new scope under the current one.
+    ConfigScope & PushScope(const std::string & name, const std::string & desc) {
+      cur_scope = &(cur_scope->AddScope(name, desc));
+      return *cur_scope;
+    }
+
+    /// Move up one level of scope.
+    ConfigScope & PopScope() {
+      cur_scope = cur_scope->GetScope();
+      return *cur_scope;
+    }
+
+    /// Return to the root scope.
+    ConfigScope & ResetScope() {
+      cur_scope = &(config.GetRootScope());
+      return *cur_scope;
+    }
+
+    /// Setup the configuration options for MABE.
+    void SetupConfig() {
+      emp_assert(cur_scope.Raw() == &(config.GetRootScope()));  // Scope should start at root level.
+
+      // Setup main MABE variables.
+      cur_scope->LinkVar("random_seed",
+                         random_seed,
+                         "Seed for random number generator; use 0 to base on time.",
+                         0).SetMin(0);
 
       // Call the SetupConfig of module base classes (they will call the dervived version)
-      auto & mods_scope = config_scope.AddScope("modules", "Specifications about the modules in this run.");
-      for (auto m : modules) m->SetupConfig_Base(mods_scope);
+      PushScope("modules", "Specifications about the modules in this run.");
+      for (auto m : modules) {
+        PushScope(m->GetName(), m->GetDesc());
+        m->SetupConfig();
+        PopScope();
+      }
+      PopScope();
 
       // Loop through organism types.
-      auto & org_scope = config_scope.AddScope("org_managers", "Details about organisms types used in this runs.");
+      PushScope("org_managers", "Details about organisms types used in this runs.");
       for (auto o : org_managers) {
-        auto & cur_scope = org_scope.AddScope(o.first, "Organism type");
-        o.second->SetupConfig(cur_scope);
+        PushScope(o.first, "Organism type");
+        o.second->SetupConfig(*this);
+        PopScope();
       }
+      PopScope();
     }
 
 
@@ -616,16 +644,16 @@ namespace mabe {
   }
 
   void MABE::Setup_Synchronisity() {
-    emp::Ptr<Module> async_req_mod = nullptr;
-    emp::Ptr<Module> sync_req_mod = nullptr;
+    emp::Ptr<ModuleBase> async_req_mod = nullptr;
+    emp::Ptr<ModuleBase> sync_req_mod = nullptr;
     size_t prefer_async = 0;
     size_t prefer_sync = 0;
 
-    for (emp::Ptr<Module> mod_ptr : modules) {
+    for (emp::Ptr<ModuleBase> mod_ptr : modules) {
       switch (mod_ptr->rep_type) {
-        case Module::ReplicationType::NO_PREFERENCE:
+        case ModuleBase::ReplicationType::NO_PREFERENCE:
           break;
-        case Module::ReplicationType::REQUIRE_ASYNC:
+        case ModuleBase::ReplicationType::REQUIRE_ASYNC:
           if (sync_req_mod) {
             AddError("Module ", sync_req_mod->name, " requires synchronous generations, but module ",
                       mod_ptr->name, " requires asynchronous.");
@@ -633,13 +661,13 @@ namespace mabe {
           async_req_mod = mod_ptr;
           sync_pop = false;
           break;
-        case Module::ReplicationType::DEFAULT_ASYNC:
+        case ModuleBase::ReplicationType::DEFAULT_ASYNC:
           prefer_async++;
           break;
-        case Module::ReplicationType::DEFAULT_SYNC:
+        case ModuleBase::ReplicationType::DEFAULT_SYNC:
           prefer_sync++;
           break;
-        case Module::ReplicationType::REQUIRE_SYNC:
+        case ModuleBase::ReplicationType::REQUIRE_SYNC:
           if (async_req_mod) {
             AddError("Module ", async_req_mod->name, " requires asynchronous generations, but module ",
                       mod_ptr->name, " requires synchronous.");
@@ -661,7 +689,7 @@ namespace mabe {
     if (pops.size() == 1 && sync_pop) AddPopulation("next_pop");
 
     // Now loop through the modules and make sure all populations are assigned.
-    for (emp::Ptr<Module> mod_ptr : modules) {
+    for (emp::Ptr<ModuleBase> mod_ptr : modules) {
       // Determine how many populations this module needs.
       size_t min_pops = mod_ptr->GetMinPops();
 
@@ -676,7 +704,7 @@ namespace mabe {
   void MABE::Setup_Modules() {
     // Allow the user-defined module SetupModule() member functions run.  Goes through
     // the base class to record the current world.
-    for (emp::Ptr<Module> mod_ptr : modules) mod_ptr->SetupModule();
+    for (emp::Ptr<ModuleBase> mod_ptr : modules) mod_ptr->SetupModule();
 
     // If none of the modules setup the placement functions, do so now.
     // @CAO: If no modules are marked IsPlacement(), make that the last module.
@@ -711,7 +739,7 @@ namespace mabe {
     do_place_inject_sig.resize(0);
     do_find_neighbor_sig.resize(0);
 
-    for (emp::Ptr<Module> mod_ptr : modules) {
+    for (emp::Ptr<ModuleBase> mod_ptr : modules) {
       if (mod_ptr->has_BeforeUpdate) before_update_sig.push_back(mod_ptr);
       if (mod_ptr->has_OnUpdate) on_update_sig.push_back(mod_ptr);
       if (mod_ptr->has_BeforeRepro) before_repro_sig.push_back(mod_ptr);
