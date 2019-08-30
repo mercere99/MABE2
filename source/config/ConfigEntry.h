@@ -22,6 +22,7 @@
 #include "meta/TypeID.h"
 #include "tools/Range.h"
 #include "tools/string_utils.h"
+#include "tools/value_utils.h"
 
 #include "ConfigType.h"
 
@@ -211,9 +212,9 @@ namespace mabe {
 
     emp::Ptr<ConfigEntry> Clone() const override { return emp::NewPtr<this_t>(*this); }
 
-    double AsDouble() const override { return (double) get_fun(); }
+    double AsDouble() const override { return emp::ToDouble( get_fun() ); }
     std::string AsString() const override { return emp::to_string( get_fun() ); }
-    ConfigEntry & SetValue(double in) override { set_fun((T) in); return *this; }
+    ConfigEntry & SetValue(double in) override { set_fun(emp::FromDouble<T>(in)); return *this; }
     ConfigEntry & SetString(const std::string & in) override {
       set_fun( emp::from_string<T>(in) );
       return *this;
