@@ -106,8 +106,8 @@ namespace mabe {
     /// Link a variable to a configuration entry - it sets the new default and
     /// automatically updates when configs are loaded.
     template <typename VAR_T, typename DEFAULT_T>
-    ConfigEntry_Linked<VAR_T> & LinkVar(VAR_T & var,
-                                        const std::string & name,
+    ConfigEntry_Linked<VAR_T> & LinkVar(const std::string & name,
+                                        VAR_T & var,
                                         const std::string & desc,
                                         DEFAULT_T default_val) {
       return Add<ConfigEntry_Linked<VAR_T>>(name, var, desc, this);
@@ -116,11 +116,11 @@ namespace mabe {
     /// Link a configuration entry to a pair of functions - it sets the new default and
     /// automatically calls the set function when configs are loaded.
     template <typename VAR_T, typename DEFAULT_T>
-    ConfigEntry_Functions<VAR_T> & LinkFuns(std::function<VAR_T()> get_fun,
-                                        std::function<void(const VAR_T &)> set_fun,
-                                        const std::string & name,
-                                        const std::string & desc,
-                                        DEFAULT_T default_val) {
+    ConfigEntry_Functions<VAR_T> & LinkFuns(const std::string & name,
+                                            std::function<VAR_T()> get_fun,
+                                            std::function<void(const VAR_T &)> set_fun,
+                                            const std::string & desc,
+                                            DEFAULT_T default_val) {
       return Add<ConfigEntry_Functions<VAR_T>>(name, get_fun, set_fun, desc, this);
     }
 
