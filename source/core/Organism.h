@@ -73,7 +73,7 @@ namespace mabe {
     /// --- Extra functions for when this is used a a prototype organism ---
     
     /// Setup organism-specific configuration options.
-    virtual void SetupConfig(ConfigScope & config_scope) { ; }
+    virtual void SetupConfig(MABE &) { ; }
 
   };
 

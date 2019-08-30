@@ -20,6 +20,7 @@
 namespace mabe {
 
   class Organism;
+  class MABE;
 
   class OrganismManager {
   protected:
@@ -63,7 +64,7 @@ namespace mabe {
       emp_assert(false, "Randomize() must be overridden for either Organism or OrganismManager.");
     }
 
-    virtual void SetupConfig(ConfigScope &) { }
+    virtual void SetupConfig(MABE &) { }
   };
 
 }
