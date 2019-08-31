@@ -274,7 +274,10 @@ namespace mabe {
     void UpdateSignals();
 
   public:
-    MABE(int argc, char* argv[]) : args(emp::cl::args_to_strings(argc, argv)) { ; }
+    MABE(int argc, char* argv[])
+      : args(emp::cl::args_to_strings(argc, argv))
+      , cur_scope(&(config.GetRootScope()))
+    { ; }
     MABE(const MABE &) = delete;
     MABE(MABE &&) = delete;
     ~MABE() {
@@ -544,7 +547,10 @@ namespace mabe {
 
     /// Setup the configuration options for MABE.
     void SetupConfig() {
-      emp_assert(cur_scope.Raw() == &(config.GetRootScope()));  // Scope should start at root level.
+      emp_assert(cur_scope);
+      emp_assert(cur_scope.Raw() == &(config.GetRootScope()),
+                 cur_scope->GetName(),
+                 config.GetRootScope().GetName());  // Scope should start at root level.
 
       // Setup main MABE variables.
       cur_scope->LinkVar("random_seed",
