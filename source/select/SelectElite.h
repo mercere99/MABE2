@@ -30,14 +30,15 @@ namespace mabe {
       : Module(control, "SelectElite", "Module to select organisms with the highest value in a trait.")
       , trait(in_trait), top_count(tcount), copy_count(ccount)
     {
-      SetSelectMod(true);                  ///< Mark this module as a selection module.
-      DefaultSync();                   ///< This module defaults to synchronous generations.
-      AddRequiredTrait<double>(trait); ///< The fitness trait must be set by another module.
-      SetMinPops(1);                   ///< Must run elite selection on a population.
-    }
+      SetSelectMod(true);               ///< Mark this module as a selection module.
+      DefaultSync();                    ///< This module defaults to synchronous generations.
+      AddRequiredTrait<double>(trait);  ///< The fitness trait must be set by another module.
+      SetMinPops(1);                    ///< Must run elite selection on a population.
+    } 
     ~SelectElite() { }
 
     void SetupConfig() override {
+      LinkPop(pop_id, "target_pop", "Which population should we select parents from?");
       LinkVar(top_count, "top_count", "Number of top-fitness orgs to be replicated", 1);
       LinkVar(copy_count, "copy_count", "Number of copies to make of replicated organisms", 1);
     }
