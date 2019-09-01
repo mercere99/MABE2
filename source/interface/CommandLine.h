@@ -16,6 +16,9 @@
 namespace mabe {
 
   class CommandLine : public Module {
+  private:
+    size_t pop_id;  // Which population should we print stats about?
+
   public:
     CommandLine(mabe::MABE & control)
       : Module(control, "CommandLine", "Module to handle basic I/O on the command line.")
@@ -25,7 +28,7 @@ namespace mabe {
     ~CommandLine() { }
 
     void SetupConfig() override {
-      // For now, nothing here.
+      LinkPop(pop_id, "target_pop", "Which population should we print stats about?");
     }
 
     void SetupModule() override {
