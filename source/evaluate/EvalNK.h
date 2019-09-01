@@ -41,6 +41,7 @@ namespace mabe {
     ~EvalNK() { }
 
     void SetupConfig() override {
+      LinkPop(target_pop, "target_pop", "Which population should we evaluate?");
       LinkVar(N, "N", "Number of bits required in output", 20);
       LinkVar(K, "K", "Number of bits used in each gene", 3);
     }
