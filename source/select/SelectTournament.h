@@ -37,6 +37,7 @@ namespace mabe {
     ~SelectTournament() { }
 
     void SetupConfig() override {
+      LinkPop(pop_id, "target_pop", "Which population should we select parents from?");
       LinkVar(tourny_size, "tournament_size", "Number of orgs in each tournament", 7);
       LinkVar(num_tournies, "num_tournaments", "Number of tournaments to run", 1);
     }
