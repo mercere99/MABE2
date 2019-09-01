@@ -17,12 +17,12 @@ namespace mabe {
 
   class GrowthPlacement : public Module {
   private:
-    int main_pop=0;
-    int next_pop=1;
+    size_t main_pop=0;
+    size_t next_pop=1;
 
   public:
     GrowthPlacement(mabe::MABE & control)
-      : Module(control, "GrowthPlacement", "Module to place births into the next generation.")
+      : Module(control, "GrowthPlacement", "Module to always appened births onto a population.")
     {
       SetPlacementMod(true);
       RequireSync();
@@ -30,7 +30,8 @@ namespace mabe {
     ~GrowthPlacement() { }
 
     void SetupConfig() override {
-      // For now, nothing here.
+      LinkPop(main_pop, "from_pop", "Which population should we track births from?",0);
+      LinkPop(next_pop, "to_pop", "Which population should we place offspring in?",1);
     }
 
     void SetupModule() override {
