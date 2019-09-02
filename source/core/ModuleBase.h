@@ -46,6 +46,14 @@
  *     OnHelp()
  *       : Run when the --help option is called at startup.
  *     ...
+ * 
+ *    - Various Do* functions run in modules until one of them returns a valid answer.
+ *     DoPlaceBirth(Organism & offspring, OrgPosition parent position)
+ *       : Place a new offspring about to be born.
+ *     DoPlaceInject(Organism & new_org)
+ *       : Place a new offspring about to be injected.
+ *     DoFindNeighbor(OrgPosition target_pos)
+ *       : Find a random neighbor to a designated position.
  */
 
 #ifndef MABE_MODULE_BASE_H
@@ -162,6 +170,8 @@ namespace mabe {
     ModuleBase & RequireSync() { rep_type = ReplicationType::REQUIRE_SYNC; return *this; }
 
     virtual void SetupModule() { /* By default, assume no setup needed. */ }
+
+    // ----==== SIGNALS ====----
 
     // Functions to be called based on signals.  Note that the existance of an overridden version
     // of each function is tracked by an associated bool value that we default to true until the
@@ -281,7 +291,7 @@ namespace mabe {
       has_DoPlaceInject = false; return OrgPosition();
     }
 
-    // Function: Find a random neighbor to a designated organism.
+    // Function: Find a random neighbor to a designated position.
     // Args: Position to find neighbor of, position found.
 
     bool has_DoFindNeighbor = true;
