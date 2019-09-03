@@ -5,47 +5,6 @@
  *
  *  @file  Module.h
  *  @brief Base class for all MABE modules.
- * 
- *  Development Notes
- *  - Various On* and Before* functions should be automatically detected and run when relevant.
- *    These include:
- *     BeforeUpdate(size_t update_ending)
- *       : Update is ending; new one is about to start
- *     OnUpdate(size_t new_update)
- *       : New update has just started.
- *     BeforeRepro(OrgPosition parent_pos) 
- *       : Parent is about to reporduce.
- *     OnOffspringReady(Organism & offspring, OrgPosition parent_pos)
- *       : Offspring is ready to be placed.
- *     OnInjectReady(Organism & inject_org)
- *       : Organism to be injected is ready to be placed.
- *     BeforePlacement(Organism & org, OrgPosition target_pos)
- *       : Placement location has been identified (For birth or inject)
- *     OnPlacement(OrgPosition placement_pos)
- *       : New organism has been placed in the poulation.
- *     BeforeMutate(Organism & org)
- *       : Mutate is about to run on an organism.
- *     OnMutate(Organism & org)
- *       : Organism has had its genome changed due to mutation.
- *     BeforeDeath(OrgPosition remove_pos)
- *       : Organism is about to die.
- *     BeforeSwap(OrgPosition pos1, OrgPosition pos2)
- *       : Two organisms' positions in the population are about to move.
- *     OnSwap(OrgPosition pos1, OrgPosition pos2)
- *       : Two organisms' positions in the population have just swapped.
- *     BeforePopResize(Population & pop, size_t new_size)
- *       : Full population is about to be resized.
- *     OnPopResize(Population & pop, size_t old_size)
- *       : Full population has just been resized.
- *     OnError(const std::string & msg)
- *       : An error has occurred and the user should be notified.
- *     OnWarning(const std::string & msg)
- *       : A atypical condition has occurred and the user should be notified.
- *     BeforeExit()
- *       : Run immediately before MABE is about to exit.
- *     OnHelp()
- *       : Run when the --help option is called at startup.
- *     ...
  */
 
 #ifndef MABE_MODULE_H
