@@ -113,7 +113,38 @@ namespace mabe {
     /// Which traits is this module working with?
     emp::map<std::string, emp::Ptr<TraitInfo>> trait_map;
 
-    // Helper functions
+    // Setup each signal with a unique ID number
+    enum SignalIDs {
+      SIG_BeforeUpdate = 0,
+      SIG_OnUpdate,
+      SIG_BeforeRepro,
+      SIG_OnOffspringReady,
+      SIG_OnInjectReady,
+      SIG_BeforePlacement,
+      SIG_OnPlacement,
+      SIG_BeforeMutate,
+      SIG_OnMutate,
+      SIG_BeforeDeath,
+      SIG_BeforeSwap,
+      SIG_OnSwap,
+      SIG_BeforePopResize,
+      SIG_OnPopResize,
+      SIG_OnError,
+      SIG_OnWarning,
+      SIG_BeforeExit,
+      SIG_OnHelp,
+      SIG_DoPlaceBirth,
+      SIG_DoPlaceInject,
+      SIG_DoFindNeighbor,
+      NUM_SIGNALS
+    };
+
+    // Setup a BitSet to track if this module has each signal implemented.
+    emp::BitSet<NUM_SIGNALS> has_signal;
+
+    // ---- Helper functions ----
+
+    /// All internal errors should be processed through AddError(...)
     template <typename... Ts>
     void AddError(Ts &&... args) {
       errors.push_back( emp::to_string( std::forward<Ts>(args)... ));
@@ -122,7 +153,10 @@ namespace mabe {
 
   public:
     ModuleBase(MABE & in_control, const std::string & in_name, const std::string & in_desc="")
-      : name(in_name), desc(in_desc), control(in_control) { ; }
+      : name(in_name), desc(in_desc), control(in_control)
+    {
+      has_signal.SetAll(); // Default all signals to on until base class version is run.
+    }
     ModuleBase(const ModuleBase &) = default;
     ModuleBase(ModuleBase &&) = default;
     virtual ~ModuleBase() {
@@ -179,95 +213,77 @@ namespace mabe {
 
     // Format:  BeforeUpdate(size_t update_ending)
     // Trigger: Update is ending; new one is about to start
-    bool has_BeforeUpdate = true;
-    virtual void BeforeUpdate(size_t) { has_BeforeUpdate = false; }    
+    virtual void BeforeUpdate(size_t) { has_signal[SIG_BeforeUpdate] = false; }    
 
     // Format:  OnUpdate(size_t new_update)
     // Trigger: New update has just started.
-    bool has_OnUpdate = true;
-    virtual void OnUpdate(size_t) { has_OnUpdate = false; }    
+    virtual void OnUpdate(size_t) { has_signal[SIG_OnUpdate] = false; }    
 
     // Format:  BeforeRepro(OrgPosition parent_pos) 
     // Trigger: Parent is about to reproduce.
-    bool has_BeforeRepro = true;
-    virtual void BeforeRepro(OrgPosition) { has_BeforeRepro = false; }    
+    virtual void BeforeRepro(OrgPosition) { has_signal[SIG_BeforeRepro] = false; }    
 
     // Format:  OnOffspringReady(Organism & offspring, OrgPosition parent_pos)
     // Trigger: Offspring is ready to be placed.
-    bool has_OnOffspringReady = true;
-    virtual void OnOffspringReady(Organism &, OrgPosition) { has_OnOffspringReady = false; }    
+    virtual void OnOffspringReady(Organism &, OrgPosition) { has_signal[SIG_OnOffspringReady] = false; }    
 
     // Format:  OnInjectReady(Organism & inject_org)
     // Trigger: Organism to be injected is ready to be placed.
-    bool has_OnInjectReady = true;
-    virtual void OnInjectReady(Organism &) { has_OnInjectReady = false; }    
+    virtual void OnInjectReady(Organism &) { has_signal[SIG_OnInjectReady] = false; }    
 
     // Format:  BeforePlacement(Organism & org, OrgPosition target_pos)
     // Trigger: Placement location has been identified (For birth or inject)
     // Args:    Organism to be placed, placement position, parent position (if available)
-    bool has_BeforePlacement = true;
-    virtual void BeforePlacement(Organism &, OrgPosition, OrgPosition) { has_BeforePlacement = false; }    
+    virtual void BeforePlacement(Organism &, OrgPosition, OrgPosition) { has_signal[SIG_BeforePlacement] = false; }    
 
     // Format:  OnPlacement(OrgPosition placement_pos)
     // Trigger: New organism has been placed in the poulation.
     // Args:    Position new organism was placed.
-    bool has_OnPlacement = true;
-    virtual void OnPlacement(OrgPosition) { has_OnPlacement = false; }    
+    virtual void OnPlacement(OrgPosition) { has_signal[SIG_OnPlacement] = false; }    
 
     // Format:  BeforeMutate(Organism & org)
     // Trigger: Mutate is about to run on an organism.
-    bool has_BeforeMutate = true;
-    virtual void BeforeMutate(Organism &) { has_BeforeMutate = false; }    
+    virtual void BeforeMutate(Organism &) { has_signal[SIG_BeforeMutate] = false; }    
 
     // Format:  OnMutate(Organism & org)
     // Trigger: Organism has had its genome changed due to mutation.
-    bool has_OnMutate = true;
-    virtual void OnMutate(Organism &) { has_OnMutate = false; }    
+    virtual void OnMutate(Organism &) { has_signal[SIG_OnMutate] = false; }    
 
     // Format:  BeforeDeath(OrgPosition remove_pos)
     // Trigger: Organism is about to die.
-    bool has_BeforeDeath = true;
-    virtual void BeforeDeath(OrgPosition) { has_BeforeDeath = false; }    
+    virtual void BeforeDeath(OrgPosition) { has_signal[SIG_BeforeDeath] = false; }    
 
     // Format:  BeforeSwap(OrgPosition pos1, OrgPosition pos2)
     // Trigger: Two organisms' positions in the population are about to move.
-    bool has_BeforeSwap = true;
-    virtual void BeforeSwap(OrgPosition, OrgPosition) { has_BeforeSwap = false; }    
+    virtual void BeforeSwap(OrgPosition, OrgPosition) { has_signal[SIG_BeforeSwap] = false; }    
 
     // Format:  OnSwap(OrgPosition pos1, OrgPosition pos2)
     // Trigger: Two organisms' positions in the population have just swapped.
-    bool has_OnSwap = true;
-    virtual void OnSwap(OrgPosition, OrgPosition) { has_OnSwap = false; }    
+    virtual void OnSwap(OrgPosition, OrgPosition) { has_signal[SIG_OnSwap] = false; }    
 
     // Format:  BeforePopResize(Population & pop, size_t new_size)
     // Trigger: Full population is about to be resized.
-    bool has_BeforePopResize = true;
-    virtual void BeforePopResize(Population &, size_t) { has_BeforePopResize = false; }    
+    virtual void BeforePopResize(Population &, size_t) { has_signal[SIG_BeforePopResize] = false; }    
 
     // Format:  OnPopResize(Population & pop, size_t old_size)
     // Trigger: Full population has just been resized.
-    bool has_OnPopResize = true;
-    virtual void OnPopResize(Population &, size_t) { has_OnPopResize = false; }    
+    virtual void OnPopResize(Population &, size_t) { has_signal[SIG_OnPopResize] = false; }    
 
     // Format:  OnError(const std::string & msg)
     // Trigger: An error has occurred and the user should be notified.
-    bool has_OnError = true;
-    virtual void OnError(const std::string &) { has_OnError = false; }
+    virtual void OnError(const std::string &) { has_signal[SIG_OnError] = false; }
 
     // Format:  OnWarning(const std::string & msg)
     // Trigger: A atypical condition has occurred and the user should be notified.
-    bool has_OnWarning = true;
-    virtual void OnWarning(const std::string &) { has_OnWarning = false; }
+    virtual void OnWarning(const std::string &) { has_signal[SIG_OnWarning] = false; }
 
     // Format:  BeforeExit()
     // Trigger: Run immediately before MABE is about to exit.
-    bool has_BeforeExit = true;
-    virtual void BeforeExit() { has_BeforeExit = false; }    
+    virtual void BeforeExit() { has_signal[SIG_BeforeExit] = false; }    
 
     // Format:  OnHelp()
     // Trigger: Run when the --help option is called at startup.
-    bool has_OnHelp = true;
-    virtual void OnHelp() { has_OnHelp = false; } 
+    virtual void OnHelp() { has_signal[SIG_OnHelp] = false; } 
 
 
     // Functions to be called based on actions that need to happen.  Each of these returns a
@@ -278,25 +294,22 @@ namespace mabe {
     // Args: Organism that will be placed, position of parent, position to place.
     // Return: Position to place offspring or an invalid position if failed.
 
-    bool has_DoPlaceBirth = true;
     virtual OrgPosition DoPlaceBirth(Organism &, OrgPosition) {
-      has_DoPlaceBirth = false; return OrgPosition();
+      has_signal[SIG_DoPlaceBirth] = false; return OrgPosition();
     }
 
     // Function: Place a new organism about to be injected.
     // Args: Organism that will be placed, position to place.
 
-    bool has_DoPlaceInject = true;
     virtual OrgPosition DoPlaceInject(Organism &) {
-      has_DoPlaceInject = false; return OrgPosition();
+      has_signal[SIG_DoPlaceInject] = false; return OrgPosition();
     }
 
     // Function: Find a random neighbor to a designated position.
     // Args: Position to find neighbor of, position found.
 
-    bool has_DoFindNeighbor = true;
     virtual OrgPosition DoFindNeighbor(OrgPosition) {
-      has_DoFindNeighbor = false; return OrgPosition();
+      has_signal[SIG_DoFindNeighbor] = false; return OrgPosition();
     }
 
 
