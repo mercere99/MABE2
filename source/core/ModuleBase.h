@@ -207,182 +207,33 @@ namespace mabe {
 
     // ----==== SIGNALS ====----
 
-    // Functions to be called based on signals.  Note that the existance of an overridden version
-    // of each function is tracked by an associated bool value that we default to true until the
-    // base version of the function is called.
+    // Base classes for signals to be called (More details in Module.h)
 
-    // Format:  BeforeUpdate(size_t update_ending)
-    // Trigger: Update is ending; new one is about to start
-    virtual void BeforeUpdate(size_t) {
-      has_signal[SIG_BeforeUpdate] = false;
-      control.RescanSignals();
-    }
+    virtual void BeforeUpdate(size_t) = 0;
+    virtual void OnUpdate(size_t) = 0;
+    virtual void BeforeRepro(OrgPosition) = 0;
+    virtual void OnOffspringReady(Organism &, OrgPosition) = 0;
+    virtual void OnInjectReady(Organism &) = 0;
+    virtual void BeforePlacement(Organism &, OrgPosition, OrgPosition) = 0;
+    virtual void OnPlacement(OrgPosition) = 0;
+    virtual void BeforeMutate(Organism &) = 0;
+    virtual void OnMutate(Organism &) = 0;
+    virtual void BeforeDeath(OrgPosition) = 0;
+    virtual void BeforeSwap(OrgPosition, OrgPosition) = 0;
+    virtual void OnSwap(OrgPosition, OrgPosition) = 0;
+    virtual void BeforePopResize(Population &, size_t) = 0;
+    virtual void OnPopResize(Population &, size_t) = 0;
+    virtual void OnError(const std::string &) = 0;
+    virtual void OnWarning(const std::string &) = 0;
+    virtual void BeforeExit() = 0;
+    virtual void OnHelp() = 0;
 
-    // Format:  OnUpdate(size_t new_update)
-    // Trigger: New update has just started.
-    virtual void OnUpdate(size_t) {
-      has_signal[SIG_OnUpdate] = false;
-      control.RescanSignals();
-    }
+    virtual OrgPosition DoPlaceBirth(Organism &, OrgPosition) = 0;
+    virtual OrgPosition DoPlaceInject(Organism &) = 0;
+    virtual OrgPosition DoFindNeighbor(OrgPosition) = 0;
 
-    // Format:  BeforeRepro(OrgPosition parent_pos) 
-    // Trigger: Parent is about to reproduce.
-    virtual void BeforeRepro(OrgPosition) {
-      has_signal[SIG_BeforeRepro] = false;
-      control.RescanSignals();
-    }
-
-    // Format:  OnOffspringReady(Organism & offspring, OrgPosition parent_pos)
-    // Trigger: Offspring is ready to be placed.
-    virtual void OnOffspringReady(Organism &, OrgPosition) {
-      has_signal[SIG_OnOffspringReady] = false;
-      control.RescanSignals();
-    }
-
-    // Format:  OnInjectReady(Organism & inject_org)
-    // Trigger: Organism to be injected is ready to be placed.
-    virtual void OnInjectReady(Organism &) {
-      has_signal[SIG_OnInjectReady] = false;
-      control.RescanSignals();
-    }
-
-    // Format:  BeforePlacement(Organism & org, OrgPosition target_pos)
-    // Trigger: Placement location has been identified (For birth or inject)
-    // Args:    Organism to be placed, placement position, parent position (if available)
-    virtual void BeforePlacement(Organism &, OrgPosition, OrgPosition) {
-      has_signal[SIG_BeforePlacement] = false;
-      control.RescanSignals();
-    }
-
-    // Format:  OnPlacement(OrgPosition placement_pos)
-    // Trigger: New organism has been placed in the poulation.
-    // Args:    Position new organism was placed.
-    virtual void OnPlacement(OrgPosition) {
-      has_signal[SIG_OnPlacement] = false;
-      control.RescanSignals();
-    }
-
-    // Format:  BeforeMutate(Organism & org)
-    // Trigger: Mutate is about to run on an organism.
-    virtual void BeforeMutate(Organism &) {
-      has_signal[SIG_BeforeMutate] = false;
-      control.RescanSignals();
-    }
-
-    // Format:  OnMutate(Organism & org)
-    // Trigger: Organism has had its genome changed due to mutation.
-    virtual void OnMutate(Organism &) {
-      has_signal[SIG_OnMutate] = false;
-      control.RescanSignals();
-    }
-
-    // Format:  BeforeDeath(OrgPosition remove_pos)
-    // Trigger: Organism is about to die.
-    virtual void BeforeDeath(OrgPosition) {
-      has_signal[SIG_BeforeDeath] = false;
-      control.RescanSignals();
-    }
-
-    // Format:  BeforeSwap(OrgPosition pos1, OrgPosition pos2)
-    // Trigger: Two organisms' positions in the population are about to move.
-    virtual void BeforeSwap(OrgPosition, OrgPosition) {
-      has_signal[SIG_BeforeSwap] = false;
-      control.RescanSignals();
-    }
-
-    // Format:  OnSwap(OrgPosition pos1, OrgPosition pos2)
-    // Trigger: Two organisms' positions in the population have just swapped.
-    virtual void OnSwap(OrgPosition, OrgPosition) {
-      has_signal[SIG_OnSwap] = false;
-      control.RescanSignals();
-    }
-
-    // Format:  BeforePopResize(Population & pop, size_t new_size)
-    // Trigger: Full population is about to be resized.
-    virtual void BeforePopResize(Population &, size_t) {
-      has_signal[SIG_BeforePopResize] = false;
-      control.RescanSignals();
-    }
-
-    // Format:  OnPopResize(Population & pop, size_t old_size)
-    // Trigger: Full population has just been resized.
-    virtual void OnPopResize(Population &, size_t) {
-      has_signal[SIG_OnPopResize] = false;
-      control.RescanSignals();
-    }
-
-    // Format:  OnError(const std::string & msg)
-    // Trigger: An error has occurred and the user should be notified.
-    virtual void OnError(const std::string &) {
-      has_signal[SIG_OnError] = false;
-      control.RescanSignals();
-    }
-
-    // Format:  OnWarning(const std::string & msg)
-    // Trigger: A atypical condition has occurred and the user should be notified.
-    virtual void OnWarning(const std::string &) {
-      has_signal[SIG_OnWarning] = false;
-      control.RescanSignals();
-    }
-
-    // Format:  BeforeExit()
-    // Trigger: Run immediately before MABE is about to exit.
-    virtual void BeforeExit() {
-      has_signal[SIG_BeforeExit] = false;
-      control.RescanSignals();
-    }
-
-    // Format:  OnHelp()
-    // Trigger: Run when the --help option is called at startup.
-    virtual void OnHelp() {
-      has_signal[SIG_OnHelp] = false;
-      control.RescanSignals();
-    }
-
-
-    // Functions to be called based on actions that need to happen.  Each of these returns a
-    // viable result or an invalid object if need to pass on to the next module.  Modules will
-    // be querried in order until one of them returns a valid result.
-
-    // Function: Place a new organism about to be born.
-    // Args: Organism that will be placed, position of parent, position to place.
-    // Return: Position to place offspring or an invalid position if failed.
-
-    virtual OrgPosition DoPlaceBirth(Organism &, OrgPosition) {
-      has_signal[SIG_DoPlaceBirth] = false;
-      control.RescanSignals();
-      return OrgPosition();
-    }
-
-    // Function: Place a new organism about to be injected.
-    // Args: Organism that will be placed, position to place.
-
-    virtual OrgPosition DoPlaceInject(Organism &) {
-      has_signal[SIG_DoPlaceInject] = false;
-      control.RescanSignals();
-      return OrgPosition();
-    }
-
-    // Function: Find a random neighbor to a designated position.
-    // Args: Position to find neighbor of, position found.
-
-    virtual OrgPosition DoFindNeighbor(OrgPosition) {
-      has_signal[SIG_DoFindNeighbor] = false;
-      control.RescanSignals();
-      return OrgPosition();
-    }
-
-    /// Turn off all signals in this function.
-    void Deactivate() {
-      has_signal.Clear();
-      control.RescanSignals();
-    }
-
-    /// Turn on all signals in this function (unimplemented ones will turn off automatically)
-    void Activate() {
-      has_signal.Clear();
-      control.RescanSignals();
-    }
+    virtual void Deactivate() = 0;  ///< Turn off all signals in this function.
+    virtual void Activate() = 0;    ///< Turn on all signals in this function.
 
   // --------------------- Functions to be used in derived modules ONLY --------------------------
   protected:
