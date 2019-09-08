@@ -71,6 +71,7 @@
 #define MABE_CONFIG_H
 
 #include "base/assert.h"
+#include "base/map.h"
 #include "meta/TypeID.h"
 #include "tools/string_utils.h"
 
@@ -87,6 +88,8 @@ namespace mabe {
     bool debug = true;                ///< Should we print full debug information?
 
     ConfigScope root_scope;           ///< All variables from the root level.
+
+    emp::unordered_map<std::string, size_t> type_map;
 
     // -- Helper functions --
     bool HasToken(int pos) const { return (pos >= 0) && (pos < (int) tokens.size()); }
@@ -152,6 +155,18 @@ namespace mabe {
       if (AsLexeme(pos) != req_str) { Error(pos, std::forward<Ts>(args)...); }
     }
 
+    /// Test if the lexeme at this position represents a type and return it 
+    /// and advance pos.  Otherwise return INVALID and do not advance pos.
+    BaseType ProcessType(int & pos) {
+      if (IsID(pos)) {
+        const std::string & lexeme = AsLexeme(pos);
+        if (lexeme == "String") return BaseType::STRING;
+        if (lexeme == "Value") return BaseType::VALUE;
+        if (lexeme == "Struct") return BaseType::STRUCT;
+      }
+      return BaseType::INVALID;
+    }
+
     /// Load a variable name from the provided scope.
     /// If create_ok is true, create any variables that we don't find.  Otherwise continue the
     /// search for them in successively outer (lower) scopes.
@@ -179,6 +194,13 @@ namespace mabe {
       , root_scope("MABE", "Outer-most, global scope.", nullptr)
     {
       if (filename != "") Load(filename);
+
+      // Setup the type map.
+      type_map["INVALID"] = (size_t) BaseType::INVALID;
+      type_map["Void"] = (size_t) BaseType::VOID;
+      type_map["Value"] = (size_t) BaseType::VALUE;
+      type_map["String"] = (size_t) BaseType::STRING;
+      type_map["Struct"] = (size_t) BaseType::STRUCT;
     }
 
     ConfigScope & GetRootScope() { return root_scope; }
@@ -314,6 +336,8 @@ namespace mabe {
 
     // Allow a statement with an empty line.
     if (AsChar(pos) == ';') { pos++; return; }
+
+    // Allow this statement to be a declaration if it begins with a type.
 
     // Otherwise, basic structure: VAR = VALUE ;
     emp::Ptr<ConfigEntry> lhs = ProcessVar(pos, scope, true, false);
