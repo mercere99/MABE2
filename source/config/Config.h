@@ -99,6 +99,8 @@ namespace mabe {
     bool IsString(int pos) const { return HasToken(pos) && lexer.IsString(tokens[pos]); }
     bool IsDots(int pos) const { return HasToken(pos) && lexer.IsDots(tokens[pos]); }
 
+    bool IsType(int pos) const { return HasToken(pos) && emp::Has(type_map, tokens[pos].lexeme); }
+
     char AsChar(int pos) const {
       return (HasToken(pos) && lexer.IsSymbol(tokens[pos])) ? tokens[pos].lexeme[0] : 0;
     }
@@ -157,8 +159,8 @@ namespace mabe {
 
     /// Test if the lexeme at this position represents a type and return it 
     /// and advance pos.  Otherwise return INVALID and do not advance pos.
-    BaseType ProcessType(int & pos) {
-      if (IsID(pos)) {
+    BaseType AsType(int & pos) {
+      if (IsType(pos)) {
         const std::string & lexeme = AsLexeme(pos);
         if (lexeme == "String") return BaseType::STRING;
         if (lexeme == "Value") return BaseType::VALUE;
