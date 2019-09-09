@@ -17,6 +17,7 @@
 namespace mabe {
 
   enum class BaseType {
+    INVALID = 0, 
     VOID,
     VALUE,
     STRING,
