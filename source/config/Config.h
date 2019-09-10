@@ -340,6 +340,18 @@ namespace mabe {
     if (AsChar(pos) == ';') { pos++; return; }
 
     // Allow this statement to be a declaration if it begins with a type.
+    if (IsType(pos)) {
+      std::string type_name = AsLexeme(pos++);
+      RequireID(pos, "Type name must be followed by variable to declare.");
+      std::string var_name = AsLexeme(pos);
+
+      if (type_name == "String") {
+        scope.AddStringVar(var_name, "Local variable.");
+      }
+      else if (type_name == "Value") {
+        scope.AddValueVar(var_name, "Local variable.");
+      }
+    }
 
     // Otherwise, basic structure: VAR = VALUE ;
     emp::Ptr<ConfigEntry> lhs = ProcessVar(pos, scope, true, false);
