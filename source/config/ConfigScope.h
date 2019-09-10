@@ -124,6 +124,16 @@ namespace mabe {
       return Add<ConfigEntry_Functions<VAR_T>>(name, get_fun, set_fun, desc, this);
     }
 
+    /// Add a new variable of type String.
+    ConfigEntry_StringVar & AddStringVar(const std::string & name, const std::string & desc) {
+      return Add<ConfigEntry_StringVar>(name, "", desc, this);
+    }
+
+    /// Add a new variable of type Value.
+    ConfigEntry_DoubleVar & AddValueVar(const std::string & name, const std::string & desc) {
+      return Add<ConfigEntry_DoubleVar>(name, 0.0, desc, this);
+    }
+
     /// Add a new scope inside of this one.
     ConfigScope & AddScope(const std::string & name, const std::string & desc) {
       return Add<ConfigScope>(name, desc, this);
