@@ -346,10 +346,13 @@ namespace mabe {
       std::string var_name = AsLexeme(pos);
 
       if (type_name == "String") {
-        scope.AddStringVar(var_name, "Local variable.");
+        scope.AddStringVar(var_name, "Local string variable.");
       }
       else if (type_name == "Value") {
-        scope.AddValueVar(var_name, "Local variable.");
+        scope.AddValueVar(var_name, "Local value variable.");
+      }
+      else if (type_name == "Struct") {
+        scope.AddScope(var_name, "Local struct");
       }
     }
 
