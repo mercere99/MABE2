@@ -23,6 +23,9 @@ namespace mabe {
     emp::vector< emp::Ptr<ConfigEntry> > entry_list;           ///< Entries in order.
     emp::map< std::string, emp::Ptr<ConfigEntry> > entry_map;  ///< Entries with easy lookup.
 
+    ///< If this scope represents a structure, identify the type (otherwise type is "")
+    const std::string type;
+
     template <typename T, typename... ARGS>
     T & Add(const std::string & name, ARGS &&... args) {
       auto new_ptr = emp::NewPtr<T>(name, std::forward<ARGS>(args)...);
@@ -32,9 +35,10 @@ namespace mabe {
     }
   public:
     ConfigScope(const std::string & _name,
-                 const std::string & _desc,
-                 emp::Ptr<ConfigScope> _scope)
-      : ConfigEntry(_name, _desc, _scope) { }
+                const std::string & _desc,
+                emp::Ptr<ConfigScope> _scope,
+                const std::string & _type="")
+      : ConfigEntry(_name, _desc, _scope), type(_type) { }
     ConfigScope(const ConfigScope & in) : ConfigEntry(in) {
       for (const auto & x : in.entry_list) {
         auto new_ptr = x->Clone();
@@ -135,8 +139,8 @@ namespace mabe {
     }
 
     /// Add a new scope inside of this one.
-    ConfigScope & AddScope(const std::string & name, const std::string & desc) {
-      return Add<ConfigScope>(name, desc, this);
+    ConfigScope & AddScope(const std::string & name, const std::string & desc, const std::string & type="") {
+      return Add<ConfigScope>(name, desc, this, type);
     }
 
     /// Write out all of the parameters contained in this scope to the provided stream.
