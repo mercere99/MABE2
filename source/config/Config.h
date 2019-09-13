@@ -205,6 +205,18 @@ namespace mabe {
       type_map["Struct"] = (size_t) BaseType::STRUCT;
     }
 
+    size_t AddType(const std::string & type_name) {
+      emp_assert(!Has(type_map, type_name));
+      size_t type_id = type_map.size();
+      type_map[type_name] = type_id;
+      return type_id;
+    }
+
+    size_t GetTypeID(const std::string & type_name) {
+      emp_assert(Has(type_map, type_name));
+      return type_map[type_name];
+    }
+
     ConfigScope & GetRootScope() { return root_scope; }
     const ConfigScope & GetRootScope() const { return root_scope; }
 
@@ -352,6 +364,11 @@ namespace mabe {
         scope.AddValueVar(var_name, "Local value variable.");
       }
       else if (type_name == "Struct") {
+        scope.AddScope(var_name, "Local struct");
+      }
+
+      // Otherwise we have a module to add; treat it as a struct.
+      else {
         scope.AddScope(var_name, "Local struct");
       }
     }
