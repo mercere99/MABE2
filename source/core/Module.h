@@ -62,10 +62,10 @@ namespace mabe {
     }
 
     /// Link a population to an ID tracker.
-    ConfigEntry_Functions<std::string> & LinkPop(size_t & var,
+    ConfigEntry_Functions<std::string> & LinkPop(int & var,
                                                  const std::string & name,
                                                  const std::string & desc,
-                                                 size_t default_pop=0) {
+                                                 int default_pop=0) {
       std::function<std::string()> get_fun =
         [this,&var](){ return control.GetPopulation(var).GetName(); };
       std::function<void(std::string)> set_fun =
