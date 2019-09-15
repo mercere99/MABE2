@@ -21,7 +21,7 @@ namespace mabe {
     std::string trait;   ///< Which trait should we select on?
     size_t tourny_size;  ///< How big should each tournament be?
     size_t num_tournies; ///< How many tournaments should we run?
-    size_t pop_id = 0;   ///< Which population are we selecting from?
+    int pop_id = 0;      ///< Which population are we selecting from?
 
   public:
     SelectTournament(mabe::MABE & control, const std::string & in_trait="fitness",

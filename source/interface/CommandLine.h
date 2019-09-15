@@ -17,7 +17,7 @@ namespace mabe {
 
   class CommandLine : public Module {
   private:
-    size_t pop_id;  // Which population should we print stats about?
+    int pop_id;  // Which population should we print stats about?
 
   public:
     CommandLine(mabe::MABE & control)

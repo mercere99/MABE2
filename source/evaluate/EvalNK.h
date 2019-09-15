@@ -23,7 +23,7 @@ namespace mabe {
     size_t N;
     size_t K;    
     NKLandscape landscape;
-    size_t target_pop;
+    int target_pop;
 
     std::string bits_trait;
     std::string fitness_trait;

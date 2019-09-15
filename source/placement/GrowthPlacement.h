@@ -17,8 +17,8 @@ namespace mabe {
 
   class GrowthPlacement : public Module {
   private:
-    size_t main_pop=0;
-    size_t next_pop=1;
+    int main_pop=0;
+    int next_pop=1;
 
   public:
     GrowthPlacement(mabe::MABE & control)

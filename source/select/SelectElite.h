@@ -23,7 +23,7 @@ namespace mabe {
     std::string trait;   ///< Which trait should we select on?
     size_t top_count;    ///< Top how-many should we select?
     size_t copy_count;   ///< How many copies of each should we make?
-    size_t pop_id = 0;   ///< Which population are we selecting from?
+    int pop_id = 0;      ///< Which population are we selecting from?
 
   public:
     SelectElite(mabe::MABE & control, const std::string & in_trait="fitness", size_t tcount=1, size_t ccount=1)

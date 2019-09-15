@@ -18,7 +18,7 @@ namespace mabe {
   /// Add elite selection with the current population.
   class Mutate : public Module {
   private:
-    size_t pop_id = 0;  ///< Which population are we mutating?
+    int pop_id = 0;  ///< Which population are we mutating?
     size_t skip = 0;    ///< How many organisms should we skip before mutating?
 
   public:
