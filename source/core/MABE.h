@@ -32,6 +32,9 @@ namespace mabe {
 
   class MABEBase {
   protected:
+
+    /// Each set of modules to be called when a specific signal is triggered should be identified
+    /// in a ModVector object.
     template <typename RETURN, typename... ARGS>
     struct ModVector : public emp::vector<emp::Ptr<ModuleBase>> {
       typedef RETURN (ModuleBase::*ModMemFun)(ARGS...);
@@ -105,6 +108,7 @@ namespace mabe {
     // OrgPosition DoFindNeighbor(OrgPosition) {
     ModVector<OrgPosition, OrgPosition> do_find_neighbor_sig;
 
+    bool rescan_signals = true;   ///< Do module signals need to be updated?
 
     // Private constructor so that base class cannot be instantiated directly.
     MABEBase()
@@ -132,6 +136,12 @@ namespace mabe {
     { ;  }
 
   public:
+
+    /// Setup the signals to be rescanned; called this any time signal information is updated in
+    /// a module.
+    void RescanSignals() {
+      rescan_signals = true;
+    }
 
     /// All insertions of organisms should come through AddOrgAt
     /// Must provide an org_ptr that is now own by the population.
@@ -277,7 +287,9 @@ namespace mabe {
     MABE(int argc, char* argv[])
       : args(emp::cl::args_to_strings(argc, argv))
       , cur_scope(&(config.GetRootScope()))
-    { ; }
+    {
+      config.AddType("Population");
+    }
     MABE(const MABE &) = delete;
     MABE(MABE &&) = delete;
     ~MABE() {
@@ -316,8 +328,13 @@ namespace mabe {
     void Update() {
       emp_assert(OK(), update);
 
+      // If informaiton on any of the signals has changed, update them all.
+      if (rescan_signals) UpdateSignals();
+
+      // Signal that a new update is about to begin.
       before_update_sig.Trigger(update);
 
+      // Increment 'update' to start new update.
       update++;
 
       // Run Update on all modules...
@@ -713,7 +730,7 @@ namespace mabe {
     for (emp::Ptr<ModuleBase> mod_ptr : modules) mod_ptr->SetupModule();
 
     // If none of the modules setup the placement functions, do so now.
-    // @CAO: If no modules are marked IsPlacement(), make that the last module.
+    // @CAO: If no modules are marked IsPlacementMod(), make that the last module.
   }
 
   void MABE::Setup_Traits() {
@@ -767,6 +784,9 @@ namespace mabe {
       if (mod_ptr->has_signal[ModuleBase::SIG_DoPlaceInject]) do_place_inject_sig.push_back(mod_ptr);
       if (mod_ptr->has_signal[ModuleBase::SIG_DoFindNeighbor]) do_find_neighbor_sig.push_back(mod_ptr);
     }
+
+    // Now that we have scanned the signals, we can turn off the rescan flag.
+    rescan_signals = false;
   }
 
 }
