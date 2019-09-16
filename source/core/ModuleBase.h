@@ -113,8 +113,9 @@ namespace mabe {
     /// Which traits is this module working with?
     emp::map<std::string, emp::Ptr<TraitInfo>> trait_map;
 
+  public:
     // Setup each signal with a unique ID number
-    enum SignalIDs {
+    enum SignalID {
       SIG_BeforeUpdate = 0,
       SIG_OnUpdate,
       SIG_BeforeRepro,
@@ -139,6 +140,7 @@ namespace mabe {
       NUM_SIGNALS
     };
 
+  protected:
     // Setup a BitSet to track if this module has each signal implemented.
     emp::BitSet<NUM_SIGNALS> has_signal;
 
