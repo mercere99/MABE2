@@ -369,7 +369,7 @@ namespace mabe {
 
       // Otherwise we have a module to add; treat it as a struct.
       else {
-        scope.AddScope(var_name, "Local struct");
+        scope.AddScope(var_name, "Local struct", type_name);
       }
     }
 
