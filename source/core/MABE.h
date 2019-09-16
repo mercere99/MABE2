@@ -32,15 +32,35 @@ namespace mabe {
 
   class MABEBase {
   protected:
+    /// ModVectors should be derived from a vector of module pointer that they operator on.
+    using modv_base = emp::vector<emp::Ptr<ModuleBase>>;
+
+    /// Maintain a master vector of all ModVector pointers to signals.
+    emp::vector< emp::Ptr< modv_base > > modv_ptrs(ModuleBase::NUM_SIGNALS);
 
     /// Each set of modules to be called when a specific signal is triggered should be identified
     /// in a ModVector object.
     template <typename RETURN, typename... ARGS>
-    struct ModVector : public emp::vector<emp::Ptr<ModuleBase>> {
+    struct ModVector : public modv_base {
+      std::string name;          ///< Name of this signal type.
+      ModuleBase::SignalID id;   ///< ID of this signal
+
+      /// Define the proper signal call type.
       typedef RETURN (ModuleBase::*ModMemFun)(ARGS...);
+
+      /// Store the member-function call that this ModVector should handle.
       ModMemFun fun;
 
-      ModVector(ModMemFun _fun) : fun(_fun) { ; }
+      /// A ModVector constructor takes both the member function that its supposed to call
+      /// and a master list of module vectors that it should put itself it.
+      ModVector(const std::string & _name,
+                ModuleBase::SignalID _id,
+                ModMemFun _fun,
+                emp::vector< emp::Ptr< modv_base > > & modv_ptrs)
+        : name(_name), id(_id), fun(_fun)
+      {
+        modv_ptrs[id] = this;
+      }
 
       template <typename... ARGS2>
       void Trigger(ARGS2 &&... args) {
@@ -112,27 +132,27 @@ namespace mabe {
 
     // Private constructor so that base class cannot be instantiated directly.
     MABEBase()
-    : before_update_sig(&ModuleBase::BeforeUpdate)
-    , on_update_sig(&ModuleBase::OnUpdate)
-    , before_repro_sig(&ModuleBase::BeforeRepro)
-    , on_offspring_ready_sig(&ModuleBase::OnOffspringReady)
-    , on_inject_ready_sig(&ModuleBase::OnInjectReady)
-    , before_placement_sig(&ModuleBase::BeforePlacement)
-    , on_placement_sig(&ModuleBase::OnPlacement)
-    , before_mutate_sig(&ModuleBase::BeforeMutate)
-    , on_mutate_sig(&ModuleBase::OnMutate)
-    , before_death_sig(&ModuleBase::BeforeDeath)
-    , before_swap_sig(&ModuleBase::BeforeSwap)
-    , on_swap_sig(&ModuleBase::OnSwap)
-    , before_pop_resize_sig(&ModuleBase::BeforePopResize)
-    , on_pop_resize_sig(&ModuleBase::OnPopResize)
-    , on_error_sig(&ModuleBase::OnError)
-    , on_warning_sig(&ModuleBase::OnWarning)
-    , before_exit_sig(&ModuleBase::BeforeExit)
-    , on_help_sig(&ModuleBase::OnHelp)
-    , do_place_birth_sig(&ModuleBase::DoPlaceBirth)
-    , do_place_inject_sig(&ModuleBase::DoPlaceInject)
-    , do_find_neighbor_sig(&ModuleBase::DoFindNeighbor)
+    : before_update_sig("before_update", ModuleBase::SIG_BeforeUpdate, &ModuleBase::BeforeUpdate, modv_ptrs)
+    , on_update_sig("on_update", ModuleBase::SIG_OnUpdate, &ModuleBase::OnUpdate, modv_ptrs)
+    , before_repro_sig("before_repro", ModuleBase::SIG_BeforeRepro, &ModuleBase::BeforeRepro, modv_ptrs)
+    , on_offspring_ready_sig("on_offspring_ready", ModuleBase::SIG_OnOffspringReady, &ModuleBase::OnOffspringReady, modv_ptrs)
+    , on_inject_ready_sig("on_inject_ready", ModuleBase::SIG_OnInjectReady, &ModuleBase::OnInjectReady, modv_ptrs)
+    , before_placement_sig("before_placement", ModuleBase::SIG_BeforePlacement, &ModuleBase::BeforePlacement, modv_ptrs)
+    , on_placement_sig("on_placement", ModuleBase::SIG_OnPlacement, &ModuleBase::OnPlacement, modv_ptrs)
+    , before_mutate_sig("before_mutate", ModuleBase::SIG_BeforeMutate, &ModuleBase::BeforeMutate, modv_ptrs)
+    , on_mutate_sig("on_mutate", ModuleBase::SIG_OnMutate, &ModuleBase::OnMutate, modv_ptrs)
+    , before_death_sig("before_death", ModuleBase::SIG_BeforeDeath, &ModuleBase::BeforeDeath, modv_ptrs)
+    , before_swap_sig("before_swap", ModuleBase::SIG_BeforeSwap, &ModuleBase::BeforeSwap, modv_ptrs)
+    , on_swap_sig("on_swap", ModuleBase::SIG_OnSwap, &ModuleBase::OnSwap, modv_ptrs)
+    , before_pop_resize_sig("before_pop_resize", ModuleBase::SIG_BeforePopResize, &ModuleBase::BeforePopResize, modv_ptrs)
+    , on_pop_resize_sig("on_pop_resize", ModuleBase::SIG_OnPopResize, &ModuleBase::OnPopResize, modv_ptrs)
+    , on_error_sig("on_error", ModuleBase::SIG_OnError, &ModuleBase::OnError, modv_ptrs)
+    , on_warning_sig("on_warning", ModuleBase::SIG_OnWarning, &ModuleBase::OnWarning, modv_ptrs)
+    , before_exit_sig("before_exit", ModuleBase::SIG_BeforeExit, &ModuleBase::BeforeExit, modv_ptrs)
+    , on_help_sig("on_help", ModuleBase::SIG_OnHelp, &ModuleBase::OnHelp, modv_ptrs)
+    , do_place_birth_sig("do_place_birth", ModuleBase::SIG_DoPlaceBirth, &ModuleBase::DoPlaceBirth, modv_ptrs)
+    , do_place_inject_sig("do_place_inject", ModuleBase::SIG_DoPlaceInject, &ModuleBase::DoPlaceInject, modv_ptrs)
+    , do_find_neighbor_sig("do_find_neighbor", ModuleBase::SIG_DoFindNeighbor, &ModuleBase::DoFindNeighbor, modv_ptrs)
     { ;  }
 
   public:
@@ -739,29 +759,10 @@ namespace mabe {
   
   // Function to link signals to the modules that implment responses to those signals.
   void MABE::UpdateSignals() {
-    before_update_sig.resize(0);
-    on_update_sig.resize(0);
-    before_repro_sig.resize(0);
-    on_offspring_ready_sig.resize(0);
-    on_inject_ready_sig.resize(0);
-    before_placement_sig.resize(0);
-    on_placement_sig.resize(0);
-    before_mutate_sig.resize(0);
-    on_mutate_sig.resize(0);
-    before_death_sig.resize(0);
-    before_swap_sig.resize(0);
-    on_swap_sig.resize(0);
-    before_pop_resize_sig.resize(0);
-    on_pop_resize_sig.resize(0);
-    on_error_sig.resize(0);
-    on_warning_sig.resize(0);
-    before_exit_sig.resize(0);
-    on_help_sig.resize(0);
+    // Clear all module vectors.
+    for (auto modv : modv_ptrs) modv->resize(0);
 
-    do_place_birth_sig.resize(0);
-    do_place_inject_sig.resize(0);
-    do_find_neighbor_sig.resize(0);
-
+    // Add appropriate signals to each module vector.
     for (emp::Ptr<ModuleBase> mod_ptr : modules) {
       if (mod_ptr->has_signal[ModuleBase::SIG_BeforeUpdate]) before_update_sig.push_back(mod_ptr);
       if (mod_ptr->has_signal[ModuleBase::SIG_OnUpdate]) on_update_sig.push_back(mod_ptr);
