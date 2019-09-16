@@ -33,17 +33,24 @@ namespace mabe {
   class MABEBase {
   protected:
     /// ModVectors should be derived from a vector of module pointer that they operator on.
-    using modv_base = emp::vector<emp::Ptr<ModuleBase>>;
+    using modv_base_t = emp::vector<emp::Ptr<ModuleBase>>;
+
+    struct ModVectorBase : public modv_base_t {
+      std::string name;          ///< Name of this signal type.
+      ModuleBase::SignalID id;   ///< ID of this signal
+
+      ModVectorBase(const std::string & _name, ModuleBase::SignalID _id) : name(_name), id(_id) {;}
+    };
 
     /// Maintain a master vector of all ModVector pointers to signals.
-    emp::vector< emp::Ptr< modv_base > > modv_ptrs(ModuleBase::NUM_SIGNALS);
+    using modv_ptr_t = emp::Ptr<modv_base_t>;
+    static constexpr size_t num_signals = (size_t) ModuleBase::NUM_SIGNALS;
+    emp::vector<modv_ptr_t> modv_ptrs;
 
     /// Each set of modules to be called when a specific signal is triggered should be identified
     /// in a ModVector object.
     template <typename RETURN, typename... ARGS>
-    struct ModVector : public modv_base {
-      std::string name;          ///< Name of this signal type.
-      ModuleBase::SignalID id;   ///< ID of this signal
+    struct ModVector : public ModVectorBase {
 
       /// Define the proper signal call type.
       typedef RETURN (ModuleBase::*ModMemFun)(ARGS...);
@@ -56,8 +63,8 @@ namespace mabe {
       ModVector(const std::string & _name,
                 ModuleBase::SignalID _id,
                 ModMemFun _fun,
-                emp::vector< emp::Ptr< modv_base > > & modv_ptrs)
-        : name(_name), id(_id), fun(_fun)
+                emp::vector< emp::Ptr< modv_base_t > > & modv_ptrs)
+        : ModVectorBase(_name, _id), fun(_fun)
       {
         modv_ptrs[id] = this;
       }
@@ -132,7 +139,8 @@ namespace mabe {
 
     // Private constructor so that base class cannot be instantiated directly.
     MABEBase()
-    : before_update_sig("before_update", ModuleBase::SIG_BeforeUpdate, &ModuleBase::BeforeUpdate, modv_ptrs)
+    : modv_ptrs(num_signals)
+    , before_update_sig("before_update", ModuleBase::SIG_BeforeUpdate, &ModuleBase::BeforeUpdate, modv_ptrs)
     , on_update_sig("on_update", ModuleBase::SIG_OnUpdate, &ModuleBase::OnUpdate, modv_ptrs)
     , before_repro_sig("before_repro", ModuleBase::SIG_BeforeRepro, &ModuleBase::BeforeRepro, modv_ptrs)
     , on_offspring_ready_sig("on_offspring_ready", ModuleBase::SIG_OnOffspringReady, &ModuleBase::OnOffspringReady, modv_ptrs)
