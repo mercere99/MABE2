@@ -770,28 +770,10 @@ namespace mabe {
     // Clear all module vectors.
     for (auto modv : modv_ptrs) modv->resize(0);
 
-    // Add appropriate signals to each module vector.
     for (emp::Ptr<ModuleBase> mod_ptr : modules) {
-      if (mod_ptr->has_signal[ModuleBase::SIG_BeforeUpdate]) before_update_sig.push_back(mod_ptr);
-      if (mod_ptr->has_signal[ModuleBase::SIG_OnUpdate]) on_update_sig.push_back(mod_ptr);
-      if (mod_ptr->has_signal[ModuleBase::SIG_BeforeRepro]) before_repro_sig.push_back(mod_ptr);
-      if (mod_ptr->has_signal[ModuleBase::SIG_OnOffspringReady]) on_offspring_ready_sig.push_back(mod_ptr);
-      if (mod_ptr->has_signal[ModuleBase::SIG_OnInjectReady]) on_inject_ready_sig.push_back(mod_ptr);
-      if (mod_ptr->has_signal[ModuleBase::SIG_BeforePlacement]) before_placement_sig.push_back(mod_ptr);
-      if (mod_ptr->has_signal[ModuleBase::SIG_OnPlacement]) on_placement_sig.push_back(mod_ptr);
-      if (mod_ptr->has_signal[ModuleBase::SIG_BeforeMutate]) before_mutate_sig.push_back(mod_ptr);
-      if (mod_ptr->has_signal[ModuleBase::SIG_OnMutate]) on_mutate_sig.push_back(mod_ptr);
-      if (mod_ptr->has_signal[ModuleBase::SIG_BeforeDeath]) before_death_sig.push_back(mod_ptr);
-      if (mod_ptr->has_signal[ModuleBase::SIG_BeforeSwap]) before_swap_sig.push_back(mod_ptr);
-      if (mod_ptr->has_signal[ModuleBase::SIG_OnSwap]) on_swap_sig.push_back(mod_ptr);
-      if (mod_ptr->has_signal[ModuleBase::SIG_BeforePopResize]) before_pop_resize_sig.push_back(mod_ptr);
-      if (mod_ptr->has_signal[ModuleBase::SIG_OnPopResize]) on_pop_resize_sig.push_back(mod_ptr);
-      if (mod_ptr->has_signal[ModuleBase::SIG_BeforeExit]) before_exit_sig.push_back(mod_ptr);
-      if (mod_ptr->has_signal[ModuleBase::SIG_OnHelp]) on_help_sig.push_back(mod_ptr);
-
-      if (mod_ptr->has_signal[ModuleBase::SIG_DoPlaceBirth]) do_place_birth_sig.push_back(mod_ptr);
-      if (mod_ptr->has_signal[ModuleBase::SIG_DoPlaceInject]) do_place_inject_sig.push_back(mod_ptr);
-      if (mod_ptr->has_signal[ModuleBase::SIG_DoFindNeighbor]) do_find_neighbor_sig.push_back(mod_ptr);
+      for (size_t sig_id = 0; sig_id < num_signals; sig_id++) {
+        if (mod_ptr->has_signal[sig_id]) modv_ptrs[sig_id]->push_back(mod_ptr);
+      }
     }
 
     // Now that we have scanned the signals, we can turn off the rescan flag.
