@@ -137,7 +137,8 @@ namespace mabe {
       SIG_DoPlaceBirth,
       SIG_DoPlaceInject,
       SIG_DoFindNeighbor,
-      NUM_SIGNALS
+      NUM_SIGNALS,
+      SIG_UNKNOWN
     };
 
   protected:
