@@ -33,19 +33,22 @@ namespace mabe {
   class MABEBase {
   protected:
     /// ModVectors should be derived from a vector of module pointer that they operator on.
-    using modv_base_t = emp::vector<emp::Ptr<ModuleBase>>;
-
-    struct ModVectorBase : public modv_base_t {
+    struct ModVectorBase : public emp::vector<emp::Ptr<ModuleBase>> {
       std::string name;          ///< Name of this signal type.
       ModuleBase::SignalID id;   ///< ID of this signal
 
-      ModVectorBase(const std::string & _name, ModuleBase::SignalID _id) : name(_name), id(_id) {;}
+      ModVectorBase(const std::string & _name="",
+                    ModuleBase::SignalID _id=ModuleBase::SIG_UNKNOWN)
+        : name(_name), id(_id) {;}
+      ModVectorBase(const ModVectorBase &) = default;
+      ModVectorBase(ModVectorBase &&) = default;
+      ModVectorBase & operator=(const ModVectorBase &) = default;
+      ModVectorBase & operator=(ModVectorBase &&) = default;
     };
 
     /// Maintain a master vector of all ModVector pointers to signals.
-    using modv_ptr_t = emp::Ptr<modv_base_t>;
     static constexpr size_t num_signals = (size_t) ModuleBase::NUM_SIGNALS;
-    emp::vector<modv_ptr_t> modv_ptrs;
+    emp::vector< emp::Ptr<ModVectorBase> > modv_ptrs;
 
     /// Each set of modules to be called when a specific signal is triggered should be identified
     /// in a ModVector object.
@@ -63,7 +66,7 @@ namespace mabe {
       ModVector(const std::string & _name,
                 ModuleBase::SignalID _id,
                 ModMemFun _fun,
-                emp::vector< emp::Ptr< modv_base_t > > & modv_ptrs)
+                emp::vector< emp::Ptr< ModVectorBase > > & modv_ptrs)
         : ModVectorBase(_name, _id), fun(_fun)
       {
         modv_ptrs[id] = this;
@@ -770,7 +773,9 @@ namespace mabe {
     // Clear all module vectors.
     for (auto modv : modv_ptrs) modv->resize(0);
 
+    // Loop through each module to update its signals.
     for (emp::Ptr<ModuleBase> mod_ptr : modules) {
+      // For the current module, loop through all of the signals.
       for (size_t sig_id = 0; sig_id < num_signals; sig_id++) {
         if (mod_ptr->has_signal[sig_id]) modv_ptrs[sig_id]->push_back(mod_ptr);
       }
