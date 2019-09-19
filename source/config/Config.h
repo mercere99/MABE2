@@ -89,7 +89,12 @@ namespace mabe {
 
     ConfigScope root_scope;           ///< All variables from the root level.
 
-    emp::unordered_map<std::string, size_t> type_map;
+    struct TypeInfo {
+      size_t type_id;
+      std::function<void(const std::string &)> init_fun;
+    };
+
+    std::unordered_map<std::string, TypeInfo> type_map;
 
     // -- Helper functions --
     bool HasToken(int pos) const { return (pos >= 0) && (pos < (int) tokens.size()); }
@@ -198,23 +203,28 @@ namespace mabe {
       if (filename != "") Load(filename);
 
       // Setup the type map.
-      type_map["INVALID"] = (size_t) BaseType::INVALID;
-      type_map["Void"] = (size_t) BaseType::VOID;
-      type_map["Value"] = (size_t) BaseType::VALUE;
-      type_map["String"] = (size_t) BaseType::STRING;
-      type_map["Struct"] = (size_t) BaseType::STRUCT;
+      type_map["INVALID"] = TypeInfo{ (size_t) BaseType::INVALID, [](const std::string &){} };
+      type_map["Void"] = TypeInfo{ (size_t) BaseType::VOID, [](const std::string &){} };
+      type_map["Value"] = TypeInfo{ (size_t) BaseType::VALUE, [](const std::string &){} };
+      type_map["String"] = TypeInfo{ (size_t) BaseType::STRING, [](const std::string &){} };
+      type_map["Struct"] = TypeInfo{ (size_t) BaseType::STRUCT, [](const std::string &){} };
     }
 
-    size_t AddType(const std::string & type_name) {
-      emp_assert(!Has(type_map, type_name));
+    /// To add a type, provide the type name (that can be referred to in a script) and a function
+    /// that should be called (with the variable name) when an instance of that type is created.
+    size_t AddType(const std::string & type_name,
+                   std::function<void(const std::string &)> init_fun)
+    {
+      emp_assert(!emp::Has(type_map, type_name));
       size_t type_id = type_map.size();
-      type_map[type_name] = type_id;
+      type_map[type_name].type_id = type_id;
+      type_map[type_name].init_fun = init_fun;
       return type_id;
     }
 
     size_t GetTypeID(const std::string & type_name) {
-      emp_assert(Has(type_map, type_name));
-      return type_map[type_name];
+      emp_assert(emp::Has(type_map, type_name));
+      return type_map[type_name].type_id;
     }
 
     ConfigScope & GetRootScope() { return root_scope; }
