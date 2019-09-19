@@ -319,7 +319,8 @@ namespace mabe {
       : args(emp::cl::args_to_strings(argc, argv))
       , cur_scope(&(config.GetRootScope()))
     {
-      config.AddType( "Population", [](const std::string &){} );
+      config.AddType("Population",
+                     [this](const std::string & name){ AddPopulation(name); } );
     }
     MABE(const MABE &) = delete;
     MABE(MABE &&) = delete;
