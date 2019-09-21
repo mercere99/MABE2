@@ -18,12 +18,16 @@
 #include "base/Ptr.h"
 #include "base/vector.h"
 
+#include "../config/ConfigType.h"
+
 #include "Organism.h"
 #include "EmptyOrganism.h"
 
 namespace mabe {
 
-  class Population {
+  /// A Population maintains a collection of organisms.  It is derived from ConfigType so that it
+  /// can be easily used in the MABE scripting language.
+  class Population : public ConfigType {
     friend class MABEBase;
   private:
     std::string name="";                   ///< Unique name for this population.
@@ -385,6 +389,9 @@ namespace mabe {
     /// Limit iterators to LIVING organisms.
     AlivePop Alive() { return AlivePop(*this); }
 
+    /// Required SetupConfig function; for now population don't have any config optons.
+    void SetupConfig(ConfigScope &) {    
+    }
 
   private:  // ---== To be used by friend class MABEBase only! ==---
 
