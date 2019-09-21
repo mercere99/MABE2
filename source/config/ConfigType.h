@@ -4,7 +4,7 @@
  *  @date 2019
  *
  *  @file  ConfigType.h
- *  @brief Maintains information about a single type.
+ *  @brief Setup types for use in scripting.
  *  @note Status: ALPHA
  */
 
@@ -12,7 +12,6 @@
 #define MABE_CONFIG_TYPE_H
 
 #include "base/assert.h"
-#include "base/vector.h"
 
 namespace mabe {
 
@@ -24,6 +23,13 @@ namespace mabe {
     STRUCT
   };
 
+  class ConfigScope;
+
+  // Abstract base class for types that we want to be used for scripting..
+  struct ConfigType {
+    virtual void SetupConfig(ConfigScope & scope) = 0;
+    virtual ~ConfigType() = 0;
+  };
 }
 
 #endif
