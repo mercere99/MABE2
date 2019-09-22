@@ -311,6 +311,11 @@ namespace mabe {
 
   };
 
+  static emp::vector<Config::TypeInfo> & GetModuleTypeInfo() {
+    static emp::vector<Config::TypeInfo> mod_type_info;
+    return mod_type_info;
+  }
+
 }
 
 #endif
