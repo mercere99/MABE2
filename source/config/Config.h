@@ -81,6 +81,12 @@
 namespace mabe {
 
   class Config {
+  public:
+    struct TypeInfo {
+      size_t type_id;
+      std::function<ConfigType & (const std::string &)> init_fun;
+    };
+
   protected:
     std::string filename;             ///< Source for for code to generate.
     ConfigLexer lexer;                ///< Lexer to process input code.
@@ -89,11 +95,7 @@ namespace mabe {
 
     ConfigScope root_scope;           ///< All variables from the root level.
 
-    struct TypeInfo {
-      size_t type_id;
-      std::function<void(const std::string &)> init_fun;
-    };
-
+    /// A map of all types available in the script.
     std::unordered_map<std::string, TypeInfo> type_map;
 
     // -- Helper functions --
@@ -162,18 +164,6 @@ namespace mabe {
       if (AsLexeme(pos) != req_str) { Error(pos, std::forward<Ts>(args)...); }
     }
 
-    /// Test if the lexeme at this position represents a type and return it 
-    /// and advance pos.  Otherwise return INVALID and do not advance pos.
-    BaseType AsType(int & pos) {
-      if (IsType(pos)) {
-        const std::string & lexeme = AsLexeme(pos);
-        if (lexeme == "String") return BaseType::STRING;
-        if (lexeme == "Value") return BaseType::VALUE;
-        if (lexeme == "Struct") return BaseType::STRUCT;
-      }
-      return BaseType::INVALID;
-    }
-
     /// Load a variable name from the provided scope.
     /// If create_ok is true, create any variables that we don't find.  Otherwise continue the
     /// search for them in successively outer (lower) scopes.
@@ -203,17 +193,18 @@ namespace mabe {
       if (filename != "") Load(filename);
 
       // Setup the type map.
-      type_map["INVALID"] = TypeInfo{ (size_t) BaseType::INVALID, [](const std::string &){} };
-      type_map["Void"] = TypeInfo{ (size_t) BaseType::VOID, [](const std::string &){} };
-      type_map["Value"] = TypeInfo{ (size_t) BaseType::VALUE, [](const std::string &){} };
-      type_map["String"] = TypeInfo{ (size_t) BaseType::STRING, [](const std::string &){} };
-      type_map["Struct"] = TypeInfo{ (size_t) BaseType::STRUCT, [](const std::string &){} };
+      type_map["INVALID"] = TypeInfo{ (size_t) BaseType::INVALID, nullptr };
+      type_map["Void"] = TypeInfo{ (size_t) BaseType::VOID, nullptr };
+      type_map["Value"] = TypeInfo{ (size_t) BaseType::VALUE, nullptr };
+      type_map["String"] = TypeInfo{ (size_t) BaseType::STRING, nullptr };
+      type_map["Struct"] = TypeInfo{ (size_t) BaseType::STRUCT, nullptr };
     }
 
     /// To add a type, provide the type name (that can be referred to in a script) and a function
     /// that should be called (with the variable name) when an instance of that type is created.
+    /// The function must return a reference to the newly created instance.
     size_t AddType(const std::string & type_name,
-                   std::function<void(const std::string &)> init_fun)
+                   std::function<ConfigType & (const std::string &)> init_fun)
     {
       emp_assert(!emp::Has(type_map, type_name));
       size_t type_id = type_map.size();
@@ -379,7 +370,9 @@ namespace mabe {
 
       // Otherwise we have a module to add; treat it as a struct.
       else {
-        scope.AddScope(var_name, "Local struct", type_name);
+        ConfigScope & new_scope = scope.AddScope(var_name, "Local struct", type_name);
+        ConfigType & new_obj = type_map[type_name].init_fun(var_name);
+        new_obj.SetupConfig(new_scope);
       }
     }
 
