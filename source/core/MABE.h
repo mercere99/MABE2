@@ -241,7 +241,6 @@ namespace mabe {
     emp::Random random;              ///< Master random number generator
     int random_seed;                 ///< Random number seed.
 
-    bool sync_pop = true;                   ///< Default to synchronous generations.
     size_t cur_pop = (size_t) -1;           ///< Which population are we currently working with?
     size_t update = 0;                      ///< How many times has Update() been called?
     emp::vector<std::string> errors;        ///< Log any errors that have occured.
@@ -307,7 +306,6 @@ namespace mabe {
 
     void ProcessArgs();
 
-    void Setup_Synchronisity();
     void Setup_Populations();
     void Setup_Modules();
     void Setup_Traits();
@@ -346,7 +344,6 @@ namespace mabe {
       // If we are writing a file, do so and stop.
       if (gen_filename != "") { config.Write(gen_filename); Exit(); }
 
-      Setup_Synchronisity();  // Should generations be synchronous or asynchronous?
       Setup_Populations();    // Give modules access to the correct populations.
       Setup_Modules();        // Run SetupModule() on each module; initialize placement if needed.
       Setup_Traits();         // Make sure module traits do not clash.
@@ -363,7 +360,7 @@ namespace mabe {
     void Update() {
       emp_assert(OK(), update);
 
-      // If informaiton on any of the signals has changed, update them all.
+      // If informaiton on any of the signals has changed, update them.
       if (rescan_signals) UpdateSignals();
 
       // Signal that a new update is about to begin.
@@ -374,24 +371,6 @@ namespace mabe {
 
       // Run Update on all modules...
       on_update_sig.Trigger(update);
-
-      // If we are running a synchronous reproduction, move the next generation to this one.
-      if (sync_pop) {
-        Population & from_pop = pops[1];
-        Population & to_pop = pops[0];
-
-        // Clear out the current main population and resize.
-        EmptyPop(to_pop, from_pop.GetSize());  
-
-        // Move the next generation to the main population.
-        OrgPosition it_to = to_pop.begin();
-        for (OrgPosition it_from = from_pop.begin(); it_from != from_pop.end(); ++it_from, ++it_to) {
-          if (it_from.IsOccupied()) MoveOrg(it_from, it_to);
-        }
-
-        // Clear out the next generation
-        EmptyPop(from_pop, 0);
-      }
     }
 
     /// Update MABE the specified number of steps.
@@ -701,51 +680,7 @@ namespace mabe {
     if (show_help) ShowHelp();
   }
 
-  void MABE::Setup_Synchronisity() {
-    emp::Ptr<ModuleBase> async_req_mod = nullptr;
-    emp::Ptr<ModuleBase> sync_req_mod = nullptr;
-    size_t prefer_async = 0;
-    size_t prefer_sync = 0;
-
-    for (emp::Ptr<ModuleBase> mod_ptr : modules) {
-      switch (mod_ptr->rep_type) {
-        case ModuleBase::ReplicationType::NO_PREFERENCE:
-          break;
-        case ModuleBase::ReplicationType::REQUIRE_ASYNC:
-          if (sync_req_mod) {
-            AddError("Module ", sync_req_mod->name, " requires synchronous generations, but module ",
-                      mod_ptr->name, " requires asynchronous.");
-          }
-          async_req_mod = mod_ptr;
-          sync_pop = false;
-          break;
-        case ModuleBase::ReplicationType::DEFAULT_ASYNC:
-          prefer_async++;
-          break;
-        case ModuleBase::ReplicationType::DEFAULT_SYNC:
-          prefer_sync++;
-          break;
-        case ModuleBase::ReplicationType::REQUIRE_SYNC:
-          if (async_req_mod) {
-            AddError("Module ", async_req_mod->name, " requires asynchronous generations, but module ",
-                      mod_ptr->name, " requires synchronous.");
-          }
-          sync_req_mod = mod_ptr;
-          sync_pop = true;
-          break;
-      }
-    }
-    // If we don't have any requirements, go with the preference!
-    if (!async_req_mod && !sync_req_mod) sync_pop = prefer_sync >= prefer_async;
-  }
-
   void MABE::Setup_Populations() {
-    // If no populations have been setup by the user, build a "main" population.
-    if (pops.size() == 0) AddPopulation("main_pop");
-
-    // If we are synchronous, also create a "next" population.
-    if (pops.size() == 1 && sync_pop) AddPopulation("next_pop");
-
     // Now loop through the modules and make sure all populations are assigned.
     for (emp::Ptr<ModuleBase> mod_ptr : modules) {
       // Determine how many populations this module needs.
