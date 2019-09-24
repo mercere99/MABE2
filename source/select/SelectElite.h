@@ -20,14 +20,17 @@ namespace mabe {
   /// Add elite selection with the current population.
   class SelectElite : public Module {
   private:
-    std::string trait;   ///< Which trait should we select on?
-    size_t top_count;    ///< Top how-many should we select?
-    size_t copy_count;   ///< How many copies of each should we make?
-    int pop_id = 0;      ///< Which population are we selecting from?
+    std::string trait;    ///< Which trait should we select on?
+    size_t top_count=1;   ///< Top how-many should we select?
+    size_t copy_count=1;  ///< How many copies of each should we make?
+    int pop_id = 0;       ///< Which population are we selecting from?
 
   public:
-    SelectElite(mabe::MABE & control, const std::string & in_trait="fitness", size_t tcount=1, size_t ccount=1)
-      : Module(control, "SelectElite", "Module to select organisms with the highest value in a trait.")
+    SelectElite(mabe::MABE & control,
+               const std::string & name="SelectElite",
+               const std::string & desc="Module to choose the top fitness organisms for replication.",
+               const std::string & in_trait="fitness", size_t tcount=1, size_t ccount=1)
+      : Module(control, name, desc)
       , trait(in_trait), top_count(tcount), copy_count(ccount)
     {
       SetSelectMod(true);               ///< Mark this module as a selection module.
@@ -41,6 +44,7 @@ namespace mabe {
       LinkPop(pop_id, "target_pop", "Which population should we select parents from?");
       LinkVar(top_count, "top_count", "Number of top-fitness orgs to be replicated", 1);
       LinkVar(copy_count, "copy_count", "Number of copies to make of replicated organisms", 1);
+      LinkVar(trait, "fitness_trait", "Which trait provides the fitness value to use?", "fitness");
     }
 
     void SetupModule() override { }
