@@ -28,7 +28,7 @@ namespace mabe {
   // Abstract base class for types that we want to be used for scripting..
   struct ConfigType {
     virtual void SetupConfig(ConfigScope & scope) = 0;
-    virtual ~ConfigType() = 0;
+    virtual ~ConfigType() { }
   };
 }
 
