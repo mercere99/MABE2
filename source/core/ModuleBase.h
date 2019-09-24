@@ -96,17 +96,6 @@ namespace mabe {
     ///   "Visualize"   : Displays data for the user.
     std::set<std::string> action_tags; ///< Informative tags about this model
 
-    /// Is this module expecting sychronous replication (i.e., discrete generations) or
-    /// asynchronous replication (i.e., overlapping generations)?  The former is more common
-    /// in evolutionary computation, while the latter is more common in artificial life.
-    /// Modules with no-preference will be ignored.  Modules with a requirement will force
-    /// the replication type (and give an error if requirements contradict each other).
-    /// Otherwise the more common default will be used, with synchronous used in case of a tie.
-    enum class ReplicationType {
-      NO_PREFERENCE=0, REQUIRE_ASYNC, DEFAULT_ASYNC, DEFAULT_SYNC, REQUIRE_SYNC
-    };
-    ReplicationType rep_type = ReplicationType::NO_PREFERENCE;
-
     /// How many populations are we operating on?
     size_t min_pops = 0;                           ///< Minimum number of population needed
 
@@ -200,11 +189,6 @@ namespace mabe {
     ModuleBase & SetPlacementMod(bool in=true) { return SetActionTag("Placement", in); }
     ModuleBase & SetSelectMod(bool in=true) { return SetActionTag("Select", in); }
     ModuleBase & SetVisualizerMod(bool in=true) { return SetActionTag("Visualize", in); }
-
-    ModuleBase & RequireAsync() { rep_type = ReplicationType::REQUIRE_ASYNC; return *this; }
-    ModuleBase & DefaultAsync() { rep_type = ReplicationType::DEFAULT_ASYNC; return *this; }
-    ModuleBase & DefaultSync() { rep_type = ReplicationType::DEFAULT_SYNC; return *this; }
-    ModuleBase & RequireSync() { rep_type = ReplicationType::REQUIRE_SYNC; return *this; }
 
     virtual void SetupModule() { /* By default, assume no setup needed. */ }
 
