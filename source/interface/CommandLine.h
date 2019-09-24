@@ -20,8 +20,10 @@ namespace mabe {
     int pop_id;  // Which population should we print stats about?
 
   public:
-    CommandLine(mabe::MABE & control)
-      : Module(control, "CommandLine", "Module to handle basic I/O on the command line.")
+    CommandLine(mabe::MABE & control,
+                const std::string & name="CommandLine",
+                const std::string & desc="Module to handle basic I/O on the command line.")
+      : Module(control, name, desc)
     {
       SetErrorHandleMod();
     }
