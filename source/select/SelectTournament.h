@@ -33,7 +33,6 @@ namespace mabe {
       , trait(in_trait), tourny_size(t_size), num_tournies(num_t)
     {
       SetSelectMod(true);              ///< Mark this module as a selection module.
-      DefaultSync();                   ///< This module defaults to synchronous generations.
       AddRequiredTrait<double>(trait); ///< The fitness trait must be set by another module.
       SetMinPops(1);                   ///< Must run elite selection on a population.
     }
