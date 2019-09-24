@@ -18,15 +18,17 @@ namespace mabe {
   /// Add elite selection with the current population.
   class Mutate : public Module {
   private:
-    int pop_id = 0;  ///< Which population are we mutating?
-    size_t skip = 0;    ///< How many organisms should we skip before mutating?
+    int pop_id = 0;   ///< Which population are we mutating?
+    size_t skip = 0;  ///< How many organisms should we skip before mutating?
 
   public:
-    Mutate(mabe::MABE & control, size_t _pop_id=0, size_t _skip=0)
-      : Module(control, "Mutate", "Module to trigger mutations in organisms"), pop_id(_pop_id), skip(_skip)
+    Mutate(mabe::MABE & control,
+           const std::string & name="Mutate",
+           const std::string & desc="Module to trigger mutations in organisms",
+           size_t _pop_id=0, size_t _skip=0)
+      : Module(control, name, desc), pop_id(_pop_id), skip(_skip)
     {
-      SetMutateMod(true);                   ///< Mark this module as a mutation module.
-      DefaultSync();                    ///< This module defaults to synchronous generations.
+      SetMutateMod(true);         ///< Mark this module as a mutation module.
     }
 
     void SetupConfig() override {
