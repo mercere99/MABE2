@@ -21,17 +21,18 @@ namespace mabe {
     int next_pop=1;
 
   public:
-    GrowthPlacement(mabe::MABE & control)
-      : Module(control, "GrowthPlacement", "Module to always appened births onto a population.")
+    GrowthPlacement(mabe::MABE & control,
+                    const std::string & name="GrowthPlacement",
+                    const std::string & desc="Module to always appened births onto a population.")
+      : Module(control, name, desc)
     {
       SetPlacementMod(true);
-      RequireSync();
     }
     ~GrowthPlacement() { }
 
     void SetupConfig() override {
-      LinkPop(main_pop, "from_pop", "Which population should we track births from?",0);
-      LinkPop(next_pop, "to_pop", "Which population should we place offspring in?",1);
+      LinkPop(main_pop, "from_pop", "Population to manage births from.",0);
+      LinkPop(next_pop, "to_pop", "Population to place offspring in (same as from_pop for continuous generations.)",1);
     }
 
     void SetupModule() override {
@@ -39,7 +40,23 @@ namespace mabe {
     }
 
     void OnUpdate(size_t update) override {
-      // Move next population to current; delete current.
+      // If we are running a synchronous reproduction, move the next generation to this one; delete current.
+      if (main_pop != next_pop) {
+        Population & from_pop = control.GetPopulation(next_pop);
+        Population & to_pop = control.GetPopulation(main_pop);
+
+        // Clear out the current main population and resize.
+        control.EmptyPop(to_pop, from_pop.GetSize());  
+
+        // Move the next generation to the main population.
+        OrgPosition it_to = to_pop.begin();
+        for (OrgPosition it_from = from_pop.begin(); it_from != from_pop.end(); ++it_from, ++it_to) {
+          if (it_from.IsOccupied()) control.MoveOrg(it_from, it_to);
+        }
+
+        // Clear out the next generation
+        control.EmptyPop(from_pop, 0);
+      }
     }
 
     OrgPosition DoPlaceBirth(Organism & org, OrgPosition ppos) override {
