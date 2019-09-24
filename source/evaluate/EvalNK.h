@@ -29,8 +29,11 @@ namespace mabe {
     std::string fitness_trait;
 
   public:
-    EvalNK(mabe::MABE & control, size_t _N, size_t _K, const std::string & _btrait="NK", const std::string & _ftrait="fitness")
-      : Module(control, "EvalNK", "Module to evaluate bitstrings on an NK Fitness Lanscape")
+    EvalNK(mabe::MABE & control,
+           const std::string & name="EvalNK",
+           const std::string & desc="Module to evaluate bitstrings on an NK Fitness Lanscape",
+           size_t _N=20, size_t _K=3, const std::string & _btrait="NK", const std::string & _ftrait="fitness")
+      : Module(control, name, desc)
       , N(_N), K(_K), target_pop(0), bits_trait(_btrait), fitness_trait(_ftrait)
     {
       SetEvaluateMod(true);
@@ -41,9 +44,11 @@ namespace mabe {
     ~EvalNK() { }
 
     void SetupConfig() override {
-      LinkPop(target_pop, "target_pop", "Which population should we evaluate?");
+      LinkPop(target_pop, "target_pop", "Which population should we evaluate?", 0);
       LinkVar(N, "N", "Number of bits required in output", 20);
       LinkVar(K, "K", "Number of bits used in each gene", 3);
+      LinkVar(bits_trait, "bits_trait", "Which trait stores the bit sequence to evaluate?", "bits");
+      LinkVar(fitness_trait, "fitness_trait", "Which trait should we store NK fitness in?", "fitness");
     }
 
     void SetupModule() override {
