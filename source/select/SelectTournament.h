@@ -24,9 +24,12 @@ namespace mabe {
     int pop_id = 0;      ///< Which population are we selecting from?
 
   public:
-    SelectTournament(mabe::MABE & control, const std::string & in_trait="fitness",
+    SelectTournament(mabe::MABE & control,
+                     const std::string & name="SelectTournament",
+                     const std::string & desc="Module to select the top fitness organisms from random subgroups for replication.",
+                     const std::string & in_trait="fitness",
                      size_t t_size=7, size_t num_t=1)
-      : Module(control, "SelectTournament", "Module to select organisms with the highest value in a tournament.")
+      : Module(control, name, desc)
       , trait(in_trait), tourny_size(t_size), num_tournies(num_t)
     {
       SetSelectMod(true);              ///< Mark this module as a selection module.
@@ -40,6 +43,7 @@ namespace mabe {
       LinkPop(pop_id, "target_pop", "Which population should we select parents from?");
       LinkVar(tourny_size, "tournament_size", "Number of orgs in each tournament", 7);
       LinkVar(num_tournies, "num_tournaments", "Number of tournaments to run", 1);
+      LinkVar(trait, "fitness_trait", "Which trait provides the fitness value to use?", "fitness");
     }
 
     void SetupModule() override { }
