@@ -256,6 +256,23 @@ namespace mabe {
 
   };
 
+  /// Build a class that will automatically register modules when created (globally)
+  template <typename T>
+  struct ModuleRegistrar {
+    ModuleRegistrar(const std::string & type_name, const std::string & desc) {
+      ModuleInfo new_info;
+      new_info.name = type_name;
+      new_info.desc = desc;
+      new_info.init_fun = [desc](MABE & control, const std::string & name) -> ConfigType & {
+        return control.AddModule<T>(name, desc);
+      };
+      GetModuleInfo().insert(new_info);
+    }
+  };
+
+#define MABE_REGISTER_MODULE(TYPE, DESC) \
+        mabe::ModuleRegistrar<TYPE> MABE_ ## TYPE ## _Registrar(#TYPE, DESC)
+
 }
 
 #endif
