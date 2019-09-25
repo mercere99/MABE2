@@ -301,6 +301,10 @@ namespace mabe {
       for (auto mod_ptr : modules) {
         std::cout << "  " << mod_ptr->GetName() << " : " << mod_ptr->GetDesc() << "\n";
       }          
+      std::cout << "All available modules:\n";
+      for (auto & info : GetModuleInfo()) {
+        std::cout << "  " << info.name << " : " << info.desc << "\n";
+      }          
       Exit();
     }
 
@@ -317,11 +321,21 @@ namespace mabe {
       : args(emp::cl::args_to_strings(argc, argv))
       , cur_scope(&(config.GetRootScope()))
     {
+      // Setup "Population" as a type in the config file.
       std::function<ConfigType &(const std::string &)> pop_init_fun =
         [this](const std::string & name) -> ConfigType & {
           return AddPopulation(name);
         };
       config.AddType("Population", pop_init_fun);
+
+      // Setup all modules as types in the config file.
+      for (auto & mod : GetModuleInfo()) {
+        std::function<ConfigType &(const std::string &)> mod_init_fun =
+          [this,&mod](const std::string & name) -> ConfigType & {
+            return mod.init_fun(*this,name);
+          };
+        config.AddType(mod.name, mod_init_fun);
+      }
     }
     MABE(const MABE &) = delete;
     MABE(MABE &&) = delete;
@@ -590,22 +604,18 @@ namespace mabe {
                          0).SetMin(0);
 
       // Call the SetupConfig of module base classes (they will call the dervived version)
-      PushScope("modules", "Specifications about the modules in this run.");
       for (auto m : modules) {
         PushScope(m->GetName(), m->GetDesc());
         m->SetupConfig();
         PopScope();
       }
-      PopScope();
 
       // Loop through organism types.
-      PushScope("org_managers", "Details about organisms types used in this runs.");
       for (auto o : org_managers) {
         PushScope(o.first, "Organism type");
         o.second->SetupConfig(*this);
         PopScope();
       }
-      PopScope();
     }
 
 
