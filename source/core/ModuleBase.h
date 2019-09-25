@@ -59,6 +59,7 @@
 #ifndef MABE_MODULE_BASE_H
 #define MABE_MODULE_BASE_H
 
+#include <set>
 #include <string>
 
 #include "base/map.h"
@@ -76,7 +77,7 @@ namespace mabe {
 
   class MABE;
 
-  class ModuleBase {
+  class ModuleBase : public mabe::ConfigType {
     friend MABE;
   protected:
     std::string name;                 ///< Unique name for this module.
@@ -287,19 +288,26 @@ namespace mabe {
       return AddTrait<T>(TraitInfo::Access::REQUIRED, name);
     }
 
-    
-    // ---==  Configuration Management ==---
-
-    /// Setup the module-specific configuration options.
-    virtual void SetupConfig() { ; }
-
   };
 
-  static emp::vector<Config::TypeInfo> & GetModuleTypeInfo() {
-    static emp::vector<Config::TypeInfo> mod_type_info;
+  struct ModuleInfo {
+    std::string name;
+    std::string desc;
+    std::function<ConfigType & (MABE &, const std::string &)> init_fun;
+    bool operator<(const ModuleInfo & in) const { return name < in.name; }
+  };
+
+  static std::set<ModuleInfo> & GetModuleInfo() {
+    static std::set<ModuleInfo> mod_type_info;
     return mod_type_info;
   }
 
+  static void PrintModuleInfo() {
+    auto & mod_info = GetModuleInfo();
+    for (auto & mod : mod_info) {
+      std::cout << mod.name << " : " << mod.desc << std::endl;
+    }
+  }
 }
 
 #endif
