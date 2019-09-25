@@ -51,6 +51,7 @@ namespace mabe {
 
   };
 
+  MABE_REGISTER_MODULE(CommandLine, "Handle basic I/O on the command line.");
 }
 
 #endif

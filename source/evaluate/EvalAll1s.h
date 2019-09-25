@@ -26,7 +26,7 @@ namespace mabe {
 
   public:
     EvalAll1s(mabe::MABE & control, const std::string & _btrait="BITS", const std::string & _ftrait="fitness")
-      : Module(control, "EvalAll1s", "Module to evaluate bitstrings on an NK Fitness Lanscape")
+      : Module(control, "EvalAll1s", "Module to evaluate bitstrings on an all-ones Fitness Lanscape")
       , target_pop(0), bits_trait(_btrait), fitness_trait(_ftrait)
     {
       SetEvaluateMod(true);
@@ -63,6 +63,7 @@ namespace mabe {
     }
   };
 
+  MABE_REGISTER_MODULE(EvalAll1s, "Evaluate bitstrings on an all-ones fitness lanscape.");
 }
 
 #endif

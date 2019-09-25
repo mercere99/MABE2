@@ -66,6 +66,7 @@ namespace mabe {
     }
   };
 
+  MABE_REGISTER_MODULE(SelectElite, "Choose the top fitness organisms for replication.");
 }
 
 #endif

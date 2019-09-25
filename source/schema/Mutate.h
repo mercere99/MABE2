@@ -47,6 +47,7 @@ namespace mabe {
     }
   };
 
+  MABE_REGISTER_MODULE(Mutate, "Trigger mutations in organisms.");
 }
 
 #endif

@@ -80,6 +80,7 @@ namespace mabe {
 
   };
 
+  MABE_REGISTER_MODULE(SelectTournament, "Select the top fitness organisms from random subgroups for replication.");
 }
 
 #endif

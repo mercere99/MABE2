@@ -84,6 +84,7 @@ namespace mabe {
 
   };
 
+  MABE_REGISTER_MODULE(GrowthPlacement, "Always appened births onto a population.");
 }
 
 #endif

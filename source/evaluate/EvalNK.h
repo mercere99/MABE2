@@ -76,6 +76,7 @@ namespace mabe {
     }
   };
 
+  MABE_REGISTER_MODULE(EvalNK, "Evaluate bitstrings on an NK fitness lanscape.");
 }
 
 #endif
