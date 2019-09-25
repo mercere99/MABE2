@@ -372,11 +372,18 @@ namespace mabe {
       else {
         ConfigScope & new_scope = scope.AddScope(var_name, "Local struct", type_name);
         ConfigType & new_obj = type_map[type_name].init_fun(var_name);
-        new_obj.SetupConfig(new_scope);
+        new_obj.SetupScope(new_scope);
+        new_obj.SetupConfig();
+      }
+
+      // If the next symbol is a ';' this is a declaration without an assignment.
+      if (AsChar(pos+1) == ';') {
+        pos += 2;  // Skip the identifier and the semi-colon.
+        return;    // We are done!
       }
     }
 
-    // Otherwise, basic structure: VAR = VALUE ;
+    // If we made it here, remainder should have the basic structure: VAR = VALUE ;
     emp::Ptr<ConfigEntry> lhs = ProcessVar(pos, scope, true, false);
     RequireChar('=', pos++, "Expected '=' after variable '", lhs->GetName(), "' for assignment.");
 
