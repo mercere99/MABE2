@@ -26,9 +26,17 @@ namespace mabe {
   class ConfigScope;
 
   // Abstract base class for types that we want to be used for scripting..
-  struct ConfigType {
-    virtual void SetupConfig(ConfigScope & scope) = 0;
+  class ConfigType {
+  private:
+    emp::Ptr<ConfigScope> cur_scope;
+  
+  public:
+    virtual void SetupScope(ConfigScope & scope) { cur_scope = &scope; }
+    virtual void SetupConfig() = 0;
     virtual ~ConfigType() { }
+
+    ConfigScope & GetScope() { return *cur_scope; }
+    const ConfigScope & GetScope() const { return *cur_scope; }
   };
 }
 
