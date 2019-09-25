@@ -118,14 +118,19 @@ namespace mabe {
       size_t char_count = prefix.size() + name.size() + 3;
 
       // If a default value has been provided, print it.  Otherwise print the current value.
-      if (default_val.size()) {
-        os << default_val;
-        char_count += default_val.size();
-      }
-      else {
-        os << AsString();
-        char_count += AsString().size();
-      }
+      // if (default_val.size()) {
+      //   os << default_val;
+      //   char_count += default_val.size();
+      // }
+      // else {
+      //   os << AsString();
+      //   char_count += AsString().size();
+      // }
+
+      // Print the current value of this variable; if it's a string make sure to turn it to a literal.
+      std::string out_str = IsString() ? emp::to_literal(AsString()) : AsString();
+      os << out_str;
+      char_count += out_str.size();
 
       // End each line with a semi-colon.
       os << ";";
@@ -165,6 +170,11 @@ namespace mabe {
       return *this;
     }
 
+    bool IsNumeric() const override { return std::is_scalar_v<T>; }
+    bool IsBool() const override { return std::is_same<bool, T>(); }
+    bool IsInt() const override { return std::is_same<int, T>(); }
+    bool IsDouble() const override { return std::is_same<double, T>(); }
+
     bool CopyValue(const ConfigEntry & in) override { var = in.AsDouble(); return true; }
   };
 
@@ -186,6 +196,8 @@ namespace mabe {
     std::string AsString() const override { return var; }
     ConfigEntry & SetValue(double in) override { var = emp::to_string(in); return *this; }
     ConfigEntry & SetString(const std::string & in) override { var = in; return *this; }
+
+    bool IsString() const override { return true; }
 
     bool CopyValue(const ConfigEntry & in) override { var = in.AsString(); return true; }
   };
@@ -220,6 +232,12 @@ namespace mabe {
       return *this;
     }
 
+    bool IsNumeric() const override { return std::is_scalar_v<T>; }
+    bool IsBool() const override { return std::is_same<bool, T>(); }
+    bool IsInt() const override { return std::is_same<int, T>(); }
+    bool IsDouble() const override { return std::is_same<double, T>(); }
+    bool IsString() const override { return std::is_same<std::string, T>(); }
+
     bool CopyValue(const ConfigEntry & in) override { SetString( in.AsString() ); return true; }
   };
 
@@ -246,6 +264,8 @@ namespace mabe {
       return *this;
     }
 
+    bool IsDouble() const override { return true; }
+
     bool CopyValue(const ConfigEntry & in) override { value = in.AsDouble(); return true; }
   };
 
@@ -267,6 +287,8 @@ namespace mabe {
     std::string AsString() const override { return value; }
     ConfigEntry & SetValue(double in) override { value = emp::to_string(in); return *this; }
     ConfigEntry & SetString(const std::string & in) override { value = in; return *this; }
+
+    bool IsString() const override { return true; }
 
     bool CopyValue(const ConfigEntry & in) override { value = in.AsString(); return true; }
   };
