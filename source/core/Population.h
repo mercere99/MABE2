@@ -390,7 +390,7 @@ namespace mabe {
     AlivePop Alive() { return AlivePop(*this); }
 
     /// Required SetupConfig function; for now population don't have any config optons.
-    void SetupConfig(ConfigScope &) {    
+    void SetupConfig() override {    
     }
 
   private:  // ---== To be used by friend class MABEBase only! ==---
