@@ -606,6 +606,7 @@ namespace mabe {
       // Call the SetupConfig of module base classes (they will call the dervived version)
       for (auto m : modules) {
         PushScope(m->GetName(), m->GetDesc());
+        m->SetupScope(*cur_scope);
         m->SetupConfig();
         PopScope();
       }
