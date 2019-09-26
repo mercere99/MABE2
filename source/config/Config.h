@@ -130,7 +130,7 @@ namespace mabe {
 
     template <typename... Ts>
     void Error(int pos, Ts... args) const {
-      std::cout << "Error (token " << pos << "): " << emp::to_string(std::forward<Ts>(args)...) << "\nAborting." << std::endl;
+      std::cout << "Error (line " << tokens[pos].line_id << "): " << emp::to_string(std::forward<Ts>(args)...) << "\nAborting." << std::endl;
       exit(1);
     }
 
@@ -355,7 +355,7 @@ namespace mabe {
     // Allow this statement to be a declaration if it begins with a type.
     if (IsType(pos)) {
       std::string type_name = AsLexeme(pos++);
-      RequireID(pos, "Type name must be followed by variable to declare.");
+      RequireID(pos, "Type name '", type_name, "' must be followed by variable to declare.");
       std::string var_name = AsLexeme(pos);
 
       if (type_name == "String") {
@@ -370,6 +370,7 @@ namespace mabe {
 
       // Otherwise we have a module to add; treat it as a struct.
       else {
+        Debug("Building var '", var_name, "' of type '", type_name, "'");
         ConfigScope & new_scope = scope.AddScope(var_name, "Local struct", type_name);
         ConfigType & new_obj = type_map[type_name].init_fun(var_name);
         new_obj.SetupScope(new_scope);
