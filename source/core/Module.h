@@ -47,7 +47,7 @@ namespace mabe {
                                         const std::string & name,
                                         const std::string & desc,
                                         DEFAULT_T default_val) {
-      return control.GetCurScope().LinkVar<VAR_T>(name, var, desc, default_val);
+      return GetScope().LinkVar<VAR_T>(name, var, desc, default_val);
     }
 
     /// Link a configuration entry to a pair of functions - it sets the new default and
@@ -58,7 +58,7 @@ namespace mabe {
                                             const std::string & name,
                                             const std::string & desc,
                                             DEFAULT_T default_val) {
-      return control.GetCurScope().LinkFuns<VAR_T>(name, get_fun, set_fun, desc, default_val);
+      return GetScope().LinkFuns<VAR_T>(name, get_fun, set_fun, desc, default_val);
     }
 
     /// Link a population to an ID tracker.
@@ -70,7 +70,7 @@ namespace mabe {
         [this,&var](){ return control.GetPopulation(var).GetName(); };
       std::function<void(std::string)> set_fun =
         [this,&var](const std::string & name){ var = control.GetPopID(name); };
-      return control.GetCurScope().LinkFuns<std::string>(        
+      return GetScope().LinkFuns<std::string>(        
         name, get_fun, set_fun, desc,
         control.GetPopulation(default_pop).GetName());
     }
