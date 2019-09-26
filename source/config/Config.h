@@ -75,8 +75,9 @@
 #include "meta/TypeID.h"
 #include "tools/string_utils.h"
 
-#include "ConfigScope.h"
 #include "ConfigLexer.h"
+#include "ConfigScope.h"
+#include "ConfigType.h"
 
 namespace mabe {
 
@@ -284,11 +285,8 @@ namespace mabe {
 
     // If we can't find this variable, either build it or throw an error.
     if (cur_entry.IsNull()) {
-      Error(pos, "Parameter '", var_name,
-	    "' does not exist; currently only parameters can be used as variables.");
-      // if (!create_ok) Error(pos, "Variable identifier '", var_name, "' not found.");
-      // cur_entry = &cur_scope.AddPlaceholder(var_name);
-      // return cur_entry;
+      Error(pos, "'", var_name,
+	    "' does not exist as a parameter, variable, or type.");
     }
 
     // If this variable just provided a scope, keep going.
