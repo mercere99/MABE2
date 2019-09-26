@@ -25,17 +25,17 @@ namespace mabe {
     emp::BitVector bits;
 
   public:
-    BitsOrg(emp::Ptr<const OrganismManager> ptr) : Organism(ptr) {
-      emp_assert(!manager_ptr.IsNull());
+    BitsOrg(emp::Ptr<OrganismManager> ptr) : Organism(ptr) {
+      emp_assert(!manager.IsNull());
     }
     BitsOrg(const BitsOrg &) = default;
     BitsOrg(BitsOrg &&) = default;
-    BitsOrg(const emp::BitVector & in, emp::Ptr<const OrganismManager> ptr)
+    BitsOrg(const emp::BitVector & in, emp::Ptr<OrganismManager> ptr)
     : Organism(ptr), bits(in) {
-      emp_assert(!manager_ptr.IsNull());
+      emp_assert(!manager.IsNull());
     }
-    BitsOrg(size_t N, emp::Ptr<const OrganismManager> ptr) : Organism(ptr), bits(N) {
-      emp_assert(!manager_ptr.IsNull());
+    BitsOrg(size_t N, emp::Ptr<OrganismManager> ptr) : Organism(ptr), bits(N) {
+      emp_assert(!manager.IsNull());
     }
     ~BitsOrg() { ; }
 
@@ -67,11 +67,10 @@ namespace mabe {
     }
 
     /// Setup this organism to load from config.
-    void SetupConfig(MABE & control) override {
-      control.GetCurScope().LinkFuns<size_t>("N", 
-                                             [this](){ return bits.size(); },
-                                             [this](const size_t & N){ return bits.Resize(N); },
-                                             "Number of bits in organism", 1);
+    void SetupConfig() override {
+      LinkFuns<size_t>([this](){ return bits.size(); },
+                       [this](const size_t & N){ return bits.Resize(N); },
+                       "N", "Number of bits in organism", 1);
     }
   };
 

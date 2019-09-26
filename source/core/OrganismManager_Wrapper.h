@@ -78,8 +78,8 @@ namespace mabe {
       return os;
     }
 
-    void SetupConfig(MABE & control) override {
-      prototype->SetupConfig(control);
+    void SetupConfig() override {
+      prototype->SetupConfig();
     }
 
   };
