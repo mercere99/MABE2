@@ -614,7 +614,8 @@ namespace mabe {
       // Loop through organism types.
       for (auto o : org_managers) {
         PushScope(o.first, "Organism type");
-        o.second->SetupConfig(*this);
+        o.second->SetupScope(*cur_scope);
+        o.second->SetupConfig();
         PopScope();
       }
     }
