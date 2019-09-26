@@ -24,8 +24,6 @@
 #include "tools/string_utils.h"
 #include "tools/value_utils.h"
 
-#include "ConfigType.h"
-
 namespace mabe {
 
   class ConfigScope;
