@@ -17,12 +17,14 @@
 #include "data/VarMap.h"
 #include "tools/Random.h"
 
+#include "../config/Config.h"
+
 namespace mabe {
 
   class Organism;
   class MABE;
 
-  class OrganismManager {
+  class OrganismManager  : public mabe::ConfigType {
   protected:
     std::string name;              ///< Name used for this type of organisms.
     emp::VarMap var_map;           ///< Map of run-time values associated with this organism type.
@@ -64,7 +66,7 @@ namespace mabe {
       emp_assert(false, "Randomize() must be overridden for either Organism or OrganismManager.");
     }
 
-    virtual void SetupConfig(MABE &) { }
+    virtual void SetupConfig() { }
   };
 
 }
