@@ -22,6 +22,7 @@
 #include "../config/Config.h"
 
 #include "ModuleBase.h"
+#include "OrganismManagerBase.h"
 #include "Population.h"
 
 namespace mabe {
@@ -236,7 +237,7 @@ namespace mabe {
 
     /// Collection of all organism types from all words.  Organism types have distinct
     /// names and can be manipulated as a whole.
-    emp::unordered_map<std::string, emp::Ptr<OrganismManager>> org_managers;
+    emp::unordered_map<std::string, emp::Ptr<OrganismManagerBase>> org_managers;
 
     emp::Random random;              ///< Master random number generator
     int random_seed;                 ///< Random number seed.
@@ -462,7 +463,7 @@ namespace mabe {
     }
 
     void Inject(const std::string & type_name, size_t copy_count=1) {      
-      const OrganismManager & org_manager = GetOrganismManager(type_name);
+      const OrganismManagerBase & org_manager = GetOrganismManager(type_name);
       emp::Ptr<Organism> inject_org = org_manager.MakeOrganism(random);
       Inject(*inject_org, copy_count);
       inject_org.Delete();
@@ -547,22 +548,22 @@ namespace mabe {
 
     template <typename MOD_T, typename... ARGS>
     MOD_T & AddModule(ARGS &&... args) {
-      auto mod_ptr = emp::NewPtr<MOD_T>(*this, std::forward<ARGS>(args)...);
-      modules.push_back(mod_ptr);
-
-      return *mod_ptr;
+      auto new_mod = emp::NewPtr<MOD_T>(*this, std::forward<ARGS>(args)...);
+      modules.push_back(new_mod);
+      return *new_mod;
     }
 
 
     // --- Deal with Organism Types ---
 
-    OrganismManager & GetOrganismManager(const std::string & type_name) {
+    OrganismManagerBase & GetOrganismManager(const std::string & type_name) {
       emp_assert(emp::Has(org_managers, type_name)); // An org type must be created before base retrieved.
       return *(org_managers[type_name]);
     }
 
     template <typename ORG_TYPE_T>
-    ORG_TYPE_T & AddOrganismManager(const std::string type_name) {
+    ORG_TYPE_T & AddOrganismManager(const std::string & type_name, const std::string & desc) {
+      (void) desc; // @CAO: Do something with this!
       emp_assert(emp::Has(org_managers, type_name) == false);
       auto new_type = emp::NewPtr<ORG_TYPE_T>(type_name);
       org_managers[type_name] = new_type;
