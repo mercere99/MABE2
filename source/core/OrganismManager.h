@@ -10,64 +10,38 @@
 #ifndef MABE_ORGANISM_MANAGER_H
 #define MABE_ORGANISM_MANAGER_H
 
-#include <functional>
-#include <iostream>
-
-#include "base/unordered_map.h"
-#include "data/VarMap.h"
-#include "tools/Random.h"
-
 #include "../config/Config.h"
+
+#include "MABE.h"
+#include "OrganismManagerBase.h"
 
 namespace mabe {
 
   class Organism;
   class MABE;
 
-  class OrganismManager  : public mabe::ConfigType {
-  protected:
-    std::string name;              ///< Name used for this type of organisms.
-    emp::VarMap var_map;           ///< Map of run-time values associated with this organism type.
-
-    emp::Ptr<Organism> prototype;  ///< Base organism to copy.
-
+  class OrganismManager  : public OrganismManagerBase {
   public:
-    OrganismManager(const std::string & in_name) : name(in_name) { ; }
+    OrganismManager(const std::string & in_name) : OrganismManagerBase(in_name) { ; }
     virtual ~OrganismManager() { ; }
-
-    const std::string & GetName() const { return name; }
-    virtual std::string GetTypeName() const { return "OrganismManager (base)"; }
-
-    // --== Functions to manipulate config variables ==--
-    template <typename T>
-    OrganismManager & AddVar(const std::string & name, const std::string & desc, const T & def_val) {
-      var_map.Add<T>(name, def_val);
-      return *this;
-    }
-
-    template <typename T>
-    const T & GetVar(const std::string & name) {
-      return var_map.Get<T>(name);
-    }
-
-    // --== Functions to manipulate organisms ==--
-    /// Create a clone of the provided organism.
-    virtual emp::Ptr<Organism> CloneOrganism(const Organism &) const = 0;
-    virtual emp::Ptr<Organism> MakeOrganism() const = 0;
-    virtual emp::Ptr<Organism> MakeOrganism(emp::Random &) const = 0;
-    virtual std::string ToString(const Organism &) const = 0;
-    virtual std::ostream & Print(Organism &, std::ostream &) const = 0;
-
-    virtual size_t Mutate(Organism &, emp::Random &) const {
-      emp_assert(false, "Mutate() must be overridden for either Organism or OrganismManager.");
-      return 0;
-    }
-    virtual void Randomize(Organism &, emp::Random &) const {
-      emp_assert(false, "Randomize() must be overridden for either Organism or OrganismManager.");
-    }
-
-    virtual void SetupConfig() { }
   };
+
+  /// Build a class that will automatically register modules when created (globally)
+  template <typename T>
+  struct OrgManagerRegistrar {
+    OrgManagerRegistrar(const std::string & type_name, const std::string & desc) {
+      OrgManagerInfo new_info;
+      new_info.name = type_name;
+      new_info.desc = desc;
+      new_info.init_fun = [desc](MABE & control, const std::string & name) -> ConfigType & {
+        return control.AddOrganismManager<T>(name, desc);
+      };
+      GetOrgManagerInfo().insert(new_info);
+    }
+  };
+
+#define MABE_REGISTER_ORG_MANAGER(TYPE, DESC) \
+        mabe::OrgManagerRegistrar<TYPE> MABE_ ## TYPE ## _Registrar(#TYPE, DESC)
 
 }
 
