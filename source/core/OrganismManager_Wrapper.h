@@ -18,6 +18,7 @@
 #include "tools/Random.h"
 
 #include "Organism.h"
+#include "OrganismManager.h"
 
 namespace mabe {
 
@@ -29,7 +30,7 @@ namespace mabe {
 
     OrganismManager_Wrapper(const std::string & name)
     : OrganismManager(name) {
-      prototype = emp::NewPtr<org_t>(this);
+      prototype = emp::NewPtr<org_t>(*this);
     }
 
     ~OrganismManager_Wrapper() {
