@@ -25,18 +25,12 @@ namespace mabe {
     emp::BitVector bits;
 
   public:
-    BitsOrg(emp::Ptr<OrganismManager> ptr) : Organism(ptr) {
-      emp_assert(!manager.IsNull());
-    }
+    BitsOrg(OrganismManager & _manager) : Organism(_manager) { ; }
     BitsOrg(const BitsOrg &) = default;
     BitsOrg(BitsOrg &&) = default;
-    BitsOrg(const emp::BitVector & in, emp::Ptr<OrganismManager> ptr)
-    : Organism(ptr), bits(in) {
-      emp_assert(!manager.IsNull());
-    }
-    BitsOrg(size_t N, emp::Ptr<OrganismManager> ptr) : Organism(ptr), bits(N) {
-      emp_assert(!manager.IsNull());
-    }
+    BitsOrg(const emp::BitVector & in, OrganismManager & _manager)
+    : Organism(_manager), bits(in) { ; }
+    BitsOrg(size_t N, OrganismManager & _manager) : Organism(_manager), bits(N) { ; }
     ~BitsOrg() { ; }
 
     /// Use "to_string" to convert.
@@ -75,7 +69,7 @@ namespace mabe {
   };
 
   using BitsOrgManager = OrganismManager_Wrapper<BitsOrg>;
-
+  MABE_REGISTER_ORG_MANAGER(BitsOrgManager, "Organism consisting of a series of N bits.");
 }
 
 #endif
