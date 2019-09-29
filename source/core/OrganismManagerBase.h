@@ -69,6 +69,25 @@ namespace mabe {
     virtual void SetupConfig() { }
   };
 
+  struct OrgManagerInfo {
+    std::string name;
+    std::string desc;
+    std::function<ConfigType & (MABE &, const std::string &)> init_fun;
+    bool operator<(const OrgManagerInfo & in) const { return name < in.name; }
+  };
+
+  static std::set<OrgManagerInfo> & GetOrgManagerInfo() {
+    static std::set<OrgManagerInfo> om_type_info;
+    return om_type_info;
+  }
+
+  static void PrintOrgManagerInfo() {
+    auto & om_info = GetOrgManagerInfo();
+    for (auto & om : om_info) {
+      std::cout << om.name << " : " << om.desc << std::endl;
+    }
+  }
+
 }
 
 #endif
