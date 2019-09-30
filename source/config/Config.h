@@ -99,6 +99,9 @@ namespace mabe {
     /// A map of all types available in the script.
     std::unordered_map<std::string, TypeInfo> type_map;
 
+    /// A list of precedence levels for symbols.
+    std::unordered_map<std::string, size_t> precedence_map;
+
     // -- Helper functions --
     bool HasToken(int pos) const { return (pos >= 0) && (pos < (int) tokens.size()); }
     bool IsID(int pos) const { return HasToken(pos) && lexer.IsID(tokens[pos]); }
@@ -177,6 +180,10 @@ namespace mabe {
     /// NOTE: May create temporary ConfigEntries that need to be cleaned up by receiver!
     emp::Ptr<ConfigEntry> ProcessValue(size_t & pos, ConfigScope & cur_scope);
 
+    /// Calculate a fulle expression in the provided scope.
+    /// NOTE: May create temporary ConfigEntries that need to be cleaned up by receiver!
+    emp::Ptr<ConfigEntry> ProcessExpression(size_t & pos, ConfigScope & cur_scope);
+
     /// Process the next input in the specified Struct.
     void ProcessStatement(size_t & pos, ConfigScope & scope);
 
@@ -193,12 +200,17 @@ namespace mabe {
     {
       if (filename != "") Load(filename);
 
-      // Setup the type map.
+      // Initialize the type map.
       type_map["INVALID"] = TypeInfo{ (size_t) BaseType::INVALID, nullptr };
       type_map["Void"] = TypeInfo{ (size_t) BaseType::VOID, nullptr };
       type_map["Value"] = TypeInfo{ (size_t) BaseType::VALUE, nullptr };
       type_map["String"] = TypeInfo{ (size_t) BaseType::STRING, nullptr };
       type_map["Struct"] = TypeInfo{ (size_t) BaseType::STRUCT, nullptr };
+
+      // Setup operator precedence.
+      size_t cur_precedence = 0;
+      precedence_map["+"] = precedence_map["-"] = cur_precedence++;
+      precedence_map["*"] = precedence_map["/"] = precedence_map["%"] = cur_precedence++;
     }
 
     /// To add a type, provide the type name (that can be referred to in a script) and a function
@@ -310,7 +322,7 @@ namespace mabe {
 
   // Load a value from the provided scope, which can come from a variable or a literal.
   emp::Ptr<ConfigEntry> Config::ProcessValue(size_t & pos, ConfigScope & cur_scope) {
-      Debug("Running ProcessValue(", pos, ",", cur_scope.GetName(), ")");
+    Debug("Running ProcessValue(", pos, ",", cur_scope.GetName(), ")");
 
     // Anything that begins with an identifier or dots must represent a variable.  Refer!
     if (IsID(pos) || IsDots(pos)) return ProcessVar(pos, cur_scope, false, true);
@@ -337,6 +349,15 @@ namespace mabe {
     }
 
     Error(pos, "Expected a value, found: ", AsLexeme(pos));
+
+    return nullptr;
+  }
+
+  // Calculate an expression in the provided scope.
+  emp::Ptr<ConfigEntry> Config::ProcessExpression(size_t & pos, ConfigScope & cur_scope) {
+    Debug("Running ProcessExpression(", pos, ",", cur_scope.GetName(), ")");
+
+    Error(pos, "Expected an expression, found: ", AsLexeme(pos));
 
     return nullptr;
   }
