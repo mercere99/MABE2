@@ -182,7 +182,7 @@ namespace mabe {
 
     /// Calculate a fulle expression in the provided scope.
     /// NOTE: May create temporary ConfigEntries that need to be cleaned up by receiver!
-    emp::Ptr<ConfigEntry> ProcessExpression(size_t & pos, ConfigScope & cur_scope);
+    emp::Ptr<ConfigEntry> ProcessExpression(size_t & pos, ConfigScope & cur_scope, size_t prec_limit=1000);
 
     /// Process the next input in the specified Struct.
     void ProcessStatement(size_t & pos, ConfigScope & scope);
@@ -208,9 +208,9 @@ namespace mabe {
       type_map["Struct"] = TypeInfo{ (size_t) BaseType::STRUCT, nullptr };
 
       // Setup operator precedence.
-      size_t cur_precedence = 0;
-      precedence_map["+"] = precedence_map["-"] = cur_precedence++;
-      precedence_map["*"] = precedence_map["/"] = precedence_map["%"] = cur_precedence++;
+      precedence_map["*"] = precedence_map["/"] = precedence_map["%"] = 0;
+      precedence_map["+"] = precedence_map["-"] = 1;
+      precedence_map["&&"] = precedence_map["||"] = 2;
     }
 
     /// To add a type, provide the type name (that can be referred to in a script) and a function
@@ -354,12 +354,40 @@ namespace mabe {
   }
 
   // Calculate an expression in the provided scope.
-  emp::Ptr<ConfigEntry> Config::ProcessExpression(size_t & pos, ConfigScope & cur_scope) {
-    Debug("Running ProcessExpression(", pos, ",", cur_scope.GetName(), ")");
+  emp::Ptr<ConfigEntry> Config::ProcessExpression(size_t & pos, ConfigScope & scope, size_t prec_limit) {
+    Debug("Running ProcessExpression(", pos, ",", scope.GetName(), ")");
 
-    Error(pos, "Expected an expression, found: ", AsLexeme(pos));
+    // @CAO Should test for unary operators at the beginning of an expression.
 
-    return nullptr;
+    emp::Ptr<ConfigEntry> cur_value = ProcessValue(pos, scope);
+    std::string symbol = AsLexeme(pos);
+    while ( emp::Has(precedence_map, symbol) && precedence_map[symbol] < prec_limit ) {
+      pos++;
+      emp::Ptr<ConfigEntry> value2 = ProcessExpression(pos, scope, precedence_map[symbol]);
+
+      // If both values are numeric, act on the math operator.
+      if (cur_value->IsNumeric() && value2->IsNumeric()) {
+        double val1 = cur_value->AsDouble();
+        double val2 = value2->AsDouble();
+
+        // Clean up existing values.
+        if (cur_value->IsTemporary()) cur_value.Delete();
+        if (value2->IsTemporary()) value2.Delete();
+
+        // Determine the output value and put it in a temporary node.
+        if (symbol == "+") cur_value = MakeTempDouble(val1 + val2);
+        if (symbol == "-") cur_value = MakeTempDouble(val1 - val2);
+        if (symbol == "*") cur_value = MakeTempDouble(val1 * val2);
+        if (symbol == "/") cur_value = MakeTempDouble(val1 / val2);
+        if (symbol == "%") cur_value = MakeTempDouble(((size_t) val1) % ((size_t) val2));
+        if (symbol == "&&") cur_value = MakeTempDouble(val1 && val2);
+        if (symbol == "||") cur_value = MakeTempDouble(val1 || val2);
+      }
+
+      // @CAO: Need to error out if the types don't work...
+    }
+
+    return cur_value;
   }
 
   // Process the next input in the specified Struct.
