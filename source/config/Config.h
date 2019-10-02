@@ -441,7 +441,7 @@ namespace mabe {
       ProcessStatementList(pos, lhs->AsScope());
       RequireChar('}', pos++, "Expected scope '", lhs->GetName(), "' to end with a '}'.");
     } else {
-      emp::Ptr<ConfigEntry> rhs = ProcessValue(pos, scope);
+      emp::Ptr<ConfigEntry> rhs = ProcessExpression(pos, scope);
       RequireChar(';', pos++, "Expected ';' at the end of a statement.");
       lhs->CopyValue(*rhs);
 
