@@ -171,14 +171,14 @@ namespace mabe {
     /// Load a variable name from the provided scope.
     /// If create_ok is true, create any variables that we don't find.  Otherwise continue the
     /// search for them in successively outer (lower) scopes.
-    emp::Ptr<ConfigEntry> ProcessVar(size_t & pos,
-                                     ConfigScope & cur_scope,
-                                     bool create_ok=false,
-                                     bool scan_scopes=true);
+    emp::Ptr<ConfigEntry> ParseVar(size_t & pos,
+                                   ConfigScope & cur_scope,
+                                   bool create_ok=false,
+                                   bool scan_scopes=true);
 
     /// Load a value from the provided scope, which can come from a variable or a literal.
     /// NOTE: May create temporary ConfigEntries that need to be cleaned up by receiver!
-    emp::Ptr<ConfigEntry> ProcessValue(size_t & pos, ConfigScope & cur_scope);
+    emp::Ptr<ConfigEntry> ParseValue(size_t & pos, ConfigScope & cur_scope);
 
     /// Calculate the result of the provided operation on two computed entries.
     /// NOTE: WILL create a temporary ConfigEntry to store the result in.
@@ -188,15 +188,15 @@ namespace mabe {
 
     /// Calculate a full expression found in a token sequence, using the provided scope.
     /// NOTE: May create temporary ConfigEntries that need to be cleaned up by receiver!
-    emp::Ptr<ConfigEntry> ProcessExpression(size_t & pos, ConfigScope & cur_scope, size_t prec_limit=1000);
+    emp::Ptr<ConfigEntry> ParseExpression(size_t & pos, ConfigScope & cur_scope, size_t prec_limit=1000);
 
     /// Process the next input in the specified Struct.
-    void ProcessStatement(size_t & pos, ConfigScope & scope);
+    void ParseStatement(size_t & pos, ConfigScope & scope);
 
     /// Keep processing statments until there aren't any more or we leave this scope. 
-    void ProcessStatementList(size_t & pos, ConfigScope & scope) {
-      Debug("Running ProcessStatementList(", pos, ",", scope.GetName(), ")");
-      while (pos < tokens.size() && AsChar(pos) != '}') ProcessStatement(pos, scope);
+    void ParseStatementList(size_t & pos, ConfigScope & scope) {
+      Debug("Running ParseStatementList(", pos, ",", scope.GetName(), ")");
+      while (pos < tokens.size() && AsChar(pos) != '}') ParseStatement(pos, scope);
     }
 
   public:
@@ -247,7 +247,7 @@ namespace mabe {
       tokens = lexer.Tokenize(file);          // Convert to more-usable tokens.
       file.close();                           // Close the file (now that it's converted)
       size_t pos = 0;                         // Start at the beginning of the file.
-      ProcessStatementList(pos, root_scope); // Process, starting from the outer scope.
+      ParseStatementList(pos, root_scope); // Process, starting from the outer scope.
     }
 
     // Sequentially load a series of configuration files.
@@ -272,11 +272,11 @@ namespace mabe {
 
 
   // Load a variable name from the provided scope.
-  emp::Ptr<ConfigEntry> Config::ProcessVar(size_t & pos,
+  emp::Ptr<ConfigEntry> Config::ParseVar(size_t & pos,
                                            ConfigScope & cur_scope,
                                            bool create_ok, bool scan_scopes)
   {
-    Debug("Running ProcessVar(", pos, ",", cur_scope.GetName(), ",", create_ok, ")");
+    Debug("Running ParseVar(", pos, ",", cur_scope.GetName(), ",", create_ok, ")");
 
     // First, check for leading dots.
     if (IsDots(pos)) {
@@ -290,7 +290,7 @@ namespace mabe {
       pos++;
 
       // Recursively call in the found scope if needed; given leading dot, do not scan scopes.
-      if (scope_ptr.Raw() != &cur_scope) return ProcessVar(pos, *scope_ptr, create_ok, false);
+      if (scope_ptr.Raw() != &cur_scope) return ParseVar(pos, *scope_ptr, create_ok, false);
     }
 
     // Next, we must have a variable name.
@@ -308,7 +308,7 @@ namespace mabe {
     }
 
     // If this variable just provided a scope, keep going.
-    if (IsDots(pos)) cur_entry = ProcessVar(pos, cur_scope, create_ok, false);
+    if (IsDots(pos)) cur_entry = ParseVar(pos, cur_scope, create_ok, false);
 
     // Return the variable!
     return cur_entry;
@@ -327,11 +327,11 @@ namespace mabe {
   }
 
   // Load a value from the provided scope, which can come from a variable or a literal.
-  emp::Ptr<ConfigEntry> Config::ProcessValue(size_t & pos, ConfigScope & cur_scope) {
-    Debug("Running ProcessValue(", pos, ",", cur_scope.GetName(), ")");
+  emp::Ptr<ConfigEntry> Config::ParseValue(size_t & pos, ConfigScope & cur_scope) {
+    Debug("Running ParseValue(", pos, ",", cur_scope.GetName(), ")");
 
     // Anything that begins with an identifier or dots must represent a variable.  Refer!
-    if (IsID(pos) || IsDots(pos)) return ProcessVar(pos, cur_scope, false, true);
+    if (IsID(pos) || IsDots(pos)) return ParseVar(pos, cur_scope, false, true);
 
     // A literal number should have a temporary created with its value.
     if (IsNumber(pos)) {
@@ -388,16 +388,16 @@ namespace mabe {
                                       
 
   // Calculate an expression in the provided scope.
-  emp::Ptr<ConfigEntry> Config::ProcessExpression(size_t & pos, ConfigScope & scope, size_t prec_limit) {
-    Debug("Running ProcessExpression(", pos, ",", scope.GetName(), ")");
+  emp::Ptr<ConfigEntry> Config::ParseExpression(size_t & pos, ConfigScope & scope, size_t prec_limit) {
+    Debug("Running ParseExpression(", pos, ",", scope.GetName(), ")");
 
     // @CAO Should test for unary operators at the beginning of an expression.
 
-    emp::Ptr<ConfigEntry> cur_value = ProcessValue(pos, scope);
+    emp::Ptr<ConfigEntry> cur_value = ParseValue(pos, scope);
     std::string symbol = AsLexeme(pos);
     while ( emp::Has(precedence_map, symbol) && precedence_map[symbol] < prec_limit ) {
       pos++;
-      emp::Ptr<ConfigEntry> value2 = ProcessExpression(pos, scope, precedence_map[symbol]);
+      emp::Ptr<ConfigEntry> value2 = ParseExpression(pos, scope, precedence_map[symbol]);
       emp::Ptr<ConfigEntry> op_result = ProcessOperation(symbol, cur_value, value2);
 
       // Clean up existing values.
@@ -412,8 +412,8 @@ namespace mabe {
   }
 
   // Process the next input in the specified Struct.
-  void Config::ProcessStatement(size_t & pos, ConfigScope & scope) {
-    Debug("Running ProcessStatement(", pos, ",", scope.GetName(), ")");
+  void Config::ParseStatement(size_t & pos, ConfigScope & scope) {
+    Debug("Running ParseStatement(", pos, ",", scope.GetName(), ")");
 
     // Allow a statement with an empty line.
     if (AsChar(pos) == ';') { pos++; return; }
@@ -451,16 +451,16 @@ namespace mabe {
     }
 
     // If we made it here, remainder should have the basic structure: VAR = VALUE ;
-    emp::Ptr<ConfigEntry> lhs = ProcessVar(pos, scope, true, false);
+    emp::Ptr<ConfigEntry> lhs = ParseVar(pos, scope, true, false);
     RequireChar('=', pos++, "Expected '=' after variable '", lhs->GetName(), "' for assignment.");
 
     // If LHS is a scope, collect scope information.
     if (lhs->IsScope()) {
       RequireChar('{', pos++, "Expected scope '", lhs->GetName(), "' to be set to a literal scope.");
-      ProcessStatementList(pos, lhs->AsScope());
+      ParseStatementList(pos, lhs->AsScope());
       RequireChar('}', pos++, "Expected scope '", lhs->GetName(), "' to end with a '}'.");
     } else {
-      emp::Ptr<ConfigEntry> rhs = ProcessExpression(pos, scope);
+      emp::Ptr<ConfigEntry> rhs = ParseExpression(pos, scope);
       RequireChar(';', pos++, "Expected ';' at the end of a statement.");
       lhs->CopyValue(*rhs);
 
