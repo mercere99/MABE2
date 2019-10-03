@@ -337,6 +337,15 @@ namespace mabe {
           };
         config.AddType(mod.name, mod_init_fun);
       }
+
+      // Setup all organism types as types in the config file.
+      for (auto & org_m : GetOrgManagerInfo()) {
+        std::function<ConfigType &(const std::string &)> org_m_init_fun =
+          [this,&org_m](const std::string & name) -> ConfigType & {
+            return org_m.init_fun(*this,name);
+          };
+        config.AddType(org_m.name, org_m_init_fun);
+      }
     }
     MABE(const MABE &) = delete;
     MABE(MABE &&) = delete;
