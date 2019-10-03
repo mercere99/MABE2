@@ -90,6 +90,21 @@ namespace mabe {
       return *(AsScopePtr());
     }
 
+    /// A generic As() function that will call the appropriate converter.
+    template <typename T>
+    T As() {
+      if constexpr (std::is_same<T, double>) { return AsDouble(); }
+      else if constexpr (std::is_same<T, std::string>) { return AsString(); }
+      else if constexpr (std::is_same<T, ConfigScope&>) { return AsScope(); }
+      else if constexpr (std::is_same<T, int>) { return (int) AsDouble(); }
+      else if constexpr (std::is_same<T, bool>) { return (bool) AsDouble(); }
+      else {
+        // Oh oh... we don't know this type...
+        static_assert(false, "Trying to convert a ConfigEntry to an unknown type!");
+        return T();
+      }
+    }
+
     ConfigEntry & SetMin(double min) { range.SetLower(min); return *this; }
     ConfigEntry & SetMax(double max) { range.SetLower(max); return *this; }
 
