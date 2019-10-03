@@ -195,7 +195,7 @@ namespace mabe {
 
     /// Keep processing statments until there aren't any more or we leave this scope. 
     void ParseStatementList(size_t & pos, ConfigScope & scope) {
-      Debug("Running ParseStatementList(", pos, ",", scope.GetName(), ")");
+      Debug("Running ParseStatementList(", pos, ":('", AsLexeme(pos), "'),", scope.GetName(), ")");
       while (pos < tokens.size() && AsChar(pos) != '}') ParseStatement(pos, scope);
     }
 
@@ -276,7 +276,7 @@ namespace mabe {
                                            ConfigScope & cur_scope,
                                            bool create_ok, bool scan_scopes)
   {
-    Debug("Running ParseVar(", pos, ",", cur_scope.GetName(), ",", create_ok, ")");
+    Debug("Running ParseVar(", pos, ":('", AsLexeme(pos), "'),", cur_scope.GetName(), ",", create_ok, ")");
 
     // First, check for leading dots.
     if (IsDots(pos)) {
@@ -328,7 +328,7 @@ namespace mabe {
 
   // Load a value from the provided scope, which can come from a variable or a literal.
   emp::Ptr<ConfigEntry> Config::ParseValue(size_t & pos, ConfigScope & cur_scope) {
-    Debug("Running ParseValue(", pos, ",", cur_scope.GetName(), ")");
+    Debug("Running ParseValue(", pos, ":('", AsLexeme(pos), "'),", cur_scope.GetName(), ")");
 
     // Anything that begins with an identifier or dots must represent a variable.  Refer!
     if (IsID(pos) || IsDots(pos)) return ParseVar(pos, cur_scope, false, true);
@@ -389,7 +389,7 @@ namespace mabe {
 
   // Calculate an expression in the provided scope.
   emp::Ptr<ConfigEntry> Config::ParseExpression(size_t & pos, ConfigScope & scope, size_t prec_limit) {
-    Debug("Running ParseExpression(", pos, ",", scope.GetName(), ")");
+    Debug("Running ParseExpression(", pos, ":('", AsLexeme(pos), "'),", scope.GetName(), ")");
 
     // @CAO Should test for unary operators at the beginning of an expression.
 
@@ -404,16 +404,18 @@ namespace mabe {
       if (cur_value->IsTemporary()) cur_value.Delete();
       if (value2->IsTemporary()) value2.Delete();
 
-      // Move the current value over to cur_value as we keep going...
+      // Move the current value over to cur_value and check if we have a new symbol...
       cur_value = op_result;
+      symbol = AsLexeme(pos);
     }
 
+    emp_assert(!cur_value.IsNull());
     return cur_value;
   }
 
   // Process the next input in the specified Struct.
   void Config::ParseStatement(size_t & pos, ConfigScope & scope) {
-    Debug("Running ParseStatement(", pos, ",", scope.GetName(), ")");
+    Debug("Running ParseStatement(", pos, ":('", AsLexeme(pos), "'),", scope.GetName(), ")");
 
     // Allow a statement with an empty line.
     if (AsChar(pos) == ';') { pos++; return; }
