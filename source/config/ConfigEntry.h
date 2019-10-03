@@ -16,6 +16,8 @@
 #ifndef MABE_CONFIG_ENTRY_H
 #define MABE_CONFIG_ENTRY_H
 
+#include <type_traits>
+
 #include "base/assert.h"
 #include "base/Ptr.h"
 #include "base/vector.h"
@@ -69,6 +71,7 @@ namespace mabe {
     virtual bool IsString() const { return false; }
 
     virtual bool IsScope() const { return false; }
+    virtual bool IsError() const { return false; }
 
     /// Set the default string for this entry.
     ConfigEntry & SetName(const std::string & in) { name = in; return *this; }
@@ -268,7 +271,7 @@ namespace mabe {
     bool CopyValue(const ConfigEntry & in) override { value = in.AsDouble(); return true; }
   };
 
- /// ConfigEntry as a temporary variable of type STRING.
+  /// ConfigEntry as a temporary variable of type STRING.
   class ConfigEntry_StringVar : public ConfigEntry {
   private:
     std::string value;
@@ -292,5 +295,16 @@ namespace mabe {
     bool CopyValue(const ConfigEntry & in) override { value = in.AsString(); return true; }
   };
 
+
+  /// A ConfigEntry to transmit an error.  The description provides the error and the IsError() flag
+  /// is set to true.
+  class ConfigEntry_Error : public ConfigEntry {
+  public:
+    ConfigEntry_Error(const std::string & msg)
+      : ConfigEntry("Error", msg, nullptr) { ; }
+
+    bool IsError() const override { return true; }
+  };
 }
+
 #endif
