@@ -180,7 +180,13 @@ namespace mabe {
     /// NOTE: May create temporary ConfigEntries that need to be cleaned up by receiver!
     emp::Ptr<ConfigEntry> ProcessValue(size_t & pos, ConfigScope & cur_scope);
 
-    /// Calculate a fulle expression in the provided scope.
+    /// Calculate the result of the provided operation on two computed entries.
+    /// NOTE: WILL create a temporary ConfigEntry to store the result in.
+    emp::Ptr<ConfigEntry> ProcessOperation(const std::string & symbol,
+                                           emp::Ptr<ConfigEntry> value1,
+                                           emp::Ptr<ConfigEntry> value2);
+
+    /// Calculate a full expression found in a token sequence, using the provided scope.
     /// NOTE: May create temporary ConfigEntries that need to be cleaned up by receiver!
     emp::Ptr<ConfigEntry> ProcessExpression(size_t & pos, ConfigScope & cur_scope, size_t prec_limit=1000);
 
@@ -353,6 +359,34 @@ namespace mabe {
     return nullptr;
   }
 
+  // Process a single provided operation on two ConfigEntry objects.
+  emp::Ptr<ConfigEntry> Config::ProcessOperation(const std::string & symbol,
+                                                 emp::Ptr<ConfigEntry> value1,
+                                                 emp::Ptr<ConfigEntry> value2)
+  {
+    emp::Ptr<ConfigEntry> out_value = nullptr;
+
+    // If both values are numeric, act on the math operator.
+    if (value1->IsNumeric() && value2->IsNumeric()) {
+      double val1 = value1->AsDouble();
+      double val2 = value2->AsDouble();
+
+      // Determine the output value and put it in a temporary node.
+      if (symbol == "+") out_value = MakeTempDouble(val1 + val2);
+      if (symbol == "-") out_value = MakeTempDouble(val1 - val2);
+      if (symbol == "*") out_value = MakeTempDouble(val1 * val2);
+      if (symbol == "/") out_value = MakeTempDouble(val1 / val2);
+      if (symbol == "%") out_value = MakeTempDouble(((size_t) val1) % ((size_t) val2));
+      if (symbol == "&&") out_value = MakeTempDouble(val1 && val2);
+      if (symbol == "||") out_value = MakeTempDouble(val1 || val2);
+    }
+
+    // @CAO: Need to produce a semantic error out if the types don't work...
+
+    return out_value;
+  }
+                                      
+
   // Calculate an expression in the provided scope.
   emp::Ptr<ConfigEntry> Config::ProcessExpression(size_t & pos, ConfigScope & scope, size_t prec_limit) {
     Debug("Running ProcessExpression(", pos, ",", scope.GetName(), ")");
@@ -364,27 +398,14 @@ namespace mabe {
     while ( emp::Has(precedence_map, symbol) && precedence_map[symbol] < prec_limit ) {
       pos++;
       emp::Ptr<ConfigEntry> value2 = ProcessExpression(pos, scope, precedence_map[symbol]);
+      emp::Ptr<ConfigEntry> op_result = ProcessOperation(symbol, cur_value, value2);
 
-      // If both values are numeric, act on the math operator.
-      if (cur_value->IsNumeric() && value2->IsNumeric()) {
-        double val1 = cur_value->AsDouble();
-        double val2 = value2->AsDouble();
+      // Clean up existing values.
+      if (cur_value->IsTemporary()) cur_value.Delete();
+      if (value2->IsTemporary()) value2.Delete();
 
-        // Clean up existing values.
-        if (cur_value->IsTemporary()) cur_value.Delete();
-        if (value2->IsTemporary()) value2.Delete();
-
-        // Determine the output value and put it in a temporary node.
-        if (symbol == "+") cur_value = MakeTempDouble(val1 + val2);
-        if (symbol == "-") cur_value = MakeTempDouble(val1 - val2);
-        if (symbol == "*") cur_value = MakeTempDouble(val1 * val2);
-        if (symbol == "/") cur_value = MakeTempDouble(val1 / val2);
-        if (symbol == "%") cur_value = MakeTempDouble(((size_t) val1) % ((size_t) val2));
-        if (symbol == "&&") cur_value = MakeTempDouble(val1 && val2);
-        if (symbol == "||") cur_value = MakeTempDouble(val1 || val2);
-      }
-
-      // @CAO: Need to error out if the types don't work...
+      // Move the current value over to cur_value as we keep going...
+      cur_value = op_result;
     }
 
     return cur_value;
@@ -393,8 +414,6 @@ namespace mabe {
   // Process the next input in the specified Struct.
   void Config::ProcessStatement(size_t & pos, ConfigScope & scope) {
     Debug("Running ProcessStatement(", pos, ",", scope.GetName(), ")");
-
-//    size_t start_pos = pos; // Track the starting position for semantic errors.
 
     // Allow a statement with an empty line.
     if (AsChar(pos) == ';') { pos++; return; }
