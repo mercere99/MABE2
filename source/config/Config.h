@@ -190,10 +190,17 @@ namespace mabe {
     /// NOTE: May create temporary ConfigEntries that need to be cleaned up by receiver!
     emp::Ptr<ConfigEntry> ParseExpression(size_t & pos, ConfigScope & cur_scope, size_t prec_limit=1000);
 
-    /// Process the next input in the specified Struct.
+    /// Parse the declaration of a variable.
+    void ParseDeclaration(size_t & pos, ConfigScope & scope);
+
+    /// Parse an event description.
+    void ParseEvent(size_t & pos, ConfigScope & scope);
+
+    /// Parse the next input in the specified Struct.  A statement can be a variable declaration,
+    /// an expression, or an event.
     void ParseStatement(size_t & pos, ConfigScope & scope);
 
-    /// Keep processing statments until there aren't any more or we leave this scope. 
+    /// Keep parsing statments until there aren't any more or we leave this scope. 
     void ParseStatementList(size_t & pos, ConfigScope & scope) {
       Debug("Running ParseStatementList(", pos, ":('", AsLexeme(pos), "'),", scope.GetName(), ")");
       while (pos < tokens.size() && AsChar(pos) != '}') ParseStatement(pos, scope);
@@ -413,6 +420,38 @@ namespace mabe {
     return cur_value;
   }
 
+  // Parse an the declaration of a variable.
+  // NOTE: pos will move past type, but not variable name so that it can be used in an assignment.
+  void Config::ParseDeclaration(size_t & pos, ConfigScope & scope) {
+    std::string type_name = AsLexeme(pos++);
+    RequireID(pos, "Type name '", type_name, "' must be followed by variable to declare.");
+    std::string var_name = AsLexeme(pos);
+
+    if (type_name == "String") {
+      scope.AddStringVar(var_name, "Local string variable.");
+    }
+    else if (type_name == "Value") {
+      scope.AddValueVar(var_name, "Local value variable.");
+    }
+    else if (type_name == "Struct") {
+      scope.AddScope(var_name, "Local struct");
+    }
+
+    // Otherwise we have a module to add; treat it as a struct.
+    else {
+      Debug("Building var '", var_name, "' of type '", type_name, "'");
+      ConfigScope & new_scope = scope.AddScope(var_name, "Local struct", type_name);
+      ConfigType & new_obj = type_map[type_name].init_fun(var_name);
+      new_obj.SetupScope(new_scope);
+      new_obj.SetupConfig();
+    }
+  }
+
+  // Parse an event description.
+  void Config::ParseEvent(size_t & pos, ConfigScope & scope) {
+    // @CAO Continue here.
+  }
+
   // Process the next input in the specified Struct.
   void Config::ParseStatement(size_t & pos, ConfigScope & scope) {
     Debug("Running ParseStatement(", pos, ":('", AsLexeme(pos), "'),", scope.GetName(), ")");
@@ -422,29 +461,8 @@ namespace mabe {
 
     // Allow this statement to be a declaration if it begins with a type.
     if (IsType(pos)) {
-      std::string type_name = AsLexeme(pos++);
-      RequireID(pos, "Type name '", type_name, "' must be followed by variable to declare.");
-      std::string var_name = AsLexeme(pos);
-
-      if (type_name == "String") {
-        scope.AddStringVar(var_name, "Local string variable.");
-      }
-      else if (type_name == "Value") {
-        scope.AddValueVar(var_name, "Local value variable.");
-      }
-      else if (type_name == "Struct") {
-        scope.AddScope(var_name, "Local struct");
-      }
-
-      // Otherwise we have a module to add; treat it as a struct.
-      else {
-        Debug("Building var '", var_name, "' of type '", type_name, "'");
-        ConfigScope & new_scope = scope.AddScope(var_name, "Local struct", type_name);
-        ConfigType & new_obj = type_map[type_name].init_fun(var_name);
-        new_obj.SetupScope(new_scope);
-        new_obj.SetupConfig();
-      }
-
+      ParseDeclaration(pos, scope);
+  
       // If the next symbol is a ';' this is a declaration without an assignment.
       if (AsChar(pos+1) == ';') {
         pos += 2;  // Skip the identifier and the semi-colon.
