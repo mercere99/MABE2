@@ -262,6 +262,7 @@ namespace mabe {
       return *this;
     }
 
+    bool IsNumeric() const override { return true; }
     bool IsDouble() const override { return true; }
 
     bool CopyValue(const ConfigEntry & in) override { value = in.AsDouble(); return true; }
