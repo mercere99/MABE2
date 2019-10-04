@@ -258,17 +258,21 @@ namespace mabe {
   };
 
 
-  /// ConfigEntry as a temporary variable of type DOUBLE.
-  class ConfigEntry_DoubleVar : public ConfigEntry {
+  /// A generic version of a config entry for a maintained variable.
+  template <typename T> class ConfigEntry_Var { };
+
+  /// Specialize ConfigEntry_Var with a temporary variable of type DOUBLE.
+  template <>
+  class ConfigEntry_Var<double> : public ConfigEntry {
   private:
     double value = 0.0;
   public:
-    using this_t = ConfigEntry_DoubleVar;
+    using this_t = ConfigEntry_Var<double>;
 
     template <typename... ARGS>
-    ConfigEntry_DoubleVar(const std::string & in_name, double default_val, ARGS &&... args)
+    ConfigEntry_Var(const std::string & in_name, double default_val, ARGS &&... args)
       : ConfigEntry(in_name, std::forward<ARGS>(args)...), value(default_val) { ; }
-    ConfigEntry_DoubleVar(const ConfigEntry_DoubleVar &) = default;
+    ConfigEntry_Var(const ConfigEntry_Var<double> &) = default;
 
     emp::Ptr<ConfigEntry> Clone() const override { return emp::NewPtr<this_t>(*this); }
 
@@ -285,18 +289,20 @@ namespace mabe {
 
     bool CopyValue(const ConfigEntry & in) override { value = in.AsDouble(); return true; }
   };
+  using ConfigEntry_DoubleVar = ConfigEntry_Var<double>;
 
   /// ConfigEntry as a temporary variable of type STRING.
-  class ConfigEntry_StringVar : public ConfigEntry {
+  template<>
+  class ConfigEntry_Var<std::string> : public ConfigEntry {
   private:
     std::string value;
   public:
-    using this_t = ConfigEntry_StringVar;
+    using this_t = ConfigEntry_Var<std::string>;
 
     template <typename... ARGS>
-    ConfigEntry_StringVar(const std::string & in_name, const std::string & in_val, ARGS &&... args)
+    ConfigEntry_Var(const std::string & in_name, const std::string & in_val, ARGS &&... args)
       : ConfigEntry(in_name, std::forward<ARGS>(args)...), value(in_val) { ; }
-    ConfigEntry_StringVar(const ConfigEntry_StringVar &) = default;
+    ConfigEntry_Var(const ConfigEntry_Var<std::string> &) = default;
 
     emp::Ptr<ConfigEntry> Clone() const override { return emp::NewPtr<this_t>(*this); }
 
@@ -309,7 +315,7 @@ namespace mabe {
 
     bool CopyValue(const ConfigEntry & in) override { value = in.AsString(); return true; }
   };
-
+  using ConfigEntry_StringVar = ConfigEntry_Var<std::string>;
 
   /// A ConfigEntry to transmit an error.  The description provides the error and the IsError() flag
   /// is set to true.
