@@ -1,5 +1,5 @@
 random_seed = 0;                        // Seed for random number generator; use 0 to base on time.
-Value num_bits = 200;
+Value num_bits = 20 * 10;
 
 Population main_pop;
 Population next_pop;
@@ -35,9 +35,11 @@ GrowthPlacement place_g = {             // Module to always appened births onto 
   to_pop = "next_pop";                  // Population to place offspring in (same as from_pop for continuous generations.)
 }
 
-BitOrg bit_org = {                      // Organism type
+BitsOrgManager bits_org_m = {           // Organism type
   N = num_bits;                         // Number of bits in organism
 }
 
-inject(bit_org, main_pop, 200);
-update(1000);
+// Setup Events.
+@0     inject(bit_org, main_pop, 200);
+@10:10 echo("Testing!");
+@1000  exit();
