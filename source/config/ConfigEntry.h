@@ -114,6 +114,7 @@ namespace mabe {
     /// Shift the current value to be the new default value.
     virtual void UpdateDefault() { default_val = ""; }
 
+    /// If this entry is a scope, we should be able to lookup other entries inside it.
     virtual emp::Ptr<ConfigEntry> LookupEntry(std::string in_name, bool scan_scopes=true) {
       return (in_name == "") ? this : nullptr;
     }
@@ -121,6 +122,9 @@ namespace mabe {
       return (in_name == "") ? this : nullptr;
     }
     virtual bool Has(std::string in_name) const { return (bool) LookupEntry(in_name); }
+
+    /// If this entry is a function, we should be able to call it.
+    virtual emp::Ptr<ConfigEntry> Call( emp::vector<emp::Ptr<ConfigEntry>> args );
 
     /// Allocate a duplicate of this class.
     virtual emp::Ptr<ConfigEntry> Clone() const = 0;
@@ -320,12 +324,26 @@ namespace mabe {
   /// A ConfigEntry to transmit an error.  The description provides the error and the IsError() flag
   /// is set to true.
   class ConfigEntry_Error : public ConfigEntry {
+  private:
+    using this_t = ConfigEntry_Error;
   public:
-    ConfigEntry_Error(const std::string & msg)
-      : ConfigEntry("Error", msg, nullptr) { ; }
+    template <typename... ARGS>
+    ConfigEntry_Error(ARGS &&... args)
+      : ConfigEntry("__Error", emp::to_string(args...), nullptr) { ; }
 
     bool IsError() const override { return true; }
+
+    emp::Ptr<ConfigEntry> Clone() const override { return emp::NewPtr<this_t>(*this); }
   };
+
+
+  ////////////////////////////////////////////////////
+  //  Function definitions...
+
+  emp::Ptr<ConfigEntry> ConfigEntry::Call( emp::vector<emp::Ptr<ConfigEntry>> args ) {
+    return emp::NewPtr<ConfigEntry_Error>("Cannot call a function on non-function '", name, "'.");
+  }
+
 }
 
 #endif
