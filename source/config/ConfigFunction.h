@@ -21,19 +21,33 @@
 
 namespace mabe {
 
-  class ConfigFunction {
+  class ConfigFunction : public ConfigEntry {
   private:
-    std::string name;
+    using this_t = ConfigFunction;
     using entry_ptr_t = emp::Ptr<ConfigEntry>;
     using fun_t = std::function< entry_ptr_t( const emp::vector<entry_ptr_t> & ) >;
     fun_t fun;
     size_t arg_count;
 
   public:
-    ConfigFunction(const std::string & in_name) : name(in_name) { }
+    ConfigFunction(const std::string & _name,
+                   const std::string & _desc,
+                   emp::Ptr<ConfigScope> _scope)
+      : ConfigEntry(_name, _desc, _scope) { ; }
 
     template <typename RETURN_T, typename... ARGS>
-    void AddFunction( std::function<RETURN_T(ARGS...)> in_fun ) override {
+    ConfigFunction(const std::string & _name,
+                   std::function<RETURN_T(ARGS...)> _fun,
+                   const std::string & _desc,
+                   emp::Ptr<ConfigScope> _scope)
+      : ConfigEntry(_name, _desc, _scope) { SetFunction(_fun); }
+
+    ConfigFunction(const ConfigFunction &) = default;
+
+    emp::Ptr<ConfigEntry> Clone() const override { return emp::NewPtr<this_t>(*this); }
+
+    template <typename RETURN_T, typename... ARGS>
+    void SetFunction( std::function<RETURN_T(ARGS...)> in_fun ) override {
       // Convert the function call to using entry pointers.
       fun = [in_fun](const emp::vector<entry_ptr_t> & args) {        
         // The call needs to have the correct number of arguments or else it throws an error.
