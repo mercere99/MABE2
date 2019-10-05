@@ -21,43 +21,38 @@
 
 namespace mabe {
 
-  class ConfigFunctionBase {
-  protected:
+  class ConfigFunction {
+  private:
     std::string name;
     using entry_ptr_t = emp::Ptr<ConfigEntry>;
-
-  public:
-    ConfigFunctionBase(const std::string & _name) : name(_name) { ; }
-
-    virtual entry_ptr_t Call( emp::vector<entry_ptr_t> args ) = 0;
-  };
-
-  template <typename RETURN, typename... ARGS>
-  class ConfigFunction : public ConfigFunctionBase {
-  private:
-    using fun_t = std::function<RETURN(ARGS...)>;
+    using fun_t = std::function< entry_ptr_t( const emp::vector<entry_ptr_t> & ) >;
     fun_t fun;
+    size_t arg_count;
 
   public:
-    ConfigFunction(fun_t _fun) : fun(_fun) { }
+    ConfigFunction(const std::string & in_name) : name(in_name) { }
 
-    entry_ptr_t Call( emp::vector<entry_ptr_t> args ) override {
-      constexpr int NUM_ARGS = sizeof...(ARGS);
+    template <typename RETURN_T, typename... ARGS>
+    void AddFunction( std::function<RETURN_T(ARGS...)> in_fun ) override {
+      // Convert the function call to using entry pointers.
+      fun = [in_fun](const emp::vector<entry_ptr_t> & args) {        
+        // The call needs to have the correct number of arguments or else it throws an error.
+        constexpr int NUM_ARGS = sizeof...(ARGS);
+        if (args.size() != NUM_ARGS) {
+          std::stringstream msg;
+          msg << "Function '" << name << "' called with " << args.size()
+            << " args, but expected " << NUM_ARGS << ".";
+          return emp::NewPtr<ConfigEntry_Error>(msg.str());
+        }
 
-      // The call needs to have the correct number of arguments or else it throws an error.
-      if (args.size() != NUM_ARGS) {
-        std::stringstream msg;
-        msg << "Function '" << name << "' called with " << args.size()
-           << " args, but expected " << NUM_ARGS << ".";
-        return emp::NewPtr<ConfigEntry_Error>(msg.str());
-      }
-
-      // Otherwise do the function call with the appropriate types!
-
-      // Convert the vector into a tuple.
-      size_t i = 0;
-      auto result = fun(args[i++].As<ARGS>()...);
+        size_t i = 0;
+        RETURN_T result = fun(args[i++].As<ARGS>()...);
+        return emp::NewPtr<ConfigEntry_Var<RETURN_T>>(result)
+      };
     }
+
+    entry_ptr_t Call( emp::vector<entry_ptr_t> args ) { return fun(args); }
+
   };
 
 }
