@@ -14,14 +14,17 @@
 #include "base/map.h"
 
 #include "ConfigEntry.h"
+#include "ConfigFunction.h"
 
 namespace mabe {
 
   // Set of multiple config entries.
   class ConfigScope : public ConfigEntry {
   protected:
-    emp::vector< emp::Ptr<ConfigEntry> > entry_list;           ///< Entries in order.
-    emp::map< std::string, emp::Ptr<ConfigEntry> > entry_map;  ///< Entries with easy lookup.
+    using entry_ptr_t = emp::Ptr<ConfigEntry>;
+    emp::vector< entry_ptr_t > entry_list;            ///< Entries in order.
+    emp::vector< entry_ptr_t > builtin_list;          ///< Built-in entries; not in config.
+    emp::map< std::string, entry_ptr_t > entry_map;   ///< Entries with easy lookup.
 
     ///< If this scope represents a structure, identify the type (otherwise type is "")
     const std::string type;
@@ -33,6 +36,14 @@ namespace mabe {
       entry_map[name] = new_ptr;
       return *new_ptr;
     }
+
+    template <typename T, typename... ARGS>
+    T & AddBuiltin(const std::string & name, ARGS &&... args) {
+      auto new_ptr = emp::NewPtr<T>(name, std::forward<ARGS>(args)...);
+      builtin_list.push_back(new_ptr);
+      entry_map[name] = new_ptr;
+      return *new_ptr;
+    }
   public:
     ConfigScope(const std::string & _name,
                 const std::string & _desc,
@@ -40,17 +51,25 @@ namespace mabe {
                 const std::string & _type="")
       : ConfigEntry(_name, _desc, _scope), type(_type) { }
     ConfigScope(const ConfigScope & in) : ConfigEntry(in) {
+      // Copy all defined variables/scopes/functions
       for (const auto & x : in.entry_list) {
         auto new_ptr = x->Clone();
         entry_list.push_back(new_ptr);
+        entry_map[x->GetName()] = new_ptr;
+      }
+      // Copy all built-in variables/scopes/functions
+      for (const auto & x : in.builtin_list) {
+        auto new_ptr = x->Clone();
+        builtin_list.push_back(new_ptr);
         entry_map[x->GetName()] = new_ptr;
       }
     }
     ConfigScope(ConfigScope &&) = default;
 
     ~ConfigScope() {
-      // Clear up all entries.
+      // Clear up all entries and built-ins.
       for (auto & x : entry_list) { x.Delete(); }
+      for (auto & x : builtin_list) { x.Delete(); }
     }
 
     bool IsScope() const override { return true; }
@@ -66,7 +85,7 @@ namespace mabe {
     }
 
     /// Get an entry out of this scope; 
-    emp::Ptr<ConfigEntry> GetEntry(std::string in_name) {
+    entry_ptr_t GetEntry(std::string in_name) {
       // Lookup this next entry is in the var list.
       auto it = entry_map.find(in_name);
 
@@ -78,7 +97,7 @@ namespace mabe {
     }
 
     /// Lookup a variable, scanning outer scopes if needed
-    emp::Ptr<ConfigEntry> LookupEntry(std::string in_name, bool scan_scopes=true) override {
+    entry_ptr_t LookupEntry(std::string in_name, bool scan_scopes=true) override {
       // See if this next entry is in the var list.
       auto it = entry_map.find(in_name);
 
@@ -177,7 +196,7 @@ namespace mabe {
     }
 
     /// Make a copy of this scope and all of the entries inside it.
-    emp::Ptr<ConfigEntry> Clone() const override { return emp::NewPtr<ConfigScope>(*this); }
+    entry_ptr_t Clone() const override { return emp::NewPtr<ConfigScope>(*this); }
   };
 
 }
