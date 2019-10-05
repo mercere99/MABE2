@@ -46,10 +46,12 @@ namespace mabe {
 
     emp::Ptr<ConfigEntry> Clone() const override { return emp::NewPtr<this_t>(*this); }
 
+    bool IsFunction() const override { return true; }
+
     template <typename RETURN_T, typename... ARGS>
-    void SetFunction( std::function<RETURN_T(ARGS...)> in_fun ) override {
+    void SetFunction( std::function<RETURN_T(ARGS...)> in_fun ) {
       // Convert the function call to using entry pointers.
-      fun = [in_fun](const emp::vector<entry_ptr_t> & args) {        
+      fun = [this, in_fun](const emp::vector<entry_ptr_t> & args) {        
         // The call needs to have the correct number of arguments or else it throws an error.
         constexpr int NUM_ARGS = sizeof...(ARGS);
         if (args.size() != NUM_ARGS) {
@@ -60,8 +62,8 @@ namespace mabe {
         }
 
         size_t i = 0;
-        RETURN_T result = fun(args[i++].As<ARGS>()...);
-        return emp::NewPtr<ConfigEntry_Var<RETURN_T>>(result)
+        RETURN_T result = in_fun(args[i++]->As<ARGS>()...);
+        return emp::NewPtr<ConfigEntry_Var<RETURN_T>>(result);
       };
     }
 
