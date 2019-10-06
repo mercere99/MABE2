@@ -136,6 +136,24 @@ namespace mabe {
     }
   };
 
+  class ASTNode_Call : public ASTNode_Internal {
+  public:
+    entry_ptr_t Process() override {
+      emp_assert(children.size() >= 1);
+      entry_ptr_t fun = children[0]->Process();
+
+      // Collect all arguments and call
+      emp::vector<entry_ptr_t> args;
+      for (size_t i = 1; i < children.size(); i++) {
+        args.push_back(children[i]->Process());
+      }
+      entry_ptr_t result = fun->Call(args);
+
+      // Cleanup and return
+      for (auto arg : args) if (arg->IsTemporary()) arg.Delete();
+      return result;
+    }
+  }
 }
 
 #endif
