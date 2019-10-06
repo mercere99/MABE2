@@ -82,6 +82,17 @@ namespace mabe {
     entry_ptr_t Process() override { return entry_ptr; };
   };
 
+  class ASTNode_Block : public ASTNode_Internal {
+  public:
+    entry_ptr_t Process() override {
+      for (auto node : children) {
+        entry_ptr_t out = node->Process();
+        if (out && out->IsTemporary()) out.Delete();
+      }
+      return nullptr;
+    }
+  };
+
   class ASTNode_UnaryMath : public ASTNode_Internal {
   protected:
     // A unary operator take in a double and returns another one.
