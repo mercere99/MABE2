@@ -89,7 +89,7 @@ namespace mabe {
   public:
     entry_ptr_t Process() override {
       emp_assert(children.size() == 1);
-      entry_ptr_t input_entry = children[0]->Process();    // Process child to get input entry
+      entry_ptr_t input_entry = children[0]->Process();     // Process child to get input entry
       double output_value = fun(input_entry->AsDouble());   // Run the function to get ouput value
       if (input_entry->IsTemporary()) input_entry.Delete(); // If we are done with input; delete!
       return MakeTempDouble(output_value);
@@ -109,6 +109,19 @@ namespace mabe {
       if (in1->IsTemporary()) in1.Delete();                   // If we are done with in1; delete!
       if (in2->IsTemporary()) in2.Delete();                   // If we are done with in2; delete!
       return MakeTempDouble(out_val);
+    }
+  };
+
+  class ASTNode_Assign : public ASTNode_Internal {
+  public:
+    entry_ptr_t Process() override {
+      emp_assert(children.size() == 2);
+      entry_ptr_t lhs = children[0]->Process();  // Determine the left-hand-side value.
+      entry_ptr_t rhs = children[1]->Process();  // Determine the right-hand-side value.
+      // @CAO Should make sure that lhs is properly assignable.
+      lhs->CopyValue(*rhs);
+      if (rhs->IsTemporary()) rhs.Delete();
+      return lhs;
     }
   };
 
