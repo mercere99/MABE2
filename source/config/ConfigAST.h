@@ -22,7 +22,7 @@ namespace mabe {
   /// Base class for all AST Nodes.
   class ASTNode {
   protected:
-    using config_ptr_t = emp::Ptr<ConfigEntry>;
+    using entry_ptr_t = emp::Ptr<ConfigEntry>;
 
     // Helper functions.
     emp::Ptr<ConfigEntry_DoubleVar> MakeTempDouble(double val) {
@@ -46,7 +46,7 @@ namespace mabe {
     virtual size_t GetNumChildren() { return 0; }
     virtual emp::Ptr<ASTNode> GetChild(size_t id) { emp_assert(false); return nullptr; }
 
-    virtual config_ptr_t Process() = 0;
+    virtual entry_ptr_t Process() = 0;
   };
 
   /// An ASTNode representing an internal node.
@@ -71,15 +71,15 @@ namespace mabe {
   /// An ASTNode representing a leaf in the tree (i.e., a variable or literal)
   class ASTNode_Leaf : public ASTNode {
   protected:
-    config_ptr_t entry_ptr;
+    entry_ptr_t entry_ptr;
 
   public:
-    ASTNode_Leaf(config_ptr_t _ptr) : entry_ptr(_ptr) { ; }
+    ASTNode_Leaf(entry_ptr_t _ptr) : entry_ptr(_ptr) { ; }
     ~ASTNode_Leaf() { /* All entries should be deleted in Config... */ }
 
     bool IsLeaf() override { return true; }
 
-    config_ptr_t Process() override { return entry_ptr; };
+    entry_ptr_t Process() override { return entry_ptr; };
   };
 
   class ASTNode_UnaryMath : public ASTNode_Internal {
@@ -87,14 +87,30 @@ namespace mabe {
     // A unary operator take in a double and returns another one.
     std::function< double(double) > fun;
   public:
-    config_ptr_t Process() override {
-      emp_assert(children.size() = 1);
-      config_ptr_t input_entry = children[0]->Process();    // Process child to get input entry
+    entry_ptr_t Process() override {
+      emp_assert(children.size() == 1);
+      entry_ptr_t input_entry = children[0]->Process();    // Process child to get input entry
       double output_value = fun(input_entry->AsDouble());   // Run the function to get ouput value
       if (input_entry->IsTemporary()) input_entry.Delete(); // If we are done with input; delete!
       return MakeTempDouble(output_value);
     }
-  }
+  };
+
+  class ASTNode_BinaryMath : public ASTNode_Internal {
+  protected:
+    // A binary operator takes in two doubles and returns a third.
+    std::function< double(double, double) > fun;
+  public:
+    entry_ptr_t Process() override {
+      emp_assert(children.size() == 2);
+      entry_ptr_t in1 = children[0]->Process();               // Process 1st child to input entry
+      entry_ptr_t in2 = children[1]->Process();               // Process 2nd child to input entry
+      double out_val = fun(in1->AsDouble(), in2->AsDouble()); // Run function; get ouput
+      if (in1->IsTemporary()) in1.Delete();                   // If we are done with in1; delete!
+      if (in2->IsTemporary()) in2.Delete();                   // If we are done with in2; delete!
+      return MakeTempDouble(out_val);
+    }
+  };
 
 }
 
