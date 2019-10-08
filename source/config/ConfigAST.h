@@ -38,12 +38,14 @@ namespace mabe {
     }
   public:
     ASTNode() { ; }
-    ~ASTNode() { ; }
+    virtual ~ASTNode() { ; }
 
-    virtual bool IsLeaf() { return false; }
-    virtual bool IsInternal() { return false; }
+    virtual const std::string & GetName() const = 0;
 
-    virtual size_t GetNumChildren() { return 0; }
+    virtual bool IsLeaf() const { return false; }
+    virtual bool IsInternal() const { return false; }
+
+    virtual size_t GetNumChildren() const { return 0; }
     virtual emp::Ptr<ASTNode> GetChild(size_t id) { emp_assert(false); return nullptr; }
 
     virtual entry_ptr_t Process() = 0;
@@ -52,17 +54,20 @@ namespace mabe {
   /// An ASTNode representing an internal node.
   class ASTNode_Internal : public ASTNode {
   protected:
+    std::string name;
     emp::vector< emp::Ptr<ASTNode> > children;
 
   public:
-    ASTNode_Internal() { }
+    ASTNode_Internal(const std::string & _name="") : name (_name) { }
     ~ASTNode_Internal() { 
       for (auto child : children) child.Delete();
     }
 
-    bool IsInternal() override { return true; }
+    const std::string & GetName() const override { return name; }
 
-    size_t GetNumChildren() override { return children.size(); }
+    bool IsInternal() const override { return true; }
+
+    size_t GetNumChildren() const override { return children.size(); }
     emp::Ptr<ASTNode> GetChild(size_t id) override { return children[id]; }
 
     void AddChild(emp::Ptr<ASTNode> child) { children.push_back(child); }
@@ -75,9 +80,11 @@ namespace mabe {
 
   public:
     ASTNode_Leaf(entry_ptr_t _ptr) : entry_ptr(_ptr) { ; }
-    ~ASTNode_Leaf() { /* All entries should be deleted in Config... */ }
+    ~ASTNode_Leaf() { entry_ptr.Delete(); }
 
-    bool IsLeaf() override { return true; }
+    const std::string & GetName() const override { return entry_ptr->GetName(); }
+
+    bool IsLeaf() const override { return true; }
 
     entry_ptr_t Process() override { return entry_ptr; };
   };
@@ -153,7 +160,8 @@ namespace mabe {
       for (auto arg : args) if (arg->IsTemporary()) arg.Delete();
       return result;
     }
-  }
+  };
+
 }
 
 #endif
