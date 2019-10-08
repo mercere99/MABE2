@@ -78,6 +78,8 @@
 #include "ConfigLexer.h"
 #include "ConfigScope.h"
 #include "ConfigType.h"
+#include "ConfigFunction.h"
+#include "ConfigAST.h"
 
 namespace mabe {
 
@@ -89,12 +91,13 @@ namespace mabe {
     };
 
   protected:
-    std::string filename;             ///< Source for for code to generate.
-    ConfigLexer lexer;                ///< Lexer to process input code.
-    emp::vector<emp::Token> tokens;   ///< Tokenized version of input file.
-    bool debug = true;                ///< Should we print full debug information?
+    std::string filename;               ///< Source for for code to generate.
+    ConfigLexer lexer;                  ///< Lexer to process input code.
+    emp::vector<emp::Token> tokens;     ///< Tokenized version of input file.
+    emp::Ptr<ASTNode_Block> ast_block;  ///< Abstract syntax tree version of input file.
+    bool debug = true;                  ///< Should we print full debug information?
 
-    ConfigScope root_scope;           ///< All variables from the root level.
+    ConfigScope root_scope;             ///< All variables from the root level.
 
     /// A map of all types available in the script.
     std::unordered_map<std::string, TypeInfo> type_map;
@@ -171,24 +174,21 @@ namespace mabe {
     /// Load a variable name from the provided scope.
     /// If create_ok is true, create any variables that we don't find.  Otherwise continue the
     /// search for them in successively outer (lower) scopes.
-    emp::Ptr<ConfigEntry> ParseVar(size_t & pos,
+    emp::Ptr<ASTNode_Leaf> ParseVar(size_t & pos,
                                    ConfigScope & cur_scope,
                                    bool create_ok=false,
                                    bool scan_scopes=true);
 
     /// Load a value from the provided scope, which can come from a variable or a literal.
-    /// NOTE: May create temporary ConfigEntries that need to be cleaned up by receiver!
-    emp::Ptr<ConfigEntry> ParseValue(size_t & pos, ConfigScope & cur_scope);
+    emp::Ptr<ASTNode_Leaf> ParseValue(size_t & pos, ConfigScope & cur_scope);
 
     /// Calculate the result of the provided operation on two computed entries.
-    /// NOTE: WILL create a temporary ConfigEntry to store the result in.
-    emp::Ptr<ConfigEntry> ProcessOperation(const std::string & symbol,
-                                           emp::Ptr<ConfigEntry> value1,
-                                           emp::Ptr<ConfigEntry> value2);
+    emp::Ptr<ASTNode> ProcessOperation(const std::string & symbol,
+                                       emp::Ptr<ASTNode> value1,
+                                       emp::Ptr<ASTNode> value2);
 
     /// Calculate a full expression found in a token sequence, using the provided scope.
-    /// NOTE: May create temporary ConfigEntries that need to be cleaned up by receiver!
-    emp::Ptr<ConfigEntry> ParseExpression(size_t & pos, ConfigScope & cur_scope, size_t prec_limit=1000);
+    emp::Ptr<ASTNode> ParseExpression(size_t & pos, ConfigScope & cur_scope, size_t prec_limit=1000);
 
     /// Parse the declaration of a variable.
     void ParseDeclaration(size_t & pos, ConfigScope & scope);
@@ -198,12 +198,20 @@ namespace mabe {
 
     /// Parse the next input in the specified Struct.  A statement can be a variable declaration,
     /// an expression, or an event.
-    void ParseStatement(size_t & pos, ConfigScope & scope);
+    emp::Ptr<ASTNode> ParseStatement(size_t & pos, ConfigScope & scope);
 
     /// Keep parsing statments until there aren't any more or we leave this scope. 
-    void ParseStatementList(size_t & pos, ConfigScope & scope) {
+    emp::Ptr<ASTNode_Block> ParseStatementList(size_t & pos, ConfigScope & scope) {
       Debug("Running ParseStatementList(", pos, ":('", AsLexeme(pos), "'),", scope.GetName(), ")");
-      while (pos < tokens.size() && AsChar(pos) != '}') ParseStatement(pos, scope);
+      auto ast_block = emp::NewPtr<ASTNode_Block>();
+      while (pos < tokens.size() && AsChar(pos) != '}') {
+        // Parse each statement in the file.
+        emp::Ptr<ASTNode> statement_node = ParseStatement(pos, scope);
+
+        // If the current statement is real, add it to the current block.
+        if (!statement_node.IsNull()) ast_block->AddChild( statement_node );
+      }
+      return ast_block;
     }
 
   public:
@@ -224,6 +232,10 @@ namespace mabe {
       precedence_map["*"] = precedence_map["/"] = precedence_map["%"] = 0;
       precedence_map["+"] = precedence_map["-"] = 1;
       precedence_map["&&"] = precedence_map["||"] = 2;
+    }
+
+    ~Config() {
+      ast_block.Delete();  // Cleanup the abstract syntax tree.
     }
 
     /// To add a type, provide the type name (that can be referred to in a script) and a function
@@ -254,7 +266,13 @@ namespace mabe {
       tokens = lexer.Tokenize(file);          // Convert to more-usable tokens.
       file.close();                           // Close the file (now that it's converted)
       size_t pos = 0;                         // Start at the beginning of the file.
-      ParseStatementList(pos, root_scope); // Process, starting from the outer scope.
+
+      // Parse and run the program, starting from the outer scope.
+      auto cur_ast_block = ParseStatementList(pos, root_scope);
+      cur_ast_block->Process();
+
+      // Store this AST onto the full set we're working with.
+      ast_block->AddChild(cur_ast_block);
     }
 
     // Sequentially load a series of configuration files.
@@ -279,7 +297,7 @@ namespace mabe {
 
 
   // Load a variable name from the provided scope.
-  emp::Ptr<ConfigEntry> Config::ParseVar(size_t & pos,
+  emp::Ptr<ASTNode_Leaf> Config::ParseVar(size_t & pos,
                                            ConfigScope & cur_scope,
                                            bool create_ok, bool scan_scopes)
   {
@@ -315,26 +333,26 @@ namespace mabe {
     }
 
     // If this variable just provided a scope, keep going.
-    if (IsDots(pos)) cur_entry = ParseVar(pos, cur_scope, create_ok, false);
+    if (IsDots(pos)) return ParseVar(pos, cur_entry->AsScope(), create_ok, false);
 
-    // Return the variable!
-    return cur_entry;
+    // Otherwise return the variable as a leaf!
+    return emp::NewPtr<ASTNode_Leaf>(cur_entry);
   }
 
-  emp::Ptr<ConfigEntry_DoubleVar> MakeTempDouble(double val) {
-    auto out_ptr = emp::NewPtr<ConfigEntry_DoubleVar>("temp", val, "double", nullptr);
+  emp::Ptr<ASTNode_Leaf> MakeTempDouble(double val) {
+    auto out_ptr = emp::NewPtr<ConfigEntry_DoubleVar>("temp", val, "Temporary double", nullptr);
     out_ptr->SetTemporary();
-    return out_ptr;    
+    return emp::NewPtr<ASTNode_Leaf>(out_ptr);
   }
 
-  emp::Ptr<ConfigEntry_StringVar> MakeTempString(const std::string & val) {
-    auto out_ptr = emp::NewPtr<ConfigEntry_StringVar>("temp", val, "double", nullptr);
+  emp::Ptr<ASTNode_Leaf> MakeTempString(const std::string & val) {
+    auto out_ptr = emp::NewPtr<ConfigEntry_StringVar>("temp", val, "Temporary string", nullptr);
     out_ptr->SetTemporary();
-    return out_ptr;    
+    return emp::NewPtr<ASTNode_Leaf>(out_ptr);
   }
 
   // Load a value from the provided scope, which can come from a variable or a literal.
-  emp::Ptr<ConfigEntry> Config::ParseValue(size_t & pos, ConfigScope & cur_scope) {
+  emp::Ptr<ASTNode_Leaf> Config::ParseValue(size_t & pos, ConfigScope & cur_scope) {
     Debug("Running ParseValue(", pos, ":('", AsLexeme(pos), "'),", cur_scope.GetName(), ")");
 
     // Anything that begins with an identifier or dots must represent a variable.  Refer!
@@ -367,61 +385,63 @@ namespace mabe {
   }
 
   // Process a single provided operation on two ConfigEntry objects.
-  emp::Ptr<ConfigEntry> Config::ProcessOperation(const std::string & symbol,
-                                                 emp::Ptr<ConfigEntry> value1,
-                                                 emp::Ptr<ConfigEntry> value2)
+  emp::Ptr<ASTNode> Config::ProcessOperation(const std::string & symbol,
+                                                 emp::Ptr<ASTNode> in_node1,
+                                                 emp::Ptr<ASTNode> in_node2)
   {
-    emp::Ptr<ConfigEntry> out_value = nullptr;
+    emp_assert(!in_node1.IsNull());
+    emp_assert(!in_node2.IsNull());
+
+    emp::Ptr<ASTNode_Math2> out_value = emp::NewPtr<ASTNode_Math2>();
 
     // If both values are numeric, act on the math operator.
-    if (value1->IsNumeric() && value2->IsNumeric()) {
-      double val1 = value1->AsDouble();
-      double val2 = value2->AsDouble();
+// if (in_node1->IsNumeric() && in_node2->IsNumeric()) {
+//   double val1 = in_node1->AsDouble();
+//   double val2 = in_node2->AsDouble();
+// }
 
-      // Determine the output value and put it in a temporary node.
-      if (symbol == "+") out_value = MakeTempDouble(val1 + val2);
-      if (symbol == "-") out_value = MakeTempDouble(val1 - val2);
-      if (symbol == "*") out_value = MakeTempDouble(val1 * val2);
-      if (symbol == "/") out_value = MakeTempDouble(val1 / val2);
-      if (symbol == "%") out_value = MakeTempDouble(((size_t) val1) % ((size_t) val2));
-      if (symbol == "&&") out_value = MakeTempDouble(val1 && val2);
-      if (symbol == "||") out_value = MakeTempDouble(val1 || val2);
-    }
+    // Determine the output value and put it in a temporary node.
+    std::function<double(double,double)> fun;
+    if (symbol == "+") fun = [](double val1, double val2){ return val1 + val2; };
+    if (symbol == "-") fun = [](double val1, double val2){ return val1 - val2; };
+    if (symbol == "*") fun = [](double val1, double val2){ return val1 * val2; };
+    if (symbol == "/") fun = [](double val1, double val2){ return val1 / val2; };
+    if (symbol == "%") fun = [](double val1, double val2){ return ((size_t) val1) % ((size_t) val2); };
+    if (symbol == "&&") fun = [](double val1, double val2){ return val1 && val2; };
+    if (symbol == "||") fun = [](double val1, double val2){ return val1 || val2; };
 
-    // @CAO: Need to produce a semantic error out if the types don't work...
+    out_value->SetFun(fun);
+    out_value->AddChild(in_node1);
+    out_value->AddChild(in_node2);
 
     return out_value;
   }
                                       
 
   // Calculate an expression in the provided scope.
-  emp::Ptr<ConfigEntry> Config::ParseExpression(size_t & pos, ConfigScope & scope, size_t prec_limit) {
+  emp::Ptr<ASTNode> Config::ParseExpression(size_t & pos, ConfigScope & scope, size_t prec_limit) {
     Debug("Running ParseExpression(", pos, ":('", AsLexeme(pos), "'),", scope.GetName(), ")");
 
     // @CAO Should test for unary operators at the beginning of an expression.
 
-    emp::Ptr<ConfigEntry> cur_value = ParseValue(pos, scope);
+    emp::Ptr<ASTNode> cur_node = ParseValue(pos, scope);
     std::string symbol = AsLexeme(pos);
     while ( emp::Has(precedence_map, symbol) && precedence_map[symbol] < prec_limit ) {
       pos++;
-      emp::Ptr<ConfigEntry> value2 = ParseExpression(pos, scope, precedence_map[symbol]);
-      emp::Ptr<ConfigEntry> op_result = ProcessOperation(symbol, cur_value, value2);
+      emp::Ptr<ASTNode> node2 = ParseExpression(pos, scope, precedence_map[symbol]);
+      emp::Ptr<ASTNode> result_node = ProcessOperation(symbol, cur_node, node2);
 
-      // Clean up existing values.
-      if (cur_value->IsTemporary()) cur_value.Delete();
-      if (value2->IsTemporary()) value2.Delete();
-
-      // Move the current value over to cur_value and check if we have a new symbol...
-      cur_value = op_result;
+      // Move the current value over to cur_node and check if we have a new symbol...
+      cur_node = result_node;
       symbol = AsLexeme(pos);
     }
 
-    emp_assert(!cur_value.IsNull());
-    return cur_value;
+    emp_assert(!cur_node.IsNull());
+    return cur_node;
   }
 
   // Parse an the declaration of a variable.
-  // NOTE: pos will move past type, but not variable name so that it can be used in an assignment.
+  // NOTE: pos will move past type, but not variable name so that it can be used in an expression.
   void Config::ParseDeclaration(size_t & pos, ConfigScope & scope) {
     std::string type_name = AsLexeme(pos++);
     RequireID(pos, "Type name '", type_name, "' must be followed by variable to declare.");
@@ -453,11 +473,11 @@ namespace mabe {
   }
 
   // Process the next input in the specified Struct.
-  void Config::ParseStatement(size_t & pos, ConfigScope & scope) {
+  emp::Ptr<ASTNode> Config::ParseStatement(size_t & pos, ConfigScope & scope) {
     Debug("Running ParseStatement(", pos, ":('", AsLexeme(pos), "'),", scope.GetName(), ")");
 
     // Allow a statement with an empty line.
-    if (AsChar(pos) == ';') { pos++; return; }
+    if (AsChar(pos) == ';') { pos++; return nullptr; }
 
     // Allow this statement to be a declaration if it begins with a type.
     if (IsType(pos)) {
@@ -466,28 +486,33 @@ namespace mabe {
       // If the next symbol is a ';' this is a declaration without an assignment.
       if (AsChar(pos+1) == ';') {
         pos += 2;  // Skip the identifier and the semi-colon.
-        return;    // We are done!
+        return nullptr;    // We are done!
       }
     }
 
     // If we made it here, remainder should have the basic structure: VAR = VALUE ;
-    emp::Ptr<ConfigEntry> lhs = ParseVar(pos, scope, true, false);
+    emp::Ptr<ASTNode_Leaf> lhs = ParseVar(pos, scope, true, false);
     RequireChar('=', pos++, "Expected '=' after variable '", lhs->GetName(), "' for assignment.");
 
-    // If LHS is a scope, collect scope information.
-    if (lhs->IsScope()) {
-      RequireChar('{', pos++, "Expected scope '", lhs->GetName(), "' to be set to a literal scope.");
-      ParseStatementList(pos, lhs->AsScope());
-      RequireChar('}', pos++, "Expected scope '", lhs->GetName(), "' to end with a '}'.");
-    } else {
-      emp::Ptr<ConfigEntry> rhs = ParseExpression(pos, scope);
-      RequireChar(';', pos++, "Expected ';' at the end of a statement.");
-      lhs->CopyValue(*rhs);
+    emp::Ptr<ASTNode> out_node = nullptr;
 
-      // If the RHS is a temporary, delete it!
-      if (rhs->IsTemporary()) rhs.Delete();
+    // If LHS is a scope, collect scope information.
+    ConfigEntry & lhs_entry = lhs->GetEntry();
+    if (lhs_entry.IsScope()) {
+      RequireChar('{', pos++, "Expected scope '", lhs->GetName(), "' to be set to a literal scope.");
+      out_node = ParseStatementList(pos, lhs_entry.AsScope());
+      RequireChar('}', pos++, "Expected scope '", lhs->GetName(), "' to end with a '}'.");
+    }
+    
+    // Otherwise assume that a value of some kind is being asigned.
+    else {
+      emp::Ptr<ASTNode> rhs = ParseExpression(pos, scope);
+      RequireChar(';', pos++, "Expected ';' at the end of a statement.");
+
+      out_node = emp::NewPtr<ASTNode_Assign>(lhs, rhs);
     }
 
+    return out_node;
   }
 
 }
