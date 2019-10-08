@@ -80,9 +80,10 @@ namespace mabe {
 
   public:
     ASTNode_Leaf(entry_ptr_t _ptr) : entry_ptr(_ptr) { ; }
-    ~ASTNode_Leaf() { entry_ptr.Delete(); }
+    ~ASTNode_Leaf() { if (entry_ptr->IsTemporary()) entry_ptr.Delete(); }
 
     const std::string & GetName() const override { return entry_ptr->GetName(); }
+    ConfigEntry & GetEntry() { return *entry_ptr; }
 
     bool IsLeaf() const override { return true; }
 
@@ -100,11 +101,14 @@ namespace mabe {
     }
   };
 
-  class ASTNode_UnaryMath : public ASTNode_Internal {
+  /// Unary mathematical operations.
+  class ASTNode_Math1 : public ASTNode_Internal {
   protected:
     // A unary operator take in a double and returns another one.
     std::function< double(double) > fun;
   public:
+    void SetFun(std::function< double(double) > _fun) { fun = _fun; }
+
     entry_ptr_t Process() override {
       emp_assert(children.size() == 1);
       entry_ptr_t input_entry = children[0]->Process();     // Process child to get input entry
@@ -114,11 +118,14 @@ namespace mabe {
     }
   };
 
-  class ASTNode_BinaryMath : public ASTNode_Internal {
+  /// Binary mathematical operations.
+  class ASTNode_Math2 : public ASTNode_Internal {
   protected:
     // A binary operator takes in two doubles and returns a third.
     std::function< double(double, double) > fun;
   public:
+    void SetFun(std::function< double(double, double) > _fun) { fun = _fun; }
+
     entry_ptr_t Process() override {
       emp_assert(children.size() == 2);
       entry_ptr_t in1 = children[0]->Process();               // Process 1st child to input entry
@@ -132,6 +139,11 @@ namespace mabe {
 
   class ASTNode_Assign : public ASTNode_Internal {
   public:
+    ASTNode_Assign(emp::Ptr<ASTNode> lhs, emp::Ptr<ASTNode> rhs) {
+      AddChild(lhs);
+      AddChild(rhs);
+    }
+
     entry_ptr_t Process() override {
       emp_assert(children.size() == 2);
       entry_ptr_t lhs = children[0]->Process();  // Determine the left-hand-side value.
