@@ -174,21 +174,21 @@ namespace mabe {
     /// Load a variable name from the provided scope.
     /// If create_ok is true, create any variables that we don't find.  Otherwise continue the
     /// search for them in successively outer (lower) scopes.
-    emp::Ptr<ASTNode_Leaf> ParseVar(size_t & pos,
-                                   ConfigScope & cur_scope,
-                                   bool create_ok=false,
-                                   bool scan_scopes=true);
+    [[nodiscard]] emp::Ptr<ASTNode_Leaf> ParseVar(size_t & pos,
+                                                   ConfigScope & cur_scope,
+                                                   bool create_ok=false,
+                                                   bool scan_scopes=true);
 
     /// Load a value from the provided scope, which can come from a variable or a literal.
-    emp::Ptr<ASTNode_Leaf> ParseValue(size_t & pos, ConfigScope & cur_scope);
+    [[nodiscard]] emp::Ptr<ASTNode_Leaf> ParseValue(size_t & pos, ConfigScope & cur_scope);
 
     /// Calculate the result of the provided operation on two computed entries.
-    emp::Ptr<ASTNode> ProcessOperation(const std::string & symbol,
+    [[nodiscard]] emp::Ptr<ASTNode> ProcessOperation(const std::string & symbol,
                                        emp::Ptr<ASTNode> value1,
                                        emp::Ptr<ASTNode> value2);
 
     /// Calculate a full expression found in a token sequence, using the provided scope.
-    emp::Ptr<ASTNode> ParseExpression(size_t & pos, ConfigScope & cur_scope, size_t prec_limit=1000);
+    [[nodiscard]] emp::Ptr<ASTNode> ParseExpression(size_t & pos, ConfigScope & cur_scope, size_t prec_limit=1000);
 
     /// Parse the declaration of a variable.
     void ParseDeclaration(size_t & pos, ConfigScope & scope);
@@ -198,10 +198,10 @@ namespace mabe {
 
     /// Parse the next input in the specified Struct.  A statement can be a variable declaration,
     /// an expression, or an event.
-    emp::Ptr<ASTNode> ParseStatement(size_t & pos, ConfigScope & scope);
+    [[nodiscard]] emp::Ptr<ASTNode> ParseStatement(size_t & pos, ConfigScope & scope);
 
     /// Keep parsing statments until there aren't any more or we leave this scope. 
-    emp::Ptr<ASTNode_Block> ParseStatementList(size_t & pos, ConfigScope & scope) {
+    [[nodiscard]] emp::Ptr<ASTNode_Block> ParseStatementList(size_t & pos, ConfigScope & scope) {
       Debug("Running ParseStatementList(", pos, ":('", AsLexeme(pos), "'),", scope.GetName(), ")");
       auto ast_block = emp::NewPtr<ASTNode_Block>();
       while (pos < tokens.size() && AsChar(pos) != '}') {
@@ -502,6 +502,7 @@ namespace mabe {
       RequireChar('{', pos++, "Expected scope '", lhs->GetName(), "' to be set to a literal scope.");
       out_node = ParseStatementList(pos, lhs_entry.AsScope());
       RequireChar('}', pos++, "Expected scope '", lhs->GetName(), "' to end with a '}'.");
+      lhs.Delete();
     }
     
     // Otherwise assume that a value of some kind is being asigned.
