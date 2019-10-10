@@ -190,8 +190,8 @@ namespace mabe {
     /// Calculate a full expression found in a token sequence, using the provided scope.
     [[nodiscard]] emp::Ptr<ASTNode> ParseExpression(size_t & pos, ConfigScope & cur_scope, size_t prec_limit=1000);
 
-    /// Parse the declaration of a variable.
-    void ParseDeclaration(size_t & pos, ConfigScope & scope);
+    /// Parse the declaration of a variable and return the newly created ConfigEntry
+    ConfigEntry & ParseDeclaration(size_t & pos, ConfigScope & scope);
 
     /// Parse an event description.
     void ParseEvent(size_t & pos, ConfigScope & scope);
@@ -233,7 +233,11 @@ namespace mabe {
       precedence_map["("] = cur_prec++;
       precedence_map["*"] = precedence_map["/"] = precedence_map["%"] = cur_prec++;
       precedence_map["+"] = precedence_map["-"] = cur_prec++;
-      precedence_map["&&"] = precedence_map["||"] = cur_prec++;
+      precedence_map["<"] = precedence_map["<="] = precedence_map[">"] = precedence_map[">="] = cur_prec++;
+      precedence_map["=="] = precedence_map["!="] = cur_prec++;
+      precedence_map["&&"] = cur_prec++;
+      precedence_map["||"] = cur_prec++;
+      precedence_map["="] = cur_prec++;
     }
 
     ~Config() { }
@@ -411,7 +415,8 @@ namespace mabe {
     emp_assert(!in_node1.IsNull());
     emp_assert(!in_node2.IsNull());
 
-    emp::Ptr<ASTNode_Math2> out_value = emp::NewPtr<ASTNode_Math2>();
+    // If this operation is assignment, do so!
+    if (symbol == "=") return emp::NewPtr<ASTNode_Assign>(in_node1, in_node2);
 
     // If both values are numeric, act on the math operator.
 // if (in_node1->IsNumeric() && in_node2->IsNumeric()) {
@@ -422,13 +427,22 @@ namespace mabe {
     // Determine the output value and put it in a temporary node.
     std::function<double(double,double)> fun;
     if (symbol == "+") fun = [](double val1, double val2){ return val1 + val2; };
-    if (symbol == "-") fun = [](double val1, double val2){ return val1 - val2; };
-    if (symbol == "*") fun = [](double val1, double val2){ return val1 * val2; };
-    if (symbol == "/") fun = [](double val1, double val2){ return val1 / val2; };
-    if (symbol == "%") fun = [](double val1, double val2){ return ((size_t) val1) % ((size_t) val2); };
-    if (symbol == "&&") fun = [](double val1, double val2){ return val1 && val2; };
-    if (symbol == "||") fun = [](double val1, double val2){ return val1 || val2; };
+    else if (symbol == "-") fun = [](double val1, double val2){ return val1 - val2; };
+    else if (symbol == "*") fun = [](double val1, double val2){ return val1 * val2; };
+    else if (symbol == "/") fun = [](double val1, double val2){ return val1 / val2; };
+    else if (symbol == "%") fun = [](double val1, double val2){ return ((size_t) val1) % ((size_t) val2); };
+    else if (symbol == "==") fun = [](double val1, double val2){ return val1 == val2; };
+    else if (symbol == "!=") fun = [](double val1, double val2){ return val1 != val2; };
+    else if (symbol == "<")  fun = [](double val1, double val2){ return val1 < val2; };
+    else if (symbol == "<=") fun = [](double val1, double val2){ return val1 <= val2; };
+    else if (symbol == ">")  fun = [](double val1, double val2){ return val1 > val2; };
+    else if (symbol == ">=") fun = [](double val1, double val2){ return val1 >= val2; };
 
+    // @CAO: Need to still handle these last two differently for short-circuiting.
+    else if (symbol == "&&") fun = [](double val1, double val2){ return val1 && val2; };
+    else if (symbol == "||") fun = [](double val1, double val2){ return val1 || val2; };
+
+    emp::Ptr<ASTNode_Math2> out_value = emp::NewPtr<ASTNode_Math2>();
     out_value->SetFun(fun);
     out_value->AddChild(in_node1);
     out_value->AddChild(in_node2);
@@ -476,30 +490,29 @@ namespace mabe {
   }
 
   // Parse an the declaration of a variable.
-  // NOTE: pos will move past type, but not variable name so that it can be used in an expression.
-  void Config::ParseDeclaration(size_t & pos, ConfigScope & scope) {
+  ConfigEntry & Config::ParseDeclaration(size_t & pos, ConfigScope & scope) {
     std::string type_name = AsLexeme(pos++);
     RequireID(pos, "Type name '", type_name, "' must be followed by variable to declare.");
-    std::string var_name = AsLexeme(pos);
+    std::string var_name = AsLexeme(pos++);
 
     if (type_name == "String") {
-      scope.AddStringVar(var_name, "Local string variable.");
+      return scope.AddStringVar(var_name, "Local string variable.");
     }
     else if (type_name == "Value") {
-      scope.AddValueVar(var_name, "Local value variable.");
+      return scope.AddValueVar(var_name, "Local value variable.");
     }
     else if (type_name == "Struct") {
-      scope.AddScope(var_name, "Local struct");
+      return scope.AddScope(var_name, "Local struct");
     }
 
     // Otherwise we have a module to add; treat it as a struct.
-    else {
-      Debug("Building var '", var_name, "' of type '", type_name, "'");
-      ConfigScope & new_scope = scope.AddScope(var_name, "Local struct", type_name);
-      ConfigType & new_obj = type_map[type_name].init_fun(var_name);
-      new_obj.SetupScope(new_scope);
-      new_obj.SetupConfig();
-    }
+    Debug("Building var '", var_name, "' of type '", type_name, "'");
+    ConfigScope & new_scope = scope.AddScope(var_name, "Local struct", type_name);
+    ConfigType & new_obj = type_map[type_name].init_fun(var_name);
+    new_obj.SetupScope(new_scope);
+    new_obj.SetupConfig();
+
+    return new_scope;
   }
 
   // Parse an event description.
@@ -516,37 +529,34 @@ namespace mabe {
 
     // Allow this statement to be a declaration if it begins with a type.
     if (IsType(pos)) {
-      ParseDeclaration(pos, scope);
+      ConfigEntry & new_entry = ParseDeclaration(pos, scope);
   
       // If the next symbol is a ';' this is a declaration without an assignment.
-      if (AsChar(pos+1) == ';') {
-        pos += 2;  // Skip the identifier and the semi-colon.
-        return nullptr;    // We are done!
+      if (AsChar(pos) == ';') {
+        pos++;           // Skip the semi-colon.
+        return nullptr;  // We are done!
       }
+
+      // If this entry is a new scope, it should be populated now.
+      if (new_entry.IsScope()) {
+        RequireChar('{', pos, "Expected scope '", new_entry.GetName(),
+                    "' definition to start with a '{'; found ''", AsLexeme(pos), "'.");
+        pos++;
+        emp::Ptr<ASTNode> out_node = ParseStatementList(pos, new_entry.AsScope());
+        RequireChar('}', pos++, "Expected scope '", new_entry.GetName(), "' to end with a '}'.");
+        return out_node;
+      }
+
+      // Otherwise rewind so that variable can be used to start an expression.
+      pos--;
     }
 
-    // If we made it here, remainder should have the basic structure: VAR = VALUE ;
-    emp::Ptr<ASTNode_Leaf> lhs = ParseVar(pos, scope, true, false);
-    RequireChar('=', pos++, "Expected '=' after variable '", lhs->GetName(), "' for assignment.");
 
-    emp::Ptr<ASTNode> out_node = nullptr;
+    // If we made it here, remainder should be an expression.
+    emp::Ptr<ASTNode> out_node = ParseExpression(pos, scope);
 
-    // If LHS is a scope, collect scope information.
-    ConfigEntry & lhs_entry = lhs->GetEntry();
-    if (lhs_entry.IsScope()) {
-      RequireChar('{', pos++, "Expected scope '", lhs->GetName(), "' to be set to a literal scope.");
-      out_node = ParseStatementList(pos, lhs_entry.AsScope());
-      RequireChar('}', pos++, "Expected scope '", lhs->GetName(), "' to end with a '}'.");
-      lhs.Delete();
-    }
-    
-    // Otherwise assume that a value of some kind is being asigned.
-    else {
-      emp::Ptr<ASTNode> rhs = ParseExpression(pos, scope);
-      RequireChar(';', pos++, "Expected ';' at the end of a statement.");
-
-      out_node = emp::NewPtr<ASTNode_Assign>(lhs, rhs);
-    }
+    // Expressions must end in a semi-colon.
+    RequireChar(';', pos++, "Expected ';' at the end of a statement.");
 
     return out_node;
   }
