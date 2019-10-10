@@ -346,6 +346,11 @@ namespace mabe {
           };
         config.AddType(org_m.name, org_m_init_fun);
       }
+
+
+      // Add in other built-in functions.
+      std::function<int()> exit_fun = [this](){ Exit(); return 0; };
+      config.AddFunction("exit", exit_fun, "Exit from this MABE run.");
     }
     MABE(const MABE &) = delete;
     MABE(MABE &&) = delete;
@@ -721,7 +726,7 @@ namespace mabe {
     // the base class to record the current world.
     for (emp::Ptr<ModuleBase> mod_ptr : modules) mod_ptr->SetupModule();
 
-    // If none of the modules setup the placement functions, do so now.
+    // If none of the modules handle placement, use defaults.
     // @CAO: If no modules are marked IsPlacementMod(), make that the last module.
   }
 
@@ -729,7 +734,7 @@ namespace mabe {
 
   }
   
-  // Function to link signals to the modules that implment responses to those signals.
+  /// Link signals to the modules that implment responses to those signals.
   void MABE::UpdateSignals() {
     // Clear all module vectors.
     for (auto modv : modv_ptrs) modv->resize(0);
