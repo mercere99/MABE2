@@ -180,7 +180,7 @@ namespace mabe {
                                                    bool scan_scopes=true);
 
     /// Load a value from the provided scope, which can come from a variable or a literal.
-    [[nodiscard]] emp::Ptr<ASTNode_Leaf> ParseValue(size_t & pos, ConfigScope & cur_scope);
+    [[nodiscard]] emp::Ptr<ASTNode> ParseValue(size_t & pos, ConfigScope & cur_scope);
 
     /// Calculate the result of the provided operation on two computed entries.
     [[nodiscard]] emp::Ptr<ASTNode> ProcessOperation(const std::string & symbol,
@@ -350,7 +350,7 @@ namespace mabe {
   }
 
   // Load a value from the provided scope, which can come from a variable or a literal.
-  emp::Ptr<ASTNode_Leaf> Config::ParseValue(size_t & pos, ConfigScope & cur_scope) {
+  emp::Ptr<ASTNode> Config::ParseValue(size_t & pos, ConfigScope & cur_scope) {
     Debug("Running ParseValue(", pos, ":('", AsLexeme(pos), "'),", cur_scope.GetName(), ")");
 
     // Anything that begins with an identifier or dots must represent a variable.  Refer!
@@ -375,6 +375,14 @@ namespace mabe {
       Debug("...value is a string: ", AsLexeme(pos));
       std::string str = emp::from_literal_string(AsLexeme(pos++)); // Convert the literal string.
       return MakeTempString(str);                         // Return temporary ConfigEntry.
+    }
+
+    // If we have an open parenthesis, process everything inside into a single value...
+    if (AsChar(pos) == '(') {
+      pos++;
+      emp::Ptr<ASTNode> out_ast = ParseExpression(pos, cur_scope);
+      RequireChar(')', pos++, "Expected a close parenthesis in expression.");
+      return out_ast;
     }
 
     Error(pos, "Expected a value, found: ", AsLexeme(pos));
@@ -422,6 +430,7 @@ namespace mabe {
 
     // @CAO Should test for unary operators at the beginning of an expression.
 
+    /// Process a value (and possibly more!)
     emp::Ptr<ASTNode> cur_node = ParseValue(pos, scope);
     std::string symbol = AsLexeme(pos);
     while ( emp::Has(precedence_map, symbol) && precedence_map[symbol] < prec_limit ) {
