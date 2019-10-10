@@ -51,7 +51,7 @@ namespace mabe {
     template <typename RETURN_T, typename... ARGS>
     void SetFunction( std::function<RETURN_T(ARGS...)> in_fun ) {
       // Convert the function call to using entry pointers.
-      fun = [this, in_fun](const emp::vector<entry_ptr_t> & args) {        
+      fun = [this, in_fun](const emp::vector<entry_ptr_t> & args) -> emp::Ptr<ConfigEntry> {        
         // The call needs to have the correct number of arguments or else it throws an error.
         constexpr int NUM_ARGS = sizeof...(ARGS);
         if (args.size() != NUM_ARGS) {
@@ -63,7 +63,10 @@ namespace mabe {
 
         size_t i = 0;
         RETURN_T result = in_fun(args[i++]->As<ARGS>()...);
-        return emp::NewPtr<ConfigEntry_Var<RETURN_T>>(result);
+        emp::Ptr<ConfigEntry> out_entry =
+          emp::NewPtr<ConfigEntry_Var<RETURN_T>>("return value", result, desc, nullptr);
+        out_entry->SetTemporary();
+        return out_entry;
       };
     }
 
