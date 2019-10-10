@@ -251,9 +251,20 @@ namespace mabe {
       return type_id;
     }
 
+    /// Retrieve a uniqe type ID by providing the type name.
     size_t GetTypeID(const std::string & type_name) {
       emp_assert(emp::Has(type_map, type_name));
       return type_map[type_name].type_id;
+    }
+
+    /// To add a built-in function (ad the root level) provide it with a name and description.
+    /// As long as the function only requires types known to the config system, it should be
+    /// converted properly.
+    template <typename RETURN_T, typename... ARGS>
+    void AddFunction(const std::string & name,
+                     std::function<RETURN_T(ARGS...)> fun,
+                     const std::string & desc) {
+      root_scope.AddBuiltinFunction<RETURN_T, ARGS...>(name, fun, desc);
     }
 
     ConfigScope & GetRootScope() { return root_scope; }
