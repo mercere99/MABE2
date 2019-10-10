@@ -157,6 +157,11 @@ namespace mabe {
 
   class ASTNode_Call : public ASTNode_Internal {
   public:
+    ASTNode_Call(emp::Ptr<ASTNode> fun, const emp::vector< emp::Ptr<ASTNode> > & args) {
+      AddChild(fun);
+      for (auto arg : args) AddChild(arg);
+    }
+
     entry_ptr_t Process() override {
       emp_assert(children.size() >= 1);
       entry_ptr_t fun = children[0]->Process();
