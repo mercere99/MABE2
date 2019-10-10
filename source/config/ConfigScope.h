@@ -162,6 +162,20 @@ namespace mabe {
       return Add<ConfigScope>(name, desc, this, type);
     }
 
+    template <typename RETURN_T, typename... ARGS>
+    ConfigFunction & AddFunction(const std::string & name,
+                              std::function<RETURN_T(ARGS...)> fun,
+                              const std::string & desc) {
+      return Add<ConfigFunction>(name, fun, desc, this);
+    }
+
+    template <typename RETURN_T, typename... ARGS>
+    ConfigFunction & AddBuiltinFunction(const std::string & name,
+                              std::function<RETURN_T(ARGS...)> fun,
+                              const std::string & desc) {
+      return AddBuiltin<ConfigFunction>(name, fun, desc, this);
+    }
+
     /// Write out all of the parameters contained in this scope to the provided stream.
     ConfigEntry & WriteContents(std::ostream & os=std::cout, const std::string & prefix="",
                         size_t comment_offset=40) {
