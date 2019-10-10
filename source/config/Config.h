@@ -91,13 +91,13 @@ namespace mabe {
     };
 
   protected:
-    std::string filename;               ///< Source for for code to generate.
-    ConfigLexer lexer;                  ///< Lexer to process input code.
-    emp::vector<emp::Token> tokens;     ///< Tokenized version of input file.
-    emp::Ptr<ASTNode_Block> ast_block;  ///< Abstract syntax tree version of input file.
-    bool debug = true;                  ///< Should we print full debug information?
+    std::string filename;             ///< Source for for code to generate.
+    ConfigLexer lexer;                ///< Lexer to process input code.
+    emp::vector<emp::Token> tokens;   ///< Tokenized version of input file.
+    ASTNode_Block ast_root;           ///< Abstract syntax tree version of input file.
+    bool debug = true;                ///< Should we print full debug information?
 
-    ConfigScope root_scope;             ///< All variables from the root level.
+    ConfigScope root_scope;           ///< All variables from the root level.
 
     /// A map of all types available in the script.
     std::unordered_map<std::string, TypeInfo> type_map;
@@ -203,15 +203,15 @@ namespace mabe {
     /// Keep parsing statments until there aren't any more or we leave this scope. 
     [[nodiscard]] emp::Ptr<ASTNode_Block> ParseStatementList(size_t & pos, ConfigScope & scope) {
       Debug("Running ParseStatementList(", pos, ":('", AsLexeme(pos), "'),", scope.GetName(), ")");
-      auto ast_block = emp::NewPtr<ASTNode_Block>();
+      auto cur_block = emp::NewPtr<ASTNode_Block>();
       while (pos < tokens.size() && AsChar(pos) != '}') {
         // Parse each statement in the file.
         emp::Ptr<ASTNode> statement_node = ParseStatement(pos, scope);
 
         // If the current statement is real, add it to the current block.
-        if (!statement_node.IsNull()) ast_block->AddChild( statement_node );
+        if (!statement_node.IsNull()) cur_block->AddChild( statement_node );
       }
-      return ast_block;
+      return cur_block;
     }
 
   public:
@@ -234,9 +234,7 @@ namespace mabe {
       precedence_map["&&"] = precedence_map["||"] = 2;
     }
 
-    ~Config() {
-      ast_block.Delete();  // Cleanup the abstract syntax tree.
-    }
+    ~Config() { }
 
     /// To add a type, provide the type name (that can be referred to in a script) and a function
     /// that should be called (with the variable name) when an instance of that type is created.
@@ -268,11 +266,11 @@ namespace mabe {
       size_t pos = 0;                         // Start at the beginning of the file.
 
       // Parse and run the program, starting from the outer scope.
-      auto cur_ast_block = ParseStatementList(pos, root_scope);
-      cur_ast_block->Process();
+      auto cur_block = ParseStatementList(pos, root_scope);
+      cur_block->Process();
 
       // Store this AST onto the full set we're working with.
-      ast_block->AddChild(cur_ast_block);
+      ast_root.AddChild(cur_block);
     }
 
     // Sequentially load a series of configuration files.
