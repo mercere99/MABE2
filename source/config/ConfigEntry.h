@@ -70,6 +70,7 @@ namespace mabe {
     virtual bool IsDouble() const { return false; }
     virtual bool IsString() const { return false; }
 
+    virtual bool IsFunction() const { return false; }
     virtual bool IsScope() const { return false; }
     virtual bool IsError() const { return false; }
 
@@ -263,35 +264,34 @@ namespace mabe {
 
 
   /// A generic version of a config entry for a maintained variable.
-  template <typename T> class ConfigEntry_Var { };
-
-  /// Specialize ConfigEntry_Var with a temporary variable of type DOUBLE.
-  template <>
-  class ConfigEntry_Var<double> : public ConfigEntry {
+  template <typename T>
+  class ConfigEntry_Var : public ConfigEntry {
   private:
-    double value = 0.0;
+    T value = 0;
   public:
-    using this_t = ConfigEntry_Var<double>;
+    using this_t = ConfigEntry_Var<T>;
 
     template <typename... ARGS>
-    ConfigEntry_Var(const std::string & in_name, double default_val, ARGS &&... args)
+    ConfigEntry_Var(const std::string & in_name, T default_val, ARGS &&... args)
       : ConfigEntry(in_name, std::forward<ARGS>(args)...), value(default_val) { ; }
-    ConfigEntry_Var(const ConfigEntry_Var<double> &) = default;
+    ConfigEntry_Var(const ConfigEntry_Var<T> &) = default;
 
     emp::Ptr<ConfigEntry> Clone() const override { return emp::NewPtr<this_t>(*this); }
 
-    double AsDouble() const override { return value; }
+    double AsDouble() const override { return (double) value; }
     std::string AsString() const override { return emp::to_string(value); }
-    ConfigEntry & SetValue(double in) override { value = in; return *this; }
+    ConfigEntry & SetValue(double in) override { value = (T) in; return *this; }
     ConfigEntry & SetString(const std::string & in) override {
-      value = emp::from_string<double>(in);
+      value = emp::from_string<T>(in);
       return *this;
     }
 
-    bool IsNumeric() const override { return true; }
-    bool IsDouble() const override { return true; }
+    bool IsNumeric() const override { return std::is_scalar_v<T>; }
+    bool IsBool() const override { return std::is_same<bool, T>(); }
+    bool IsInt() const override { return std::is_same<int, T>(); }
+    bool IsDouble() const override { return std::is_same<double, T>(); }
 
-    bool CopyValue(const ConfigEntry & in) override { value = in.AsDouble(); return true; }
+    bool CopyValue(const ConfigEntry & in) override { SetValue(in.AsDouble()); return true; }
   };
   using ConfigEntry_DoubleVar = ConfigEntry_Var<double>;
 
