@@ -229,9 +229,11 @@ namespace mabe {
       type_map["Struct"] = TypeInfo{ (size_t) BaseType::STRUCT, nullptr };
 
       // Setup operator precedence.
-      precedence_map["*"] = precedence_map["/"] = precedence_map["%"] = 0;
-      precedence_map["+"] = precedence_map["-"] = 1;
-      precedence_map["&&"] = precedence_map["||"] = 2;
+      size_t cur_prec = 0;
+      precedence_map["("] = cur_prec++;
+      precedence_map["*"] = precedence_map["/"] = precedence_map["%"] = cur_prec++;
+      precedence_map["+"] = precedence_map["-"] = cur_prec++;
+      precedence_map["&&"] = precedence_map["||"] = cur_prec++;
     }
 
     ~Config() { }
@@ -435,11 +437,26 @@ namespace mabe {
     std::string symbol = AsLexeme(pos);
     while ( emp::Has(precedence_map, symbol) && precedence_map[symbol] < prec_limit ) {
       pos++;
-      emp::Ptr<ASTNode> node2 = ParseExpression(pos, scope, precedence_map[symbol]);
-      emp::Ptr<ASTNode> result_node = ProcessOperation(symbol, cur_node, node2);
+      // Do we have a function call?
+      if (symbol == "(") {
+        // Collect arguments.
+        emp::vector< emp::Ptr<ASTNode> > args;
+        while (AsLexeme(pos) != ")") {
+          emp::Ptr<ASTNode> next_arg = ParseExpression(pos, scope);
+          args.push_back(next_arg);
+          if (AsLexeme(pos) != ",") break;
+        }
+        RequireChar(')', pos++, "Expected a ')' to end function call.");
+        cur_node = emp::NewPtr<ASTNode_Call>(cur_node, args);
+      }
+
+      // Otherwise we must have a binary math operation.
+      else {
+        emp::Ptr<ASTNode> node2 = ParseExpression(pos, scope, precedence_map[symbol]);
+        cur_node = ProcessOperation(symbol, cur_node, node2);
+      }
 
       // Move the current value over to cur_node and check if we have a new symbol...
-      cur_node = result_node;
       symbol = AsLexeme(pos);
     }
 
