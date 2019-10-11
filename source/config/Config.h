@@ -527,6 +527,15 @@ namespace mabe {
     // Allow a statement with an empty line.
     if (AsChar(pos) == ';') { pos++; return nullptr; }
 
+    // Allow a statement to be a new scope.
+    if (AsChar(pos) == '{') {
+      pos++;
+      // @CAO Need to add an anonymous scope (that gets written properly)
+      emp::Ptr<ASTNode> out_node = ParseStatementList(pos, scope);
+      RequireChar('}', pos++, "Expected '}' to close scope.");
+      return out_node;
+    }
+
     // Allow this statement to be a declaration if it begins with a type.
     if (IsType(pos)) {
       ConfigEntry & new_entry = ParseDeclaration(pos, scope);
