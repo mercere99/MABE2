@@ -29,33 +29,38 @@ namespace mabe {
       double next = 0.0;             ///< When should we start triggering this event.
       double repeat = 0.0;           ///< How often should it repeat (0.0 for no repeat)
       double max = -1.0;             ///< Maximum value that this value can reach (neg for no max)
-      bool active = true;            ///< Is thie event still active?
+      bool active = true;            ///< Is this event still active?
 
       TimedEvent(size_t _id, emp::Ptr<ASTNode> _node,
                 double _next, double _repeat, double _max)
         : id(_id), ast_action(_node), next(_next), repeat(_repeat), max(_max), active(next <= max)
       { ; }
-      ~TimedEvent() { ast_action.Delete(); ast_action = nullptr; }
-
-      double GetNext() const { return next; }
-      double GetRepeat() const { return repeat; }
-      double GetMax() const { return max; }
-
-      bool IsActive() const { return active; }
+      ~TimedEvent() { ast_action.Delete(); }
 
       bool Trigger() {
-        if (active) {
-          ast_action->Process();
-          next += repeat;
-          if (repeat == 0.0 || next > max) active = false;
-        }
-        return active;
+        ast_action->Process();
+        next += repeat;
+
+        // Return "active" if we ARE repeating and the next time is stiil within range.
+        return (repeat != 0.0 && next <= max);
       }
     };
 
     emp::multimap<double, emp::Ptr<TimedEvent>> queue;
-    double last_value = 0.0;
+    double cur_value = 0.0;
     size_t next_id = 1;
+
+    // -- Helper functions. --
+    void AddEvent(emp::Ptr<TimedEvent> in_event) {
+      queue.insert({in_event->next, in_event});
+    }
+
+    emp::Ptr<TimedEvent> PopEvent() {
+      emp::Ptr<TimedEvent> out_event = queue.begin()->second;
+      queue.erase(queue.begin());
+      return out_event;
+    }
+
   public:
     ConfigEvents() { ; }
     ~ConfigEvents() {
@@ -65,27 +70,33 @@ namespace mabe {
       }
     }
 
-    void AddEvent(emp::Ptr<TimedEvent> in_event) {
-      queue.insert({in_event->GetNext(), in_event});
-    }
+    bool AddEvent(emp::Ptr<ASTNode> action, double first=0.0, double repeat=0.0, double max=-1.0) {
+      emp_assert(first >= 0.0, first);
+      emp_assert(repeat >= 0.0, repeat);
 
-    void AddEvent(emp::Ptr<ASTNode> action, double first=0.0, double repeat=0.0, double max=-1.0) {
+      // Skip all events before the current time.
+      if (first < cur_value) {
+        if (repeat == 0.0) return false;      // If no repeat, we simply missed this one.
+        double offset = cur_value - first;    // Figure out how far we need to advance this event.
+        double steps = ceil(offset / repeat); // How many steps through repeat will this be?
+        first += repeat * steps;              // Fast-forward!
+      }
+
+      // If we are already after max time, this event cannot be triggered.
+      if (first > max) return false;
+
       AddEvent( emp::NewPtr<TimedEvent>(next_id++, action, first, repeat, max) );
-    }
 
-    emp::Ptr<TimedEvent> PopEvent() {
-      emp::Ptr<TimedEvent> out_event = queue.begin()->second;
-      queue.erase(queue.begin());
-      return out_event;
+      return true;
     }
 
     void UpdateValue(size_t in_value) {
       while (queue.size() && queue.begin()->first <= in_value) {
         emp::Ptr<TimedEvent> cur_event = PopEvent();
-        cur_event->Trigger();
-        AddEvent(cur_event);
+        bool do_repeat = cur_event->Trigger();
+        if (do_repeat) AddEvent(cur_event);
       }
-      last_value = in_value;
+      cur_value = in_value;
     }
   };
 
