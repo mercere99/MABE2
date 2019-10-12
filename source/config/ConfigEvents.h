@@ -11,9 +11,9 @@
 #ifndef MABE_CONFIG_EVENTS_H
 #define MABE_CONFIG_EVENTS_H
 
-#include <set>
 #include <string>
 
+#include "base/map.h"
 #include "base/Ptr.h"
 
 #include "ConfigAST.h"
@@ -33,7 +33,7 @@ namespace mabe {
       : id(_id), ast_action(_node), next(_next), repeat(_repeat), max(_max), active(next <= max)
     { ; }
     TimedEvent(const TimedEvent &) = default;
-    TimedEvent(TimedEvent &&) = default
+    TimedEvent(TimedEvent &&) = default;
     ~TimedEvent() { ; }
 
     TimedEvent & operator=(const TimedEvent &) = default;
@@ -65,23 +65,36 @@ namespace mabe {
 
   class ConfigEvents {
   private:
-    std::set<TimedEvent> queue;
+    emp::multimap<double, emp::Ptr<TimedEvent>> queue;
     double last_value = 0.0;
     size_t next_id = 1;
   public:
     ConfigEvents() { ; }
     ~ConfigEvents() {
       // Must delete all AST nodes in the queue.
-      for (auto & event : queue) event.
+      for (auto [time, event_ptr] : queue) {
+        event_ptr->DeleteAST();
+        event_ptr.Delete();
+      }
     }
 
-    void AddEvent(emp::Ptr<ASTNode> ast_action,
-                  double first=0.0, double repeat=0.0, double max=-1.0, bool multi_ok=true) {
-      queue.emplace(next_id++, ast_action, first, repeat, max, multi_ok);
+    void AddEvent(emp::Ptr<TimedEvent> in_event) {
+      queue.insert({in_event->GetNext(), in_event});
+    }
+
+    void AddEvent(emp::Ptr<ASTNode> action, double first=0.0, double repeat=0.0, double max=-1.0) {
+      AddEvent( emp::NewPtr<TimedEvent>(next_id++, action, first, repeat, max) );
     }
 
     void UpdateValue(size_t in_value) {
-
+      while (queue.size() && queue.begin()->first <= in_value) {
+        auto it = queue.begin();
+        emp::Ptr<TimedEvent> cur_event = it->second;
+        queue.erase(it);
+        cur_event->Trigger();
+        AddEvent(cur_event);
+      }
+      last_value = in_value;
     }
   };
 
