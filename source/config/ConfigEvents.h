@@ -26,13 +26,28 @@ namespace mabe {
     double next = 0.0;             ///< When should we start triggering this event.
     double repeat = 0.0;           ///< How often should it repeat (0.0 for no repeat)
     double max = -1.0;             ///< Maximum value that this value can reach (neg for no max)
-    bool multi_ok = true;          ///< If multiple repeats are past, should all be triggered?
+    bool active = true;            ///< Is thie event still active?
 
     TimedEvent(size_t _id, emp::Ptr<ASTNode> _node,
-               double _next, double _repeat, double _max, bool _multi)
-      : id(_id), ast_action(_node), next(_next), repeat(_repeat), max(_max), multi_ok(_multi)
+               double _next, double _repeat, double _max)
+      : id(_id), ast_action(_node), next(_next), repeat(_repeat), max(_max), active(next <= max)
     { ; }
     ~TimedEvent() { ast_action.Delete(); }
+
+    double GetNext() const { return next; }
+    double GetRepeat() const { return repeat; }
+    double GetMax() const { return max; }
+
+    bool IsActive() const { return active; }
+
+    bool Trigger() {
+      if (active) {
+        ast_action->Process();
+        next += repeat;
+        if (repeat == 0.0 || next > max) active = false;
+      }
+      return active;
+    }
 
     bool operator==(const TimedEvent & in) const { return id == in.id; }
     bool operator!=(const TimedEvent & in) const { return id != in.id; }
@@ -50,6 +65,10 @@ namespace mabe {
     void AddEvent(emp::Ptr<ASTNode> ast_action,
                   double first=0.0, double repeat=0.0, double max=-1.0, bool multi_ok=true) {
       queue.emplace(next_id++, ast_action, first, repeat, max, multi_ok);
+    }
+
+    void UpdateValue(size_t in_value) {
+
     }
   };
 
