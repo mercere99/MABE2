@@ -32,7 +32,12 @@ namespace mabe {
                double _next, double _repeat, double _max)
       : id(_id), ast_action(_node), next(_next), repeat(_repeat), max(_max), active(next <= max)
     { ; }
-    ~TimedEvent() { ast_action.Delete(); }
+    TimedEvent(const TimedEvent &) = default;
+    TimedEvent(TimedEvent &&) = default
+    ~TimedEvent() { ; }
+
+    TimedEvent & operator=(const TimedEvent &) = default;
+    TimedEvent & operator=(TimedEvent &&) = default;
 
     double GetNext() const { return next; }
     double GetRepeat() const { return repeat; }
@@ -49,6 +54,8 @@ namespace mabe {
       return active;
     }
 
+    void DeleteAST() { ast_action.Delete(); ast_action = nullptr; }
+
     bool operator==(const TimedEvent & in) const { return id == in.id; }
     bool operator!=(const TimedEvent & in) const { return id != in.id; }
     bool operator<(const TimedEvent & in) const {
@@ -62,6 +69,12 @@ namespace mabe {
     double last_value = 0.0;
     size_t next_id = 1;
   public:
+    ConfigEvents() { ; }
+    ~ConfigEvents() {
+      // Must delete all AST nodes in the queue.
+      for (auto & event : queue) event.
+    }
+
     void AddEvent(emp::Ptr<ASTNode> ast_action,
                   double first=0.0, double repeat=0.0, double max=-1.0, bool multi_ok=true) {
       queue.emplace(next_id++, ast_action, first, repeat, max, multi_ok);
