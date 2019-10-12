@@ -20,51 +20,39 @@
 
 namespace mabe {
 
-  struct TimedEvent {
-    size_t id = 0;                 ///< A unique ID for this event.
-    emp::Ptr<ASTNode> ast_action;  ///< Parse tree to exectute when triggered.
-    double next = 0.0;             ///< When should we start triggering this event.
-    double repeat = 0.0;           ///< How often should it repeat (0.0 for no repeat)
-    double max = -1.0;             ///< Maximum value that this value can reach (neg for no max)
-    bool active = true;            ///< Is thie event still active?
-
-    TimedEvent(size_t _id, emp::Ptr<ASTNode> _node,
-               double _next, double _repeat, double _max)
-      : id(_id), ast_action(_node), next(_next), repeat(_repeat), max(_max), active(next <= max)
-    { ; }
-    TimedEvent(const TimedEvent &) = default;
-    TimedEvent(TimedEvent &&) = default;
-    ~TimedEvent() { ; }
-
-    TimedEvent & operator=(const TimedEvent &) = default;
-    TimedEvent & operator=(TimedEvent &&) = default;
-
-    double GetNext() const { return next; }
-    double GetRepeat() const { return repeat; }
-    double GetMax() const { return max; }
-
-    bool IsActive() const { return active; }
-
-    bool Trigger() {
-      if (active) {
-        ast_action->Process();
-        next += repeat;
-        if (repeat == 0.0 || next > max) active = false;
-      }
-      return active;
-    }
-
-    void DeleteAST() { ast_action.Delete(); ast_action = nullptr; }
-
-    bool operator==(const TimedEvent & in) const { return id == in.id; }
-    bool operator!=(const TimedEvent & in) const { return id != in.id; }
-    bool operator<(const TimedEvent & in) const {
-      return (next == in.next) ? (id < in.id) : (next < in.next);
-    }
-  };
-
   class ConfigEvents {
   private:
+
+    struct TimedEvent {
+      size_t id = 0;                 ///< A unique ID for this event.
+      emp::Ptr<ASTNode> ast_action;  ///< Parse tree to exectute when triggered.
+      double next = 0.0;             ///< When should we start triggering this event.
+      double repeat = 0.0;           ///< How often should it repeat (0.0 for no repeat)
+      double max = -1.0;             ///< Maximum value that this value can reach (neg for no max)
+      bool active = true;            ///< Is thie event still active?
+
+      TimedEvent(size_t _id, emp::Ptr<ASTNode> _node,
+                double _next, double _repeat, double _max)
+        : id(_id), ast_action(_node), next(_next), repeat(_repeat), max(_max), active(next <= max)
+      { ; }
+      ~TimedEvent() { ast_action.Delete(); ast_action = nullptr; }
+
+      double GetNext() const { return next; }
+      double GetRepeat() const { return repeat; }
+      double GetMax() const { return max; }
+
+      bool IsActive() const { return active; }
+
+      bool Trigger() {
+        if (active) {
+          ast_action->Process();
+          next += repeat;
+          if (repeat == 0.0 || next > max) active = false;
+        }
+        return active;
+      }
+    };
+
     emp::multimap<double, emp::Ptr<TimedEvent>> queue;
     double last_value = 0.0;
     size_t next_id = 1;
@@ -73,7 +61,6 @@ namespace mabe {
     ~ConfigEvents() {
       // Must delete all AST nodes in the queue.
       for (auto [time, event_ptr] : queue) {
-        event_ptr->DeleteAST();
         event_ptr.Delete();
       }
     }
@@ -86,11 +73,15 @@ namespace mabe {
       AddEvent( emp::NewPtr<TimedEvent>(next_id++, action, first, repeat, max) );
     }
 
+    emp::Ptr<TimedEvent> PopEvent() {
+      emp::Ptr<TimedEvent> out_event = queue.begin()->second;
+      queue.erase(queue.begin());
+      return out_event;
+    }
+
     void UpdateValue(size_t in_value) {
       while (queue.size() && queue.begin()->first <= in_value) {
-        auto it = queue.begin();
-        emp::Ptr<TimedEvent> cur_event = it->second;
-        queue.erase(it);
+        emp::Ptr<TimedEvent> cur_event = PopEvent();
         cur_event->Trigger();
         AddEvent(cur_event);
       }
