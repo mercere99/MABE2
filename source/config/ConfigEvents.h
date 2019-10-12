@@ -28,14 +28,20 @@ namespace mabe {
     double max = -1.0;             ///< Maximum value that this value can reach (neg for no max)
     bool multi_ok = true;          ///< If multiple repeats are past, should all be triggered?
 
-    bool operator==(const TimedEvent & in) { return id == in.id; }
-    bool operator!=(const TimedEvent & in) { return id != in.id; }
-    bool operator<(const TimedEvent & in) {
+    TimedEvent(size_t _id, emp::Ptr<ASTNode> _node,
+               double _next, double _repeat, double _max, bool _multi)
+      : id(_id), ast_action(_node), next(_next), repeat(_repeat), max(_max), multi_ok(_multi)
+    { ; }
+    ~TimedEvent() { ast_action.Delete(); }
+
+    bool operator==(const TimedEvent & in) const { return id == in.id; }
+    bool operator!=(const TimedEvent & in) const { return id != in.id; }
+    bool operator<(const TimedEvent & in) const {
       return (next == in.next) ? (id < in.id) : (next < in.next);
     }
   };
 
-  class EventQueue {
+  class ConfigEvents {
   private:
     std::set<TimedEvent> queue;
     double last_value = 0.0;
@@ -43,7 +49,7 @@ namespace mabe {
   public:
     void AddEvent(emp::Ptr<ASTNode> ast_action,
                   double first=0.0, double repeat=0.0, double max=-1.0, bool multi_ok=true) {
-      queue.emplace({next_id++, ast_action, first, repeat, max, multi_ok});
+      queue.emplace(next_id++, ast_action, first, repeat, max, multi_ok);
     }
   };
 
