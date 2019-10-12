@@ -6,6 +6,10 @@
  *  @file  ConfigEvents.h
  *  @brief Manages events for configurations.
  *  @note Status: ALPHA
+ * 
+ *  DEVELOPER NOTES:
+ *  - We could use a more dynamic function to determine when an event should be triggered next,
+ *    rather than assuming all repeating events will be evenly spaced.
  */
 
 #ifndef MABE_CONFIG_EVENTS_H
@@ -23,13 +27,14 @@ namespace mabe {
   class ConfigEvents {
   private:
 
+    // Structure to track the timings for a single event.
     struct TimedEvent {
-      size_t id = 0;                 ///< A unique ID for this event.
-      emp::Ptr<ASTNode> ast_action;  ///< Parse tree to exectute when triggered.
-      double next = 0.0;             ///< When should we start triggering this event.
-      double repeat = 0.0;           ///< How often should it repeat (0.0 for no repeat)
-      double max = -1.0;             ///< Maximum value that this value can reach (neg for no max)
-      bool active = true;            ///< Is this event still active?
+      size_t id = 0;                 // A unique ID for this event.
+      emp::Ptr<ASTNode> ast_action;  // Parse tree to exectute when triggered.
+      double next = 0.0;             // When should we start triggering this event.
+      double repeat = 0.0;           // How often should it repeat (0.0 for no repeat)
+      double max = -1.0;             // Maximum value that this value can reach (neg for no max)
+      bool active = true;            // Is this event still active?
 
       TimedEvent(size_t _id, emp::Ptr<ASTNode> _node,
                 double _next, double _repeat, double _max)
@@ -37,6 +42,8 @@ namespace mabe {
       { ; }
       ~TimedEvent() { ast_action.Delete(); }
 
+      // Trigger a single event as having occurred; return true/false base on whether this event
+      // should continue to be considered active.
       bool Trigger() {
         ast_action->Process();
         next += repeat;
@@ -46,16 +53,16 @@ namespace mabe {
       }
     };
 
-    emp::multimap<double, emp::Ptr<TimedEvent>> queue;
-    double cur_value = 0.0;
-    size_t next_id = 1;
+    emp::multimap<double, emp::Ptr<TimedEvent>> queue;  ///< Priority queue of events to fun.
+    double cur_value = 0.0;                             ///< Current value of monitored variable.
+    size_t next_id = 1;                                 ///< Assign unique IDs to internal events.
 
     // -- Helper functions. --
     void AddEvent(emp::Ptr<TimedEvent> in_event) {
       queue.insert({in_event->next, in_event});
     }
 
-    emp::Ptr<TimedEvent> PopEvent() {
+    [[nodiscard]] emp::Ptr<TimedEvent> PopEvent() {
       emp::Ptr<TimedEvent> out_event = queue.begin()->second;
       queue.erase(queue.begin());
       return out_event;
@@ -69,6 +76,12 @@ namespace mabe {
         event_ptr.Delete();
       }
     }
+
+    /// Add a new event, providing:
+    ///  action : An abstract syntax tree indicating the actions to take when triggered.
+    ///  first  : Timing the this event should initially be triggered.
+    ///  repeat : How often should this event be triggered?
+    ///  max    : When should we stop triggering this event?
 
     bool AddEvent(emp::Ptr<ASTNode> action, double first=0.0, double repeat=0.0, double max=-1.0) {
       emp_assert(first >= 0.0, first);
@@ -90,6 +103,7 @@ namespace mabe {
       return true;
     }
 
+    /// Update a value associated with these events; trigger all events up to new timepoint.
     void UpdateValue(size_t in_value) {
       while (queue.size() && queue.begin()->first <= in_value) {
         emp::Ptr<TimedEvent> cur_event = PopEvent();
