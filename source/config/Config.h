@@ -75,11 +75,12 @@
 #include "meta/TypeID.h"
 #include "tools/string_utils.h"
 
+#include "ConfigAST.h"
+#include "ConfigEvents.h"
+#include "ConfigFunction.h"
 #include "ConfigLexer.h"
 #include "ConfigScope.h"
 #include "ConfigType.h"
-#include "ConfigFunction.h"
-#include "ConfigAST.h"
 
 namespace mabe {
 
@@ -98,6 +99,9 @@ namespace mabe {
     bool debug = true;                ///< Should we print full debug information?
 
     ConfigScope root_scope;           ///< All variables from the root level.
+
+    /// A map of names to event groups.
+    std::map<std::string, ConfigEvents> events_map;
 
     /// A map of all types available in the script.
     std::unordered_map<std::string, TypeInfo> type_map;
@@ -241,6 +245,21 @@ namespace mabe {
     }
 
     ~Config() { }
+
+    ConfigEvents & AddEventType(const std::string & name) {
+      emp_assert(!emp::Has(events_map, name));
+      return events_map[name];
+    }
+
+    void AddEvent(const std::string & name, emp::Ptr<ASTNode> action,
+                  double first=0.0, double repeat=0.0, double max=-1.0) {
+      emp_assert(emp::Has(events_map, name));
+      events_map[name].AddEvent(action, first, repeat, max);
+    }
+
+    void UpdateEventValue(const std::string & name, double new_value) {
+      events_map[name].UpdateValue(new_value);
+    }
 
     /// To add a type, provide the type name (that can be referred to in a script) and a function
     /// that should be called (with the variable name) when an instance of that type is created.
