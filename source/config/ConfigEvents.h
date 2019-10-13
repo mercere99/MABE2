@@ -109,6 +109,7 @@ namespace mabe {
         emp::Ptr<TimedEvent> cur_event = PopEvent();
         bool do_repeat = cur_event->Trigger();
         if (do_repeat) AddEvent(cur_event);
+        else cur_event.Delete();
       }
       cur_value = in_value;
     }
