@@ -253,7 +253,7 @@ namespace mabe {
 
     void AddEvent(const std::string & name, emp::Ptr<ASTNode> action,
                   double first=0.0, double repeat=0.0, double max=-1.0) {
-      emp_assert(emp::Has(events_map, name));
+      emp_assert(emp::Has(events_map, name), name);
       events_map[name].AddEvent(action, first, repeat, max);
     }
 
@@ -576,6 +576,9 @@ namespace mabe {
       RequireChar('}', pos++, "Expected '}' to close scope.");
       return out_node;
     }
+
+    // Allow event definitions if a statement begins with an '@'
+    if (AsChar(pos) == '@') return ParseEvent(pos, scope);
 
     // Allow this statement to be a declaration if it begins with a type.
     if (IsType(pos)) {
