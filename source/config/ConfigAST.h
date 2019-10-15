@@ -23,6 +23,10 @@ namespace mabe {
   class ASTNode {
   protected:
     using entry_ptr_t = emp::Ptr<ConfigEntry>;
+    using entry_vector_t = emp::vector<entry_ptr_t>;
+
+    using node_ptr_t = emp::Ptr<ASTNode>;
+    using node_vector_t = emp::vector<node_ptr_t>;
 
     // Helper functions.
     emp::Ptr<ConfigEntry_DoubleVar> MakeTempDouble(double val) {
@@ -46,7 +50,7 @@ namespace mabe {
     virtual bool IsInternal() const { return false; }
 
     virtual size_t GetNumChildren() const { return 0; }
-    virtual emp::Ptr<ASTNode> GetChild(size_t id) { emp_assert(false); return nullptr; }
+    virtual node_ptr_t GetChild(size_t id) { emp_assert(false); return nullptr; }
 
     virtual entry_ptr_t Process() = 0;
   };
@@ -55,7 +59,7 @@ namespace mabe {
   class ASTNode_Internal : public ASTNode {
   protected:
     std::string name;
-    emp::vector< emp::Ptr<ASTNode> > children;
+    node_vector_t children;
 
   public:
     ASTNode_Internal(const std::string & _name="") : name (_name) { }
@@ -68,9 +72,9 @@ namespace mabe {
     bool IsInternal() const override { return true; }
 
     size_t GetNumChildren() const override { return children.size(); }
-    emp::Ptr<ASTNode> GetChild(size_t id) override { return children[id]; }
+    node_ptr_t GetChild(size_t id) override { return children[id]; }
 
-    void AddChild(emp::Ptr<ASTNode> child) { children.push_back(child); }
+    void AddChild(node_ptr_t child) { children.push_back(child); }
   };
 
   /// An ASTNode representing a leaf in the tree (i.e., a variable or literal)
@@ -139,7 +143,7 @@ namespace mabe {
 
   class ASTNode_Assign : public ASTNode_Internal {
   public:
-    ASTNode_Assign(emp::Ptr<ASTNode> lhs, emp::Ptr<ASTNode> rhs) {
+    ASTNode_Assign(node_ptr_t lhs, node_ptr_t rhs) {
       AddChild(lhs);
       AddChild(rhs);
     }
@@ -157,7 +161,7 @@ namespace mabe {
 
   class ASTNode_Call : public ASTNode_Internal {
   public:
-    ASTNode_Call(emp::Ptr<ASTNode> fun, const emp::vector< emp::Ptr<ASTNode> > & args) {
+    ASTNode_Call(node_ptr_t fun, const node_vector_t & args) {
       AddChild(fun);
       for (auto arg : args) AddChild(arg);
     }
@@ -167,7 +171,7 @@ namespace mabe {
       entry_ptr_t fun = children[0]->Process();
 
       // Collect all arguments and call
-      emp::vector<entry_ptr_t> args;
+      entry_vector_t args;
       for (size_t i = 1; i < children.size(); i++) {
         args.push_back(children[i]->Process());
       }
@@ -176,6 +180,30 @@ namespace mabe {
       // Cleanup and return
       for (auto arg : args) if (arg->IsTemporary()) arg.Delete();
       return result;
+    }
+  };
+
+  class ASTNode_Event : public ASTNode_Internal {
+  protected:
+    using setup_fun_t = std::function<void(node_ptr_t, const entry_vector_t &)>;
+    setup_fun_t setup_event;
+
+  public:
+    ASTNode_Event(node_ptr_t action, const node_vector_t & args, setup_fun_t in_fun)
+     : setup_event(in_fun)
+    {
+      AddChild(action);
+      for (auto arg : args) AddChild(arg);
+    }
+
+    entry_ptr_t Process() override {
+      emp_assert(children.size() >= 1);
+      entry_vector_t arg_entries;
+      for (size_t id = 1; id < children.size(); id++) {
+        arg_entries.push_back( children[id]->Process() );
+      }
+      setup_event(children[0], arg_entries);
+      return nullptr;
     }
   };
 
