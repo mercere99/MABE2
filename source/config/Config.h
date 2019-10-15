@@ -198,7 +198,7 @@ namespace mabe {
     ConfigEntry & ParseDeclaration(size_t & pos, ConfigScope & scope);
 
     /// Parse an event description.
-    void ParseEvent(size_t & pos, ConfigScope & scope);
+    emp::Ptr<ASTNode> ParseEvent(size_t & pos, ConfigScope & scope);
 
     /// Parse the next input in the specified Struct.  A statement can be a variable declaration,
     /// an expression, or an event.
@@ -485,10 +485,10 @@ namespace mabe {
       if (symbol == "(") {
         // Collect arguments.
         emp::vector< emp::Ptr<ASTNode> > args;
-        while (AsLexeme(pos) != ")") {
+        while (AsChar(pos) != ')') {
           emp::Ptr<ASTNode> next_arg = ParseExpression(pos, scope);
           args.push_back(next_arg);
-          if (AsLexeme(pos) != ",") break;
+          if (AsChar(pos) != ',') break;
         }
         RequireChar(')', pos++, "Expected a ')' to end function call.");
         cur_node = emp::NewPtr<ASTNode_Call>(cur_node, args);
@@ -535,8 +535,30 @@ namespace mabe {
   }
 
   // Parse an event description.
-  void Config::ParseEvent(size_t & pos, ConfigScope & scope) {
-    // @CAO Continue here.
+  emp::Ptr<ASTNode> Config::ParseEvent(size_t & pos, ConfigScope & scope) {
+    RequireChar('@', pos++, "All event declarations must being with an '@'.");
+    RequireID(pos, "Events must start by specifying event name.");
+    const std::string & event_name = AsLexeme(pos++);
+    RequireChar('(', pos++, "Expected parentheses after '", event_name, "' for args.");
+
+    emp::vector<emp::Ptr<ASTNode>> args;
+    while (AsChar(pos) != ')') {
+      args.push_back( ParseExpression(pos, scope) );
+      if (AsChar(pos) == ',') pos++;
+    }
+    RequireChar(')', pos++, "Event args must end in a ')'");
+
+    emp::Ptr<ASTNode> action = ParseStatement(pos, scope);
+
+    auto setup_event = [this, event_name](emp::Ptr<ASTNode> action,
+                                          const emp::vector<emp::Ptr<ConfigEntry>> & args) {
+      AddEvent(event_name, action,
+               (args.size() > 0) ? args[0]->AsDouble() : 0.0,
+               (args.size() > 1) ? args[1]->AsDouble() : 0.0,
+               (args.size() > 2) ? args[2]->AsDouble() : -1.0);
+    };
+
+    return emp::NewPtr<ASTNode_Event>(action, args, setup_event);
   }
 
   // Process the next input in the specified Struct.
