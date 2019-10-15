@@ -351,6 +351,9 @@ namespace mabe {
       // Add in other built-in functions.
       std::function<int()> exit_fun = [this](){ Exit(); return 0; };
       config.AddFunction("exit", exit_fun, "Exit from this MABE run.");
+
+      // Add in other built-in events.
+      config.AddEventType("update");
     }
     MABE(const MABE &) = delete;
     MABE(MABE &&) = delete;
@@ -571,7 +574,8 @@ namespace mabe {
     // --- Deal with Organism Types ---
 
     OrganismManagerBase & GetOrganismManager(const std::string & type_name) {
-      emp_assert(emp::Has(org_managers, type_name)); // An org type must be created before base retrieved.
+      emp_assert(emp::Has(org_managers, type_name), type_name,
+                 "An org type must be created before base retrieved.");
       return *(org_managers[type_name]);
     }
 
