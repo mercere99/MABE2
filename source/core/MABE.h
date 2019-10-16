@@ -239,12 +239,13 @@ namespace mabe {
     /// names and can be manipulated as a whole.
     emp::unordered_map<std::string, emp::Ptr<OrganismManagerBase>> org_managers;
 
-    emp::Random random;              ///< Master random number generator
-    int random_seed;                 ///< Random number seed.
+    emp::Random random;               ///< Master random number generator
+    int random_seed;                  ///< Random number seed.
 
-    size_t cur_pop = (size_t) -1;           ///< Which population are we currently working with?
-    size_t update = 0;                      ///< How many times has Update() been called?
-    emp::vector<std::string> errors;        ///< Log any errors that have occured.
+    size_t cur_pop = (size_t) -1;     ///< Which population are we currently working with?
+    size_t update = 0;                ///< How many times has Update() been called?
+    emp::vector<std::string> errors;  ///< Log any errors that have occured.
+    bool exit_now = false;            ///< Do we need to immediately exit the code?
 
     // --- Config information for command-line arguments ---
     struct ArgInfo {
@@ -278,8 +279,8 @@ namespace mabe {
       for (auto [name,org_manager] : org_managers) org_manager.Delete();
       org_managers.clear();
 
-      // Forcibly exit.
-      exit(0);
+      // Exit as soon as possible.
+      exit_now = true;
     }
 
     void ShowHelp() {
@@ -368,13 +369,14 @@ namespace mabe {
     size_t GetUpdate() const noexcept { return update; }
 
     // --- Tools to setup runs ---
-    void Setup() {
+    bool Setup() {
       SetupConfig();                   // Load all of the parameters needed by modules, etc.
       ProcessArgs();                   // Deal with command-line inputs.
       config.Load(config_filenames);   // Load files, if any.
 
       // If we are writing a file, do so and stop.
-      if (gen_filename != "") { config.Write(gen_filename); Exit(); }
+      if (gen_filename != "") { config.Write(gen_filename); Exit(); return false; }
+      if (exit_now) return false;
 
       Setup_Populations();    // Give modules access to the correct populations.
       Setup_Modules();        // Run SetupModule() on each module; initialize placement if needed.
@@ -386,6 +388,8 @@ namespace mabe {
       for (emp::Ptr<ModuleBase> mod_ptr : modules) {
         if (mod_ptr->HasErrors()) { AddErrors(mod_ptr->GetErrors()); }
       }
+
+      return true;
     }
 
     /// Update MABE a single step.
