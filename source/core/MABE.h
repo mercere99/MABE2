@@ -407,11 +407,14 @@ namespace mabe {
 
       // Run Update on all modules...
       on_update_sig.Trigger(update);
+
+      // Trigger any events that are supposed to occur in config at this update.
+      config.UpdateEventValue("update", update);
     }
 
     /// Update MABE the specified number of steps.
     void Update(size_t num_updates) {
-      for (size_t ud = 0; ud < num_updates; ud++) {
+      for (size_t ud = 0; ud < num_updates && !exit_now; ud++) {
         Update();
       }
     }
