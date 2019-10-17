@@ -19,7 +19,7 @@ namespace mabe {
 
   class EvalAll1s : public Module {
   private:
-    size_t target_pop;
+    int target_pop;
 
     std::string bits_trait;
     std::string fitness_trait;
@@ -37,6 +37,9 @@ namespace mabe {
     ~EvalAll1s() { }
 
     void SetupConfig() override {
+      LinkPop(target_pop, "target_pop", "Which population should we evaluate?", 0);
+      LinkVar(bits_trait, "bits_trait", "Which trait stores the bit sequence to evaluate?", "bits");
+      LinkVar(fitness_trait, "fitness_trait", "Which trait should we store NK fitness in?", "fitness");
     }
 
     void SetupModule() override {
