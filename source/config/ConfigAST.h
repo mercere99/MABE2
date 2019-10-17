@@ -80,11 +80,12 @@ namespace mabe {
   /// An ASTNode representing a leaf in the tree (i.e., a variable or literal)
   class ASTNode_Leaf : public ASTNode {
   protected:
-    entry_ptr_t entry_ptr;
+    entry_ptr_t entry_ptr;   ///< Pointer to ConfigEntry at this leaf.
+    bool own_entry;          ///< Should this node be in charge of deleting the entry pointer?
 
   public:
-    ASTNode_Leaf(entry_ptr_t _ptr) : entry_ptr(_ptr) { ; }
-    ~ASTNode_Leaf() { if (entry_ptr->IsTemporary()) entry_ptr.Delete(); }
+    ASTNode_Leaf(entry_ptr_t _ptr) : entry_ptr(_ptr), own_entry(_ptr->IsTemporary()) { ; }
+    ~ASTNode_Leaf() { if (own_entry) entry_ptr.Delete(); }
 
     const std::string & GetName() const override { return entry_ptr->GetName(); }
     ConfigEntry & GetEntry() { return *entry_ptr; }
