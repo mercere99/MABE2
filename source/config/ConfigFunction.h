@@ -51,7 +51,7 @@ namespace mabe {
     template <typename RETURN_T, typename... ARGS>
     void SetFunction( std::function<RETURN_T(ARGS...)> in_fun ) {
       // Convert the function call to using entry pointers.
-      fun = [this, in_fun](const emp::vector<entry_ptr_t> & args) -> emp::Ptr<ConfigEntry> {        
+      fun = [in_fun, name=name, desc=desc](const emp::vector<entry_ptr_t> & args) -> emp::Ptr<ConfigEntry> {        
         // The call needs to have the correct number of arguments or else it throws an error.
         constexpr int NUM_ARGS = sizeof...(ARGS);
         if (args.size() != NUM_ARGS) {
@@ -70,7 +70,7 @@ namespace mabe {
       };
     }
 
-    entry_ptr_t Call( emp::vector<entry_ptr_t> args ) { return fun(args); }
+    entry_ptr_t Call( emp::vector<entry_ptr_t> args ) override { return fun(args); }
 
   };
 
