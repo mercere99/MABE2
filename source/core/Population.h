@@ -345,8 +345,10 @@ namespace mabe {
       }
       emp_assert(OK());
     }
-    Population(Population &&) = default;
-    Population & operator=(Population &&) = default;
+
+    // Populations can be copied, but should not be moved to maintain correct empty orgs.
+    Population(Population &&) = delete;
+    Population & operator=(Population &&) = delete;
 
     ~Population() { for (auto x : orgs) if (!x->IsEmpty()) x.Delete(); }
 
