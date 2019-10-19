@@ -272,8 +272,9 @@ namespace mabe {
     using this_t = ConfigEntry_Var<T>;
 
     template <typename... ARGS>
-    ConfigEntry_Var(const std::string & in_name, T default_val, ARGS &&... args)
-      : ConfigEntry(in_name, std::forward<ARGS>(args)...), value(default_val) { ; }
+    ConfigEntry_Var(const std::string & in_name, T default_val,
+                    const std::string & in_desc="", emp::Ptr<ConfigScope> in_scope=nullptr)
+      : ConfigEntry(in_name, in_desc, in_scope), value(default_val) { ; }
     ConfigEntry_Var(const ConfigEntry_Var<T> &) = default;
 
     emp::Ptr<ConfigEntry> Clone() const override { return emp::NewPtr<this_t>(*this); }
