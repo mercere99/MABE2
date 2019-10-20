@@ -33,8 +33,8 @@ namespace mabe {
   public:
     Module(MABE & in_control, const std::string & in_name, const std::string & in_desc="")
       : ModuleBase(in_control, in_name, in_desc) { ; }
-    Module(const Module &) = default;
-    Module(Module &&) = default;
+    Module(const Module &) = delete;
+    Module(Module &&) = delete;
 
   protected:
 
