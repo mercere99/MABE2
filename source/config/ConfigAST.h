@@ -84,7 +84,9 @@ namespace mabe {
     bool own_entry;          ///< Should this node be in charge of deleting the entry pointer?
 
   public:
-    ASTNode_Leaf(entry_ptr_t _ptr) : entry_ptr(_ptr), own_entry(_ptr->IsTemporary()) { ; }
+    ASTNode_Leaf(entry_ptr_t _ptr) : entry_ptr(_ptr), own_entry(_ptr->IsTemporary()) {
+      entry_ptr->SetTemporary(false); // If this entry was temporary, it is now owned.
+    }
     ~ASTNode_Leaf() { if (own_entry) entry_ptr.Delete(); }
 
     const std::string & GetName() const override { return entry_ptr->GetName(); }
