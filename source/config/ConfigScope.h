@@ -97,7 +97,7 @@ namespace mabe {
     }
 
     /// Lookup a variable, scanning outer scopes if needed
-    entry_ptr_t LookupEntry(std::string in_name, bool scan_scopes=true) override {
+    entry_ptr_t LookupEntry(const std::string & in_name, bool scan_scopes=true) override {
       // See if this next entry is in the var list.
       auto it = entry_map.find(in_name);
 
@@ -112,7 +112,7 @@ namespace mabe {
     }
 
     /// Lookup a variable, scanning outer scopes if needed (in constant context!)
-    emp::Ptr<const ConfigEntry> LookupEntry(std::string in_name, bool scan_scopes=true) const override {
+    emp::Ptr<const ConfigEntry> LookupEntry(const std::string & in_name, bool scan_scopes=true) const override {
       // See if this entry is in the var list.
       auto it = entry_map.find(in_name);
 
