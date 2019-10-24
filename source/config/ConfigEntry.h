@@ -116,13 +116,13 @@ namespace mabe {
     virtual void UpdateDefault() { default_val = ""; }
 
     /// If this entry is a scope, we should be able to lookup other entries inside it.
-    virtual emp::Ptr<ConfigEntry> LookupEntry(std::string in_name, bool scan_scopes=true) {
+    virtual emp::Ptr<ConfigEntry> LookupEntry(const std::string & in_name, bool scan_scopes=true) {
       return (in_name == "") ? this : nullptr;
     }
-    virtual emp::Ptr<const ConfigEntry> LookupEntry(std::string in_name, bool scan_scopes=true) const {
+    virtual emp::Ptr<const ConfigEntry> LookupEntry(const std::string & in_name, bool scan_scopes=true) const {
       return (in_name == "") ? this : nullptr;
     }
-    virtual bool Has(std::string in_name) const { return (bool) LookupEntry(in_name); }
+    virtual bool Has(const std::string & in_name) const { return (bool) LookupEntry(in_name); }
 
     /// If this entry is a function, we should be able to call it.
     virtual emp::Ptr<ConfigEntry> Call( emp::vector<emp::Ptr<ConfigEntry>> args );
