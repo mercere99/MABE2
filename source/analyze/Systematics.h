@@ -16,6 +16,9 @@
  *        whole inheritance thing go away through judicious use of signals.
  * @todo This does not currently handle situations where organisms change locations during their
  *       lifetimes gracefully.
+ * 
+ * @CAO: I think we need to remove the move constructor for systematics; otherwise the DataNode
+ *       lambdas that are created and capture "this" will still point to the pre-move version...
  */
 
 
