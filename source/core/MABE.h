@@ -679,8 +679,8 @@ namespace mabe {
       [this](const emp::vector<std::string> &){ ShowHelp(); return false; } );
     arg_set.emplace_back("--modules", "-m", "              ", "Module list",
       [this](const emp::vector<std::string> &){ ShowModules(); return false; } );
-    arg_set.emplace_back("--set", "-s", "[param=value] ", "Set specified parameter",
-      [this](const emp::vector<std::string> &){ emp_assert(false); return true; } );
+    // arg_set.emplace_back("--set", "-s", "[param=value] ", "Set specified parameter",
+    //   [this](const emp::vector<std::string> &){ emp_assert(false); return true; } );
     arg_set.emplace_back("--version", "-v", "              ", "Version ID of MABE",
       [this](const emp::vector<std::string> &){
         std::cout << "MABE v" << VERSION << "\n";
