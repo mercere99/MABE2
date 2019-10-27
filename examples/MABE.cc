@@ -41,7 +41,10 @@ int main(int argc, char* argv[])
   // control.AddModule<mabe::SelectElite>("SelectElite");
   // control.AddModule<mabe::SelectTournament>("SelectTournament");
   // control.AddModule<mabe::GrowthPlacement>();
-  control.Setup();
+
+  // Setup may decide to stop if no additional processing is needed.
+  if (control.Setup() == false) return 0;
+
   control.Inject("bit_org", 200);
   control.Update(1000);
 }
