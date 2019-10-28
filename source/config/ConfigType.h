@@ -61,8 +61,8 @@ namespace mabe {
     virtual void SetupConfig() = 0;
     virtual ~ConfigType() { }
 
-    ConfigScope & GetScope() { return *cur_scope; }
-    const ConfigScope & GetScope() const { return *cur_scope; }
+    ConfigScope & GetScope() { emp_assert(!cur_scope.IsNull()); return *cur_scope; }
+    const ConfigScope & GetScope() const { emp_assert(!cur_scope.IsNull()); return *cur_scope; }
   };
 }
 
