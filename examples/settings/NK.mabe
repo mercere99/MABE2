@@ -40,6 +40,6 @@ BitsOrgManager bits_org_m = {           // Organism type
 }
 
 // Setup Events.
-@0     inject(bit_org, main_pop, 200);
-@10:10 echo("Testing!");
-@1000  exit();
+@update(0) inject(bit_org, main_pop, 200);
+@update(10:10) echo("Testing!");
+@update(1000) exit();
