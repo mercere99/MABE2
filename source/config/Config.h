@@ -70,6 +70,8 @@
 #ifndef MABE_CONFIG_H
 #define MABE_CONFIG_H
 
+#include <fstream>
+
 #include "base/assert.h"
 #include "base/map.h"
 #include "meta/TypeID.h"
@@ -244,20 +246,29 @@ namespace mabe {
       precedence_map["="] = cur_prec++;
     }
 
+    // Prevent copy or move since we are using lambdas that capture 'this'
+    Config(const Config &) = delete;
+    Config(Config &&) = delete;
+    Config & operator=(const Config &) = delete;
+    Config & operator=(Config &&) = delete;
+
     ~Config() { }
 
     ConfigEvents & AddEventType(const std::string & name) {
       emp_assert(!emp::Has(events_map, name));
+      Debug ("Adding event type '", name, "'");
       return events_map[name];
     }
 
     void AddEvent(const std::string & name, emp::Ptr<ASTNode> action,
                   double first=0.0, double repeat=0.0, double max=-1.0) {
       emp_assert(emp::Has(events_map, name), name);
+      Debug ("Adding event instance for '", name, "'");
       events_map[name].AddEvent(action, first, repeat, max);
     }
 
     void UpdateEventValue(const std::string & name, double new_value) {
+      Debug("Uppdating event value '", name, "' to ", new_value);
       events_map[name].UpdateValue(new_value);
     }
 
@@ -342,7 +353,7 @@ namespace mabe {
       scan_scopes = false;             // One or more initial dots specify scope; don't scan!
       size_t num_dots = GetSize(pos);  // Extra dots shift scope.
       emp::Ptr<ConfigScope> scope_ptr = &cur_scope;
-      while (num_dots > 1) {
+      while (num_dots-- > 1) {
         scope_ptr = scope_ptr->GetScope();
         if (scope_ptr.IsNull()) Error(pos, "Too many dots; goes beyond global scope.");
       }
@@ -549,6 +560,8 @@ namespace mabe {
     RequireChar(')', pos++, "Event args must end in a ')'");
 
     emp::Ptr<ASTNode> action = ParseStatement(pos, scope);
+
+    Debug("Building event '", event_name, "' with args ", args);
 
     auto setup_event = [this, event_name](emp::Ptr<ASTNode> action,
                                           const emp::vector<emp::Ptr<ConfigEntry>> & args) {
