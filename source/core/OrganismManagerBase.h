@@ -5,6 +5,10 @@
  *
  *  @file  OrganismManagerBase.h
  *  @brief Base class for tracking a category of organism.
+ *
+ *  The main MABE controller will manipulate organism managers through this base class.
+ *  Note that the companion class (OrganismManager) is above the MABE controller and stores
+ *  a reference to it.
  */
 
 #ifndef MABE_ORGANISM_MANAGER_BASE_H
@@ -26,7 +30,7 @@ namespace mabe {
 
   class OrganismManagerBase  : public mabe::ConfigType {
   protected:
-    std::string name;              ///< Name used for this type of organisms.
+    std::string name;              ///< Name used for this type of organism.
     emp::VarMap var_map;           ///< Map of run-time values associated with this organism type.
 
     emp::Ptr<Organism> prototype;  ///< Base organism to copy.
