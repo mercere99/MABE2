@@ -40,12 +40,13 @@ namespace mabe {
                 double _next, double _repeat, double _max)
         : id(_id), ast_action(_node), next(_next), repeat(_repeat), max(_max), active(next <= max)
       { ; }
-      ~TimedEvent() { ast_action.Delete(); }
+      ~TimedEvent() { /* Do not delete ast_action; it will be handed in the main AST tree. */ }
 
       // Trigger a single event as having occurred; return true/false base on whether this event
       // should continue to be considered active.
       bool Trigger() {
-        ast_action->Process();
+        auto result_entry = ast_action->Process();
+        if (result_entry->IsTemporary()) result_entry.Delete();
         next += repeat;
 
         // Return "active" if we ARE repeating and the next time is stiil within range.
@@ -71,7 +72,7 @@ namespace mabe {
   public:
     ConfigEvents() { ; }
     ~ConfigEvents() {
-      // Must delete all AST nodes in the queue.
+      // Must delete all events in the queue.
       for (auto [time, event_ptr] : queue) {
         event_ptr.Delete();
       }
@@ -96,7 +97,7 @@ namespace mabe {
       }
 
       // If we are already after max time, this event cannot be triggered.
-      if (first > max) return false;
+      if (max >= 0.0 && first > max) return false;
 
       AddEvent( emp::NewPtr<TimedEvent>(next_id++, action, first, repeat, max) );
 
