@@ -1,0 +1,15 @@
+Config as a whole should move from MABE to Empirical
+
+We need a consistent and functional error system.
+Right now we either output direct to the command line OR create a ConfigEntry_Error
+with a meaningful error included, but it's then ignored and never printed.
+What should happen is that an error message is raised and the appropriate interface
+module handles it.
+
+Events need to be made much more flexible.
+Right now, all events are "timer" based, which means they are given a threshold for
+when a particular signal variable reaches a certain value they start running and then
+each time it makes it to the next threshold they run again until they pass the end
+value.  Any of these variables can be disabled (so, for example, @start only runs
+events once at the beginning), but each event type should be able to have its own
+parameter types.
