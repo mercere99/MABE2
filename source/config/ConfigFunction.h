@@ -48,21 +48,40 @@ namespace mabe {
 
     bool IsFunction() const override { return true; }
 
-    template <typename RETURN_T, typename... ARGS>
-    void SetFunction( std::function<RETURN_T(ARGS...)> in_fun ) {
+    /// Setup a function that takes NO arguments.
+    template <typename RETURN_T>
+    void SetFunction( std::function<RETURN_T()> in_fun ) {
+      // Convert the function call to using entry pointers.
+      fun = [in_fun, name=name, desc=desc](const emp::vector<entry_ptr_t> & args) -> emp::Ptr<ConfigEntry> {        
+        // If arguments are passed in, we need to raise an error.
+        if (args.size()) {
+          return emp::NewPtr<ConfigEntry_Error>(
+            "Function '", name, "' called with ", args.size(), " args, but ZERO expected."
+          );
+        }
+
+        emp::Ptr<ConfigEntry> out_entry =
+          emp::NewPtr<ConfigEntry_Var<RETURN_T>>("return value", in_fun(), desc, nullptr);
+        out_entry->SetTemporary();
+        return out_entry;
+      };
+    }
+
+    /// Setup a function that takes AT LEAST ONE argument.
+    template <typename RETURN_T, typename ARG1, typename... ARGS>
+    void SetFunction( std::function<RETURN_T(ARG1, ARGS...)> in_fun ) {
       // Convert the function call to using entry pointers.
       fun = [in_fun, name=name, desc=desc](const emp::vector<entry_ptr_t> & args) -> emp::Ptr<ConfigEntry> {        
         // The call needs to have the correct number of arguments or else it throws an error.
-        constexpr int NUM_ARGS = sizeof...(ARGS);
+        constexpr int NUM_ARGS = sizeof...(ARGS) + 1;
         if (args.size() != NUM_ARGS) {
-          std::stringstream msg;
-          msg << "Function '" << name << "' called with " << args.size()
-            << " args, but expected " << NUM_ARGS << ".";
-          return emp::NewPtr<ConfigEntry_Error>(msg.str());
+          return emp::NewPtr<ConfigEntry_Error>(
+            "Function '", name, "' called with ", args.size(), " args, but ", NUM_ARGS, " expected."
+          );            
         }
 
-        size_t i = 0;
-        RETURN_T result = in_fun(args[i++]->As<ARGS>()...);
+        size_t i = 1;
+        RETURN_T result = in_fun(args[0]->As<ARG1>(), args[i++]->As<ARGS>()...);
         emp::Ptr<ConfigEntry> out_entry =
           emp::NewPtr<ConfigEntry_Var<RETURN_T>>("return value", result, desc, nullptr);
         out_entry->SetTemporary();
