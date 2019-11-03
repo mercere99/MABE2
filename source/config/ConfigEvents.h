@@ -114,6 +114,16 @@ namespace mabe {
       }
       cur_value = in_value;
     }
+
+    /// Trigger all events of this type, regardless of associated values.
+    /// Note that events will be removed with no repeats.
+    void TriggerAll() {
+      while (queue.size()) {
+        emp::Ptr<TimedEvent> cur_event = PopEvent();
+        cur_event->Trigger();
+        cur_event.Delete();
+      }
+    }
   };
 
 
