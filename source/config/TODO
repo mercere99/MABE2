@@ -1,15 +1,30 @@
-Config as a whole should move from MABE to Empirical
+* Config as a whole should move from MABE to Empirical
 
-We need a consistent and functional error system.
+* We need a consistent and functional error system.
 Right now we either output direct to the command line OR create a ConfigEntry_Error
 with a meaningful error included, but it's then ignored and never printed.
 What should happen is that an error message is raised and the appropriate interface
 module handles it.
 
-Events need to be made much more flexible.
+* Events need to be made much more flexible.
 Right now, all events are "timer" based, which means they are given a threshold for
 when a particular signal variable reaches a certain value they start running and then
 each time it makes it to the next threshold they run again until they pass the end
 value.  Any of these variables can be disabled (so, for example, @start only runs
 events once at the beginning), but each event type should be able to have its own
 parameter types.
+
+* Functions should be able to be defined inside of a config script.
+
+* We need a symbol to turn off a whole statement (so that the parser keeps going until
+the end of the statement, but then ignores everything is said to do).  This will allow
+us to more easily turn on and off whole objects that we want to sometimes build.
+e.g.: !Population pop_special;
+
+* Arrays (possibly including generators, which are open-ended arrays).
+
+* Literal arrays/generators.  5:10 should be 5,15,25,35,... while 6:1:9 should be 6,7,8,9
+
+* Built-in types for scopes, probably beginning with an underscope.  For example,
+  my_array._size will be the number of elements in the array.  my_scope._var_names will
+  be an array of all variable names in the current scope.  
