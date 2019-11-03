@@ -94,7 +94,9 @@ namespace mabe {
     /// A generic As() function that will call the appropriate converter.
     template <typename T>
     T As() {
-      if constexpr (std::is_same<T, double>()) { return AsDouble(); }
+      if constexpr (std::is_same<T, emp::Ptr<ConfigEntry>>()) { return this; }
+      else if constexpr (std::is_same<T, ConfigEntry &>()) { return *this; }
+      else if constexpr (std::is_same<T, double>()) { return AsDouble(); }
       else if constexpr (std::is_same<T, std::string>()) { return AsString(); }
       else if constexpr (std::is_same<T, ConfigScope&>()) { return AsScope(); }
       else if constexpr (std::is_same<T, int>()) { return (int) AsDouble(); }
