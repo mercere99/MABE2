@@ -254,12 +254,14 @@ namespace mabe {
 
     ~Config() { }
 
+    /// Create a new type of event that can be used in the scripting language.
     ConfigEvents & AddEventType(const std::string & name) {
       emp_assert(!emp::Has(events_map, name));
       Debug ("Adding event type '", name, "'");
       return events_map[name];
     }
 
+    /// Add an instance of an event with an action that should be triggered.
     void AddEvent(const std::string & name, emp::Ptr<ASTNode> action,
                   double first=0.0, double repeat=0.0, double max=-1.0) {
       emp_assert(emp::Has(events_map, name), name);
@@ -267,9 +269,17 @@ namespace mabe {
       events_map[name].AddEvent(action, first, repeat, max);
     }
 
+    /// Indicate the an event trigger value has been updated; trigger associated events.
     void UpdateEventValue(const std::string & name, double new_value) {
+      emp_assert(emp::Has(events_map, name), name);
       Debug("Uppdating event value '", name, "' to ", new_value);
       events_map[name].UpdateValue(new_value);
+    }
+
+    /// Trigger all events of a type (ignoring trigger values)
+    void TriggerEvents(const std::string & name) {
+      emp_assert(emp::Has(events_map, name), name);
+      events_map[name].TriggerAll();
     }
 
     /// To add a type, provide the type name (that can be referred to in a script) and a function
