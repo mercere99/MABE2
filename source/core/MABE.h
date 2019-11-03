@@ -354,7 +354,8 @@ namespace mabe {
       config.AddFunction("exit", exit_fun, "Exit from this MABE run.");
 
       // Add in other built-in events.
-      config.AddEventType("update");
+      config.AddEventType("start");   // Triggered at the beginning of a run.
+      config.AddEventType("update");  // Tested every update.
     }
     MABE(const MABE &) = delete;
     MABE(MABE &&) = delete;
@@ -414,6 +415,7 @@ namespace mabe {
 
     /// Update MABE the specified number of steps.
     void Update(size_t num_updates) {
+      config.TriggerEvents("start");
       for (size_t ud = 0; ud < num_updates && !exit_now; ud++) {
         Update();
       }
