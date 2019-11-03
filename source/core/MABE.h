@@ -352,6 +352,8 @@ namespace mabe {
       // Add in other built-in functions.
       std::function<int()> exit_fun = [this](){ Exit(); return 0; };
       config.AddFunction("exit", exit_fun, "Exit from this MABE run.");
+      std::function<int(std::string)> print_fun = [this](std::string x){ std::cout << x << std::endl; return 0; };
+      config.AddFunction("print", print_fun, "Print out the provided variable.");
 
       // Add in other built-in events.
       config.AddEventType("start");   // Triggered at the beginning of a run.
