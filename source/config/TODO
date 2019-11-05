@@ -26,5 +26,13 @@ e.g.: !Population pop_special;
 * Literal arrays/generators.  5:10 should be 5,15,25,35,... while 6:1:9 should be 6,7,8,9
 
 * Built-in types for scopes, probably beginning with an underscope.  For example,
-  my_array._size will be the number of elements in the array.  my_scope._var_names will
-  be an array of all variable names in the current scope.  
+my_array._size will be the number of elements in the array.  my_scope._var_names will
+be an array of all variable names in the current scope.  
+
+* Need a stand-along config interpretor along with a full test suite to make sure it's
+working properly.
+
+* Should be able to make new types (not just new objects) inside the interpretor.
+
+* Should be able to adjust default values for existing types.  This will allow for config
+files to be included in that just setup defaults, but don't actually build any new object.
