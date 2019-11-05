@@ -36,28 +36,24 @@
  *   q = 'q';            // Literal chars are translated immediately to their ascii value
  * 
  *   // use a : instead of a . to access built-in values.  Note a leading colon uses current scope.
- *   r = k:size;         // = 3  (always a value)
- *   s = f:names;        // = ["a","b","c","g","h","i","j"] (vector of strings in alphabetical order)
- *   t = c:string;       // = "17"  (convert value to string)
- *   u = (t+"00"):value; // = 1700  (convert string to value; can use temporaries!)
- *   // ALSO- :is_string, :is_value, :is_struct, :is_array (return 0 or 1)
- *   //       :type (returns a string indicating type!)
+ *   r = k._scope_size;         // = 3  (always a value)
+ *   s = f._names;        // = ["a","b","c","g","h","i","j"] (vector of strings in alphabetical order)
+ *   t = c._string;       // = "17"  (convert value to string)
+ *   u = (t+"00")._value; // = 1700  (convert string to value; can use temporaries!)
+ *   // ALSO- ._is_string, ._is_value, ._is_struct, ._is_array (return 0 or 1)
+ *   //       ._type (returns a string indicating type!)
  * 
  * 
  *  In practice:
- *   organism_types = {
- *     Sheep = {
- *       class = MarkovBrain;
- *       outputs = 10;
- *       node_weights = 0.75;
- *       recurrance = 5;
- *     }
- *     Wolves = {
- *       class = MarkovBrain;
- *       outputs = 10;
- *       node_weights = 0.75;
- *       recurrance = 3;
- *     }
+ *   MarkovBrain Sheep = {
+ *     outputs = 10;
+ *     node_weights = 0.75;
+ *     recurrance = 5;
+ *   }
+ *   MarkovBrain Wolves = {
+ *     outputs = 10;
+ *     node_weights = 0.75;
+ *     recurrance = 3;
  *   }
  *   modules = {
  *     Mutations = {
