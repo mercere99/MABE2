@@ -332,7 +332,7 @@ namespace mabe {
   public:
     template <typename... ARGS>
     ConfigEntry_Error(ARGS &&... args)
-      : ConfigEntry("__Error", emp::to_string(args...), nullptr) { ; }
+      : ConfigEntry("__Error", emp::to_string(args...), nullptr) { is_temporary = true; }
 
     bool IsError() const override { return true; }
 
