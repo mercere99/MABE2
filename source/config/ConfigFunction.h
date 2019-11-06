@@ -25,6 +25,7 @@ namespace mabe {
   private:
     using this_t = ConfigFunction;
     using entry_ptr_t = emp::Ptr<ConfigEntry>;
+    using entry_vector_t = emp::vector<entry_ptr_t>;
     using fun_t = std::function< entry_ptr_t( const emp::vector<entry_ptr_t> & ) >;
     fun_t fun;
     size_t arg_count;
@@ -70,23 +71,38 @@ namespace mabe {
     /// Setup a function that takes AT LEAST ONE argument.
     template <typename RETURN_T, typename ARG1, typename... ARGS>
     void SetFunction( std::function<RETURN_T(ARG1, ARGS...)> in_fun ) {
-      // Convert the function call to using entry pointers.
-      fun = [in_fun, name=name, desc=desc](const emp::vector<entry_ptr_t> & args) -> emp::Ptr<ConfigEntry> {        
-        // The call needs to have the correct number of arguments or else it throws an error.
-        constexpr int NUM_ARGS = sizeof...(ARGS) + 1;
-        if (args.size() != NUM_ARGS) {
-          return emp::NewPtr<ConfigEntry_Error>(
-            "Function '", name, "' called with ", args.size(), " args, but ", NUM_ARGS, " expected."
-          );            
-        }
+      /// If we have only one argument and it is a `const emp::vector<emp::Ptr<ConfigEntry>> &`,
+      /// assume that the function will handle any conversions itself.
+      if constexpr (std::is_same<ARG1, const entry_vector_t &>() &&
+                    sizeof...(ARGS) == 0) {
+        fun = [in_fun, name=name, desc=desc](const entry_vector_t & args) -> emp::Ptr<ConfigEntry> {        
+          RETURN_T result = in_fun(args);
+          emp::Ptr<ConfigEntry> out_entry =
+            emp::NewPtr<ConfigEntry_Var<RETURN_T>>("return value", result, desc, nullptr);
+          out_entry->SetTemporary();
+          return out_entry;
+        };
+      }
 
-        size_t i = 1;
-        RETURN_T result = in_fun(args[0]->As<ARG1>(), args[i++]->As<ARGS>()...);
-        emp::Ptr<ConfigEntry> out_entry =
-          emp::NewPtr<ConfigEntry_Var<RETURN_T>>("return value", result, desc, nullptr);
-        out_entry->SetTemporary();
-        return out_entry;
-      };
+      /// Convert the function call to using entry pointers.
+      else {
+        fun = [in_fun, name=name, desc=desc](const entry_vector_t & args) -> emp::Ptr<ConfigEntry> {        
+          // The call needs to have the correct number of arguments or else it throws an error.
+          constexpr int NUM_ARGS = sizeof...(ARGS) + 1;
+          if (args.size() != NUM_ARGS) {
+            return emp::NewPtr<ConfigEntry_Error>(
+              "Function '", name, "' called with ", args.size(), " args, but ", NUM_ARGS, " expected."
+            );            
+          }
+
+          size_t i = 1;
+          RETURN_T result = in_fun(args[0]->As<ARG1>(), args[i++]->As<ARGS>()...);
+          emp::Ptr<ConfigEntry> out_entry =
+            emp::NewPtr<ConfigEntry_Var<RETURN_T>>("return value", result, desc, nullptr);
+          out_entry->SetTemporary();
+          return out_entry;
+        };
+      }
     }
 
     entry_ptr_t Call( emp::vector<entry_ptr_t> args ) override { return fun(args); }
