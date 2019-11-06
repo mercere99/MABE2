@@ -352,7 +352,7 @@ namespace mabe {
       // Add in other built-in functions.
       std::function<int()> exit_fun = [this](){ Exit(); return 0; };
       config.AddFunction("exit", exit_fun, "Exit from this MABE run.");
-      std::function<int(emp::vector<emp::Ptr<ConfigEntry>> &)> print_fun =
+      std::function<int(const emp::vector<emp::Ptr<ConfigEntry>> &)> print_fun =
         [this](const emp::vector<emp::Ptr<ConfigEntry>> & args) {
           for (auto entry_ptr : args) std::cout << entry_ptr->AsString();
           return 0;
