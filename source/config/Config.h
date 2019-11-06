@@ -297,9 +297,10 @@ namespace mabe {
       return type_map[type_name].type_id;
     }
 
-    /// To add a built-in function (ad the root level) provide it with a name and description.
+    /// To add a built-in function (at the root level) provide it with a name and description.
     /// As long as the function only requires types known to the config system, it should be
-    /// converted properly.
+    /// converted properly.  For a variadic function, the provided std::function must take a
+    /// vector of ASTNode pointers, but may return any known type.
     template <typename RETURN_T, typename... ARGS>
     void AddFunction(const std::string & name,
                      std::function<RETURN_T(ARGS...)> fun,
@@ -504,8 +505,9 @@ namespace mabe {
         emp::vector< emp::Ptr<ASTNode> > args;
         while (AsChar(pos) != ')') {
           emp::Ptr<ASTNode> next_arg = ParseExpression(pos, scope);
-          args.push_back(next_arg);
-          if (AsChar(pos) != ',') break;
+          args.push_back(next_arg);       // Save this argument.
+          if (AsChar(pos) != ',') break;  // If we don't have a comma, no more args!
+          pos++;                          // Move on to the next argument.
         }
         RequireChar(')', pos++, "Expected a ')' to end function call.");
         cur_node = emp::NewPtr<ASTNode_Call>(cur_node, args);
