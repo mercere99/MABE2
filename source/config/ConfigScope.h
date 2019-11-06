@@ -162,6 +162,7 @@ namespace mabe {
       return Add<ConfigScope>(name, desc, this, type);
     }
 
+    /// Add a new user-defined function.
     template <typename RETURN_T, typename... ARGS>
     ConfigFunction & AddFunction(const std::string & name,
                               std::function<RETURN_T(ARGS...)> fun,
@@ -169,10 +170,11 @@ namespace mabe {
       return Add<ConfigFunction>(name, fun, desc, this);
     }
 
+    /// Add a new function that is a standard part of the scripting language.
     template <typename RETURN_T, typename... ARGS>
     ConfigFunction & AddBuiltinFunction(const std::string & name,
-                              std::function<RETURN_T(ARGS...)> fun,
-                              const std::string & desc) {
+                                        std::function<RETURN_T(ARGS...)> fun,
+                                        const std::string & desc) {
       return AddBuiltin<ConfigFunction>(name, fun, desc, this);
     }
 
