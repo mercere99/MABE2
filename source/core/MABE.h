@@ -352,6 +352,15 @@ namespace mabe {
       // Add in other built-in functions.
       std::function<int()> exit_fun = [this](){ Exit(); return 0; };
       config.AddFunction("exit", exit_fun, "Exit from this MABE run.");
+
+      std::function<int(const std::string, size_t)> inject_fun =
+        [this](const std::string org_type_name, size_t count) {
+          Inject(org_type_name, count);
+          return 0;
+        };
+      config.AddFunction("inject", inject_fun,
+        "Inject organisms into a population (args: org_name, org_count).");
+
       std::function<int(const emp::vector<emp::Ptr<ConfigEntry>> &)> print_fun =
         [this](const emp::vector<emp::Ptr<ConfigEntry>> & args) {
           for (auto entry_ptr : args) std::cout << entry_ptr->AsString();
