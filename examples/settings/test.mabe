@@ -46,5 +46,5 @@ BitsOrgManager bit_org {             // Organism type
 
 //exit();
 @start() print("random_seed = ", random_seed, "\n");
-@update(5,8,1) print("Ping!!\n");
+@update(5,1,8) print("Ping!!\n");
 @update(10) exit();
