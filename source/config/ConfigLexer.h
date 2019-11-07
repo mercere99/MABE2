@@ -32,7 +32,7 @@ namespace mabe {
 
       // Meaningful tokens have next priority.
       token_identifier = AddToken("Identifier", "[a-zA-Z_][a-zA-Z0-9_]*");
-      token_number = AddToken("Literal Number", "[0-9]+(.[0-9]+)?");
+      token_number = AddToken("Literal Number", "[0-9]+(\\.[0-9]+)?");
       token_string = AddToken("Literal String", "\\\"([^\"\\\\]|\\\\.)*\\\"");
       token_char = AddToken("Literal Character", "'([^'\n\\\\]|\\\\.)+'");
       token_dots = AddToken("Dots", "\".\"+");
