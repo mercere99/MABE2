@@ -179,7 +179,7 @@ namespace mabe {
     }
     ~NKLandscapeMemo() { ; }
     NKLandscapeMemo & operator=(const NKLandscapeMemo &) = delete;
-    NKLandscapeMemo & operator=(NKLandscapeMemo &&) = default;
+    NKLandscapeMemo & operator=(NKLandscapeMemo &&) = delete;
 
     size_t GetN() const { return N; }
     size_t GetK() const { return K; }
