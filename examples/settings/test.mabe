@@ -39,12 +39,6 @@ BitsOrgManager bit_org {             // Organism type
   N = num_bits;                         // Number of bits in organism
 }
 
-// Setup Events.
-//@0     inject(bit_org, main_pop, 200);
-//@10:10 echo("Testing!");
-//@1000  exit();
-
-//exit();
 @start() print("random_seed = ", random_seed, "\n");
-@update(5,1,8) print("Ping!!\n");
-@update(10) exit();
+@start() inject("bit_org", 200);
+@update(100) exit();
