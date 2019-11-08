@@ -31,20 +31,14 @@
 
 int main(int argc, char* argv[])
 {
+  // Build the MABE controller, passing in the command-line arguments.
   mabe::MABE control(argc, argv);
-  // control.AddPopulation("main_pop");
-  // control.AddPopulation("next_pop");
-  // control.AddModule<mabe::CommandLine>("CommandLine");
-  // control.AddOrganismManager<mabe::BitsOrgManager>("BitOrg");
-  // control.AddModule<mabe::Mutate>("Mutate");
-  // control.AddModule<mabe::EvalNK>("EvalNK");
-  // control.AddModule<mabe::SelectElite>("SelectElite");
-  // control.AddModule<mabe::SelectTournament>("SelectTournament");
-  // control.AddModule<mabe::GrowthPlacement>();
 
-  // Setup may decide to stop if no additional processing is needed.
+  // [ If you build your own version of this file, add required modules here... ]
+
+  // Setup all of the modules; read in the config file.
   if (control.Setup() == false) return 0;
 
-  control.Inject("bit_org", 200);
+  // Start the run! 
   control.Update(1000);
 }
