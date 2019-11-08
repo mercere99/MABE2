@@ -94,13 +94,12 @@ namespace mabe {
     /// A generic As() function that will call the appropriate converter.
     template <typename T>
     T As() {
-      if constexpr (std::is_same<T, emp::Ptr<ConfigEntry>>()) { return this; }
-      else if constexpr (std::is_same<T, ConfigEntry &>()) { return *this; }
-      else if constexpr (std::is_same<T, double>()) { return AsDouble(); }
-      else if constexpr (std::is_same<T, std::string>()) { return AsString(); }
-      else if constexpr (std::is_same<T, ConfigScope&>()) { return AsScope(); }
-      else if constexpr (std::is_same<T, int>()) { return (int) AsDouble(); }
-      else if constexpr (std::is_same<T, bool>()) { return (bool) AsDouble(); }
+      using base_T = std::remove_const_t<T>;
+      if constexpr (std::is_same<base_T, emp::Ptr<ConfigEntry>>()) { return this; }
+      else if constexpr (std::is_same<base_T, ConfigEntry &>()) { return *this; }
+      else if constexpr (std::is_same<base_T, std::string>()) { return AsString(); }
+      else if constexpr (std::is_same<base_T, ConfigScope&>()) { return AsScope(); }
+      else if constexpr (std::is_arithmetic<base_T>()) { return (T) AsDouble(); }
       else {
         // Oh oh... we don't know this type...
         emp_assert(false, "Trying to convert a ConfigEntry to an unknown type!");
