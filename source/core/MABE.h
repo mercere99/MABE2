@@ -245,6 +245,7 @@ namespace mabe {
     size_t cur_pop = (size_t) -1;     ///< Which population are we currently working with?
     size_t update = 0;                ///< How many times has Update() been called?
     emp::vector<std::string> errors;  ///< Log any errors that have occured.
+    bool show_help = false;           ///< Should we show "help" before exiting?
     bool exit_now = false;            ///< Do we need to immediately exit the code?
 
     // --- Config information for command-line arguments ---
@@ -254,8 +255,8 @@ namespace mabe {
       std::string args;   /// Type of arguments needed: E.g.: "[filename...]"
       std::string desc;   /// E.g.: "Print the available command-line options for running mabe."
 
-      /// Function to call when triggered.  Return bool to indicate if run should continue.
-      using fun_t = std::function<bool(const emp::vector<std::string> &)>;
+      /// Function to call when triggered.
+      using fun_t = std::function<void(const emp::vector<std::string> &)>;
       fun_t action;
 
       ArgInfo(const std::string & _n, const std::string & _f, const std::string & _a,
@@ -388,6 +389,8 @@ namespace mabe {
     bool Setup() {
       SetupConfig();                   // Load all of the parameters needed by modules, etc.
       ProcessArgs();                   // Deal with command-line inputs.
+      if (exit_now) return false;
+
       config.Load(config_filenames);   // Load files, if any.
 
       // If we are writing a file, do so and stop.
@@ -682,30 +685,29 @@ namespace mabe {
 
   void MABE::ProcessArgs() {
     arg_set.emplace_back("--filename", "-f", "[filename...] ", "Filenames of configuration settings",
-      [this](const emp::vector<std::string> & in){ config_filenames = in; return true; } );
+      [this](const emp::vector<std::string> & in){ config_filenames = in; } );
     arg_set.emplace_back("--generate", "-g", "[filename]    ", "Generate a new output file",
       [this](const emp::vector<std::string> & in) {
         if (in.size() != 1) {
           std::cout << "--generate must be followed by a single filename.\n";
-          return false;
+          Exit();
+        } else {
+          gen_filename = in[0];
         }
-        gen_filename = in[0];
-        return true;
       });
     arg_set.emplace_back("--help", "-h", "              ", "Help; print command-line options for MABE",
-      [this](const emp::vector<std::string> &){ ShowHelp(); return false; } );
+      [this](const emp::vector<std::string> &){ show_help = true; } );
     arg_set.emplace_back("--modules", "-m", "              ", "Module list",
-      [this](const emp::vector<std::string> &){ ShowModules(); return false; } );
+      [this](const emp::vector<std::string> &){ ShowModules(); } );
     // arg_set.emplace_back("--set", "-s", "[param=value] ", "Set specified parameter",
-    //   [this](const emp::vector<std::string> &){ emp_assert(false); return true; } );
+    //   [this](const emp::vector<std::string> &){ emp_assert(false); } );
     arg_set.emplace_back("--version", "-v", "              ", "Version ID of MABE",
       [this](const emp::vector<std::string> &){
         std::cout << "MABE v" << VERSION << "\n";
-        return false;
+        Exit();
       });
 
     // Scan through all input argument positions.
-    bool show_help = false;
     for (size_t pos = 1; pos < args.size(); pos++) {
       // Match the input argument to the function to call.
       bool found = false;
@@ -718,6 +720,8 @@ namespace mabe {
           while (++pos < args.size() && args[pos][0] != '-') {
             option_args.push_back(args[pos]);
           }
+
+          std::cout << "Calling '" << cur_arg.name << "' with " << option_args.size() << " args\n";
 
           // And call the function!
           cur_arg.action(option_args);
