@@ -261,7 +261,7 @@ namespace mabe {
     void AddEvent(const std::string & name, emp::Ptr<ASTNode> action,
                   double first=0.0, double repeat=0.0, double max=-1.0) {
       emp_assert(emp::Has(events_map, name), name);
-      Debug ("Adding event instance for '", name, "'");
+      Debug ("Adding event instance for '", name, "' (", first, ":", repeat, ":", max, ")");
       events_map[name].AddEvent(action, first, repeat, max);
     }
 
@@ -339,6 +339,10 @@ namespace mabe {
     }
 
     Config & Write(const std::string & filename) {
+      // If the filename is empty or "_", output to standard out.
+      if (filename == "" || filename == "_") return Write();
+
+      // Otherwise generate an output file.
       std::ofstream ofile(filename);
       return Write(ofile);
     }
