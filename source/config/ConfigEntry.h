@@ -66,15 +66,16 @@ namespace mabe {
 
     virtual std::string GetTypename() const { return "Unknown"; }
 
-    virtual bool IsNumeric() const { return false; }
-    virtual bool IsBool() const { return false; }
-    virtual bool IsInt() const { return false; }
-    virtual bool IsDouble() const { return false; }
-    virtual bool IsString() const { return false; }
+    virtual bool IsNumeric() const { return false; }   ///< Is entry any kind of number?
+    virtual bool IsBool() const { return false; }      ///< Is entry a Boolean value?
+    virtual bool IsInt() const { return false; }       ///< Is entry a integer value?
+    virtual bool IsDouble() const { return false; }    ///< Is entry a floting point value?
+    virtual bool IsString() const { return false; }    ///< Is entry a string?
 
-    virtual bool IsFunction() const { return false; }
-    virtual bool IsScope() const { return false; }
-    virtual bool IsError() const { return false; }
+    virtual bool IsLocal() const { return false; }     ///< Was this entry defined in config file?
+    virtual bool IsFunction() const { return false; }  ///< Is this entry a function?
+    virtual bool IsScope() const { return false; }     ///< Is this entry a full scope?
+    virtual bool IsError() const { return false; }     ///< Does this entry flag an error?
 
     /// Set the default string for this entry.
     ConfigEntry & SetName(const std::string & in) { name = in; return *this; }
@@ -136,7 +137,9 @@ namespace mabe {
     virtual ConfigEntry & Write(std::ostream & os=std::cout, const std::string & prefix="",
                                 size_t comment_offset=40) {
       // Setup this entry.
-      std::string cur_line = emp::to_string(prefix, name, " = ");
+      std::string cur_line = prefix;
+      if (IsLocal()) cur_line += emp::to_string(GetTypename(), " ", name, " = ");
+      else cur_line += emp::to_string(name, " = ");
 
       // If a default value has been provided, print it.  Otherwise print the current value.
       // if (default_val.size()) {
@@ -152,7 +155,7 @@ namespace mabe {
       cur_line += IsString() ? emp::to_literal(AsString()) : AsString();
       cur_line += ";";
       os << cur_line;
-      
+
       // Keep track of how many characters we've printed.
       size_t char_count = cur_line.size();
 
@@ -199,7 +202,8 @@ namespace mabe {
   };
 
   /// Specializatin for ConfigEntry linked to a string variable.
-  template <> class ConfigEntry_Linked<std::string> : public ConfigEntry {
+  template <>
+  class ConfigEntry_Linked<std::string> : public ConfigEntry {
   private:
     std::string & var;
   public:
@@ -291,6 +295,8 @@ namespace mabe {
     bool IsInt() const override { return std::is_same<int, T>(); }
     bool IsDouble() const override { return std::is_same<double, T>(); }
 
+    bool IsLocal() const override { return true; }
+
     bool CopyValue(const ConfigEntry & in) override { SetValue(in.AsDouble()); return true; }
   };
   using ConfigEntry_DoubleVar = ConfigEntry_Var<double>;
@@ -316,6 +322,7 @@ namespace mabe {
     ConfigEntry & SetString(const std::string & in) override { value = in; return *this; }
 
     bool IsString() const override { return true; }
+    bool IsLocal() const override { return true; }
 
     bool CopyValue(const ConfigEntry & in) override { value = in.AsString(); return true; }
   };
