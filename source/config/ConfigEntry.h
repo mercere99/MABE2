@@ -64,6 +64,8 @@ namespace mabe {
     bool IsTemporary() const noexcept { return is_temporary; }
     Format GetFormat() const noexcept { return format; }
 
+    virtual std::string GetTypename() const { return "Unknown"; }
+
     virtual bool IsNumeric() const { return false; }
     virtual bool IsBool() const { return false; }
     virtual bool IsInt() const { return false; }
@@ -133,11 +135,8 @@ namespace mabe {
 
     virtual ConfigEntry & Write(std::ostream & os=std::cout, const std::string & prefix="",
                                 size_t comment_offset=40) {
-      // Print this entry.
-      os << prefix << name << " = ";
-
-      // Keep track of how many characters we've printed.
-      size_t char_count = prefix.size() + name.size() + 3;
+      // Setup this entry.
+      std::string cur_line = emp::to_string(prefix, name, " = ");
 
       // If a default value has been provided, print it.  Otherwise print the current value.
       // if (default_val.size()) {
@@ -150,13 +149,12 @@ namespace mabe {
       // }
 
       // Print the current value of this variable; if it's a string make sure to turn it to a literal.
-      std::string out_str = IsString() ? emp::to_literal(AsString()) : AsString();
-      os << out_str;
-      char_count += out_str.size();
-
-      // End each line with a semi-colon.
-      os << ";";
-      char_count++;
+      cur_line += IsString() ? emp::to_literal(AsString()) : AsString();
+      cur_line += ";";
+      os << cur_line;
+      
+      // Keep track of how many characters we've printed.
+      size_t char_count = cur_line.size();
 
       // Print a comment if we have one.
       if (desc.size()) {
