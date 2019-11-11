@@ -717,8 +717,8 @@ namespace mabe {
           // ...collect all of the options associated with this match.
           emp::vector<std::string> option_args;
           // We want args until we run out or hit another option.
-          while (++pos < args.size() && args[pos][0] != '-') {
-            option_args.push_back(args[pos]);
+          while (pos+1 < args.size() && args[pos+1][0] != '-') {
+            option_args.push_back(args[++pos]);
           }
 
           std::cout << "Calling '" << cur_arg.name << "' with " << option_args.size() << " args\n";
