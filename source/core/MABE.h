@@ -329,7 +329,7 @@ namespace mabe {
         [this](const std::string & name) -> ConfigType & {
           return AddPopulation(name);
         };
-      config.AddType("Population", pop_init_fun);
+      config.AddType("Population", "Collection of organisms", pop_init_fun);
 
       // Setup all modules as types in the config file.
       for (auto & mod : GetModuleInfo()) {
@@ -337,7 +337,7 @@ namespace mabe {
           [this,&mod](const std::string & name) -> ConfigType & {
             return mod.init_fun(*this,name);
           };
-        config.AddType(mod.name, mod_init_fun);
+        config.AddType(mod.name, mod.desc, mod_init_fun);
       }
 
       // Setup all organism types as types in the config file.
@@ -346,7 +346,7 @@ namespace mabe {
           [this,&org_m](const std::string & name) -> ConfigType & {
             return org_m.init_fun(*this,name);
           };
-        config.AddType(org_m.name, org_m_init_fun);
+        config.AddType(org_m.name, org_m.desc, org_m_init_fun);
       }
 
 
@@ -391,10 +391,22 @@ namespace mabe {
       ProcessArgs();                   // Deal with command-line inputs.
       if (exit_now) return false;
 
-      config.Load(config_filenames);   // Load files, if any.
+      if (config_filenames.size()) {
+        std::cout << "Loading file(s):";
+        for (auto filename : config_filenames) {
+          std::cout << " '" << filename << "'";
+        }
+        std::cout << std::endl;
+        config.Load(config_filenames);   // Load files
+      }
 
       // If we are writing a file, do so and stop.
-      if (gen_filename != "") { config.Write(gen_filename); Exit(); return false; }
+      if (gen_filename != "") {
+        std::cout << "Generating file '" << gen_filename << "'." << std::endl;
+        config.Write(gen_filename);
+        Exit();
+        return false;
+      }
       if (exit_now) return false;
 
       Setup_Populations();    // Give modules access to the correct populations.
@@ -720,8 +732,6 @@ namespace mabe {
           while (pos+1 < args.size() && args[pos+1][0] != '-') {
             option_args.push_back(args[++pos]);
           }
-
-          std::cout << "Calling '" << cur_arg.name << "' with " << option_args.size() << " args\n";
 
           // And call the function!
           cur_arg.action(option_args);
