@@ -183,6 +183,11 @@ namespace mabe {
       : ConfigEntry(in_name, std::forward<ARGS>(args)...), var(in_var) { ; }
     ConfigEntry_Linked(const this_t &) = default;
 
+    std::string GetTypename() const override {
+      if constexpr (std::is_scalar_v<T>) return "Value";
+      else return "Unknown";
+    }
+
     emp::Ptr<ConfigEntry> Clone() const override { return emp::NewPtr<this_t>(*this); }
 
     double AsDouble() const override { return (double) var; }
@@ -213,6 +218,8 @@ namespace mabe {
     ConfigEntry_Linked(const std::string & in_name, std::string & in_var, ARGS &&... args)
       : ConfigEntry(in_name, std::forward<ARGS>(args)...), var(in_var) { ; }
     ConfigEntry_Linked(const this_t &) = default;
+
+    std::string GetTypename() const override { return "String"; }
 
     emp::Ptr<ConfigEntry> Clone() const override { return emp::NewPtr<this_t>(*this); }
 
@@ -245,6 +252,8 @@ namespace mabe {
       , set_fun(in_set)
     { ; }
     ConfigEntry_Functions(const this_t &) = default;
+
+    std::string GetTypename() const override { return "[[Function]]"; }
 
     emp::Ptr<ConfigEntry> Clone() const override { return emp::NewPtr<this_t>(*this); }
 
@@ -280,6 +289,11 @@ namespace mabe {
       : ConfigEntry(in_name, in_desc, in_scope), value(default_val) { ; }
     ConfigEntry_Var(const ConfigEntry_Var<T> &) = default;
 
+    std::string GetTypename() const override {
+      if constexpr (std::is_scalar_v<T>) return "Value";
+      else return "Unknown";
+    }
+
     emp::Ptr<ConfigEntry> Clone() const override { return emp::NewPtr<this_t>(*this); }
 
     double AsDouble() const override { return (double) value; }
@@ -314,6 +328,8 @@ namespace mabe {
       : ConfigEntry(in_name, std::forward<ARGS>(args)...), value(in_val) { ; }
     ConfigEntry_Var(const ConfigEntry_Var<std::string> &) = default;
 
+    std::string GetTypename() const override { return "String"; }
+
     emp::Ptr<ConfigEntry> Clone() const override { return emp::NewPtr<this_t>(*this); }
 
     double AsDouble() const override { return emp::from_string<double>(value); }
@@ -337,6 +353,8 @@ namespace mabe {
     template <typename... ARGS>
     ConfigEntry_Error(ARGS &&... args)
       : ConfigEntry("__Error", emp::to_string(args...), nullptr) { is_temporary = true; }
+
+    std::string GetTypename() const override { return "[[Error]]"; }
 
     bool IsError() const override { return true; }
 
