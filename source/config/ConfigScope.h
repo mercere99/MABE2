@@ -72,7 +72,10 @@ namespace mabe {
       for (auto & x : builtin_list) { x.Delete(); }
     }
 
+    std::string GetTypename() const override { return type; }
+
     bool IsScope() const override { return true; }
+    bool IsLocal() const override { return true; }  // @CAO, for now assuming all scopes are local!
 
     /// Set this entry to be a correctly-types scope pointer.
     emp::Ptr<ConfigScope> AsScopePtr() override { return this; }
@@ -193,21 +196,29 @@ namespace mabe {
     /// Write out this scope AND it's contents to the provided stream.
     ConfigEntry & Write(std::ostream & os=std::cout, const std::string & prefix="",
                         size_t comment_offset=40) override {
-      // Open this scope.
-      os << prefix << name << " = { ";
+      // Declare this scope.
+      std::string cur_line = prefix;
+      if (IsLocal()) cur_line += emp::to_string(GetTypename(), " ");
+      cur_line += name;
+
+      // Only open this scope if there are contents.
+      cur_line += entry_list.size() ? " = { " : ";";
+      os << cur_line;
 
       // Indent the comment for the description (if there is one)
       if (desc.size()) {
-        size_t char_count = prefix.size() + name.size() + 5;
+        size_t char_count = cur_line.size();
         while (char_count++ < comment_offset) os << " ";
         os << "// " << desc;
       }
       os << std::endl;
 
-      WriteContents(os, prefix+"  ", comment_offset);
+      // If we have internal entries, write them out.
+      if (entry_list.size()) {
+        WriteContents(os, prefix+"  ", comment_offset);
+        os << prefix << "}\n";      // Close the scope.
+      }
 
-      // Close the scope.
-      os << prefix << "}\n";
       return *this;
     }
 
