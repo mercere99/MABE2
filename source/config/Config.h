@@ -86,6 +86,7 @@ namespace mabe {
   public:
     struct TypeInfo {
       size_t type_id;
+      std::string desc;
       std::function<ConfigType & (const std::string &)> init_fun;
     };
 
@@ -94,7 +95,7 @@ namespace mabe {
     ConfigLexer lexer;                ///< Lexer to process input code.
     emp::vector<emp::Token> tokens;   ///< Tokenized version of input file.
     ASTNode_Block ast_root;           ///< Abstract syntax tree version of input file.
-    bool debug = true;                ///< Should we print full debug information?
+    bool debug = false;                ///< Should we print full debug information?
 
     ConfigScope root_scope;           ///< All variables from the root level.
 
@@ -224,11 +225,11 @@ namespace mabe {
       if (filename != "") Load(filename);
 
       // Initialize the type map.
-      type_map["INVALID"] = TypeInfo{ (size_t) BaseType::INVALID, nullptr };
-      type_map["Void"] = TypeInfo{ (size_t) BaseType::VOID, nullptr };
-      type_map["Value"] = TypeInfo{ (size_t) BaseType::VALUE, nullptr };
-      type_map["String"] = TypeInfo{ (size_t) BaseType::STRING, nullptr };
-      type_map["Struct"] = TypeInfo{ (size_t) BaseType::STRUCT, nullptr };
+      type_map["INVALID"] = TypeInfo{ (size_t) BaseType::INVALID, "Error, Invalid type!", nullptr };
+      type_map["Void"] = TypeInfo{ (size_t) BaseType::VOID, "Non-type variable; no value", nullptr };
+      type_map["Value"] = TypeInfo{ (size_t) BaseType::VALUE, "Numeric variable", nullptr };
+      type_map["String"] = TypeInfo{ (size_t) BaseType::STRING, "String variable", nullptr };
+      type_map["Struct"] = TypeInfo{ (size_t) BaseType::STRUCT, "User-made structure", nullptr };
 
       // Setup operator precedence.
       size_t cur_prec = 0;
@@ -281,12 +282,13 @@ namespace mabe {
     /// To add a type, provide the type name (that can be referred to in a script) and a function
     /// that should be called (with the variable name) when an instance of that type is created.
     /// The function must return a reference to the newly created instance.
-    size_t AddType(const std::string & type_name,
+    size_t AddType(const std::string & type_name, const std::string & desc,
                    std::function<ConfigType & (const std::string &)> init_fun)
     {
       emp_assert(!emp::Has(type_map, type_name));
       size_t type_id = type_map.size();
       type_map[type_name].type_id = type_id;
+      type_map[type_name].desc = desc;
       type_map[type_name].init_fun = init_fun;
       return type_id;
     }
@@ -549,7 +551,7 @@ namespace mabe {
 
     // Otherwise we have a module to add; treat it as a struct.
     Debug("Building var '", var_name, "' of type '", type_name, "'");
-    ConfigScope & new_scope = scope.AddScope(var_name, "Local struct", type_name);
+    ConfigScope & new_scope = scope.AddScope(var_name, type_map[type_name].desc, type_name);
     ConfigType & new_obj = type_map[type_name].init_fun(var_name);
     new_obj.SetupScope(new_scope);
     new_obj.SetupConfig();
