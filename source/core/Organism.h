@@ -49,7 +49,7 @@ namespace mabe {
     Organism(OrganismManagerBase & _man) : manager(_man) { ; }
     virtual ~Organism() { ; }
 
-    const OrganismManagerBase & GetManager() { return manager; }
+    OrganismManagerBase & GetManager() { return manager; }
     const OrganismManagerBase & GetManager() const { return manager; }
 
     bool HasVar(const std::string & name) const { return var_map.Has(name); }
