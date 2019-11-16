@@ -363,7 +363,7 @@ namespace mabe {
         "Inject organisms into a population (args: org_name, org_count).");
 
       std::function<int(const emp::vector<emp::Ptr<ConfigEntry>> &)> print_fun =
-        [this](const emp::vector<emp::Ptr<ConfigEntry>> & args) {
+        [](const emp::vector<emp::Ptr<ConfigEntry>> & args) {
           for (auto entry_ptr : args) std::cout << entry_ptr->AsString();
           return 0;
         };
