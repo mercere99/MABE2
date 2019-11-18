@@ -61,7 +61,7 @@ namespace mabe {
       // Loop through the population and evaluate each organism.
       double max_fitness = 0.0;
       emp::Ptr<Organism> max_org = nullptr;
-      for (Organism & org : control.GetPopulation(0).Alive()) {
+      for (Organism & org : control.GetPopulation(target_pop).Alive()) {
         org.GenerateOutput(bits_trait);
         double fitness = landscape.GetFitness( org.GetVar<emp::BitVector>(bits_trait) );
         org.SetVar<double>(fitness_trait, fitness);
