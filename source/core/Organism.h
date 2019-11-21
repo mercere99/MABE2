@@ -95,14 +95,13 @@ namespace mabe {
     using name_t = const std::string &;
     virtual bool AddAction(name_t, std::function<void()>) { return false; }
     virtual bool AddAction(name_t, std::function<void(double)>) { return false; }
-    virtual bool AddAction(name_t, std::function<void(double,double)>) { return false; }
-    virtual bool AddAction(name_t, std::function<void(double,double,double)>) { return false; }
-    virtual bool AddAction(name_t, std::function<void(emp::vector<double>)>) { return false; }
-    virtual bool AddAction(name_t, std::function<void(std::map<size_t,double>)>) { return false; }
-    virtual bool AddAction(name_t, std::function<void(std::string)>) { return false; }
-    virtual bool AddAction(name_t, std::function<void(emp::vector<std::string>)>) { return false; }
-    virtual bool AddAction(name_t, std::function<void(std::map<size_t,std::string>)>) { return false; }
-    virtual bool AddAction(name_t, std::function<void(std::map<std::string,double>)>) { return false; }
+    virtual bool AddAction(name_t, std::function<void(const emp::vector<double> &)>) { return false; }
+    virtual bool AddAction(name_t, std::function<void(const std::map<size_t,double> &)>) { return false; }
+    virtual bool AddAction(name_t, std::function<void(const std::string &)>) { return false; }
+    virtual bool AddAction(name_t, std::function<void(const emp::vector<std::string> &)>) { return false; }
+    virtual bool AddAction(name_t, std::function<void(const std::map<size_t,std::string> &)>) { return false; }
+    virtual bool AddAction(name_t, std::function<void(const std::map<std::string,double> &)>) { return false; }
+    virtual bool AddAction(name_t, std::function<void(const emp::BitVector &)>) { return false; }
 
 
     /// --- Extra functions for when this is used a a prototype organism ---
