@@ -86,10 +86,32 @@ namespace mabe {
       const std::pair< emp::Ptr<unsigned char>, size_t >
     >;
 
-  class Organism {
+  // An OrganismBase class adds functionality for dealing with a specific data type.
+  // This templated class allows us to maintain the simple list of Organism_data_Ts above.
+  template <typename T> struct OrganismBase : public OrganismBase<typename T::pop> {
+    virtual ~OrganismBase() { ; }
+
+    // Use functions from base classes AND overload them with the current data type.
+    using OrganismBase<typename T::pop>::AddAction;
+    using OrganismBase<typename T::pop>::TriggerEvent;
+    using action_fun_t = std::function<void(Organism &, T)>;
+    virtual bool AddAction(const std::string &, action_fun_t, int) { return false; }
+    virtual void TriggerEvent(int, T) { ; }
+  };
+
+  template <> struct OrganismBase<emp::TypePack<>> {
+    virtual ~OrganismBase() { ; }
+
+    // Define functions with NO data parameters
+    using action_fun_t = std::function<void(Organism &)>;
+    virtual bool AddAction(const std::string &, action_fun_t, int) { return false; }
+    virtual void TriggerEvent(int) { ; }
+  };
+
+  class Organism : public OrganismBase<Organism_data_Ts> {
   protected:
-    emp::VarMap var_map;         ///< Dynamic variables assigned to organism
-    OrganismManagerBase & manager;   ///< Manager for the specific organism type
+    emp::VarMap var_map;            ///< Dynamic variables assigned to organism
+    OrganismManagerBase & manager;  ///< Manager for the specific organism type
 
     // Helper functions.
     ConfigScope & GetScope() { return manager.GetScope(); }
@@ -154,20 +176,6 @@ namespace mabe {
     /// Request output type (multiple types are possible); default to unknown.
     /// Argument is the output ID.
     virtual emp::TypeID GetOutputType(size_t=0) { return emp::TypeID(); }
-
-    /// Actions are specific functions that can be triggered by organisms.  AddAction() provides
-    /// access to the passed-in function and returns a bool indicating whether the function is
-    /// usable.
-    using name_t = const std::string &;
-    virtual bool AddAction(name_t, std::function<void()>) { return false; }
-    virtual bool AddAction(name_t, std::function<void(double)>) { return false; }
-    virtual bool AddAction(name_t, std::function<void(const emp::vector<double> &)>) { return false; }
-    virtual bool AddAction(name_t, std::function<void(const std::map<size_t,double> &)>) { return false; }
-    virtual bool AddAction(name_t, std::function<void(const std::string &)>) { return false; }
-    virtual bool AddAction(name_t, std::function<void(const emp::vector<std::string> &)>) { return false; }
-    virtual bool AddAction(name_t, std::function<void(const std::map<size_t,std::string> &)>) { return false; }
-    virtual bool AddAction(name_t, std::function<void(const std::map<std::string,double> &)>) { return false; }
-    virtual bool AddAction(name_t, std::function<void(const emp::BitVector &)>) { return false; }
 
 
     /// --- Extra functions for when this is used a a prototype organism ---
