@@ -6,6 +6,53 @@
  *  @file  Organism.h
  *  @brief A base class for all organisms in MABE.
  *  @note Status: ALPHA
+ *
+ *  All organism types in MABE must override the mabe::Organism class and provide a valid
+ *  OrganismManager (see OrganismManager.h for more information).
+ *
+ *  ...
+ *
+ *  MABE environment modules may also require organisms that can interact with the environment.
+ *  Interactions occur with ACTIONS that the organisms may take and EVENTS that the organisms
+ *  may respond to.  In many cases an action will also trigger an event as a response (for
+ *  example an active sensor action.)
+ *
+ *  To build an Organism that handles actions and events, you must override the member functions
+ *  AddAction(), AddEvent(), and TriggerEvent().  Note that each of these are associated with a
+ *  data payload type; the Organism_data_Ts type pack below lists all legal data types.  While
+ *  an organism is not required to deal with all of them (or any of them!), it may not be usable
+ *  with some module types if they require specific types of data communication.  Note that any
+ *  incompatabilities should be identified on startup and explained to the user.
+ *
+ *  bool AddAction(const std::string & action_name,
+ *                 std::function<void(Organism &, data_type)> trigger_function,
+ *                 int response_event_id)
+ *  This function is called by a module to provide an organism with callable functions that will
+ *  allow it to take specified actions (e.g., move, uptake resources, actively sense, etc.)
+ *   'action_name' provides a unique name for this action that an organism can usually ignore.
+ *   'trigger_function' is the functor that should be called for an organsim to take this action.
+ *     Note that the organism must provide a reference to itself, followed by any required data.
+ *   'response_event_id' is a unique id to indicate which event provides a response to this action.
+ *     (if response_event_id is -1, no direct response should be expected)
+ *  The return value should be 'true' if this action was successfully incorporated into the
+ *  organism, or 'false' if it failed.  A 'false' on a required action will trigger a warning or
+ *  error during run initialization.
+ *  
+ *  bool AddEvent(const std::string & event_name,
+ *                int event_id)
+ *  This function is called by a modile at the beginning of a run to indicate a type of event
+ *  that may occur.  It provides both a unique name for the event as well as a unique event_id
+ *  (which will match the relevant ID in a call to AddAction if this event is a response.)
+ *  The return value should be 'true' if this event was successfully incorporated into the
+ *  organism, or 'false' if it failed.  A 'false' on a required event will trigger a warning or
+ *  error during run initialization.
+ *  
+ *  void TrggerEvent(int event_id,
+ *                   data_type data)
+ *  This function is called during a run by a module on an organism.  The module indicated the
+ *  ID of the event that has just occurred, along with the data associated with this specific
+ *  event instance.  No return data is necessary.
+ *  
  */
 
 #ifndef MABE_ORGANISM_H
