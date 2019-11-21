@@ -14,11 +14,30 @@
 #include "base/assert.h"
 #include "data/VarMap.h"
 #include "meta/TypeID.h"
+#include "tools/BitVector.h"
 #include "tools/string_utils.h"
 
 #include "OrganismManagerBase.h"
 
 namespace mabe {
+
+    /// This TypePack contains the set of data types that can be passed between Organism and any
+    /// Modules that define the external world.  Always use the most appropriate type BUT prefer
+    /// types higher on the list when two types are otherwise equivilent.
+
+    using Organism_data_Ts = emp::TypePack<
+      double,                               // 64-bit floating-point value
+      const emp::vector<double> &,          // Consecutive series of floating-point values
+      const std::map<size_t,double> &,      // Non-consecutive floating-point values (sparse memory)
+      const emp::BitVector &,               // Series of bit values
+      const std::string &,                  // String value
+      const emp::vector<std::string> &,     // Series of string values
+      const std::map<std::string,double> &, // Set of strings associated with floating-point values
+
+      // If all else fails, a chunk of memory can be passed using a combination of pointer and size.
+      // This type is not fully modular and should be used only as a last resort.
+      const std::pair< emp::Ptr<unsigned char>, size_t >
+    >;
 
   class Organism {
   protected:
