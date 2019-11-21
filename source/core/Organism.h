@@ -39,10 +39,12 @@
  *  error during run initialization.
  *  
  *  bool AddEvent(const std::string & event_name,
- *                int event_id)
- *  This function is called by a modile at the beginning of a run to indicate a type of event
- *  that may occur.  It provides both a unique name for the event as well as a unique event_id
- *  (which will match the relevant ID in a call to AddAction if this event is a response.)
+ *                int event_id,
+ *                data_type)
+ *  This function is called by a module at the beginning of a run to indicate a type of event
+ *  that may occur.  It provides a unique name for the event, a unique event_id (which will match
+ *  the relevant ID in a call to AddAction if this event is a response), and a dummy object of
+ *  the proper data type (to facilitate function overloading without using templates.)
  *  The return value should be 'true' if this event was successfully incorporated into the
  *  organism, or 'false' if it failed.  A 'false' on a required event will trigger a warning or
  *  error during run initialization.
@@ -96,6 +98,7 @@ namespace mabe {
     using OrganismBase<typename T::pop>::TriggerEvent;
     using action_fun_t = std::function<void(Organism &, T)>;
     virtual bool AddAction(const std::string &, action_fun_t, int) { return false; }
+    virtual bool AddEvent(const std::string & event_name, int event_id, T) { return false; }
     virtual void TriggerEvent(int, T) { ; }
   };
 
@@ -105,6 +108,7 @@ namespace mabe {
     // Define functions with NO data parameters
     using action_fun_t = std::function<void(Organism &)>;
     virtual bool AddAction(const std::string &, action_fun_t, int) { return false; }
+    virtual bool AddEvent(const std::string & event_name, int event_id) { return false; }
     virtual void TriggerEvent(int) { ; }
   };
 
