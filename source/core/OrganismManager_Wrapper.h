@@ -23,18 +23,16 @@
 namespace mabe {
 
   template <typename ORG_T>
-  class OrganismManager_Wrapper : public OrganismManager {
+  class OrganismManager_Wrapper : public OrganismManager<ORG_T> {
   public:
     using org_t = ORG_T;
     using this_t = OrganismManager_Wrapper<ORG_T>;
+    using OrganismManager<ORG_T>::prototype;
 
     OrganismManager_Wrapper(const std::string & name)
-    : OrganismManager(name) {
-      prototype = emp::NewPtr<org_t>(*this);
-    }
+    : OrganismManager<ORG_T>(name) { ; }
 
     ~OrganismManager_Wrapper() {
-      prototype.Delete();
     }
 
     /// Convert this organism to the correct type (after ensuring that it is!)
