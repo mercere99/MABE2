@@ -74,6 +74,7 @@ namespace mabe {
     /// Modules that define the external world.  Always use the most appropriate type BUT prefer
     /// types higher on the list when two types are otherwise equivilent.
 
+/*
     using Organism_data_Ts = emp::TypePack<
       double,                               // 64-bit floating-point value
       const emp::vector<double> &,          // Consecutive series of floating-point values
@@ -87,6 +88,9 @@ namespace mabe {
       // This type is not fully modular and should be used only as a last resort.
       const std::pair< emp::Ptr<unsigned char>, size_t >
     >;
+*/
+
+  using Organism_data_Ts = emp::TypePack< const emp::BitVector & >;
 
   // An OrganismBase class adds functionality for dealing with a specific data type.
   // This templated class allows us to maintain the simple list of Organism_data_Ts above.
@@ -94,13 +98,15 @@ namespace mabe {
     virtual ~OrganismBase() { ; }
 
     // Use functions from base classes AND overload them with the current data type.
-    using OrganismBase<typename T::pop>::AddAction;
-    using OrganismBase<typename T::pop>::AddEvent;
-    using OrganismBase<typename T::pop>::TriggerEvent;
-    using action_fun_t = std::function<void(Organism &, T)>;
+    using cur_t = typename T::first_t;
+    using base_pack = typename T::pop;
+    using OrganismBase<base_pack>::AddAction;
+    using OrganismBase<base_pack>::AddEvent;
+    using OrganismBase<base_pack>::TriggerEvent;
+    using action_fun_t = std::function<void(Organism &, cur_t)>;
     virtual bool AddAction(const std::string &, action_fun_t, int) { return false; }
-    virtual bool AddEvent(const std::string & event_name, int event_id, T) { return false; }
-    virtual void TriggerEvent(int, T) { ; }
+    virtual bool AddEvent(const std::string & event_name, int event_id, cur_t) { return false; }
+    virtual void TriggerEvent(int, cur_t) { ; }
   };
 
   template <> struct OrganismBase<emp::TypePack<>> {
@@ -138,9 +144,16 @@ namespace mabe {
     // template <typename... Ts>
     // auto & LinkPop(Ts &&... args) { return manager.LinkPop(args...); }
 
+    using base_t = OrganismBase<Organism_data_Ts>;
+
   public:
     Organism(OrganismManagerBase & _man) : manager(_man) { ; }
     virtual ~Organism() { ; }
+
+    // Make sure all base class functions are available here.
+    using base_t::AddAction;
+    using base_t::AddEvent;
+    using base_t::TriggerEvent;
 
     OrganismManagerBase & GetManager() { return manager; }
     const OrganismManagerBase & GetManager() const { return manager; }
