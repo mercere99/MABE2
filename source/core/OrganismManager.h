@@ -20,10 +20,15 @@ namespace mabe {
   class Organism;
   class MABE;
 
+  template <typename ORG_T>
   class OrganismManager  : public OrganismManagerBase {
   public:
-    OrganismManager(const std::string & in_name) : OrganismManagerBase(in_name) { ; }
-    virtual ~OrganismManager() { ; }
+    using org_t = ORG_T;
+
+    OrganismManager(const std::string & in_name) : OrganismManagerBase(in_name) {
+      prototype = emp::NewPtr<org_t>(*this);
+    }
+    virtual ~OrganismManager() { prototype.Delete(); }
   };
 
   /// Build a class that will automatically register modules when created (globally)
