@@ -13,7 +13,7 @@
 
 #include "../core/MABE.h"
 #include "../core/Organism.h"
-#include "../core/OrganismManager_Wrapper.h"
+#include "../core/OrganismManager.h"
 
 #include "tools/BitVector.h"
 #include "tools/random_utils.h"
@@ -25,12 +25,12 @@ namespace mabe {
     emp::BitVector bits;
 
   public:
-    BitsOrg(OrganismManager & _manager) : Organism(_manager) { ; }
+    BitsOrg(OrganismManager<BitsOrg> & _manager) : Organism(_manager) { ; }
     BitsOrg(const BitsOrg &) = default;
     BitsOrg(BitsOrg &&) = default;
-    BitsOrg(const emp::BitVector & in, OrganismManager & _manager)
+    BitsOrg(const emp::BitVector & in, OrganismManager<BitsOrg> & _manager)
     : Organism(_manager), bits(in) { ; }
-    BitsOrg(size_t N, OrganismManager & _manager) : Organism(_manager), bits(N) { ; }
+    BitsOrg(size_t N, OrganismManager<BitsOrg> & _manager) : Organism(_manager), bits(N) { ; }
     ~BitsOrg() { ; }
 
     /// Use "to_string" to convert.
@@ -47,6 +47,9 @@ namespace mabe {
 
     void Randomize(emp::Random & random) override {
       emp::RandomizeBitVector(bits, random, 0.5);
+    }
+
+    void Execute() {
     }
 
     /// Just use the bit sequence as the output.
@@ -68,7 +71,7 @@ namespace mabe {
     }
   };
 
-  using BitsOrgManager = OrganismManager_Wrapper<BitsOrg>;
+  using BitsOrgManager = OrganismManager<BitsOrg>;
   MABE_REGISTER_ORG_MANAGER(BitsOrgManager, "Organism consisting of a series of N bits.");
 }
 
