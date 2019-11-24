@@ -95,6 +95,7 @@ namespace mabe {
 
     // Use functions from base classes AND overload them with the current data type.
     using OrganismBase<typename T::pop>::AddAction;
+    using OrganismBase<typename T::pop>::AddEvent;
     using OrganismBase<typename T::pop>::TriggerEvent;
     using action_fun_t = std::function<void(Organism &, T)>;
     virtual bool AddAction(const std::string &, action_fun_t, int) { return false; }
