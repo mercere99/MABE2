@@ -17,17 +17,8 @@
 // Framework
 #include "../source/core/MABE.h"
 
-// Modules
-#include "../source/evaluate/EvalAll1s.h"
-#include "../source/evaluate/EvalNK.h"
-#include "../source/interface/CommandLine.h"
-#include "../source/placement/GrowthPlacement.h"
-#include "../source/schema/Mutate.h"
-#include "../source/select/SelectElite.h"
-#include "../source/select/SelectTournament.h"
-
-// Organisms
-#include "../source/orgs/BitsOrg.h"
+// Include the full set of available modules.
+#include "../source/core/modules.h"
 
 int main(int argc, char* argv[])
 {
