@@ -92,25 +92,26 @@ namespace mabe {
 
   using Organism_data_Ts = emp::TypePack< const emp::BitVector & >;
 
+  // Genetic verson of OrganismBase to be specialized.
+  template <typename... Ts> struct OrganismBase;
+
   // An OrganismBase class adds functionality for dealing with a specific data type.
   // This templated class allows us to maintain the simple list of Organism_data_Ts above.
-  template <typename T> struct OrganismBase : public OrganismBase<typename T::pop> {
+  template <typename T1, typename... Ts> struct OrganismBase<T1, Ts...> : public OrganismBase<Ts...> {
     virtual ~OrganismBase() { ; }
 
     // Use functions from base classes AND overload them with the current data type.
-    using cur_t = typename T::first_t;
-    using base_pack = typename T::pop;
-    using OrganismBase<base_pack>::ConvertAction;
-    using OrganismBase<base_pack>::AddEvent;
-    using OrganismBase<base_pack>::TriggerEvent;
-    using action_fun_t = std::function<void(Organism &, cur_t)>;
+    using OrganismBase<Ts...>::ConvertAction;
+    using OrganismBase<Ts...>::AddEvent;
+    using OrganismBase<Ts...>::TriggerEvent;
+    using action_fun_t = std::function<void(Organism &, T1)>;
     using base_fun_t = std::function<void(Organism &)>;
     virtual base_fun_t ConvertAction(const std::string &, action_fun_t, int) { return nullptr; }
-    virtual bool AddEvent(const std::string & event_name, int event_id, cur_t) { return false; }
-    virtual void TriggerEvent(int, cur_t) { ; }
+    virtual bool AddEvent(const std::string & event_name, int event_id, T1) { return false; }
+    virtual void TriggerEvent(int, T1) { ; }
   };
 
-  template <> struct OrganismBase<emp::TypePack<>> {
+  template <> struct OrganismBase<> {
     virtual ~OrganismBase() { ; }
 
     // Define functions with NO data parameters
@@ -120,7 +121,7 @@ namespace mabe {
     virtual void TriggerEvent(int) { ; }
   };
 
-  class Organism : public OrganismBase<Organism_data_Ts> {
+  class Organism : public Organism_data_Ts::template apply<OrganismBase> {
   protected:
     emp::VarMap var_map;            ///< Dynamic variables assigned to organism
     OrganismManagerBase & manager;  ///< Manager for the specific organism type
@@ -145,7 +146,7 @@ namespace mabe {
     // template <typename... Ts>
     // auto & LinkPop(Ts &&... args) { return manager.LinkPop(args...); }
 
-    using base_t = OrganismBase<Organism_data_Ts>;
+    using base_t = Organism_data_Ts::template apply<OrganismBase>;
 
   public:
     Organism(OrganismManagerBase & _man) : manager(_man) { ; }
