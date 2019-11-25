@@ -92,27 +92,24 @@ namespace mabe {
 
   using Organism_data_Ts = emp::TypePack< const emp::BitVector & >;
 
-  // Genetic verson of OrganismBase to be specialized.
-  template <typename... Ts> struct OrganismBase;
-
   // An OrganismBase class adds functionality for dealing with a specific data type.
   // This templated class allows us to maintain the simple list of Organism_data_Ts above.
-  template <typename T1, typename... Ts> struct OrganismBase<T1, Ts...> : public OrganismBase<Ts...> {
-    virtual ~OrganismBase() { ; }
+  template <typename T> struct AddOrgPayloadType {
+    virtual ~AddOrgPayloadType() { ; }
 
-    // Use functions from base classes AND overload them with the current data type.
-    using OrganismBase<Ts...>::ConvertAction;
-    using OrganismBase<Ts...>::AddEvent;
-    using OrganismBase<Ts...>::TriggerEvent;
-    using action_fun_t = std::function<void(Organism &, T1)>;
+    using action_fun_t = std::function<void(Organism &, T)>;
     using base_fun_t = std::function<void(Organism &)>;
     virtual base_fun_t ConvertAction(const std::string &, action_fun_t, int) { return nullptr; }
-    virtual bool AddEvent(const std::string & event_name, int event_id, T1) { return false; }
-    virtual void TriggerEvent(int, T1) { ; }
+    virtual bool AddEvent(const std::string & event_name, int event_id, T) { return false; }
+    virtual void TriggerEvent(int, T) { ; }
   };
 
-  template <> struct OrganismBase<> {
+  template <typename... Ts> struct OrganismBase : public AddOrgPayloadType<Ts>... {
     virtual ~OrganismBase() { ; }
+
+    using AddOrgPayloadType<Ts>::ConvertAction...;
+    using AddOrgPayloadType<Ts>::AddEvent...;
+    using AddOrgPayloadType<Ts>::TriggerEvent...;
 
     // Define functions with NO data parameters
     using base_fun_t = std::function<void(Organism &)>;
