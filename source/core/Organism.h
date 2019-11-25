@@ -18,15 +18,15 @@
  *  example an active sensor action.)
  *
  *  To build an Organism that handles actions and events, you must override the member functions
- *  AddAction(), AddEvent(), and TriggerEvent().  Note that each of these are associated with a
- *  data payload type; the Organism_data_Ts type pack below lists all legal data types.  While
+ *  ConvertAction(), AddEvent(), and TriggerEvent().  Note that each of these are associated with
+ *  a data payload type; the Organism_data_Ts type pack below lists all legal data types.  While
  *  an organism is not required to deal with all of them (or any of them!), it may not be usable
  *  with some module types if they require specific types of data communication.  Note that any
  *  incompatabilities should be identified on startup and explained to the user.
  *
- *  bool AddAction(const std::string & action_name,
- *                 std::function<void(Organism &, data_type)> trigger_function,
- *                 int response_event_id)
+ *  bool ConvertAction(const std::string & action_name,
+ *                     std::function<void(Organism &, data_type)> trigger_function,
+ *                     int response_event_id)
  *  This function is called by a module to provide an organism with callable functions that will
  *  allow it to take specified actions (e.g., move, uptake resources, actively sense, etc.)
  *   'action_name' provides a unique name for this action that an organism can usually ignore.
@@ -43,7 +43,7 @@
  *                data_type)
  *  This function is called by a module at the beginning of a run to indicate a type of event
  *  that may occur.  It provides a unique name for the event, a unique event_id (which will match
- *  the relevant ID in a call to AddAction if this event is a response), and a dummy object of
+ *  the relevant ID in a call to ConvertAction if this event is a response), and a dummy object of
  *  the proper data type (to facilitate function overloading without using templates.)
  *  The return value should be 'true' if this event was successfully incorporated into the
  *  organism, or 'false' if it failed.  A 'false' on a required event will trigger a warning or
@@ -100,11 +100,12 @@ namespace mabe {
     // Use functions from base classes AND overload them with the current data type.
     using cur_t = typename T::first_t;
     using base_pack = typename T::pop;
-    using OrganismBase<base_pack>::AddAction;
+    using OrganismBase<base_pack>::ConvertAction;
     using OrganismBase<base_pack>::AddEvent;
     using OrganismBase<base_pack>::TriggerEvent;
     using action_fun_t = std::function<void(Organism &, cur_t)>;
-    virtual bool AddAction(const std::string &, action_fun_t, int) { return false; }
+    using base_fun_t = std::function<void(Organism &)>;
+    virtual base_fun_t ConvertAction(const std::string &, action_fun_t, int) { return nullptr; }
     virtual bool AddEvent(const std::string & event_name, int event_id, cur_t) { return false; }
     virtual void TriggerEvent(int, cur_t) { ; }
   };
@@ -113,8 +114,8 @@ namespace mabe {
     virtual ~OrganismBase() { ; }
 
     // Define functions with NO data parameters
-    using action_fun_t = std::function<void(Organism &)>;
-    virtual bool AddAction(const std::string &, action_fun_t, int) { return false; }
+    using base_fun_t = std::function<void(Organism &)>;
+    virtual base_fun_t ConvertAction(const std::string &, base_fun_t, int) { return nullptr; }
     virtual bool AddEvent(const std::string & event_name, int event_id) { return false; }
     virtual void TriggerEvent(int) { ; }
   };
@@ -151,7 +152,7 @@ namespace mabe {
     virtual ~Organism() { ; }
 
     // Make sure all base class functions are available here.
-    using base_t::AddAction;
+    using base_t::ConvertAction;
     using base_t::AddEvent;
     using base_t::TriggerEvent;
 
