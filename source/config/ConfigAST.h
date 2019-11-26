@@ -53,6 +53,8 @@ namespace mabe {
     virtual node_ptr_t GetChild(size_t id) { emp_assert(false); return nullptr; }
 
     virtual entry_ptr_t Process() = 0;
+
+    virtual void Write(std::ostream & os=std::cout, const std::string & offset="") { }
   };
 
   /// An ASTNode representing an internal node.
@@ -95,6 +97,20 @@ namespace mabe {
     bool IsLeaf() const override { return true; }
 
     entry_ptr_t Process() override { return entry_ptr; };
+
+    void Write(std::ostream & os, const std::string &) {
+      // If this is a variable, print the variable name,
+      std::string output = entry_ptr->GetName();
+
+      // If it is a literal, print the value.
+      if (output == "") {
+        output = entry_ptr->AsString();
+
+        // If the entry is a string, convert it to a string literal.
+        if (entry_ptr->IsString()) output = emp::to_literal(output);
+      }
+      os << output;
+    }
   };
 
   class ASTNode_Block : public ASTNode_Internal {
@@ -106,6 +122,13 @@ namespace mabe {
       }
       return nullptr;
     }
+
+    void Write(std::ostream & os, const std::string & offset) { 
+      for (auto child_ptr : children) {
+        child_ptr->Write(os, offset+"  ");
+        os << ";\n" << offset;
+      }
+    }
   };
 
   /// Unary mathematical operations.
@@ -114,6 +137,8 @@ namespace mabe {
     // A unary operator take in a double and returns another one.
     std::function< double(double) > fun;
   public:
+    ASTNode_Math1(const std::string & name) : ASTNode_Internal(name) { }
+
     void SetFun(std::function< double(double) > _fun) { fun = _fun; }
 
     entry_ptr_t Process() override {
@@ -123,6 +148,11 @@ namespace mabe {
       if (input_entry->IsTemporary()) input_entry.Delete(); // If we are done with input; delete!
       return MakeTempDouble(output_value);
     }
+
+    void Write(std::ostream & os, const std::string & offset) { 
+      os << name;
+      children[0]->Write(os, offset);
+    }
   };
 
   /// Binary mathematical operations.
@@ -131,6 +161,8 @@ namespace mabe {
     // A binary operator takes in two doubles and returns a third.
     std::function< double(double, double) > fun;
   public:
+    ASTNode_Math2(const std::string & name) : ASTNode_Internal(name) { }
+
     void SetFun(std::function< double(double, double) > _fun) { fun = _fun; }
 
     entry_ptr_t Process() override {
@@ -141,6 +173,12 @@ namespace mabe {
       if (in1->IsTemporary()) in1.Delete();                   // If we are done with in1; delete!
       if (in2->IsTemporary()) in2.Delete();                   // If we are done with in2; delete!
       return MakeTempDouble(out_val);
+    }
+
+    void Write(std::ostream & os, const std::string & offset) { 
+      children[0]->Write(os, offset);
+      os << " " << name << " ";
+      children[1]->Write(os, offset);
     }
   };
 
@@ -159,6 +197,12 @@ namespace mabe {
       lhs->CopyValue(*rhs);
       if (rhs->IsTemporary()) rhs.Delete();
       return lhs;
+    }
+
+    void Write(std::ostream & os, const std::string & offset) { 
+      children[0]->Write(os, offset);
+      os << " = ";
+      children[1]->Write(os, offset);
     }
   };
 
@@ -184,6 +228,15 @@ namespace mabe {
       for (auto arg : args) if (arg->IsTemporary()) arg.Delete();
       return result;
     }
+
+    void Write(std::ostream & os, const std::string & offset) { 
+      children[0]->Write(os, offset);  // Function name
+      os << "(";
+      for (size_t i=1; i < children.size(); i++) {
+        if (i>1) os << ", ";
+        children[i]->Write(os, offset);
+      }
+    }
   };
 
   class ASTNode_Event : public ASTNode_Internal {
@@ -192,8 +245,8 @@ namespace mabe {
     setup_fun_t setup_event;
 
   public:
-    ASTNode_Event(node_ptr_t action, const node_vector_t & args, setup_fun_t in_fun)
-     : setup_event(in_fun)
+    ASTNode_Event(const std::string & event_name, node_ptr_t action, const node_vector_t & args, setup_fun_t in_fun)
+     : ASTNode_Internal(event_name), setup_event(in_fun)
     {
       AddChild(action);
       for (auto arg : args) AddChild(arg);
@@ -207,6 +260,16 @@ namespace mabe {
       }
       setup_event(children[0], arg_entries);
       return nullptr;
+    }
+
+    void Write(std::ostream & os, const std::string & offset) { 
+      os << "@" << GetName() << "(";
+      for (size_t i = 1; i < children.size(); i++) {
+        if (i>1) os << ", ";
+        children[i]->Write(os, offset);
+      }
+      os << ") ";
+      children[0]->Write(os, offset);  // Action.
     }
   };
 
