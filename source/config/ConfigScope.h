@@ -202,7 +202,7 @@ namespace mabe {
       cur_line += name;
 
       // Only open this scope if there are contents.
-      cur_line += entry_list.size() ? " = { " : ";";
+      cur_line += entry_list.size() ? " { " : ";";
       os << cur_line;
 
       // Indent the comment for the description (if there is one)
