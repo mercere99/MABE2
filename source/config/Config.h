@@ -485,7 +485,7 @@ namespace mabe {
     else if (symbol == "&&") fun = [](double val1, double val2){ return val1 && val2; };
     else if (symbol == "||") fun = [](double val1, double val2){ return val1 || val2; };
 
-    emp::Ptr<ASTNode_Math2> out_value = emp::NewPtr<ASTNode_Math2>();
+    emp::Ptr<ASTNode_Math2> out_value = emp::NewPtr<ASTNode_Math2>(symbol);
     out_value->SetFun(fun);
     out_value->AddChild(in_node1);
     out_value->AddChild(in_node2);
@@ -585,7 +585,7 @@ namespace mabe {
                (args.size() > 2) ? args[2]->AsDouble() : -1.0);
     };
 
-    return emp::NewPtr<ASTNode_Event>(action, args, setup_event);
+    return emp::NewPtr<ASTNode_Event>(event_name, action, args, setup_event);
   }
 
   // Process the next input in the specified Struct.
