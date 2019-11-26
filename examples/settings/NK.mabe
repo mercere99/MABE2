@@ -27,7 +27,7 @@ SelectElite select_e {                  // Module to choose the top fitness orga
 SelectTournament select_t {             // Module to select the top fitness organisms from random subgroups for replication.
   target_pop = "main_pop";              // Which population should we select parents from?
   tournament_size = 7;                  // Number of orgs in each tournament
-  num_tournaments = 1;                  // Number of tournaments to run
+  num_tournaments = 199;                // Number of tournaments to run
   fitness_trait = "fitness";            // Which trait provides the fitness value to use?
 }
 GrowthPlacement place_g {               // Module to always appened births onto a population.
