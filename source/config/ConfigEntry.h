@@ -134,8 +134,8 @@ namespace mabe {
     /// Allocate a duplicate of this class.
     virtual emp::Ptr<ConfigEntry> Clone() const = 0;
 
-    virtual ConfigEntry & Write(std::ostream & os=std::cout, const std::string & prefix="",
-                                size_t comment_offset=40) {
+    virtual const ConfigEntry & Write(std::ostream & os=std::cout, const std::string & prefix="",
+                                      size_t comment_offset=40) const {
       // Setup this entry.
       std::string cur_line = prefix;
       if (IsLocal()) cur_line += emp::to_string(GetTypename(), " ", name, " = ");
