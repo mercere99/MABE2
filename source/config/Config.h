@@ -279,6 +279,13 @@ namespace mabe {
       events_map[name].TriggerAll();
     }
 
+    /// Print all of the events to the provided stream.
+    void PrintEvents(std::ostream & os) const {
+      for (const auto & x : events_map) {
+        x.second.Write(x.first, os);
+      }
+    }
+
     /// To add a type, provide the type name (that can be referred to in a script) and a function
     /// that should be called (with the variable name) when an instance of that type is created.
     /// The function must return a reference to the newly created instance.
@@ -337,6 +344,8 @@ namespace mabe {
 
     Config & Write(std::ostream & os=std::cout) {
       root_scope.WriteContents(os);
+      os << '\n';
+      PrintEvents(os);
       return *this;
     }
 
