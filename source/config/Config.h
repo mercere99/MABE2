@@ -407,13 +407,13 @@ namespace mabe {
   }
 
   emp::Ptr<ASTNode_Leaf> MakeTempDouble(double val) {
-    auto out_ptr = emp::NewPtr<ConfigEntry_DoubleVar>("temp", val, "Temporary double", nullptr);
+    auto out_ptr = emp::NewPtr<ConfigEntry_DoubleVar>("", val, "Temporary double", nullptr);
     out_ptr->SetTemporary();
     return emp::NewPtr<ASTNode_Leaf>(out_ptr);
   }
 
   emp::Ptr<ASTNode_Leaf> MakeTempString(const std::string & val) {
-    auto out_ptr = emp::NewPtr<ConfigEntry_StringVar>("temp", val, "Temporary string", nullptr);
+    auto out_ptr = emp::NewPtr<ConfigEntry_StringVar>("", val, "Temporary string", nullptr);
     out_ptr->SetTemporary();
     return emp::NewPtr<ASTNode_Leaf>(out_ptr);
   }
