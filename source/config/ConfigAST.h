@@ -54,7 +54,7 @@ namespace mabe {
 
     virtual entry_ptr_t Process() = 0;
 
-    virtual void Write(std::ostream & os=std::cout, const std::string & offset="") { }
+    virtual void Write(std::ostream & os=std::cout, const std::string & offset="") const { }
   };
 
   /// An ASTNode representing an internal node.
@@ -98,7 +98,7 @@ namespace mabe {
 
     entry_ptr_t Process() override { return entry_ptr; };
 
-    void Write(std::ostream & os, const std::string &) {
+    void Write(std::ostream & os, const std::string &) const {
       // If this is a variable, print the variable name,
       std::string output = entry_ptr->GetName();
 
@@ -123,7 +123,7 @@ namespace mabe {
       return nullptr;
     }
 
-    void Write(std::ostream & os, const std::string & offset) { 
+    void Write(std::ostream & os, const std::string & offset) const { 
       for (auto child_ptr : children) {
         child_ptr->Write(os, offset+"  ");
         os << ";\n" << offset;
@@ -149,7 +149,7 @@ namespace mabe {
       return MakeTempDouble(output_value);
     }
 
-    void Write(std::ostream & os, const std::string & offset) { 
+    void Write(std::ostream & os, const std::string & offset) const { 
       os << name;
       children[0]->Write(os, offset);
     }
@@ -175,7 +175,7 @@ namespace mabe {
       return MakeTempDouble(out_val);
     }
 
-    void Write(std::ostream & os, const std::string & offset) { 
+    void Write(std::ostream & os, const std::string & offset) const { 
       children[0]->Write(os, offset);
       os << " " << name << " ";
       children[1]->Write(os, offset);
@@ -199,7 +199,7 @@ namespace mabe {
       return lhs;
     }
 
-    void Write(std::ostream & os, const std::string & offset) { 
+    void Write(std::ostream & os, const std::string & offset) const { 
       children[0]->Write(os, offset);
       os << " = ";
       children[1]->Write(os, offset);
@@ -229,13 +229,14 @@ namespace mabe {
       return result;
     }
 
-    void Write(std::ostream & os, const std::string & offset) { 
+    void Write(std::ostream & os, const std::string & offset) const { 
       children[0]->Write(os, offset);  // Function name
       os << "(";
       for (size_t i=1; i < children.size(); i++) {
         if (i>1) os << ", ";
         children[i]->Write(os, offset);
       }
+      os << ")";
     }
   };
 
@@ -262,7 +263,7 @@ namespace mabe {
       return nullptr;
     }
 
-    void Write(std::ostream & os, const std::string & offset) { 
+    void Write(std::ostream & os, const std::string & offset) const { 
       os << "@" << GetName() << "(";
       for (size_t i = 1; i < children.size(); i++) {
         if (i>1) os << ", ";
