@@ -52,6 +52,17 @@ namespace mabe {
         // Return "active" if we ARE repeating and the next time is stiil within range.
         return (repeat != 0.0 && next <= max);
       }
+
+      void Write(const std::string & command, std::ostream & os) const {
+        os << "@" << command << "(" << next;
+        if (repeat > 0.0) {
+          os << ", " << repeat;
+          if (max >= 0.0) os << ", " << max;
+        }
+        os << ") ";
+        ast_action->Write(os);
+        os << "\n";
+      }
     };
 
     emp::multimap<double, emp::Ptr<TimedEvent>> queue;  ///< Priority queue of events to fun.
@@ -122,6 +133,13 @@ namespace mabe {
         emp::Ptr<TimedEvent> cur_event = PopEvent();
         cur_event->Trigger();
         cur_event.Delete();
+      }
+    }
+
+    /// Print all of the events being tracked here.
+    void Write(const std::string & command, std::ostream & os) const {
+      for (const auto & x : queue) {
+        x.second->Write(command, os);
       }
     }
   };
