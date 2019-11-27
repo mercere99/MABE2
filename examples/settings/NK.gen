@@ -7,6 +7,7 @@ EvalNK enk;
 SelectElite select_e;
 SelectTournament select_t;
 GrowthPlacement place_g;
+
 BitsOrgManager bit_org;
 
 @start() print("random_seed = ", random_seed, "\n");
