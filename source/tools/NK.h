@@ -124,8 +124,6 @@ namespace mabe {
 
     /// Get the fitness of a whole bitstring (pass by value so can be modified.)
     double GetFitness(emp::BitVector genome) const {
-      emp_assert(genome.GetSize() == N, genome.GetSize(), N);
-
       // Use a double-length genome to easily handle wrap-around.
       genome.Resize(N*2);
       genome |= (genome << N);
