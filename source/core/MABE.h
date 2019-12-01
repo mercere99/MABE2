@@ -405,8 +405,9 @@ namespace mabe {
         std::cout << "Generating file '" << gen_filename << "'." << std::endl;
         config.Write(gen_filename);
         Exit();
-        return false;
       }
+
+      // If any of the inital flags triggered an 'exit_now', do so.
       if (exit_now) return false;
 
       Setup_Populations();    // Give modules access to the correct populations.
@@ -704,7 +705,13 @@ namespace mabe {
           std::cout << "--generate must be followed by a single filename.\n";
           Exit();
         } else {
-          gen_filename = in[0];
+          // MABE Config files should be generated FROM a *.gen file, typically creating a *.mabe
+          // file.  If output file is *.gen assume an error. (for now; override should be allowed)
+          if (in[0].size() > 4 && in[0].substr(in[0].size()-4) == ".gen") {
+            AddError("Error: generated file ", in[0], " not allowed to be *.gen; typically should end in *.mabe.");
+            Exit();
+          }
+          else gen_filename = in[0];
         }
       });
     arg_set.emplace_back("--help", "-h", "              ", "Help; print command-line options for MABE",
