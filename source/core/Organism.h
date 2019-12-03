@@ -55,6 +55,8 @@
  *  ID of the event that has just occurred, along with the data associated with this specific
  *  event instance.  No return data is necessary.
  *  
+ *  @todo Organism_data_Ts should probably include a dynamic (Any) type, which will be slower,
+ *        but more flexible.
  */
 
 #ifndef MABE_ORGANISM_H
@@ -95,6 +97,8 @@ namespace mabe {
 
     using action_fun_t = std::function<void(Organism &, T)>;
     using base_fun_t = std::function<void(Organism &)>;
+    virtual bool Evaluate(T) { return false; }
+    virtual bool ProcessStep(T) { return false; }
     virtual base_fun_t ConvertAction(const std::string &, action_fun_t, int) { return nullptr; }
     virtual bool AddEvent(const std::string & event_name, int event_id, T) { return false; }
     virtual void TriggerEvent(int, T) { ; }
@@ -103,12 +107,16 @@ namespace mabe {
   template <typename... Ts> struct OrganismBase : public AddOrgPayloadType<Ts>... {
     virtual ~OrganismBase() { ; }
 
+    using AddOrgPayloadType<Ts>::Evaluate...;
+    using AddOrgPayloadType<Ts>::ProcessStep...;
     using AddOrgPayloadType<Ts>::ConvertAction...;
     using AddOrgPayloadType<Ts>::AddEvent...;
     using AddOrgPayloadType<Ts>::TriggerEvent...;
 
     // Define functions with NO data parameters
     using base_fun_t = std::function<void(Organism &)>;
+    virtual bool Evaluate() { return false; }
+    virtual bool ProcessStep() { return false; }
     virtual base_fun_t ConvertAction(const std::string &, base_fun_t, int) { return nullptr; }
     virtual bool AddEvent(const std::string & event_name, int event_id) { return false; }
     virtual void TriggerEvent(int) { ; }
@@ -146,6 +154,8 @@ namespace mabe {
     virtual ~Organism() { ; }
 
     // Make sure all base class functions are available here.
+    using base_t::Evaluate;
+    using base_t::ProcessStep;
     using base_t::ConvertAction;
     using base_t::AddEvent;
     using base_t::TriggerEvent;
