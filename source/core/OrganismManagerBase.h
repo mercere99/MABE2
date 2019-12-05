@@ -40,6 +40,7 @@ namespace mabe {
     virtual ~OrganismManagerBase() { ; }
 
     const std::string & GetName() const { return name; }
+    virtual emp::TypeID GetOrgType() const = 0;
     virtual std::string GetTypeName() const { return "OrganismManagerBase (base)"; }
 
     // --== Functions to manipulate config variables ==--
