@@ -91,8 +91,8 @@ namespace mabe {
     }
   };
 
-#define MABE_REGISTER_ORG_MANAGER(TYPE, DESC) \
-        mabe::OrgManagerRegistrar<TYPE> MABE_ ## TYPE ## _Registrar(#TYPE, DESC)
+#define MABE_REGISTER_ORG_TYPE(TYPE, DESC) \
+        mabe::OrgManagerRegistrar<OrganismManager<TYPE>> MABE_ ## TYPE ## _Registrar(#TYPE, DESC)
 
 }
 
