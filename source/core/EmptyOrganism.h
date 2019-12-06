@@ -14,13 +14,15 @@
 
 namespace mabe {
 
+  class EmptyOrganism;
+
   class EmptyOrganismManager : public OrganismManagerBase {
   public:
     EmptyOrganismManager() : OrganismManagerBase("Empty Organism Manager") { ; }
     ~EmptyOrganismManager() { ; }
 
     std::string GetTypeName() const override { return "EmptyOrganismManager"; }
-    emp::TypeID GetOrgType() const { return emp::GetTypeID<void>(); }
+    emp::TypeID GetOrgType() const { return emp::GetTypeID<EmptyOrganism>(); }
 
     emp::Ptr<Organism> CloneOrganism(const Organism &) const override { emp_error("Do not call functions on EmptyOrganism."); return nullptr; }
     emp::Ptr<Organism> MakeOrganism() const override { emp_error("Do not call functions on EmptyOrganism."); return nullptr; }
