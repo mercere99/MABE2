@@ -10,6 +10,8 @@
 #ifndef MABE_ORGANISM_MANAGER_H
 #define MABE_ORGANISM_MANAGER_H
 
+#include "meta/TypeID.h"
+
 #include "../config/Config.h"
 
 #include "MABE.h"
@@ -29,6 +31,8 @@ namespace mabe {
       prototype = emp::NewPtr<org_t>(*this);
     }
     virtual ~OrganismManager() { prototype.Delete(); }
+
+    emp::TypeID GetOrgType() const { return emp::GetTypeID<ORG_T>(); }
 
     /// Convert this organism to the correct type (after ensuring that it is!)
     org_t & ConvertOrg(Organism & org) const {
