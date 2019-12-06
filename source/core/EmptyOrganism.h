@@ -20,6 +20,7 @@ namespace mabe {
     ~EmptyOrganismManager() { ; }
 
     std::string GetTypeName() const override { return "EmptyOrganismManager"; }
+    emp::TypeID GetOrgType() const { return emp::GetTypeID<void>(); }
 
     emp::Ptr<Organism> CloneOrganism(const Organism &) const override { emp_error("Do not call functions on EmptyOrganism."); return nullptr; }
     emp::Ptr<Organism> MakeOrganism() const override { emp_error("Do not call functions on EmptyOrganism."); return nullptr; }
