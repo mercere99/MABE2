@@ -130,7 +130,6 @@ namespace mabe {
     // Helper functions.
     ConfigScope & GetScope() { return manager.GetScope(); }
 
-  protected:
     // Forward all variable linkage to the organism's manager.
     template <typename... Ts>
     auto & LinkVar(Ts &&... args) { return manager.LinkVar(args...); }
