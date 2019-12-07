@@ -24,9 +24,9 @@
  *  with some module types if they require specific types of data communication.  Note that any
  *  incompatabilities should be identified on startup and explained to the user.
  *
- *  bool ConvertAction(const std::string & action_name,
- *                     std::function<void(Organism &, data_type)> trigger_function,
- *                     int response_event_id)
+ *  std::function<void(Organism &)> ConvertAction(const std::string & action_name,
+ *                                  std::function<void(Organism &, data_type)> trigger_function,
+ *                                  int response_event_id)
  *  This function is called by a module to provide an organism with callable functions that will
  *  allow it to take specified actions (e.g., move, uptake resources, actively sense, etc.)
  *   'action_name' provides a unique name for this action that an organism can usually ignore.
@@ -34,9 +34,9 @@
  *     Note that the organism must provide a reference to itself, followed by any required data.
  *   'response_event_id' is a unique id to indicate which event provides a response to this action.
  *     (if response_event_id is -1, no direct response should be expected)
- *  The return value should be 'true' if this action was successfully incorporated into the
- *  organism, or 'false' if it failed.  A 'false' on a required action will trigger a warning or
- *  error during run initialization.
+ *  The return value should be a function that takes only an organism reference (of the correct
+ *  derived type!) and calls the original version of the function with the data payload.  Note
+ *  that the return will be null if the correct version of the member function is not overridden.
  *  
  *  bool AddEvent(const std::string & event_name,
  *                int event_id,
