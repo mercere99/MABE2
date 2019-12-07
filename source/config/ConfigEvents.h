@@ -61,7 +61,7 @@ namespace mabe {
         }
         os << ") ";
         ast_action->Write(os);
-        os << "\n";
+        os << ";\n";
       }
     };
 
