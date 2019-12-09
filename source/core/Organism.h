@@ -12,17 +12,24 @@
  *
  *  ...
  *
- *  MABE environment modules may also require organisms that can interact with the environment.
- *  Interactions occur with ACTIONS that the organisms may take and EVENTS that the organisms
- *  may respond to.  In many cases an action will also trigger an event as a response (for
- *  example an active sensor action.)
+ *  MABE environment modules may require organisms that can interact with the environment.
+ *  Mandatory interactions are handled using INPUTS that are fed into the organisms and OUTPUTS
+ *  that are returned.  Optional interactions are handled with ACTIONS that the organisms may take
+ *  and EVENTS that the organisms may respond to.  In some cases an action may trigger an event as
+ *  a response (for example an active sensor action.)  Some organism types may augment the outputs
+ *  to include a section for the optional interactions to trigger them before a return occurs.
  *
- *  To build an Organism that handles actions and events, you must override the member functions
- *  ConvertAction(), AddEvent(), and TriggerEvent().  Note that each of these are associated with
- *  a data payload type; the Organism_data_Ts type pack below lists all legal data types.  While
- *  an organism is not required to deal with all of them (or any of them!), it may not be usable
- *  with some module types if they require specific types of data communication.  Note that any
- *  incompatabilities should be identified on startup and explained to the user.
+ *  Before an organism can be processed, it must be setup appropriately so that the correct inputs
+ *  and outputs can be expected.  For this to work, the following virutal functions must be
+ *  overloaded: AddInput(in_type unused) and AddOutput(out_type unused). If either function is
+ *  called multiple times the inputs or outputs are concatinated together.
+ * 
+ *  To build an Organism that also handles actions and events, you must override the member
+ *  functions ConvertAction(), AddEvent(), and TriggerEvent().  Note that each of these are
+ *  associated with a data payload type; the Organism_data_Ts type pack below lists all legal
+ *  data types.  While an organism is not required to deal with all of them (or any of them!), it
+ *  may not be usable with some module types if they require specific types of data communication.
+ *  Note that any incompatabilities should be identified on startup and explained to the user.
  *
  *  std::function<void(Organism &)> ConvertAction(const std::string & action_name,
  *                                  std::function<void(Organism &, data_type)> trigger_function,
