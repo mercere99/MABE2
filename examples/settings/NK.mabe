@@ -35,10 +35,10 @@ GrowthPlacement place_g {               // Module to always appened births onto 
   to_pop = "next_pop";                  // Population to place offspring in (same as from_pop for continuous generations.)
 }
 
-BitsOrgManager bit_org {             // Organism type
+BitsOrg bits_org {                      // Organism type
   N = num_bits;                         // Number of bits in organism
 }
 
 @start() print("random_seed = ", random_seed, "\n");
-@start() inject("bit_org", 200);
+@start() inject("bits_org", 200);
 @update(100) exit();
