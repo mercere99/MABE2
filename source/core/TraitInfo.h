@@ -23,13 +23,15 @@ namespace mabe {
     std::string name="";         ///< Unique name for this trait.
     std::string desc="";         ///< Description of this trait.
     emp::TypeID type;            ///< Type identifier for this trait.
-    emp::Ptr<ModuleBase> owner;  ///< Pointer to owner module for trait (or creator for a shared trait)
+
+    using mod_ptr_t = emp::Ptr<ModuleBase>;
+    emp::vector<mod_ptr_t> users;  ///< Pointer to all modules that use this trait.
 
   public:
     /// Which modules are allowed to read or write this trait?
     enum Access {
       UNKNOWN=0,   ///< Access level unknown; most likely a problem!
-      PRIVATE,     ///< Can READ & WRITE this trait.  Others cannot use it.
+      PRIVATE,     ///< Can READ & WRITE this trait; other modules cannot use it at all.
       OWNED,       ///< Can READ & WRITE this trait; other modules can only read.
       SHARED,      ///< Can READ & WRITE this trait; other modules can too.
       REQUIRED,    ///< Can READ this trait, but another module must WRITE to it.
@@ -77,17 +79,23 @@ namespace mabe {
   public:
     virtual ~TraitInfo() { ; }
 
-    TraitInfo & SetDescription(std::string in_desc) { desc = in_desc; return *this; }
-    TraitInfo & SetOwner(emp::Ptr<ModuleBase> in_owner) { owner = in_owner; return *this; }
+    const std::string & GetName() const { return name; }
+    const std::string & GetDesc() const { return desc; }
+    emp::TypeID GetType() const { return type; }
+    const emp::vector<mod_ptr_t> & GetUsers() const { return users; }
 
     /// Was a default value set for this trait (can only be done in overload that knows type)
     virtual bool HasDefault() { return false; }
-    bool DoResetParent() const { return reset_parent; }
+    bool GetResetParent() const { return reset_parent; }
 
     Access GetAccess() const { return access; }
     Init GetInit() const { return init; }
     Archive GetArchive() const { return archive; }
     TypeRecord GetTypeRecord() const { return type_record; }
+
+    TraitInfo & SetName(const std::string & in_name) { name = in_name; return *this; }
+    TraitInfo & SetDesc(const std::string & in_desc) { desc = in_desc; return *this; }
+    TraitInfo & AddUser(mod_ptr_t in_mod) { users.push_back(in_mod); return *this; }
 
     /// Set the access level of this trait to a specified level.
     TraitInfo & SetAccess(Access in_access) { access = in_access; return *this; }
@@ -115,11 +123,13 @@ namespace mabe {
   };
 
   template <typename T>
-  struct TypedTraitInfo : public TraitInfo {
+  class TypedTraitInfo : public TraitInfo {
+  private:
     T default_value;
     bool has_default;
 
-    TypedTraitInfo(const std::string & in_name) : has_default(false)
+  public:
+    TypedTraitInfo(const std::string & in_name="") : has_default(false)
     {
       name = in_name;
       type = emp::GetTypeID<T>();
@@ -133,6 +143,8 @@ namespace mabe {
     }
 
     bool HasDefault() { return has_default; }
+
+    const T & GetDefault() const { return default_value; }
 
     TypedTraitInfo<T> & SetDefault(const T & in_default) {
       default_value = in_default;
