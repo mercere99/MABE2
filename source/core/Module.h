@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019
+ *  @date 2019-2020.
  *
  *  @file  Module.h
  *  @brief Base class for all MABE modules.
@@ -27,8 +27,6 @@
 
 namespace mabe {
 
-  class MABE;
-
   class Module : public ModuleBase {
   public:
     Module(MABE & in_control, const std::string & in_name, const std::string & in_desc="")
@@ -51,6 +49,65 @@ namespace mabe {
       return GetScope().LinkFuns<std::string>(
         name, get_fun, set_fun, desc,
         control.GetPopulation(default_pop).GetName());
+    }
+
+    // ---== Trait management ==---
+   
+    /// Add a new trait to this module, specifying its access method, its name, and its description.
+    template <typename T>
+    TypedTraitInfo<T> & AddTrait(TraitInfo::Access access,
+                                 const std::string & in_name,
+                                 const std::string & desc="") {
+      if (emp::Has(trait_map, in_name)) {
+        AddError("Module ", name, " is creating a duplicate trait named '", in_name, "'.");
+      }
+      auto new_ptr = emp::NewPtr<TypedTraitInfo<T>>(in_name);
+      new_ptr->SetAccess(access).AddUser(this).SetDesc(desc);
+      trait_map[in_name] = new_ptr;
+      return *new_ptr;
+    }
+
+    /// Add a new trait to this module, specifying its access method, its name, and its description
+    /// AND its default value.
+    template <typename T>
+    TypedTraitInfo<T> & AddTrait(TraitInfo::Access access,
+                                 const std::string & name,
+                                 const std::string & desc,
+                                 const T & default_val) {
+      return AddTrait<T>(access, name, desc).SetDefault(default_val);
+    }
+
+    /// Add trait that this module can READ & WRITE this trait.  Others cannot use it.
+    /// Must provide name, description, and a default value to start at.
+    template <typename T>
+    TraitInfo & AddPrivateTrait(const std::string & name, const std::string & desc, const T & default_val) {
+      return AddTrait<T>(TraitInfo::Access::PRIVATE, name, desc, default_val);
+    }
+
+    /// Add trait that this module can READ & WRITE to; other modules can only read.
+    /// Must provide name, description, and a default value to start at.
+    template <typename T>
+    TraitInfo & AddOwnedTrait(const std::string & name, const std::string & desc, const T & default_val) {
+      return AddTrait<T>(TraitInfo::Access::OWNED, name, desc, default_val);
+    }
+   
+    /// Add trait that this module can READ & WRITE this trait; other modules can too.
+    /// Must provide name, description; a default value is optional, but at least one
+    /// module MUST set and it must be consistent across all modules that use it.
+    template <typename T>
+    TraitInfo & AddSharedTrait(const std::string & name, const std::string & desc="") {
+      return AddTrait<T>(TraitInfo::Access::SHARED, name, desc);
+    }
+    template <typename T>
+    TraitInfo & AddSharedTrait(const std::string & name, const std::string & desc, const T & default_val) {
+      return AddTrait<T>(TraitInfo::Access::SHARED, name, desc, default_val);
+    }
+   
+    /// Add trait that this module can READ this trait, but another module must WRITE to it.
+    /// That other module should also provide the description for the trait.
+    template <typename T>
+    TraitInfo & AddRequiredTrait(const std::string & name) {
+      return AddTrait<T>(TraitInfo::Access::REQUIRED, name);
     }
 
   public:
