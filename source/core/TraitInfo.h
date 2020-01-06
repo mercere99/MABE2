@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019
+ *  @date 2019-2020.
  *
  *  @file  TraitInfo.h
  *  @brief Information about a single phenotypic trait.
@@ -20,19 +20,20 @@ namespace mabe {
 
   class TraitInfo {
   protected:
-    std::string name="";     ///< Unique name for this trait.
-    std::string desc="";     ///< Description of this trait.
-    emp::TypeID type;        ///< Type identifier for this triat.
+    std::string name="";         ///< Unique name for this trait.
+    std::string desc="";         ///< Description of this trait.
+    emp::TypeID type;            ///< Type identifier for this trait.
     emp::Ptr<ModuleBase> owner;  ///< Pointer to owner module for trait (or creator for a shared trait)
 
   public:
     /// Which modules are allowed to read or write this trait?
     enum Access {
-      UNKNOWN,   ///< Access level unknown; most likely a problem!
-      OWNED,     ///< Can READ & WRITE this trait; other modules can only read.
-      SHARED,    ///< Can READ & WRITE this trait; other modules can too.
-      REQUIRED,  ///< Can READ this trait, but another module must WRITE to it.
-      PRIVATE    ///< Can READ & WRITE this trait.  Others cannot use it.
+      UNKNOWN=0,   ///< Access level unknown; most likely a problem!
+      PRIVATE,     ///< Can READ & WRITE this trait.  Others cannot use it.
+      OWNED,       ///< Can READ & WRITE this trait; other modules can only read.
+      SHARED,      ///< Can READ & WRITE this trait; other modules can too.
+      REQUIRED,    ///< Can READ this trait, but another module must WRITE to it.
+      NUM_ACCESS   ///< How many access methods are there?
     };
 
     /// How should this trait be initialized in a newly-born organism?
@@ -81,6 +82,12 @@ namespace mabe {
 
     /// Was a default value set for this trait (can only be done in overload that knows type)
     virtual bool HasDefault() { return false; }
+    bool DoResetParent() const { return reset_parent; }
+
+    Access GetAccess() const { return access; }
+    Init GetInit() const { return init; }
+    Archive GetArchive() const { return archive; }
+    TypeRecord GetTypeRecord() const { return type_record; }
 
     /// Set the access level of this trait to a specified level.
     TraitInfo & SetAccess(Access in_access) { access = in_access; return *this; }
