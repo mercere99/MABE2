@@ -43,6 +43,7 @@
 #define MABE_MABE_H
 
 #include <string>
+#include <sstream>
 
 #include "base/Ptr.h"
 #include "base/vector.h"
@@ -805,7 +806,112 @@ namespace mabe {
   }
 
   void MABE::Setup_Traits() {
+    // STEP 1: For each trait, identify each module using it and which access methods.  If any
+    // traits are being used improperly, generate errors.
 
+    int error_count = 0;
+    using mod_names_t = emp::vector<std::string>;                       ///< Set of module names.
+    using trait_use_t = emp::array<mod_names_t, TraitInfo::NUM_ACCESS>; ///< Info for one trait.
+    std::map<std::string, trait_use_t> trait_use_map;                   ///< Info for ALL traits.
+
+    // Loop through the modules identifing the traits each is using.
+    for (emp::Ptr<ModuleBase> mod_ptr : modules) {
+      const std::string & mod_name = mod_ptr->GetName();
+      for (auto [trait_name, trait_ptr] : mod_ptr->trait_map) {
+        trait_use_map[trait_name][trait_ptr->GetAccess()].push_back(mod_name);
+      }
+    }
+
+    // Loop through all of the traits to ensure there are no conflicts.
+    for (auto [trait_name, trait_use] : trait_use_map) {
+      const auto & unknown_mods = trait_use[TraitInfo::UNKNOWN];
+      const auto & private_mods = trait_use[TraitInfo::PRIVATE];
+      const auto & owned_mods = trait_use[TraitInfo::OWNED];
+      const auto & shared_mods = trait_use[TraitInfo::SHARED];
+      const auto & required_mods = trait_use[TraitInfo::REQUIRED];
+
+      // NO traits should be of UNKNOWN access.
+      if (unknown_mods.size()) {
+        AddError("Unknown access mode for trait '", trait_name,
+                 "' in module '", unknown_mods[0], "' (internal error!)");
+        error_count++;
+        continue;
+      }
+
+      const size_t total_mods = private_mods.size() + owned_mods.size() +
+                                shared_mods.size() + required_mods.size();
+
+      // Only one module can be involved for PRIVATE access.
+      if (private_mods.size() > 1) {
+        std::stringstream error_msg;
+        error_msg << "Multiple modules declaring trait '" << trait_name
+                  << "' as private: ";
+        for (size_t i = 0; i < private_mods.size(); i++) {
+          if (i) error_msg << ", ";
+          if (i == private_mods.size() - 1) error_msg << "and ";
+          error_msg << "'" << private_mods[i] << "'";
+        }
+        error_msg << ".\n";
+        error_msg << "[Suggestion: if traits are supposed to be distinct, prepend names with a\n"
+                  << " module-specific prefix.  Otherwise modules need to be edited to not have\n"
+                  << " trait private.]";
+        AddError(error_msg.str());
+        error_count++;
+        continue;
+      }
+
+      if (private_mods.size() && total_mods > 1) {
+        AddError("Trait '", trait_name, "' is private in module '", private_mods[0],
+                 "'; should not be used by other modules.\n",
+                 "[Suggestion: if traits are supposed to be distinct, prepend private name with a\n",
+                 " module-specific prefix.  Otherwise module needs to be edited to not have\n",
+                 " trait private.]");
+        error_count++;
+        continue;
+      }
+
+      // A trait that is OWNED cannot have other modules writing to it.
+      if (owned_mods.size() > 1) {
+        std::stringstream error_msg;
+        error_msg << "Multiple modules declaring ownership of trait '" << trait_name << "': ";
+        for (size_t i = 0; i < owned_mods.size(); i++) {
+          if (i) error_msg << ", ";
+          if (i == owned_mods.size() - 1) error_msg << "and ";
+          error_msg << "'" << owned_mods[i] << "'";
+        }
+        error_msg << ".\n";
+        error_msg << "[Suggestion: if traits are supposed to be distinct, prepend names with a\n"
+                  << " module-specific prefix.  Otherwise modules need to be edited to change\n"
+                  << " trait to be SHARED or have all but one shift to REQUIRED.]";
+        AddError(error_msg.str());
+        error_count++;
+        continue;
+      }
+
+      if (owned_mods.size() && shared_mods.size()) {
+        AddError("Trait '", trait_name, "' is owned by module '", owned_mods[0],
+                 "'; should not be written to by other modules.\n",
+                 "[Suggestion: if traits are supposed to be distinct, prepend private name with a\n",
+                 " module-specific prefix.  Otherwise module needs to be edited to make trait\n",
+                 " SHARED or have all but one shift to REQUIRED.]");
+        error_count++;
+        continue;
+      }
+
+      // A trait that is REQUIRED must have another module write to it (i.e. be OWNED or SHARED).
+      if (required_mods.size() && owned_mods.size() == 0 && shared_mods.size() == 0) {
+        AddError("Trait '", trait_name, "' marked REQUIRED by module '", required_mods[0],
+                 "'; must be written to by other modules.\n",
+                 "[Suggestion: set another module to write to this trait (where it is either\n",
+                 " SHARED or OWNED).]");
+        error_count++;
+        continue;
+      }
+    }
+
+    if (error_count == 0) {
+      std::cout << "Organism traits are initialized; no conflicts found." << std::endl;
+    }
   }
   
   /// Link signals to the modules that implment responses to those signals.
