@@ -70,7 +70,7 @@
 #define MABE_ORGANISM_H
 
 #include "base/assert.h"
-#include "data/VarMap.h"
+#include "data/DataMap.h"
 #include "meta/TypeID.h"
 #include "tools/BitVector.h"
 #include "tools/string_utils.h"
@@ -130,10 +130,11 @@ namespace mabe {
   };
 
   class Organism : public Organism_data_Ts::template apply<OrganismBase> {
-  protected:
-    emp::VarMap var_map;            ///< Dynamic variables assigned to organism
+  private:
+    emp::DataMap data_map;          ///< Dynamic variables assigned to organism
     OrganismManagerBase & manager;  ///< Manager for the specific organism type
 
+  protected:
     // Helper functions.
     ConfigScope & GetScope() { return manager.GetScope(); }
 
@@ -166,16 +167,20 @@ namespace mabe {
     using base_t::AddEvent;
     using base_t::TriggerEvent;
 
+    /// Get the manager for this type of organism.
     OrganismManagerBase & GetManager() { return manager; }
     const OrganismManagerBase & GetManager() const { return manager; }
 
-    bool HasVar(const std::string & name) const { return var_map.Has(name); }
-    template <typename T> T & GetVar(const std::string & name) { return var_map.Get<T>(name); }
-    template <typename T> const T & GetVar(const std::string & name) const { return var_map.Get<T>(name); }
+    bool HasVar(const std::string & name) const { return data_map.HasName(name); }
+    template <typename T> T & GetVar(const std::string & name) { return data_map.Get<T>(name); }
+    template <typename T> const T & GetVar(const std::string & name) const {
+      return data_map.Get<T>(name);
+    }
 
     template <typename T>
     void SetVar(const std::string & name, const T & value) {
-      var_map.Set(name, value);
+      if (data_map.HasName(name) == false) data_map.AddVar<T>(name, value);
+      else data_map.Set<T>(name, value);
     }
 
     /// Test if this organism represents an empy cell.
@@ -198,8 +203,8 @@ namespace mabe {
     /// Completely randomize a new organism (typically for initialization)
     virtual void Randomize(emp::Random & random) { manager.Randomize(*this, random); }
 
-    /// Generate an output and place it in the VarMap under the provided name (default = "result").
-    /// Arguments are the output name int he VarMap and the output ID.
+    /// Generate an output and place it in the DataMap under the provided name (default = "result").
+    /// Arguments are the output name int he DataMap and the output ID.
     virtual void GenerateOutput(const std::string & ="result", size_t=0) { ; }
 
     /// Request output type (multiple types are possible); default to unknown.
