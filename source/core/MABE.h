@@ -284,7 +284,7 @@ namespace mabe {
     emp::DataMap org_data_map;
 
     emp::Random random;                ///< Master random number generator
-    int random_seed;                   ///< Random number seed.
+    int random_seed = 0;               ///< Random number seed.
     size_t cur_pop = (size_t) -1;      ///< Which population are we currently working with?
     size_t update = 0;                 ///< How many times has Update() been called?
 
