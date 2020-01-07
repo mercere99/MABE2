@@ -274,9 +274,11 @@ namespace mabe {
 
     emp::vector<Population> pops;      ///< Collection of populations.
 
-    /// Collection of all organism types from all words.  Organism types have distinct
-    /// names and can be manipulated as a whole.
+    /// Collection of all organism types.
     emp::unordered_map<std::string, emp::Ptr<OrganismManagerBase>> org_managers;
+
+    /// Collection of information about organism traits.
+    std::unordered_map<std::string, emp::Ptr<TraitInfo>> trait_map;
 
     /// Trait information to be stored on each organism.
     emp::DataMap org_data_map;
