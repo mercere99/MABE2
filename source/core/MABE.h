@@ -288,6 +288,7 @@ namespace mabe {
     size_t cur_pop = (size_t) -1;      ///< Which population are we currently working with?
     size_t update = 0;                 ///< How many times has Update() been called?
 
+
     // --- Variables to handle configuration and initialization ---
 
     emp::vector<std::string> errors;   ///< Log any errors that have occured.
@@ -587,6 +588,63 @@ namespace mabe {
       org_managers[type_name] = new_type;
       return *new_type;
     }
+
+
+    // --- Deal with Organism TRAITS ---
+
+    /// Add a new organism trait.
+    template <typename T>
+    TypedTraitInfo<T> & AddTrait(emp::Ptr<ModuleBase> mod_ptr,
+                                 TraitInfo::Access access,
+                                 const std::string & trait_name,
+                                 const std::string & desc,
+                                 const T & default_val)
+    {
+      emp::Ptr<TypedTraitInfo<T>> cur_trait = nullptr;
+      const std::string & mod_name = mod_ptr->GetName();
+
+      // Traits cannot be added without access information.
+      if (access == TraitInfo::UNKNOWN) {
+        AddError("Module ", mod_name, " trying to add trait named '", trait_name,
+                 "' with UNKNOWN access type.");
+      }
+
+      // If the trait does not already exist, build it as a new trait.
+      if (emp::Has(trait_map, trait_name) == false) {
+        cur_trait = emp::NewPtr<TypedTraitInfo<T>>(trait_name);
+        cur_trait->SetDesc(desc);
+        trait_map[trait_name] = cur_trait;
+        org_data_map.AddVar(trait_name, default_val, desc);
+      }
+      
+      // Otherwise make sure that it is consistent with previous modules.
+      else {
+        cur_trait = trait_map[trait_name].DynamicCast<TypedTraitInfo<T>>();
+
+        // Make sure that the SAME module isn't defining a trait twice.
+        if (cur_trait->HasAccess(mod_ptr)) {
+          AddError("Module ", mod_name, " is creating multiple traits named '",
+                   trait_name, "'.");
+        }
+
+        // Make sure the type is consistent across modules.
+        if (cur_trait->GetType() != emp::GetTypeID<T>()) {
+          AddError("Module ", mod_name, " is trying to use trait '",
+                   trait_name, "' of type ", emp::GetTypeID<T>(),
+                   "; Previously defined in module(s) ",
+                   emp::to_english_list(cur_trait->GetModuleNames()),
+                   " as type ", cur_trait->GetType());
+        }
+      }
+
+      // Add this modules access to the trait.
+      cur_trait->AddAccess(mod_name, mod_ptr, access);
+
+      return *cur_trait;
+    }
+
+
+    // --- Manage configuration scope ---
 
     /// Access to the current configuration scope.
     ConfigScope & GetCurScope() { return *cur_scope; }
