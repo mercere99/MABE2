@@ -376,6 +376,7 @@ namespace mabe {
     ~MABE() {
       for (auto x : modules) x.Delete();
       for (auto [name,org_manager] : org_managers) org_manager.Delete();
+      for (auto [name,trait_ptr] : trait_map) trait_ptr.Delete();
     }
 
     // --- Basic accessors ---
