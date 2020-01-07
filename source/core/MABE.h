@@ -49,6 +49,7 @@
 #include "base/vector.h"
 #include "config/command_line.h"
 #include "control/Signal.h"
+#include "data/DataMap.h"
 #include "tools/Random.h"
 #include "tools/vector_utils.h"
 
@@ -277,11 +278,16 @@ namespace mabe {
     /// names and can be manipulated as a whole.
     emp::unordered_map<std::string, emp::Ptr<OrganismManagerBase>> org_managers;
 
+    /// Trait information to be stored on each organism.
+    emp::DataMap org_data_map;
+
     emp::Random random;                ///< Master random number generator
     int random_seed;                   ///< Random number seed.
-
     size_t cur_pop = (size_t) -1;      ///< Which population are we currently working with?
     size_t update = 0;                 ///< How many times has Update() been called?
+
+    // --- Variables to handle configuration and initialization ---
+
     emp::vector<std::string> errors;   ///< Log any errors that have occured.
     bool show_help = false;            ///< Should we show "help" before exiting?
     bool exit_now = false;             ///< Do we need to immediately exit the code?
