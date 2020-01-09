@@ -53,28 +53,14 @@ namespace mabe {
 
     // ---== Trait management ==---
    
-    /// Add a new trait to this module, specifying its access method, its name, and its description.
-    template <typename T>
-    TypedTraitInfo<T> & AddTrait(TraitInfo::Access access,
-                                 const std::string & in_name,
-                                 const std::string & desc="") {
-      if (emp::Has(trait_map, in_name)) {
-        AddError("Module ", name, " is creating a duplicate trait named '", in_name, "'.");
-      }
-      auto new_ptr = emp::NewPtr<TypedTraitInfo<T>>(in_name);
-      new_ptr->SetAccess(access).AddUser(this).SetDesc(desc);
-      trait_map[in_name] = new_ptr;
-      return *new_ptr;
-    }
-
     /// Add a new trait to this module, specifying its access method, its name, and its description
     /// AND its default value.
     template <typename T>
     TypedTraitInfo<T> & AddTrait(TraitInfo::Access access,
                                  const std::string & name,
-                                 const std::string & desc,
-                                 const T & default_val) {
-      return AddTrait<T>(access, name, desc).SetDefault(default_val);
+                                 const std::string & desc="",
+                                 const T & default_val=T()) {
+      return control.AddTrait<T>(this, access, name, desc, default_val);
     }
 
     /// Add trait that this module can READ & WRITE this trait.  Others cannot use it.
