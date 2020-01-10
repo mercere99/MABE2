@@ -78,12 +78,6 @@ namespace mabe {
     }
    
     /// Add trait that this module can READ & WRITE this trait; other modules can too.
-    /// Must provide name, description; a default value is optional, but at least one
-    /// module MUST set and it must be consistent across all modules that use it.
-    template <typename T>
-    TraitInfo & AddSharedTrait(const std::string & name, const std::string & desc="") {
-      return AddTrait<T>(TraitInfo::Access::SHARED, name, desc);
-    }
     template <typename T>
     TraitInfo & AddSharedTrait(const std::string & name, const std::string & desc, const T & default_val) {
       return AddTrait<T>(TraitInfo::Access::SHARED, name, desc, default_val);
