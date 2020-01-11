@@ -14,6 +14,15 @@
  *    [OWNED]    - Only this module can modify the trait, but other modules can read it.
  *    [SHARED]   - This module will read and write this trait, but others are allowed to as well.
  *    [REQUIRED] - This module will read the trait; another module must write to it.
+ *
+ *  The INIT method describes how a trait should be initialized in a new offspring.
+ *  (note that injected organisms always get the DEFAULT value.)
+ *    [DEFAULT] - Always initialize this trait to its default value.
+ *    [FIRST]   - Initialize trait to the first parent's value (only parent for asexual runs)
+ *    [AVERAGE] -  Initiialize trait to the average value of all parents.
+ *    [MINIMUM] -  Initiialize trait to the minimum value of all parents.
+ *    [MAXIMUM] -  Initiialize trait to the maximum value of all parents.
+ *
  */
 
 #ifndef MABE_TRAIT_INFO_H
