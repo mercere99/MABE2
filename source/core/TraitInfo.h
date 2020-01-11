@@ -5,6 +5,15 @@
  *
  *  @file  TraitInfo.h
  *  @brief Information about a single phenotypic trait.
+ *
+ *  A TraitInfo object contains basic information a about a single trait being tracked in an
+ *  organism.  In addition to the name, type, and description of the trait, it also describes:
+
+ *  The ACCESS method to be used for a trait by each module.  A trait can be
+ *    [PRIVATE]  - Only this module can access it; no others should read or write it.
+ *    [OWNED]    - Only this module can modify the trait, but other modules can read it.
+ *    [SHARED]   - This module will read and write this trait, but others are allowed to as well.
+ *    [REQUIRED] - This module will read the trait; another module must write to it.
  */
 
 #ifndef MABE_TRAIT_INFO_H
