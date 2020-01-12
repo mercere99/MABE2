@@ -23,6 +23,15 @@
  *    [MINIMUM] -  Initiialize trait to the minimum value of all parents.
  *    [MAXIMUM] -  Initiialize trait to the maximum value of all parents.
  *
+ *  The ARCHIVE method determines how many older values should be saved with each organism.
+ *    [NONE]       - Only the most recent value should be tracked, no archived values.
+ *    [AT_BIRTH]   - Store value of this trait was born with in "birth_(name)".
+ *    [LAST_REPRO] - Store value of trait at the last reproduction in "last_(name)".
+ *    [ALL_REPROS] - Store all value of trait at each reproduction event in "archive_(name)".
+ *    [ALL_VALUES] - Store every value chane of trait at any time in "sequence_(name)".
+ *
+ *  The SUMMARY method determines how a trait should be summarized over a collection of organisms.
+ *    [[[ needs refinement... ]]]
  */
 
 #ifndef MABE_TRAIT_INFO_H
