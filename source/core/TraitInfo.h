@@ -8,7 +8,7 @@
  *
  *  A TraitInfo object contains basic information a about a single trait being tracked in an
  *  organism.  In addition to the name, type, and description of the trait, it also describes:
-
+ *
  *  The ACCESS method to be used for a trait by each module.  A trait can be
  *    [PRIVATE]  - Only this module can access it; no others should read or write it.
  *    [OWNED]    - Only this module can modify the trait, but other modules can read it.
@@ -50,9 +50,6 @@ namespace mabe {
     std::string name="";         ///< Unique name for this trait.
     std::string desc="";         ///< Description of this trait.
     emp::TypeID type;            ///< Type identifier for this trait.
-
-    using mod_ptr_t = emp::Ptr<ModuleBase>;
-    emp::vector<mod_ptr_t> users;  ///< Pointer to all modules that use this trait.
 
   public:
     /// Which modules are allowed to read or write this trait?
@@ -103,6 +100,15 @@ namespace mabe {
     Archive archive = Archive::NONE;
     TypeRecord type_record = TypeRecord::IGNORE;
 
+    // Track which modules are using this trait and what access they need.
+    using mod_ptr_t = emp::Ptr<ModuleBase>;
+    struct ModuleInfo {
+      std::string mod_name = "";
+      mod_ptr_t mod_ptr = nullptr;
+      Access access = Access::UNKNOWN;
+    };
+    emp::vector<ModuleInfo> access_info;
+    
   public:
     virtual ~TraitInfo() { ; }
 
