@@ -66,7 +66,7 @@ namespace mabe {
     /// * Injected organisms always use the default value.
     /// * Modules can moitor signals to make other changes at any time.
     enum Init {
-      DEFAULT,   ///< Trait is initialized to a pre-set default value.
+      DEFAULT=0, ///< Trait is initialized to a pre-set default value.
       PARENT,    ///< Trait is inhereted (from first parent if more than one)
       AVERAGE,   ///< Trait becomes average of all parents on birth.
       MINIMUM,   ///< Trait becomes lowest of all parents on birth.
@@ -75,7 +75,7 @@ namespace mabe {
 
     /// Which information should we store in the trait as we go?
     enum Archive {
-      NONE,       ///< Don't store any older information.
+      NONE=0,     ///< Don't store any older information.
       LAST_RESET, ///< Store value at reset in "last_(name)"
       ALL_RESET,  ///< Store values at all resets in "archive_(name)"
       ALL_CHANGE  ///< Store values from every change in "sequence_(name)"
@@ -84,7 +84,7 @@ namespace mabe {
 
     /// How should these data be summarized in phyla types (such as Genotype)
     enum TypeRecord {
-      IGNORE,         ///< Don't include this trait in phyla records.
+      IGNORE=0,       ///< Don't include this trait in phyla records.
       DEATH_AVERAGE,  ///< Store average value of organisms at their death.
       DEATH_SUMMARY,  ///< Store basic summary (min, max, count, ave) of orgs at death.
       DEATH_FULL,     ///< Store all values for organisms at their death.
