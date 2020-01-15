@@ -67,19 +67,21 @@ namespace mabe {
     /// * Modules can moitor signals to make other changes at any time.
     enum Init {
       DEFAULT=0, ///< Trait is initialized to a pre-set default value.
-      PARENT,    ///< Trait is inhereted (from first parent if more than one)
+      FIRST,     ///< Trait is inhereted (from first parent if more than one)
       AVERAGE,   ///< Trait becomes average of all parents on birth.
       MINIMUM,   ///< Trait becomes lowest of all parents on birth.
       MAXIMUM    ///< Trait becomes highest of all parents on birth.
     };
 
     /// Which information should we store in the trait as we go?
+    /// A "reproduction event" for an organism is when it's born and each time it gives birth.
     enum Archive {
       NONE=0,     ///< Don't store any older information.
-      LAST_RESET, ///< Store value at reset in "last_(name)"
-      ALL_RESET,  ///< Store values at all resets in "archive_(name)"
-      ALL_CHANGE  ///< Store values from every change in "sequence_(name)"
-      // @CAO: CHANGE not yet impements since hard to track...
+      AT_BIRTH,   ///< Store value this trait was born with in "birth_(name)"
+      LAST_REPRO, ///< Store value at last reproduction event in "last_(name)"
+      ALL_REPRO,  ///< Store values at all reproduction events (including birth) in "archive_(name)"
+      ALL_VALUES  ///< Store values from every change in "sequence_(name)"
+      // @CAO: ALL_VALUES can be hard to track...
     };
 
     /// How should these data be summarized in phyla types (such as Genotype)
@@ -134,7 +136,7 @@ namespace mabe {
     TraitInfo & SetAccess(Access in_access) { access = in_access; return *this; }
 
     /// Set the current value of this trait to be automatically inthereted by offspring.
-    TraitInfo & SetInheritParent() { init = Init::PARENT; return *this; }
+    TraitInfo & SetInheritParent() { init = Init::FIRST; return *this; }
 
     /// Set the average across parents for this trait to be automatically inthereted by offspring.
     TraitInfo & SetInheritAverage() { init = Init::AVERAGE; return *this; }
