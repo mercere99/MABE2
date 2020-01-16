@@ -84,15 +84,21 @@ namespace mabe {
       // @CAO: ALL_VALUES can be hard to track...
     };
 
-    /// How should these data be summarized in phyla types (such as Genotype)
-    enum TypeRecord {
-      IGNORE=0,       ///< Don't include this trait in phyla records.
-      DEATH_AVERAGE,  ///< Store average value of organisms at their death.
-      DEATH_SUMMARY,  ///< Store basic summary (min, max, count, ave) of orgs at death.
-      DEATH_FULL,     ///< Store all values for organisms at their death.
-      PARENT_AVERAGE, ///< Store average value of parents at organisms' births.
-      PARENT_SUMMARY, ///< Store basic summary (min, max, count, ave) of parents at birth.
-      PARENT_FULL     ///< Store all values for parents at organisms' births.
+    /// What timings should we use when we summarize data?  (Must maintain summary!)
+    enum Timing {
+      LATEST,     ///< Always use the most recent value set.
+      PARENT,     ///< Use value of parent at time of organism birth.
+      REPRO       ///< Use value last time organism replicated (or parent value if no births)
+    };
+
+    /// How should these data be summarized in groups such as whole population or phyla types
+    /// (such as Genotype, Species, etc.)  Some traits shouldn't be summarized at all (IGNORE)
+    /// Otherwise the summary values can be takens as:
+    enum Summary {
+      IGNORE=0,   ///< Don't include this trait in phyla records.
+      AVERAGE,    ///< Average of current value of all organisms (or final value at death).
+      SUMMARY,    ///< Basic summary (min, max, count, ave) of current/final values.
+      FULL,       ///< Store ALL current/final values for organisms.
     };
 
   protected:
