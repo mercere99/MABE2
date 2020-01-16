@@ -102,11 +102,10 @@ namespace mabe {
     };
 
   protected:
-    Access access = Access::UNKNOWN;
     Init init = Init::DEFAULT;
     bool reset_parent = false;  ///< Should the parent ALSO be reset on birth?
     Archive archive = Archive::NONE;
-    TypeRecord type_record = TypeRecord::IGNORE;
+    Summary summary = Summary::IGNORE;
 
     // Track which modules are using this trait and what access they need.
     using mod_ptr_t = emp::Ptr<ModuleBase>;
