@@ -116,6 +116,24 @@ namespace mabe {
     };
     emp::vector<ModuleInfo> access_info;
     
+    // Specific access categories
+    emp::array<size_t, NUM_ACCESS> access_counts = { 0, 0, 0, 0, 0 };
+
+    // Helper functions
+    int GetInfoID(const std::string & mod_name) const {
+      for (int i = 0; i < (int) access_info.size(); i++) {
+        if (access_info[(size_t) i].mod_name == mod_name) return i;
+      }
+      return -1;
+    }
+
+    int GetInfoID(mod_ptr_t mod_ptr) const {
+      for (int i = 0; i < (int) access_info.size(); i++) {
+        if (access_info[(size_t) i].mod_ptr == mod_ptr) return i;
+      }
+      return -1;
+    }
+    
   public:
     virtual ~TraitInfo() { ; }
 
