@@ -115,7 +115,7 @@ namespace mabe {
       Access access = Access::UNKNOWN;
     };
     emp::vector<ModuleInfo> access_info;
-    
+
     // Specific access categories
     emp::array<size_t, NUM_ACCESS> access_counts = { 0, 0, 0, 0, 0 };
 
@@ -133,20 +133,25 @@ namespace mabe {
       }
       return -1;
     }
-    
+
   public:
     virtual ~TraitInfo() { ; }
 
     const std::string & GetName() const { return name; }
     const std::string & GetDesc() const { return desc; }
     emp::TypeID GetType() const { return type; }
-    const emp::vector<mod_ptr_t> & GetUsers() const { return users; }
+
+    /// Determine what kind of access a module has.
+    Access GetAccess(mod_ptr_t mod_ptr) const {
+      int id = GetInfoID(mod_ptr);
+      if (id == -1) return Access::UNKNOWN;
+      return access_info[id].access;
+    }
 
     /// Was a default value set for this trait (can only be done in overload that knows type)
     virtual bool HasDefault() { return false; }
     bool GetResetParent() const { return reset_parent; }
 
-    Access GetAccess() const { return access; }
     Init GetInit() const { return init; }
     Archive GetArchive() const { return archive; }
     TypeRecord GetTypeRecord() const { return type_record; }
