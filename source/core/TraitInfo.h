@@ -168,6 +168,28 @@ namespace mabe {
     size_t GetSharedCount() const { return GetAccessCount(Access::SHARED); }
     size_t GetRequiredCount() const { return GetAccessCount(Access::REQUIRED); }
 
+    emp::vector<std::string> GetModuleNames() const {
+      emp::vector<std::string> mod_names;
+      for (auto info : access_info) {
+        mod_names.push_back(info.mod_name);
+      }
+      return mod_names;
+    }
+
+    emp::vector<std::string> GetModuleNames(Access test_access) const {
+      emp::vector<std::string> mod_names;
+      for (auto info : access_info) {
+        if (info.access == test_access) mod_names.push_back(info.mod_name);
+      }
+      return mod_names;
+    }
+
+    emp::vector<std::string> GetUnknownNames() const { return GetModuleNames(Access::UNKNOWN); }
+    emp::vector<std::string> GetPrivateNames() const { return GetModuleNames(Access::PRIVATE); }
+    emp::vector<std::string> GetOwnedNames() const { return GetModuleNames(Access::OWNED); }
+    emp::vector<std::string> GetSharedNames() const { return GetModuleNames(Access::SHARED); }
+    emp::vector<std::string> GetRequiredNames() const { return GetModuleNames(Access::REQUIRED); }
+
     /// Was a default value set for this trait (can only be done in overload that knows type)
     virtual bool HasDefault() { return false; }
     bool GetResetParent() const { return reset_parent; }
