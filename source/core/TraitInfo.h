@@ -148,6 +148,15 @@ namespace mabe {
       return access_info[id].access;
     }
 
+    /// Determine if a module has any knd of access to this trait.
+    bool HasAccess(mod_ptr_t mod_ptr) const { return GetAccess(mod_ptr) != Access::UNKNOWN; }
+
+    /// How many modules can access this trait?
+    size_t GetModuleCount() const { return access_info.size(); }
+
+    /// How many modules can access this trait using a specified access mode?
+    size_t GetAccessCount(Access access) const { return access_counts[access]; }
+
     /// Was a default value set for this trait (can only be done in overload that knows type)
     virtual bool HasDefault() { return false; }
     bool GetResetParent() const { return reset_parent; }
