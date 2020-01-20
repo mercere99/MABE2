@@ -157,6 +157,17 @@ namespace mabe {
     /// How many modules can access this trait using a specified access mode?
     size_t GetAccessCount(Access access) const { return access_counts[access]; }
 
+    bool IsPrivate() const { return GetAccessCount(Access::PRIVATE); }
+    bool IsOwned() const { return GetAccessCount(Access::OWNED); }
+    bool IsShared() const { return GetAccessCount(Access::SHARED); }
+    bool IsRequired() const { return GetAccessCount(Access::REQUIRED); }
+
+    size_t GetUnknownCount() const { return GetAccessCount(Access::UNKNOWN); }
+    size_t GetPrivateCount() const { return GetAccessCount(Access::PRIVATE); }
+    size_t GetOwnedCount() const { return GetAccessCount(Access::OWNED); }
+    size_t GetSharedCount() const { return GetAccessCount(Access::SHARED); }
+    size_t GetRequiredCount() const { return GetAccessCount(Access::REQUIRED); }
+
     /// Was a default value set for this trait (can only be done in overload that knows type)
     virtual bool HasDefault() { return false; }
     bool GetResetParent() const { return reset_parent; }
