@@ -196,14 +196,17 @@ namespace mabe {
 
     Init GetInit() const { return init; }
     Archive GetArchive() const { return archive; }
-    TypeRecord GetTypeRecord() const { return type_record; }
+    Summary GetSummary() const { return summary; }
 
     TraitInfo & SetName(const std::string & in_name) { name = in_name; return *this; }
     TraitInfo & SetDesc(const std::string & in_desc) { desc = in_desc; return *this; }
-    TraitInfo & AddUser(mod_ptr_t in_mod) { users.push_back(in_mod); return *this; }
-
-    /// Set the access level of this trait to a specified level.
-    TraitInfo & SetAccess(Access in_access) { access = in_access; return *this; }
+ 
+    // Add a module that can access this trait.
+    TraitInfo & AddAccess(const std::string & in_name, mod_ptr_t in_mod, Access access) {
+      access_info.push_back(ModuleInfo{ in_name, in_mod, access });
+      access_counts[access]++;
+      return *this;
+    }
 
     /// Set the current value of this trait to be automatically inthereted by offspring.
     TraitInfo & SetInheritParent() { init = Init::FIRST; return *this; }
@@ -221,10 +224,10 @@ namespace mabe {
     TraitInfo & SetParentReset() { reset_parent = true; return *this; }
 
     /// Set the previous value of this trait to be stored on birth or reset.
-    TraitInfo & SetArchiveLast() { archive = Archive::LAST_RESET; return *this; }
+    TraitInfo & SetArchiveLast() { archive = Archive::LAST_REPRO; return *this; }
 
     /// Set ALL previous values of this trait to be store after each reset.
-    TraitInfo & SetArchiveAll() { archive = Archive::ALL_RESET; return *this; }
+    TraitInfo & SetArchiveAll() { archive = Archive::ALL_REPRO; return *this; }
   };
 
   template <typename T>
