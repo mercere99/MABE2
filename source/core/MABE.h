@@ -882,7 +882,7 @@ namespace mabe {
       // NO traits should be of UNKNOWN access.
       if (trait_ptr->GetUnknownCount()) {
         AddError("Unknown access mode for trait '", trait_name,
-                 "' in module(s) ", to_english_list(trait_ptr->GetUnknownNames()),
+                 "' in module(s) ", emp::to_english_list(trait_ptr->GetUnknownNames()),
                  " (internal error!)");
         error_count++;
         continue;
@@ -892,7 +892,7 @@ namespace mabe {
       else if (trait_ptr->GetPrivateCount() > 1) {
         std::stringstream error_msg;
         error_msg << "Multiple modules declaring trait '" << trait_name
-                  << "' as private: " << to_english_list(trait_ptr->GetPrivateNames())
+                  << "' as private: " << emp::to_english_list(trait_ptr->GetPrivateNames())
                   << ".\n"
                   << "[Suggestion: if traits are supposed to be distinct, prepend names with a\n"
                   << " module-specific prefix.  Otherwise modules need to be edited to not have\n"
@@ -916,7 +916,7 @@ namespace mabe {
       else if (trait_ptr->GetOwnedCount() > 1) {
         std::stringstream error_msg;
         error_msg << "Multiple modules declaring ownership of trait '" << trait_name << "': "
-                  << to_english_list(trait_ptr->GetOwnedNames()) << ".\n"
+                  << emp::to_english_list(trait_ptr->GetOwnedNames()) << ".\n"
                   << "[Suggestion: if traits are supposed to be distinct, prepend names with a\n"
                   << " module-specific prefix.  Otherwise modules should be edited to change trait\n"
                   << " to be SHARED (and all can modify) or have all but one shift to REQUIRED.]";
@@ -928,7 +928,7 @@ namespace mabe {
       else if (trait_ptr->IsOwned() && trait_ptr->IsShared()) {
         AddError("Trait '", trait_name, "' is fully OWNED by module '", trait_ptr->GetOwnedNames()[0],
                  "'; it cannot be SHARED (written to) by other modules:",
-                 to_english_list(trait_ptr->GetSharedNames()),
+                 emp::to_english_list(trait_ptr->GetSharedNames()),
                  "[Suggestion: if traits are supposed to be distinct, prepend private name with a\n",
                  " module-specific prefix.  Otherwise module needs to be edited to make trait\n",
                  " SHARED or have all but one shift to REQUIRED.]");
@@ -939,7 +939,7 @@ namespace mabe {
       // A trait that is REQUIRED must have another module write to it (i.e. be OWNED or SHARED).
       else if (trait_ptr->IsRequired() && !trait_ptr->IsOwned() && !trait_ptr->IsShared()) {
         AddError("Trait '", trait_name, "' marked REQUIRED by module(s) ",
-                 to_english_list(trait_ptr->GetRequiredNames()),
+                 emp::to_english_list(trait_ptr->GetRequiredNames()),
                  "'; must be written to by other modules.\n",
                  "[Suggestion: set another module to write to this trait (where it is either\n",
                  " SHARED or OWNED).]");
