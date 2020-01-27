@@ -65,7 +65,7 @@ namespace mabe {
     /// How should this trait be initialized in a newly-born organism?
     /// * Injected organisms always use the default value.
     /// * Modules can moitor signals to make other changes at any time.
-    enum Init {
+    enum class Init {
       DEFAULT=0, ///< Trait is initialized to a pre-set default value.
       FIRST,     ///< Trait is inhereted (from first parent if more than one)
       AVERAGE,   ///< Trait becomes average of all parents on birth.
@@ -75,7 +75,7 @@ namespace mabe {
 
     /// Which information should we store in the trait as we go?
     /// A "reproduction event" for an organism is when it's born and each time it gives birth.
-    enum Archive {
+    enum class Archive {
       NONE=0,     ///< Don't store any older information.
       AT_BIRTH,   ///< Store value this trait was born with in "birth_(name)"
       LAST_REPRO, ///< Store value at last reproduction event in "last_(name)"
@@ -85,7 +85,7 @@ namespace mabe {
     };
 
     /// What timings should we use when we summarize data?  (Must maintain summary!)
-    enum Timing {
+    enum class Timing {
       LATEST,     ///< Always use the most recent value set.
       PARENT,     ///< Use value of parent at time of organism birth.
       REPRO       ///< Use value last time organism replicated (or parent value if no births)
@@ -94,7 +94,7 @@ namespace mabe {
     /// How should these data be summarized in groups such as whole population or phyla types
     /// (such as Genotype, Species, etc.)  Some traits shouldn't be summarized at all (IGNORE)
     /// Otherwise the summary values can be takens as:
-    enum Summary {
+    enum class Summary {
       IGNORE=0,   ///< Don't include this trait in phyla records.
       AVERAGE,    ///< Average of current value of all organisms (or final value at death).
       SUMMARY,    ///< Basic summary (min, max, count, ave) of current/final values.
