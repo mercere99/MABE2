@@ -98,7 +98,7 @@ namespace mabe {
 
     entry_ptr_t Process() override { return entry_ptr; };
 
-    void Write(std::ostream & os, const std::string &) const {
+    void Write(std::ostream & os, const std::string &) const override {
       // If this is a variable, print the variable name,
       std::string output = entry_ptr->GetName();
 
@@ -123,7 +123,7 @@ namespace mabe {
       return nullptr;
     }
 
-    void Write(std::ostream & os, const std::string & offset) const { 
+    void Write(std::ostream & os, const std::string & offset) const override { 
       for (auto child_ptr : children) {
         child_ptr->Write(os, offset+"  ");
         os << ";\n" << offset;
@@ -149,7 +149,7 @@ namespace mabe {
       return MakeTempDouble(output_value);
     }
 
-    void Write(std::ostream & os, const std::string & offset) const { 
+    void Write(std::ostream & os, const std::string & offset) const override { 
       os << name;
       children[0]->Write(os, offset);
     }
@@ -175,7 +175,7 @@ namespace mabe {
       return MakeTempDouble(out_val);
     }
 
-    void Write(std::ostream & os, const std::string & offset) const { 
+    void Write(std::ostream & os, const std::string & offset) const override { 
       children[0]->Write(os, offset);
       os << " " << name << " ";
       children[1]->Write(os, offset);
@@ -199,7 +199,7 @@ namespace mabe {
       return lhs;
     }
 
-    void Write(std::ostream & os, const std::string & offset) const { 
+    void Write(std::ostream & os, const std::string & offset) const override { 
       children[0]->Write(os, offset);
       os << " = ";
       children[1]->Write(os, offset);
@@ -229,7 +229,7 @@ namespace mabe {
       return result;
     }
 
-    void Write(std::ostream & os, const std::string & offset) const { 
+    void Write(std::ostream & os, const std::string & offset) const override { 
       children[0]->Write(os, offset);  // Function name
       os << "(";
       for (size_t i=1; i < children.size(); i++) {
@@ -263,7 +263,7 @@ namespace mabe {
       return nullptr;
     }
 
-    void Write(std::ostream & os, const std::string & offset) const { 
+    void Write(std::ostream & os, const std::string & offset) const override { 
       os << "@" << GetName() << "(";
       for (size_t i = 1; i < children.size(); i++) {
         if (i>1) os << ", ";
