@@ -10,6 +10,18 @@
  *  All organism types in MABE must override the mabe::Organism class and provide a valid
  *  OrganismManager (see OrganismManager.h for more information).
  *
+ *  All interactions between an organism and its environment should be mediated through the
+ *  organism's DataMap.  Environments should setup INPUT VALUES in the DataMap before 
+ *  the population is executed.  During (or at the end of) execution, organisms should
+ *  write out any OUTPUT_VALUES to the data map.  The configuration files should be used
+ *  to ensure that the setting names align correctly, and type adaptors can be added in
+ *  to similarly ensure that types correctly match up.
+ * 
+ *  If an environment wants to allow ACTIONS to occur during execution, it can provide
+ *  callback functions to the organisms in the appropriate OrganismManager DataMap.  If
+ *  the environment wants to indicate EVENTS that occur during an organism's lifetime,
+ *  it can find the appropriate function to call in the manager's DataMap.
+ * 
  *  ...
  *
  *  MABE environment modules may require organisms that can interact with the environment.
