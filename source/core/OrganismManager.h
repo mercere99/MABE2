@@ -32,7 +32,7 @@ namespace mabe {
     }
     virtual ~OrganismManager() { prototype.Delete(); }
 
-    emp::TypeID GetOrgType() const { return emp::GetTypeID<ORG_T>(); }
+    emp::TypeID GetOrgType() const override { return emp::GetTypeID<ORG_T>(); }
 
     /// Convert this organism to the correct type (after ensuring that it is!)
     org_t & ConvertOrg(Organism & org) const {
