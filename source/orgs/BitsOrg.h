@@ -23,6 +23,7 @@ namespace mabe {
   class BitsOrg : public Organism {
   protected:
     emp::BitVector bits;
+    std::string output_name;  // @CAO: Should move this to org manager!
 
   public:
     BitsOrg(OrganismManager<BitsOrg> & _manager) : Organism(_manager) { ; }
@@ -49,27 +50,10 @@ namespace mabe {
       emp::RandomizeBitVector(bits, random, 0.5);
     }
 
-    std::function<void(Organism &)> ConvertAction(const std::string &,  // ignore name?
-                   std::function<void(Organism &, const emp::BitVector &)> fun,
-                   int   // ignore ID?
-                  ) override {
-      return [fun](Organism & org) {
-        // Make sure that this converted function is only run on the correct type of organism.
-        emp_assert( org.GetManager().GetOrgType() == emp::GetTypeID<BitsOrg>() );
-
-        // Now call the function we are wrapping identifying both the organism and the BitVector.
-        fun( org, ((BitsOrg &) org).bits );
-      };
-    }
-
-
-    void Execute() {
-
-    }
-
-    /// Just use the bit sequence as the output.
-    void GenerateOutput(const std::string & output_name="result", size_t=0) override {
-      var_map.Set<emp::BitVector>(output_name, bits);
+    // Nothing to evaluate -- just put the bits in the correct output position.
+    bool Evaluate() override {
+      SetVar<emp::BitVector>(output_name, bits);
+      return true;
     }
 
     /// Request output type (multiple types are possible); default to unknown.
@@ -80,6 +64,9 @@ namespace mabe {
 
     /// Setup this organism to load from config.
     void SetupConfig() override {
+      LinkVar(output_name, "output_name",
+              "Name of variable to contain bit sequence.",
+              "result");
       LinkFuns<size_t>([this](){ return bits.size(); },
                        [this](const size_t & N){ return bits.Resize(N); },
                        "N", "Number of bits in organism", 100);
