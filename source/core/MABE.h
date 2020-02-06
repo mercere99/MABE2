@@ -291,6 +291,7 @@ namespace mabe {
 
     // --- Variables to handle configuration and initialization ---
 
+    bool verbose = true;               ///< Should we output extra information during setup?
     emp::vector<std::string> errors;   ///< Log any errors that have occured.
     bool show_help = false;            ///< Should we show "help" before exiting?
     bool exit_now = false;             ///< Do we need to immediately exit the code?
@@ -810,6 +811,8 @@ namespace mabe {
       [this](const emp::vector<std::string> &){ ShowModules(); } );
     // arg_set.emplace_back("--set", "-s", "[param=value] ", "Set specified parameter",
     //   [this](const emp::vector<std::string> &){ emp_assert(false); } );
+    arg_set.emplace_back("--verbose", "-+", "              ", "Output extra setup info",
+      [this](const emp::vector<std::string> &){ verbose = true; } );
     arg_set.emplace_back("--version", "-v", "              ", "Version ID of MABE",
       [this](const emp::vector<std::string> &){
         std::cout << "MABE v" << VERSION << "\n";
