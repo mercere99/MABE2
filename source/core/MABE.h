@@ -736,13 +736,9 @@ namespace mabe {
     ProcessArgs();                   // Deal with command-line inputs.
     if (exit_now) return false;
 
-    // If configuration filenames have been specified, load them in order.
+    // If configuration filenames have been specified, load each of them in order.
     if (config_filenames.size()) {
-      std::cout << "Loading file(s):";
-      for (auto filename : config_filenames) {
-        std::cout << " '" << filename << "'";
-      }
-      std::cout << std::endl;
+      std::cout << "Loading file(s): " << emp::to_quoted_list(config_filenames) << std::endl;
       config.Load(config_filenames);   // Load files
     }
 
