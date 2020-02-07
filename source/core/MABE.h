@@ -291,7 +291,7 @@ namespace mabe {
 
     // --- Variables to handle configuration and initialization ---
 
-    bool verbose = true;               ///< Should we output extra information during setup?
+    bool verbose = false;               ///< Should we output extra information during setup?
     emp::vector<std::string> errors;   ///< Log any errors that have occured.
     bool show_help = false;            ///< Should we show "help" before exiting?
     bool exit_now = false;             ///< Do we need to immediately exit the code?
@@ -370,6 +370,14 @@ namespace mabe {
     void Setup_Traits();
 
     void UpdateSignals();
+
+    /// Output args only if we are in verbose mode.
+    template <typename... Ts>
+    void verbose_out(Ts &&... args) {
+      if (verbose) {
+        std::cout << emp::to_string(std::forward<Ts>(args)...) << std::endl;
+      }
+    }
 
   public:
     MABE(int argc, char* argv[]);  ///< MABE command-line constructor.
@@ -872,8 +880,9 @@ namespace mabe {
   }
 
   void MABE::Setup_Traits() {
-    // STEP 1: Make sure modules are accessing traits correctly and consistently.
+    verbose_out("Analyzing configuration of ", trait_map.size(), " traits.");
 
+    // STEP 1: Make sure modules are accessing traits correctly and consistently.
     int error_count = 0;
 
     // Loop through all of the traits to ensure there are no conflicts.
