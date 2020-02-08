@@ -887,6 +887,13 @@ namespace mabe {
 
     // Loop through all of the traits to ensure there are no conflicts.
     for (auto [trait_name, trait_ptr] : trait_map) {
+      verbose_out("...scanning '", trait_name, "' with ", trait_ptr->GetModuleCount(), " modules:",
+                  " private=", trait_ptr->GetPrivateCount(),
+                  " owned=", trait_ptr->GetOwnedCount(),
+                  " shared=", trait_ptr->GetSharedCount(),
+                  " required=", trait_ptr->GetRequiredCount()
+                 );
+
       // NO traits should be of UNKNOWN access.
       if (trait_ptr->GetUnknownCount()) {
         AddError("Unknown access mode for trait '", trait_name,
@@ -956,9 +963,7 @@ namespace mabe {
       }
     }
 
-    if (error_count == 0) {
-      std::cout << "Organism traits are initialized; no conflicts found." << std::endl;
-    }
+    verbose_out("Trait error_count = ", error_count);
   }
 
   /// Link signals to the modules that implment responses to those signals.
