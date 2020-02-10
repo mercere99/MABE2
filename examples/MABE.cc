@@ -18,7 +18,7 @@
 #include "../source/core/MABE.h"
 
 // Include the full set of available modules.
-#include "../source/core/modules.h"
+#include "../source/modules.h"
 
 int main(int argc, char* argv[])
 {
