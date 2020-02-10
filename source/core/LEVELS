@@ -1,0 +1,23 @@
+LEVEL 0
+ OrganismManagerBase
+ TraitInfo
+
+LEVEL 1
+ Organism (req: OrganismManagerBase)
+
+LEVEL 2
+ DirectEncoding (req: Organism)
+ EmptyOrganism (req: Organism)
+
+LEVEL 3
+ Population (req: Organism, EmptyOrganism)
+
+LEVEL 4
+ ModuleBase (req: Population, TraitInfo)
+
+LEVEL 5
+ MABE (req: ModuleBase, OrganismManagerBase, Population)
+
+LEVEL 6
+ Module (req: MABE, ModuleBase, Population, TraitInfo)
+ OrganismManager (req: MABE, OrganismManagerBase)
