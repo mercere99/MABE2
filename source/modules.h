@@ -8,21 +8,21 @@
  */
 
 // Evaluation Modules
-#include "../source/evaluate/EvalAll1s.h"
-#include "../source/evaluate/EvalNK.h"
+#include "evaluate/EvalAll1s.h"
+#include "evaluate/EvalNK.h"
 
 // Interface Modules
-#include "../source/interface/CommandLine.h"
+#include "interface/CommandLine.h"
 
 // Placement Modules
-#include "../source/placement/GrowthPlacement.h"
+#include "placement/GrowthPlacement.h"
 
 // Selection Modules
-#include "../source/select/SelectElite.h"
-#include "../source/select/SelectTournament.h"
+#include "select/SelectElite.h"
+#include "select/SelectTournament.h"
 
 // Other schema
-#include "../source/schema/Mutate.h"
+#include "schema/Mutate.h"
 
 // Organism Types
-#include "../source/orgs/BitsOrg.h"
+#include "orgs/BitsOrg.h"
