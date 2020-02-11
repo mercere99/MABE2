@@ -13,11 +13,11 @@ LEVEL 3
  Population (req: Organism, EmptyOrganism)
 
 LEVEL 4
- ModuleBase (req: Population, TraitInfo)
+ ModuleBase (req: Population, TraitInfo)  [Note: If population dependency is removed, drops to level 2]
 
-LEVEL 5
+LEVEL 5: Main mabe controller
  MABE (req: ModuleBase, OrganismManagerBase, Population)
 
-LEVEL 6
+LEVEL 6: Base classes for user modules
  Module (req: MABE, ModuleBase, Population, TraitInfo)
  OrganismManager (req: MABE, OrganismManagerBase)
