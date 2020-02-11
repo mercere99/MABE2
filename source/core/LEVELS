@@ -4,6 +4,7 @@ LEVEL 0
 
 LEVEL 1
  Organism (req: OrganismManagerBase)
+ ModuleBase (req: TraitInfo)
 
 LEVEL 2
  DirectEncoding (req: Organism)
@@ -12,12 +13,9 @@ LEVEL 2
 LEVEL 3
  Population (req: Organism, EmptyOrganism)
 
-LEVEL 4
- ModuleBase (req: Population, TraitInfo)  [Note: If population dependency is removed, drops to level 2]
-
-LEVEL 5: Main mabe controller
+LEVEL 4: Main mabe controller
  MABE (req: ModuleBase, OrganismManagerBase, Population)
 
-LEVEL 6: Base classes for user modules
+LEVEL 5: Base classes for user modules that have access to MABE controller.
  Module (req: MABE, ModuleBase, Population, TraitInfo)
  OrganismManager (req: MABE, OrganismManagerBase)
