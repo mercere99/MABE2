@@ -1,10 +1,12 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019
+ *  @date 2019-2020.
  *
  *  @file  OrganismManager.h
  *  @brief Class to track a category of organism.
+ * 
+ *  @todo OrganismManagers should be derived from Modules.
  */
 
 #ifndef MABE_ORGANISM_MANAGER_H
