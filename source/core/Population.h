@@ -25,10 +25,287 @@
 
 namespace mabe {
 
+  class Population;
+
+  class OrgPosition {
+    ///  @todo Add a reverse iterator.
+    ///  @todo Fix operator-- which can go off of the beginning of the world.
+    friend class MABEBase;
+  private:
+    emp::Ptr<Population> pop_ptr;
+    size_t pos;
+    bool skip_empty;
+
+  public:
+    OrgPosition(emp::Ptr<Population> _pop=nullptr, size_t _pos=0, bool _skip=false)
+      : pop_ptr(_pop), pos(_pos), skip_empty(_skip)
+    {
+      if (skip_empty) ToOccupied();
+    }
+    OrgPosition(Population & pop, size_t _pos=0, bool _skip=false) : OrgPosition(&pop, _pos, _skip) {}
+    OrgPosition(const OrgPosition &) = default;
+    OrgPosition & operator=(const OrgPosition & in) = default;
+
+    // Shortcut definitions to retrieve information from the POPULATION.
+    const std::string & PopName() const;
+    int PopID() const;
+    size_t PopSize() const;
+    emp::Ptr<Organism> OrgPtr();
+    emp::Ptr<const Organism> OrgPtr() const;
+
+    // Other information about this OrgPosition.
+    size_t Pos() const noexcept { return pos; };
+    emp::Ptr<Population> PopPtr() noexcept { return pop_ptr; }
+    bool SkipEmpty() const noexcept { return skip_empty; };
+
+    std::string ToString() const {
+      return emp::to_string("{pop_ptr=", pop_ptr, ";pos=", pos, ";skip_empty=", skip_empty, "}");
+    }
+
+    OrgPosition & Pos(size_t in) { pos = in; return *this; }
+    OrgPosition & SkipEmpty(bool in) { skip_empty = in; if (skip_empty) ToOccupied(); return *this; }
+
+    /// Is this OrgPosition currently in a legal state?
+    bool IsValid() const { return !pop_ptr.IsNull() && pos < PopSize(); }
+
+    /// Is the pointed-to cell occupied?
+    bool IsEmpty() const { return IsValid() && OrgPtr()->IsEmpty(); }
+    bool IsOccupied() const { return IsValid() && !OrgPtr()->IsEmpty(); }
+
+    /// If on empty cell, advance OrgPosition to next non-null position (or the end)
+    void ToOccupied() { while (pos < PopSize() && OrgPtr()->IsEmpty()) ++pos; }
+
+    /// Move to the first empty cell after 'start'.
+    void ToOccupied(size_t start) { pos = start; ToOccupied(); }
+
+    /// Advance OrgPosition to the next non-empty cell in the world.
+    OrgPosition & operator++() {
+      ++pos;
+      if (skip_empty) ToOccupied();
+      return *this;
+    }
+
+    /// Postfix++: advance OrgPosition to the next non-empty cell in the world.
+    OrgPosition operator++(int) {
+      OrgPosition out = *this;
+      ++pos;
+      if (skip_empty) ToOccupied();
+      return out;
+    }
+
+    /// Backup OrgPosition to the previos non-empty cell in the world.
+    OrgPosition & operator--() {
+      --pos;
+      if (skip_empty) { while (pos < PopSize() && OrgPtr()->IsEmpty()) --pos; }
+      return *this;
+    }
+
+    /// Postfix--: Backup OrgPosition to the previos non-empty cell in the world.
+    OrgPosition operator--(int) {
+      OrgPosition out = *this;
+      --pos;
+      if (skip_empty) { while (pos < PopSize() && OrgPtr()->IsEmpty()) --pos; }
+      return out;
+    }
+
+    // Basic math operations...
+    OrgPosition operator+(size_t x) {
+      emp_assert(pos + x <= PopSize(), pos, x, PopSize());
+      return OrgPosition(pop_ptr, pos+x);
+    }
+
+    OrgPosition operator-(size_t x) {
+      emp_assert(pos >= x);
+      emp_assert(pos - x <= PopSize());
+      return OrgPosition(pop_ptr, pos-x);
+    }
+
+    // Compound math operations...
+    OrgPosition & operator+=(size_t x) {
+      emp_assert(pos + x <= PopSize());
+      pos += x;
+      return *this;
+    }
+
+    OrgPosition & operator-=(size_t x) {
+      emp_assert(pos - x <= PopSize());
+      pos -= x;
+      return *this;
+    }
+
+    /// OrgPosition comparisons (OrgPositions from different populations have no ordinal relationship).
+    bool operator==(const OrgPosition& in) const { return pop_ptr == in.pop_ptr && pos == in.pos; }
+    bool operator!=(const OrgPosition& in) const { return pop_ptr != in.pop_ptr || pos != in.pos; }
+    bool operator< (const OrgPosition& in) const { return pop_ptr == in.pop_ptr && pos <  in.pos; }
+    bool operator<=(const OrgPosition& in) const { return pop_ptr == in.pop_ptr && pos <= in.pos; }
+    bool operator> (const OrgPosition& in) const { return pop_ptr == in.pop_ptr && pos >  in.pos; }
+    bool operator>=(const OrgPosition& in) const { return pop_ptr == in.pop_ptr && pos >= in.pos; }
+
+    /// Return a reference to the organism pointed to by this OrgPosition; may advance OrgPosition.
+    Organism & operator*() {
+      if (skip_empty) ToOccupied();  // If we only want occupied cells, make sure we're on one.
+      emp_assert(IsValid());      // Make sure we're not outside of the vector.
+      return *(OrgPtr());
+    }
+
+    /// Return a const reference to the organism pointed to by this OrgPosition.
+    /// Note that since this version is const, it will NOT advance the OrgPosition.
+    const Organism & operator*() const { emp_assert(IsValid()); return *(OrgPtr()); }
+
+    /// Allow OrgPosition to be used as a pointer.
+    emp::Ptr<mabe::Organism> operator->() {
+      // Make sure a pointer is active before we follow it.
+      emp_assert(IsValid());
+      return OrgPtr();
+    }
+
+    /// Follow a pointer to a const target.
+    emp::Ptr<const mabe::Organism> operator->() const {
+      // Make sure a pointer is active before we follow it.
+      emp_assert(IsValid());
+      return OrgPtr();
+    }
+
+    /// Is this OrgPosition pointing to a valid cell in the world?
+    operator bool() const { return pos < PopSize() && IsOccupied(); }
+
+    /// OrgPositions can be automatically converted to a pointer to the organism they refer to.
+    operator emp::Ptr<mabe::Organism>() { emp_assert(IsValid()); return OrgPtr(); }
+
+    /// Return an OrgPosition pointing to the first occupied cell in the world.
+    OrgPosition begin() { return OrgPosition(pop_ptr, 0, skip_empty); }
+
+    /// Return a const OrgPosition pointing to the first occupied cell in the world.
+    const OrgPosition begin() const { return OrgPosition(pop_ptr, 0, skip_empty); }
+
+    /// Return an OrgPosition pointing to just past the end of the world.
+    OrgPosition end() { return OrgPosition(pop_ptr, PopSize(), skip_empty); }
+
+    /// Return a const OrgPosition pointing to just past the end of the world.
+    const OrgPosition end() const { return OrgPosition(pop_ptr, PopSize(), skip_empty); }
+
+  private:  // ---== To be used by friend class MABEBase only! ==---
+    /// Insert an organism into the pointed-at position.
+    void SetOrg(emp::Ptr<Organism> org_ptr);
+  
+    /// Remove the organism at the pointed-at position and return it.
+    [[nodiscard]] emp::Ptr<Organism> ExtractOrg();
+
+  };
+
+  class ConstOrgPosition {
+  private:
+    emp::Ptr<const Population> pop_ptr;
+    size_t pos;
+    bool skip_empty;
+
+  public:
+    ConstOrgPosition(emp::Ptr<const Population> _pop, size_t _pos=0, bool _skip=true)
+      : pop_ptr(_pop), pos(_pos), skip_empty(_skip) { if (skip_empty) ToOccupied(); }
+    ConstOrgPosition(const ConstOrgPosition &) = default;
+    ConstOrgPosition & operator=(const ConstOrgPosition &) = default;
+
+    // Shortcuts to retrieve information from the POPULATION.
+    const std::string & PopName() const;
+    int PopID() const;
+    size_t PopSize() const;
+    emp::Ptr<const Organism> OrgPtr() const;
+
+    // Other information about this ConstOrgPosition.
+    size_t Pos() const noexcept { return pos; };
+    bool SkipEmpty() const noexcept { return skip_empty; };
+
+    ConstOrgPosition & Pos(size_t in) { pos = in; return *this; }
+    ConstOrgPosition & SkipEmpty(bool in) { skip_empty = in; if (skip_empty) ToOccupied(); return *this; }
+
+    /// Is the pointed-to cell occupied?
+    bool IsValid() const { return pos < PopSize(); }
+    bool IsEmpty() const { return IsValid() && OrgPtr()->IsEmpty(); }
+    bool IsOccupied() const { return IsValid() && !OrgPtr()->IsEmpty(); }
+
+    /// If on empty cell, advance ConstOrgPosition to next non-null position (or the end)
+    ConstOrgPosition & ToOccupied() { while (pos < PopSize() && OrgPtr()->IsEmpty()) ++pos; return *this; }
+
+    /// Move to the first empty cell after 'start'.
+    ConstOrgPosition & ToOccupied(size_t start) { pos = start; ToOccupied(); return *this; }
+
+    /// Advance ConstOrgPosition to the next non-empty cell in the world.
+    ConstOrgPosition & operator++() {
+      ++pos;
+      if (skip_empty) ToOccupied();
+      return *this;
+    }
+
+    /// Postfix++: advance OrgPosition to the next non-empty cell in the world.
+    ConstOrgPosition operator++(int) {
+      ConstOrgPosition out = *this;
+      ++pos;
+      if (skip_empty) ToOccupied();
+      return out;
+    }
+
+    /// Backup ConstOrgPosition to the previos non-empty cell in the world.
+    ConstOrgPosition & operator--() {
+      --pos;
+      if (skip_empty) while (pos < PopSize() && OrgPtr()->IsEmpty()) --pos;
+      return *this;
+    }
+
+
+    /// Postfix--: Backup OrgPosition to the previos non-empty cell in the world.
+    ConstOrgPosition operator--(int) {
+      ConstOrgPosition out = *this;
+      --pos;
+      if (skip_empty) { while (pos < PopSize() && OrgPtr()->IsEmpty()) --pos; }
+      return out;
+    }
+
+    /// ConstOrgPosition comparisons (ConstOrgPositions from different populations have no ordinal relationship).
+    bool operator==(const ConstOrgPosition& in) const { return pop_ptr == in.pop_ptr && pos == in.pos; }
+    bool operator!=(const ConstOrgPosition& in) const { return pop_ptr != in.pop_ptr || pos != in.pos; }
+    bool operator< (const ConstOrgPosition& in) const { return pop_ptr == in.pop_ptr && pos <  in.pos; }
+    bool operator<=(const ConstOrgPosition& in) const { return pop_ptr == in.pop_ptr && pos <= in.pos; }
+    bool operator> (const ConstOrgPosition& in) const { return pop_ptr == in.pop_ptr && pos >  in.pos; }
+    bool operator>=(const ConstOrgPosition& in) const { return pop_ptr == in.pop_ptr && pos >= in.pos; }
+
+    /// Return a reference to the organism pointed to by this OrgPosition; may advance OrgPosition.
+    const Organism & operator*() {
+      if (skip_empty) ToOccupied();  // If we only want occupied cells, make sure we're on one.
+      emp_assert(IsValid());      // Make sure we're not outside of the vector.
+      return *(OrgPtr());
+    }
+
+    /// Follow a pointer to a const target.
+    emp::Ptr<const mabe::Organism> operator->() const {
+      // Make sure a pointer is active before we follow it.
+      emp_assert(IsValid());
+      return OrgPtr();
+    }
+
+    /// Return a const reference to the organism pointed to by this ConstOrgPosition.
+    /// Note that since this version is const, it will NOT advance the ConstOrgPosition.
+    const Organism & operator*() const { emp_assert(IsValid()); return *(OrgPtr()); }
+
+    /// Is this ConstOrgPosition pointing to a valid cell in the world?
+    operator bool() const { return pos < PopSize() && IsOccupied(); }
+
+    /// Return an ConstOrgPosition pointing to the first occupied cell in the world.
+    ConstOrgPosition begin() { return ConstOrgPosition(pop_ptr, 0, skip_empty); }
+
+    /// Return a const ConstOrgPosition pointing to the first occupied cell in the world.
+    const ConstOrgPosition begin() const { return ConstOrgPosition(pop_ptr, 0, skip_empty); }
+
+    /// Return an ConstOrgPosition pointing to just past the end of the world.
+    ConstOrgPosition end() { return ConstOrgPosition(pop_ptr, PopSize(), skip_empty); }
+
+    /// Return a const ConstOrgPosition pointing to just past the end of the world.
+    const ConstOrgPosition end() const { return ConstOrgPosition(pop_ptr, PopSize(), skip_empty); }
+  };
+
   /// A Population maintains a collection of organisms.  It is derived from ConfigType so that it
   /// can be easily used in the MABE scripting language.
   class Population : public ConfigType {
-    friend class MABEBase;
+    friend class MABEBase; friend class OrgPosition;
   private:
     std::string name="";                   ///< Unique name for this population.
     size_t pop_id = (size_t) -1;           ///< Position in world of this population.
@@ -39,281 +316,9 @@ namespace mabe {
     EmptyOrganism empty_org;               ///< Organism to fill in empty cells (does have data map!)
 
   public:
-    class iterator {
-     ///  @todo Add a reverse iterator.
-     ///  @todo Fix operator-- which can go off of the beginning of the world.
-     friend class MABEBase;
-    private:
-      emp::Ptr<Population> pop_ptr;
-      size_t pos;
-      bool skip_empty;
+    using iterator = OrgPosition;
+    using const_iterator = ConstOrgPosition;
 
-    public:
-      iterator(emp::Ptr<Population> _pop=nullptr, size_t _pos=0, bool _skip=false)
-        : pop_ptr(_pop), pos(_pos), skip_empty(_skip)
-      {
-        if (skip_empty) ToOccupied();
-      }
-      iterator(Population & pop, size_t _pos=0, bool _skip=false) : iterator(&pop, _pos, _skip) {}
-      iterator(const iterator &) = default;
-      iterator & operator=(const iterator & in) = default;
-
-      // Shortcuts to retrieve information from the POPULATION.
-      const std::string & PopName() const { emp_assert(pop_ptr); return pop_ptr->name; }
-      int PopID() const { emp_assert(pop_ptr); return pop_ptr->pop_id; }
-      size_t PopSize() const { emp_assert(pop_ptr); return pop_ptr->orgs.size(); }
-      emp::Ptr<Organism> OrgPtr() { emp_assert(pop_ptr); return pop_ptr->orgs[pos]; }
-      emp::Ptr<const Organism> OrgPtr() const { emp_assert(pop_ptr); return pop_ptr->orgs[pos]; }
-
-      // Other information about this iterator.
-      size_t Pos() const noexcept { return pos; };
-      emp::Ptr<Population> PopPtr() noexcept { return pop_ptr; }
-      bool SkipEmpty() const noexcept { return skip_empty; };
-
-      std::string ToString() const {
-        return emp::to_string("{pop_ptr=", pop_ptr, ";pos=", pos, ";skip_empty=", skip_empty, "}");
-      }
-
-      iterator & Pos(size_t in) { pos = in; return *this; }
-      iterator & SkipEmpty(bool in) { skip_empty = in; if (skip_empty) ToOccupied(); return *this; }
-
-      /// Is this iterator currently in a legal state?
-      bool IsValid() const { return !pop_ptr.IsNull() && pos < PopSize(); }
-
-      /// Is the pointed-to cell occupied?
-      bool IsEmpty() const { return IsValid() && OrgPtr()->IsEmpty(); }
-      bool IsOccupied() const { return IsValid() && !OrgPtr()->IsEmpty(); }
-
-      /// If on empty cell, advance iterator to next non-null position (or the end)
-      void ToOccupied() { while (pos < PopSize() && OrgPtr()->IsEmpty()) ++pos; }
-
-      /// Move to the first empty cell after 'start'.
-      void ToOccupied(size_t start) { pos = start; ToOccupied(); }
-
-      /// Advance iterator to the next non-empty cell in the world.
-      iterator & operator++() {
-        ++pos;
-        if (skip_empty) ToOccupied();
-        return *this;
-      }
-
-      /// Postfix++: advance iterator to the next non-empty cell in the world.
-      iterator operator++(int) {
-        iterator out = *this;
-        ++pos;
-        if (skip_empty) ToOccupied();
-        return out;
-      }
-
-      /// Backup iterator to the previos non-empty cell in the world.
-      iterator & operator--() {
-        --pos;
-        if (skip_empty) { while (pos < PopSize() && OrgPtr()->IsEmpty()) --pos; }
-        return *this;
-      }
-
-      /// Postfix--: Backup iterator to the previos non-empty cell in the world.
-      iterator operator--(int) {
-        iterator out = *this;
-        --pos;
-        if (skip_empty) { while (pos < PopSize() && OrgPtr()->IsEmpty()) --pos; }
-        return out;
-      }
-
-      // Basic math operations...
-      iterator operator+(size_t x) {
-        emp_assert(pos + x <= PopSize(), pos, x, PopSize());
-        return iterator(pop_ptr, pos+x);
-      }
-
-      iterator operator-(size_t x) {
-        emp_assert(pos >= x);
-        emp_assert(pos - x <= PopSize());
-        return iterator(pop_ptr, pos-x);
-      }
-
-      // Compound math operations...
-      iterator & operator+=(size_t x) {
-        emp_assert(pos + x <= PopSize());
-        pos += x;
-        return *this;
-      }
-
-      iterator & operator-=(size_t x) {
-        emp_assert(pos - x <= PopSize());
-        pos -= x;
-        return *this;
-      }
-
-      /// iterator comparisons (iterators from different populations have no ordinal relationship).
-      bool operator==(const iterator& in) const { return pop_ptr == in.pop_ptr && pos == in.pos; }
-      bool operator!=(const iterator& in) const { return pop_ptr != in.pop_ptr || pos != in.pos; }
-      bool operator< (const iterator& in) const { return pop_ptr == in.pop_ptr && pos <  in.pos; }
-      bool operator<=(const iterator& in) const { return pop_ptr == in.pop_ptr && pos <= in.pos; }
-      bool operator> (const iterator& in) const { return pop_ptr == in.pop_ptr && pos >  in.pos; }
-      bool operator>=(const iterator& in) const { return pop_ptr == in.pop_ptr && pos >= in.pos; }
-
-      /// Return a reference to the organism pointed to by this iterator; may advance iterator.
-      Organism & operator*() {
-        if (skip_empty) ToOccupied();  // If we only want occupied cells, make sure we're on one.
-        emp_assert(IsValid());      // Make sure we're not outside of the vector.
-        return *(OrgPtr());
-      }
-
-      /// Return a const reference to the organism pointed to by this iterator.
-      /// Note that since this version is const, it will NOT advance the iterator.
-      const Organism & operator*() const { emp_assert(IsValid()); return *(OrgPtr()); }
-
-      /// Allow iterator to be used as a pointer.
-      emp::Ptr<mabe::Organism> operator->() {
-        // Make sure a pointer is active before we follow it.
-        emp_assert(IsValid());
-        return OrgPtr();
-      }
-
-      /// Follow a pointer to a const target.
-      emp::Ptr<const mabe::Organism> operator->() const {
-        // Make sure a pointer is active before we follow it.
-        emp_assert(IsValid());
-        return OrgPtr();
-      }
-
-      /// Is this iterator pointing to a valid cell in the world?
-      operator bool() const { return pos < PopSize() && IsOccupied(); }
-
-      /// Iterators can be automatically converted to a pointer to the organism they refer to.
-      operator emp::Ptr<mabe::Organism>() { emp_assert(IsValid()); return OrgPtr(); }
-
-      /// Return an iterator pointing to the first occupied cell in the world.
-      iterator begin() { return iterator(pop_ptr, 0, skip_empty); }
-
-      /// Return a const iterator pointing to the first occupied cell in the world.
-      const iterator begin() const { return iterator(pop_ptr, 0, skip_empty); }
-
-      /// Return an iterator pointing to just past the end of the world.
-      iterator end() { return iterator(pop_ptr, PopSize(), skip_empty); }
-
-      /// Return a const iterator pointing to just past the end of the world.
-      const iterator end() const { return iterator(pop_ptr, PopSize(), skip_empty); }
-
-    private:  // ---== To be used by friend class MABEBase only! ==---
-      /// Insert an organism into the pointed-at position.
-      void SetOrg(emp::Ptr<Organism> org_ptr) { pop_ptr->SetOrg(pos, org_ptr); }
-    
-      /// Remove the organism at the pointed-at position and return it.
-      [[nodiscard]] emp::Ptr<Organism> ExtractOrg() { return pop_ptr->ExtractOrg(pos); }
-
-    };
-
-    class const_iterator {
-    private:
-      emp::Ptr<const Population> pop_ptr;
-      size_t pos;
-      bool skip_empty;
-
-    public:
-      const_iterator(emp::Ptr<const Population> _pop, size_t _pos=0, bool _skip=true)
-        : pop_ptr(_pop), pos(_pos), skip_empty(_skip) { if (skip_empty) ToOccupied(); }
-      const_iterator(const const_iterator &) = default;
-      const_iterator & operator=(const const_iterator &) = default;
-
-      // Shortcuts to retrieve information from the POPULATION.
-      const std::string & PopName() const { emp_assert(pop_ptr); return pop_ptr->name; }
-      int PopID() const { emp_assert(pop_ptr); return pop_ptr->pop_id; }
-      size_t PopSize() const { emp_assert(pop_ptr); return pop_ptr->orgs.size(); }
-      emp::Ptr<const Organism> OrgPtr() const { emp_assert(pop_ptr); return pop_ptr->orgs[pos]; }
-
-      // Other information about this Constiterator.
-      size_t Pos() const noexcept { return pos; };
-      bool SkipEmpty() const noexcept { return skip_empty; };
-
-      const_iterator & Pos(size_t in) { pos = in; return *this; }
-      const_iterator & SkipEmpty(bool in) { skip_empty = in; if (skip_empty) ToOccupied(); return *this; }
-
-      /// Is the pointed-to cell occupied?
-      bool IsValid() const { return pos < PopSize(); }
-      bool IsEmpty() const { return IsValid() && OrgPtr()->IsEmpty(); }
-      bool IsOccupied() const { return IsValid() && !OrgPtr()->IsEmpty(); }
-
-      /// If on empty cell, advance Constiterator to next non-null position (or the end)
-      const_iterator & ToOccupied() { while (pos < PopSize() && OrgPtr()->IsEmpty()) ++pos; return *this; }
-
-      /// Move to the first empty cell after 'start'.
-      const_iterator & ToOccupied(size_t start) { pos = start; ToOccupied(); return *this; }
-
-      /// Advance Constiterator to the next non-empty cell in the world.
-      const_iterator & operator++() {
-        ++pos;
-        if (skip_empty) ToOccupied();
-        return *this;
-      }
-
-      /// Postfix++: advance iterator to the next non-empty cell in the world.
-      const_iterator operator++(int) {
-        const_iterator out = *this;
-        ++pos;
-        if (skip_empty) ToOccupied();
-        return out;
-      }
-
-      /// Backup Constiterator to the previos non-empty cell in the world.
-      const_iterator & operator--() {
-        --pos;
-        if (skip_empty) while (pos < PopSize() && OrgPtr()->IsEmpty()) --pos;
-        return *this;
-      }
-
-
-      /// Postfix--: Backup iterator to the previos non-empty cell in the world.
-      const_iterator operator--(int) {
-        const_iterator out = *this;
-        --pos;
-        if (skip_empty) { while (pos < PopSize() && OrgPtr()->IsEmpty()) --pos; }
-        return out;
-      }
-
-      /// const_iterator comparisons (Constiterators from different populations have no ordinal relationship).
-      bool operator==(const const_iterator& in) const { return pop_ptr == in.pop_ptr && pos == in.pos; }
-      bool operator!=(const const_iterator& in) const { return pop_ptr != in.pop_ptr || pos != in.pos; }
-      bool operator< (const const_iterator& in) const { return pop_ptr == in.pop_ptr && pos <  in.pos; }
-      bool operator<=(const const_iterator& in) const { return pop_ptr == in.pop_ptr && pos <= in.pos; }
-      bool operator> (const const_iterator& in) const { return pop_ptr == in.pop_ptr && pos >  in.pos; }
-      bool operator>=(const const_iterator& in) const { return pop_ptr == in.pop_ptr && pos >= in.pos; }
-
-      /// Return a reference to the organism pointed to by this iterator; may advance iterator.
-      const Organism & operator*() {
-        if (skip_empty) ToOccupied();  // If we only want occupied cells, make sure we're on one.
-        emp_assert(IsValid());      // Make sure we're not outside of the vector.
-        return *(OrgPtr());
-      }
-
-      /// Follow a pointer to a const target.
-      emp::Ptr<const mabe::Organism> operator->() const {
-        // Make sure a pointer is active before we follow it.
-        emp_assert(IsValid());
-        return OrgPtr();
-      }
-
-      /// Return a const reference to the organism pointed to by this Constiterator.
-      /// Note that since this version is const, it will NOT advance the Constiterator.
-      const Organism & operator*() const { emp_assert(IsValid()); return *(OrgPtr()); }
-
-      /// Is this Constiterator pointing to a valid cell in the world?
-      operator bool() const { return pos < PopSize() && IsOccupied(); }
-
-      /// Return an Constiterator pointing to the first occupied cell in the world.
-      const_iterator begin() { return const_iterator(pop_ptr, 0, skip_empty); }
-
-      /// Return a const Constiterator pointing to the first occupied cell in the world.
-      const const_iterator begin() const { return const_iterator(pop_ptr, 0, skip_empty); }
-
-      /// Return an Constiterator pointing to just past the end of the world.
-      const_iterator end() { return const_iterator(pop_ptr, PopSize(), skip_empty); }
-
-      /// Return a const Constiterator pointing to just past the end of the world.
-      const const_iterator end() const { return const_iterator(pop_ptr, PopSize(), skip_empty); }
-    };
-    
     /// Population wrapper to limit to just living organisms.
     class AlivePop {
     private:
@@ -353,14 +358,14 @@ namespace mabe {
     ~Population() { for (auto x : orgs) if (!x->IsEmpty()) x.Delete(); }
 
     const std::string & GetName() const noexcept { return name; }
-    int GetWorldID() const noexcept { return pop_id; }
+    int GetID() const noexcept { return pop_id; }
     size_t GetSize() const noexcept { return orgs.size(); }
     size_t GetNumOrgs() const noexcept { return num_orgs; }
 
     bool IsEmpty(size_t pos) const { return orgs[pos]->IsEmpty(); }
     bool IsOccupied(size_t pos) const { return !orgs[pos]->IsEmpty(); }
 
-    void SetWorldID(int in_id) noexcept { pop_id = in_id; }
+    void SetID(int in_id) noexcept { pop_id = in_id; }
 
     Organism & operator[](size_t org_id) { return *(orgs[org_id]); }
     const Organism & operator[](size_t org_id) const { return *(orgs[org_id]); }
@@ -471,8 +476,23 @@ namespace mabe {
     }
   };
 
-  // Alias Population::iterator to OrgPosition for more intuitive use outside of Population.
-  using OrgPosition = Population::iterator;
+
+
+  // --- Function definitions for OrgPosition now that Population has been defined ---
+
+  const std::string & OrgPosition::PopName() const { emp_assert(pop_ptr); return pop_ptr->GetName(); }
+  int OrgPosition::PopID() const { emp_assert(pop_ptr); return pop_ptr->GetID(); }
+  size_t OrgPosition::PopSize() const { emp_assert(pop_ptr); return pop_ptr->GetSize(); }
+  emp::Ptr<Organism> OrgPosition::OrgPtr() { emp_assert(pop_ptr); return &(*pop_ptr)[pos]; }
+  emp::Ptr<const Organism> OrgPosition::OrgPtr() const { emp_assert(pop_ptr); return &(*pop_ptr)[pos]; }
+
+  void OrgPosition::SetOrg(emp::Ptr<Organism> org_ptr) { pop_ptr->SetOrg(pos, org_ptr); }
+  [[nodiscard]] emp::Ptr<Organism> OrgPosition::ExtractOrg() { return pop_ptr->ExtractOrg(pos); }
+
+  const std::string & ConstOrgPosition::PopName() const { emp_assert(pop_ptr); return pop_ptr->GetName(); }
+  int ConstOrgPosition::PopID() const { emp_assert(pop_ptr); return pop_ptr->GetID(); }
+  size_t ConstOrgPosition::PopSize() const { emp_assert(pop_ptr); return pop_ptr->GetSize(); }
+  emp::Ptr<const Organism> ConstOrgPosition::OrgPtr() const { emp_assert(pop_ptr); return &(*pop_ptr)[pos]; }
 }
 
 #endif
