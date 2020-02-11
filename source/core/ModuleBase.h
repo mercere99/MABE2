@@ -70,12 +70,14 @@
 
 #include "../config/Config.h"
 
-#include "Population.h"
 #include "TraitInfo.h"
 
 namespace mabe {
 
   class MABE;
+  class Organism;
+  class OrgPosition;
+  class Population;
 
   class ModuleBase : public mabe::ConfigType {
     friend MABE;
