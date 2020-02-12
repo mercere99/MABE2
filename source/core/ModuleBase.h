@@ -102,8 +102,14 @@ namespace mabe {
     /// How many populations are we operating on?
     size_t min_pops = 0;                           ///< Minimum number of population needed
 
-    /// Which traits is this module working with?
+    /// Set of traits that this module is working with.
     emp::map<std::string, emp::Ptr<TraitInfo>> trait_map;
+
+    /// Other variables that we want to hook on to this Module externally.
+    emp::DataMap data_map;
+
+    /// If this module is an organism manager, maintain a prototype of the organisms it handles.
+    emp::Ptr<Organism> org_prototype;  ///< Base organism to copy.
 
   public:
     // Setup each signal with a unique ID number
@@ -224,6 +230,45 @@ namespace mabe {
 
     virtual void Deactivate() = 0;  ///< Turn off all signals in this function.
     virtual void Activate() = 0;    ///< Turn on all signals in this function.
+
+    // ---=== Specialty Functions for Organism Managers ===---
+    virtual emp::TypeID GetOrgType() const {
+      emp_assert(false, "GetOrgType() must be overridden for either Organism or OrganismManager module.");
+      return emp::TypeID();
+    }
+    virtual emp::Ptr<Organism> CloneOrganism(const Organism &) const {
+      emp_assert(false, "CloneOrganism() must be overridden for either Organism or OrganismManager module.");
+      return nullptr;
+    }
+    virtual emp::Ptr<Organism> CloneOrganism(const Organism &, emp::Random &) const {
+      emp_assert(false, "CloneOrganism() must be overridden for either Organism or OrganismManager module.");
+      return nullptr;
+    }
+    virtual emp::Ptr<Organism> MakeOrganism() const {
+      emp_assert(false, "MakeOrganism() must be overridden for either Organism or OrganismManager module.");
+      return nullptr;
+    }
+    virtual emp::Ptr<Organism> MakeOrganism(emp::Random &) const {
+      emp_assert(false, "MakeOrganism() must be overridden for either Organism or OrganismManager module.");
+      return nullptr;
+    }
+    virtual std::string OrgToString(const Organism &) const {
+      emp_assert(false, "ToString() must be overridden for either Organism or OrganismManager module.");
+      return "";
+    }
+    virtual std::ostream & PrintOrganism(Organism &, std::ostream & is) const {
+      emp_assert(false, "Print() must be overridden for either Organism or OrganismManager module.");
+      return is;
+    }
+    virtual size_t Mutate(Organism &, emp::Random &) const {
+      emp_assert(false, "Mutate() must be overridden for either Organism or OrganismManager module.");
+      return 0;
+    }
+    virtual void Randomize(Organism &, emp::Random &) const {
+      emp_assert(false, "Randomize() must be overridden for either Organism or OrganismManager module.");
+    }
+
+    virtual void SetupConfig() { }
 
   // --------------------- Functions to be used in derived modules ONLY --------------------------
   protected:
