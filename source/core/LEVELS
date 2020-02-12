@@ -19,3 +19,17 @@ LEVEL 4: Main mabe controller
 LEVEL 5: Base classes for user modules that have access to MABE controller.
  Module (req: MABE, ModuleBase, Population, TraitInfo)
  OrganismManager (req: MABE, OrganismManagerBase)
+
+
+--- NEW ---
+
+The eight core components of MABE are below.  Each component depends on all of those above it.
+
+TraitInfo       - Information on how a module needs to interact with a trait.
+ModuleBase      - Set of virtual function for interfacing with modules.
+Organism        - Uses ModuleBase to track and interact with its OrganismManager
+EmptyOrganism   - Specialty organism to represent an empty cell.
+Population      - Contains a collection of Organisms and (some of which could be EmptyOrganisms)
+MABE            - Main contoller object; manipulates Populations and Organisms
+Module          - Modify main MABE contoller functions.
+OrganismManager - Specialty Module to control specific types of organisms.
