@@ -17,7 +17,7 @@
 #include "../config/Config.h"
 
 #include "MABE.h"
-#include "OrganismManagerBase.h"
+#include "Module.h"
 
 namespace mabe {
 
@@ -25,11 +25,11 @@ namespace mabe {
   class MABE;
 
   template <typename ORG_T>
-  class OrganismManager  : public OrganismManagerBase {
+  class OrganismManager  : public Module {
   public:
     using org_t = ORG_T;
 
-    OrganismManager(const std::string & in_name) : OrganismManagerBase(in_name) {
+    OrganismManager(const std::string & in_name) : Module(in_name) {
       prototype = emp::NewPtr<org_t>(*this);
     }
     virtual ~OrganismManager() { prototype.Delete(); }
