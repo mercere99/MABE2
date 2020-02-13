@@ -265,7 +265,7 @@ namespace mabe {
 
     /// Turn on all signals in this function (unimplemented ones will turn off automatically)
     void Activate() override {
-      has_signal.Clear();
+      has_signal.SetAll();
       control.RescanSignals();
     }
 
