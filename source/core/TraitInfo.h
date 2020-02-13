@@ -9,19 +9,25 @@
  *  A TraitInfo object contains basic information a about a single trait being tracked in an
  *  organism.  In addition to the name, type, and description of the trait, it also describes:
  *
+ *  The TARGET indicates what type of object the trait should be applied to.
+ *    [ORGANISM]   - Every organism in MABE must have this trait.
+ *    [POPULATUON] - Collections of organsims must have this trait.
+ *    [MODULE]     - Every module attached to MABE must have this trait.
+ *    [MANAGER]    - Every OrganismManager must have this trait.
+ * 
  *  The ACCESS method to be used for a trait by each module.  A trait can be
- *    [PRIVATE]  - Only this module can access it; no others should read or write it.
- *    [OWNED]    - Only this module can modify the trait, but other modules can read it.
- *    [SHARED]   - This module will read and write this trait, but others are allowed to as well.
- *    [REQUIRED] - This module will read the trait; another module must write to it.
+ *    [PRIVATE]    - Only this module can access it; no others should read or write it.
+ *    [OWNED]      - Only this module can modify the trait, but other modules can read it.
+ *    [SHARED]     - This module will read and write this trait, but others are allowed to as well.
+ *    [REQUIRED]   - This module will read the trait; another module must write to it.
  *
  *  The INIT method describes how a trait should be initialized in a new offspring.
  *  (note that injected organisms always get the DEFAULT value.)
- *    [DEFAULT] - Always initialize this trait to its default value.
- *    [FIRST]   - Initialize trait to the first parent's value (only parent for asexual runs)
- *    [AVERAGE] -  Initiialize trait to the average value of all parents.
- *    [MINIMUM] -  Initiialize trait to the minimum value of all parents.
- *    [MAXIMUM] -  Initiialize trait to the maximum value of all parents.
+ *    [DEFAULT]    - Always initialize this trait to its default value.
+ *    [FIRST]      - Initialize trait to the first parent's value (only parent for asexual runs)
+ *    [AVERAGE]    - Initiialize trait to the average value of all parents.
+ *    [MINIMUM]    - Initiialize trait to the minimum value of all parents.
+ *    [MAXIMUM]    - Initiialize trait to the maximum value of all parents.
  *
  *  The ARCHIVE method determines how many older values should be saved with each organism.
  *    [NONE]       - Only the most recent value should be tracked, no archived values.
