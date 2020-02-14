@@ -33,14 +33,14 @@
 #include "tools/BitVector.h"
 #include "tools/string_utils.h"
 
-#include "OrganismManagerBase.h"
+#include "ModuleBase.h"
 
 namespace mabe {
 
   class Organism {
   private:
     emp::DataMap data_map;          ///< Dynamic variables assigned to organism
-    OrganismManagerBase & manager;  ///< Manager for the specific organism type
+    ModuleBase & manager;  ///< Manager for the specific organism type
 
   protected:
     // Helper functions.
@@ -63,7 +63,7 @@ namespace mabe {
     // auto & LinkPop(Ts &&... args) { return manager.LinkPop(args...); }
 
   public:
-    Organism(OrganismManagerBase & _man) : manager(_man) { ; }
+    Organism(ModuleBase & _man) : manager(_man) { ; }
     virtual ~Organism() { ; }
 
     virtual bool Evaluate() { return false; }
@@ -72,8 +72,8 @@ namespace mabe {
     // virtual void TriggerEvent(int) { ; }
 
     /// Get the manager for this type of organism.
-    OrganismManagerBase & GetManager() { return manager; }
-    const OrganismManagerBase & GetManager() const { return manager; }
+    ModuleBase & GetManager() { return manager; }
+    const ModuleBase & GetManager() const { return manager; }
 
     bool HasVar(const std::string & name) const { return data_map.HasName(name); }
     template <typename T> T & GetVar(const std::string & name) { return data_map.Get<T>(name); }
@@ -99,7 +99,7 @@ namespace mabe {
     /// If we are going to print organisms (to screen or file) we need to be able to convert
     /// them to strings.  If this function is not overridden, try to the equivilent function
     /// in the organism manager.
-    virtual std::string ToString() { return manager.ToString(*this); }
+    virtual std::string ToString() { return manager.OrgToString(*this); }
 
     /// For evolution to function, we need to be able to mutate offspring.
     virtual size_t Mutate(emp::Random & random) { return manager.Mutate(*this, random); }
