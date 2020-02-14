@@ -29,10 +29,10 @@ namespace mabe {
   public:
     using org_t = ORG_T;
 
-    OrganismManager(const std::string & in_name) : Module(in_name) {
-      prototype = emp::NewPtr<org_t>(*this);
+    OrganismManager(MABE & in_control, const std::string & in_name) : Module(in_control, in_name) {
+      org_prototype = emp::NewPtr<org_t>(*this);
     }
-    virtual ~OrganismManager() { prototype.Delete(); }
+    virtual ~OrganismManager() { org_prototype.Delete(); }
 
     emp::TypeID GetOrgType() const override { return emp::GetTypeID<ORG_T>(); }
 
@@ -53,33 +53,33 @@ namespace mabe {
       return emp::NewPtr<org_t>( ConvertOrg(org) );
     }
 
-    /// Create a random organism from scratch.  Default to using the prototype organism.
+    /// Create a random organism from scratch.  Default to using the org_prototype organism.
     emp::Ptr<Organism> MakeOrganism() const override {
-      auto org_ptr = prototype->Clone();
+      auto org_ptr = org_prototype->Clone();
       return org_ptr;
     }
 
-    /// Create a random organism from scratch.  Default to using the prototype organism
+    /// Create a random organism from scratch.  Default to using the org_prototype organism
     /// and then randomize if a random number generator is provided.
     emp::Ptr<Organism> MakeOrganism(emp::Random & random) const override {
-      auto org_ptr = prototype->Clone();
+      auto org_ptr = org_prototype->Clone();
       org_ptr->Randomize(random);
       return org_ptr;
     }
 
     /// Convert an organism to a string for printing; if not overridden, just prints
     /// "__unknown__".
-    std::string ToString(const Organism &) const override { return "__unknown__"; };
+    std::string OrgToString(const Organism &) const override { return "__unknown__"; };
 
     /// By default print an organism by triggering it's ToString() function.
-    std::ostream & Print(Organism & org, std::ostream & os) const override {
+    std::ostream & PrintOrganism(Organism & org, std::ostream & os) const override {
       emp_assert(&(org.GetManager()) == this);
       os << org.ToString();
       return os;
     }
 
     void SetupConfig() override {
-      prototype->SetupConfig();
+      org_prototype->SetupConfig();
     }
   };
 
