@@ -56,7 +56,6 @@
 #include "../config/Config.h"
 
 #include "ModuleBase.h"
-#include "OrganismManagerBase.h"
 #include "Population.h"
 
 namespace mabe {
@@ -275,7 +274,10 @@ namespace mabe {
     emp::vector<Population> pops;      ///< Collection of populations.
 
     /// Collection of all organism types.
-    emp::unordered_map<std::string, emp::Ptr<OrganismManagerBase>> org_managers;
+    emp::unordered_map<std::string, emp::Ptr<ModuleBase>> org_managers;
+
+    /// Organism to use for empty cells.
+    emp::Ptr<Organism> empty_org = nullptr;
 
     /// Collection of information about organism traits.
     std::unordered_map<std::string, emp::Ptr<TraitInfo>> trait_map;
@@ -384,18 +386,27 @@ namespace mabe {
     MABE(const MABE &) = delete;
     MABE(MABE &&) = delete;
     ~MABE() {
+      if (empty_org) empty_org.Delete();
       for (auto x : modules) x.Delete();
       for (auto [name,org_manager] : org_managers) org_manager.Delete();
       for (auto [name,trait_ptr] : trait_map) trait_ptr.Delete();
     }
 
     // --- Basic accessors ---
-
     emp::Random & GetRandom() { return random; }
     size_t GetUpdate() const noexcept { return update; }
 
     // --- Tools to setup runs ---
     bool Setup();
+
+    template <typename EMPTY_MANAGER_T>
+    void SetupEmpty() {
+      if (empty_org) empty_org.Delete();  // If we already have an empty organism, replace it.
+      auto & empty_manager =
+        AddOrganismManager<EMPTY_MANAGER_T>("empty_org", "Empty organism manager");
+
+      empty_org = empty_manager.MakeOrganism();
+    }
 
     /// Update MABE a single step.
     void Update();
@@ -443,7 +454,7 @@ namespace mabe {
     /// New populaitons must be given a name and an optional size.
     Population & AddPopulation(const std::string & name, size_t pop_size=0) {
       cur_pop = (int) pops.size();
-      pops.emplace_back( name, cur_pop, pop_size );
+      pops.emplace_back( name, cur_pop, pop_size, empty_org );
       return pops[cur_pop];
     }
 
@@ -582,7 +593,7 @@ namespace mabe {
     // --- Deal with Organism Types ---
 
     /// Get a reference to an organism manager with the specified name.
-    OrganismManagerBase & GetOrganismManager(const std::string & type_name) {
+    ModuleBase & GetOrganismManager(const std::string & type_name) {
       emp_assert(emp::Has(org_managers, type_name), type_name,
                  "An org type must be created before base retrieved.");
       return *(org_managers[type_name]);
@@ -593,7 +604,7 @@ namespace mabe {
     ORG_TYPE_T & AddOrganismManager(const std::string & type_name, const std::string & desc) {
       (void) desc; // @CAO: Do something with this!
       emp_assert(emp::Has(org_managers, type_name) == false);
-      auto new_type = emp::NewPtr<ORG_TYPE_T>(type_name);
+      auto new_type = emp::NewPtr<ORG_TYPE_T>(*this, type_name);
       org_managers[type_name] = new_type;
       return *new_type;
     }
