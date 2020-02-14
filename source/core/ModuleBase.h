@@ -171,6 +171,7 @@ namespace mabe {
     const emp::vector<std::string> & GetErrors() const noexcept { return errors; }
     size_t GetMinPops() const noexcept { return min_pops; }
 
+    virtual std::string GetTypeName() const { return "ModuleBase"; }
     virtual emp::Ptr<ModuleBase> Clone() { return nullptr; }
 
     bool IsAnalyzeMod() const { return emp::Has(action_tags, "Analyze"); }
@@ -253,7 +254,7 @@ namespace mabe {
       return nullptr;
     }
     virtual std::string OrgToString(const Organism &) const {
-      emp_assert(false, "ToString() must be overridden for either Organism or OrganismManager module.");
+      emp_assert(false, "OrgToString() must be overridden for either Organism or OrganismManager module.");
       return "";
     }
     virtual std::ostream & PrintOrganism(Organism &, std::ostream & is) const {
