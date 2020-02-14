@@ -11,13 +11,24 @@
 #define MABE_EMPTY_ORGANISM_H
 
 #include "Organism.h"
-#include "ModuleBase.h"
+#include "OrganismManager.h"
 
 namespace mabe {
 
-  class EmptyOrganism;
+  /// An EmptyOrganism is used as a placeholder in an empty cell in a population.
+  class EmptyOrganism : public Organism {
+  public:
+    EmptyOrganism(OrganismManager<EmptyOrganism> & _manager) : Organism(_manager) { ; }
+    emp::Ptr<Organism> Clone() const override { emp_error("Do not clone EmptyOrganism"); return nullptr; }
+    std::string ToString() override { return "[empty]"; }
+    size_t Mutate(emp::Random &) override { emp_error("EmptyOrganism cannot Mutate()"); return -1; }
+    void Randomize(emp::Random &) override { emp_error("EmptyOrganism cannot Randomize()"); }
+    void GenerateOutput(const std::string &, size_t) override { emp_error("EmptyOrganism cannot GenerateOutput()"); }
+    emp::TypeID GetOutputType(size_t=0) override { return emp::TypeID(); }
+    bool IsEmpty() const noexcept override { return true; }
+  };
 
-  class EmptyOrganismManager : public ModuleBase {
+  class EmptyOrganismManager : public OrganismManager {
   public:
     EmptyOrganismManager(MABE & in_control)
       : ModuleBase(in_control, "EmptyOrganismManager"
@@ -27,29 +38,11 @@ namespace mabe {
     std::string GetTypeName() const override { return "EmptyOrganismManager"; }
     emp::TypeID GetOrgType() const override { return emp::GetTypeID<EmptyOrganism>(); }
 
-    emp::Ptr<Organism> CloneOrganism(const Organism &) const override { emp_error("Do not call functions on EmptyOrganism."); return nullptr; }
-    emp::Ptr<Organism> MakeOrganism() const override { emp_error("Do not call functions on EmptyOrganism."); return nullptr; }
-    emp::Ptr<Organism> MakeOrganism(emp::Random &) const override { emp_error("Do not call functions on EmptyOrganism."); return nullptr; }
-    std::string OrgToString(const Organism &) const override { emp_error("Do not call functions on EmptyOrganism."); return ""; }
+    emp::Ptr<Organism> CloneOrganism(const Organism &) const override { emp_error("Do call Clone an EmptyOrganism."); return nullptr; }
+    emp::Ptr<Organism> MakeOrganism() const override { return emp::NewPtr<EmptyOrganism>(*this); }
+    emp::Ptr<Organism> MakeOrganism(emp::Random &) const override { emp_error("Can not make a 'random' EmptyOrganism."); return nullptr; }
+    std::string OrgToString(const Organism &) const override { return "[empty]"; }
     std::ostream & PrintOrganism(Organism &, std::ostream & os) const override { emp_error("Do not call functions on EmptyOrganism."); return os; }
-  };
-
-  static EmptyOrganismManager & GetEmptyOrgManager() {
-    static EmptyOrganismManager eo_manager;
-    return eo_manager;
-  }
-
-  /// An EmptyOrganism is used as a placeholder in an empty cell in a population.
-  class EmptyOrganism : public Organism {
-  public:
-    EmptyOrganism() : Organism(GetEmptyOrgManager()) { ; }
-    emp::Ptr<Organism> Clone() const override { emp_error("Do not clone EmptyOrganism"); return nullptr; }
-    std::string ToString() override { return "[empty]"; }
-    size_t Mutate(emp::Random &) override { emp_error("EmptyOrganism cannot Mutate()"); return -1; }
-    void Randomize(emp::Random &) override { emp_error("EmptyOrganism cannot Randomize()"); }
-    void GenerateOutput(const std::string &, size_t) override { emp_error("EmptyOrganism cannot GenerateOutput()"); }
-    emp::TypeID GetOutputType(size_t=0) override { return emp::TypeID(); }
-    bool IsEmpty() const noexcept override { return true; }
   };
 
 }
