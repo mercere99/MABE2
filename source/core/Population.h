@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019
+ *  @date 2019-2020.
  *
  *  @file  Population.h
  *  @brief Container for a group of arbitrary MABE organisms.
@@ -21,7 +21,6 @@
 #include "../config/ConfigType.h"
 
 #include "Organism.h"
-#include "EmptyOrganism.h"
 
 namespace mabe {
 
@@ -307,13 +306,13 @@ namespace mabe {
   class Population : public ConfigType {
     friend class MABEBase; friend class OrgPosition;
   private:
-    std::string name="";                   ///< Unique name for this population.
-    size_t pop_id = (size_t) -1;           ///< Position in world of this population.
-    emp::vector<emp::Ptr<Organism>> orgs;  ///< Info on all organisms in this population.
-    size_t num_orgs = 0;                   ///< How many living organisms are in this population?
-    size_t max_orgs = (size_t) -1;         ///< Maximum number of orgs allowed in population.
+    std::string name="";                    ///< Unique name for this population.
+    size_t pop_id = (size_t) -1;            ///< Position in world of this population.
+    emp::vector<emp::Ptr<Organism>> orgs;   ///< Info on all organisms in this population.
+    size_t num_orgs = 0;                    ///< How many living organisms are in this population?
+    size_t max_orgs = (size_t) -1;          ///< Maximum number of orgs allowed in population.
 
-    EmptyOrganism empty_org;               ///< Organism to fill in empty cells (does have data map!)
+    emp::Ptr<Organism> empty_org = nullptr; ///< Organism to fill in empty cells (does have data map!)
 
   public:
     using iterator = OrgPosition;
@@ -331,19 +330,24 @@ namespace mabe {
 
   public:
     Population() { emp_assert(false, "Do not use default constructor on Population!"); }
-    Population(const std::string & in_name, size_t in_id, size_t pop_size=0)
-      : name(in_name), pop_id(in_id)
+    Population(const std::string & in_name,
+               size_t in_id,
+               size_t pop_size=0,
+               emp::Ptr<Organism> in_empty=nullptr)
+      : name(in_name), pop_id(in_id), empty_org(in_empty)
     {
-      orgs.resize(pop_size, &empty_org);
+      orgs.resize(pop_size, empty_org);
     }
     Population(const Population & in_pop)
       : name(in_pop.name), pop_id(in_pop.pop_id), orgs(in_pop.orgs.size())
       , num_orgs(in_pop.num_orgs), max_orgs(in_pop.max_orgs)
+      , empty_org(in_pop.empty_org)
     {
       emp_assert(in_pop.OK());
       for (size_t i = 0; i < orgs.size(); i++) {
         if (in_pop.orgs[i]->IsEmpty()) {       // Make sure we always use local empty organism.
-          orgs[i] = &empty_org;
+          emp_assert(!empty_org.IsNull(), "Empty organisms must be set before they can be used!");
+          orgs[i] = empty_org;
         } else {                              // Otherwise clone the organism.
           orgs[i] = in_pop.orgs[i]->Clone();
         }
@@ -413,8 +417,9 @@ namespace mabe {
     /// Remove (and return) the organism at pos, but don't delete it.
     [[nodiscard]] emp::Ptr<Organism> ExtractOrg(size_t pos) {
       emp_assert(pos < orgs.size());
+      emp_assert(!empty_org.IsNull(), "Empty org must be provided before extraction.");
       emp::Ptr<Organism> out_org = orgs[pos];
-      orgs[pos] = &empty_org;
+      orgs[pos] = empty_org;
       if (!out_org->IsEmpty()) num_orgs--;
       return out_org;
     }
@@ -422,19 +427,27 @@ namespace mabe {
     /// Resize a population; should only be called from world after removed orgs are deleted.
     Population & Resize(size_t new_size) {
       emp_assert(num_orgs == 0);
+      emp_assert(new_size <= orgs.size() || !empty_org.IsNull(),
+                 "Population resize can only increase size if empty_org is provided.",
+                 new_size, orgs.size());
 
       // Resize the population, adding in empty cells to any new spaces.
-      orgs.resize(new_size, &empty_org);
+      orgs.resize(new_size, empty_org);
 
       return *this;
     }
 
     /// Add an empty position to the end of the population (and return an iterator to it)
     iterator PushEmpty() {
+      emp_assert(!empty_org.IsNull(),
+                 "Population can only PushEmpty() if empty_org is provided.");
       size_t pos = orgs.size();
-      orgs.resize(orgs.size()+1, &empty_org);
+      orgs.resize(orgs.size()+1, empty_org);
       return iterator(this, pos);
     }
+
+    /// Setup the organism to be used as "empty" (Managed externally, usually by MABE conroller.)
+    void SetEmpty(emp::Ptr<Organism> in_empty) { empty_org = in_empty; }
 
   public:
     // ------ DEBUG FUNCTIONS ------
