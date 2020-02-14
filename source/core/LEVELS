@@ -25,7 +25,7 @@ LEVEL 5: Base classes for user modules that have access to MABE controller.
 
 The eight core components of MABE are below.  Each component depends on all of those above it.
 
-TraitInfo       - Information on how a module needs to interact with a trait.
+TraitInfo       - Information on how modules interact with trait (on organisms, populations, etc.)
 ModuleBase      - Set of virtual function for interfacing with modules.
 Organism        - Uses ModuleBase to track and interact with its OrganismManager
 EmptyOrganism   - Specialty organism to represent an empty cell.
