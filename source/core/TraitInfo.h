@@ -16,8 +16,9 @@
  *    [MANAGER]    - Every OrganismManager must have this trait.
  * 
  *  The ACCESS method to be used for a trait by each module.  A trait can be
- *    [PRIVATE]    - Only this module can access it; no others should read or write it.
+ *    [PRIVATE]    - Only this module can modify the trait; no others should even read it.
  *    [OWNED]      - Only this module can modify the trait, but other modules can read it.
+ *    [GENERATOR]  - Only this module can modify the trait, but other modules MUST read it.
  *    [SHARED]     - This module will read and write this trait, but others are allowed to as well.
  *    [REQUIRED]   - This module will read the trait; another module must write to it.
  *
@@ -38,6 +39,13 @@
  *
  *  The SUMMARY method determines how a trait should be summarized over a collection of organisms.
  *    [[[ needs refinement... ]]]
+ * 
+ * 
+ *  DEVELOPER NOTES:
+ *
+ *  There are two other more obscure ACCESS methods that may be worth implementing:
+ *    [WEAK_SHARED] - Will write to a trait but others MUST also write to it.
+ *    [SHARED_GENERATOR] - Like a generator, but others may also write to trait.
  */
 
 #ifndef MABE_TRAIT_INFO_H
