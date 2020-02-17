@@ -892,6 +892,7 @@ namespace mabe {
       verbose_out("...scanning '", trait_name, "' with ", trait_ptr->GetModuleCount(), " modules:",
                   " private=", trait_ptr->GetPrivateCount(),
                   " owned=", trait_ptr->GetOwnedCount(),
+                  " generator=", trait_ptr->GetGeneratorCount(),
                   " shared=", trait_ptr->GetSharedCount(),
                   " required=", trait_ptr->GetRequiredCount()
                  );
@@ -929,11 +930,12 @@ namespace mabe {
         continue;
       }
 
-      // A trait that is OWNED cannot have other modules writing to it.
-      else if (trait_ptr->GetOwnedCount() > 1) {
+      // A trait that is OWNED or GENERATOR cannot have other modules writing to it.
+      else if (trait_ptr->GetOwnedCount() + trait_ptr->GetGeneratorCount() > 1) {
+        auto mod_names = emp::Concat(trait_ptr->GetOwnedNames(), trait_ptr->GetGeneratorNames());
         std::stringstream error_msg;
         error_msg << "Multiple modules declaring ownership of trait '" << trait_name << "': "
-                  << emp::to_english_list(trait_ptr->GetOwnedNames()) << ".\n"
+                  << emp::to_english_list(mod_names) << ".\n"
                   << "[Suggestion: if traits are supposed to be distinct, prepend names with a\n"
                   << " module-specific prefix.  Otherwise modules should be edited to change trait\n"
                   << " to be SHARED (and all can modify) or have all but one shift to REQUIRED.]";
@@ -942,7 +944,7 @@ namespace mabe {
         continue;
       }
 
-      else if (trait_ptr->IsOwned() && trait_ptr->IsShared()) {
+      else if ((trait_ptr->IsOwned() || trait_ptr->IsGenerator()) && trait_ptr->IsShared()) {
         AddError("Trait '", trait_name, "' is fully OWNED by module '", trait_ptr->GetOwnedNames()[0],
                  "'; it cannot be SHARED (written to) by other modules:",
                  emp::to_english_list(trait_ptr->GetSharedNames()),
@@ -953,13 +955,23 @@ namespace mabe {
         continue;
       }
 
-      // A trait that is REQUIRED must have another module write to it (i.e. be OWNED or SHARED).
-      else if (trait_ptr->IsRequired() && !trait_ptr->IsOwned() && !trait_ptr->IsShared()) {
+      // A REQUIRED trait must have another module write to it (i.e. OWNED, GENERATOR or SHARED).
+      else if (trait_ptr->IsRequired() &&
+              !trait_ptr->IsOwned() && !trait_ptr->IsShared() && !trait_ptr->IsGenerator()) {
         AddError("Trait '", trait_name, "' marked REQUIRED by module(s) ",
                  emp::to_english_list(trait_ptr->GetRequiredNames()),
                  "'; must be written to by other modules.\n",
                  "[Suggestion: set another module to write to this trait (where it is either\n",
                  " SHARED or OWNED).]");
+        error_count++;
+        continue;
+      }
+
+      // A GENERATOR owns a trait, but requires another module to read (REQUIRE) it.
+      else if (trait_ptr->IsGenerator() && !trait_ptr->IsRequired()) {
+        AddError("Trait '", trait_name, "' marked GENERATOR by module(s) ",
+                 emp::to_english_list(trait_ptr->GetGeneratorNames()),
+                 "'; must be read by other modules.");
         error_count++;
         continue;
       }
