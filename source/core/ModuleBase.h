@@ -237,19 +237,19 @@ namespace mabe {
       emp_assert(false, "GetOrgType() must be overridden for either Organism or OrganismManager module.");
       return emp::TypeID();
     }
-    virtual emp::Ptr<Organism> CloneOrganism(const Organism &) const {
+    virtual emp::Ptr<Organism> CloneOrganism(const Organism &) {
       emp_assert(false, "CloneOrganism() must be overridden for either Organism or OrganismManager module.");
       return nullptr;
     }
-    virtual emp::Ptr<Organism> CloneOrganism(const Organism &, emp::Random &) const {
+    virtual emp::Ptr<Organism> CloneOrganism(const Organism &, emp::Random &) {
       emp_assert(false, "CloneOrganism() must be overridden for either Organism or OrganismManager module.");
       return nullptr;
     }
-    virtual emp::Ptr<Organism> MakeOrganism() const {
+    virtual emp::Ptr<Organism> MakeOrganism() {
       emp_assert(false, "MakeOrganism() must be overridden for either Organism or OrganismManager module.");
       return nullptr;
     }
-    virtual emp::Ptr<Organism> MakeOrganism(emp::Random &) const {
+    virtual emp::Ptr<Organism> MakeOrganism(emp::Random &) {
       emp_assert(false, "MakeOrganism() must be overridden for either Organism or OrganismManager module.");
       return nullptr;
     }
