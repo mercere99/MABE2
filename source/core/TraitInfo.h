@@ -71,6 +71,7 @@ namespace mabe {
       UNKNOWN=0,   ///< Access level unknown; most likely a problem!
       PRIVATE,     ///< Can READ & WRITE this trait; other modules cannot use it at all.
       OWNED,       ///< Can READ & WRITE this trait; other modules can only read.
+      GENERATOR,   ///< Can READ & WRITE this trait; other moduels MUST read it.
       SHARED,      ///< Can READ & WRITE this trait; other modules can too.
       REQUIRED,    ///< Can READ this trait, but another module must WRITE to it.
       NUM_ACCESS   ///< How many access methods are there?
@@ -173,12 +174,14 @@ namespace mabe {
 
     bool IsPrivate() const { return GetAccessCount(Access::PRIVATE); }
     bool IsOwned() const { return GetAccessCount(Access::OWNED); }
+    bool IsGenerator() const { return GetAccessCount(Access::GENERATOR); }
     bool IsShared() const { return GetAccessCount(Access::SHARED); }
     bool IsRequired() const { return GetAccessCount(Access::REQUIRED); }
 
     size_t GetUnknownCount() const { return GetAccessCount(Access::UNKNOWN); }
     size_t GetPrivateCount() const { return GetAccessCount(Access::PRIVATE); }
     size_t GetOwnedCount() const { return GetAccessCount(Access::OWNED); }
+    size_t GetGeneratorCount() const { return GetAccessCount(Access::GENERATOR); }
     size_t GetSharedCount() const { return GetAccessCount(Access::SHARED); }
     size_t GetRequiredCount() const { return GetAccessCount(Access::REQUIRED); }
 
@@ -201,6 +204,7 @@ namespace mabe {
     emp::vector<std::string> GetUnknownNames() const { return GetModuleNames(Access::UNKNOWN); }
     emp::vector<std::string> GetPrivateNames() const { return GetModuleNames(Access::PRIVATE); }
     emp::vector<std::string> GetOwnedNames() const { return GetModuleNames(Access::OWNED); }
+    emp::vector<std::string> GetGeneratorNames() const { return GetModuleNames(Access::GENERATOR); }
     emp::vector<std::string> GetSharedNames() const { return GetModuleNames(Access::SHARED); }
     emp::vector<std::string> GetRequiredNames() const { return GetModuleNames(Access::REQUIRED); }
 
