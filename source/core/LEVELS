@@ -28,8 +28,8 @@ The eight core components of MABE are below.  Each component depends on all of t
 TraitInfo       - Information on how modules interact with trait (on organisms, populations, etc.)
 ModuleBase      - Set of virtual function for interfacing with modules.
 Organism        - Uses ModuleBase to track and interact with its OrganismManager
-EmptyOrganism   - Specialty organism to represent an empty cell.
 Population      - Contains a collection of Organisms and (some of which could be EmptyOrganisms)
 MABE            - Main contoller object; manipulates Populations and Organisms
 Module          - Modify main MABE contoller functions.
 OrganismManager - Specialty Module to control specific types of organisms.
+EmptyOrganism   - Specialty organism to represent an empty cell.
