@@ -29,7 +29,9 @@ namespace mabe {
   public:
     using org_t = ORG_T;
 
-    OrganismManager(MABE & in_control, const std::string & in_name) : Module(in_control, in_name) {
+    OrganismManager(MABE & in_control, const std::string & in_name, const std::string & in_desc="")
+      : Module(in_control, in_name, in_desc)
+    {
       org_prototype = emp::NewPtr<org_t>(*this);
     }
     virtual ~OrganismManager() { org_prototype.Delete(); }
@@ -49,19 +51,19 @@ namespace mabe {
     }
 
     /// Create a clone of the provided organism; default to using copy constructor.
-    emp::Ptr<Organism> CloneOrganism(const Organism & org) const override {
+    emp::Ptr<Organism> CloneOrganism(const Organism & org) override {
       return emp::NewPtr<org_t>( ConvertOrg(org) );
     }
 
     /// Create a random organism from scratch.  Default to using the org_prototype organism.
-    emp::Ptr<Organism> MakeOrganism() const override {
+    emp::Ptr<Organism> MakeOrganism() override {
       auto org_ptr = org_prototype->Clone();
       return org_ptr;
     }
 
     /// Create a random organism from scratch.  Default to using the org_prototype organism
     /// and then randomize if a random number generator is provided.
-    emp::Ptr<Organism> MakeOrganism(emp::Random & random) const override {
+    emp::Ptr<Organism> MakeOrganism(emp::Random & random) override {
       auto org_ptr = org_prototype->Clone();
       org_ptr->Randomize(random);
       return org_ptr;
@@ -87,13 +89,13 @@ namespace mabe {
   template <typename T>
   struct OrgManagerRegistrar {
     OrgManagerRegistrar(const std::string & type_name, const std::string & desc) {
-      OrgManagerInfo new_info;
+      ModuleInfo new_info;
       new_info.name = type_name;
       new_info.desc = desc;
       new_info.init_fun = [desc](MABE & control, const std::string & name) -> ConfigType & {
         return control.AddOrganismManager<T>(name, desc);
       };
-      GetOrgManagerInfo().insert(new_info);
+      GetModuleInfo().insert(new_info);
     }
   };
 
