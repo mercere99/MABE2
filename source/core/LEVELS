@@ -1,35 +1,10 @@
-LEVEL 0
- OrganismManagerBase
- TraitInfo
-
-LEVEL 1
- Organism (req: OrganismManagerBase)
- ModuleBase (req: TraitInfo)
-
-LEVEL 2
- DirectEncoding (req: Organism)
- EmptyOrganism (req: Organism)
-
-LEVEL 3
- Population (req: Organism, EmptyOrganism)
-
-LEVEL 4: Main mabe controller
- MABE (req: ModuleBase, OrganismManagerBase, Population)
-
-LEVEL 5: Base classes for user modules that have access to MABE controller.
- Module (req: MABE, ModuleBase, Population, TraitInfo)
- OrganismManager (req: MABE, OrganismManagerBase)
-
-
---- NEW ---
-
 The eight core components of MABE are below.  Each component depends on all of those above it.
 
-TraitInfo       - Information on how modules interact with trait (on organisms, populations, etc.)
-ModuleBase      - Set of virtual function for interfacing with modules.
-Organism        - Uses ModuleBase to track and interact with its OrganismManager
-Population      - Contains a collection of Organisms and (some of which could be EmptyOrganisms)
+TraitInfo       - Specifications for module/trait interactions (on organisms, populations, etc.)
+ModuleBase      - Core functionality for interfacing with all module types.
+Organism        - Information about a single agent; ModuleBase is interface for OrganismManager
+Population      - Collection of Organisms (some of which could be EmptyOrganisms)
 MABE            - Main contoller object; manipulates Populations and Organisms
 Module          - Modify main MABE contoller functions.
-OrganismManager - Specialty Module to control specific types of organisms.
-EmptyOrganism   - Specialty organism to represent an empty cell.
+OrganismManager - Specialty Module type to manage organisms with shared configuration.
+EmptyOrganism   - Specialty organism type to represent empty cells.
