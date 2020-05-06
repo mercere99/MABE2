@@ -28,7 +28,7 @@ namespace mabe {
     using entry_vector_t = emp::vector<entry_ptr_t>;
     using fun_t = std::function< entry_ptr_t( const emp::vector<entry_ptr_t> & ) >;
     fun_t fun;
-    size_t arg_count;
+    // size_t arg_count;
 
   public:
     ConfigFunction(const std::string & _name,
