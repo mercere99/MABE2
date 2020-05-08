@@ -273,9 +273,6 @@ namespace mabe {
 
     emp::vector<Population> pops;      ///< Collection of populations.
 
-    /// Collection of all organism types.
-    emp::unordered_map<std::string, emp::Ptr<ModuleBase>> org_managers;
-
     /// Organism to use for empty cells.
     emp::Ptr<Organism> empty_org = nullptr;
 
@@ -328,9 +325,7 @@ namespace mabe {
       // Trigger functions
       before_exit_sig.Trigger();
 
-      // Cleanup all pointers.
-      for (auto [name,org_manager] : org_managers) org_manager.Delete();
-      org_managers.clear();
+      // @CAO: Other cleanup in case destructor is not run properly due to early termination?
 
       // Exit as soon as possible.
       exit_now = true;
@@ -388,7 +383,6 @@ namespace mabe {
     ~MABE() {
       if (empty_org) empty_org.Delete();
       for (auto x : modules) x.Delete();
-      for (auto [name,org_manager] : org_managers) org_manager.Delete();
       for (auto [name,trait_ptr] : trait_map) trait_ptr.Delete();
     }
 
@@ -403,7 +397,7 @@ namespace mabe {
     void SetupEmpty() {
       if (empty_org) empty_org.Delete();  // If we already have an empty organism, replace it.
       auto & empty_manager =
-        AddOrganismManager<EMPTY_MANAGER_T>("empty_org", "Manager for all 'empty' organisms in any population.");
+        AddModule<EMPTY_MANAGER_T>("empty_org", "Manager for all 'empty' organisms in any population.");
 
       empty_org = empty_manager.MakeOrganism();
     }
@@ -495,11 +489,11 @@ namespace mabe {
 
     /// Add an organsim of a specified type to the world.
     OrgPosition Inject(const std::string & type_name, size_t copy_count=1) {      
-      auto & org_manager = GetOrganismManager(type_name);     // Look up type of organism.
-      auto org_ptr = org_manager.MakeOrganism(random);        // Build an org of this type.
-      OrgPosition pos = Inject(*org_ptr, copy_count);         // Inject a copy of the organism.
-      org_ptr.Delete();                                       // Delete generated organism.
-      return pos;                                             // Return last position injected.
+      auto & org_manager = GetModule(type_name);          // Look up type of organism.
+      auto org_ptr = org_manager.MakeOrganism(random);    // Build an org of this type.
+      OrgPosition pos = Inject(*org_ptr, copy_count);     // Inject a copy of the organism.
+      org_ptr.Delete();                                   // Delete generated organism.
+      return pos;                                         // Return last position injected.
     }
 
     /// Inject an organism at a specified position.
@@ -581,32 +575,19 @@ namespace mabe {
     const ModuleBase & GetModule(int id) const { return *modules[(size_t) id]; }
     ModuleBase & GetModule(int id) { return *modules[(size_t) id]; }
 
+    const ModuleBase & GetModule(const std::string & mod_name) const {
+      return *modules[(size_t) GetModuleID(mod_name)];
+    }
+    ModuleBase & GetModule(const std::string & mod_name) {
+      return *modules[(size_t) GetModuleID(mod_name)];
+    }
+
     /// Add a module of the specified type.
     template <typename MOD_T, typename... ARGS>
     MOD_T & AddModule(ARGS &&... args) {
       auto new_mod = emp::NewPtr<MOD_T>(*this, std::forward<ARGS>(args)...);
       modules.push_back(new_mod);
       return *new_mod;
-    }
-
-
-    // --- Deal with Organism Types ---
-
-    /// Get a reference to an organism manager with the specified name.
-    ModuleBase & GetOrganismManager(const std::string & type_name) {
-      emp_assert(emp::Has(org_managers, type_name), type_name,
-                 "An org type must be created before base retrieved.");
-      return *(org_managers[type_name]);
-    }
-
-    /// Add a new organism manager with the specified information.
-    template <typename ORG_TYPE_T>
-    ORG_TYPE_T & AddOrganismManager(const std::string & type_name, const std::string & desc) {
-      (void) desc; // @CAO: Do something with this!
-      emp_assert(emp::Has(org_managers, type_name) == false);
-      auto new_type = emp::NewPtr<ORG_TYPE_T>(*this, type_name);
-      org_managers[type_name] = new_type;
-      return *new_type;
     }
 
 
@@ -1014,14 +995,6 @@ namespace mabe {
       PushScope(m->GetName(), m->GetDesc());
       m->SetupScope(*cur_scope);
       m->SetupConfig();
-      PopScope();
-    }
-
-    // Loop through organism types.
-    for (auto o : org_managers) {
-      PushScope(o.first, "Organism type");
-      o.second->SetupScope(*cur_scope);
-      o.second->SetupConfig();
       PopScope();
     }
   }
