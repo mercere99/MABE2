@@ -45,6 +45,7 @@
 #include <string>
 #include <sstream>
 
+#include "base/array.h"
 #include "base/Ptr.h"
 #include "base/vector.h"
 #include "config/command_line.h"
@@ -81,10 +82,6 @@ namespace mabe {
       SigListenerBase & operator=(SigListenerBase &&) = default;
     };
 
-    /// Maintain a master vector of all SigListener pointers.
-    static constexpr size_t num_signals = (size_t) ModuleBase::NUM_SIGNALS;
-    emp::vector< emp::Ptr<SigListenerBase> > modv_ptrs;
-
     /// Each set of modules to be called when a specific signal is triggered should be identified
     /// in a SigListener object that has full type information.
     template <typename RETURN, typename... ARGS>
@@ -101,10 +98,10 @@ namespace mabe {
       SigListener(const std::string & _name,
                 ModuleBase::SignalID _id,
                 ModMemFun _fun,
-                emp::vector< emp::Ptr< SigListenerBase > > & modv_ptrs)
+                emp::array< emp::Ptr<SigListenerBase>, (size_t) ModuleBase::NUM_SIGNALS> & _ptrs)
         : SigListenerBase(_name, _id), fun(_fun)
       {
-        modv_ptrs[id] = this;
+        _ptrs[id] = this;
       }
 
       template <typename... ARGS2>
@@ -125,6 +122,9 @@ namespace mabe {
         return result;
       }
     };
+
+    /// Maintain a master vector of all SigListener pointers.
+    emp::array< emp::Ptr<SigListenerBase>, (size_t) ModuleBase::NUM_SIGNALS > sig_ptrs;
 
     emp::vector<emp::Ptr<ModuleBase>> modules;  ///< Collection of ALL modules.
 
@@ -177,28 +177,27 @@ namespace mabe {
 
     // Private constructor so that base class cannot be instantiated directly.
     MABEBase()
-    : modv_ptrs(num_signals)
-    , before_update_sig("before_update", ModuleBase::SIG_BeforeUpdate, &ModuleBase::BeforeUpdate, modv_ptrs)
-    , on_update_sig("on_update", ModuleBase::SIG_OnUpdate, &ModuleBase::OnUpdate, modv_ptrs)
-    , before_repro_sig("before_repro", ModuleBase::SIG_BeforeRepro, &ModuleBase::BeforeRepro, modv_ptrs)
-    , on_offspring_ready_sig("on_offspring_ready", ModuleBase::SIG_OnOffspringReady, &ModuleBase::OnOffspringReady, modv_ptrs)
-    , on_inject_ready_sig("on_inject_ready", ModuleBase::SIG_OnInjectReady, &ModuleBase::OnInjectReady, modv_ptrs)
-    , before_placement_sig("before_placement", ModuleBase::SIG_BeforePlacement, &ModuleBase::BeforePlacement, modv_ptrs)
-    , on_placement_sig("on_placement", ModuleBase::SIG_OnPlacement, &ModuleBase::OnPlacement, modv_ptrs)
-    , before_mutate_sig("before_mutate", ModuleBase::SIG_BeforeMutate, &ModuleBase::BeforeMutate, modv_ptrs)
-    , on_mutate_sig("on_mutate", ModuleBase::SIG_OnMutate, &ModuleBase::OnMutate, modv_ptrs)
-    , before_death_sig("before_death", ModuleBase::SIG_BeforeDeath, &ModuleBase::BeforeDeath, modv_ptrs)
-    , before_swap_sig("before_swap", ModuleBase::SIG_BeforeSwap, &ModuleBase::BeforeSwap, modv_ptrs)
-    , on_swap_sig("on_swap", ModuleBase::SIG_OnSwap, &ModuleBase::OnSwap, modv_ptrs)
-    , before_pop_resize_sig("before_pop_resize", ModuleBase::SIG_BeforePopResize, &ModuleBase::BeforePopResize, modv_ptrs)
-    , on_pop_resize_sig("on_pop_resize", ModuleBase::SIG_OnPopResize, &ModuleBase::OnPopResize, modv_ptrs)
-    , on_error_sig("on_error", ModuleBase::SIG_OnError, &ModuleBase::OnError, modv_ptrs)
-    , on_warning_sig("on_warning", ModuleBase::SIG_OnWarning, &ModuleBase::OnWarning, modv_ptrs)
-    , before_exit_sig("before_exit", ModuleBase::SIG_BeforeExit, &ModuleBase::BeforeExit, modv_ptrs)
-    , on_help_sig("on_help", ModuleBase::SIG_OnHelp, &ModuleBase::OnHelp, modv_ptrs)
-    , do_place_birth_sig("do_place_birth", ModuleBase::SIG_DoPlaceBirth, &ModuleBase::DoPlaceBirth, modv_ptrs)
-    , do_place_inject_sig("do_place_inject", ModuleBase::SIG_DoPlaceInject, &ModuleBase::DoPlaceInject, modv_ptrs)
-    , do_find_neighbor_sig("do_find_neighbor", ModuleBase::SIG_DoFindNeighbor, &ModuleBase::DoFindNeighbor, modv_ptrs)
+    : before_update_sig("before_update", ModuleBase::SIG_BeforeUpdate, &ModuleBase::BeforeUpdate, sig_ptrs)
+    , on_update_sig("on_update", ModuleBase::SIG_OnUpdate, &ModuleBase::OnUpdate, sig_ptrs)
+    , before_repro_sig("before_repro", ModuleBase::SIG_BeforeRepro, &ModuleBase::BeforeRepro, sig_ptrs)
+    , on_offspring_ready_sig("on_offspring_ready", ModuleBase::SIG_OnOffspringReady, &ModuleBase::OnOffspringReady, sig_ptrs)
+    , on_inject_ready_sig("on_inject_ready", ModuleBase::SIG_OnInjectReady, &ModuleBase::OnInjectReady, sig_ptrs)
+    , before_placement_sig("before_placement", ModuleBase::SIG_BeforePlacement, &ModuleBase::BeforePlacement, sig_ptrs)
+    , on_placement_sig("on_placement", ModuleBase::SIG_OnPlacement, &ModuleBase::OnPlacement, sig_ptrs)
+    , before_mutate_sig("before_mutate", ModuleBase::SIG_BeforeMutate, &ModuleBase::BeforeMutate, sig_ptrs)
+    , on_mutate_sig("on_mutate", ModuleBase::SIG_OnMutate, &ModuleBase::OnMutate, sig_ptrs)
+    , before_death_sig("before_death", ModuleBase::SIG_BeforeDeath, &ModuleBase::BeforeDeath, sig_ptrs)
+    , before_swap_sig("before_swap", ModuleBase::SIG_BeforeSwap, &ModuleBase::BeforeSwap, sig_ptrs)
+    , on_swap_sig("on_swap", ModuleBase::SIG_OnSwap, &ModuleBase::OnSwap, sig_ptrs)
+    , before_pop_resize_sig("before_pop_resize", ModuleBase::SIG_BeforePopResize, &ModuleBase::BeforePopResize, sig_ptrs)
+    , on_pop_resize_sig("on_pop_resize", ModuleBase::SIG_OnPopResize, &ModuleBase::OnPopResize, sig_ptrs)
+    , on_error_sig("on_error", ModuleBase::SIG_OnError, &ModuleBase::OnError, sig_ptrs)
+    , on_warning_sig("on_warning", ModuleBase::SIG_OnWarning, &ModuleBase::OnWarning, sig_ptrs)
+    , before_exit_sig("before_exit", ModuleBase::SIG_BeforeExit, &ModuleBase::BeforeExit, sig_ptrs)
+    , on_help_sig("on_help", ModuleBase::SIG_OnHelp, &ModuleBase::OnHelp, sig_ptrs)
+    , do_place_birth_sig("do_place_birth", ModuleBase::SIG_DoPlaceBirth, &ModuleBase::DoPlaceBirth, sig_ptrs)
+    , do_place_inject_sig("do_place_inject", ModuleBase::SIG_DoPlaceInject, &ModuleBase::DoPlaceInject, sig_ptrs)
+    , do_find_neighbor_sig("do_find_neighbor", ModuleBase::SIG_DoFindNeighbor, &ModuleBase::DoFindNeighbor, sig_ptrs)
     { ;  }
 
   public:
@@ -964,13 +963,13 @@ namespace mabe {
   /// Link signals to the modules that implment responses to those signals.
   void MABE::UpdateSignals() {
     // Clear all module vectors.
-    for (auto modv : modv_ptrs) modv->resize(0);
+    for (auto modv : sig_ptrs) modv->resize(0);
 
     // Loop through each module to update its signals.
     for (emp::Ptr<ModuleBase> mod_ptr : modules) {
       // For the current module, loop through all of the signals.
-      for (size_t sig_id = 0; sig_id < num_signals; sig_id++) {
-        if (mod_ptr->has_signal[sig_id]) modv_ptrs[sig_id]->push_back(mod_ptr);
+      for (size_t sig_id = 0; sig_id < sig_ptrs.size(); sig_id++) {
+        if (mod_ptr->has_signal[sig_id]) sig_ptrs[sig_id]->push_back(mod_ptr);
       }
     }
 
