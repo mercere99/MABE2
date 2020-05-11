@@ -60,49 +60,49 @@
 
 namespace mabe {
 
-  /// MABEBase sets up all population-manipulation functionality (nowhere else can alter a
-  /// Population object).  As such, it guarantees that all manipulation calls ultimately
-  /// come through the limited functions defined here.
+  /// MABEBase sets up all population-manipulation functionality to ensure consistant handling
+  /// (nowhere else can alter a Population object); all manipulation calls ultimately come through
+  /// the limited functions defined here.
 
   class MABEBase {
   protected:
-    /// ModVectors track all of the Modules that are listening for a specific signal.
-    /// They track a series of pointers to modules and handle them all being called.
-    struct ModVectorBase : public emp::vector<emp::Ptr<ModuleBase>> {
+    /// A SigListener tracks which Modules respond to a specific signal.  They maintain pointers
+    /// to modules and call them when requested.  The base class manages common functionality.
+    struct SigListenerBase : public emp::vector<emp::Ptr<ModuleBase>> {
       std::string name;          ///< Name of this signal type.
       ModuleBase::SignalID id;   ///< ID of this signal
 
-      ModVectorBase(const std::string & _name="",
+      SigListenerBase(const std::string & _name="",
                     ModuleBase::SignalID _id=ModuleBase::SIG_UNKNOWN)
         : name(_name), id(_id) {;}
-      ModVectorBase(const ModVectorBase &) = default;
-      ModVectorBase(ModVectorBase &&) = default;
-      ModVectorBase & operator=(const ModVectorBase &) = default;
-      ModVectorBase & operator=(ModVectorBase &&) = default;
+      SigListenerBase(const SigListenerBase &) = default;
+      SigListenerBase(SigListenerBase &&) = default;
+      SigListenerBase & operator=(const SigListenerBase &) = default;
+      SigListenerBase & operator=(SigListenerBase &&) = default;
     };
 
-    /// Maintain a master vector of all ModVector pointers to signals.
+    /// Maintain a master vector of all SigListener pointers.
     static constexpr size_t num_signals = (size_t) ModuleBase::NUM_SIGNALS;
-    emp::vector< emp::Ptr<ModVectorBase> > modv_ptrs;
+    emp::vector< emp::Ptr<SigListenerBase> > modv_ptrs;
 
     /// Each set of modules to be called when a specific signal is triggered should be identified
-    /// in a ModVector object that has full type information.
+    /// in a SigListener object that has full type information.
     template <typename RETURN, typename... ARGS>
-    struct ModVector : public ModVectorBase {
+    struct SigListener : public SigListenerBase {
 
       /// Define the proper signal call type.
       typedef RETURN (ModuleBase::*ModMemFun)(ARGS...);
 
-      /// Store the member-function call that this ModVector should handle.
+      /// Store the member-function call that this SigListener should handle.
       ModMemFun fun;
 
-      /// A ModVector constructor takes both the member function that its supposed to call
+      /// A SigListener constructor takes both the member function that its supposed to call
       /// and a master list of module vectors that it should put itself it.
-      ModVector(const std::string & _name,
+      SigListener(const std::string & _name,
                 ModuleBase::SignalID _id,
                 ModMemFun _fun,
-                emp::vector< emp::Ptr< ModVectorBase > > & modv_ptrs)
-        : ModVectorBase(_name, _id), fun(_fun)
+                emp::vector< emp::Ptr< SigListenerBase > > & modv_ptrs)
+        : SigListenerBase(_name, _id), fun(_fun)
       {
         modv_ptrs[id] = this;
       }
@@ -130,48 +130,48 @@ namespace mabe {
 
     // --- Track which modules need to have each signal type called on them. ---
     // BeforeUpdate(size_t update_ending)
-    ModVector<void,size_t> before_update_sig;
+    SigListener<void,size_t> before_update_sig;
     // OnUpdate(size_t new_update)
-    ModVector<void,size_t> on_update_sig;
+    SigListener<void,size_t> on_update_sig;
     // BeforeRepro(OrgPosition parent_pos) 
-    ModVector<void,OrgPosition> before_repro_sig;
+    SigListener<void,OrgPosition> before_repro_sig;
     // OnOffspringReady(Organism & offspring, OrgPosition parent_pos)
-    ModVector<void,Organism &,OrgPosition> on_offspring_ready_sig;
+    SigListener<void,Organism &,OrgPosition> on_offspring_ready_sig;
     // OnInjectReady(Organism & inject_org)
-    ModVector<void,Organism &> on_inject_ready_sig;
+    SigListener<void,Organism &> on_inject_ready_sig;
     // BeforePlacement(Organism & org, OrgPosition target_pos, OrgPosition parent_pos)
-    ModVector<void,Organism &, OrgPosition, OrgPosition> before_placement_sig;
+    SigListener<void,Organism &, OrgPosition, OrgPosition> before_placement_sig;
     // OnPlacement(OrgPosition placement_pos)
-    ModVector<void,OrgPosition> on_placement_sig;
+    SigListener<void,OrgPosition> on_placement_sig;
     // BeforeMutate(Organism & org)
-    ModVector<void,Organism &> before_mutate_sig; // TO IMPLEMENT
+    SigListener<void,Organism &> before_mutate_sig; // TO IMPLEMENT
     // OnMutate(Organism & org)
-    ModVector<void,Organism &> on_mutate_sig; // TO IMPLEMENT
+    SigListener<void,Organism &> on_mutate_sig; // TO IMPLEMENT
     // BeforeDeath(OrgPosition remove_pos)
-    ModVector<void,OrgPosition> before_death_sig;
+    SigListener<void,OrgPosition> before_death_sig;
     // BeforeSwap(OrgPosition pos1, OrgPosition pos2)
-    ModVector<void,OrgPosition,OrgPosition> before_swap_sig;
+    SigListener<void,OrgPosition,OrgPosition> before_swap_sig;
     // OnSwap(OrgPosition pos1, OrgPosition pos2)
-    ModVector<void,OrgPosition,OrgPosition> on_swap_sig;
+    SigListener<void,OrgPosition,OrgPosition> on_swap_sig;
     // BeforePopResize(Population & pop, size_t new_size)
-    ModVector<void,Population &, size_t> before_pop_resize_sig;
+    SigListener<void,Population &, size_t> before_pop_resize_sig;
     // OnPopResize(Population & pop, size_t old_size)
-    ModVector<void,Population &, size_t> on_pop_resize_sig;
+    SigListener<void,Population &, size_t> on_pop_resize_sig;
     // OnError(const std::string & msg)
-    ModVector<void,const std::string &> on_error_sig;
+    SigListener<void,const std::string &> on_error_sig;
     // OnWarning(const std::string & msg)
-    ModVector<void,const std::string &> on_warning_sig;
+    SigListener<void,const std::string &> on_warning_sig;
     // BeforeExit()
-    ModVector<void> before_exit_sig;
+    SigListener<void> before_exit_sig;
     // OnHelp()
-    ModVector<void> on_help_sig;
+    SigListener<void> on_help_sig;
 
     // OrgPosition DoPlaceBirth(Organism &, OrgPosition);
-    ModVector<OrgPosition, Organism &,OrgPosition> do_place_birth_sig;
+    SigListener<OrgPosition, Organism &,OrgPosition> do_place_birth_sig;
     // OrgPosition DoPlaceInject(Organism &)
-    ModVector<OrgPosition, Organism &> do_place_inject_sig;
+    SigListener<OrgPosition, Organism &> do_place_inject_sig;
     // OrgPosition DoFindNeighbor(OrgPosition) {
-    ModVector<OrgPosition, OrgPosition> do_find_neighbor_sig;
+    SigListener<OrgPosition, OrgPosition> do_find_neighbor_sig;
 
     bool rescan_signals = true;   ///< Do module signals need to be updated?
 
