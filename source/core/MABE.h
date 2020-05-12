@@ -123,10 +123,11 @@ namespace mabe {
       }
     };
 
-    /// Maintain a master vector of all SigListener pointers.
+    /// Maintain a master array of pointers to all SigListeners.
     emp::array< emp::Ptr<SigListenerBase>, (size_t) ModuleBase::NUM_SIGNALS > sig_ptrs;
 
-    emp::vector<emp::Ptr<ModuleBase>> modules;  ///< Collection of ALL modules.
+    /// Maintain a collection of all modules used in this run.
+    emp::vector<emp::Ptr<ModuleBase>> modules;  
 
     // --- Track which modules need to have each signal type called on them. ---
     // BeforeUpdate(size_t update_ending)
@@ -173,9 +174,11 @@ namespace mabe {
     // OrgPosition DoFindNeighbor(OrgPosition) {
     SigListener<OrgPosition, OrgPosition> do_find_neighbor_sig;
 
-    bool rescan_signals = true;   ///< Do module signals need to be updated?
+    /// If a module fails to use a signal, we never check it again UNLESS we are explicitly
+    /// told to rescan the signals (perhaps because new functionality was enabled.)
+    bool rescan_signals = true;
 
-    // Private constructor so that base class cannot be instantiated directly.
+    // Protected constructor so that base class cannot be instantiated except from derived class.
     MABEBase()
     : before_update_sig("before_update", ModuleBase::SIG_BeforeUpdate, &ModuleBase::BeforeUpdate, sig_ptrs)
     , on_update_sig("on_update", ModuleBase::SIG_OnUpdate, &ModuleBase::OnUpdate, sig_ptrs)
@@ -202,16 +205,13 @@ namespace mabe {
 
   public:
 
-    /// Setup the signals to be rescanned; called this any time signal information is updated in
-    /// a module.
-    void RescanSignals() {
-      rescan_signals = true;
-    }
+    /// Setup signals to be rescanned; call this if any signal is updated in a module.
+    void RescanSignals() { rescan_signals = true; }
 
-    /// All insertions of organisms should come through AddOrgAt
-    /// Must provide an org_ptr that is now own by the population.
-    /// Must specify the pos in the population to perform the insertion.
-    /// Must specify parent position if it exists (for data tracking); not used with inject.
+    /// All insertions of organisms into a population should come through AddOrgAt
+    /// @param[in] org_ptr points to the organism being added (which will now be owned by the population).
+    /// @param[in] pos is the position to perform the insertion.
+    /// @param[in] ppos is the parent position (required if it exists; not used with inject).
     void AddOrgAt(emp::Ptr<Organism> org_ptr, OrgPosition pos, OrgPosition ppos=OrgPosition()) {
       before_placement_sig.Trigger(*org_ptr, pos, ppos);
       ClearOrgAt(pos);      // Clear out any organism already in this position.
@@ -220,6 +220,8 @@ namespace mabe {
     }
 
     /// All permanent deletion of organisms from a population should come through here.
+    /// If the relavant position is already empty, nothing happens.
+    /// @param[in] pos is the position to perform the deletion.
     void ClearOrgAt(OrgPosition pos) {
       emp_assert(pos.IsValid());
       if (pos.IsEmpty()) return; // Nothing to remove!
@@ -230,6 +232,8 @@ namespace mabe {
 
     /// All movement of organisms from one population position to another should come through here.
     void SwapOrgs(OrgPosition pos1, OrgPosition pos2) {
+      emp_assert(pos1.IsValid());
+      emp_assert(pos2.IsValid());
       before_swap_sig.Trigger(pos1, pos2);
       emp::Ptr<Organism> org1 = pos1.ExtractOrg();
       emp::Ptr<Organism> org2 = pos2.ExtractOrg();
@@ -238,14 +242,14 @@ namespace mabe {
       on_swap_sig.Trigger(pos1, pos2);
     }
 
-    /// Change the size of a population.  Clear orgs at removed positions; new positions should
-    /// have empty organisms.
+    /// Change the size of a population.  If shrinking, clear orgs at removed positions;
+    /// if growing, new positions will have empty organisms.
     void ResizePop(Population & pop, size_t new_size) {
       // Clean up any organisms that may be getting deleted.
       const size_t old_size = pop.GetSize();                // Track the starting size.
       if (old_size == new_size) return;                     // If size isn't changing, we're done!
 
-      before_pop_resize_sig.Trigger(pop, new_size);
+      before_pop_resize_sig.Trigger(pop, new_size);         // Signal that resize about to happen.
 
       for (size_t pos = new_size; pos < old_size; pos++) {  // Clear all orgs out of range.
         ClearOrgAt( OrgPosition(pop, pos) );
@@ -253,10 +257,10 @@ namespace mabe {
 
       pop.Resize(new_size);                                 // Do the actual resize.
 
-      on_pop_resize_sig.Trigger(pop, old_size);
+      on_pop_resize_sig.Trigger(pop, old_size);             // Signal that resize has happened.
     }
 
-    /// Add a single, empty position on the end of a population.
+    /// Add a single, empty position onto the end of a population.
     OrgPosition PushEmpty(Population & pop) {
       before_pop_resize_sig.Trigger(pop, pop.GetSize()+1);
       OrgPosition it = pop.PushEmpty();
@@ -265,7 +269,12 @@ namespace mabe {
     }
   };
 
-  /// The main MABE class that will be instantiated in the executable.
+
+  /////////////////////////////////////////////////////////////////////////////
+  ///
+  /// The main MABE controller class
+  ///
+
   class MABE : public MABEBase {
   private:
     const std::string VERSION = "0.0.1";
