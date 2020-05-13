@@ -279,29 +279,34 @@ namespace mabe {
   private:
     const std::string VERSION = "0.0.1";
 
-    emp::vector<Population> pops;      ///< Collection of populations.
+    /// Collection of populations used; generated based on the needs of modules.
+    emp::vector<Population> pops;
 
-    /// Organism to use for empty cells.
+    /// Organism pointer to use for all empty cells.
     emp::Ptr<Organism> empty_org = nullptr;
 
-    /// Collection of information about organism traits.
+    /// Collection of information about organism traits.  TraitInfo specifies which modules
+    /// are allowed to (or expected to) access each trait, as well as how that trait should be
+    /// initialized, archived, and summarized.
     std::unordered_map<std::string, emp::Ptr<TraitInfo>> trait_map;
 
-    /// Trait information to be stored on each organism.
+    /// Trait information to be stored on each organism.  This is the prototype map, which
+    /// tracks the name, type, and current value of all traits that modules associate with
+    /// organisms.
     emp::DataMap org_data_map;
 
     emp::Random random;                ///< Master random number generator
-    int random_seed = 0;               ///< Random number seed.
-    size_t cur_pop = (size_t) -1;      ///< Which population are we currently working with?
+    int random_seed = 0;               ///< Random number seed used for this run.
+    size_t cur_pop = (size_t) -1;      ///< Which population is currently active?
     size_t update = 0;                 ///< How many times has Update() been called?
 
 
     // --- Variables to handle configuration and initialization ---
 
-    bool verbose = false;               ///< Should we output extra information during setup?
+    bool verbose = false;              ///< Should we output extra information during setup?
     emp::vector<std::string> errors;   ///< Log any errors that have occured.
     bool show_help = false;            ///< Should we show "help" before exiting?
-    bool exit_now = false;             ///< Do we need to immediately exit the code?
+    bool exit_now = false;             ///< Do we need to immediately clean up and exit the run?
 
     // --- Config information for command-line arguments ---
     struct ArgInfo {
@@ -319,9 +324,9 @@ namespace mabe {
         : name(_n), flag(_f), args(_a), desc(_d), action(_action) { }
     };
 
-    emp::vector<ArgInfo> arg_set;              ///< Map of arguments to the 
+    emp::vector<ArgInfo> arg_set;              ///< Collection of valid command-line arguments.
     emp::vector<std::string> args;             ///< Command-line arguments passed in.
-    emp::vector<std::string> config_filenames; ///< Names of configuration files
+    emp::vector<std::string> config_filenames; ///< Names of configuration files to load.
     std::string gen_filename;                  ///< Name of output file to generate.
     Config config;                             ///< Configutation information for this run.
     emp::Ptr<ConfigScope> cur_scope;           ///< Which config scope are we currently using?
@@ -330,10 +335,10 @@ namespace mabe {
 
     /// Call when ready to end a run.
     void Exit() {
-      // Trigger functions
+      // Let all modules know that exit is about to occur.
       before_exit_sig.Trigger();
 
-      // @CAO: Other cleanup in case destructor is not run properly due to early termination?
+      // @CAO: Other local cleanup in case destructor is not run due to early termination?
 
       // Exit as soon as possible.
       exit_now = true;
@@ -350,11 +355,11 @@ namespace mabe {
                   << std::endl;
       }
       on_help_sig.Trigger();
-      std::cout << "Note: parameter order matters. Settings and files are applied in the order provided.\n";
+      std::cout << "Note: Settings and files are applied in the order provided.\n";
       Exit();
     }
 
-    /// List out all of the available modules.
+    /// List all of the available modules included in the current compilation.
     void ShowModules() {
       std::cout << "MABE v" << VERSION << "\n"
                 << "Active modules:\n";
@@ -368,15 +373,27 @@ namespace mabe {
       Exit();
     }
 
+    /// Process all of the arguments that were passed in on the command line.
     void ProcessArgs();
 
+    // -- Helper functions to be called inside of Setup() --
+
+    /// Make sure we have all population needed by modules.
     void Setup_Populations();
+  
+    /// Run SetupModule() method on each module we've loaded.
     void Setup_Modules();
+
+    /// Load organism traits that modules need to read or write and test for conflicts.
     void Setup_Traits();
 
+    /// Link signals to the modules that implment responses to those signals.
     void UpdateSignals();
 
-    /// Output args only if we are in verbose mode.
+
+    // -- Helper functions for debugging and extra output --
+
+    /// Output args if (and only if) we are in verbose mode.
     template <typename... Ts>
     void verbose_out(Ts &&... args) {
       if (verbose) {
@@ -848,8 +865,9 @@ namespace mabe {
     if (show_help) ShowHelp();
   }
 
+  /// As part of the main Setup(), make sure we have all population needed by modules.
   void MABE::Setup_Populations() {
-    // Now loop through the modules and make sure all populations are assigned.
+    // Loop through the modules and make sure all populations are assigned.
     for (emp::Ptr<ModuleBase> mod_ptr : modules) {
       // Determine how many populations this module needs.
       size_t min_pops = mod_ptr->GetMinPops();
@@ -862,14 +880,18 @@ namespace mabe {
     cur_pop = 0;
   }
 
+  /// As part of the main Setup(), run SetupModule() method on each module we've loaded.
   void MABE::Setup_Modules() {
     // Allow the user-defined module SetupModule() member functions run.  Goes through
     // the base class to record the current world.
     for (emp::Ptr<ModuleBase> mod_ptr : modules) mod_ptr->SetupModule();
 
-    // @CAO: If no modules are marked IsPlacementMod(), as a new final module.
+    // @CAO: If no modules are marked IsPlacementMod(), add a new final module that performs
+    // a default placement...
   }
 
+  /// As part of the main Setup(), load in all of the organism traits that modules need to
+  /// read or write and make sure that there aren't any conflicts.
   void MABE::Setup_Traits() {
     verbose_out("Analyzing configuration of ", trait_map.size(), " traits.");
 
