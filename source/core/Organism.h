@@ -28,6 +28,7 @@
 #define MABE_ORGANISM_H
 
 #include "base/assert.h"
+#include "base/vector.h"
 #include "data/DataMap.h"
 #include "meta/TypeID.h"
 #include "tools/BitVector.h"
@@ -92,16 +93,34 @@ namespace mabe {
 
     // --- Functions for overriding ---
 
-    /// We MUST be able to make a copy of organisms for MABE to function.  If this function
+    /// Create an exact duplicate of this organism.
+    /// @note We MUST be able to make a copy of organisms for MABE to function.  If this function
     /// is not overridden, try to the equivilent function in the organism manager.
     virtual emp::Ptr<Organism> Clone() const { return manager.CloneOrganism(*this); }
 
-    /// If we are going to print organisms (to screen or file) we need to be able to convert
-    /// them to strings.  If this function is not overridden, try to the equivilent function
-    /// in the organism manager.
+    /// Merge this organism's genome with that of another organism to produce an offspring.
+    /// @note Required for basic sexual recombination to work.
+    virtual emp::Ptr<Organism> Recombine(emp::Ptr<Organism> parent2) const {
+      // @CAO: Implement this
+      return nullptr;
+    }
+
+    /// Merge this organism's genome with that of a variable number of other organisms to produce
+    /// a variable number of offspring.
+    /// @note More flexible version of recombine (allowing many parents or many offspring), but
+    /// also slower.
+    virtual emp::vector<emp::Ptr<Organism>> Recombine(emp::vector<emp::Ptr<Organism>> other_parents) const {
+      // @CAO: Implement this
+      return emp::vector< emp::Ptr<Organism> >();
+    }
+
+    /// Convert this organism into a string of characters.
+    /// @note Required if we are going to print organisms to screen or to file).  If this function
+    /// is not overridden, try to the equivilent function in the organism manager.
     virtual std::string ToString() { return manager.OrgToString(*this); }
 
-    /// For evolution to function, we need to be able to mutate offspring.
+    /// Modify this organism based on configured mutation parameters.
+    /// @note For evolution to function, we need to be able to mutate offspring.
     virtual size_t Mutate(emp::Random & random) { return manager.Mutate(*this, random); }
 
     /// Completely randomize a new organism (typically for initialization)
@@ -116,7 +135,7 @@ namespace mabe {
     virtual emp::TypeID GetOutputType(size_t=0) { return emp::TypeID(); }
 
 
-    /// --- Extra functions for when this is used a a prototype organism ---
+    /// --- Extra functions for when this is used as a prototype organism ---
     
     /// Setup organism-specific configuration options.
     virtual void SetupConfig() { ; }
