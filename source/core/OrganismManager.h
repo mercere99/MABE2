@@ -83,6 +83,11 @@ namespace mabe {
     void SetupConfig() override {
       org_prototype->SetupConfig();
     }
+
+    void SetupDataMap(emp::DataMap & in_dm) override {
+      org_prototype->SetDataMap(in_dm);
+    }
+
   };
 
   /// Build a class that will automatically register modules when created (globally)
