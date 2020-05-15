@@ -40,8 +40,8 @@ namespace mabe {
 
   class Organism {
   private:
-    emp::DataMap data_map;          ///< Dynamic variables assigned to organism
-    ModuleBase & manager;  ///< Manager for the specific organism type
+    emp::DataMap data_map;   ///< Dynamic variables assigned to organism
+    ModuleBase & manager;    ///< Manager for the specific organism type
 
   protected:
     // Helper functions.
@@ -87,6 +87,11 @@ namespace mabe {
       if (data_map.HasName(name) == false) data_map.AddVar<T>(name, value);
       else data_map.Set<T>(name, value);
     }
+
+    emp::DataMap & GetDataMap() { return data_map; }
+    const emp::DataMap & GetDataMap() const { return data_map; }
+
+    void SetDataMap(emp::DataMap & in_dm) { data_map = in_dm; }
 
     /// Test if this organism represents an empy cell.
     virtual bool IsEmpty() const noexcept { return false; }
