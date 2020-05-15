@@ -5,6 +5,17 @@
  *
  *  @file  Module.h
  *  @brief Base class for all MABE modules.
+ * 
+ *  Core module functionality is split between ModuleBase (which this class is derived from) and
+ *  Module (this class).  The difference is that the main MABE controller has access only
+ *  to ModuleBase.  Module, in turn, has access to the main MABE controller.  So:
+ * 
+ *     ModuleBase  <-  MABE  <-  Module
+ *
+ *  When you are developing a new class derived from Module, you will be able to access the
+ *  MABE controller and make any changes to it that you need to.  The MABE controller will have
+ *  access to base Module functionality through this ModuleBase.
+ * 
  */
 
 #ifndef MABE_MODULE_H
