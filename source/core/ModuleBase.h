@@ -212,6 +212,7 @@ namespace mabe {
     ModuleBase & SetVisualizerMod(bool in=true) { return SetActionTag("Visualize", in); }
 
     virtual void SetupModule() { /* By default, assume no setup needed. */ }
+    virtual void SetupDataMap(emp::DataMap &) { /* By default, no setup needed. */ }
 
     // ----==== SIGNALS ====----
 
