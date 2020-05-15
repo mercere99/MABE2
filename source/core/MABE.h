@@ -167,11 +167,11 @@ namespace mabe {
     // OnHelp()
     SigListener<void> on_help_sig;
 
-    // OrgPosition DoPlaceBirth(Organism &, OrgPosition);
+    // OrgPosition DoPlaceBirth(Organism & offspring, OrgPosition parent_position);
     SigListener<OrgPosition, Organism &,OrgPosition> do_place_birth_sig;
-    // OrgPosition DoPlaceInject(Organism &)
+    // OrgPosition DoPlaceInject(Organism & new_organism)
     SigListener<OrgPosition, Organism &> do_place_inject_sig;
-    // OrgPosition DoFindNeighbor(OrgPosition) {
+    // OrgPosition DoFindNeighbor(OrgPosition target_organism) {
     SigListener<OrgPosition, OrgPosition> do_find_neighbor_sig;
 
     /// If a module fails to use a signal, we never check it again UNLESS we are explicitly
@@ -297,7 +297,7 @@ namespace mabe {
 
     emp::Random random;                ///< Master random number generator
     int random_seed = 0;               ///< Random number seed used for this run.
-    size_t cur_pop = (size_t) -1;      ///< Which population is currently active?
+    size_t cur_pop_id = (size_t) -1;   ///< Which population is currently active?
     size_t update = 0;                 ///< How many times has Update() been called?
 
 
@@ -406,9 +406,9 @@ namespace mabe {
     MABE(const MABE &) = delete;
     MABE(MABE &&) = delete;
     ~MABE() {
-      if (empty_org) empty_org.Delete();
-      for (auto x : modules) x.Delete();
-      for (auto [name,trait_ptr] : trait_map) trait_ptr.Delete();
+      if (empty_org) empty_org.Delete();                           // Delete empty_org ptr.
+      for (auto x : modules) x.Delete();                           // Delete all modules.
+      for (auto [name,trait_ptr] : trait_map) trait_ptr.Delete();  // Delete all trait info.
     }
 
     // --- Basic accessors ---
@@ -418,6 +418,7 @@ namespace mabe {
     // --- Tools to setup runs ---
     bool Setup();
 
+    /// Setup an organism as a placeholder for all "empty" positions in the population.
     template <typename EMPTY_MANAGER_T>
     void SetupEmpty() {
       if (empty_org) empty_org.Delete();  // If we already have an empty organism, replace it.
@@ -427,10 +428,10 @@ namespace mabe {
       empty_org = empty_manager.MakeOrganism();
     }
 
-    /// Update MABE a single step.
+    /// Update MABE a single time step.
     void Update();
 
-    /// Update MABE the specified number of steps.
+    /// Update MABE a specified number of time steps.
     void Update(size_t num_updates) {
       config.TriggerEvents("start");
       for (size_t ud = 0; ud < num_updates && !exit_now; ud++) {
@@ -450,11 +451,11 @@ namespace mabe {
 
     // -- World Structure --
 
-    OrgPosition FindBirthPosition(Organism & org, OrgPosition ppos) {
-      return do_place_birth_sig.FindPosition(org, ppos);
+    OrgPosition FindBirthPosition(Organism & offspring, OrgPosition ppos) {
+      return do_place_birth_sig.FindPosition(offspring, ppos);
     }
-    OrgPosition FindInjectPosition(Organism & org) {
-      return do_place_inject_sig.FindPosition(org);
+    OrgPosition FindInjectPosition(Organism & new_org) {
+      return do_place_inject_sig.FindPosition(new_org);
     }
     OrgPosition FindNeighbor(OrgPosition pos) {
       return do_find_neighbor_sig.FindPosition(pos);
@@ -463,7 +464,7 @@ namespace mabe {
 
     // --- Population Management ---
 
-    size_t GetNumPopulations() { return pops.size(); }
+    size_t GetNumPopulations() const { return pops.size(); }
     int GetPopID(const std::string & pop_name) const {
       return emp::FindEval(pops, [pop_name](const auto & p){ return p.GetName() == pop_name; });
     }
@@ -472,18 +473,18 @@ namespace mabe {
 
     /// New populaitons must be given a name and an optional size.
     Population & AddPopulation(const std::string & name, size_t pop_size=0) {
-      cur_pop = (int) pops.size();
-      pops.emplace_back( name, cur_pop, pop_size, empty_org );
-      return pops[cur_pop];
+      cur_pop_id = (int) pops.size();                           // New population will be "current"
+      pops.emplace_back(name, cur_pop_id, pop_size, empty_org); // Create the new population.
+      return pops[cur_pop_id];                                  // Return the new population.
     }
 
     /// If GetPopulation() is called without an ID, return the current population or create one.
     Population & GetPopulation() {
       if (pops.size() == 0) {                // If we don't already have a population, add one!
-        emp_assert(cur_pop == (size_t) -1);  // Current population should be default;
+        emp_assert(cur_pop_id == (size_t) -1);  // Current population should be default;
         AddPopulation("main");               // Default population is named main.
       }
-      return pops[cur_pop];
+      return pops[cur_pop_id];
     }
 
     /// Move an organism from one position to another; kill anything that previously occupied
@@ -493,8 +494,8 @@ namespace mabe {
       SwapOrgs(from_pos, to_pos);
     }
 
-    /// Add the provided organism to the world.  Return the position injected; if more than one
-    /// is added, return the position of the last one.
+    /// Inject a copy of the provided organism and return the position it was placed in;
+    /// if more than one is added, return the position of the final injection.
     OrgPosition Inject(const Organism & org, size_t copy_count=1) {
       OrgPosition pos;
       for (size_t i = 0; i < copy_count; i++) {
@@ -512,7 +513,8 @@ namespace mabe {
       return pos;
     }
 
-    /// Add an organsim of a specified type to the world.
+    /// Add an organsim of a specified type to the world (provide the type name and the
+    /// MABE controller will create an instance of it.)
     OrgPosition Inject(const std::string & type_name, size_t copy_count=1) {      
       auto & org_manager = GetModule(type_name);          // Look up type of organism.
       auto org_ptr = org_manager.MakeOrganism(random);    // Build an org of this type.
@@ -521,7 +523,7 @@ namespace mabe {
       return pos;                                         // Return last position injected.
     }
 
-    /// Inject an organism at a specified position.
+    /// Inject a copy of the provided organism at a specified position.
     void InjectAt(const Organism & org, OrgPosition pos) {
       emp_assert(pos.IsValid());
       emp::Ptr<Organism> inject_org = org.Clone();
@@ -529,7 +531,7 @@ namespace mabe {
       AddOrgAt( inject_org, pos);
     }
 
-    /// Give birth to (potentially) multiple offspring; return position of last placed.
+    /// Give birth to one or more offspring; return position of last placed.
     /// Triggers 'before repro' signal on parent (once) and 'offspring ready' on each offspring.
     /// Regular signal triggers occur in AddOrgAt.
     OrgPosition DoBirth(const Organism & org, OrgPosition ppos, size_t copy_count=1) {
@@ -561,23 +563,23 @@ namespace mabe {
     /// Resize a population while clearing all of the organisms in it.
     void EmptyPop(Population & pop, size_t new_size) {
       // Clean up any organisms in the population.
-      for (OrgPosition it = pop.begin_alive(); it != pop.end(); ++it) {
-        ClearOrgAt(it);
+      for (OrgPosition pos = pop.begin_alive(); pos != pop.end(); ++pos) {
+        ClearOrgAt(pos);
       }
 
       MABEBase::ResizePop(pop, new_size);
     }
 
-    /// Get a ramdom position from a desginated population.
+    /// Return a ramdom position from a desginated population.
     OrgPosition GetRandomPos(Population & pop) {
       emp_assert(pop.GetSize() > 0);
       return pop.IteratorAt( random.GetUInt(pop.GetSize()) );
     }
 
-    /// Get a ramdom position from the population with the specified id.
+    /// Return a ramdom position from the population with the specified id.
     OrgPosition GetRandomPos(size_t pop_id) { return GetRandomPos(GetPopulation(pop_id)); }
 
-    /// Get a ramdom position from a desginated population.
+    /// Return a ramdom position from a desginated population with a living organism in it.
     OrgPosition GetRandomOrgPos(Population & pop) {
       emp_assert(pop.GetNumOrgs() > 0, "GetRandomOrgPos cannot be called if there are no orgs.");
       // @CAO: Something better to do in a sparse population?
@@ -586,7 +588,7 @@ namespace mabe {
       return pos;
     }
 
-    /// Get a ramdom position from the population with the specified id.
+    /// Return a ramdom position of a living organism from the population with the specified id.
     OrgPosition GetRandomOrgPos(size_t pop_id) { return GetRandomOrgPos(GetPopulation(pop_id)); }
 
     // --- Module Management ---
@@ -596,10 +598,11 @@ namespace mabe {
       return emp::FindEval(modules, [mod_name](const auto & m){ return m->GetName() == mod_name; });
     }
 
-    /// Get a reference to a module with a specified ID.
+    /// Get a reference to a module with the specified ID.
     const ModuleBase & GetModule(int id) const { return *modules[(size_t) id]; }
     ModuleBase & GetModule(int id) { return *modules[(size_t) id]; }
 
+    /// Get a reference to a module with the specified name.
     const ModuleBase & GetModule(const std::string & mod_name) const {
       return *modules[(size_t) GetModuleID(mod_name)];
     }
@@ -607,7 +610,7 @@ namespace mabe {
       return *modules[(size_t) GetModuleID(mod_name)];
     }
 
-    /// Add a module of the specified type.
+    /// Add a new module of the specified type.
     template <typename MOD_T, typename... ARGS>
     MOD_T & AddModule(ARGS &&... args) {
       auto new_mod = emp::NewPtr<MOD_T>(*this, std::forward<ARGS>(args)...);
@@ -877,7 +880,7 @@ namespace mabe {
     }
 
     // Leave main population as current.
-    cur_pop = 0;
+    cur_pop_id = 0;
   }
 
   /// As part of the main Setup(), run SetupModule() method on each module we've loaded.
