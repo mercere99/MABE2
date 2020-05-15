@@ -213,6 +213,7 @@ namespace mabe {
     /// @param[in] pos is the position to perform the insertion.
     /// @param[in] ppos is the parent position (required if it exists; not used with inject).
     void AddOrgAt(emp::Ptr<Organism> org_ptr, OrgPosition pos, OrgPosition ppos=OrgPosition()) {
+      emp_assert(org_ptr);  // Must have a non-null organism to insert.
       before_placement_sig.Trigger(*org_ptr, pos, ppos);
       ClearOrgAt(pos);      // Clear out any organism already in this position.
       pos.SetOrg(org_ptr);  // Put the new organism in place.
@@ -497,6 +498,7 @@ namespace mabe {
     /// Inject a copy of the provided organism and return the position it was placed in;
     /// if more than one is added, return the position of the final injection.
     OrgPosition Inject(const Organism & org, size_t copy_count=1) {
+      emp_assert(org.GetDataMap().SameLayout(org_data_map));
       OrgPosition pos;
       for (size_t i = 0; i < copy_count; i++) {
         emp::Ptr<Organism> inject_org = org.Clone();
@@ -877,7 +879,7 @@ namespace mabe {
     if (show_help) ShowHelp();
   }
 
-  /// As part of the main Setup(), make sure we have all population needed by modules.
+  /// As part of the main Setup(), make sure we have all populations needed by modules.
   void MABE::Setup_Populations() {
     // Loop through the modules and make sure all populations are assigned.
     for (emp::Ptr<ModuleBase> mod_ptr : modules) {
@@ -1000,6 +1002,14 @@ namespace mabe {
       }
     }
 
+    // STEP 2: Lock in the DataMap and make sure that all of the modules (especially org managers)
+    // are aware of the final set of traits.
+    org_data_map.LockLayout();
+
+    for (emp::Ptr<ModuleBase> mod_ptr : modules) {
+      mod_ptr->SetupDataMap(org_data_map);
+    }
+
     verbose_out("Trait error_count = ", error_count);
   }
 
@@ -1050,7 +1060,7 @@ namespace mabe {
       result &= pops[pop_id].OK();
     }
 
-    // @CAO: Should check to make sure modules and organism managers are okay too.
+    // @CAO: Should check to make sure modules are okay too.
 
     return result;
   }
