@@ -699,7 +699,8 @@ namespace mabe {
     /// Setup the configuration options for MABE, including for each module.
     void SetupConfig();
 
-    /// Check to make sure that all details of this MABE setup are "okay".
+    /// Do some basic sanity checks for debugging; return whether all details of the current
+    /// MABE setup are "okay".
     bool OK();
   };
 
@@ -717,7 +718,7 @@ namespace mabe {
       };
     config.AddType("Population", "Collection of organisms", pop_init_fun);
 
-    // Setup all modules as types in the config file.
+    // Setup all known modules as types in the config file.
     for (auto & mod : GetModuleInfo()) {
       std::function<ConfigType &(const std::string &)> mod_init_fun =
         [this,&mod](const std::string & name) -> ConfigType & {
@@ -727,10 +728,14 @@ namespace mabe {
     }
 
 
-    // Add in other built-in functions.
+    // Add other built-in functions to the config file.
+
+    // 'exit' should terminate a run.
     std::function<int()> exit_fun = [this](){ Exit(); return 0; };
     config.AddFunction("exit", exit_fun, "Exit from this MABE run.");
 
+
+    // 'inject' allows a user to add an organism to a population.
     std::function<int(const std::string, size_t)> inject_fun =
       [this](const std::string org_type_name, size_t count) {
         Inject(org_type_name, count);
@@ -739,6 +744,7 @@ namespace mabe {
     config.AddFunction("inject", inject_fun,
       "Inject organisms into a population (args: org_name, org_count).");
 
+    // 'print' is a simple debugging command to output the value of a variable.
     std::function<int(const emp::vector<emp::Ptr<ConfigEntry>> &)> print_fun =
       [](const emp::vector<emp::Ptr<ConfigEntry>> & args) {
         for (auto entry_ptr : args) std::cout << entry_ptr->AsString();
@@ -746,7 +752,7 @@ namespace mabe {
       };
     config.AddFunction("print", print_fun, "Print out the provided variable.");
 
-    // Add in other built-in events.
+    // Add in built-in event triggers; these are used to say when events should happen.
     config.AddEventType("start");   // Triggered at the beginning of a run.
     config.AddEventType("update");  // Tested every update.
   }
@@ -754,6 +760,8 @@ namespace mabe {
   bool MABE::Setup() {
     SetupConfig();                   // Load all of the parameters needed by modules, etc.
     ProcessArgs();                   // Deal with command-line inputs.
+
+    // Sometime command-line arguments will require an immediate exit (such as after '--help')
     if (exit_now) return false;
 
     // If configuration filenames have been specified, load each of them in order.
@@ -762,7 +770,7 @@ namespace mabe {
       config.Load(config_filenames);   // Load files
     }
 
-    // If we are writing a file, do so and then stop.
+    // If we are writing a file, do so and then exit.
     if (gen_filename != "") {
       std::cout << "Generating file '" << gen_filename << "'." << std::endl;
       config.Write(gen_filename);
@@ -772,7 +780,7 @@ namespace mabe {
     // If any of the inital flags triggered an 'exit_now', do so.
     if (exit_now) return false;
 
-    Setup_Populations();    // Give modules access to the correct populations.
+    Setup_Populations();    // Give modules access to the populations they request.
     Setup_Modules();        // Run SetupModule() on each module; initialize placement if needed.
     Setup_Traits();         // Make sure module traits do not clash.
 
@@ -788,6 +796,7 @@ namespace mabe {
 
   /// Update MABE a single step.
   void MABE::Update() {
+    // When in debug mode, check the integrity of MABE each update.
     emp_assert(OK(), update);
 
     // If informaiton on any of the signals has changed, update them.
