@@ -183,7 +183,7 @@ namespace mabe {
 
     /// Write out all of the parameters contained in this scope to the provided stream.
     const ConfigEntry & WriteContents(std::ostream & os=std::cout, const std::string & prefix="",
-                                      size_t comment_offset=40) const {
+                                      size_t comment_offset=32) const {
 
       // Loop through all of the entires in this scope and Write them.
       for (auto x : entry_list) {
@@ -195,7 +195,11 @@ namespace mabe {
 
     /// Write out this scope AND it's contents to the provided stream.
     const ConfigEntry & Write(std::ostream & os=std::cout, const std::string & prefix="",
-                              size_t comment_offset=40) const override {
+                              size_t comment_offset=32) const override
+    {
+      // If this is a built-in scope, don't print it.
+      if (IsBuiltIn()) return *this;
+
       // Declare this scope.
       std::string cur_line = prefix;
       if (IsLocal()) cur_line += emp::to_string(GetTypename(), " ");
