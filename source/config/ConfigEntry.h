@@ -38,6 +38,7 @@ namespace mabe {
     emp::Ptr<ConfigScope> scope;  ///< Which scope was this variable defined in?
 
     bool is_temporary = false;    ///< Is this ConfigEntry temporary and should be deleted?
+    bool is_builtin = false;      ///< Built-in entries should not be written to config files.
   
     enum class Format { NONE=0, SCOPE,
                         BOOL, INT, UNSIGNED, DOUBLE,                                    // Values
@@ -62,6 +63,7 @@ namespace mabe {
     const std::string & GetDefaultVal() const noexcept { return default_val; }
     emp::Ptr<ConfigScope> GetScope() { return scope; }
     bool IsTemporary() const noexcept { return is_temporary; }
+    bool IsBuiltIn() const noexcept { return is_builtin; }
     Format GetFormat() const noexcept { return format; }
 
     virtual std::string GetTypename() const { return "Unknown"; }
@@ -82,6 +84,7 @@ namespace mabe {
     ConfigEntry & SetDesc(const std::string & in) { desc = in; return *this; }
     ConfigEntry & SetDefault(const std::string & in) { default_val = in; return *this; }
     ConfigEntry & SetTemporary(bool in=true) { is_temporary = in; return *this; }
+    ConfigEntry & SetBuiltIn(bool in=true) { is_builtin = in; return *this; }
 
     virtual double AsDouble() const { emp_assert(false); return 0.0; }
     virtual std::string AsString() const { emp_assert(false); return ""; }
@@ -135,7 +138,11 @@ namespace mabe {
     virtual emp::Ptr<ConfigEntry> Clone() const = 0;
 
     virtual const ConfigEntry & Write(std::ostream & os=std::cout, const std::string & prefix="",
-                                      size_t comment_offset=40) const {
+                                      size_t comment_offset=32) const
+    {
+      // If this is a built-in entry, don't print it.
+      if (IsBuiltIn()) return *this;
+
       // Setup this entry.
       std::string cur_line = prefix;
       if (IsLocal()) cur_line += emp::to_string(GetTypename(), " ", name, " = ");
