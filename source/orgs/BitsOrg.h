@@ -23,15 +23,17 @@ namespace mabe {
   class BitsOrg : public Organism {
   protected:
     emp::BitVector bits;
-    std::string output_name;  // @CAO: Should move this to org manager!
+    std::string output_name;  // @CAO: Should move this to org manager?
 
   public:
-    BitsOrg(OrganismManager<BitsOrg> & _manager) : Organism(_manager) { ; }
+    BitsOrg(OrganismManager<BitsOrg> & _manager)
+      : Organism(_manager), bits(100), output_name("bits") { }
     BitsOrg(const BitsOrg &) = default;
     BitsOrg(BitsOrg &&) = default;
     BitsOrg(const emp::BitVector & in, OrganismManager<BitsOrg> & _manager)
-    : Organism(_manager), bits(in) { ; }
-    BitsOrg(size_t N, OrganismManager<BitsOrg> & _manager) : Organism(_manager), bits(N) { ; }
+      : Organism(_manager), bits(in) { }
+    BitsOrg(size_t N, OrganismManager<BitsOrg> & _manager)
+      : Organism(_manager), bits(N), output_name("bits") { }
     ~BitsOrg() { ; }
 
     /// Use "to_string" to convert.
@@ -66,7 +68,7 @@ namespace mabe {
     void SetupConfig() override {
       LinkVar(output_name, "output_name",
               "Name of variable to contain bit sequence.",
-              "result");
+              "bits");
       LinkFuns<size_t>([this](){ return bits.size(); },
                        [this](const size_t & N){ return bits.Resize(N); },
                        "N", "Number of bits in organism", 100);
