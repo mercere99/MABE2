@@ -32,7 +32,7 @@ namespace mabe {
     EvalNK(mabe::MABE & control,
            const std::string & name="EvalNK",
            const std::string & desc="Module to evaluate bitstrings on an NK Fitness Lanscape",
-           size_t _N=20, size_t _K=3, const std::string & _btrait="NK", const std::string & _ftrait="fitness")
+           size_t _N=100, size_t _K=3, const std::string & _btrait="bits", const std::string & _ftrait="fitness")
       : Module(control, name, desc)
       , N(_N), K(_K), target_pop(0), bits_trait(_btrait), fitness_trait(_ftrait)
     {
@@ -63,7 +63,10 @@ namespace mabe {
       emp::Ptr<Organism> max_org = nullptr;
       for (Organism & org : control.GetPopulation(target_pop).Alive()) {
         org.GenerateOutput(bits_trait);
-        double fitness = landscape.GetFitness( org.GetVar<emp::BitVector>(bits_trait) );
+        const auto & bits = org.GetVar<emp::BitVector>(bits_trait);
+        if (bits.size() != N) AddError("Org returns ", bits.size(), " bits, but ",
+                                       N, " bits needed for NK landscape.");
+        double fitness = landscape.GetFitness(bits);
         org.SetVar<double>(fitness_trait, fitness);
 
         if (fitness > max_fitness || !max_org) {
