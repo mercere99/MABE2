@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019
+ *  @date 2019-2020.
  *
  *  @file  GrowthPlacement.h
  *  @brief Default placement using one or two unstructured populations, "main" and "next".
@@ -32,7 +32,7 @@ namespace mabe {
 
     void SetupConfig() override {
       LinkPop(main_pop, "from_pop", "Population to manage births from.",0);
-      LinkPop(next_pop, "to_pop", "Population to place offspring in (same as from_pop for continuous generations.)",1);
+      LinkPop(next_pop, "to_pop", "Population to place offspring; use from_pop for async generations.",1);
     }
 
     void SetupModule() override {
