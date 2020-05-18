@@ -424,7 +424,8 @@ namespace mabe {
     void SetupEmpty() {
       if (empty_org) empty_org.Delete();  // If we already have an empty organism, replace it.
       auto & empty_manager =
-        AddModule<EMPTY_MANAGER_T>("empty_org", "Manager for all 'empty' organisms in any population.");
+        AddModule<EMPTY_MANAGER_T>("EmptyOrg", "Manager for all 'empty' organisms in any population.");
+      empty_manager.SetBuiltIn();         // Don't write the empty manager to config.
 
       empty_org = empty_manager.MakeOrganism();
     }
@@ -681,13 +682,13 @@ namespace mabe {
     ConfigScope & GetCurScope() { return *cur_scope; }
 
     /// Add a new scope under the current one.
-    ConfigScope & PushScope(const std::string & name, const std::string & desc) {
+    ConfigScope & AddScope(const std::string & name, const std::string & desc) {
       cur_scope = &(cur_scope->AddScope(name, desc));
       return *cur_scope;
     }
 
     /// Move up one level of scope.
-    ConfigScope & PopScope() {
+    ConfigScope & LeaveScope() {
       cur_scope = cur_scope->GetScope();
       return *cur_scope;
     }
@@ -823,7 +824,7 @@ namespace mabe {
     arg_set.emplace_back("--generate", "-g", "[filename]    ", "Generate a new output file",
       [this](const emp::vector<std::string> & in) {
         if (in.size() != 1) {
-          std::cout << "--generate must be followed by a single filename.\n";
+          std::cout << "'--generate' must be followed by a single filename.\n";
           Exit();
         } else {
           // MABE Config files should be generated FROM a *.gen file, typically creating a *.mabe
@@ -1044,10 +1045,12 @@ namespace mabe {
 
     // Call the SetupConfig of module base classes (they will call the dervived version)
     for (auto m : modules) {
-      PushScope(m->GetName(), m->GetDesc());
-      m->SetupScope(*cur_scope);
-      m->SetupConfig();
-      PopScope();
+      if (m->IsBuiltIn()) continue;          // Built-in modules don't need to be configured.
+
+      AddScope(m->GetName(), m->GetDesc());  // Add a config scope for each module we've created.
+      m->SetupScope(*cur_scope);             // Notify the module about it's own scope.
+      m->SetupConfig();                      // Allow to module to configure its scope.
+      LeaveScope();                          // Exit the module's scope before move to next module.
     }
   }
 
