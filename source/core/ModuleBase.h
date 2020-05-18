@@ -97,9 +97,11 @@ namespace mabe {
     std::string desc;                 ///< Description for this module.
     mabe::MABE & control;             ///< Reference to main mabe controller using this module
     emp::vector<std::string> errors;  ///< Has this class detected any configuration errors?
+    bool is_builtin=false;            ///< Is this a built-in module that shouldn't go in config?
 
     /// Informative tags about this module.  Expected tags include:
-    ///   "Analyze"     : Records data or makes measurements on the population.
+    ///   "Analyze"     : Makes measurements on the population.
+    ///   "Archive"     : Store specific types of data.
     ///   "ErrorHandle" : Deals with errors as they occur and need to be reported.
     ///   "Evaluate"    : Examines organisms and annotates the data map.
     ///   "Interface"   : Provides mechanisms for the user to interact with the world.
@@ -184,6 +186,9 @@ namespace mabe {
 
     virtual std::string GetTypeName() const { return "ModuleBase"; }
     virtual emp::Ptr<ModuleBase> Clone() { return nullptr; }
+
+    bool IsBuiltIn() const { return is_builtin; }
+    void SetBuiltIn(bool _in=true) { is_builtin = _in; }
 
     bool IsAnalyzeMod() const { return emp::Has(action_tags, "Analyze"); }
     bool IsErrorHandleMod() const { return emp::Has(action_tags, "ErrorHandle"); }
