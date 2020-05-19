@@ -38,7 +38,12 @@ namespace mabe {
     }
 
     void OnUpdate(size_t ud) override {
-      std::cout << "Update: " << ud << std::endl;
+      std::cout << "Update:" << ud;
+      for (size_t pop_id = 0; pop_id < control.GetNumPopulations(); pop_id++) {
+        const Population & pop = control.GetPopulation(pop_id);
+        std::cout << "  " << pop.GetName() << ":" << pop.GetNumOrgs();
+      }
+      std::cout << std::endl;
     }
 
     void OnError(const std::string & msg) override {
