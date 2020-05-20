@@ -23,8 +23,6 @@ namespace mabe {
     std::string ToString() override { return "[empty]"; }
     size_t Mutate(emp::Random &) override { emp_error("EmptyOrganism cannot Mutate()"); return -1; }
     void Randomize(emp::Random &) override { emp_error("EmptyOrganism cannot Randomize()"); }
-    void GenerateOutput(const std::string &, size_t) override { emp_error("EmptyOrganism cannot GenerateOutput()"); }
-    emp::TypeID GetOutputType(size_t=0) override { return emp::TypeID(); }
     bool IsEmpty() const noexcept override { return true; }
   };
 
