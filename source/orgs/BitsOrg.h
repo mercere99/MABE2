@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019
+ *  @date 2019-2020.
  *
  *  @file  BitsOrg.h
  *  @brief An organism consisting of a series of bits.
@@ -52,16 +52,9 @@ namespace mabe {
       emp::RandomizeBitVector(bits, random, 0.5);
     }
 
-    // Nothing to evaluate -- just put the bits in the correct output position.
-    bool Evaluate() override {
+    /// Put the bits in the correct output position.
+    void GenerateOutput() override {
       SetVar<emp::BitVector>(output_name, bits);
-      return true;
-    }
-
-    /// Request output type (multiple types are possible); default to unknown.
-    /// Argument is the output ID.
-    emp::TypeID GetOutputType(size_t=0) override {
-      return emp::GetTypeID<emp::BitVector>();
     }
 
     /// Setup this organism to load from config.
