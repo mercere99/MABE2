@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019
+ *  @date 2019-2020.
  *
  *  @file  EvalAll1s.h
  *  @brief MABE Evaluation module for NK Landscapes
@@ -52,7 +52,7 @@ namespace mabe {
       double max_fitness = 0.0;
       emp::Ptr<Organism> max_org = nullptr;
       for (Organism & org : control.GetPopulation(0).Alive()) {
-        org.GenerateOutput(bits_trait);
+        org.GenerateOutput();
         double fitness = (double)  org.GetVar<emp::BitVector>(bits_trait).CountOnes();
         org.SetVar<double>(fitness_trait, fitness);
 
