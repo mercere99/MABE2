@@ -62,10 +62,13 @@ namespace mabe {
       double max_fitness = 0.0;
       emp::Ptr<Organism> max_org = nullptr;
       for (Organism & org : control.GetPopulation(target_pop).Alive()) {
-        org.GenerateOutput(bits_trait);
+        org.GenerateOutput();
         const auto & bits = org.GetVar<emp::BitVector>(bits_trait);
-        if (bits.size() != N) AddError("Org returns ", bits.size(), " bits, but ",
-                                       N, " bits needed for NK landscape.");
+        if (bits.size() != N) {
+          AddError("Org returns ", bits.size(), " bits, but ",
+                   N, " bits needed for NK landscape.",
+                   "\nOrg: ", org.ToString());
+        }
         double fitness = landscape.GetFitness(bits);
         org.SetVar<double>(fitness_trait, fitness);
 
