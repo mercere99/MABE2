@@ -67,11 +67,6 @@ namespace mabe {
     Organism(ModuleBase & _man) : manager(_man) { ; }
     virtual ~Organism() { ; }
 
-    virtual bool Evaluate() { return false; }
-    virtual bool ProcessStep() { return false; }
-    // virtual bool AddEvent(const std::string & event_name, int event_id) { return false; }
-    // virtual void TriggerEvent(int) { ; }
-
     /// Get the manager for this type of organism.
     ModuleBase & GetManager() { return manager; }
     const ModuleBase & GetManager() const { return manager; }
@@ -131,14 +126,14 @@ namespace mabe {
     /// Completely randomize a new organism (typically for initialization)
     virtual void Randomize(emp::Random & random) { manager.Randomize(*this, random); }
 
-    /// Generate an output and place it in the DataMap under the provided name (default = "result").
-    /// Arguments are the output name int he DataMap and the output ID.
-    virtual void GenerateOutput(const std::string & ="result", size_t=0) { ; }
+    /// Run the organism to generate an output in the pre-configured data_map entries.
+    virtual void GenerateOutput() { ; }
 
-    /// Request output type (multiple types are possible); default to unknown.
-    /// Argument is the output ID.
-    virtual emp::TypeID GetOutputType(size_t=0) { return emp::TypeID(); }
-
+    /// Run the organisms a single time step; only implemented for continuous execution organisms.
+    virtual bool ProcessStep() { return false; }
+ 
+    // virtual bool AddEvent(const std::string & event_name, int event_id) { return false; }
+    // virtual void TriggerEvent(int) { ; }
 
     /// --- Extra functions for when this is used as a prototype organism ---
     
