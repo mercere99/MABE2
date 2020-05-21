@@ -8,7 +8,7 @@
  */
 
 // Evaluation Modules
-#include "evaluate/EvalAll1s.h"
+#include "evaluate/EvalCountBits.h"
 #include "evaluate/EvalNK.h"
 
 // Interface Modules
