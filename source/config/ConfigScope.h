@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019
+ *  @date 2019-2020.
  *
  *  @file  ConfigScope.h
  *  @brief Manages a full scope with many conig entries (or sub-scopes).
@@ -80,13 +80,6 @@ namespace mabe {
     /// Set this entry to be a correctly-types scope pointer.
     emp::Ptr<ConfigScope> AsScopePtr() override { return this; }
 
-    /// Update the default value of all settings to be their current values.
-    void UpdateDefault() override {
-      // Recursively update all defaults within the structure.
-      for (auto & x : entry_list) x->UpdateDefault();
-      default_val = ""; /* @CAO: Need to spell out? */
-    }
-
     /// Get an entry out of this scope; 
     entry_ptr_t GetEntry(std::string in_name) {
       // Lookup this next entry is in the var list.
@@ -131,22 +124,20 @@ namespace mabe {
 
     /// Link a variable to a configuration entry - it sets the new default and
     /// automatically updates when configs are loaded.
-    template <typename VAR_T, typename DEFAULT_T>
+    template <typename VAR_T>
     ConfigEntry_Linked<VAR_T> & LinkVar(const std::string & name,
                                         VAR_T & var,
-                                        const std::string & desc,
-                                        DEFAULT_T default_val) {
+                                        const std::string & desc) {
       return Add<ConfigEntry_Linked<VAR_T>>(name, var, desc, this);
     }
 
     /// Link a configuration entry to a pair of functions - it sets the new default and
     /// automatically calls the set function when configs are loaded.
-    template <typename VAR_T, typename DEFAULT_T>
+    template <typename VAR_T>
     ConfigEntry_Functions<VAR_T> & LinkFuns(const std::string & name,
                                             std::function<VAR_T()> get_fun,
                                             std::function<void(const VAR_T &)> set_fun,
-                                            const std::string & desc,
-                                            DEFAULT_T default_val) {
+                                            const std::string & desc) {
       return Add<ConfigEntry_Functions<VAR_T>>(name, get_fun, set_fun, desc, this);
     }
 

@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019
+ *  @date 2019-2020.
  *
  *  @file  ConfigEntry.h
  *  @brief Manages a single configuration entry.
@@ -9,8 +9,8 @@
  * 
  * 
  *  Development Notes:
- *  - When a ConfigEntry is used for a temporary value, it doesn't acutally need name, desc
- *    or default_val; we can probably remove these pretty easily to save on memory if needed.
+ *  - When a ConfigEntry is used for a temporary value, it doesn't acutally need name or desc;
+ *    we can probably remove these pretty easily to save on memory if needed.
  */
 
 #ifndef MABE_CONFIG_ENTRY_H
@@ -34,7 +34,6 @@ namespace mabe {
   protected:
     std::string name;             ///< Unique name for this entry; empty name implied temporary.
     std::string desc;             ///< Description to put in comments for this entry.
-    std::string default_val;      ///< String representing value to use in generated config file.
     emp::Ptr<ConfigScope> scope;  ///< Which scope was this variable defined in?
 
     bool is_temporary = false;    ///< Is this ConfigEntry temporary and should be deleted?
@@ -60,7 +59,6 @@ namespace mabe {
 
     const std::string & GetName() const noexcept { return name; }
     const std::string & GetDesc() const noexcept { return desc; }
-    const std::string & GetDefaultVal() const noexcept { return default_val; }
     emp::Ptr<ConfigScope> GetScope() { return scope; }
     bool IsTemporary() const noexcept { return is_temporary; }
     bool IsBuiltIn() const noexcept { return is_builtin; }
@@ -79,10 +77,8 @@ namespace mabe {
     virtual bool IsScope() const { return false; }     ///< Is this entry a full scope?
     virtual bool IsError() const { return false; }     ///< Does this entry flag an error?
 
-    /// Set the default string for this entry.
     ConfigEntry & SetName(const std::string & in) { name = in; return *this; }
     ConfigEntry & SetDesc(const std::string & in) { desc = in; return *this; }
-    ConfigEntry & SetDefault(const std::string & in) { default_val = in; return *this; }
     ConfigEntry & SetTemporary(bool in=true) { is_temporary = in; return *this; }
     ConfigEntry & SetBuiltIn(bool in=true) { is_builtin = in; return *this; }
 
@@ -120,9 +116,6 @@ namespace mabe {
     // Try to copy another config entry into this one; return true if successfule.
     virtual bool CopyValue(const ConfigEntry & in) { return false; }
 
-    /// Shift the current value to be the new default value.
-    virtual void UpdateDefault() { default_val = ""; }
-
     /// If this entry is a scope, we should be able to lookup other entries inside it.
     virtual emp::Ptr<ConfigEntry> LookupEntry(const std::string & in_name, bool scan_scopes=true) {
       return (in_name == "") ? this : nullptr;
@@ -148,16 +141,6 @@ namespace mabe {
       std::string cur_line = prefix;
       if (IsLocal()) cur_line += emp::to_string(GetTypename(), " ", name, " = ");
       else cur_line += emp::to_string(name, " = ");
-
-      // If a default value has been provided, print it.  Otherwise print the current value.
-      // if (default_val.size()) {
-      //   os << default_val;
-      //   char_count += default_val.size();
-      // }
-      // else {
-      //   os << AsString();
-      //   char_count += AsString().size();
-      // }
 
       // Print the current value of this variable; if it's a string make sure to turn it to a literal.
       cur_line += IsString() ? emp::to_literal(AsString()) : AsString();

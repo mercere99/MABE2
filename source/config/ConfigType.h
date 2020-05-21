@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019
+ *  @date 2019-2020.
  *
  *  @file  ConfigType.h
  *  @brief Setup types for use in scripting.
@@ -35,25 +35,23 @@ namespace mabe {
     
     // ---==  Configuration Management ==---
 
-    /// Link a variable to a configuration entry - it sets the new default and
-    /// automatically updates when configs are loaded.
-    template <typename VAR_T, typename DEFAULT_T>
+    /// Link a variable to a configuration entry - the value will default to the
+    /// variabels crrent value, but be updated when configs are loaded.
+    template <typename VAR_T>
     ConfigEntry_Linked<VAR_T> & LinkVar(VAR_T & var,
                                         const std::string & name,
-                                        const std::string & desc,
-                                        DEFAULT_T default_val) {
-      return GetScope().LinkVar<VAR_T>(name, var, desc, default_val);
+                                        const std::string & desc) {
+      return GetScope().LinkVar<VAR_T>(name, var, desc);
     }
 
-    /// Link a configuration entry to a pair of functions - it sets the new default and
-    /// automatically calls the set function when configs are loaded.
-    template <typename VAR_T, typename DEFAULT_T>
+    /// Link a configuration entry to a pair of functions - it automatically calls the set
+    /// function when configs are loaded, and the get function when current value is needed.
+    template <typename VAR_T>
     ConfigEntry_Functions<VAR_T> & LinkFuns(std::function<VAR_T()> get_fun,
                                             std::function<void(const VAR_T &)> set_fun,
                                             const std::string & name,
-                                            const std::string & desc,
-                                            DEFAULT_T default_val) {
-      return GetScope().LinkFuns<VAR_T>(name, get_fun, set_fun, desc, default_val);
+                                            const std::string & desc) {
+      return GetScope().LinkFuns<VAR_T>(name, get_fun, set_fun, desc);
     }
 
   public:
