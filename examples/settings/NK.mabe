@@ -1,5 +1,4 @@
 random_seed = 0;                // Seed for random number generator; use 0 to base on time.
- empty_org;                     // Manager for all 'empty' organisms in any population.
 Population main_pop;            // Collection of organisms
 Population next_pop;            // Collection of organisms
 CommandLine cl {                // Handle basic I/O on the command line.
@@ -11,9 +10,9 @@ Mutate mut {                    // Trigger mutations in organisms.
 }
 EvalNK enk {                    // Evaluate bitstrings on an NK fitness lanscape.
   target_pop = "main_pop";      // Which population should we evaluate?
-  N = 20;                       // Number of bits required in output
+  N = 100;                      // Number of bits required in output
   K = 3;                        // Number of bits used in each gene
-  bits_trait = "NK";            // Which trait stores the bit sequence to evaluate?
+  bits_trait = "bits";          // Which trait stores the bit sequence to evaluate?
   fitness_trait = "fitness";    // Which trait should we store NK fitness in?
 }
 SelectElite select_e {          // Choose the top fitness organisms for replication.
@@ -33,10 +32,10 @@ GrowthPlacement place_g {       // Always appened births onto a population.
   to_pop = "next_pop";          // Population to place offspring; use from_pop for async generations.
 }
 BitsOrg bits_org {              // Organism consisting of a series of N bits.
-  output_name = "";             // Name of variable to contain bit sequence.
-  N = 0;                        // Number of bits in organism
+  output_name = "bits";         // Name of variable to contain bit sequence.
+  N = 100;                      // Number of bits in organism
 }
 
 @start(0) print("random_seed = ", random_seed, "\n");
-@start(0) inject("bits_org", 200);
+@start(0) inject("bits_org", "main_pop", 200);
 @update(100) exit();
