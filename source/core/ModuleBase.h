@@ -28,8 +28,8 @@
  *       : Parent is about to reporduce.
  *     OnOffspringReady(Organism & offspring, OrgPosition parent_pos)
  *       : Offspring is ready to be placed.
- *     OnInjectReady(Organism & inject_org)
- *       : Organism to be injected is ready to be placed.
+ *     OnInjectReady(Organism & inject_org, Population & pop)
+ *       : Organism to be injected into pop is ready to be placed.
  *     BeforePlacement(Organism & org, OrgPosition target_pos)
  *       : Placement location has been identified (For birth or inject)
  *     OnPlacement(OrgPosition placement_pos)
@@ -61,7 +61,7 @@
  *    - Various Do* functions run in modules until one of them returns a valid answer.
  *     DoPlaceBirth(Organism & offspring, OrgPosition parent position)
  *       : Place a new offspring about to be born.
- *     DoPlaceInject(Organism & new_org)
+ *     DoPlaceInject(Organism & new_org, Population & pop)
  *       : Place a new offspring about to be injected.
  *     DoFindNeighbor(OrgPosition target_pos)
  *       : Find a random neighbor to a designated position.
@@ -227,7 +227,7 @@ namespace mabe {
     virtual void OnUpdate(size_t) = 0;
     virtual void BeforeRepro(OrgPosition) = 0;
     virtual void OnOffspringReady(Organism &, OrgPosition) = 0;
-    virtual void OnInjectReady(Organism &) = 0;
+    virtual void OnInjectReady(Organism &, Population &) = 0;
     virtual void BeforePlacement(Organism &, OrgPosition, OrgPosition) = 0;
     virtual void OnPlacement(OrgPosition) = 0;
     virtual void BeforeMutate(Organism &) = 0;
@@ -243,7 +243,7 @@ namespace mabe {
     virtual void OnHelp() = 0;
 
     virtual OrgPosition DoPlaceBirth(Organism &, OrgPosition) = 0;
-    virtual OrgPosition DoPlaceInject(Organism &) = 0;
+    virtual OrgPosition DoPlaceInject(Organism &, Population &) = 0;
     virtual OrgPosition DoFindNeighbor(OrgPosition) = 0;
 
     virtual void Deactivate() = 0;  ///< Turn off all signals in this function.
