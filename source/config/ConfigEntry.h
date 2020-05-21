@@ -108,8 +108,9 @@ namespace mabe {
       else if constexpr (std::is_arithmetic<base_T>()) { return (T) AsDouble(); }
       else {
         // Oh oh... we don't know this type...
-        emp_assert(false, "Trying to convert a ConfigEntry to an unknown type!");
-        return T();
+        emp_error("Trying to convert a ConfigEntry to an unknown type: ",
+                  emp::GetTypeID<T>().GetName());
+        return base_T();
       }
     }
 
