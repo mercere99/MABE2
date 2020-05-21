@@ -8,8 +8,8 @@ SelectElite select_e;
 SelectTournament select_t;
 GrowthPlacement place_g;
 
-BitsOrgManager bit_org;
+BitsOrg bits_org;
 
 @start() print("random_seed = ", random_seed, "\n");
-@start() inject("bit_org", 200);
+@start() inject("bits_org", 200);
 @update(100) exit();
