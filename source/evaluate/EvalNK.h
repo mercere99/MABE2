@@ -44,11 +44,11 @@ namespace mabe {
     ~EvalNK() { }
 
     void SetupConfig() override {
-      LinkPop(target_pop, "target_pop", "Which population should we evaluate?", 0);
-      LinkVar(N, "N", "Number of bits required in output", 100);
-      LinkVar(K, "K", "Number of bits used in each gene", 3);
-      LinkVar(bits_trait, "bits_trait", "Which trait stores the bit sequence to evaluate?", "bits");
-      LinkVar(fitness_trait, "fitness_trait", "Which trait should we store NK fitness in?", "fitness");
+      LinkPop(target_pop, "target_pop", "Which population should we evaluate?");
+      LinkVar(N, "N", "Number of bits required in output");
+      LinkVar(K, "K", "Number of bits used in each gene");
+      LinkVar(bits_trait, "bits_trait", "Which trait stores the bit sequence to evaluate?");
+      LinkVar(fitness_trait, "fitness_trait", "Which trait should we store NK fitness in?");
     }
 
     void SetupModule() override {

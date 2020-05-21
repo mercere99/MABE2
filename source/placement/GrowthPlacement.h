@@ -31,8 +31,9 @@ namespace mabe {
     ~GrowthPlacement() { }
 
     void SetupConfig() override {
-      LinkPop(main_pop, "from_pop", "Population to manage births from.",0);
-      LinkPop(next_pop, "to_pop", "Population to place offspring; use from_pop for async generations.",1);
+      LinkPop(main_pop, "from_pop", "Population to manage births from.");
+      LinkPop(next_pop, "to_pop",
+              "Population to place offspring; use from_pop for async generations.");
     }
 
     void SetupModule() override {

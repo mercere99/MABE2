@@ -33,7 +33,7 @@ namespace mabe {
 
     void SetupConfig() override {
       LinkPop(pop_id, "target_pop", "Which population should we mutate?");
-      LinkVar(skip, "skip", "Number of orgs to exempt from mutating", 0);
+      LinkVar(skip, "skip", "Number of orgs to exempt from mutating");
     }
 
     void OnUpdate(size_t update) override {

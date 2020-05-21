@@ -60,11 +60,10 @@ namespace mabe {
     /// Setup this organism to load from config.
     void SetupConfig() override {
       LinkVar(output_name, "output_name",
-              "Name of variable to contain bit sequence.",
-              "bits");
+              "Name of variable to contain bit sequence.");
       LinkFuns<size_t>([this](){ return bits.size(); },
                        [this](const size_t & N){ return bits.Resize(N); },
-                       "N", "Number of bits in organism", 100);
+                       "N", "Number of bits in organism");
     }
   };
 

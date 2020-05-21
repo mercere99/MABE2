@@ -43,10 +43,10 @@ namespace mabe {
     ~EvalCountBits() { }
 
     void SetupConfig() override {
-      LinkPop(target_pop, "target_pop", "Which population should we evaluate?", 0);
-      LinkVar(bits_trait, "bits_trait", "Which trait stores the bit sequence to evaluate?", "bits");
-      LinkVar(fitness_trait, "fitness_trait", "Which trait should we store NK fitness in?", "fitness");
-      LinkVar(count_type, "count_type", "Which type of bit should we count? (0 or 1)", 1);
+      LinkPop(target_pop, "target_pop", "Which population should we evaluate?");
+      LinkVar(bits_trait, "bits_trait", "Which trait stores the bit sequence to evaluate?");
+      LinkVar(fitness_trait, "fitness_trait", "Which trait should we store NK fitness in?");
+      LinkVar(count_type, "count_type", "Which type of bit should we count? (0 or 1)");
     }
 
     void SetupModule() override {

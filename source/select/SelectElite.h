@@ -41,9 +41,9 @@ namespace mabe {
 
     void SetupConfig() override {
       LinkPop(pop_id, "target_pop", "Which population should we select parents from?");
-      LinkVar(top_count, "top_count", "Number of top-fitness orgs to be replicated", 1);
-      LinkVar(copy_count, "copy_count", "Number of copies to make of replicated organisms", 1);
-      LinkVar(trait, "fitness_trait", "Which trait provides the fitness value to use?", "fitness");
+      LinkVar(top_count, "top_count", "Number of top-fitness orgs to be replicated");
+      LinkVar(copy_count, "copy_count", "Number of copies to make of replicated organisms");
+      LinkVar(trait, "fitness_trait", "Which trait provides the fitness value to use?");
     }
 
     void SetupModule() override { }
