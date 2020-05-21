@@ -139,7 +139,7 @@ namespace mabe {
     // OnOffspringReady(Organism & offspring, OrgPosition parent_pos)
     SigListener<void,Organism &,OrgPosition> on_offspring_ready_sig;
     // OnInjectReady(Organism & inject_org)
-    SigListener<void,Organism &> on_inject_ready_sig;
+    SigListener<void,Organism &,Population &> on_inject_ready_sig;
     // BeforePlacement(Organism & org, OrgPosition target_pos, OrgPosition parent_pos)
     SigListener<void,Organism &, OrgPosition, OrgPosition> before_placement_sig;
     // OnPlacement(OrgPosition placement_pos)
@@ -168,9 +168,9 @@ namespace mabe {
     SigListener<void> on_help_sig;
 
     // OrgPosition DoPlaceBirth(Organism & offspring, OrgPosition parent_position);
-    SigListener<OrgPosition, Organism &,OrgPosition> do_place_birth_sig;
+    SigListener<OrgPosition, Organism &, OrgPosition> do_place_birth_sig;
     // OrgPosition DoPlaceInject(Organism & new_organism)
-    SigListener<OrgPosition, Organism &> do_place_inject_sig;
+    SigListener<OrgPosition, Organism &, Population &> do_place_inject_sig;
     // OrgPosition DoFindNeighbor(OrgPosition target_organism) {
     SigListener<OrgPosition, OrgPosition> do_find_neighbor_sig;
 
@@ -456,8 +456,8 @@ namespace mabe {
     OrgPosition FindBirthPosition(Organism & offspring, OrgPosition ppos) {
       return do_place_birth_sig.FindPosition(offspring, ppos);
     }
-    OrgPosition FindInjectPosition(Organism & new_org) {
-      return do_place_inject_sig.FindPosition(new_org);
+    OrgPosition FindInjectPosition(Organism & new_org, Population & pop) {
+      return do_place_inject_sig.FindPosition(new_org, pop);
     }
     OrgPosition FindNeighbor(OrgPosition pos) {
       return do_find_neighbor_sig.FindPosition(pos);
@@ -498,13 +498,13 @@ namespace mabe {
 
     /// Inject a copy of the provided organism and return the position it was placed in;
     /// if more than one is added, return the position of the final injection.
-    OrgPosition Inject(const Organism & org, size_t copy_count=1) {
+    OrgPosition Inject(const Organism & org, Population & pop, size_t copy_count=1) {
       emp_assert(org.GetDataMap().SameLayout(org_data_map));
       OrgPosition pos;
       for (size_t i = 0; i < copy_count; i++) {
         emp::Ptr<Organism> inject_org = org.Clone();
-        on_inject_ready_sig.Trigger(*inject_org);
-        pos = FindInjectPosition(*inject_org);
+        on_inject_ready_sig.Trigger(*inject_org, pop);
+        pos = FindInjectPosition(*inject_org, pop);
         if (pos.IsValid()) {
           AddOrgAt( inject_org, pos);
         } else {
@@ -518,19 +518,33 @@ namespace mabe {
 
     /// Add an organsim of a specified type to the world (provide the type name and the
     /// MABE controller will create an instance of it.)
-    OrgPosition Inject(const std::string & type_name, size_t copy_count=1) {      
-      auto & org_manager = GetModule(type_name);          // Look up type of organism.
-      auto org_ptr = org_manager.MakeOrganism(random);    // Build an org of this type.
-      OrgPosition pos = Inject(*org_ptr, copy_count);     // Inject a copy of the organism.
-      org_ptr.Delete();                                   // Delete generated organism.
-      return pos;                                         // Return last position injected.
+    OrgPosition Inject(const std::string & type_name, Population & pop, size_t copy_count=1) {
+      auto & org_manager = GetModule(type_name);            // Look up type of organism.
+      auto org_ptr = org_manager.MakeOrganism(random);      // Build an org of this type.
+      OrgPosition pos = Inject(*org_ptr, pop, copy_count);  // Inject a copy of the organism.
+      org_ptr.Delete();                                     // Delete generated organism.
+      return pos;                                           // Return last position injected.
+    }
+
+    /// Add an organism of a specified type and population (provide names of both and they
+    /// will be properly setup.)
+    OrgPosition Inject(const std::string & type_name, 
+                       const std::string & pop_name,
+                       size_t copy_count=1) {      
+      int pop_id = GetPopID(pop_name);
+      if (pop_id == -1) {
+        AddError("Invalid population name used in inject '", pop_name, "'.");        
+      }
+      Population & pop = GetPopulation(pop_id);
+      OrgPosition pos = Inject(type_name, pop, copy_count);  // Inject a copy of the organism.
+      return pos;                                           // Return last position injected.
     }
 
     /// Inject a copy of the provided organism at a specified position.
     void InjectAt(const Organism & org, OrgPosition pos) {
       emp_assert(pos.IsValid());
       emp::Ptr<Organism> inject_org = org.Clone();
-      on_inject_ready_sig.Trigger(*inject_org);
+      on_inject_ready_sig.Trigger(*inject_org, GetPopulation(pos.PopID()));
       AddOrgAt( inject_org, pos);
     }
 
@@ -739,13 +753,13 @@ namespace mabe {
 
 
     // 'inject' allows a user to add an organism to a population.
-    std::function<int(const std::string, size_t)> inject_fun =
-      [this](const std::string org_type_name, size_t count) {
-        Inject(org_type_name, count);
+    std::function<int(const std::string &, const std::string &, size_t)> inject_fun =
+      [this](const std::string & org_type_name, const std::string & pop_name, size_t count) {
+        Inject(org_type_name, pop_name, count);
         return 0;
       };
     config.AddFunction("inject", inject_fun,
-      "Inject organisms into a population (args: org_name, org_count).");
+      "Inject organisms into a population (args: org_name, pop_name, org_count).");
 
     // 'print' is a simple debugging command to output the value of a variable.
     std::function<int(const emp::vector<emp::Ptr<ConfigEntry>> &)> print_fun =
