@@ -64,13 +64,13 @@ namespace mabe {
 
       // If birth is not coming from monitored population, don't place!
       if (ppos.PopID() != main_pop) return OrgPosition();
-      return control.PushEmpty(control.GetPopulation(next_pop));  // @CAO Should use next pop...
+      return control.PushEmpty(control.GetPopulation(next_pop));
     }
 
     // Injections always go into the active population.
-    OrgPosition DoPlaceInject(Organism & org) override {
+    OrgPosition DoPlaceInject(Organism & org, Population & pop) override {
       (void) org;  // By default, organism doesn't matter.
-      return control.PushEmpty(control.GetPopulation(main_pop));  // @CAO Should use main pop...
+      return control.PushEmpty(control.GetPopulation(main_pop));
     }
 
     OrgPosition DoFindNeighbor(OrgPosition pos) override {
