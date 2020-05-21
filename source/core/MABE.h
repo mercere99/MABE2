@@ -482,9 +482,9 @@ namespace mabe {
 
     /// If GetPopulation() is called without an ID, return the current population or create one.
     Population & GetPopulation() {
-      if (pops.size() == 0) {                // If we don't already have a population, add one!
-        emp_assert(cur_pop_id == (size_t) -1);  // Current population should be default;
-        AddPopulation("main");               // Default population is named main.
+      if (pops.size() == 0) {                   // If we don't have a population, add one!
+        emp_assert(cur_pop_id == (size_t) -1);  // Current population should now be default;
+        AddPopulation("main");                  // Default population is named main.
       }
       return pops[cur_pop_id];
     }
@@ -1054,8 +1054,7 @@ namespace mabe {
     // Setup main MABE variables.
     cur_scope->LinkVar("random_seed",
                         random_seed,
-                        "Seed for random number generator; use 0 to base on time.",
-                        0).SetMin(0);
+                        "Seed for random number generator; use 0 to base on time.").SetMin(0);
 
     // Call the SetupConfig of module base classes (they will call the dervived version)
     for (auto m : modules) {

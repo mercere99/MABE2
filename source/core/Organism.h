@@ -51,17 +51,13 @@ namespace mabe {
     template <typename... Ts>
     auto & LinkVar(Ts &&... args) { return manager.LinkVar(args...); }
 
-    template <typename VAR_T, typename DEFAULT_T>
+    template <typename VAR_T>
     auto & LinkFuns(std::function<VAR_T()> get_fun,
                     std::function<void(const VAR_T &)> set_fun,
                     const std::string & name,
-                    const std::string & desc,
-                    DEFAULT_T default_val) {
-      return manager.LinkFuns<VAR_T, DEFAULT_T>(get_fun, set_fun, name, desc, default_val);
+                    const std::string & desc) {
+      return manager.LinkFuns<VAR_T>(get_fun, set_fun, name, desc);
     }
-
-    // template <typename... Ts>
-    // auto & LinkPop(Ts &&... args) { return manager.LinkPop(args...); }
 
   public:
     Organism(ModuleBase & _man) : manager(_man) { ; }

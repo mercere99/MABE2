@@ -51,15 +51,13 @@ namespace mabe {
     /// (Other ways of linking variable to config file are in ConfigType.h)
     ConfigEntry_Functions<std::string> & LinkPop(int & var,
                                                  const std::string & name,
-                                                 const std::string & desc,
-                                                 int default_pop=0) {
+                                                 const std::string & desc) {
       std::function<std::string()> get_fun =
         [this,&var](){ return control.GetPopulation(var).GetName(); };
       std::function<void(std::string)> set_fun =
         [this,&var](const std::string & name){ var = control.GetPopID(name); };
       return GetScope().LinkFuns<std::string>(
-        name, get_fun, set_fun, desc,
-        control.GetPopulation(default_pop).GetName());
+        name, get_fun, set_fun, desc);
     }
 
     // ---== Trait management ==---

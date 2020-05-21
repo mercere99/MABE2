@@ -71,7 +71,7 @@ namespace mabe {
       UNKNOWN=0,   ///< Access level unknown; most likely a problem!
       PRIVATE,     ///< Can READ & WRITE this trait; other modules cannot use it at all.
       OWNED,       ///< Can READ & WRITE this trait; other modules can read it.
-      GENERATED,   ///< Can READ & WRITE this trait; other moduels MUST read it.
+      GENERATED,   ///< Can READ & WRITE this trait; other modules MUST read it.
       SHARED,      ///< Can READ & WRITE this trait; other modules can too.
       REQUIRED,    ///< Can READ this trait, but another module must WRITE to it.
       NUM_ACCESS   ///< How many access methods are there?
