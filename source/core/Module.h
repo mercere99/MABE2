@@ -137,7 +137,7 @@ namespace mabe {
 
     // Format:  OnInjectReady(Organism & inject_org)
     // Trigger: Organism to be injected is ready to be placed.
-    void OnInjectReady(Organism &) override {
+    void OnInjectReady(Organism &, Population &) override {
       has_signal[SIG_OnInjectReady] = false;
       control.RescanSignals();
     }
@@ -253,7 +253,7 @@ namespace mabe {
     // Function: Place a new organism about to be injected.
     // Args: Organism that will be placed, position to place.
 
-    OrgPosition DoPlaceInject(Organism &) override {
+    OrgPosition DoPlaceInject(Organism &, Population &) override {
       has_signal[SIG_DoPlaceInject] = false;
       control.RescanSignals();
       return OrgPosition();
