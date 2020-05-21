@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019
+ *  @date 2019-2020.
  *
  *  @file  ConfigFunction.h
  *  @brief Manages functions for config..
@@ -15,6 +15,7 @@
 
 #include "base/Ptr.h"
 #include "base/vector.h"
+#include "meta/ValPack.h"
 #include "tools/tuple_utils.h"
 
 #include "ConfigEntry.h"
@@ -68,6 +69,26 @@ namespace mabe {
       };
     }
 
+    /// Helper function to convert ASTs into the proper arguments.
+    template <typename RETURN_T, typename... ARGS, auto... INDICES>
+    void SetFunction_impl( std::function<RETURN_T(ARGS...)> in_fun, emp::ValPack<INDICES...> ) {
+      fun = [in_fun, name=name, desc=desc](const entry_vector_t & args) -> emp::Ptr<ConfigEntry> {        
+        // The call needs to have the correct number of arguments or else it throws an error.
+        constexpr int NUM_ARGS = sizeof...(ARGS);
+        if (args.size() != NUM_ARGS) {
+          return emp::NewPtr<ConfigEntry_Error>(
+            "Function '", name, "' called with ", args.size(), " args, but ", NUM_ARGS, " expected."
+          );            
+        }
+
+        RETURN_T result = in_fun((args[INDICES]->template As< std::decay_t<ARGS> >())...);
+        emp::Ptr<ConfigEntry> out_entry =
+          emp::NewPtr<ConfigEntry_Var<RETURN_T>>("return value", result, desc, nullptr);
+        out_entry->SetTemporary();
+        return out_entry;
+      };
+    }
+
     /// Setup a function that takes AT LEAST ONE argument.
     template <typename RETURN_T, typename ARG1, typename... ARGS>
     void SetFunction( std::function<RETURN_T(ARG1, ARGS...)> in_fun ) {
@@ -86,22 +107,23 @@ namespace mabe {
 
       /// Convert the function call to using entry pointers.
       else {
-        fun = [in_fun, name=name, desc=desc](const entry_vector_t & args) -> emp::Ptr<ConfigEntry> {        
-          // The call needs to have the correct number of arguments or else it throws an error.
-          constexpr int NUM_ARGS = sizeof...(ARGS) + 1;
-          if (args.size() != NUM_ARGS) {
-            return emp::NewPtr<ConfigEntry_Error>(
-              "Function '", name, "' called with ", args.size(), " args, but ", NUM_ARGS, " expected."
-            );            
-          }
+        SetFunction_impl( in_fun, emp::ValPackCount<sizeof...(ARGS)+1>() );
+        // fun = [in_fun, name=name, desc=desc](const entry_vector_t & args) -> emp::Ptr<ConfigEntry> {        
+        //   // The call needs to have the correct number of arguments or else it throws an error.
+        //   constexpr int NUM_ARGS = sizeof...(ARGS) + 1;
+        //   if (args.size() != NUM_ARGS) {
+        //     return emp::NewPtr<ConfigEntry_Error>(
+        //       "Function '", name, "' called with ", args.size(), " args, but ", NUM_ARGS, " expected."
+        //     );            
+        //   }
 
-          size_t i = 1;
-          RETURN_T result = in_fun(args[0]->As<ARG1>(), args[i++]->As<ARGS>()...);
-          emp::Ptr<ConfigEntry> out_entry =
-            emp::NewPtr<ConfigEntry_Var<RETURN_T>>("return value", result, desc, nullptr);
-          out_entry->SetTemporary();
-          return out_entry;
-        };
+        //   size_t i = 1;
+        //   RETURN_T result = in_fun(args[0]->As<ARG1>(), args[i++]->As<ARGS>()...);
+        //   emp::Ptr<ConfigEntry> out_entry =
+        //     emp::NewPtr<ConfigEntry_Var<RETURN_T>>("return value", result, desc, nullptr);
+        //   out_entry->SetTemporary();
+        //   return out_entry;
+        // };
       }
     }
 
