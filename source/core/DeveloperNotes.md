@@ -44,7 +44,10 @@ If any step is missed, the results can end up being hard to debug.
 
 # Important next steps in Core MABE Development
 
-* Setup Organisms to be composed of brains, genomes, and adaptors (to be assembled during configuration).
-  Right now organisms must be built as a whole class, which is much less flexible.
+* Remove default values from linked variables since they are not used.
+
+* Create a MovePopulation module to be used for synchronous generations; have selection modules specify which population offspring should be placed in.  MovePopulation should have a flag to indicate if the new popoulation should be resized first.
+
+* Setup Organisms to be composed of brains, genomes, and adaptors (to be assembled during configuration).  Right now organisms must be built as a whole class, which is much less flexible.
   
 * Update Config system to allow more generic categories.
