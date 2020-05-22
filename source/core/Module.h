@@ -60,6 +60,8 @@ namespace mabe {
         name, get_fun, set_fun, desc);
     }
 
+  public:
+
     // ---== Trait management ==---
    
     /// Add a new trait to this module, specifying its access method, its name, and its description
@@ -99,7 +101,8 @@ namespace mabe {
       return AddTrait<T>(TraitInfo::Access::REQUIRED, name);
     }
 
-  public:
+
+    // ---== Signal Handling ==---
 
     // Functions to be called based on signals.  Note that the existance of an overridden version
     // of each function is tracked by an associated bool value that we default to true until the
@@ -126,14 +129,14 @@ namespace mabe {
       control.RescanSignals();
     }
 
-    // Format:  OnOffspringReady(Organism & offspring, OrgPosition parent_pos)
+    // Format:  OnOffspringReady(Organism & offspring, OrgPosition parent_pos, Population & target_pop)
     // Trigger: Offspring is ready to be placed.
-    void OnOffspringReady(Organism &, OrgPosition) override {
+    void OnOffspringReady(Organism &, OrgPosition, Population &) override {
       has_signal[SIG_OnOffspringReady] = false;
       control.RescanSignals();
     }
 
-    // Format:  OnInjectReady(Organism & inject_org)
+    // Format:  OnInjectReady(Organism & inject_org, Population & target_pop)
     // Trigger: Organism to be injected is ready to be placed.
     void OnInjectReady(Organism &, Population &) override {
       has_signal[SIG_OnInjectReady] = false;
@@ -239,10 +242,10 @@ namespace mabe {
     // be querried in order until one of them returns a valid result.
 
     // Function: Place a new organism about to be born.
-    // Args: Organism that will be placed, position of parent, position to place.
+    // Args: Organism that will be placed, position of parent, population to place.
     // Return: Position to place offspring or an invalid position if failed.
 
-    OrgPosition DoPlaceBirth(Organism &, OrgPosition) override {
+    OrgPosition DoPlaceBirth(Organism &, OrgPosition, Population &) override {
       has_signal[SIG_DoPlaceBirth] = false;
       control.RescanSignals();
       return OrgPosition();
