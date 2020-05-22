@@ -24,9 +24,9 @@
  *       : Update is ending; new one is about to start
  *     OnUpdate(size_t new_update)
  *       : New update has just started.
- *     BeforeRepro(OrgPosition parent_pos) 
+ *     BeforeRepro(OrgPosition parent_pos)
  *       : Parent is about to reporduce.
- *     OnOffspringReady(Organism & offspring, OrgPosition parent_pos)
+ *     OnOffspringReady(Organism & offspring, OrgPosition parent_pos, Population & target_pop)
  *       : Offspring is ready to be placed.
  *     OnInjectReady(Organism & inject_org, Population & pop)
  *       : Organism to be injected into pop is ready to be placed.
@@ -59,7 +59,7 @@
  *     ...
  * 
  *    - Various Do* functions run in modules until one of them returns a valid answer.
- *     DoPlaceBirth(Organism & offspring, OrgPosition parent position)
+ *     DoPlaceBirth(Organism & offspring, OrgPosition parent_pos, Population & target_pop)
  *       : Place a new offspring about to be born.
  *     DoPlaceInject(Organism & new_org, Population & pop)
  *       : Place a new offspring about to be injected.
@@ -216,7 +216,10 @@ namespace mabe {
     ModuleBase & SetSelectMod(bool in=true) { return SetActionTag("Select", in); }
     ModuleBase & SetVisualizerMod(bool in=true) { return SetActionTag("Visualize", in); }
 
+    // Allow modules to setup any traits or other internal state after config is loaded.
     virtual void SetupModule() { /* By default, assume no setup needed. */ }
+
+    // Once data maps are locked in (no new traits allowed) modules can use that information.
     virtual void SetupDataMap(emp::DataMap &) { /* By default, no setup needed. */ }
 
     // ----==== SIGNALS ====----
@@ -226,7 +229,7 @@ namespace mabe {
     virtual void BeforeUpdate(size_t) = 0;
     virtual void OnUpdate(size_t) = 0;
     virtual void BeforeRepro(OrgPosition) = 0;
-    virtual void OnOffspringReady(Organism &, OrgPosition) = 0;
+    virtual void OnOffspringReady(Organism &, OrgPosition, Population &) = 0;
     virtual void OnInjectReady(Organism &, Population &) = 0;
     virtual void BeforePlacement(Organism &, OrgPosition, OrgPosition) = 0;
     virtual void OnPlacement(OrgPosition) = 0;
@@ -242,7 +245,7 @@ namespace mabe {
     virtual void BeforeExit() = 0;
     virtual void OnHelp() = 0;
 
-    virtual OrgPosition DoPlaceBirth(Organism &, OrgPosition) = 0;
+    virtual OrgPosition DoPlaceBirth(Organism &, OrgPosition, Population &) = 0;
     virtual OrgPosition DoPlaceInject(Organism &, Population &) = 0;
     virtual OrgPosition DoFindNeighbor(OrgPosition) = 0;
 
