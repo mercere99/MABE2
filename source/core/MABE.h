@@ -136,10 +136,10 @@ namespace mabe {
     SigListener<void,size_t> on_update_sig;
     // BeforeRepro(OrgPosition parent_pos) 
     SigListener<void,OrgPosition> before_repro_sig;
-    // OnOffspringReady(Organism & offspring, OrgPosition parent_pos)
-    SigListener<void,Organism &,OrgPosition> on_offspring_ready_sig;
-    // OnInjectReady(Organism & inject_org)
-    SigListener<void,Organism &,Population &> on_inject_ready_sig;
+    // OnOffspringReady(Organism & offspring, OrgPosition parent_pos, Population & target_pop)
+    SigListener<void,Organism &, OrgPosition, Population &> on_offspring_ready_sig;
+    // OnInjectReady(Organism & inject_org, Population & target_pop)
+    SigListener<void,Organism &, Population &> on_inject_ready_sig;
     // BeforePlacement(Organism & org, OrgPosition target_pos, OrgPosition parent_pos)
     SigListener<void,Organism &, OrgPosition, OrgPosition> before_placement_sig;
     // OnPlacement(OrgPosition placement_pos)
@@ -167,8 +167,8 @@ namespace mabe {
     // OnHelp()
     SigListener<void> on_help_sig;
 
-    // OrgPosition DoPlaceBirth(Organism & offspring, OrgPosition parent_position);
-    SigListener<OrgPosition, Organism &, OrgPosition> do_place_birth_sig;
+    // OrgPosition DoPlaceBirth(Organism & offspring, OrgPosition parent_position, Population & target_pop);
+    SigListener<OrgPosition, Organism &, OrgPosition, Population &> do_place_birth_sig;
     // OrgPosition DoPlaceInject(Organism & new_organism)
     SigListener<OrgPosition, Organism &, Population &> do_place_inject_sig;
     // OrgPosition DoFindNeighbor(OrgPosition target_organism) {
@@ -444,6 +444,7 @@ namespace mabe {
     // -- Error Handling --
     template <typename... Ts>
     void AddError(Ts &&... args) {
+      // Otherwise deal with it using the error modules.
       errors.push_back( emp::to_string( std::forward<Ts>(args)... ));
       on_error_sig.Trigger(errors.back());
     }
@@ -453,8 +454,8 @@ namespace mabe {
 
     // -- World Structure --
 
-    OrgPosition FindBirthPosition(Organism & offspring, OrgPosition ppos) {
-      return do_place_birth_sig.FindPosition(offspring, ppos);
+    OrgPosition FindBirthPosition(Organism & offspring, OrgPosition ppos, Population & pop) {
+      return do_place_birth_sig.FindPosition(offspring, ppos, pop);
     }
     OrgPosition FindInjectPosition(Organism & new_org, Population & pop) {
       return do_place_inject_sig.FindPosition(new_org, pop);
@@ -508,7 +509,7 @@ namespace mabe {
         if (pos.IsValid()) {
           AddOrgAt( inject_org, pos);
         } else {
-          inject_org.Delete();
+          inject_org.Delete();          
           AddError("Invalid position (pop=", pos.PopPtr(), "; pos=", pos.Pos(),
                    "); failed to inject organism ", i, "!");
         }
@@ -551,14 +552,17 @@ namespace mabe {
     /// Give birth to one or more offspring; return position of last placed.
     /// Triggers 'before repro' signal on parent (once) and 'offspring ready' on each offspring.
     /// Regular signal triggers occur in AddOrgAt.
-    OrgPosition DoBirth(const Organism & org, OrgPosition ppos, size_t copy_count=1) {
+    OrgPosition DoBirth(const Organism & org, OrgPosition ppos,
+                        Population & target_pop, size_t copy_count=1) {
       emp_assert(org.IsEmpty() == false);  // Empty cells cannot reproduce.
       before_repro_sig.Trigger(ppos);
       OrgPosition pos;                                     // Position of each offspring placed.
       for (size_t i = 0; i < copy_count; i++) {            // Loop through offspring, adding each
         emp::Ptr<Organism> new_org = org.Clone();          // Clone org to put copy in population
-        on_offspring_ready_sig.Trigger(*new_org, ppos);    // Trigger modules with offspring ready
-        pos = FindBirthPosition(*new_org, ppos);           // Determine location for offspring
+
+        // Alert modules that offspring is ready, then find its birth position.
+        on_offspring_ready_sig.Trigger(*new_org, ppos, target_pop);
+        pos = FindBirthPosition(*new_org, ppos, target_pop);
 
         if (pos.IsValid()) AddOrgAt(new_org, pos, ppos);   // If placement pos is valid, do so!
         else new_org.Delete();                             // Otherwise delete the organism.
@@ -567,8 +571,8 @@ namespace mabe {
     }
 
     /// A shortcut to DoBirth where only the parent position needs to be supplied.
-    OrgPosition Replicate(OrgPosition ppos, size_t copy_count=1) {
-      return DoBirth(*ppos, ppos, copy_count);
+    OrgPosition Replicate(OrgPosition ppos, Population & target_pop, size_t copy_count=1) {
+      return DoBirth(*ppos, ppos, target_pop, copy_count);
     }
 
     /// Shortcut to resize a population of a specified id.
@@ -798,7 +802,7 @@ namespace mabe {
     if (exit_now) return false;
 
     Setup_Populations();    // Give modules access to the populations they request.
-    Setup_Modules();        // Run SetupModule() on each module; initialize placement if needed.
+    Setup_Modules();        // Run SetupModule() on each module for linking traits or other setup.
     Setup_Traits();         // Make sure module traits do not clash.
 
     UpdateSignals();        // Setup the appropriate modules to be linked with each signal.
@@ -911,12 +915,10 @@ namespace mabe {
 
   /// As part of the main Setup(), run SetupModule() method on each module we've loaded.
   void MABE::Setup_Modules() {
-    // Allow the user-defined module SetupModule() member functions run.  Goes through
-    // the base class to record the current world.
+    // Allow the user-defined module SetupModule() member functions run.  These are
+    // typically used for any internal setup needed by modules are the configuration is
+    // complete.
     for (emp::Ptr<ModuleBase> mod_ptr : modules) mod_ptr->SetupModule();
-
-    // @CAO: If no modules are marked IsPlacementMod(), add a new final module that performs
-    // a default placement...
   }
 
   /// As part of the main Setup(), load in all of the organism traits that modules need to
