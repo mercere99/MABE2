@@ -22,6 +22,7 @@
 #include "select/SelectTournament.h"
 
 // Other schema
+#include "schema/MovePopulation.h"
 #include "schema/Mutate.h"
 
 // Organism Types
