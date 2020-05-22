@@ -444,6 +444,9 @@ namespace mabe {
     // -- Error Handling --
     template <typename... Ts>
     void AddError(Ts &&... args) {
+      // If we are in debug mode, trigger an error immediately.
+      emp_error(args...);
+
       // Otherwise deal with it using the error modules.
       errors.push_back( emp::to_string( std::forward<Ts>(args)... ));
       on_error_sig.Trigger(errors.back());
