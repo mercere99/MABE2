@@ -80,12 +80,16 @@ namespace mabe {
       return os;
     }
 
-    void SetupConfig() override {
-      org_prototype->SetupConfig();
+    void SetupModule() override {
+      org_prototype->SetupModule();
     }
 
     void SetupDataMap(emp::DataMap & in_dm) override {
       org_prototype->SetDataMap(in_dm);
+    }
+
+    void SetupConfig() override {
+      org_prototype->SetupConfig();
     }
 
   };
