@@ -332,6 +332,10 @@ namespace mabe {
     Config config;                             ///< Configutation information for this run.
     emp::Ptr<ConfigScope> cur_scope;           ///< Which config scope are we currently using?
 
+    // Helpers to ensure proper configuration ordering.
+    bool allow_trait_linking = false;  ///< Modules should link traits only AFTER config is run.
+
+
     // ----------- Helper Functions -----------
 
     /// Call when ready to end a run.
@@ -656,6 +660,11 @@ namespace mabe {
       emp::Ptr<TypedTraitInfo<T>> cur_trait = nullptr;
       const std::string & mod_name = mod_ptr->GetName();
 
+      if (allow_trait_linking == false) {
+        AddError("Module '", mod_name, "' adding trait '", trait_name,
+                 "' before config files have loaded; should be done in SetupModule().");
+      }
+
       // Traits cannot be added without access information.
       if (access == TraitInfo::UNKNOWN) {
         AddError("Module ", mod_name, " trying to add trait named '", trait_name,
@@ -803,6 +812,9 @@ namespace mabe {
 
     // If any of the inital flags triggered an 'exit_now', do so.
     if (exit_now) return false;
+
+    // Allow traits to be linked.
+    allow_trait_linking = true;
 
     Setup_Populations();    // Give modules access to the populations they request.
     Setup_Modules();        // Run SetupModule() on each module for linking traits or other setup.
