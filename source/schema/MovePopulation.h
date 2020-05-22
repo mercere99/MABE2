@@ -17,8 +17,8 @@ namespace mabe {
   /// Add elite selection with the current population.
   class MovePopulation : public Module {
   private:
-    int from_id = 0;    ///< Which population are we moving from?
-    int to_id = 1;      ///< Which population are we moving to?
+    int from_id = 1;    ///< Which population are we moving from?
+    int to_id = 0;      ///< Which population are we moving to?
     bool clear = true;  ///< Should we clear the 'to' population before moving in?
 
   public:
