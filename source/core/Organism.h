@@ -38,34 +38,20 @@
 
 namespace mabe {
 
+  class Module;
+
   class Organism {
   private:
     emp::DataMap data_map;   ///< Dynamic variables assigned to organism
     ModuleBase & manager;    ///< Manager for the specific organism type
-
-  protected:
-    // Helper functions.
-    ConfigScope & GetScope() { return manager.GetScope(); }
-
-    // Forward all variable linkage to the organism's manager.
-    template <typename... Ts>
-    auto & LinkVar(Ts &&... args) { return manager.LinkVar(args...); }
-
-    template <typename VAR_T>
-    auto & LinkFuns(std::function<VAR_T()> get_fun,
-                    std::function<void(const VAR_T &)> set_fun,
-                    const std::string & name,
-                    const std::string & desc) {
-      return manager.LinkFuns<VAR_T>(get_fun, set_fun, name, desc);
-    }
 
   public:
     Organism(ModuleBase & _man) : manager(_man) { ; }
     virtual ~Organism() { ; }
 
     /// Get the manager for this type of organism.
-    ModuleBase & GetManager() { return manager; }
-    const ModuleBase & GetManager() const { return manager; }
+    Module & GetManager() { return (Module&) manager; }
+    const Module & GetManager() const { return (Module&) manager; }
 
     bool HasVar(const std::string & name) const { return data_map.HasName(name); }
     template <typename T> T & GetVar(const std::string & name) { return data_map.Get<T>(name); }
@@ -131,10 +117,16 @@ namespace mabe {
     // virtual bool AddEvent(const std::string & event_name, int event_id) { return false; }
     // virtual void TriggerEvent(int) { ; }
 
-    /// --- Extra functions for when this is used as a prototype organism ---
-    
+
+    ///
+    /// --- Extra functions for when this is used as a PROTOTYPE ORGANISM only! ---
+    ///
+
     /// Setup organism-specific configuration options.
     virtual void SetupConfig() { ; }
+
+    /// Setup organism-specific traits.
+    virtual void SetupModule() { ; }
 
   };
 
