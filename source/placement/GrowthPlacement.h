@@ -4,7 +4,21 @@
  *  @date 2019-2020.
  *
  *  @file  GrowthPlacement.h
- *  @brief Default placement using one or two unstructured populations, "main" and "next".
+ *  @brief Default placement rules for how an organism should be added to a population.
+ * 
+ *  This standard population organization has all new organisms (whether born or injected)
+ *  appended on to the end of the population vector.  It does not monitor deaths at all, so
+ *  if deaths occur they are left as empty positions.
+ * 
+ *  When a neighbor position is requested, a random position from the entire population is
+ *  returned.
+ * 
+ *  Pros: This is a fast, easy population method, and probably the correct default for most
+ *        simple experiments.
+ * 
+ *  Cons: If an experiment has frequent deaths, populations can become sparse and hard to 
+ *        work with.  (Also, if you need any form of spatial structure in the population
+ *        object, this won't provide it.)
  */
 
 #ifndef MABE_GROWTH_PLACEMENT_H
@@ -17,13 +31,12 @@ namespace mabe {
 
   class GrowthPlacement : public Module {
   private:
-    int main_pop=0;
-    int next_pop=1;
+    int pop_id = 1;
 
   public:
     GrowthPlacement(mabe::MABE & control,
                     const std::string & name="GrowthPlacement",
-                    const std::string & desc="Module to always appened births onto a population.")
+                    const std::string & desc="Module to always appened organisms onto a population.")
       : Module(control, name, desc)
     {
       SetPlacementMod(true);
@@ -31,61 +44,39 @@ namespace mabe {
     ~GrowthPlacement() { }
 
     void SetupConfig() override {
-      LinkPop(main_pop, "from_pop", "Population to manage births from.");
-      LinkPop(next_pop, "to_pop",
-              "Population to place offspring; use from_pop for async generations.");
+      LinkPop(pop_id, "target_pop", "Population to manage.");
     }
 
     void SetupModule() override {
       // For now, nothing here.
     }
 
-    void OnUpdate(size_t update) override {
-      // If we are running a synchronous reproduction, move the next generation to this one; delete current.
-      if (main_pop != next_pop) {
-        Population & from_pop = control.GetPopulation(next_pop);
-        Population & to_pop = control.GetPopulation(main_pop);
-
-        // Clear out the current main population and resize.
-        control.EmptyPop(to_pop, from_pop.GetSize());  
-
-        // Move the next generation to the main population.
-        OrgPosition it_to = to_pop.begin();
-        for (OrgPosition it_from = from_pop.begin(); it_from != from_pop.end(); ++it_from, ++it_to) {
-          if (it_from.IsOccupied()) control.MoveOrg(it_from, it_to);
-        }
-
-        // Clear out the next generation
-        control.EmptyPop(from_pop, 0);
-      }
-    }
-
-    OrgPosition DoPlaceBirth(Organism & org, OrgPosition ppos) override {
-      (void) org;  // By default, organism doesn't matter.
-
-      // If birth is not coming from monitored population, don't place!
-      if (ppos.PopID() != main_pop) return OrgPosition();
-      return control.PushEmpty(control.GetPopulation(next_pop));
+    OrgPosition DoPlaceBirth(Organism & /* org */, OrgPosition /* ppos */,
+                             Population & target_pop) override
+    {
+      // If birth is not going to monitored population, don't place!
+      if (target_pop.GetID() != pop_id) return OrgPosition();
+      return control.PushEmpty(target_pop);
     }
 
     // Injections always go into the active population.
-    OrgPosition DoPlaceInject(Organism & org, Population & pop) override {
-      (void) org;  // By default, organism doesn't matter.
-      return control.PushEmpty(control.GetPopulation(main_pop));
+    OrgPosition DoPlaceInject(Organism & org, Population & target_pop) override {
+      // If inject is not going to monitored population, don't place!
+      if (target_pop.GetID() != pop_id) return OrgPosition();
+      return control.PushEmpty(target_pop);
     }
 
     OrgPosition DoFindNeighbor(OrgPosition pos) override {
       emp::Ptr<Population> pop_ptr = pos.PopPtr();
 
       // If the current position is either not a population or not one monitored, don't find!
-      if (pop_ptr.IsNull() || pos.PopID() != main_pop) return OrgPosition();
+      if (pop_ptr.IsNull() || pos.PopID() != pop_id) return OrgPosition();
       return OrgPosition(pop_ptr, control.GetRandom().GetUInt(pop_ptr->GetSize()));
     }
 
-
   };
 
-  MABE_REGISTER_MODULE(GrowthPlacement, "Always appened births onto a population.");
+  MABE_REGISTER_MODULE(GrowthPlacement, "Always appened births to the end of a population.");
 }
 
 #endif
