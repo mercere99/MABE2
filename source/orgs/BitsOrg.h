@@ -57,13 +57,18 @@ namespace mabe {
       SetVar<emp::BitVector>(output_name, bits);
     }
 
-    /// Setup this organism to load from config.
+    /// Setup this organism type to be able to load from config.
     void SetupConfig() override {
-      LinkVar(output_name, "output_name",
-              "Name of variable to contain bit sequence.");
-      LinkFuns<size_t>([this](){ return bits.size(); },
+      GetManager().LinkVar(output_name, "output_name",
+                      "Name of variable to contain bit sequence.");
+      GetManager().LinkFuns<size_t>([this](){ return bits.size(); },
                        [this](const size_t & N){ return bits.Resize(N); },
                        "N", "Number of bits in organism");
+    }
+
+    /// Setup this organism type with the traits it need to track.
+    void SetupModule() override {
+      GetManager().AddSharedTrait(output_name, "Bitset output from organism.", emp::BitVector(0));
     }
   };
 
