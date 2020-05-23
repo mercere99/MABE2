@@ -37,8 +37,6 @@ namespace mabe {
       , N(_N), K(_K), target_pop(0), bits_trait(_btrait), fitness_trait(_ftrait)
     {
       SetEvaluateMod(true);
-      AddRequiredTrait<emp::BitVector>(bits_trait);
-      AddOwnedTrait<double>(fitness_trait, "NK fitness value", 0.0);
       SetMinPops(1);
     }
     ~EvalNK() { }
@@ -52,6 +50,11 @@ namespace mabe {
     }
 
     void SetupModule() override {
+      // Setup the traits.
+      AddRequiredTrait<emp::BitVector>(bits_trait);
+      AddOwnedTrait<double>(fitness_trait, "NK fitness value", 0.0);
+
+      // Setup the fitness landscape.
       landscape.Config(N, K, control.GetRandom());  // Setup the fitness landscape.
     }
 

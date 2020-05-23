@@ -36,8 +36,6 @@ namespace mabe {
       , target_pop(0), bits_trait(_btrait), fitness_trait(_ftrait), count_type(_ctype)
     {
       SetEvaluateMod(true);
-      AddRequiredTrait<emp::BitVector>(bits_trait);
-      AddOwnedTrait<double>(fitness_trait, "All-ones fitness value", 0.0);
       SetMinPops(1);
     }
     ~EvalCountBits() { }
@@ -50,6 +48,8 @@ namespace mabe {
     }
 
     void SetupModule() override {
+      AddRequiredTrait<emp::BitVector>(bits_trait);
+      AddOwnedTrait<double>(fitness_trait, "All-ones fitness value", 0.0);
     }
 
     void OnUpdate(size_t update) override {
