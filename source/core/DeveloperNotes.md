@@ -44,9 +44,15 @@ If any step is missed, the results can end up being hard to debug.
 
 # Important next steps in Core MABE Development
 
-* Remove default values from linked variables since they are not used.
-
 * Create a MovePopulation module to be used for synchronous generations; have selection modules specify which population offspring should be placed in.  MovePopulation should have a flag to indicate if the new popoulation should be resized first.
+
+* Split SetupTraits() out of SetupModule() for user clarity.
+
+* Get rid of SetMinPop(); this should be figured out automatically.
+
+* MABE::FindInjectPosition should use modules explicitly associated with populations, not scan all modules.  This can be setup by modules declaring themselves as handling population structure needing to indicate WHICH populations (perhaps in SetupModule()?)
+
+* Cleanup comments in SigListener definitions in MABEBase (MABE.h); right now they can easily be disassociated from the actual signal definition on the line below.  If, instead, we put each input on one line, we could provide desriptions right next to them.  (probably something similar for signal in Module.h and remove comment from the top of ModuleBase.h, putting in a pointer to Module.h instead.
 
 * Setup Organisms to be composed of brains, genomes, and adaptors (to be assembled during configuration).  Right now organisms must be built as a whole class, which is much less flexible.
   
