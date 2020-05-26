@@ -3,13 +3,14 @@ Population next_pop;
 
 CommandLine cl;
 Mutate mut;
-EvalNK enk;
-SelectElite select_e;
-SelectTournament select_t;
-GrowthPlacement place_g;
+EvalNK eval_nk;
+SelectElite select_elite;
+SelectTournament select_tourny;
+GrowthPlacement place_growth;
+MovePopulation sync_gen;
 
 BitsOrg bits_org;
 
 @start() print("random_seed = ", random_seed, "\n");
 @start() inject("bits_org", 200);
-@update(100) exit();
+@update(1000) exit();
