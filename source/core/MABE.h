@@ -582,12 +582,6 @@ namespace mabe {
       return DoBirth(*ppos, ppos, target_pop, copy_count);
     }
 
-    /// Shortcut to resize a population of a specified id.
-    void ResizePop(size_t pop_id, size_t new_size) {
-      emp_assert(pop_id < pops.size());
-      MABEBase::ResizePop(pops[pop_id], new_size);
-    }
-
     /// Resize a population while clearing all of the organisms in it.
     void EmptyPop(Population & pop, size_t new_size) {
       // Clean up any organisms in the population.
