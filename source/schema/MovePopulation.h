@@ -17,16 +17,16 @@ namespace mabe {
   /// Add elite selection with the current population.
   class MovePopulation : public Module {
   private:
-    int from_id = 1;    ///< Which population are we moving from?
-    int to_id = 0;      ///< Which population are we moving to?
-    bool clear = true;  ///< Should we clear the 'to' population before moving in?
+    int from_id = 1;       ///< Which population are we moving from?
+    int to_id = 0;         ///< Which population are we moving to?
+    bool reset_to = true;  ///< Should we reset_to the 'to' population before moving in?
 
   public:
     MovePopulation(mabe::MABE & control,
            const std::string & name="MovePopulation",
            const std::string & desc="Module to move organisms to a new population",
-           int _from_id=0, int _to_id=1, bool _clear=true)
-      : Module(control, name, desc), from_id(_from_id), to_id(_to_id), clear(_clear)
+           int _from_id=0, int _to_id=1, bool _reset_to=true)
+      : Module(control, name, desc), from_id(_from_id), to_id(_to_id), reset_to(_reset_to)
     {
       SetManageMod(true);         ///< Mark this module as a population  module.
     }
@@ -34,18 +34,30 @@ namespace mabe {
     void SetupConfig() override {
       LinkPop(from_id, "from_pop", "Population to move organisms from.");
       LinkPop(to_id, "to_pop", "Population to move organisms into.");
-      LinkVar(clear, "clear", "Should we erase organisms at the destination?");
+      LinkVar(reset_to, "reset_to", "Should we erase organisms at the destination?");
     }
 
     void OnUpdate(size_t update) override {
       Population & from_pop = control.GetPopulation(from_id);
       Population & to_pop = control.GetPopulation(to_id);
 
-      // Clear out the current main population and resize.
-      control.EmptyPop(to_pop, from_pop.GetSize());  
+      // Setup an iterator to point to the "to" population.
+      OrgPosition it_to;
+
+      // Clear out the "to" population and before moving the new populaiton in.
+      if (reset_to) {
+        control.EmptyPop(to_pop, from_pop.GetSize());  // Clear out the population.
+        it_to = to_pop.begin();                        // Start at the beginning of population.
+      }
+
+      // Otherwise append the from population to the end of the to population.
+      else {
+        size_t old_pop_size = to_pop.GetSize();
+        control.ResizePop(to_pop, old_pop_size + from_pop.GetSize());
+        it_to = to_pop.begin() + old_pop_size;
+      }
 
       // Move the next generation to the main population.
-      OrgPosition it_to = to_pop.begin();
       for (OrgPosition it_from = from_pop.begin(); it_from != from_pop.end(); ++it_from, ++it_to) {
         if (it_from.IsOccupied()) control.MoveOrg(it_from, it_to);
       }
