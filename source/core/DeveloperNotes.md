@@ -21,6 +21,8 @@ When Building new components for MABE, new organism types should be derived from
 
 ## Organisms
 
+An organism can be devleoped as a class unto itself OR it can make use of a specialized OrganismManager that stores shared inforation.  If an organism class doesn't have a specialized manager, it must override a few specialty "prototype" functions to specify the configuration parameters that is uses.
+
 ## Modules
 
 
@@ -43,8 +45,6 @@ If any step is missed, the results can end up being hard to debug.
 
 
 # Important next steps in Core MABE Development
-
-* Create a MovePopulation module to be used for synchronous generations; have selection modules specify which population offspring should be placed in.  MovePopulation should have a flag to indicate if the new popoulation should be resized first.
 
 * Split SetupTraits() out of SetupModule() for user clarity.
 
