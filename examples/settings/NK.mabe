@@ -39,7 +39,7 @@ GrowthPlacement place_inject {  // Always appened births to the end of a populat
 MovePopulation sync_gen {       // Move organisms from one populaiton to another.
   from_pop = "next_pop";        // Population to move organisms from.
   to_pop = "main_pop";          // Population to move organisms into.
-  clear = 1;                    // Should we erase organisms at the destination?
+  reset_to = 1;                 // Should we erase organisms at the destination?
 }
 BitsOrg bits_org {              // Organism consisting of a series of N bits.
   output_name = "bits";         // Name of variable to contain bit sequence.
