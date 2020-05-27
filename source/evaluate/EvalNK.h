@@ -37,7 +37,6 @@ namespace mabe {
       , N(_N), K(_K), target_pop(0), bits_trait(_btrait), fitness_trait(_ftrait)
     {
       SetEvaluateMod(true);
-      SetMinPops(1);
     }
     ~EvalNK() { }
 

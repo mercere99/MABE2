@@ -36,7 +36,6 @@ namespace mabe {
       , target_pop(0), bits_trait(_btrait), fitness_trait(_ftrait), count_type(_ctype)
     {
       SetEvaluateMod(true);
-      SetMinPops(1);
     }
     ~EvalCountBits() { }
 
