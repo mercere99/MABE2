@@ -54,10 +54,14 @@ namespace mabe {
                                                  const std::string & desc) {
       std::function<std::string()> get_fun =
         [this,&var](){ return control.GetPopulation(var).GetName(); };
+
       std::function<void(std::string)> set_fun =
-        [this,&var](const std::string & name){ var = control.GetPopID(name); };
-      return GetScope().LinkFuns<std::string>(
-        name, get_fun, set_fun, desc);
+        [this,&var](const std::string & name){
+          var = control.GetPopID(name);
+          if (var == -1) control.AddError("Trying to access population '", name, "'; does not exist.");
+        };
+
+      return GetScope().LinkFuns<std::string>(name, get_fun, set_fun, desc);
     }
 
   public:
