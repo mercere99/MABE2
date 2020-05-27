@@ -112,9 +112,6 @@ namespace mabe {
     ///   "Visualize"   : Displays data for the user.
     std::set<std::string> action_tags; ///< Informative tags about this model
 
-    /// How many populations are we operating on?
-    size_t min_pops = 0;                           ///< Minimum number of population needed
-
     /// Set of traits that this module is working with.
     emp::map<std::string, emp::Ptr<TraitInfo>> trait_map;
 
@@ -182,7 +179,6 @@ namespace mabe {
     const std::string & GetDesc() const noexcept { return desc; }
     bool HasErrors() const { return errors.size(); }
     const emp::vector<std::string> & GetErrors() const noexcept { return errors; }
-    size_t GetMinPops() const noexcept { return min_pops; }
 
     virtual std::string GetTypeName() const { return "ModuleBase"; }
     virtual emp::Ptr<ModuleBase> Clone() { return nullptr; }
@@ -290,13 +286,6 @@ namespace mabe {
     }
 
     virtual void SetupConfig() { }
-
-  // --------------------- Functions to be used in derived modules ONLY --------------------------
-  protected:
-
-    /// Set the number of populations that this module must work on.
-    void SetMinPops(size_t in_min) { min_pops = in_min; }
-
   };
 
   struct ModuleInfo {
