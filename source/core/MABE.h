@@ -383,9 +383,6 @@ namespace mabe {
 
     // -- Helper functions to be called inside of Setup() --
 
-    /// Make sure we have all population needed by modules.
-    void Setup_Populations();
-  
     /// Run SetupModule() method on each module we've loaded.
     void Setup_Modules();
 
@@ -810,7 +807,6 @@ namespace mabe {
     // Allow traits to be linked.
     allow_trait_linking = true;
 
-    Setup_Populations();    // Give modules access to the populations they request.
     Setup_Modules();        // Run SetupModule() on each module for linking traits or other setup.
     Setup_Traits();         // Make sure module traits do not clash.
 
@@ -905,21 +901,6 @@ namespace mabe {
     }
 
     if (show_help) ShowHelp();
-  }
-
-  /// As part of the main Setup(), make sure we have all populations needed by modules.
-  void MABE::Setup_Populations() {
-    // Loop through the modules and make sure all populations are assigned.
-    for (emp::Ptr<ModuleBase> mod_ptr : modules) {
-      // Determine how many populations this module needs.
-      size_t min_pops = mod_ptr->GetMinPops();
-
-      // Any additional populations should just be numbered.
-      while (pops.size() < min_pops) AddPopulation(emp::to_string("pop", pops.size()-2));
-    }
-
-    // Leave main population as current.
-    cur_pop_id = 0;
   }
 
   /// As part of the main Setup(), run SetupModule() method on each module we've loaded.
