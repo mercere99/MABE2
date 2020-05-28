@@ -9,6 +9,7 @@
 
 // Evaluation Modules
 #include "evaluate/EvalCountBits.h"
+#include "evaluate/EvalMatchBits.h"
 #include "evaluate/EvalNK.h"
 
 // Interface Modules
