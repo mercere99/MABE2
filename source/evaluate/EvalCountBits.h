@@ -57,7 +57,7 @@ namespace mabe {
       // Loop through the population and evaluate each organism.
       double max_fitness = 0.0;
       emp::Ptr<Organism> max_org = nullptr;
-      for (Organism & org : control.GetPopulation(0).Alive()) {
+      for (Organism & org : control.GetPopulation(target_pop).Alive()) {
         // Make sure this organism has its bit sequence ready for us to access.
         org.GenerateOutput();
 
