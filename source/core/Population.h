@@ -366,6 +366,7 @@ namespace mabe {
     size_t GetSize() const noexcept { return orgs.size(); }
     size_t GetNumOrgs() const noexcept { return num_orgs; }
 
+    bool IsValid(size_t pos) const { return pos < orgs.size(); }
     bool IsEmpty(size_t pos) const { return orgs[pos]->IsEmpty(); }
     bool IsOccupied(size_t pos) const { return !orgs[pos]->IsEmpty(); }
 
