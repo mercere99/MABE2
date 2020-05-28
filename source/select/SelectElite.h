@@ -35,7 +35,6 @@ namespace mabe {
       , trait(in_trait), top_count(tcount), copy_count(ccount)
     {
       SetSelectMod(true);               ///< Mark this module as a selection module.
-      SetMinPops(1);                    ///< Must run elite selection on a population.
     } 
     ~SelectElite() { }
 
