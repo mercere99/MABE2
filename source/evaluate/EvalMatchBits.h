@@ -100,7 +100,7 @@ namespace mabe {
     }
   };
 
-  MABE_REGISTER_MODULE(EvalCountBits, "Evaluate bitstrings by counting ones (or zeros).");
+  MABE_REGISTER_MODULE(EvalMatchBits, "Evaluate bitstrings based on how well they match other organisms.");
 }
 
 #endif
