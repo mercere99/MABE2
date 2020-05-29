@@ -38,7 +38,8 @@ namespace mabe {
 
   /// MABEBase sets up all population-manipulation functionality to ensure consistant handling
   /// (nowhere else can alter a Population object); all manipulation calls ultimately come through
-  /// the limited functions defined here.
+  /// the limited functions defined here.  MABEBase is a friend class of Population, with all
+  /// operations to manipulate organisms is a population listed as private.
 
   class MABEBase {
   protected:
