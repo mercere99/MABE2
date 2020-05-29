@@ -10,32 +10,7 @@
  *  the interface for them to interact.
  *
  *  MABE allows modules to interact via a set of SIGNALS that they can listen for by overriding
- *  specific base class functions.
- *
- *  SIGNAL functions include:
- *    BeforeUpdate(size_t update_ending)
- *    OnUpdate(size_t new_update)
- *    BeforeRepro(OrgPosition parent_pos) 
- *    OnOffspringReady(Organism & offspring, OrgPosition parent_pos)
- *    OnInjectReady(Organism & inject_org)
- *    BeforePlacement(Organism & org, OrgPosition target_pos, OrgPosition parent_pos)
- *    OnPlacement(OrgPosition placement_pos)
- *    BeforeMutate(Organism & org)
- *    OnMutate(Organism & org)
- *    BeforeDeath(OrgPosition remove_pos)
- *    BeforeSwap(OrgPosition pos1, OrgPosition pos2)
- *    OnSwap(OrgPosition pos1, OrgPosition pos2)
- *    BeforePopResize(Population & pop, size_t new_size)
- *    OnPopResize(Population & pop, size_t old_size)
- *    OnError(const std::string & msg)
- *    OnWarning(const std::string & msg)
- *    BeforeExit()
- *    OnHelp()
- *
- *  There are also functions to find types of individuals including:
- *    OrgPosition DoPlaceBirth(Organism &, OrgPosition);
- *    OrgPosition DoPlaceInject(Organism &)
- *    OrgPosition DoFindNeighbor(OrgPosition) {
+ *  specific base class functions.  See Module.h for a full list of available signals.
  *
  */
 
