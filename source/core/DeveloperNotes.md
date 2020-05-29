@@ -21,7 +21,7 @@ When Building new components for MABE, new organism types should be derived from
 
 ## Organisms
 
-An organism can be devleoped as a class unto itself OR it can make use of a specialized OrganismManager that stores shared inforation.  If an organism class doesn't have a specialized manager, it must override a few specialty "prototype" functions to specify the configuration parameters that is uses.
+An organism can be devleoped as a class unto itself OR it can make use of a specialized OrganismManager that stores shared inforation.  If an organism class doesn't have a specialized manager, it must override a few specialty "prototype" functions to specify the configuration parameters that it uses.
 
 ## Modules
 
@@ -46,13 +46,13 @@ If any step is missed, the results can end up being hard to debug.
 
 # Important next steps in Core MABE Development
 
-* Split SetupTraits() out of SetupModule() for user clarity.
-
-* Get rid of SetMinPop(); this should be figured out automatically.
-
 * MABE::FindInjectPosition should use modules explicitly associated with populations, not scan all modules.  This can be setup by modules declaring themselves as handling population structure needing to indicate WHICH populations (perhaps in SetupModule()?)
 
 * Cleanup comments in SigListener definitions in MABEBase (MABE.h); right now they can easily be disassociated from the actual signal definition on the line below.  If, instead, we put each input on one line, we could provide desriptions right next to them.  (probably something similar for signal in Module.h and remove comment from the top of ModuleBase.h, putting in a pointer to Module.h instead.
+
+* Add an additional access type for traits: Generator.  These will write a trait (and, of course, are allowed to read it), but require that someone else ALSO read in the trait.
+
+* A problem to resolve: trait access will often be limited to have only one module WRITE a trait.  These seem important for organism managers, but that limitation should only be for THAT organism type.  If, for example, we have a bits trait, ANY organism manager should be able to write to that trait.  A simple solution would be to have access apply to ALL organism managers when any one needs to set it.
 
 * Setup Organisms to be composed of brains, genomes, and adaptors (to be assembled during configuration).  Right now organisms must be built as a whole class, which is much less flexible.
   
