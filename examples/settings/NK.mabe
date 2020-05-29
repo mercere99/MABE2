@@ -2,6 +2,8 @@ random_seed = 0;                // Seed for random number generator; use 0 to ba
 Population main_pop;            // Collection of organisms
 Population next_pop;            // Collection of organisms
 
+Value pop_size = 1000;
+
 CommandLine cl {                // Handle basic I/O on the command line.
   target_pop = "main_pop";      // Which population should we print stats about?
 }
@@ -16,26 +18,30 @@ EvalNK enk {                    // Evaluate bitstrings on an NK fitness lanscape
   bits_trait = "bits";          // Which trait stores the bit sequence to evaluate?
   fitness_trait = "fitness";    // Which trait should we store NK fitness in?
 }
+
 SelectElite select_e {          // Choose the top fitness organisms for replication.
   select_pop = "main_pop";      // Which population should we select parents from?
   birth_pop = "next_pop";       // Which population should births go into?
-  top_count = 1;                // Number of top-fitness orgs to be replicated
-  copy_count = 1;               // Number of copies to make of replicated organisms
+  top_count = 5;                // Number of top-fitness orgs to be replicated
+  copy_count = 5;               // Number of copies to make of replicated organisms
   fitness_trait = "fitness";    // Which trait provides the fitness value to use?
+  Value total_count = top_count * copy_count;
 }
 SelectTournament select_t {     // Select the top fitness organisms from random subgroups for replication.
   select_pop = "main_pop";      // Which population should we select parents from?
   birth_pop = "next_pop";       // Which population should births go into?
   tournament_size = 7;          // Number of orgs in each tournament
-  num_tournaments = 199;        // Number of tournaments to run
+  num_tournaments = pop_size - select_e.total_count;  // Number of tournaments to run
   fitness_trait = "fitness";    // Which trait provides the fitness value to use?
 }
+
 GrowthPlacement place_next {    // Always appened births to the end of a population.
   target_pop = "next_pop";      // Population to manage.
 }
 GrowthPlacement place_inject {  // Always appened births to the end of a population.
   target_pop = "main_pop";      // Population to manage.
 }
+
 MovePopulation sync_gen {       // Move organisms from one populaiton to another.
   from_pop = "next_pop";        // Population to move organisms from.
   to_pop = "main_pop";          // Population to move organisms into.
