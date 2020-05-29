@@ -6,7 +6,8 @@ Mutate mut;
 EvalNK eval_nk;
 SelectElite select_elite;
 SelectTournament select_tourny;
-GrowthPlacement place_growth;
+GrowthPlacement place_next;
+GrowthPlacement place_inject;
 MovePopulation sync_gen;
 
 BitsOrg bits_org;
