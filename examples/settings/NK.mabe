@@ -11,7 +11,7 @@ Mutate mut {                    // Trigger mutations in organisms.
   target_pop = "main_pop";      // Which population should we mutate?
   skip = 1;                     // Number of orgs to exempt from mutating
 }
-EvalNK enk {                    // Evaluate bitstrings on an NK fitness lanscape.
+EvalNK eval_nk {                    // Evaluate bitstrings on an NK fitness lanscape.
   target_pop = "main_pop";      // Which population should we evaluate?
   N = 100;                      // Number of bits required in output
   K = 3;                        // Number of bits used in each gene
@@ -31,6 +31,7 @@ SelectTournament select_t {     // Select the top fitness organisms from random 
   select_pop = "main_pop";      // Which population should we select parents from?
   birth_pop = "next_pop";       // Which population should births go into?
   tournament_size = 7;          // Number of orgs in each tournament
+
   num_tournaments = pop_size - select_e.total_count;  // Number of tournaments to run
   fitness_trait = "fitness";    // Which trait provides the fitness value to use?
 }
@@ -47,11 +48,13 @@ MovePopulation sync_gen {       // Move organisms from one populaiton to another
   to_pop = "main_pop";          // Population to move organisms into.
   reset_to = 1;                 // Should we erase organisms at the destination?
 }
+
 BitsOrg bits_org {              // Organism consisting of a series of N bits.
   output_name = "bits";         // Name of variable to contain bit sequence.
-  N = 100;                      // Number of bits in organism
+  N = eval_nk.N;                // Number of bits in organism
 }
 
-@start(0) print("random_seed = ", random_seed, "\n");
-@start(0) inject("bits_org", "main_pop", 200);
+@start() print("random_seed = ", random_seed, "\n");
+@start() inject("bits_org", "main_pop", pop_size);
+@update(500) select_t.tournament_size = 4;
 @update(1000) exit();
