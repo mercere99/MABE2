@@ -34,25 +34,29 @@ From a design perspective, we should keep the number of module signals to a mini
 decide that an additional signal is required, carefully follow the checklist below to add it.
 If any step is missed, the results can end up being hard to debug.
 
-* Add a description of the new signal in the comments at the top of ModuleBase.h
-* Add a SIG_* id for the signal in the SignalID enum in ModuleBase
-* Declare a virtual member function to catch the signal in the SIGNALS section of ModuleBase
-* Overide the virtual member function for the signal in Module.h (base method to catch the function)
-* Setup a new SigListener in the member variables section of MABEBase (in MABE.h)
+ModuleBase.h:
+* Add a description of the new signal in the comments at the top of the file.
+* Add a SIG_* id for the signal in the SignalID enum
+* Declare a virtual member function to catch the signal in the SIGNALS section
+
+Module.h:
+* Overide the virtual member function for the signal (base method to catch the function)
+
+MABE.h:
+* Setup a new SigListener in the member variables section of MABEBase
 * Initialize the new SigListener in the initializer section of the MABEBase constructor.
-* Hook in a signal trigger in the appropriate places, most likely in MABE.h
-  
+* Hook in a signal trigger in the appropriate place(s)
 
 
-# Important next steps in Core MABE Development
+# Next steps in Core MABE Development
 
 * MABE::FindInjectPosition should use modules explicitly associated with populations, not scan all modules.  This can be setup by modules declaring themselves as handling population structure needing to indicate WHICH populations (perhaps in SetupModule()?)
 
-* Cleanup comments in SigListener definitions in MABEBase (MABE.h); right now they can easily be disassociated from the actual signal definition on the line below.  If, instead, we put each input on one line, we could provide desriptions right next to them.  (probably something similar for signal in Module.h and remove comment from the top of ModuleBase.h, putting in a pointer to Module.h instead.
+* Problem to resolve: trait access will often be limited to have only one module WRITE a trait.  These seem important for organism managers, but that limitation should only be for THAT organism type.  If, for example, we have a bits trait, ANY organism manager should be able to write to that trait.  A simple solution would be to have access apply to ALL organism managers when any one needs to set it.
 
-* Add an additional access type for traits: Generator.  These will write a trait (and, of course, are allowed to read it), but require that someone else ALSO read in the trait.
+* Problem to resolve: We want configuration to be able to provide equations (e.g., for a fitness function), not just always putting in a final value.  Perhaps setup with functions?  Or strings that get interpreted within the module?  Or a specialty module that interprets strings and writes the result to a different trait?
 
-* A problem to resolve: trait access will often be limited to have only one module WRITE a trait.  These seem important for organism managers, but that limitation should only be for THAT organism type.  If, for example, we have a bits trait, ANY organism manager should be able to write to that trait.  A simple solution would be to have access apply to ALL organism managers when any one needs to set it.
+* Problem to resolve: Different types of organisms will have different traits that they need to deal with.  For example, "Wolves" vs "Sheep".  Do unused values just stay at a default?  Or can we have organism categories that each have their own trait layouts?
 
 * Setup Organisms to be composed of brains, genomes, and adaptors (to be assembled during configuration).  Right now organisms must be built as a whole class, which is much less flexible.
   
