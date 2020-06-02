@@ -92,6 +92,13 @@ namespace mabe {
       return AddTrait<T>(TraitInfo::Access::OWNED, name, desc, default_val);
     }
    
+    /// Add trait that this module can READ & WRITE to; at least one other module MUST read it.
+    /// Must provide name, description, and a default value to start at.
+    template <typename T>
+    TraitInfo & AddGeneratedTrait(const std::string & name, const std::string & desc, const T & default_val) {
+      return AddTrait<T>(TraitInfo::Access::GENERATED, name, desc, default_val);
+    }
+   
     /// Add trait that this module can READ & WRITE this trait; other modules can too.
     template <typename T>
     TraitInfo & AddSharedTrait(const std::string & name, const std::string & desc, const T & default_val) {
