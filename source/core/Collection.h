@@ -56,6 +56,16 @@ namespace mabe {
       return *this;
     }
 
+    /// Remove all empty positions from this collection.
+    Collection & RemoveEmpty() {
+      auto it = begin();
+      while ( it != end()) {
+        if (!it->IsOccupied()) it = erase(it);
+        else it++;
+      }
+      return *this;
+    }
+
     /// Merge this collection with another collection.
     Collection & operator |= (const Collection & collection2) { return Insert(collection2); }
 
@@ -68,6 +78,8 @@ namespace mabe {
         else if (it2 < it1) it2++;        // Need to catch up iterator for collection2.
         else { it1++; it2++; }            // In both.  Keep and move on.
       }
+
+      return *this;
     }
 
   };
