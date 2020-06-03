@@ -24,7 +24,31 @@
 namespace mabe {
 
   class Collection {
+  private:
+    using pop_ptr_t = emp::Ptr<mabe::Population>;
+    emp::vector<pop_ptr_t> pops;
+    emp::vector<OrgPosition> orgs;
 
+  public:
+    Collection() = default;
+    Collection(const Collection &) = default;
+    Collection(Collection &&) = default;
+    ~Collection() { }
+
+    Collection & operator=(const Collection &) = default;
+    Collection & operator=(Collection &&) = default;
+
+    size_t GetSize() const {
+      size_t count = orgs.size();
+      for (auto pop_ptr : pops) count += pop_ptr->GetSize();
+      return count;
+    }
+
+    /// Add a Population to this collection.
+    void AddPop(Population & in_pop) { pops.push_back(&in_pop); }
+
+    /// Add an organism (by position!)
+    void AddOrg(OrgPosition pos) { orgs.push_back(pos); }
   };
 
 }
