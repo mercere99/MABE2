@@ -35,7 +35,7 @@ namespace mabe {
     Collection & operator=(const Collection &) = default;
     Collection & operator=(Collection &&) = default;
 
-    using iterator = std::set<OrgPosition>::iterator;;
+    using iterator = std::set<OrgPosition>::iterator;
 
     size_t GetSize() const { return size(); }
 
@@ -55,6 +55,14 @@ namespace mabe {
       for (auto pos : collection) insert(pos);
       return *this;
     }
+
+    // @CAO: Add:
+    // * Remove()  - works with position or population (or another collection?)
+    // * Has() - position
+    // * Filter() - takes a function and only keeps positions that return true.
+    //   (Filter could even have a three function version that takes a second collection and
+    //   indicated what to do with those just in the first collection, just in the second,
+    //   or in both.)
 
     /// Remove all empty positions from this collection.
     Collection & RemoveEmpty() {
