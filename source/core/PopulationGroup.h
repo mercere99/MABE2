@@ -23,6 +23,24 @@
 
 namespace mabe {
 
+  class PopulationGroup;
+
+  class OrgPosition_Group : public OrgPosition {
+  private:
+    emp::Ptr<PopulationGroup> group_ptr;
+    uint16_t pop_id;
+
+  public:
+    OrgPosition_Group(PopulationGroup & _group,
+                      size_t _pop_id=0,
+                      size_t _pos=0,
+                      bool _skip=false);
+    OrgPosition_Group(const OrgPosition_Group &) = default;
+    OrgPosition_Group(OrgPosition_Group &&) = default;
+    OrgPosition_Group & operator=(const OrgPosition_Group &) = default;
+    OrgPosition_Group & operator=(OrgPosition_Group &&) = default;
+  };
+
   class PopulationGroup {
   private:
     emp::vector< emp::Ptr<Population> > pops;
@@ -45,6 +63,12 @@ namespace mabe {
       }
       return count;
     }
+
+    /// Return how many populations are in this group.
+    size_t GetNumPops() const { return pops.size(); }
+
+    /// Return a specific population.
+    Population & GetPopulation(size_t pop_id) { return pops[pop_id]; }
 
     /// Add a Population to this group.
     PopulationGroup &  Insert(Population & pop) {
@@ -69,6 +93,18 @@ namespace mabe {
 
 
   };
+
+
+  OrgPosition_Group::OrgPosition_Group(PopulationGroup & _group, size_t _pop_id,
+                                       size_t _pos, bool _skip)
+    : OrgPosition(nullptr, 0, _skip)
+    , group_ptr(&_group), pop_id(_pop_id)
+  {
+    if (group_ptr->GetNumPops() > pop_id) {
+      pop_ptr = &_group.GetPopulation(pop_id);
+      pos = _pos;
+    }
+  }
 
 }
 
