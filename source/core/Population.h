@@ -30,7 +30,7 @@ namespace mabe {
     ///  @todo Add a reverse iterator.
     ///  @todo Fix operator-- which can go off of the beginning of the world.
     friend class MABEBase;
-  private:
+  protected:
     emp::Ptr<Population> pop_ptr;
     size_t pos;
     bool skip_empty;
