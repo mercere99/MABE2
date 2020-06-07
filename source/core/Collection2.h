@@ -37,15 +37,25 @@ namespace mabe {
       bool full_pop = false;   ///< Should we use the full population?
       emp::BitVector pos_set;  ///< Which positions are we using for this population?
 
+      // Identify how many positions we have.
       size_t GetSize(pop_ptr_t pop_ptr) const {
         if (full_pop) return pop_ptr->GetSize();
         return pos_set.CountOnes();
       }
 
+      // Insert a single position into the pos_set.
       void InsertPos(size_t pos) {
         // Make sure we have room for this position and then set it.
         if (pos_set.GetSize() <= pos) pos_set.Resize(pos+1);
         pos_set.Set(pos);
+      }
+
+      // Shift this population to using the pos_set.
+      void RemoveFull(pop_ptr_t pop_ptr) {
+        if (!full_pop) return;
+          pos_set.Resize(pop_ptr->GetSize());
+          pos_set.SetAll();
+          full_pop = false;
       }
     };
 
@@ -126,12 +136,7 @@ namespace mabe {
       for (auto & [pop_ptr, pop_info] : pos_map) {
         emp::BitVector & pos_set = pop_info.pos_set;
 
-        // If this population is full, switch it over to use the bitmap.
-        if (pop_info.full_pop) {
-          pos_set.Resize(pop_ptr->GetSize());
-          pos_set.SetAll();
-          pop_info.full_pop = false;
-        }
+        pop_info.RemoveFull(pop_ptr); // Make sure this population isn't full.
 
         // Scan through organisms, removing inclusion of those that are empty.
         for (int pos = pos_set.FindBit(); pos != -1; pos = pos_set.FindBit(pos)) {
@@ -141,17 +146,36 @@ namespace mabe {
     }
 
     /// Merge this collection with another collection.
-    Collection & operator |= (const Collection & collection2) { return Insert(collection2); }
+    Collection & operator |= (const Collection & collection2) {
+      return Insert(collection2);
+    }
 
     /// Reduce to the intersection with another colleciton.
-    Collection & operator &= (const Collection & collection2) {
-      auto it1 = begin();
-      auto it2 = collection2.begin();
-      while (it1 != end() && it2 != collection2.end()) {
-        if (it1 < it2) it1 = erase(it1);  // Not in collection2!
-        else if (it2 < it1) it2++;        // Need to catch up iterator for collection2.
-        else { it1++; it2++; }            // In both.  Keep and move on.
+    Collection & operator &= (const Collection & in_collection) {
+      auto cur_it = pos_map.begin();
+      auto in_it = in_collection.pos_map.begin();
+
+      // Step through both iterators dealing appropriately with populations.
+      while (cur_it != pos_map.end() && in_it != in_collection.pos_map.end()) {
+        // If the 'in' iterator is smaller, ignore this population and move on.
+        if (in_it->first < cur_it->first) { in_it++; continue; }
+        
+        // If the current iterator is smaller, delete the current population (not in intersection)
+        if (cur_it->first < in_it->first) { cur_it = pos_map.erase(cur_it); continue; }
+
+        // Otherwise populations must be the same!  If second pop is full, keep first as is!
+        if (!in_it->second.full_pop) {
+          cur_it->second.RemoveFull(cur_it->first);         // Shift first pop to individuals
+          cur_it->second.pos_set &= in_it->second.pos_set;  // Now pick out the intersection.
+        }
+
+        // Move on to the next populations.
+        cur_it++;
+        in_it++;
       }
+
+      // Remove any extra populations that didn't match in the in_collection.
+      while (cur_it != pos_map.end()) cur_it = pos_map.erase(cur_it);
 
       return *this;
     }
