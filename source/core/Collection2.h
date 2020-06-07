@@ -41,6 +41,12 @@ namespace mabe {
         if (full_pop) return pop_ptr->GetSize();
         return pos_set.CountOnes();
       }
+
+      void InsertPos(size_t pos) {
+        // Make sure we have room for this position and then set it.
+        if (pos_set.GetSize() <= pos) pos_set.Resize(pos+1);
+        pos_set.Set(pos);
+      }
     };
 
     using map_t = std::map<pop_ptr_t, PopInfo>;
@@ -56,6 +62,7 @@ namespace mabe {
     Collection & operator=(const Collection &) = default;
     Collection & operator=(Collection &&) = default;
 
+    /// Calculation the total number of positions represented in this collection.
     size_t GetSize() const {
       size_t count = 0;
       for (auto [pop_ptr, pop_info] : pos_map) {
@@ -64,23 +71,39 @@ namespace mabe {
       return count;
     }
 
-
-    
-
     /// Add a Population to this collection.
     Collection &  Insert(const Population & pop) {
-      for (size_t i = 0; i < pop.GetSize(); i++) {
-        insert(OrgPosition(&pop, i));
-      }
+      pos_map[&pop].full_pop = true;
       return *this;
     }
 
     /// Add an organism (by position!)
-    Collection & Insert(OrgPosition pos) { insert(pos); return *this; }
+    Collection & Insert(OrgPosition pos) {
+      pos_map[pos.PopPtr()].InsertPos(pos.Pos());
+      return *this;
+    }
 
     /// Add a whole other collection.
-    Collection & Insert(const Collection & collection) {
-      for (auto pos : collection) insert(pos);
+    Collection & Insert(const Collection & in_collection) {
+      for (auto & [pop_ptr, in_pop_info] : in_collection.pos_map) {
+        PopInfo & pop_info = pos_map[pop_ptr];
+
+        if (pop_info.full_pop) continue;  // This population is already full.
+
+        // If we're adding a full population, do so.
+        if (in_pop_info.full_pop) { pop_info.full_pop = true; continue; }
+
+        // Otherwise add just the entries we need to.
+        emp::BitVector & pos_set = pop_info.pos_set;
+        emp::BitVector in_pos_set = in_pop_info.pos_set;
+        if (in_pos_set.GetSize() < pos_set.GetSize()) {
+          in_pos_set.Resize(pos_set.GetSize());
+        }
+        else if (pos_set.GetSize() < in_pos_set.GetSize()) {
+          pos_set.Resize(in_pos_set.GetSize());
+        }
+      }
+
       return *this;
     }
 
