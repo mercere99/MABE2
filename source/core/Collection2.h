@@ -94,14 +94,20 @@ namespace mabe {
         if (in_pop_info.full_pop) { pop_info.full_pop = true; continue; }
 
         // Otherwise add just the entries we need to.
+
         emp::BitVector & pos_set = pop_info.pos_set;
         emp::BitVector in_pos_set = in_pop_info.pos_set;
+
+        // First, make sure both position sets are the same size.
         if (in_pos_set.GetSize() < pos_set.GetSize()) {
           in_pos_set.Resize(pos_set.GetSize());
         }
         else if (pos_set.GetSize() < in_pos_set.GetSize()) {
           pos_set.Resize(in_pos_set.GetSize());
         }
+
+        // Use 'OR' to join the sets.
+        pos_set |= in_pos_set;
       }
 
       return *this;
@@ -117,12 +123,21 @@ namespace mabe {
 
     /// Remove all empty positions from this collection.
     Collection & RemoveEmpty() {
-      auto it = begin();
-      while ( it != end()) {
-        if (!it->IsOccupied()) it = erase(it);
-        else it++;
+      for (auto & [pop_ptr, pop_info] : pos_map) {
+        emp::BitVector & pos_set = pop_info.pos_set;
+
+        // If this population is full, switch it over to use the bitmap.
+        if (pop_info.full_pop) {
+          pos_set.Resize(pop_ptr->GetSize());
+          pos_set.SetAll();
+          pop_info.full_pop = false;
+        }
+
+        // Scan through organisms, removing inclusion of those that are empty.
+        for (int pos = pos_set.FindBit(); pos != -1; pos = pos_set.FindBit(pos)) {
+          if (!pop_ptr->IsOccupied((size_t) pos)) pos_set.Set(pos,false);
+        }
       }
-      return *this;
     }
 
     /// Merge this collection with another collection.
