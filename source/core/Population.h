@@ -25,7 +25,18 @@
 namespace mabe {
 
   class Population;
+  class OrgPosition;
 
+  /// Base class to manging updating organism positions.
+  struct OrgPositionUpdater {
+    virtual ~OrgPositionUpdater() { }
+    virtual void NextPosition(emp::Ptr<OrgPosition>) = 0;
+    virtual void PrevPosition(emp::Ptr<OrgPosition>) = 0;
+    virtual void BeginPosition(emp::Ptr<OrgPosition>) = 0;
+    virtual void EndPosition(emp::Ptr<OrgPosition>) = 0;
+  };
+
+  /// A class to track the position of an organism in the world; can be used as an iterator.
   class OrgPosition {
     ///  @todo Add a reverse iterator.
     ///  @todo Fix operator-- which can go off of the beginning of the world.
