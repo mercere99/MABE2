@@ -25,16 +25,6 @@
 namespace mabe {
 
   class Population;
-  class OrgPosition;
-
-  /// Base class to manging updating organism positions.
-  struct OrgPositionUpdater {
-    virtual ~OrgPositionUpdater() { }
-    virtual void NextPosition(emp::Ptr<OrgPosition>) = 0;
-    virtual void PrevPosition(emp::Ptr<OrgPosition>) = 0;
-    virtual void BeginPosition(emp::Ptr<OrgPosition>) = 0;
-    virtual void EndPosition(emp::Ptr<OrgPosition>) = 0;
-  };
 
   /// A class to track the position of an organism in the world; can be used as an iterator.
   class OrgPosition {
@@ -46,6 +36,12 @@ namespace mabe {
     size_t pos;
     bool skip_empty;
 
+    // Helper functions to be overloaded in derived version of OrgPosition.
+    virtual void NextPosition();
+    virtual void PrevPosition();
+    virtual void ToBegin();
+    virtual void ToEnd();
+
   public:
     OrgPosition(emp::Ptr<Population> _pop=nullptr, size_t _pos=0, bool _skip=false)
       : pop_ptr(_pop), pos(_pos), skip_empty(_skip)
@@ -54,6 +50,7 @@ namespace mabe {
     }
     OrgPosition(Population & pop, size_t _pos=0, bool _skip=false) : OrgPosition(&pop, _pos, _skip) {}
     OrgPosition(const OrgPosition &) = default;
+    virtual ~OrgPosition() { }
     OrgPosition & operator=(const OrgPosition & in) = default;
 
     // Shortcut definitions to retrieve information from the POPULATION.
@@ -504,6 +501,11 @@ namespace mabe {
 
 
   // --- Function definitions for OrgPosition now that Population has been defined ---
+
+  void OrgPosition::NextPosition() { ++pos; }
+  void OrgPosition::PrevPosition() { --pos; }
+  void OrgPosition::ToBegin() { pos = 0; }
+  void OrgPosition::ToEnd() { pos = pop_ptr->GetSize(); }
 
   const std::string & OrgPosition::PopName() const { emp_assert(pop_ptr); return pop_ptr->GetName(); }
   int OrgPosition::PopID() const { emp_assert(pop_ptr); return pop_ptr->GetID(); }
