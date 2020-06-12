@@ -31,20 +31,22 @@ namespace mabe {
 
   class Population;
 
-  template <typename DERIVED_T, typename CONTAINER_T=Population, typename INDEX_T=size_t>
+  template <typename DERIVED_T, typename ORG_T=Organism, typename CONTAINER_T=Population, typename INDEX_T=size_t>
   class OrgIterator_Interface {
     friend class MABEBase;
   protected:
     emp::Ptr<CONTAINER_T> pop_ptr;
     INDEX_T pos;
 
-    using this_t = OrgIterator_Interface<DERIVED_T, CONTAINER_T, INDEX_T>;
+    using this_t = OrgIterator_Interface<DERIVED_T, ORG_T, CONTAINER_T, INDEX_T>;
 
     // Helper functions to be overloaded in derived classes.
     virtual void ShiftPosition(int=1) = 0;
     virtual void ToBegin() = 0;
     virtual void ToEnd() = 0;
     virtual void MakeValid() = 0;
+
+    DERIVED_T & AsDerived() { return (DERIVED_T &) *this; }
 
   public:
     /// Constructor where you can optionally supply population pointer and position.
@@ -55,19 +57,19 @@ namespace mabe {
     OrgIterator_Interface(CONTAINER_T & pop, INDEX_T _pos=0) : OrgIterator_Interface(&pop, _pos) {}
 
     /// Copy constructor
-    OrgIterator_Interface(const OrgIterator_Interface &) = default;
+    OrgIterator_Interface(const this_t &) = default;
 
     /// Destructor
     virtual ~OrgIterator_Interface() { }
 
     /// Copy operator
-    this_t & operator=(const OrgIterator_Interface & in) = default;
+    this_t & operator=(const this_t & in) = default;
 
     // Shortcut definitions to retrieve information from the POPULATION.
     const std::string & PopName() const { emp_assert(pop_ptr); return pop_ptr->GetName(); }
     int PopID() const { emp_assert(pop_ptr); return pop_ptr->GetID(); }
     size_t PopSize() const { emp_assert(pop_ptr); return pop_ptr->GetSize(); }
-    emp::Ptr<Organism> OrgPtr() { emp_assert(pop_ptr); return &(*pop_ptr)[pos]; }
+    emp::Ptr<ORG_T> OrgPtr() { emp_assert(pop_ptr); return &(*pop_ptr)[pos]; }
     emp::Ptr<const Organism> OrgPtr() const { emp_assert(pop_ptr); return &(*pop_ptr)[pos]; }
 
     // Information direct from this iterator.
@@ -78,7 +80,7 @@ namespace mabe {
       return emp::to_string("{pop_ptr=", pop_ptr, ";pos=", pos, "}");
     }
 
-    DERIVED_T & SetPos(INDEX_T in) { pos = in; return (DERIVED_T &) *this; }
+    DERIVED_T & SetPos(INDEX_T in) { pos = in; return AsDerived(); }
 
     /// Is this iterator currently in a legal state?
     bool IsValid() const { return !pop_ptr.IsNull() && pos < PopSize(); }
@@ -88,11 +90,11 @@ namespace mabe {
     bool IsOccupied() const { return IsValid() && !OrgPtr()->IsEmpty(); }
 
     /// Advance iterator to the next non-empty cell in the world.
-    DERIVED_T & operator++() { ShiftPosition(1); return (DERIVED_T &) *this; }
+    DERIVED_T & operator++() { ShiftPosition(1); return AsDerived(); }
 
     /// Postfix++: advance iterator to the next non-empty cell in the world.
     DERIVED_T operator++(int) {
-      DERIVED_T out = (DERIVED_T &) *this;
+      DERIVED_T out = AsDerived();
       ShiftPosition(1);
       return out;
     }
@@ -100,25 +102,25 @@ namespace mabe {
     /// Backup iterator to the previos non-empty cell in the world.
     DERIVED_T & operator--() {
       ShiftPosition(-1);
-      return (DERIVED_T &) *this;
+      return AsDerived();
     }
 
     /// Postfix--: Backup iterator to the previos non-empty cell in the world.
     DERIVED_T operator--(int) {
-      DERIVED_T out = (DERIVED_T &) *this;
+      DERIVED_T out = AsDerived();
       ShiftPosition(-1);;
       return out;
     }
 
     // Basic math operations...
     DERIVED_T operator+(int x) {
-      DERIVED_T out = (DERIVED_T &) *this;
+      DERIVED_T out = AsDerived();
       out.ShiftPosition(x);
       return out;
     }
 
     DERIVED_T operator-(int x) {
-      DERIVED_T out = (DERIVED_T &) *this;
+      DERIVED_T out = AsDerived();
       out.ShiftPosition(-x);
       return out;
     }
@@ -126,12 +128,12 @@ namespace mabe {
     // Compound math operations...
     DERIVED_T & operator+=(int x) {
       ShiftPosition(x);
-      return (DERIVED_T &) *this;
+      return AsDerived();
     }
 
     DERIVED_T & operator-=(int x) {
       ShiftPosition(-x);
-      return (DERIVED_T &) *this;
+      return AsDerived();
     }
 
     /// Iterator comparisons (iterators from different populations have no ordinal relationship).
@@ -143,7 +145,7 @@ namespace mabe {
     bool operator>=(const DERIVED_T & in) const { return pop_ptr == in.pop_ptr && pos >= in.pos; }
 
     /// Return a reference to the organism pointed to by this iterator; may advance iterator.
-    Organism & operator*() {
+    ORG_T & operator*() {
       MakeValid();              // If the population has changed, adjust appropriately.
       emp_assert(IsValid());    // Make sure we're not outside of the vector.
       return *(OrgPtr());
@@ -154,7 +156,7 @@ namespace mabe {
     const Organism & operator*() const { emp_assert(IsValid()); return *(OrgPtr()); }
 
     /// Allow iterator to be used as a pointer.
-    emp::Ptr<mabe::Organism> operator->() {
+    emp::Ptr<ORG_T> operator->() {
       // Make sure a pointer is active before we follow it.
       emp_assert(IsValid());
       return OrgPtr();
@@ -171,7 +173,7 @@ namespace mabe {
     operator bool() const { return pos < PopSize() && IsOccupied(); }
 
     /// Iterators can be automatically converted to a pointer to the organism they refer to.
-    operator emp::Ptr<mabe::Organism>() { emp_assert(IsValid()); return OrgPtr(); }
+    operator emp::Ptr<ORG_T>() { emp_assert(IsValid()); return OrgPtr(); }
 
     /// Return an iterator pointing to the first occupied cell in the world.
     DERIVED_T begin() const { DERIVED_T out( (DERIVED_T &) *this); out.ToBegin(); return out; }
@@ -208,6 +210,29 @@ namespace mabe {
 
     /// Copy operator
     OrgPosition & operator=(const OrgPosition & in) = default;
+  };
+
+  class ConstOrgPosition : public OrgIterator_Interface<ConstOrgPosition, const Organism> {
+  protected:
+    using base_t = OrgIterator_Interface<ConstOrgPosition, const Organism>;
+
+    void ShiftPosition(int=1) override { emp_error("ShiftPosition(shift_size) not defined in ConstOrgPosition."); }
+    void ToBegin() override { emp_error("ToBegin() not defined in ConstOrgPosition."); }
+    void ToEnd() override { emp_error("ToEnd() not defined in ConstOrgPosition."); }
+    void MakeValid() override { }
+
+  public:
+    /// Constructor where you can optionally supply population pointer and position.
+    ConstOrgPosition(emp::Ptr<Population> _pop=nullptr, size_t _pos=0) : base_t(_pop, _pos) { ; }
+
+    /// Supply Population by reference instead of pointer.
+    ConstOrgPosition(Population & pop, size_t _pos=0) : ConstOrgPosition(&pop, _pos) {}
+
+    /// Copy constructor
+    ConstOrgPosition(const ConstOrgPosition &) = default;
+
+    /// Copy operator
+    ConstOrgPosition & operator=(const ConstOrgPosition & in) = default;
   };
 
 
