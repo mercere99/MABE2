@@ -70,7 +70,7 @@ namespace mabe {
     emp::Ptr<Organism> OrgPtr() { emp_assert(pop_ptr); return &(*pop_ptr)[pos]; }
     emp::Ptr<const Organism> OrgPtr() const { emp_assert(pop_ptr); return &(*pop_ptr)[pos]; }
 
-    // Information direct from this OrgPosition.
+    // Information direct from this iterator.
     INDEX_T Pos() const noexcept { return pos; };
     emp::Ptr<CONTAINER_T> PopPtr() noexcept { return pop_ptr; }
 
@@ -92,7 +92,7 @@ namespace mabe {
 
     /// Postfix++: advance iterator to the next non-empty cell in the world.
     DERIVED_T operator++(int) {
-      DERIVED_T out = (DERIVED &) *this;
+      DERIVED_T out = (DERIVED_T &) *this;
       ShiftPosition(1);
       return out;
     }
@@ -134,26 +134,26 @@ namespace mabe {
       return (DERIVED_T &) *this;
     }
 
-    /// OrgPosition comparisons (OrgPositions from different populations have no ordinal relationship).
-    bool operator==(const OrgPosition& in) const { return pop_ptr == in.pop_ptr && pos == in.pos; }
-    bool operator!=(const OrgPosition& in) const { return pop_ptr != in.pop_ptr || pos != in.pos; }
-    bool operator< (const OrgPosition& in) const { return pop_ptr == in.pop_ptr && pos <  in.pos; }
-    bool operator<=(const OrgPosition& in) const { return pop_ptr == in.pop_ptr && pos <= in.pos; }
-    bool operator> (const OrgPosition& in) const { return pop_ptr == in.pop_ptr && pos >  in.pos; }
-    bool operator>=(const OrgPosition& in) const { return pop_ptr == in.pop_ptr && pos >= in.pos; }
+    /// Iterator comparisons (iterators from different populations have no ordinal relationship).
+    bool operator==(const DERIVED_T & in) const { return pop_ptr == in.pop_ptr && pos == in.pos; }
+    bool operator!=(const DERIVED_T & in) const { return pop_ptr != in.pop_ptr || pos != in.pos; }
+    bool operator< (const DERIVED_T & in) const { return pop_ptr == in.pop_ptr && pos <  in.pos; }
+    bool operator<=(const DERIVED_T & in) const { return pop_ptr == in.pop_ptr && pos <= in.pos; }
+    bool operator> (const DERIVED_T & in) const { return pop_ptr == in.pop_ptr && pos >  in.pos; }
+    bool operator>=(const DERIVED_T & in) const { return pop_ptr == in.pop_ptr && pos >= in.pos; }
 
-    /// Return a reference to the organism pointed to by this OrgPosition; may advance OrgPosition.
+    /// Return a reference to the organism pointed to by this iterator; may advance iterator.
     Organism & operator*() {
       MakeValid();              // If the population has changed, adjust appropriately.
       emp_assert(IsValid());    // Make sure we're not outside of the vector.
       return *(OrgPtr());
     }
 
-    /// Return a const reference to the organism pointed to by this OrgPosition.
-    /// Note that since this version is const, it will NOT adjust the OrgPosition.
+    /// Return a const reference to the organism pointed to by this iterator.
+    /// Note that since this version is const, it will NOT adjust the iterator.
     const Organism & operator*() const { emp_assert(IsValid()); return *(OrgPtr()); }
 
-    /// Allow OrgPosition to be used as a pointer.
+    /// Allow iterator to be used as a pointer.
     emp::Ptr<mabe::Organism> operator->() {
       // Make sure a pointer is active before we follow it.
       emp_assert(IsValid());
@@ -167,10 +167,10 @@ namespace mabe {
       return OrgPtr();
     }
 
-    /// Is this OrgPosition pointing to a valid cell in the world?
+    /// Is this Iterator pointing to a valid cell in the world?
     operator bool() const { return pos < PopSize() && IsOccupied(); }
 
-    /// OrgPositions can be automatically converted to a pointer to the organism they refer to.
+    /// Iterators can be automatically converted to a pointer to the organism they refer to.
     operator emp::Ptr<mabe::Organism>() { emp_assert(IsValid()); return OrgPtr(); }
 
     /// Return an iterator pointing to the first occupied cell in the world.
