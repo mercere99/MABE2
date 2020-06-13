@@ -235,7 +235,67 @@ namespace mabe {
     ConstOrgPosition & operator=(const ConstOrgPosition & in) = default;
   };
 
+  class OrgItertor : public OrgIterator_Interface<OrgItertor> {
+  protected:
+    using base_t = OrgIterator_Interface<OrgItertor>;
 
+    void ShiftPosition(int shift=1) override {
+      const int new_pos = shift + (int) pos;
+      emp_assert(pop_ptr);
+      emp_assert(new_pos >= 0 && new_pos <= (int) pop_ptr->GetSize(), new_pos, pop_ptr->GetSize());
+      pos = (size_t) new_pos;
+    }
+    void ToBegin() override { pos = 0; }
+    void ToEnd() override { pos = pop_ptr->GetSize(); }
+    void MakeValid() override {
+      // If we moved past the end, make this the end iterator.
+      if (pos > pop_ptr->GetSize()) ToEnd();
+    }
+
+  public:
+    /// Constructor where you can optionally supply population pointer and position.
+    OrgItertor(emp::Ptr<Population> _pop=nullptr, size_t _pos=0) : base_t(_pop, _pos) { ; }
+
+    /// Supply Population by reference instead of pointer.
+    OrgItertor(Population & pop, size_t _pos=0) : OrgItertor(&pop, _pos) {}
+
+    /// Copy constructor
+    OrgItertor(const OrgItertor &) = default;
+
+    /// Copy operator
+    OrgItertor & operator=(const OrgItertor & in) = default;
+  };
+
+  class ConstOrgItertor : public OrgIterator_Interface<ConstOrgItertor, const Organism> {
+  protected:
+    using base_t = OrgIterator_Interface<ConstOrgItertor, const Organism>;
+
+    void ShiftPosition(int shift=1) override {
+      const int new_pos = shift + (int) pos;
+      emp_assert(pop_ptr);
+      emp_assert(new_pos >= 0 && new_pos <= (int) pop_ptr->GetSize(), new_pos, pop_ptr->GetSize());
+      pos = (size_t) new_pos;
+    }
+    void ToBegin() override { pos = 0; }
+    void ToEnd() override { pos = pop_ptr->GetSize(); }
+    void MakeValid() override {
+      // If we moved past the end, make this the end iterator.
+      if (pos > pop_ptr->GetSize()) ToEnd();
+    }
+
+  public:
+    /// Constructor where you can optionally supply population pointer and position.
+    ConstOrgItertor(emp::Ptr<Population> _pop=nullptr, size_t _pos=0) : base_t(_pop, _pos) { ; }
+
+    /// Supply Population by reference instead of pointer.
+    ConstOrgItertor(Population & pop, size_t _pos=0) : ConstOrgItertor(&pop, _pos) {}
+
+    /// Copy constructor
+    ConstOrgItertor(const ConstOrgItertor &) = default;
+
+    /// Copy operator
+    ConstOrgItertor & operator=(const ConstOrgItertor & in) = default;
+  };
 }
 
 #endif
