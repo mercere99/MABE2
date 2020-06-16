@@ -136,13 +136,20 @@ namespace mabe {
       return AsDerived();
     }
 
-    /// Iterator comparisons (iterators from different populations have no ordinal relationship).
     bool operator==(const DERIVED_T & in) const { return pop_ptr == in.pop_ptr && pos == in.pos; }
     bool operator!=(const DERIVED_T & in) const { return pop_ptr != in.pop_ptr || pos != in.pos; }
-    bool operator< (const DERIVED_T & in) const { return pop_ptr == in.pop_ptr && pos <  in.pos; }
-    bool operator<=(const DERIVED_T & in) const { return pop_ptr == in.pop_ptr && pos <= in.pos; }
-    bool operator> (const DERIVED_T & in) const { return pop_ptr == in.pop_ptr && pos >  in.pos; }
-    bool operator>=(const DERIVED_T & in) const { return pop_ptr == in.pop_ptr && pos >= in.pos; }
+    bool operator< (const DERIVED_T & in) const {
+      return (pop_ptr == in.pop_ptr) ? (pos <  in.pos) : (pop_ptr < in.pop_ptr);
+    }
+    bool operator> (const DERIVED_T & in) const { return in < *this; }
+    bool operator<=(const DERIVED_T & in) const { return !(in < *this); }
+    bool operator>=(const DERIVED_T & in) const { return !(*this < in); }
+
+    // OLD VERSION : Two iterators don't have order when they are not in the same population.
+    // bool operator< (const DERIVED_T & in) const { return pop_ptr == in.pop_ptr && pos <  in.pos; }
+    // bool operator<=(const DERIVED_T & in) const { return pop_ptr == in.pop_ptr && pos <= in.pos; }
+    // bool operator> (const DERIVED_T & in) const { return pop_ptr == in.pop_ptr && pos >  in.pos; }
+    // bool operator>=(const DERIVED_T & in) const { return pop_ptr == in.pop_ptr && pos >= in.pos; }
 
     /// Return a reference to the organism pointed to by this iterator; may advance iterator.
     ORG_T & operator*() {
