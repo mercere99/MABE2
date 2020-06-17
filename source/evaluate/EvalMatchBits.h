@@ -11,8 +11,8 @@
  *  - We should allow offsets, skips, etc, to do more sophisticated pairings for matches.
  */
 
-#ifndef MABE_EVAL_COUNT_BITS_H
-#define MABE_EVAL_COUNT_BITS_H
+#ifndef MABE_EVAL_MATCH_BITS_H
+#define MABE_EVAL_MATCH_BITS_H
 
 #include "../core/MABE.h"
 #include "../core/Module.h"
