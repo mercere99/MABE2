@@ -41,6 +41,8 @@ namespace mabe {
     using this_t = OrgIterator_Interface<DERIVED_T, ORG_T, CONTAINER_T, INDEX_T>;
 
     // Helper functions to be overloaded in derived classes.
+    virtual void IncPosition() = 0;
+    virtual void DecPosition() = 0;
     virtual void ShiftPosition(int=1) = 0;
     virtual void ToBegin() = 0;
     virtual void ToEnd() = 0;
@@ -90,25 +92,25 @@ namespace mabe {
     bool IsOccupied() const { return IsValid() && !OrgPtr()->IsEmpty(); }
 
     /// Advance iterator to the next non-empty cell in the world.
-    DERIVED_T & operator++() { ShiftPosition(1); return AsDerived(); }
+    DERIVED_T & operator++() { IncPosition(); return AsDerived(); }
 
     /// Postfix++: advance iterator to the next non-empty cell in the world.
     DERIVED_T operator++(int) {
       DERIVED_T out = AsDerived();
-      ShiftPosition(1);
+      IncPosition();
       return out;
     }
 
     /// Backup iterator to the previos non-empty cell in the world.
     DERIVED_T & operator--() {
-      ShiftPosition(-1);
+      DecPosition();
       return AsDerived();
     }
 
     /// Postfix--: Backup iterator to the previos non-empty cell in the world.
     DERIVED_T operator--(int) {
       DERIVED_T out = AsDerived();
-      ShiftPosition(-1);;
+      DecPosition();
       return out;
     }
 
@@ -200,6 +202,8 @@ namespace mabe {
   protected:
     using base_t = OrgIterator_Interface<OrgPosition>;
 
+    void IncPosition() override { emp_error("IncPosition(shift_size) not defined in OrgPosition."); }
+    void DecPosition() override { emp_error("DecPosition(shift_size) not defined in OrgPosition."); }
     void ShiftPosition(int=1) override { emp_error("ShiftPosition(shift_size) not defined in OrgPosition."); }
     void ToBegin() override { emp_error("ToBegin() not defined in OrgPosition."); }
     void ToEnd() override { emp_error("ToEnd() not defined in OrgPosition."); }
@@ -223,6 +227,8 @@ namespace mabe {
   protected:
     using base_t = OrgIterator_Interface<ConstOrgPosition, const Organism>;
 
+    void IncPosition() override { emp_error("IncPosition(shift_size) not defined in ConstOrgPosition."); }
+    void DecPosition() override { emp_error("DecPosition(shift_size) not defined in ConstOrgPosition."); }
     void ShiftPosition(int=1) override { emp_error("ShiftPosition(shift_size) not defined in ConstOrgPosition."); }
     void ToBegin() override { emp_error("ToBegin() not defined in ConstOrgPosition."); }
     void ToEnd() override { emp_error("ToEnd() not defined in ConstOrgPosition."); }
@@ -246,6 +252,16 @@ namespace mabe {
   protected:
     using base_t = OrgIterator_Interface<OrgItertor>;
 
+    void IncPosition() override {
+      emp_assert(pop_ptr);
+      emp_assert(pos < (int) pop_ptr->GetSize(), pos, pop_ptr->GetSize());
+      ++pos;
+    }
+    void DecPosition() override {
+      emp_assert(pop_ptr);
+      emp_assert(pos > 0, pos, pop_ptr->GetSize());
+      --pos;
+    }
     void ShiftPosition(int shift=1) override {
       const int new_pos = shift + (int) pos;
       emp_assert(pop_ptr);
@@ -277,6 +293,16 @@ namespace mabe {
   protected:
     using base_t = OrgIterator_Interface<ConstOrgItertor, const Organism>;
 
+    void IncPosition() override {
+      emp_assert(pop_ptr);
+      emp_assert(pos < (int) pop_ptr->GetSize(), pos, pop_ptr->GetSize());
+      ++pos;
+    }
+    void DecPosition() override {
+      emp_assert(pop_ptr);
+      emp_assert(pos > 0, pos, pop_ptr->GetSize());
+      --pos;
+    }
     void ShiftPosition(int shift=1) override {
       const int new_pos = shift + (int) pos;
       emp_assert(pop_ptr);
