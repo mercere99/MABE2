@@ -28,6 +28,52 @@
 
 namespace mabe {
 
+  class CollectionIterator : public OrgIterator_Interface<CollectionIterator> {
+  protected:
+    emp::Ptr<Collection> collection_ptr = nullptr;
+
+    using base_t = OrgIterator_Interface<CollectionIterator>;
+
+    void IncPosition() override {
+      emp_assert(collection_ptr);
+      collection_ptr->IncPosition(*this);
+    }
+    void DecPosition() override {
+      emp_assert(collection_ptr);
+      collection_ptr->DecPosition(*this);
+    }
+    void ShiftPosition(int shift=1) override {
+      emp_assert(collection_ptr);
+      collection_ptr->ShiftPosition(*this, shift);
+    }
+    void ToBegin() override {
+      emp_assert(collection_ptr);
+      *this = collection_ptr->begin();
+    }
+    void ToEnd() override {
+      emp_assert(collection_ptr);
+      *this = collection_ptr->end();
+    }
+    void MakeValid() override {
+      if (collection_ptr) collection_ptr->MakeValid(*this);
+    }
+
+  public:
+    /// Constructor where you can optionally supply population pointer and position.
+    CollectionIterator(emp::Ptr<Collection> _col=nullptr, size_t _pos=0)
+      : base_t(_col->GetFirstPop(), _pos) { ; }
+
+    /// Supply Population by reference instead of pointer.
+    CollectionIterator(Collection & col, size_t _pos=0) : CollectionIterator(&col, _pos) {}
+
+    /// Copy constructor
+    CollectionIterator(const CollectionIterator &) = default;
+
+    /// Copy operator
+    CollectionIterator & operator=(const CollectionIterator & in) = default;
+  };
+
+
   class Collection {
   private:
     using pop_ptr_t = emp::Ptr<mabe::Population>;
