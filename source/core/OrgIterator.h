@@ -39,6 +39,7 @@ namespace mabe {
     INDEX_T pos;
 
     using this_t = OrgIterator_Interface<DERIVED_T, ORG_T, CONTAINER_T, INDEX_T>;
+    using container_ptr_t = emp::Ptr<CONTAINER_T>;
 
     // Helper functions to be overloaded in derived classes.
     virtual void IncPosition() = 0;
@@ -82,6 +83,7 @@ namespace mabe {
       return emp::to_string("{pop_ptr=", pop_ptr, ";pos=", pos, "}");
     }
 
+    DERIVED_T & SetContainer(CONTAINER_T & in) { pop_ptr = &in; return AsDerived(); }
     DERIVED_T & SetPos(INDEX_T in) { pos = in; return AsDerived(); }
 
     /// Is this iterator currently in a legal state?
