@@ -28,7 +28,10 @@
 
 namespace mabe {
 
+  class Collection;
+
   class CollectionIterator : public OrgIterator_Interface<CollectionIterator> {
+    friend Collection;
   protected:
     emp::Ptr<Collection> collection_ptr = nullptr;
 
@@ -61,7 +64,11 @@ namespace mabe {
   public:
     /// Constructor where you can optionally supply population pointer and position.
     CollectionIterator(emp::Ptr<Collection> _col=nullptr, size_t _pos=0)
-      : base_t(_col->GetFirstPop(), _pos) { ; }
+      : base_t(_col->GetFirstPop(), _pos), collection_ptr(_col) { ; }
+
+    /// Constructor where you can optionally supply population pointer and position.
+    CollectionIterator(emp::Ptr<Collection> _col, emp::Ptr<Population> pop, size_t _pos=0)
+      : base_t(pop, _pos), collection_ptr(_col) { ; }
 
     /// Supply Population by reference instead of pointer.
     CollectionIterator(Collection & col, size_t _pos=0) : CollectionIterator(&col, _pos) {}
@@ -126,6 +133,20 @@ namespace mabe {
       }
       return count;
     }
+
+    void IncPosition(CollectionIterator & it) const { }
+    void DecPosition(CollectionIterator & it) const {
+      emp_error("DecPosition() not yet implemented for CollectionIterator.");
+    }
+    void ShiftPosition(CollectionIterator & it, int shift) const {
+      emp_error("ShiftPosition() not yet implemented for CollectionIterator.");
+    }
+    void MakeValid(CollectionIterator & it) const {
+      // @CAO Implement this?
+    }
+
+    CollectionIterator begin() const { return CollectionIterator(this); }
+    CollectionIterator end() const { return CollectionIterator(this, nullptr); }
 
     /// Add a Population to this collection.
     Collection &  Insert(const Population & pop) {
