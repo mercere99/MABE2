@@ -84,7 +84,13 @@ namespace mabe {
     }
 
     DERIVED_T & SetContainer(CONTAINER_T & in) { pop_ptr = &in; return AsDerived(); }
+    DERIVED_T & SetContainer(emp::Ptr<CONTAINER_T> in) { pop_ptr = in; return AsDerived(); }
     DERIVED_T & SetPos(INDEX_T in) { pos = in; return AsDerived(); }
+    DERIVED_T & Set(emp::Ptr<CONTAINER_T> in_pop, INDEX_T in_pos) {
+      pop_ptr = in_pop;
+      pos = in_pos;
+      return AsDerived();
+    }
 
     /// Is this iterator currently in a legal state?
     bool IsValid() const { return !pop_ptr.IsNull() && pos < PopSize(); }
