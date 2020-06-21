@@ -134,6 +134,11 @@ namespace mabe {
       return count;
     }
 
+    pop_ptr_t GetFirstPop() {
+      if (pos_map.size() == 0) return nullptr;
+      else return pos_map.begin()->first;
+    }
+
     void IncPosition(CollectionIterator & it) const { }
     void DecPosition(CollectionIterator & it) const {
       emp_error("DecPosition() not yet implemented for CollectionIterator.");
