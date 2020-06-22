@@ -96,6 +96,13 @@ namespace mabe {
         return pos_set.CountOnes();
       }
 
+      // Identify the next position after the one provided.  If there is no next position,
+      // return a value > population size.
+      size_t GetNextPos(size_t pos) {
+        if (full_pop) return ++pos;
+        return (size_t) pos_set.FindBit(pos);
+      }
+
       // Insert a single position into the pos_set.
       void InsertPos(size_t pos) {
         // Make sure we have room for this position and then set it.
@@ -143,31 +150,21 @@ namespace mabe {
       size_t cur_pos = it.Pos();
       pop_ptr_t cur_pop = it.PopPtr();
       emp_assert(emp::Has(pos_map, cur_pop));      // Current population must be in map!
-      const PopInfo pop_info = pos_map[cur_pop];   // Get info about the current population.
+      const PopInfo & pop_info = pos_map[cur_pop]; // Get info about the current population.
       bool advance_pop = false;                    // Should we move on to the next population?
 
-      // If we are dealing with a full population...
-      if (pop_info.full_pop) {
-        ++cur_pos;                                 // Find the position of next organism.
-        if (cur_pos < cur_pop->GetSize()) {        // If it's safe to move to the next organism...
-          it.SetPos(cur_pos);                      // ...do so.
-        }
-        else advance_pop = true;                   // Otherwise Need to move to next population.
+      size_t next_pos = pop_info.GetNextPos(cur_pos);  // Find the position of next organism.
+      if (next_pos < cur_pop->GetSize()) {             // If it's safe to move to the next organism...
+        it.SetPos(next_pos);                           // ...do so.
       }
-
-      // Otherwise we are dealing with a partial population...
-      else {
-        int next_pos = pop_info.pos_set.FindBit(cur_pos);
-        if (next_pos == -1) advance_pop = true;
-        else it.SetPos((size_t) next_pos);
-      }
+      else advance_pop = true;                         // Otherwise Need to move to next population.
 
       // If we need to move on to the next population...
       if (advance_pop) {
         auto info_it = pos_map.find(cur_pop);
         ++info_it;
         if (info_it == pos_map.end()) it.Set(nullptr, 0);
-        else if (pop_info.full_pop) it.Set(info_it->first, 0)
+        else if (pop_info.full_pop) it.Set(info_it->first, 0);
         else it.Set(info_it->first, (size_t) info_it->second.pos_set.FindBit());
       }
     }
