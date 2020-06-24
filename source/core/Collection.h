@@ -90,27 +90,35 @@ namespace mabe {
       bool full_pop = false;   ///< Should we use the full population?
       emp::BitVector pos_set;  ///< Which positions are we using for this population?
 
-      // Identify how many positions we have.
+      /// Identify how many positions we have.
       size_t GetSize(pop_ptr_t pop_ptr) const {
         if (full_pop) return pop_ptr->GetSize();
         return pos_set.CountOnes();
       }
 
-      // Identify the next position after the one provided.  If there is no next position,
-      // return a value > population size.
-      size_t GetNextPos(size_t pos) {
+      /// Return the first legal position in the population (or 0 if none exist, which
+      /// should never happen!)
+      size_t GetFirstPos() const {
+        if (full_pop) return 0;
+        return (size_t) pop_set.FindBit();
+      }
+
+      /// Identify the next position after the one provided.  If there is no next position,
+      /// return a value >= population size.
+      size_t GetNextPos(size_t pos) const {
         if (full_pop) return ++pos;
         return (size_t) pos_set.FindBit(pos);
       }
 
-      // Insert a single position into the pos_set.
+      /// Insert a single position into the pos_set.
       void InsertPos(size_t pos) {
+        if (full_pop) return;
         // Make sure we have room for this position and then set it.
         if (pos_set.GetSize() <= pos) pos_set.Resize(pos+1);
         pos_set.Set(pos);
       }
 
-      // Shift this population to using the pos_set.
+      /// Shift this population to using the pos_set.
       void RemoveFull(pop_ptr_t pop_ptr) {
         if (!full_pop) return;
           pos_set.Resize(pop_ptr->GetSize());
@@ -147,25 +155,19 @@ namespace mabe {
     }
 
     void IncPosition(CollectionIterator & it) const {
-      size_t cur_pos = it.Pos();
       pop_ptr_t cur_pop = it.PopPtr();
       emp_assert(emp::Has(pos_map, cur_pop));      // Current population must be in map!
       const PopInfo & pop_info = pos_map[cur_pop]; // Get info about the current population.
-      bool advance_pop = false;                    // Should we move on to the next population?
 
-      size_t next_pos = pop_info.GetNextPos(cur_pos);  // Find the position of next organism.
+      size_t next_pos = pop_info.GetNextPos(it.Pos());  // Find the position of next organism.
       if (next_pos < cur_pop->GetSize()) {             // If it's safe to move to the next organism...
         it.SetPos(next_pos);                           // ...do so.
       }
-      else advance_pop = true;                         // Otherwise Need to move to next population.
-
-      // If we need to move on to the next population...
-      if (advance_pop) {
+      else {
         auto info_it = pos_map.find(cur_pop);
         ++info_it;
         if (info_it == pos_map.end()) it.Set(nullptr, 0);
-        else if (pop_info.full_pop) it.Set(info_it->first, 0);
-        else it.Set(info_it->first, (size_t) info_it->second.pos_set.FindBit());
+        else it.Set(info_it->first, info_it->second.GetFirstPos());
       }
     }
     void DecPosition(CollectionIterator & it) const {
