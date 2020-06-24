@@ -156,17 +156,19 @@ namespace mabe {
 
     void IncPosition(CollectionIterator & it) const {
       pop_ptr_t cur_pop = it.PopPtr();
-      emp_assert(emp::Has(pos_map, cur_pop));      // Current population must be in map!
-      const PopInfo & pop_info = pos_map[cur_pop]; // Get info about the current population.
+      auto info_it = pos_map.find(cur_pop);
+      emp_assert(info_it != pos_map.end());
 
-      size_t next_pos = pop_info.GetNextPos(it.Pos());  // Find the position of next organism.
-      if (next_pos < cur_pop->GetSize()) {             // If it's safe to move to the next organism...
-        it.SetPos(next_pos);                           // ...do so.
-      }
+      // Find the position of the next organism from this population
+      size_t next_pos = info_it->second.GetNextPos(it.Pos());
+
+      // If this position is good, set it!
+      if (next_pos < cur_pop->GetSize()) it.SetPos(next_pos);
+
+      // Otherwise advance to the next population,
       else {
-        auto info_it = pos_map.find(cur_pop);
         ++info_it;
-        if (info_it == pos_map.end()) it.Set(nullptr, 0);
+        if (info_it == pos_map.end()) it.Set(nullptr, 0);           // No more populations!
         else it.Set(info_it->first, info_it->second.GetFirstPos());
       }
     }
