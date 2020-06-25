@@ -7,7 +7,8 @@ The core components of MABE are below.  Each component depends on all of those a
 
 TraitInfo.h       - Specifications for module/trait interactions (on organisms, populations, etc.)
 ModuleBase.h      - Core functionality for interfacing with all module types.
-Organism.h        - Information about a single agent; ModuleBase is interface for OrganismManager
+Organism.h        - Information about a single agent; ModuleBase is interface for OrganismManager.
+OrgIterator.h     - Tools for identifying organism locations and stepping through sets of them.
 Population.h      - Collection of Organisms (some of which could be EmptyOrganisms)
 Collection.h      - A more flexible collection of organisms or whole populations for manipulation.
 MABE.h            - Main contoller object; manipulates Populations and Organisms
