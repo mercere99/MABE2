@@ -37,41 +37,22 @@ namespace mabe {
 
     using base_t = OrgIterator_Interface<CollectionIterator>;
 
-    void IncPosition() override {
-      emp_assert(collection_ptr);
-      collection_ptr->IncPosition(*this);
-    }
-    void DecPosition() override {
-      emp_assert(collection_ptr);
-      collection_ptr->DecPosition(*this);
-    }
-    void ShiftPosition(int shift=1) override {
-      emp_assert(collection_ptr);
-      collection_ptr->ShiftPosition(*this, shift);
-    }
-    void ToBegin() override {
-      emp_assert(collection_ptr);
-      *this = collection_ptr->begin();
-    }
-    void ToEnd() override {
-      emp_assert(collection_ptr);
-      *this = collection_ptr->end();
-    }
-    void MakeValid() override {
-      if (collection_ptr) collection_ptr->MakeValid(*this);
-    }
+    void IncPosition() override;
+    void DecPosition() override;
+    void ShiftPosition(int shift=1) override;
+    void ToBegin() override;
+    void ToEnd() override;
+    void MakeValid() override;
 
   public:
     /// Constructor where you can optionally supply population pointer and position.
-    CollectionIterator(emp::Ptr<Collection> _col=nullptr, size_t _pos=0)
-      : base_t(_col->GetFirstPop(), _pos), collection_ptr(_col) { ; }
+    CollectionIterator(emp::Ptr<Collection> _col=nullptr, size_t _pos=0);
 
     /// Constructor where you can optionally supply population pointer and position.
-    CollectionIterator(emp::Ptr<Collection> _col, emp::Ptr<Population> pop, size_t _pos=0)
-      : base_t(pop, _pos), collection_ptr(_col) { ; }
+    CollectionIterator(emp::Ptr<Collection> _col, emp::Ptr<Population> pop, size_t _pos=0);
 
     /// Supply Population by reference instead of pointer.
-    CollectionIterator(Collection & col, size_t _pos=0) : CollectionIterator(&col, _pos) {}
+    CollectionIterator(Collection & col, size_t _pos=0);
 
     /// Copy constructor
     CollectionIterator(const CollectionIterator &) = default;
@@ -100,7 +81,7 @@ namespace mabe {
       /// should never happen!)
       size_t GetFirstPos() const {
         if (full_pop) return 0;
-        return (size_t) pop_set.FindBit();
+        return (size_t) pos_set.FindBit();
       }
 
       /// Identify the next position after the one provided.  If there is no next position,
@@ -141,7 +122,7 @@ namespace mabe {
     Collection & operator=(Collection &&) = default;
 
     /// Calculation the total number of positions represented in this collection.
-    size_t GetSize() const {
+    size_t GetSize() const noexcept {
       size_t count = 0;
       for (auto [pop_ptr, pop_info] : pos_map) {
         count += pop_info.GetSize(pop_ptr);
@@ -249,6 +230,8 @@ namespace mabe {
           if (!pop_ptr->IsOccupied((size_t) pos)) pos_set.Set(pos,false);
         }
       }
+
+      return *this;
     }
 
     /// Merge this collection with another collection.
@@ -288,6 +271,45 @@ namespace mabe {
 
   };
 
+  // -------------------------------------------------------
+  //  Implementations of CollectionItertor member functions
+  // -------------------------------------------------------
+
+    void CollectionIterator::IncPosition() {
+      emp_assert(collection_ptr);
+      collection_ptr->IncPosition(*this);
+    }
+    void CollectionIterator::DecPosition() {
+      emp_assert(collection_ptr);
+      collection_ptr->DecPosition(*this);
+    }
+    void CollectionIterator::ShiftPosition(int shift) {
+      emp_assert(collection_ptr);
+      collection_ptr->ShiftPosition(*this, shift);
+    }
+    void CollectionIterator::ToBegin() {
+      emp_assert(collection_ptr);
+      *this = collection_ptr->begin();
+    }
+    void CollectionIterator::ToEnd() {
+      emp_assert(collection_ptr);
+      *this = collection_ptr->end();
+    }
+    void CollectionIterator::MakeValid() {
+      if (collection_ptr) collection_ptr->MakeValid(*this);
+    }
+
+    /// Constructor where you can optionally supply population pointer and position.
+    CollectionIterator::CollectionIterator(emp::Ptr<Collection> _col, size_t _pos)
+      : base_t(_col->GetFirstPop(), _pos), collection_ptr(_col)
+    {      
+    }
+
+    /// Constructor where you can optionally supply population pointer and position.
+    CollectionIterator::CollectionIterator(emp::Ptr<Collection> _col, emp::Ptr<Population> pop, size_t _pos)
+      : base_t(pop, _pos), collection_ptr(_col)
+    {
+    }
 }
 
 #endif
