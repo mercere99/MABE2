@@ -31,6 +31,7 @@
 
 #include "../config/Config.h"
 
+#include "Collection.h"
 #include "ModuleBase.h"
 #include "Population.h"
 
@@ -558,7 +559,7 @@ namespace mabe {
     /// Resize a population while clearing all of the organisms in it.
     void EmptyPop(Population & pop, size_t new_size) {
       // Clean up any organisms in the population.
-      for (OrgPosition pos = pop.begin_alive(); pos != pop.end(); ++pos) {
+      for (OrgPosition pos = pop.begin(); pos != pop.end(); ++pos) {
         ClearOrgAt(pos);
       }
 
