@@ -29,9 +29,21 @@
 
 namespace mabe {
 
-  class Population;
+  /// Base class for all organsim containers, including population.  
+  struct OrgContainer {
+    virtual ~OrgContainer() { }
 
-  template <typename DERIVED_T, typename ORG_T=Organism, typename CONTAINER_T=Population, typename INDEX_T=size_t>
+    virtual std::string GetName() const { return ""; }
+    virtual int GetID() const noexcept { return -1; }
+    virtual size_t GetSize() const noexcept = 0;
+
+    size_t size() const { return GetSize(); }
+  };
+
+  template <typename DERIVED_T,
+            typename ORG_T=Organism,
+            typename CONTAINER_T=OrgContainer,
+            typename INDEX_T=size_t>
   class OrgIterator_Interface {
     friend class MABEBase;
   protected:
