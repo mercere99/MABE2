@@ -30,7 +30,7 @@ namespace mabe {
 
   /// A Population maintains a collection of organisms.  It is derived from ConfigType so that it
   /// can be easily used in the MABE scripting language.
-  class Population : public ConfigType {
+  class Population : public ConfigType, OrgContainer {
     friend class MABEBase;
   private:
     std::string name="";                    ///< Unique name for this population.
@@ -78,9 +78,9 @@ namespace mabe {
 
     ~Population() { for (auto x : orgs) if (!x->IsEmpty()) x.Delete(); }
 
-    const std::string & GetName() const noexcept { return name; }
-    int GetID() const noexcept { return pop_id; }
-    size_t GetSize() const noexcept { return orgs.size(); }
+    std::string GetName() const override { return name; }
+    int GetID() const noexcept override { return pop_id; }
+    size_t GetSize() const noexcept override { return orgs.size(); }
     size_t GetNumOrgs() const noexcept { return num_orgs; }
 
     bool IsValid(size_t pos) const { return pos < orgs.size(); }
@@ -92,35 +92,16 @@ namespace mabe {
     Organism & operator[](size_t org_id) { return *(orgs[org_id]); }
     const Organism & operator[](size_t org_id) const { return *(orgs[org_id]); }
 
-    /// Return an iterator pointing to the first occupied cell in the world.
-    iterator begin() { return iterator(this, 0, false); }
-    iterator begin_alive() { return iterator(this, 0, true); }
+    iterator begin() { return iterator(this, 0); }
+    const_iterator begin() const { return const_iterator(this, 0); }
+    iterator end() { return iterator(this, GetSize()); }
+    const_iterator end() const { return const_iterator(this, GetSize()); }
 
-    /// Return a const iterator pointing to the first occupied cell in the world.
-    const_iterator begin() const { return const_iterator(this, 0, false); }
-    const_iterator begin_alive() const { return const_iterator(this, 0, true); }
-
-    /// Return an iterator pointing to just past the end of the world.
-    iterator end() { return iterator(this, GetSize(), false); }
-    iterator end_alive() { return iterator(this, GetSize(), true); }
-
-    /// Return a const iterator pointing to just past the end of the world.
-    const_iterator end() const { return const_iterator(this, GetSize(), false); }
-    const_iterator end_alive() const { return const_iterator(this, GetSize(), true); }
-
-    iterator IteratorAt(size_t pos, bool skip=false) {
-      return iterator(this, pos, skip);
-    }
-    const_iterator ConstIteratorAt(size_t pos, bool skip=false) const {
-      return const_iterator(this, pos, skip);
-    }
-
-    /// Limit iterators to LIVING organisms.
-    AlivePop Alive() { return AlivePop(*this); }
+    iterator IteratorAt(size_t pos) { return iterator(this, pos); }
+    const_iterator ConstIteratorAt(size_t pos) const { return const_iterator(this, pos); }
 
     /// Required SetupConfig function; for now population don't have any config optons.
-    void SetupConfig() override {    
-    }
+    void SetupConfig() override { }
 
   private:  // ---== To be used by friend class MABEBase only! ==---
 
@@ -207,28 +188,6 @@ namespace mabe {
     }
   };
 
-
-
-  // --- Function definitions for OrgPosition now that Population has been defined ---
-
-  void OrgPosition::NextPosition() { ++pos; }
-  void OrgPosition::PrevPosition() { --pos; }
-  void OrgPosition::ToBegin() { pos = 0; }
-  void OrgPosition::ToEnd() { pos = pop_ptr->GetSize(); }
-
-  const std::string & OrgPosition::PopName() const { emp_assert(pop_ptr); return pop_ptr->GetName(); }
-  int OrgPosition::PopID() const { emp_assert(pop_ptr); return pop_ptr->GetID(); }
-  size_t OrgPosition::PopSize() const { emp_assert(pop_ptr); return pop_ptr->GetSize(); }
-  emp::Ptr<Organism> OrgPosition::OrgPtr() { emp_assert(pop_ptr); return &(*pop_ptr)[pos]; }
-  emp::Ptr<const Organism> OrgPosition::OrgPtr() const { emp_assert(pop_ptr); return &(*pop_ptr)[pos]; }
-
-  void OrgPosition::SetOrg(emp::Ptr<Organism> org_ptr) { pop_ptr->SetOrg(pos, org_ptr); }
-  [[nodiscard]] emp::Ptr<Organism> OrgPosition::ExtractOrg() { return pop_ptr->ExtractOrg(pos); }
-
-  const std::string & ConstOrgPosition::PopName() const { emp_assert(pop_ptr); return pop_ptr->GetName(); }
-  int ConstOrgPosition::PopID() const { emp_assert(pop_ptr); return pop_ptr->GetID(); }
-  size_t ConstOrgPosition::PopSize() const { emp_assert(pop_ptr); return pop_ptr->GetSize(); }
-  emp::Ptr<const Organism> ConstOrgPosition::OrgPtr() const { emp_assert(pop_ptr); return &(*pop_ptr)[pos]; }
 }
 
 #endif
