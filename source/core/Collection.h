@@ -81,7 +81,7 @@ namespace mabe {
   };
 
 
-  class Collection {
+  class Collection : public OrgContainer {
   private:
     using pop_ptr_t = emp::Ptr<mabe::Population>;
 
@@ -240,7 +240,9 @@ namespace mabe {
       for (auto & [pop_ptr, pop_info] : pos_map) {
         emp::BitVector & pos_set = pop_info.pos_set;
 
-        pop_info.RemoveFull(pop_ptr); // Make sure this population isn't full.
+        // Make sure this population isn't full.  Even if there a no empty cells, the
+        // remove empty command should limit us to only the existing positions.
+        pop_info.RemoveFull(pop_ptr); 
 
         // Scan through organisms, removing inclusion of those that are empty.
         for (int pos = pos_set.FindBit(); pos != -1; pos = pos_set.FindBit(pos)) {
