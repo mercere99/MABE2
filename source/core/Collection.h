@@ -121,6 +121,8 @@ namespace mabe {
     Collection & operator=(const Collection &) = default;
     Collection & operator=(Collection &&) = default;
 
+    using iterator_t = CollectionIterator;
+
     /// Calculation the total number of positions represented in this collection.
     size_t GetSize() const noexcept {
       size_t count = 0;
