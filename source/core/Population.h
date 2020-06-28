@@ -28,6 +28,88 @@
 
 namespace mabe {
 
+  class PopIterator : public OrgIterator_Interface<PopIterator> {
+  protected:
+    using base_t = OrgIterator_Interface<PopIterator>;
+
+    void IncPosition() override {
+      emp_assert(pop_ptr);
+      emp_assert(pos < (int) pop_ptr->GetSize(), pos, pop_ptr->GetSize());
+      ++pos;
+    }
+    void DecPosition() override {
+      emp_assert(pop_ptr);
+      emp_assert(pos > 0, pos, pop_ptr->GetSize());
+      --pos;
+    }
+    void ShiftPosition(int shift=1) override {
+      const int new_pos = shift + (int) pos;
+      emp_assert(pop_ptr);
+      emp_assert(new_pos >= 0 && new_pos <= (int) pop_ptr->GetSize(), new_pos, pop_ptr->GetSize());
+      pos = (size_t) new_pos;
+    }
+    void ToBegin() override { pos = 0; }
+    void ToEnd() override { pos = pop_ptr->GetSize(); }
+    void MakeValid() override {
+      // If we moved past the end, make this the end iterator.
+      if (pos > pop_ptr->GetSize()) ToEnd();
+    }
+
+  public:
+    /// Constructor where you can optionally supply population pointer and position.
+    PopIterator(emp::Ptr<Population> _pop=nullptr, size_t _pos=0) : base_t(_pop, _pos) { ; }
+
+    /// Supply Population by reference instead of pointer.
+    PopIterator(Population & pop, size_t _pos=0) : PopIterator(&pop, _pos) {}
+
+    /// Copy constructor
+    PopIterator(const PopIterator &) = default;
+
+    /// Copy operator
+    PopIterator & operator=(const PopIterator & in) = default;
+  };
+
+  class ConstPopIterator : public OrgIterator_Interface<ConstPopIterator, const Organism> {
+  protected:
+    using base_t = OrgIterator_Interface<ConstPopIterator, const Organism>;
+
+    void IncPosition() override {
+      emp_assert(pop_ptr);
+      emp_assert(pos < (int) pop_ptr->GetSize(), pos, pop_ptr->GetSize());
+      ++pos;
+    }
+    void DecPosition() override {
+      emp_assert(pop_ptr);
+      emp_assert(pos > 0, pos, pop_ptr->GetSize());
+      --pos;
+    }
+    void ShiftPosition(int shift=1) override {
+      const int new_pos = shift + (int) pos;
+      emp_assert(pop_ptr);
+      emp_assert(new_pos >= 0 && new_pos <= (int) pop_ptr->GetSize(), new_pos, pop_ptr->GetSize());
+      pos = (size_t) new_pos;
+    }
+    void ToBegin() override { pos = 0; }
+    void ToEnd() override { pos = pop_ptr->GetSize(); }
+    void MakeValid() override {
+      // If we moved past the end, make this the end iterator.
+      if (pos > pop_ptr->GetSize()) ToEnd();
+    }
+
+  public:
+    /// Constructor where you can optionally supply population pointer and position.
+    ConstPopIterator(emp::Ptr<Population> _pop=nullptr, size_t _pos=0) : base_t(_pop, _pos) { ; }
+
+    /// Supply Population by reference instead of pointer.
+    ConstPopIterator(Population & pop, size_t _pos=0) : ConstPopIterator(&pop, _pos) {}
+
+    /// Copy constructor
+    ConstPopIterator(const ConstPopIterator &) = default;
+
+    /// Copy operator
+    ConstPopIterator & operator=(const ConstPopIterator & in) = default;
+  };
+
   /// A Population maintains a collection of organisms.  It is derived from ConfigType so that it
   /// can be easily used in the MABE scripting language.
   class Population : public ConfigType, OrgContainer {
@@ -42,8 +124,8 @@ namespace mabe {
     emp::Ptr<Organism> empty_org = nullptr; ///< Organism to fill in empty cells (does have data map!)
 
   public:
-    using iterator = OrgPosition;
-    using const_iterator = ConstOrgPosition;
+    using iterator_t = PopIterator;
+    using const_iterator_t = ConstPopIterator;
 
   public:
     Population() { emp_assert(false, "Do not use default constructor on Population!"); }
@@ -92,13 +174,13 @@ namespace mabe {
     Organism & operator[](size_t org_id) { return *(orgs[org_id]); }
     const Organism & operator[](size_t org_id) const { return *(orgs[org_id]); }
 
-    iterator begin() { return iterator(this, 0); }
-    const_iterator begin() const { return const_iterator(this, 0); }
-    iterator end() { return iterator(this, GetSize()); }
-    const_iterator end() const { return const_iterator(this, GetSize()); }
+    iterator_t begin() { return iterator_t(this, 0); }
+    const_iterator_t begin() const { return const_iterator_t(this, 0); }
+    iterator_t end() { return iterator_t(this, GetSize()); }
+    const_iterator_t end() const { return const_iterator_t(this, GetSize()); }
 
-    iterator IteratorAt(size_t pos) { return iterator(this, pos); }
-    const_iterator ConstIteratorAt(size_t pos) const { return const_iterator(this, pos); }
+    iterator_t IteratorAt(size_t pos) { return iterator_t(this, pos); }
+    const_iterator_t ConstIteratorAt(size_t pos) const { return const_iterator_t(this, pos); }
 
     /// Required SetupConfig function; for now population don't have any config optons.
     void SetupConfig() override { }
@@ -137,12 +219,12 @@ namespace mabe {
     }
 
     /// Add an empty position to the end of the population (and return an iterator to it)
-    iterator PushEmpty() {
+    iterator_t PushEmpty() {
       emp_assert(!empty_org.IsNull(),
                  "Population can only PushEmpty() if empty_org is provided.");
       size_t pos = orgs.size();
       orgs.resize(orgs.size()+1, empty_org);
-      return iterator(this, pos);
+      return iterator_t(this, pos);
     }
 
     /// Setup the organism to be used as "empty" (Managed externally, usually by MABE conroller.)
