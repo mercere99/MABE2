@@ -40,6 +40,8 @@ namespace mabe {
     size_t size() const { return GetSize(); }
   };
 
+  class OrgPosition;
+
   template <typename DERIVED_T,
             typename ORG_T=Organism,
             typename CONTAINER_T=OrgContainer,
@@ -89,11 +91,16 @@ namespace mabe {
 
     // Information direct from this iterator.
     INDEX_T Pos() const noexcept { return pos; };
-    emp::Ptr<CONTAINER_T> PopPtr() noexcept { return pop_ptr; }
+    emp::Ptr<CONTAINER_T> PopPtr() const noexcept { return pop_ptr; }
 
     std::string ToString() const {
       return emp::to_string("{pop_ptr=", pop_ptr, ";pos=", pos, "}");
     }
+
+    /// Convert to an OrgPosition
+    [[nodiscard]] OrgPosition AsPosition() const;
+
+    operator OrgPosition() const;
 
     DERIVED_T & SetContainer(CONTAINER_T & in) { pop_ptr = &in; return AsDerived(); }
     DERIVED_T & SetContainer(emp::Ptr<CONTAINER_T> in) { pop_ptr = in; return AsDerived(); }
@@ -268,87 +275,19 @@ namespace mabe {
     ConstOrgPosition & operator=(const ConstOrgPosition & in) = default;
   };
 
-  class OrgItertor : public OrgIterator_Interface<OrgItertor> {
-  protected:
-    using base_t = OrgIterator_Interface<OrgItertor>;
 
-    void IncPosition() override {
-      emp_assert(pop_ptr);
-      emp_assert(pos < (int) pop_ptr->GetSize(), pos, pop_ptr->GetSize());
-      ++pos;
-    }
-    void DecPosition() override {
-      emp_assert(pop_ptr);
-      emp_assert(pos > 0, pos, pop_ptr->GetSize());
-      --pos;
-    }
-    void ShiftPosition(int shift=1) override {
-      const int new_pos = shift + (int) pos;
-      emp_assert(pop_ptr);
-      emp_assert(new_pos >= 0 && new_pos <= (int) pop_ptr->GetSize(), new_pos, pop_ptr->GetSize());
-      pos = (size_t) new_pos;
-    }
-    void ToBegin() override { pos = 0; }
-    void ToEnd() override { pos = pop_ptr->GetSize(); }
-    void MakeValid() override {
-      // If we moved past the end, make this the end iterator.
-      if (pos > pop_ptr->GetSize()) ToEnd();
-    }
+  // -------------------------------------------------- //
+  // --  OrgIterator_Interface function definitions  -- //
+  // -------------------------------------------------- //
 
-  public:
-    /// Constructor where you can optionally supply population pointer and position.
-    OrgItertor(emp::Ptr<Population> _pop=nullptr, size_t _pos=0) : base_t(_pop, _pos) { ; }
+  template <typename DT, typename OT, typename CT, typename IT>
+  [[nodiscard]] OrgPosition OrgIterator_Interface<DT,OT,CT,IT>::AsPosition() const {
+    return OrgPosition(PopPtr(), Pos());
+  }
 
-    /// Supply Population by reference instead of pointer.
-    OrgItertor(Population & pop, size_t _pos=0) : OrgItertor(&pop, _pos) {}
+  template <typename DT, typename OT, typename CT, typename IT>
+  OrgIterator_Interface<DT,OT,CT,IT>::operator OrgPosition() const { return AsPosition(); }
 
-    /// Copy constructor
-    OrgItertor(const OrgItertor &) = default;
-
-    /// Copy operator
-    OrgItertor & operator=(const OrgItertor & in) = default;
-  };
-
-  class ConstOrgItertor : public OrgIterator_Interface<ConstOrgItertor, const Organism> {
-  protected:
-    using base_t = OrgIterator_Interface<ConstOrgItertor, const Organism>;
-
-    void IncPosition() override {
-      emp_assert(pop_ptr);
-      emp_assert(pos < (int) pop_ptr->GetSize(), pos, pop_ptr->GetSize());
-      ++pos;
-    }
-    void DecPosition() override {
-      emp_assert(pop_ptr);
-      emp_assert(pos > 0, pos, pop_ptr->GetSize());
-      --pos;
-    }
-    void ShiftPosition(int shift=1) override {
-      const int new_pos = shift + (int) pos;
-      emp_assert(pop_ptr);
-      emp_assert(new_pos >= 0 && new_pos <= (int) pop_ptr->GetSize(), new_pos, pop_ptr->GetSize());
-      pos = (size_t) new_pos;
-    }
-    void ToBegin() override { pos = 0; }
-    void ToEnd() override { pos = pop_ptr->GetSize(); }
-    void MakeValid() override {
-      // If we moved past the end, make this the end iterator.
-      if (pos > pop_ptr->GetSize()) ToEnd();
-    }
-
-  public:
-    /// Constructor where you can optionally supply population pointer and position.
-    ConstOrgItertor(emp::Ptr<Population> _pop=nullptr, size_t _pos=0) : base_t(_pop, _pos) { ; }
-
-    /// Supply Population by reference instead of pointer.
-    ConstOrgItertor(Population & pop, size_t _pos=0) : ConstOrgItertor(&pop, _pos) {}
-
-    /// Copy constructor
-    ConstOrgItertor(const ConstOrgItertor &) = default;
-
-    /// Copy operator
-    ConstOrgItertor & operator=(const ConstOrgItertor & in) = default;
-  };
 }
 
 #endif
