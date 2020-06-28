@@ -239,9 +239,9 @@ namespace mabe {
     }
 
     /// Add a single, empty position onto the end of a population.
-    OrgPosition PushEmpty(Population & pop) {
+    PopIterator PushEmpty(Population & pop) {
       before_pop_resize_sig.Trigger(pop, pop.GetSize()+1);
-      OrgPosition it = pop.PushEmpty();
+      PopIterator it = pop.PushEmpty();
       on_pop_resize_sig.Trigger(pop, pop.GetSize()-1);
       return it;
     }
@@ -559,7 +559,7 @@ namespace mabe {
     /// Resize a population while clearing all of the organisms in it.
     void EmptyPop(Population & pop, size_t new_size) {
       // Clean up any organisms in the population.
-      for (OrgPosition pos = pop.begin(); pos != pop.end(); ++pos) {
+      for (PopIterator pos = pop.begin(); pos != pop.end(); ++pos) {
         ClearOrgAt(pos);
       }
 
@@ -586,6 +586,16 @@ namespace mabe {
 
     /// Return a ramdom position of a living organism from the population with the specified id.
     OrgPosition GetRandomOrgPos(size_t pop_id) { return GetRandomOrgPos(GetPopulation(pop_id)); }
+
+
+    // --- Collection Management ---
+
+    Collection GetAlivePopulation(size_t id) {
+      Collection col(GetPopulation(id));
+      col.RemoveEmpty();
+      return col;
+    }
+
 
     // --- Module Management ---
 
