@@ -30,12 +30,12 @@ namespace mabe {
 
   class Collection;
 
-  class CollectionIterator : public OrgIterator_Interface<CollectionIterator> {
+  class CollectionIterator : public OrgIterator_Interface<CollectionIterator, Organism, Population> {
     friend Collection;
   protected:
     emp::Ptr<Collection> collection_ptr = nullptr;
 
-    using base_t = OrgIterator_Interface<CollectionIterator>;
+    using base_t = OrgIterator_Interface<CollectionIterator, Organism, Population>;
 
     void IncPosition() override;
     void DecPosition() override;
@@ -108,8 +108,7 @@ namespace mabe {
       }
     };
 
-    using map_t = std::map<pop_ptr_t, PopInfo>;
-    map_t pos_map;
+    std::map<pop_ptr_t, PopInfo> pos_map;
 
   public:
     Collection() = default;
@@ -165,11 +164,11 @@ namespace mabe {
       // @CAO Implement this?
     }
 
-    CollectionIterator begin() const { return CollectionIterator(this); }
-    CollectionIterator end() const { return CollectionIterator(this, nullptr); }
+    CollectionIterator begin() { return CollectionIterator(this); }
+    CollectionIterator end() { return CollectionIterator(this, nullptr); }
 
     /// Add a Population to this collection.
-    Collection &  Insert(const Population & pop) {
+    Collection & Insert(Population & pop) {
       pos_map[&pop].full_pop = true;
       return *this;
     }
