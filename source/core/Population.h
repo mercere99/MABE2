@@ -28,32 +28,16 @@
 
 namespace mabe {
 
-  class PopIterator : public OrgIterator_Interface<PopIterator> {
+  class PopIterator : public OrgIterator_Interface<PopIterator, Organism, Population> {
   protected:
-    using base_t = OrgIterator_Interface<PopIterator>;
+    using base_t = OrgIterator_Interface<PopIterator, Organism, Population>;
 
-    void IncPosition() override {
-      emp_assert(pop_ptr);
-      emp_assert(pos < (int) pop_ptr->GetSize(), pos, pop_ptr->GetSize());
-      ++pos;
-    }
-    void DecPosition() override {
-      emp_assert(pop_ptr);
-      emp_assert(pos > 0, pos, pop_ptr->GetSize());
-      --pos;
-    }
-    void ShiftPosition(int shift=1) override {
-      const int new_pos = shift + (int) pos;
-      emp_assert(pop_ptr);
-      emp_assert(new_pos >= 0 && new_pos <= (int) pop_ptr->GetSize(), new_pos, pop_ptr->GetSize());
-      pos = (size_t) new_pos;
-    }
-    void ToBegin() override { pos = 0; }
-    void ToEnd() override { pos = pop_ptr->GetSize(); }
-    void MakeValid() override {
-      // If we moved past the end, make this the end iterator.
-      if (pos > pop_ptr->GetSize()) ToEnd();
-    }
+    void IncPosition() override;
+    void DecPosition() override;
+    void ShiftPosition(int shift=1) override;
+    void ToBegin() override;
+    void ToEnd() override;
+    void MakeValid() override;
 
   public:
     /// Constructor where you can optionally supply population pointer and position.
@@ -69,39 +53,24 @@ namespace mabe {
     PopIterator & operator=(const PopIterator & in) = default;
   };
 
-  class ConstPopIterator : public OrgIterator_Interface<ConstPopIterator, const Organism> {
+  class ConstPopIterator
+  : public OrgIterator_Interface<ConstPopIterator, const Organism, const Population> {
   protected:
-    using base_t = OrgIterator_Interface<ConstPopIterator, const Organism>;
+    using base_t = OrgIterator_Interface<ConstPopIterator, const Organism, const Population>;
 
-    void IncPosition() override {
-      emp_assert(pop_ptr);
-      emp_assert(pos < (int) pop_ptr->GetSize(), pos, pop_ptr->GetSize());
-      ++pos;
-    }
-    void DecPosition() override {
-      emp_assert(pop_ptr);
-      emp_assert(pos > 0, pos, pop_ptr->GetSize());
-      --pos;
-    }
-    void ShiftPosition(int shift=1) override {
-      const int new_pos = shift + (int) pos;
-      emp_assert(pop_ptr);
-      emp_assert(new_pos >= 0 && new_pos <= (int) pop_ptr->GetSize(), new_pos, pop_ptr->GetSize());
-      pos = (size_t) new_pos;
-    }
-    void ToBegin() override { pos = 0; }
-    void ToEnd() override { pos = pop_ptr->GetSize(); }
-    void MakeValid() override {
-      // If we moved past the end, make this the end iterator.
-      if (pos > pop_ptr->GetSize()) ToEnd();
-    }
+    void IncPosition() override;
+    void DecPosition() override;
+    void ShiftPosition(int shift=1) override;
+    void ToBegin() override;
+    void ToEnd() override;
+    void MakeValid() override;
 
   public:
     /// Constructor where you can optionally supply population pointer and position.
-    ConstPopIterator(emp::Ptr<Population> _pop=nullptr, size_t _pos=0) : base_t(_pop, _pos) { ; }
+    ConstPopIterator(emp::Ptr<const Population> _pop=nullptr, size_t _pos=0) : base_t(_pop, _pos) { ; }
 
     /// Supply Population by reference instead of pointer.
-    ConstPopIterator(Population & pop, size_t _pos=0) : ConstPopIterator(&pop, _pos) {}
+    ConstPopIterator(const Population & pop, size_t _pos=0) : ConstPopIterator(&pop, _pos) {}
 
     /// Copy constructor
     ConstPopIterator(const ConstPopIterator &) = default;
@@ -112,7 +81,7 @@ namespace mabe {
 
   /// A Population maintains a collection of organisms.  It is derived from ConfigType so that it
   /// can be easily used in the MABE scripting language.
-  class Population : public ConfigType, OrgContainer {
+  class Population : public ConfigType, public OrgContainer {
     friend class MABEBase;
   private:
     std::string name="";                    ///< Unique name for this population.
@@ -269,6 +238,63 @@ namespace mabe {
       return true;
     }
   };
+
+
+  // -------------------------------
+  // --  PopIterator Definitions  --
+  // -------------------------------
+
+  void PopIterator::IncPosition() {
+    emp_assert(pop_ptr);
+    emp_assert(pos < (int) pop_ptr->GetSize(), pos, pop_ptr->GetSize());
+    ++pos;
+  }
+  void PopIterator::DecPosition() {
+    emp_assert(pop_ptr);
+    emp_assert(pos > 0, pos, pop_ptr->GetSize());
+    --pos;
+  }
+  void PopIterator::ShiftPosition(int shift) {
+    const int new_pos = shift + (int) pos;
+    emp_assert(pop_ptr);
+    emp_assert(new_pos >= 0 && new_pos <= (int) pop_ptr->GetSize(), new_pos, pop_ptr->GetSize());
+    pos = (size_t) new_pos;
+  }
+  void PopIterator::ToBegin() { pos = 0; }
+  void PopIterator::ToEnd() { pos = pop_ptr->GetSize(); }
+  void PopIterator::MakeValid() {
+    // If we moved past the end, make this the end iterator.
+    if (pos > pop_ptr->GetSize()) ToEnd();
+  }
+
+
+
+  // ------------------------------------
+  // --  ConstPopIterator Definitions  --
+  // ------------------------------------
+
+  void ConstPopIterator::IncPosition() {
+    emp_assert(pop_ptr);
+    emp_assert(pos < (int) pop_ptr->GetSize(), pos, pop_ptr->GetSize());
+    ++pos;
+  }
+  void ConstPopIterator::DecPosition() {
+    emp_assert(pop_ptr);
+    emp_assert(pos > 0, pos, pop_ptr->GetSize());
+    --pos;
+  }
+  void ConstPopIterator::ShiftPosition(int shift) {
+    const int new_pos = shift + (int) pos;
+    emp_assert(pop_ptr);
+    emp_assert(new_pos >= 0 && new_pos <= (int) pop_ptr->GetSize(), new_pos, pop_ptr->GetSize());
+    pos = (size_t) new_pos;
+  }
+  void ConstPopIterator::ToBegin() { pos = 0; }
+  void ConstPopIterator::ToEnd() { pos = pop_ptr->GetSize(); }
+  void ConstPopIterator::MakeValid() {
+    // If we moved past the end, make this the end iterator.
+    if (pos > pop_ptr->GetSize()) ToEnd();
+  }
 
 }
 
