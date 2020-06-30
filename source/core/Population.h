@@ -142,6 +142,8 @@ namespace mabe {
 
     Organism & operator[](size_t org_id) { return *(orgs[org_id]); }
     const Organism & operator[](size_t org_id) const { return *(orgs[org_id]); }
+    Organism & At(size_t org_id) override { return *(orgs[org_id]); }
+    const Organism & At(size_t org_id) const override { return *(orgs[org_id]); }
 
     iterator_t begin() { return iterator_t(this, 0); }
     const_iterator_t begin() const { return const_iterator_t(this, 0); }
