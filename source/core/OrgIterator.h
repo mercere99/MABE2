@@ -97,8 +97,8 @@ namespace mabe {
       return pop_ptr.template Cast<Population>();
     }
     emp::Ptr<const Population> PopPtr() const noexcept {
-      emp_assert(pop_ptr.template DynamicCast<const Population>());
-      return pop_ptr.template Cast<Population>();
+      emp_assert(pop_ptr.template DynamicCast<Population>());
+      return pop_ptr.template Cast<const Population>();
     }
 
     // Shortcut definitions to retrieve information from the POPULATION.
