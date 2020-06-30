@@ -37,6 +37,15 @@ namespace mabe {
     virtual int GetID() const noexcept { return -1; }
     virtual size_t GetSize() const noexcept = 0;
 
+    virtual Organism & At(size_t org_id) {
+      emp_error("At() not implemented!");
+      return std::declval<Organism &>();
+    }
+    virtual const Organism & At(size_t org_id) const {
+      emp_error("At() not implemented!");
+      return std::declval<const Organism &>();
+    }
+
     size_t size() const { return GetSize(); }
   };
 
@@ -47,7 +56,6 @@ namespace mabe {
             typename CONTAINER_T=OrgContainer,
             typename INDEX_T=size_t>
   class OrgIterator_Interface {
-    friend class MABEBase;
   protected:
     emp::Ptr<CONTAINER_T> pop_ptr;
     INDEX_T pos;
@@ -82,16 +90,23 @@ namespace mabe {
     /// Copy operator
     this_t & operator=(const this_t & in) = default;
 
+    // Information direct from this iterator.
+    INDEX_T Pos() const noexcept { return pos; };
+    emp::Ptr<Population> PopPtr() noexcept {
+      emp_assert(pop_ptr.template DynamicCast<Population>());
+      return pop_ptr.template Cast<Population>();
+    }
+    emp::Ptr<const Population> PopPtr() const noexcept {
+      emp_assert(pop_ptr.template DynamicCast<const Population>());
+      return pop_ptr.template Cast<Population>();
+    }
+
     // Shortcut definitions to retrieve information from the POPULATION.
     const std::string & PopName() const { emp_assert(pop_ptr); return pop_ptr->GetName(); }
     int PopID() const { emp_assert(pop_ptr); return pop_ptr->GetID(); }
     size_t PopSize() const { emp_assert(pop_ptr); return pop_ptr->GetSize(); }
-    emp::Ptr<ORG_T> OrgPtr() { emp_assert(pop_ptr); return &(*pop_ptr)[pos]; }
-    emp::Ptr<const Organism> OrgPtr() const { emp_assert(pop_ptr); return &(*pop_ptr)[pos]; }
-
-    // Information direct from this iterator.
-    INDEX_T Pos() const noexcept { return pos; };
-    emp::Ptr<CONTAINER_T> PopPtr() const noexcept { return pop_ptr; }
+    emp::Ptr<ORG_T> OrgPtr() { emp_assert(pop_ptr); return &pop_ptr->At(pos); }
+    emp::Ptr<const Organism> OrgPtr() const { emp_assert(pop_ptr); return &pop_ptr->At(pos); }
 
     std::string ToString() const {
       return emp::to_string("{pop_ptr=", pop_ptr, ";pos=", pos, "}");
@@ -216,13 +231,6 @@ namespace mabe {
 
     /// Return an iterator pointing to just past the end of the world.
     DERIVED_T end() const { DERIVED_T out( (DERIVED_T &) *this); out.ToEnd(); return out; }
-
-  private:  // ---== To be used by friend class MABEBase only! ==---
-    /// Insert an organism into the pointed-at position.
-    void SetOrg(emp::Ptr<Organism> org_ptr) { pop_ptr->SetOrg(pos, org_ptr); }
-
-    /// Remove the organism at the pointed-at position and return it.
-    [[nodiscard]] emp::Ptr<Organism> ExtractOrg() { return pop_ptr->ExtractOrg(pos); }
   };
 
   class OrgPosition : public OrgIterator_Interface<OrgPosition> {
