@@ -193,7 +193,7 @@ namespace mabe {
       emp_assert(org_ptr);  // Must have a non-null organism to insert.
       before_placement_sig.Trigger(*org_ptr, pos, ppos);
       ClearOrgAt(pos);      // Clear out any organism already in this position.
-      pos.SetOrg(org_ptr);  // Put the new organism in place.
+      pos.PopPtr()->SetOrg(pos.Pos(), org_ptr);  // Put the new organism in place.
       on_placement_sig.Trigger(pos);
     }
 
@@ -205,7 +205,7 @@ namespace mabe {
       if (pos.IsEmpty()) return; // Nothing to remove!
 
       before_death_sig.Trigger(pos);
-      pos.ExtractOrg().Delete();
+      pos.PopPtr()->ExtractOrg(pos.Pos()).Delete();
     }
 
     /// All movement of organisms from one population position to another should come through here.
@@ -213,10 +213,10 @@ namespace mabe {
       emp_assert(pos1.IsValid());
       emp_assert(pos2.IsValid());
       before_swap_sig.Trigger(pos1, pos2);
-      emp::Ptr<Organism> org1 = pos1.ExtractOrg();
-      emp::Ptr<Organism> org2 = pos2.ExtractOrg();
-      if (!org1->IsEmpty()) pos2.SetOrg(org1);
-      if (!org2->IsEmpty()) pos1.SetOrg(org2);
+      emp::Ptr<Organism> org1 = pos1.PopPtr()->ExtractOrg(pos1.Pos());
+      emp::Ptr<Organism> org2 = pos2.PopPtr()->ExtractOrg(pos2.Pos());
+      if (!org1->IsEmpty()) pos2.PopPtr()->SetOrg(pos2.Pos(), org1);
+      if (!org2->IsEmpty()) pos1.PopPtr()->SetOrg(pos1.Pos(), org2);
       on_swap_sig.Trigger(pos1, pos2);
     }
 
