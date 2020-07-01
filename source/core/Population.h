@@ -248,7 +248,7 @@ namespace mabe {
 
   void PopIterator::IncPosition() {
     emp_assert(pop_ptr);
-    emp_assert(pos < (int) pop_ptr->GetSize(), pos, pop_ptr->GetSize());
+    emp_assert(pos < pop_ptr->GetSize(), pos, pop_ptr->GetSize());
     ++pos;
   }
   void PopIterator::DecPosition() {
@@ -277,7 +277,7 @@ namespace mabe {
 
   void ConstPopIterator::IncPosition() {
     emp_assert(pop_ptr);
-    emp_assert(pos < (int) pop_ptr->GetSize(), pos, pop_ptr->GetSize());
+    emp_assert(pos < pop_ptr->GetSize(), pos, pop_ptr->GetSize());
     ++pos;
   }
   void ConstPopIterator::DecPosition() {
