@@ -39,17 +39,18 @@ namespace mabe {
 
     virtual Organism & At(size_t org_id) {
       emp_error("At() not implemented!");
-      return std::declval<Organism &>();
+      return *((Organism *) nullptr);
     }
     virtual const Organism & At(size_t org_id) const {
       emp_error("At() not implemented!");
-      return std::declval<const Organism &>();
+      return *((const Organism *) nullptr);
     }
 
     size_t size() const { return GetSize(); }
   };
 
   class OrgPosition;
+  class ConstOrgPosition;
 
   template <typename DERIVED_T,
             typename ORG_T=Organism,
@@ -113,9 +114,11 @@ namespace mabe {
     }
 
     /// Convert to an OrgPosition
-    [[nodiscard]] OrgPosition AsPosition() const;
+    [[nodiscard]] OrgPosition AsPosition();
+    [[nodiscard]] ConstOrgPosition AsPosition() const;
 
-    operator OrgPosition() const;
+    operator OrgPosition();
+    operator ConstOrgPosition() const;
 
     DERIVED_T & SetContainer(CONTAINER_T & in) { pop_ptr = &in; return AsDerived(); }
     DERIVED_T & SetContainer(emp::Ptr<CONTAINER_T> in) { pop_ptr = in; return AsDerived(); }
@@ -289,12 +292,20 @@ namespace mabe {
   // -------------------------------------------------- //
 
   template <typename DT, typename OT, typename CT, typename IT>
-  [[nodiscard]] OrgPosition OrgIterator_Interface<DT,OT,CT,IT>::AsPosition() const {
+  [[nodiscard]] OrgPosition OrgIterator_Interface<DT,OT,CT,IT>::AsPosition() {
     return OrgPosition(PopPtr(), Pos());
   }
 
   template <typename DT, typename OT, typename CT, typename IT>
-  OrgIterator_Interface<DT,OT,CT,IT>::operator OrgPosition() const { return AsPosition(); }
+  [[nodiscard]] ConstOrgPosition OrgIterator_Interface<DT,OT,CT,IT>::AsPosition() const {
+    return OrgPosition(PopPtr(), Pos());
+  }
+
+  template <typename DT, typename OT, typename CT, typename IT>
+  OrgIterator_Interface<DT,OT,CT,IT>::operator OrgPosition() { return AsPosition(); }
+
+  template <typename DT, typename OT, typename CT, typename IT>
+  OrgIterator_Interface<DT,OT,CT,IT>::operator ConstOrgPosition() const { return AsPosition(); }
 
 }
 
