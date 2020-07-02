@@ -21,7 +21,7 @@
 
 namespace mabe {
 
-  class EvalCountBits : public Module {
+  class EvalMatchBits : public Module {
   private:
     int eval_pop = 0;
     int compare_pop = 1;
@@ -31,14 +31,14 @@ namespace mabe {
     bool count_matches;   // =0 counts MISmatches, or =1 for count matches.
 
   public:
-    EvalCountBits(mabe::MABE & control,
-                  const std::string & name="EvalCountBits",
+    EvalMatchBits(mabe::MABE & control,
+                  const std::string & name="EvalMatchBits",
                   const std::string & desc="Evaluate bitstrings by counting ones (or zeros).")
       : Module(control, name, desc)
     {
       SetEvaluateMod(true);
     }
-    ~EvalCountBits() { }
+    ~EvalMatchBits() { }
 
     void SetupConfig() override {
       LinkPop(eval_pop, "eval_pop", "Which population should we evaluate?");
@@ -96,7 +96,6 @@ namespace mabe {
 
       }
 
-      std::cout << "Max " << fitness_trait << " = " << max_fitness << std::endl;
     }
   };
 
