@@ -42,23 +42,22 @@ namespace mabe {
       Population & to_pop = control.GetPopulation(to_id);
 
       // Setup an iterator to point to the "to" population.
-      OrgPosition it_to;
+      Population::iterator_t it_to;
 
       // Clear out the "to" population and before moving the new populaiton in.
       if (reset_to) {
-        control.EmptyPop(to_pop, from_pop.GetSize());  // Clear out the population.
         it_to = to_pop.begin();                        // Start at the beginning of population.
+        control.EmptyPop(to_pop, from_pop.GetSize());  // Clear out the population.
       }
 
       // Otherwise append the from population to the end of the to population.
       else {
-        size_t old_pop_size = to_pop.GetSize();
-        control.ResizePop(to_pop, old_pop_size + from_pop.GetSize());
-        it_to = to_pop.begin() + old_pop_size;
+        it_to = to_pop.end();
+        control.ResizePop(to_pop, to_pop.GetSize() + from_pop.GetSize());
       }
 
       // Move the next generation to the main population.
-      for (OrgPosition it_from = from_pop.begin(); it_from != from_pop.end(); ++it_from, ++it_to) {
+      for (auto it_from = from_pop.begin(); it_from != from_pop.end(); ++it_from, ++it_to) {
         if (it_from.IsOccupied()) control.MoveOrg(it_from, it_to);
       }
 
