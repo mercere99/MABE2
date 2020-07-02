@@ -114,7 +114,7 @@ namespace mabe {
     Collection() = default;
     Collection(const Collection &) = default;
     Collection(Collection &&) = default;
-    Collection(const Population & pop) { Insert(pop); }
+    Collection(Population & pop) { Insert(pop); }
     ~Collection() { }
 
     Collection & operator=(const Collection &) = default;
