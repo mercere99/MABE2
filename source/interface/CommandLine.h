@@ -51,8 +51,9 @@ namespace mabe {
       std::cout << "Exiting.  Population " << pop.GetName()
                 << " has " << pop.GetNumOrgs() << " organisms.";
       if (pop.GetNumOrgs()) {
-        auto & org = *(pop.Alive().begin());
-        std::cout << "  First org:\n" << org.ToString();
+        size_t pos = 0;
+        while (pop[pos].IsEmpty()) pos++;
+        std::cout << "  First org:\n" << pop[pos].ToString();
       }
       std::cout << std::endl;
     }
