@@ -88,7 +88,7 @@ namespace mabe {
       /// return a value >= population size.
       size_t GetNextPos(size_t pos) const {
         if (full_pop) return ++pos;
-        return (size_t) pos_set.FindBit(pos);
+        return (size_t) pos_set.FindBit(pos+1);
       }
 
       /// Insert a single position into the pos_set.
@@ -227,7 +227,7 @@ namespace mabe {
         pop_info.RemoveFull(pop_ptr); 
 
         // Scan through organisms, removing inclusion of those that are empty.
-        for (int pos = pos_set.FindBit(); pos != -1; pos = pos_set.FindBit(pos)) {
+        for (int pos = pos_set.FindBit(); pos != -1; pos = pos_set.FindBit(pos+1)) {
           if (!pop_ptr->IsOccupied((size_t) pos)) pos_set.Set(pos,false);
         }
       }
