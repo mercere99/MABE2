@@ -37,12 +37,18 @@ namespace mabe {
     }
 
     void OnUpdate(size_t update) override {
+      // @CAO: When we move this over to using collections, we can handle the skip more efficiently.
+
       Population & pop = control.GetPopulation(pop_id);
 
       // Loop through the organisms (skipping any at the beginning that we need to) and
       // run Mutate() on each of them.
-      for (auto it = pop.begin() + skip; it != pop.end(); it++) {
+      auto it = pop.begin();
+      for (size_t i = 0; i < skip; i++) ++it;
+
+      while (it != pop.end()) {
         if (it.IsOccupied()) it->Mutate(control.GetRandom());
+        ++it;
       }
     }
   };
