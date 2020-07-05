@@ -19,6 +19,7 @@
 
 #include <set>
 #include <string>
+#include <sstream>
 
 #include "base/Ptr.h"
 #include "base/vector.h"
@@ -129,6 +130,27 @@ namespace mabe {
         count += pop_info.GetSize(pop_ptr);
       }
       return count;
+    }
+
+    std::string ToString() const {
+      std::stringstream ss;
+      bool first = true;
+      for (auto [pop_ptr, pop_info] : pos_map) {
+        if (first) first = false;
+        else ss << ',';
+
+        // Indicate the name of the next population.
+        ss << pop_ptr->GetName();
+
+        // If we're not taking the whole population, specify the positions to use.
+        if (pop_info.full_pop == false) {
+          ss << '[';
+          pop_info.pos_set.PrintAsRange(ss);
+          ss << ']';
+        }
+      }
+
+      return ss.str();
     }
 
     pop_ptr_t GetFirstPop() {
