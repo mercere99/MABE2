@@ -257,15 +257,15 @@ namespace mabe {
   private:
     const std::string VERSION = "0.0.1";
 
-    /// Collection of populations used; generated based on the needs of modules.
+    /// Populations used; generated based on the needs of modules.
     emp::vector<Population> pops;
 
     /// Organism pointer to use for all empty cells.
     emp::Ptr<Organism> empty_org = nullptr;
 
-    /// Collection of information about organism traits.  TraitInfo specifies which modules
-    /// are allowed to (or expected to) access each trait, as well as how that trait should be
-    /// initialized, archived, and summarized.
+    /// Information about organism traits.  TraitInfo specifies which modules are allowed to
+    /// (or expected to) access each trait, as well as how that trait should be initialized,
+    /// archived, and summarized.
     std::unordered_map<std::string, emp::Ptr<TraitInfo>> trait_map;
 
     /// Trait information to be stored on each organism.  This is the prototype map, which
@@ -302,7 +302,7 @@ namespace mabe {
         : name(_n), flag(_f), args(_a), desc(_d), action(_action) { }
     };
 
-    emp::vector<ArgInfo> arg_set;              ///< Collection of valid command-line arguments.
+    emp::vector<ArgInfo> arg_set;              ///< Info about valid command-line arguments.
     emp::vector<std::string> args;             ///< Command-line arguments passed in.
     emp::vector<std::string> config_filenames; ///< Names of configuration files to load.
     std::string gen_filename;                  ///< Name of output file to generate.
@@ -449,7 +449,7 @@ namespace mabe {
     // --- Population Management ---
 
     size_t GetNumPopulations() const { return pops.size(); }
-    int GetPopID(const std::string & pop_name) const {
+    int GetPopID(std::string_view pop_name) const {
       return emp::FindEval(pops, [pop_name](const auto & p){ return p.GetName() == pop_name; });
     }
     const Population & GetPopulation(size_t id) const { return pops[id]; }
@@ -589,6 +589,21 @@ namespace mabe {
 
 
     // --- Collection Management ---
+
+    std::string ToString(const mabe::Collection & collect) const {
+      return collect.ToString();
+    }
+
+    Collection FromString(const std::string & load_str) {
+      Collection out;
+      auto slices = emp::view_slices(load_str, ',');
+      for (auto name : slices) {
+        int pop_id = GetPopID(name);
+        if (pop_id == -1) AddError("Unknown population: ", name);
+        else out.Insert(GetPopulation(pop_id));
+      }
+      return out;
+    }
 
     Collection GetAlivePopulation(size_t id) {
       Collection col(GetPopulation(id));
