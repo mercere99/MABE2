@@ -49,6 +49,7 @@ namespace mabe {
 
     /// Specialized configuration links for MABE-specific modules.
     /// (Other ways of linking variable to config file are in ConfigType.h)
+
     ConfigEntry_Functions<std::string> & LinkPop(int & var,
                                                  const std::string & name,
                                                  const std::string & desc) {
@@ -59,6 +60,20 @@ namespace mabe {
         [this,&var](const std::string & name){
           var = control.GetPopID(name);
           if (var == -1) control.AddError("Trying to access population '", name, "'; does not exist.");
+        };
+
+      return GetScope().LinkFuns<std::string>(name, get_fun, set_fun, desc);
+    }
+
+    ConfigEntry_Functions<std::string> & LinkCollection(mabe::Collection & var,
+                                                        const std::string & name,
+                                                        const std::string & desc) {
+      std::function<std::string()> get_fun =
+        [this,&var](){ return control.ToString(var); };
+
+      std::function<void(std::string)> set_fun =
+        [this,&var](const std::string & load_str){
+          var = control.FromString(load_str);
         };
 
       return GetScope().LinkFuns<std::string>(name, get_fun, set_fun, desc);
