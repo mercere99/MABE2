@@ -135,8 +135,8 @@ namespace mabe {
     size_t GetNumOrgs() const noexcept { return num_orgs; }
 
     bool IsValid(size_t pos) const { return pos < orgs.size(); }
-    bool IsEmpty(size_t pos) const { return orgs[pos]->IsEmpty(); }
-    bool IsOccupied(size_t pos) const { return !orgs[pos]->IsEmpty(); }
+    bool IsEmpty(size_t pos) const { return IsValid(pos) && orgs[pos]->IsEmpty(); }
+    bool IsOccupied(size_t pos) const { return IsValid(pos) && !orgs[pos]->IsEmpty(); }
 
     void SetID(int in_id) noexcept { pop_id = in_id; }
 
