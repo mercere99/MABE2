@@ -257,6 +257,13 @@ namespace mabe {
       return *this;
     }
 
+    /// Produce a new collection limited to living organisms.
+    Collection GetAlive() {
+      Collection out(*this);
+      out.RemoveEmpty();
+      return out;
+    }
+
     /// Merge this collection with another collection.
     Collection & operator |= (const Collection & collection2) {
       return Insert(collection2);
