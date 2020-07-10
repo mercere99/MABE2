@@ -23,7 +23,7 @@ namespace mabe {
     size_t N;
     size_t K;    
     NKLandscape landscape;
-    int target_pop;
+    mabe::Collection target_collect;
 
     std::string bits_trait;
     std::string fitness_trait;
@@ -34,14 +34,17 @@ namespace mabe {
            const std::string & desc="Module to evaluate bitstrings on an NK Fitness Lanscape",
            size_t _N=100, size_t _K=3, const std::string & _btrait="bits", const std::string & _ftrait="fitness")
       : Module(control, name, desc)
-      , N(_N), K(_K), target_pop(0), bits_trait(_btrait), fitness_trait(_ftrait)
+      , N(_N), K(_K)
+      , target_collect(control.GetPopulation(0))
+      , bits_trait(_btrait)
+      , fitness_trait(_ftrait)
     {
       SetEvaluateMod(true);
     }
     ~EvalNK() { }
 
     void SetupConfig() override {
-      LinkPop(target_pop, "target_pop", "Which population should we evaluate?");
+      LinkCollection(target_collect, "target", "Which population(s) should we evaluate?");
       LinkVar(N, "N", "Number of bits required in output");
       LinkVar(K, "K", "Number of bits used in each gene");
       LinkVar(bits_trait, "bits_trait", "Which trait stores the bit sequence to evaluate?");
@@ -63,7 +66,8 @@ namespace mabe {
       // Loop through the population and evaluate each organism.
       double max_fitness = 0.0;
       emp::Ptr<Organism> max_org = nullptr;
-      for (Organism & org : control.GetAlivePopulation(target_pop)) {
+      mabe::Collection alive_collect( target_collect.GetAlive() );
+      for (Organism & org : alive_collect) {
         org.GenerateOutput();
         const auto & bits = org.GetVar<emp::BitVector>(bits_trait);
         if (bits.size() != N) {
