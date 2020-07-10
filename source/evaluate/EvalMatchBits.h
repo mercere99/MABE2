@@ -23,8 +23,8 @@ namespace mabe {
 
   class EvalMatchBits : public Module {
   private:
-    int eval_pop = 0;
-    int compare_pop = 1;
+    int eval_pop1 = 0;
+    int eval_pop2 = 0;
 
     std::string bits_trait = "bits";
     std::string fitness_trait = "bit_matches";
@@ -41,8 +41,8 @@ namespace mabe {
     ~EvalMatchBits() { }
 
     void SetupConfig() override {
-      LinkPop(eval_pop, "eval_pop", "Which population should we evaluate?");
-      LinkPop(compare_pop, "compare_pop", "Which population should we compare to?");
+      LinkPop(eval_pop1, "eval_pop1", "Which population should we evaluate?");
+      LinkPop(eval_pop2, "eval_pop2", "Which population should we compare to?");
 
       LinkVar(bits_trait, "bits_trait", "Which trait stores the bit sequence to evaluate?");
       LinkVar(fitness_trait, "fitness_trait", "Which trait should we store NK fitness in?");
@@ -59,17 +59,22 @@ namespace mabe {
 
       // Loop through the populations and evaluate each organism pair.
       double best_match = 0.0;
-      Population & pop1 = control.GetPopulation(eval_pop);
-      Population & pop2 = control.GetPopulation(compare_pop);
+      Population & pop1 = control.GetPopulation(eval_pop1);
+      Population & pop2 = control.GetPopulation(eval_pop2);
 
+      // Loop through all organisms in the first population, matching them with the second.
       for (size_t pos = 0; pos < pop1.GetSize(); pos++) {
-        if (pop1.IsEmpty(pos)) continue;  // Skip over empty cells.
+        // If the first population is empty, still check for organism in the second to score.
+        if (pop1.IsEmpty(pos)) {
+          if (pop2.IsOccupied(pos)) pop2[pos].SetVar<double>(fitness_trait, 0.0);
+          continue;  // Skip over empty cell in first population.
+        }
 
         Organism & org = pop1[pos];
 
         // If there is NO corresponding organisms in pop2, return a zero match.
         double fitness = 0.0;
-        if (pop2.IsValid(pos) && pop2.IsOccupied(pos)) {
+        if (pop2.IsOccupied(pos)) {
           // Find the corresponding organism in the compare population.
           Organism & org2 = pop2[pos];
 
@@ -89,11 +94,20 @@ namespace mabe {
           }
 
           if (fitness > best_match) best_match = fitness;
+
+          // Store the count on the second organism in the fitness trait.
+          org2.SetVar<double>(fitness_trait, fitness);
+
         }
 
         // Store the count on the organism in the fitness trait.
         org.SetVar<double>(fitness_trait, fitness);
 
+      }
+
+      // If pop2 is bigger, make sure to mark any extra organisms as having a zero match fitness.
+      for (size_t pos = pop1.GetSize(); pos < pop2.GetSize(); pos++) {
+        if (pop2.IsOccupied(pos)) pop2[pos].SetVar<double>(fitness_trait, 0.0);
       }
 
     }
