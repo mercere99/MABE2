@@ -19,7 +19,7 @@ namespace mabe {
 
   class EvalCountBits : public Module {
   private:
-    int target_pop;
+    Collection target_collect;
 
     std::string bits_trait;
     std::string fitness_trait;
@@ -33,14 +33,17 @@ namespace mabe {
                   const std::string & _ftrait="fitness",
                   bool _ctype=1)
       : Module(control, name, desc)
-      , target_pop(0), bits_trait(_btrait), fitness_trait(_ftrait), count_type(_ctype)
+      , target_collect(control.GetPopulation(0))
+      , bits_trait(_btrait)
+      , fitness_trait(_ftrait)
+      , count_type(_ctype)
     {
       SetEvaluateMod(true);
     }
     ~EvalCountBits() { }
 
     void SetupConfig() override {
-      LinkPop(target_pop, "target_pop", "Which population should we evaluate?");
+      LinkCollection(target_collect, "target", "Which population(s) should we evaluate?");
       LinkVar(bits_trait, "bits_trait", "Which trait stores the bit sequence to evaluate?");
       LinkVar(fitness_trait, "fitness_trait", "Which trait should we store NK fitness in?");
       LinkVar(count_type, "count_type", "Which type of bit should we count? (0 or 1)");
@@ -57,7 +60,8 @@ namespace mabe {
       // Loop through the population and evaluate each organism.
       double max_fitness = 0.0;
       emp::Ptr<Organism> max_org = nullptr;
-      for (Organism & org : control.GetAlivePopulation(target_pop)) {
+      mabe::Collection alive_collect( target_collect.GetAlive() );
+      for (Organism & org : alive_collect) {        
         // Make sure this organism has its bit sequence ready for us to access.
         org.GenerateOutput();
 
