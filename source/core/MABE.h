@@ -47,8 +47,9 @@ namespace mabe {
     /// A SigListener tracks which Modules respond to a specific signal.  They maintain pointers
     /// to modules and call them when requested.  The base class manages common functionality.
     struct SigListenerBase : public emp::vector<emp::Ptr<ModuleBase>> {
-      std::string name;          ///< Name of this signal type.
-      ModuleBase::SignalID id;   ///< ID of this signal
+      std::string name;             ///< Name of this signal type.
+      ModuleBase::SignalID id;      ///< ID of this signal
+      emp::Ptr<ModuleBase> cur_mod; ///< Which module is currently running?
 
       SigListenerBase(const std::string & _name="",
                     ModuleBase::SignalID _id=ModuleBase::SIG_UNKNOWN)
@@ -84,9 +85,11 @@ namespace mabe {
       template <typename... ARGS2>
       void Trigger(ARGS2 &&... args) {
         for (emp::Ptr<ModuleBase> mod_ptr : *this) {
+          cur_mod = mod_ptr;
           emp_assert(!mod_ptr.IsNull());
           (mod_ptr.Raw()->*fun)( std::forward<ARGS2>(args)... );
         }
+        cur_mod = nullptr;
       }
 
       template <typename... ARGS2>
