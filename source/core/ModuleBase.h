@@ -248,6 +248,29 @@ namespace mabe {
     virtual void Deactivate() = 0;  ///< Turn off all signals in this function.
     virtual void Activate() = 0;    ///< Turn on all signals in this function.
 
+    virtual bool BeforeUpdate_IsTriggered() = 0;
+    virtual bool OnUpdate_IsTriggered() = 0;
+    virtual bool BeforeRepro_IsTriggered() = 0;
+    virtual bool OnOffspringReady_IsTriggered() = 0;
+    virtual bool OnInjectReady_IsTriggered() = 0;
+    virtual bool BeforePlacement_IsTriggered() = 0;
+    virtual bool OnPlacement_IsTriggered() = 0;
+    virtual bool BeforeMutate_IsTriggered() = 0;
+    virtual bool OnMutate_IsTriggered() = 0;
+    virtual bool BeforeDeath_IsTriggered() = 0;
+    virtual bool BeforeSwap_IsTriggered() = 0;
+    virtual bool OnSwap_IsTriggered() = 0;
+    virtual bool BeforePopResize_IsTriggered() = 0;
+    virtual bool OnPopResize_IsTriggered() = 0;
+    virtual bool OnError_IsTriggered() = 0;
+    virtual bool OnWarning_IsTriggered() = 0;
+    virtual bool BeforeExit_IsTriggered() = 0;
+    virtual bool OnHelp_IsTriggered() = 0;
+
+    virtual bool DoPlaceBirth_IsTriggered() = 0;
+    virtual bool DoPlaceInject_IsTriggered() = 0;
+    virtual bool DoFindNeighbor_IsTriggered() = 0;
+
     // ---=== Specialty Functions for Organism Managers ===---
     virtual emp::TypeID GetOrgType() const {
       emp_assert(false, "GetOrgType() must be overridden for either Organism or OrganismManager module.");
