@@ -307,6 +307,27 @@ namespace mabe {
       control.RescanSignals();
     }
 
+    bool BeforeUpdate_IsTriggered() override { return control.BeforeUpdate_IsTriggered(this); };
+    bool OnUpdate_IsTriggered() override { return control.OnUpdate_IsTriggered(this); };
+    bool BeforeRepro_IsTriggered() override { return control.BeforeRepro_IsTriggered(this); };
+    bool OnOffspringReady_IsTriggered() override { return control.OnOffspringReady_IsTriggered(this); };
+    bool OnInjectReady_IsTriggered() override { return control.OnInjectReady_IsTriggered(this); };
+    bool BeforePlacement_IsTriggered() override { return control.BeforePlacement_IsTriggered(this); };
+    bool OnPlacement_IsTriggered() override { return control.OnPlacement_IsTriggered(this); };
+    bool BeforeMutate_IsTriggered() override { return control.BeforeMutate_IsTriggered(this); };
+    bool OnMutate_IsTriggered() override { return control.OnMutate_IsTriggered(this); };
+    bool BeforeDeath_IsTriggered() override { return control.BeforeDeath_IsTriggered(this); };
+    bool BeforeSwap_IsTriggered() override { return control.BeforeSwap_IsTriggered(this); };
+    bool OnSwap_IsTriggered() override { return control.OnSwap_IsTriggered(this); };
+    bool BeforePopResize_IsTriggered() override { return control.BeforePopResize_IsTriggered(this); };
+    bool OnPopResize_IsTriggered() override { return control.OnPopResize_IsTriggered(this); };
+    bool OnError_IsTriggered() override { return control.OnError_IsTriggered(this); };
+    bool OnWarning_IsTriggered() override { return control.OnWarning_IsTriggered(this); };
+    bool BeforeExit_IsTriggered() override { return control.BeforeExit_IsTriggered(this); };
+    bool OnHelp_IsTriggered() override { return control.OnHelp_IsTriggered(this); };
+    bool DoPlaceBirth_IsTriggered() override { return control.DoPlaceBirth_IsTriggered(this); };
+    bool DoPlaceInject_IsTriggered() override { return control.DoPlaceInject_IsTriggered(this); };
+    bool DoFindNeighbor_IsTriggered() override { return control.DoFindNeighbor_IsTriggered(this); };
   };
 
   /// Build a class that will automatically register modules when created (globally)
