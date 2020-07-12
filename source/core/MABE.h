@@ -44,12 +44,14 @@ namespace mabe {
 
   class MABEBase {
   protected:
+    using mod_ptr_t = emp::Ptr<ModuleBase>;
+
     /// A SigListener tracks which Modules respond to a specific signal.  They maintain pointers
     /// to modules and call them when requested.  The base class manages common functionality.
-    struct SigListenerBase : public emp::vector<emp::Ptr<ModuleBase>> {
+    struct SigListenerBase : public emp::vector<mod_ptr_t> {
       std::string name;             ///< Name of this signal type.
       ModuleBase::SignalID id;      ///< ID of this signal
-      emp::Ptr<ModuleBase> cur_mod; ///< Which module is currently running?
+      mod_ptr_t cur_mod; ///< Which module is currently running?
 
       SigListenerBase(const std::string & _name="",
                     ModuleBase::SignalID _id=ModuleBase::SIG_UNKNOWN)
@@ -84,7 +86,7 @@ namespace mabe {
 
       template <typename... ARGS2>
       void Trigger(ARGS2 &&... args) {
-        for (emp::Ptr<ModuleBase> mod_ptr : *this) {
+        for (mod_ptr_t mod_ptr : *this) {
           cur_mod = mod_ptr;
           emp_assert(!mod_ptr.IsNull());
           (mod_ptr.Raw()->*fun)( std::forward<ARGS2>(args)... );
@@ -95,7 +97,7 @@ namespace mabe {
       template <typename... ARGS2>
       OrgPosition FindPosition(ARGS2 &&... args) {
         OrgPosition result;
-        for (emp::Ptr<ModuleBase> mod_ptr : *this) {
+        for (mod_ptr_t mod_ptr : *this) {
           result = (mod_ptr.Raw()->*fun)(std::forward<ARGS2>(args)...);
           if (result.IsValid()) break;
         }
@@ -107,7 +109,7 @@ namespace mabe {
     emp::array< emp::Ptr<SigListenerBase>, (size_t) ModuleBase::NUM_SIGNALS > sig_ptrs;
 
     /// Maintain a collection of all modules used in this run.
-    emp::vector<emp::Ptr<ModuleBase>> modules;  
+    emp::vector<mod_ptr_t> modules;  
 
     // --- Track which modules need to have each signal type called on them. ---
     // BeforeUpdate(size_t update_ending)
@@ -288,6 +290,8 @@ namespace mabe {
     emp::vector<std::string> errors;   ///< Log any errors that have occured.
     bool show_help = false;            ///< Should we show "help" before exiting?
     bool exit_now = false;             ///< Do we need to immediately clean up and exit the run?
+
+    using mod_ptr_t = emp::Ptr<ModuleBase>;
 
     // --- Config information for command-line arguments ---
     struct ArgInfo {
@@ -731,6 +735,31 @@ namespace mabe {
     /// Do some basic sanity checks for debugging; return whether all details of the current
     /// MABE setup are "okay".
     bool OK();
+
+
+    // Checks for which modules are currently being triggered.
+
+    bool BeforeUpdate_IsTriggered(mod_ptr_t mod) { return before_update_sig.cur_mod == mod; };
+    bool OnUpdate_IsTriggered(mod_ptr_t mod) { return on_update_sig.cur_mod == mod; };
+    bool BeforeRepro_IsTriggered(mod_ptr_t mod) { return before_repro_sig.cur_mod == mod; };
+    bool OnOffspringReady_IsTriggered(mod_ptr_t mod) { return on_offspring_ready_sig.cur_mod == mod; };
+    bool OnInjectReady_IsTriggered(mod_ptr_t mod) { return on_inject_ready_sig.cur_mod == mod; };
+    bool BeforePlacement_IsTriggered(mod_ptr_t mod) { return before_placement_sig.cur_mod == mod; };
+    bool OnPlacement_IsTriggered(mod_ptr_t mod) { return on_placement_sig.cur_mod == mod; };
+    bool BeforeMutate_IsTriggered(mod_ptr_t mod) { return before_mutate_sig.cur_mod == mod; };
+    bool OnMutate_IsTriggered(mod_ptr_t mod) { return on_mutate_sig.cur_mod == mod; };
+    bool BeforeDeath_IsTriggered(mod_ptr_t mod) { return before_death_sig.cur_mod == mod; };
+    bool BeforeSwap_IsTriggered(mod_ptr_t mod) { return before_swap_sig.cur_mod == mod; };
+    bool OnSwap_IsTriggered(mod_ptr_t mod) { return on_swap_sig.cur_mod == mod; };
+    bool BeforePopResize_IsTriggered(mod_ptr_t mod) { return before_pop_resize_sig.cur_mod == mod; };
+    bool OnPopResize_IsTriggered(mod_ptr_t mod) { return on_pop_resize_sig.cur_mod == mod; };
+    bool OnError_IsTriggered(mod_ptr_t mod) { return on_error_sig.cur_mod == mod; };
+    bool OnWarning_IsTriggered(mod_ptr_t mod) { return on_warning_sig.cur_mod == mod; };
+    bool BeforeExit_IsTriggered(mod_ptr_t mod) { return before_exit_sig.cur_mod == mod; };
+    bool OnHelp_IsTriggered(mod_ptr_t mod) { return on_help_sig.cur_mod == mod; };
+    bool DoPlaceBirth_IsTriggered(mod_ptr_t mod) { return do_place_birth_sig.cur_mod == mod; };
+    bool DoPlaceInject_IsTriggered(mod_ptr_t mod) { return do_place_inject_sig.cur_mod == mod; };
+    bool DoFindNeighbor_IsTriggered(mod_ptr_t mod) { return do_find_neighbor_sig.cur_mod == mod; };
   };
 
 
