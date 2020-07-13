@@ -73,12 +73,27 @@ namespace mabe {
     /// Test if this organism represents an empy cell.
     virtual bool IsEmpty() const noexcept { return false; }
 
-    // --- Functions for overriding ---
+
+    // ------------------------------------------
+    // ------   Functions for overriding   ------
+    // ------------------------------------------
+
 
     /// Create an exact duplicate of this organism.
     /// @note We MUST be able to make a copy of organisms for MABE to function.  If this function
     /// is not overridden, try to the equivilent function in the organism manager.
     virtual emp::Ptr<Organism> Clone() const { return manager.CloneOrganism(*this); }
+
+    /// Modify this organism based on configured mutation parameters.
+    /// @note For evolution to function, we need to be able to mutate offspring.
+    virtual size_t Mutate(emp::Random & random) { return manager.Mutate(*this, random); }
+
+    /// Produce an asexual offspring WITH MUTATIONS.  By default, use Clone() and then Mutate().
+    virtual emp::Ptr<Organism> MakeOffspring(emp::Random & random) const {
+      emp::Ptr<Organism> offspring = Clone();
+      offspring->Mutate(random);
+      return offspring;
+    }
 
     /// Merge this organism's genome with that of another organism to produce an offspring.
     /// @note Required for basic sexual recombination to work.
@@ -89,8 +104,8 @@ namespace mabe {
 
     /// Merge this organism's genome with that of a variable number of other organisms to produce
     /// a variable number of offspring.
-    /// @note More flexible version of recombine (allowing many parents or many offspring), but
-    /// also slower.
+    /// @note More flexible version of recombine (allowing many parents and/or many offspring),
+    /// but also slower.
     virtual emp::vector<emp::Ptr<Organism>> Recombine(emp::vector<emp::Ptr<Organism>> other_parents) const {
       // @CAO: Implement this
       return emp::vector< emp::Ptr<Organism> >();
@@ -100,10 +115,6 @@ namespace mabe {
     /// @note Required if we are going to print organisms to screen or to file).  If this function
     /// is not overridden, try to the equivilent function in the organism manager.
     virtual std::string ToString() { return manager.OrgToString(*this); }
-
-    /// Modify this organism based on configured mutation parameters.
-    /// @note For evolution to function, we need to be able to mutate offspring.
-    virtual size_t Mutate(emp::Random & random) { return manager.Mutate(*this, random); }
 
     /// Completely randomize a new organism (typically for initialization)
     virtual void Randomize(emp::Random & random) { manager.Randomize(*this, random); }
