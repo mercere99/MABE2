@@ -88,13 +88,6 @@ namespace mabe {
     /// @note For evolution to function, we need to be able to mutate offspring.
     virtual size_t Mutate(emp::Random & random) { return manager.Mutate(*this, random); }
 
-    /// Produce an asexual offspring WITH MUTATIONS.  By default, use Clone() and then Mutate().
-    virtual emp::Ptr<Organism> MakeOffspring(emp::Random & random) const {
-      emp::Ptr<Organism> offspring = Clone();
-      offspring->Mutate(random);
-      return offspring;
-    }
-
     /// Merge this organism's genome with that of another organism to produce an offspring.
     /// @note Required for basic sexual recombination to work.
     virtual emp::Ptr<Organism> Recombine(emp::Ptr<Organism> parent2) const {
@@ -109,6 +102,29 @@ namespace mabe {
     virtual emp::vector<emp::Ptr<Organism>> Recombine(emp::vector<emp::Ptr<Organism>> other_parents) const {
       // @CAO: Implement this
       return emp::vector< emp::Ptr<Organism> >();
+    }
+
+    /// Produce an asexual offspring WITH MUTATIONS.  By default, use Clone() and then Mutate().
+    virtual emp::Ptr<Organism> MakeOffspring(emp::Random & random) const {
+      emp::Ptr<Organism> offspring = Clone();
+      offspring->Mutate(random);
+      return offspring;
+    }
+
+    /// Produce an sexual (two parent) offspring WITH MUTATIONS.  By default, use Recombine() and
+    /// then Mutate().
+    virtual emp::Ptr<Organism> MakeOffspring(emp::Ptr<Organism> parent2, emp::Random & random) const {
+      emp::Ptr<Organism> offspring = Recombine(parent2);
+      offspring->Mutate(random);
+      return offspring;
+    }
+
+    /// Produce one or more offspring from multiple parents WITH MUTATIONS.  By default, use
+    /// Recombine() and then Mutate().
+    virtual emp::vector<emp::Ptr<Organism>> MakeOffspring(emp::vector<emp::Ptr<Organism>> other_parents, emp::Random & random) const {
+      emp::vector<emp::Ptr<Organism>> offspring = Recombine(other_parents);
+      offspring->Mutate(random);
+      return offspring;
     }
 
     /// Convert this organism into a string of characters.
