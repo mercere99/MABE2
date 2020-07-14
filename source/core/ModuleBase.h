@@ -308,6 +308,17 @@ namespace mabe {
       emp_assert(false, "Randomize() must be overridden for either Organism or OrganismManager module.");
     }
 
+    virtual emp::Ptr<Organism> Recombine(const Organism &, emp::Ptr<Organism>, emp::Random &) const {
+      emp_assert(false, "Recombine() must be overridden for either Organism or OrganismManager module.");
+      return nullptr;
+    }
+
+    virtual emp::vector<emp::Ptr<Organism>>
+    Recombine(const Organism &, emp::vector<emp::Ptr<Organism>>, emp::Random &) const {
+      emp_assert(false, "Recombine() must be overridden for either Organism or OrganismManager module.");
+      return emp::vector< emp::Ptr<Organism> >();
+    }
+
     virtual void SetupConfig() { }
   };
 
