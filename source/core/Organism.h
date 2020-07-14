@@ -82,7 +82,7 @@ namespace mabe {
     /// Create an exact duplicate of this organism.
     /// @note We MUST be able to make a copy of organisms for MABE to function.  If this function
     /// is not overridden, try to the equivilent function in the organism manager.
-    virtual emp::Ptr<Organism> Clone() const { return manager.CloneOrganism(*this); }
+    [[nodiscard]] virtual emp::Ptr<Organism> Clone() const { return manager.CloneOrganism(*this); }
 
     /// Modify this organism based on configured mutation parameters.
     /// @note For evolution to function, we need to be able to mutate offspring.
@@ -90,7 +90,8 @@ namespace mabe {
 
     /// Merge this organism's genome with that of another organism to produce an offspring.
     /// @note Required for basic sexual recombination to work.
-    virtual emp::Ptr<Organism> Recombine(emp::Ptr<Organism> parent2, emp::Random & random) const {
+    [[nodiscard]] virtual emp::Ptr<Organism>
+    Recombine(emp::Ptr<Organism> parent2, emp::Random & random) const {
       return manager.Recombine(*this, parent2, random);
     }
 
@@ -98,13 +99,13 @@ namespace mabe {
     /// a variable number of offspring.
     /// @note More flexible version of recombine (allowing many parents and/or many offspring),
     /// but also slower.
-    virtual emp::vector<emp::Ptr<Organism>>
+    [[nodiscard]] virtual emp::vector<emp::Ptr<Organism>>
     Recombine(emp::vector<emp::Ptr<Organism>> other_parents, emp::Random & random) const {
       return manager.Recombine(*this, other_parents, random);
     }
 
     /// Produce an asexual offspring WITH MUTATIONS.  By default, use Clone() and then Mutate().
-    virtual emp::Ptr<Organism> MakeOffspring(emp::Random & random) const {
+    [[nodiscard]] virtual emp::Ptr<Organism> MakeOffspring(emp::Random & random) const {
       emp::Ptr<Organism> offspring = Clone();
       offspring->Mutate(random);
       return offspring;
@@ -112,7 +113,8 @@ namespace mabe {
 
     /// Produce an sexual (two parent) offspring WITH MUTATIONS.  By default, use Recombine() and
     /// then Mutate().
-    virtual emp::Ptr<Organism> MakeOffspring(emp::Ptr<Organism> parent2, emp::Random & random) const {
+    [[nodiscard]] virtual emp::Ptr<Organism>
+    MakeOffspring(emp::Ptr<Organism> parent2, emp::Random & random) const {
       emp::Ptr<Organism> offspring = Recombine(parent2, random);
       offspring->Mutate(random);
       return offspring;
@@ -120,7 +122,7 @@ namespace mabe {
 
     /// Produce one or more offspring from multiple parents WITH MUTATIONS.  By default, use
     /// Recombine() and then Mutate().
-    virtual emp::vector<emp::Ptr<Organism>> 
+    [[nodiscard]] virtual emp::vector<emp::Ptr<Organism>> 
     MakeOffspring(emp::vector<emp::Ptr<Organism>> other_parents, emp::Random & random) const {
       emp::vector<emp::Ptr<Organism>> all_offspring = Recombine(other_parents, random);
       for (auto offspring : all_offspring) offspring->Mutate(random);
