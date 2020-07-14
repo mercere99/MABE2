@@ -90,18 +90,17 @@ namespace mabe {
 
     /// Merge this organism's genome with that of another organism to produce an offspring.
     /// @note Required for basic sexual recombination to work.
-    virtual emp::Ptr<Organism> Recombine(emp::Ptr<Organism> parent2) const {
-      // @CAO: Implement this
-      return nullptr;
+    virtual emp::Ptr<Organism> Recombine(emp::Ptr<Organism> parent2, emp::Random & random) const {
+      return manager.Recombine(*this, parent2, random);
     }
 
     /// Merge this organism's genome with that of a variable number of other organisms to produce
     /// a variable number of offspring.
     /// @note More flexible version of recombine (allowing many parents and/or many offspring),
     /// but also slower.
-    virtual emp::vector<emp::Ptr<Organism>> Recombine(emp::vector<emp::Ptr<Organism>> other_parents) const {
-      // @CAO: Implement this
-      return emp::vector< emp::Ptr<Organism> >();
+    virtual emp::vector<emp::Ptr<Organism>>
+    Recombine(emp::vector<emp::Ptr<Organism>> other_parents, emp::Random & random) const {
+      return manager.Recombine(*this, other_parents, random);
     }
 
     /// Produce an asexual offspring WITH MUTATIONS.  By default, use Clone() and then Mutate().
@@ -114,17 +113,18 @@ namespace mabe {
     /// Produce an sexual (two parent) offspring WITH MUTATIONS.  By default, use Recombine() and
     /// then Mutate().
     virtual emp::Ptr<Organism> MakeOffspring(emp::Ptr<Organism> parent2, emp::Random & random) const {
-      emp::Ptr<Organism> offspring = Recombine(parent2);
+      emp::Ptr<Organism> offspring = Recombine(parent2, random);
       offspring->Mutate(random);
       return offspring;
     }
 
     /// Produce one or more offspring from multiple parents WITH MUTATIONS.  By default, use
     /// Recombine() and then Mutate().
-    virtual emp::vector<emp::Ptr<Organism>> MakeOffspring(emp::vector<emp::Ptr<Organism>> other_parents, emp::Random & random) const {
-      emp::vector<emp::Ptr<Organism>> offspring = Recombine(other_parents);
-      offspring->Mutate(random);
-      return offspring;
+    virtual emp::vector<emp::Ptr<Organism>> 
+    MakeOffspring(emp::vector<emp::Ptr<Organism>> other_parents, emp::Random & random) const {
+      emp::vector<emp::Ptr<Organism>> all_offspring = Recombine(other_parents, random);
+      for (auto offspring : all_offspring) offspring->Mutate(random);
+      return all_offspring;
     }
 
     /// Convert this organism into a string of characters.
