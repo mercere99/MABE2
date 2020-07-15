@@ -47,7 +47,7 @@ namespace mabe {
     /// Convert this CONST organism to the correct type (after ensuring that it is!)
     const org_t & ConvertOrg(const Organism & org) const {
       emp_assert(&(org.GetManager()) == this);
-      return (org_t &) org;
+      return (const org_t &) org;
     }
 
     /// Create a clone of the provided organism; default to using copy constructor.
