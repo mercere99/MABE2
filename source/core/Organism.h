@@ -53,6 +53,12 @@ namespace mabe {
     Module & GetManager() { return (Module&) manager; }
     const Module & GetManager() const { return (Module&) manager; }
 
+    /// The class below is a placeholder for storing any manager-specific data that the organims
+    /// should have access to.  A derived organism class merely needs to shadow this one in order
+    /// to include specialized data.
+    struct ManagerData {
+    };
+
     bool HasVar(const std::string & name) const { return data_map.HasName(name); }
     template <typename T> T & GetVar(const std::string & name) { return data_map.Get<T>(name); }
     template <typename T> const T & GetVar(const std::string & name) const {
