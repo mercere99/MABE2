@@ -20,20 +20,20 @@
 
 namespace mabe {
 
-  class BitsOrg : public Organism {
+  class BitsOrg : public OrganismTemplate<BitsOrg> {
   protected:
     emp::BitVector bits;
     std::string output_name;  // @CAO: Should move this to org manager?
 
   public:
     BitsOrg(OrganismManager<BitsOrg> & _manager)
-      : Organism(_manager), bits(100), output_name("bits") { }
+      : OrganismTemplate<BitsOrg>(_manager), bits(100), output_name("bits") { }
     BitsOrg(const BitsOrg &) = default;
     BitsOrg(BitsOrg &&) = default;
     BitsOrg(const emp::BitVector & in, OrganismManager<BitsOrg> & _manager)
-      : Organism(_manager), bits(in) { }
+      : OrganismTemplate<BitsOrg>(_manager), bits(in) { }
     BitsOrg(size_t N, OrganismManager<BitsOrg> & _manager)
-      : Organism(_manager), bits(N), output_name("bits") { }
+      : OrganismTemplate<BitsOrg>(_manager), bits(N), output_name("bits") { }
     ~BitsOrg() { ; }
 
     struct ManagerData : public Organism::ManagerData {
