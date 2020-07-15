@@ -36,6 +36,10 @@ namespace mabe {
       : Organism(_manager), bits(N), output_name("bits") { }
     ~BitsOrg() { ; }
 
+    struct ManagerData : public Organism::ManagerData {
+      std::string output_name;  // Name of trait that should be used to access bits.
+    };
+
     /// Use "to_string" to convert.
     std::string ToString() override { return emp::to_string(bits); }
 
