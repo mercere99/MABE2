@@ -23,21 +23,20 @@ namespace mabe {
   class BitsOrg : public OrganismTemplate<BitsOrg> {
   protected:
     emp::BitVector bits;
-    std::string output_name;  // @CAO: Should move this to org manager?
 
   public:
     BitsOrg(OrganismManager<BitsOrg> & _manager)
-      : OrganismTemplate<BitsOrg>(_manager), bits(100), output_name("bits") { }
+      : OrganismTemplate<BitsOrg>(_manager), bits(100) { }
     BitsOrg(const BitsOrg &) = default;
     BitsOrg(BitsOrg &&) = default;
     BitsOrg(const emp::BitVector & in, OrganismManager<BitsOrg> & _manager)
       : OrganismTemplate<BitsOrg>(_manager), bits(in) { }
     BitsOrg(size_t N, OrganismManager<BitsOrg> & _manager)
-      : OrganismTemplate<BitsOrg>(_manager), bits(N), output_name("bits") { }
+      : OrganismTemplate<BitsOrg>(_manager), bits(N) { }
     ~BitsOrg() { ; }
 
     struct ManagerData : public Organism::ManagerData {
-      std::string output_name;  // Name of trait that should be used to access bits.
+      std::string output_name = "bits";  // Name of trait that should be used to access bits.
     };
 
     /// Use "to_string" to convert.
@@ -58,12 +57,12 @@ namespace mabe {
 
     /// Put the bits in the correct output position.
     void GenerateOutput() override {
-      SetVar<emp::BitVector>(output_name, bits);
+      SetVar<emp::BitVector>(SharedData().output_name, bits);
     }
 
     /// Setup this organism type to be able to load from config.
     void SetupConfig() override {
-      GetManager().LinkVar(output_name, "output_name",
+      GetManager().LinkVar(SharedData().output_name, "output_name",
                       "Name of variable to contain bit sequence.");
       GetManager().LinkFuns<size_t>([this](){ return bits.size(); },
                        [this](const size_t & N){ return bits.Resize(N); },
@@ -72,7 +71,9 @@ namespace mabe {
 
     /// Setup this organism type with the traits it need to track.
     void SetupModule() override {
-      GetManager().AddSharedTrait(output_name, "Bitset output from organism.", emp::BitVector(0));
+      GetManager().AddSharedTrait(SharedData().output_name,
+                                  "Bitset output from organism.",
+                                  emp::BitVector(0));
     }
   };
 
