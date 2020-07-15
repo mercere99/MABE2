@@ -7,15 +7,14 @@
  *  @brief A base class for all organisms in MABE.
  *  @note Status: ALPHA
  *
- *  All organism types in MABE must override the mabe::Organism class and provide a valid
- *  OrganismManager (see OrganismManager.h for more information).
+ *  All organism types in MABE must have mabe::Organism as it ultimate base class.  A helper
+ *  template mabe::OrganismTeplate<ORG_T> is derived from mabe::Organism and should be used as
+ *  the more immeidate base class for any user-defined organism types.  Providing this template
+ *  with your new organism type as ORG_T will setup type-specific return values for ease of use.
  *
- *  All interactions between an organism and its environment should be mediated through the
- *  organism's DataMap.  Environments should setup INPUT VALUES in the DataMap before 
- *  the population is executed.  During (or at the end of) execution, organisms should
- *  write out any OUTPUT_VALUES to the data map.  The configuration files should be used
- *  to ensure that the setting names align correctly, and type adaptors can be added in
- *  to similarly ensure that types correctly match up.
+ *  All interactions between an organism and its environment are mediated through the Organism's
+ *  DataMap.  The configuration files need to be setup to ensure that environments and organisms
+ *  agree on the input values, the output values, and use of any type adaptors.
  * 
  *  If an environment wants to allow ACTIONS to occur during execution, it can provide
  *  callback functions to the organisms in the appropriate OrganismManager DataMap.  If
@@ -163,6 +162,31 @@ namespace mabe {
     /// Setup organism-specific traits.
     virtual void SetupModule() { ; }
 
+  };
+
+
+  // Pre-declare OrganismManager to allow for conversions.
+  template <typename ORG_T> class OrganismManager;
+
+
+  /// Below is a specialty Organism type that uses "curiously recursive templates" to fill out
+  /// more default functionality for when you know the derived organism type.  Specifically,
+  /// it should be used as the base class for any derived organism types.
+  template <typename ORG_T>
+  class OrganismTemplate : public Organism {
+  public:
+    OrganismTemplate(ModuleBase & _man) : Organism(_man) { ; }
+
+    using org_t = ORG_T;
+    using manager_t = OrganismManager<ORG_T>;
+
+    /// Get the manager for this type of organism.
+    manager_t & GetManager() {
+      return (manager_t &) Organism::GetManager();
+    }
+    const manager_t & GetManager() const {
+      return (const manager_t &) Organism::GetManager();
+    }
   };
 
 }
