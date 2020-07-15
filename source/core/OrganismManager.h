@@ -26,6 +26,10 @@ namespace mabe {
 
   template <typename ORG_T>
   class OrganismManager  : public Module {
+    friend OrganismTemplate<ORG_T>;
+  private:
+    typename ORG_T::ManagerData data;
+
   public:
     using org_t = ORG_T;
 
