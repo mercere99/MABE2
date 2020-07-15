@@ -187,6 +187,9 @@ namespace mabe {
     const manager_t & GetManager() const {
       return (const manager_t &) Organism::GetManager();
     }
+
+    auto & SharedData() { return GetManager().data; }
+    const auto & SharedData() const { return GetManager().data; }
   };
 
 }
