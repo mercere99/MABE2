@@ -16,6 +16,7 @@
 #include "../core/OrganismManager.h"
 
 #include "tools/BitVector.h"
+#include "tools/Distribution.h"
 #include "tools/random_utils.h"
 
 namespace mabe {
@@ -36,20 +37,36 @@ namespace mabe {
     ~BitsOrg() { ; }
 
     struct ManagerData : public Organism::ManagerData {
-      double mut_prob = 0.01;            // Probability of each bit mutating on reproduction.
-      std::string output_name = "bits";  // Name of trait that should be used to access bits.
+      double mut_prob = 0.01;            ///< Probability of each bit mutating on reproduction.
+      std::string output_name = "bits";  ///< Name of trait that should be used to access bits.
+      emp::Binomial mut_dist;            ///< Distribution of number of mutations to occur.
+      emp::BitVector mut_sites;          ///< A pre-allocated vector for mutation sites. 
     };
 
     /// Use "to_string" to convert.
     std::string ToString() override { return emp::to_string(bits); }
 
     size_t Mutate(emp::Random & random) override {
-      if (bits.size() == 0) return 0;
-      for (size_t i = 0; i < 3; i++) {
-        size_t pos = random.GetUInt(bits.size());
-        bits[pos] = random.P(0.5);
+      const size_t num_muts = SharedData().mut_dist.PickRandom(random);
+
+      if (num_muts == 0) return 0;
+      if (num_muts == 1) {
+        const size_t pos = random.GetUInt(bits.size());
+        bits.Toggle(pos);
+        return 1;
       }
-      return 3;
+
+      // Only remaining option is num_muts > 1.
+      auto & mut_sites = SharedData().mut_sites;
+      mut_sites.Clear();
+      for (size_t i = 0; i < num_muts; i++) {
+        const size_t pos = random.GetUInt(bits.size());
+        if (mut_sites[pos]) { --i; continue; }  // Duplicate position; try again.
+        mut_sites.Set(pos);
+      }
+      bits ^= mut_sites;
+
+      return num_muts;
     }
 
     void Randomize(emp::Random & random) override {
@@ -74,6 +91,13 @@ namespace mabe {
 
     /// Setup this organism type with the traits it need to track.
     void SetupModule() override {
+      // Setup the mutation distribution.
+      SharedData().mut_dist.Setup(SharedData().mut_prob, bits.size());
+
+      // Setup the default vector to indicate mutation positions.
+      SharedData().mut_sites.Resize(bits.size());
+
+      // Setup the output trait.
       GetManager().AddSharedTrait(SharedData().output_name,
                                   "Bitset output from organism.",
                                   emp::BitVector(0));
