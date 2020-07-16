@@ -36,6 +36,7 @@ namespace mabe {
     ~BitsOrg() { ; }
 
     struct ManagerData : public Organism::ManagerData {
+      double mut_prob = 0.01;            // Probability of each bit mutating on reproduction.
       std::string output_name = "bits";  // Name of trait that should be used to access bits.
     };
 
@@ -62,11 +63,13 @@ namespace mabe {
 
     /// Setup this organism type to be able to load from config.
     void SetupConfig() override {
-      GetManager().LinkVar(SharedData().output_name, "output_name",
-                      "Name of variable to contain bit sequence.");
       GetManager().LinkFuns<size_t>([this](){ return bits.size(); },
                        [this](const size_t & N){ return bits.Resize(N); },
                        "N", "Number of bits in organism");
+      GetManager().LinkVar(SharedData().mut_prob, "mut_prob",
+                      "Probability of each bit mutating on reproduction.");
+      GetManager().LinkVar(SharedData().output_name, "output_name",
+                      "Name of variable to contain bit sequence.");
     }
 
     /// Setup this organism type with the traits it need to track.
