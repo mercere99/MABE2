@@ -31,20 +31,20 @@ namespace mabe {
 
   class GrowthPlacement : public Module {
   private:
-    int pop_id = 1;
+    Collection target_collect;
 
   public:
     GrowthPlacement(mabe::MABE & control,
                     const std::string & name="GrowthPlacement",
                     const std::string & desc="Module to always appened organisms onto a population.")
-      : Module(control, name, desc)
+      : Module(control, name, desc), target_collect(control.GetPopulation(1))
     {
       SetPlacementMod(true);
     }
     ~GrowthPlacement() { }
 
     void SetupConfig() override {
-      LinkPop(pop_id, "target_pop", "Population to manage.");
+      LinkCollection(target_collect, "target", "Population(s) to manage.");
     }
 
     void SetupModule() override {
@@ -54,24 +54,32 @@ namespace mabe {
     OrgPosition DoPlaceBirth(Organism & /* org */, OrgPosition /* ppos */,
                              Population & target_pop) override
     {
-      // If birth is not going to monitored population, don't place!
-      if (target_pop.GetID() != pop_id) return OrgPosition();
-      return control.PushEmpty(target_pop);
+      // If birth is going to a monitored population, place it in a new, empty cell!
+      if (target_collect.HasPopulation(target_pop)) return control.PushEmpty(target_pop);
+
+      // Otherwise, don't place!
+      return OrgPosition();      
     }
 
     // Injections always go into the active population.
     OrgPosition DoPlaceInject(Organism & org, Population & target_pop) override {
-      // If inject is not going to monitored population, don't place!
-      if (target_pop.GetID() != pop_id) return OrgPosition();
-      return control.PushEmpty(target_pop);
+      // If inject is going to a monitored population, place it in a new, empty cell!
+      if (target_collect.HasPopulation(target_pop)) return control.PushEmpty(target_pop);
+
+      // Otherwise, don't place!
+      return OrgPosition();      
     }
 
     OrgPosition DoFindNeighbor(OrgPosition pos) override {
       emp::Ptr<Population> pop_ptr = pos.PopPtr();
 
-      // If the current position is either not a population or not one monitored, don't find!
-      if (pop_ptr.IsNull() || pos.PopID() != pop_id) return OrgPosition();
-      return OrgPosition(pop_ptr, control.GetRandom().GetUInt(pop_ptr->GetSize()));
+      // If the current position is monitored, return a random place in the population.
+      if (target_collect.HasPosition(pos)) {
+        return OrgPosition(pop_ptr, control.GetRandom().GetUInt(pop_ptr->GetSize()));
+      }
+
+      // Otherwise, don't find a legal place!
+      return OrgPosition();      
     }
 
   };
