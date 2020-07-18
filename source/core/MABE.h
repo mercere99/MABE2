@@ -540,27 +540,36 @@ namespace mabe {
     /// Give birth to one or more offspring; return position of last placed.
     /// Triggers 'before repro' signal on parent (once) and 'offspring ready' on each offspring.
     /// Regular signal triggers occur in AddOrgAt.
-    OrgPosition DoBirth(const Organism & org, OrgPosition ppos,
-                        Population & target_pop, size_t copy_count=1) {
+    OrgPosition DoBirth(const Organism & org, OrgPosition ppos, Population & target_pop,
+                        size_t birth_count=1, size_t clone_count=0) {
       emp_assert(org.IsEmpty() == false);  // Empty cells cannot reproduce.
       before_repro_sig.Trigger(ppos);
-      OrgPosition pos;                                     // Position of each offspring placed.
-      for (size_t i = 0; i < copy_count; i++) {            // Loop through offspring, adding each
-        emp::Ptr<Organism> new_org = org.Clone();          // Clone org to put copy in population
+      OrgPosition pos;                                      // Position of each offspring placed.
+      birth_count += clone_count;                           // Total number of orgs to be born.
+      emp::Ptr<Organism> new_org;
+      for (size_t i = 0; i < birth_count; i++) {            // Loop through offspring, adding each
+        if (i < clone_count) {                              // First clone_count orgs have no muts.
+          new_org = org.Clone();         // Clone org to put copy in population
+        } else {
+          // Make a proper offspring (including mutations!)
+          new_org = org.MakeOffspring(random); 
+        }
 
         // Alert modules that offspring is ready, then find its birth position.
         on_offspring_ready_sig.Trigger(*new_org, ppos, target_pop);
         pos = FindBirthPosition(*new_org, ppos, target_pop);
 
-        if (pos.IsValid()) AddOrgAt(new_org, pos, ppos);   // If placement pos is valid, do so!
-        else new_org.Delete();                             // Otherwise delete the organism.
+        // If this placement is valid, do so.  Otherwise delete the organism.
+        if (pos.IsValid()) AddOrgAt(new_org, pos, ppos);
+        else new_org.Delete();
       }
       return pos;
     }
 
     /// A shortcut to DoBirth where only the parent position needs to be supplied.
-    OrgPosition Replicate(OrgPosition ppos, Population & target_pop, size_t copy_count=1) {
-      return DoBirth(*ppos, ppos, target_pop, copy_count);
+    OrgPosition Replicate(OrgPosition ppos, Population & target_pop,
+                          size_t birth_count=1, size_t clone_count=0) {
+      return DoBirth(*ppos, ppos, target_pop, birth_count, clone_count);
     }
 
     /// Resize a population while clearing all of the organisms in it.
