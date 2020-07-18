@@ -101,6 +101,14 @@ namespace mabe {
       emp_assert(pop_ptr.template DynamicCast<Population>());
       return pop_ptr.template Cast<const Population>();
     }
+    Population & Pop() noexcept {
+      emp_assert(PopPtr() != nullptr);
+      return *PopPtr();
+    }
+    const Population & Pop() const noexcept {
+      emp_assert(PopPtr() != nullptr);
+      return *PopPtr();
+    }
 
     // Shortcut definitions to retrieve information from the POPULATION.
     const std::string & PopName() const { emp_assert(pop_ptr); return pop_ptr->GetName(); }
@@ -236,6 +244,8 @@ namespace mabe {
     DERIVED_T end() const { DERIVED_T out( (DERIVED_T &) *this); out.ToEnd(); return out; }
   };
 
+  /// An indication of an Organism's position (including its population) that allows that Organism
+  /// to be read AND to be modified.
   class OrgPosition : public OrgIterator_Interface<OrgPosition> {
   protected:
     using base_t = OrgIterator_Interface<OrgPosition>;
@@ -261,6 +271,8 @@ namespace mabe {
     OrgPosition & operator=(const OrgPosition & in) = default;
   };
 
+  /// An indication of an Organism's position (including its population) that allows that Organism
+  /// to be read, but does NOT allow it to be modified.
   class ConstOrgPosition : public OrgIterator_Interface<ConstOrgPosition, const Organism> {
   protected:
     using base_t = OrgIterator_Interface<ConstOrgPosition, const Organism>;
