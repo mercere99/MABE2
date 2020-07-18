@@ -7,12 +7,8 @@ Value pop_size = 1000;
 CommandLine cl {                // Handle basic I/O on the command line.
   target_pop = "main_pop";      // Which population should we print stats about?
 }
-Mutate mut {                    // Trigger mutations in organisms.
-  target_pop = "main_pop";      // Which population should we mutate?
-  skip = 1;                     // Number of orgs to exempt from mutating
-}
-EvalNK eval_nk {                    // Evaluate bitstrings on an NK fitness lanscape.
-  target_pop = "main_pop";      // Which population should we evaluate?
+EvalNK eval_nk {                // Evaluate bitstrings on an NK fitness lanscape.
+  target = "main_pop";          // Which population should we evaluate?
   N = 100;                      // Number of bits required in output
   K = 3;                        // Number of bits used in each gene
   bits_trait = "bits";          // Which trait stores the bit sequence to evaluate?
@@ -37,10 +33,7 @@ SelectTournament select_t {     // Select the top fitness organisms from random 
 }
 
 GrowthPlacement place_next {    // Always appened births to the end of a population.
-  target_pop = "next_pop";      // Population to manage.
-}
-GrowthPlacement place_inject {  // Always appened births to the end of a population.
-  target_pop = "main_pop";      // Population to manage.
+  target = "next_pop,main_pop"; // Population(s) to manage.
 }
 
 MovePopulation sync_gen {       // Move organisms from one populaiton to another.
@@ -52,6 +45,7 @@ MovePopulation sync_gen {       // Move organisms from one populaiton to another
 BitsOrg bits_org {              // Organism consisting of a series of N bits.
   output_name = "bits";         // Name of variable to contain bit sequence.
   N = eval_nk.N;                // Number of bits in organism
+  mut_prob = 0.01;		// Probability of each bit mutating on reproduction.
 }
 
 @start() print("random_seed = ", random_seed, "\n");
