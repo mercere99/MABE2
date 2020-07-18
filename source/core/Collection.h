@@ -132,6 +132,18 @@ namespace mabe {
       return count;
     }
 
+    bool HasPopulation(const mabe::Population & pop) const {
+      return emp::Has(pos_map, (Population *) &pop);
+    }
+
+    bool HasPosition(OrgPosition & pos) const {
+      auto info_it = pos_map.find(pos.PopPtr());
+      return info_it != pos_map.end() &&
+             (info_it->second.full_pop || info_it->second.pos_set.Has(pos.Pos()));
+    }
+
+    // Convert this Collection into a string that can be used in configuration files.  For example:
+    //   main_pop,special_pop[0-99],next_pop
     std::string ToString() const {
       std::stringstream ss;
       bool first = true;
