@@ -41,10 +41,10 @@ namespace mabe {
     ~EvalMatchBits() { }
 
     void SetupConfig() override {
-      LinkPop(eval_pop1, "eval_pop1", "Which population should we evaluate?");
-      LinkPop(eval_pop2, "eval_pop2", "Which population should we compare to?");
+      LinkPop(eval_pop1, "eval_pop1", "Population to evaluate.");
+      LinkPop(eval_pop2, "eval_pop2", "Population to compare to.");
 
-      LinkVar(bits_trait, "bits_trait", "Which trait stores the bit sequence to evaluate?");
+      LinkVar(bits_trait, "bits_trait", "Trait storing bit sequence to evaluate?");
       LinkVar(fitness_trait, "fitness_trait", "Which trait should we store NK fitness in?");
       LinkVar(count_matches, "count_matches", "=0 counts MISmatches, or =1 for count matches.");
     }
