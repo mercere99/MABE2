@@ -47,9 +47,10 @@ namespace mabe {
 
   protected:
 
-    /// Specialized configuration links for MABE-specific modules.
-    /// (Other ways of linking variable to config file are in ConfigType.h)
+    // Specialized configuration links for MABE-specific modules.
+    // (Other ways of linking variable to config file are in ConfigType.h)
 
+    /// Link a single population to a parameter by name.
     ConfigEntry_Functions<std::string> & LinkPop(int & var,
                                                  const std::string & name,
                                                  const std::string & desc) {
@@ -65,6 +66,7 @@ namespace mabe {
       return GetScope().LinkFuns<std::string>(name, get_fun, set_fun, desc);
     }
 
+    /// Link one or more populations (or portions of a population) to a parameter.
     ConfigEntry_Functions<std::string> & LinkCollection(mabe::Collection & var,
                                                         const std::string & name,
                                                         const std::string & desc) {
@@ -74,6 +76,22 @@ namespace mabe {
       std::function<void(std::string)> set_fun =
         [this,&var](const std::string & load_str){
           var = control.FromString(load_str);
+        };
+
+      return GetScope().LinkFuns<std::string>(name, get_fun, set_fun, desc);
+    }
+
+    /// Link another module to this one, by name (track using int ID)
+    ConfigEntry_Functions<std::string> & LinkModule(int & var,
+                                                    const std::string & name,
+                                                    const std::string & desc) {
+      std::function<std::string()> get_fun =
+        [this,&var](){ return control.GetModule(var).GetName(); };
+
+      std::function<void(std::string)> set_fun =
+        [this,&var](const std::string & name){
+          var = control.GetModuleID(name);
+          if (var == -1) control.AddError("Trying to access module '", name, "'; does not exist.");
         };
 
       return GetScope().LinkFuns<std::string>(name, get_fun, set_fun, desc);
