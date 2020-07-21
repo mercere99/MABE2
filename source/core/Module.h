@@ -187,7 +187,7 @@ namespace mabe {
       control.RescanSignals();
     }
 
-    // Format:  BeforePlacement(Organism & org, OrgPosition target_pos)
+    // Format:  BeforePlacement(Organism & org, OrgPosition target_pos, OrgPosition parent_pos)
     // Trigger: Placement location has been identified (For birth or inject)
     // Args:    Organism to be placed, placement position, parent position (if available)
     void BeforePlacement(Organism &, OrgPosition, OrgPosition) override {

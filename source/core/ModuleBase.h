@@ -30,7 +30,7 @@
  *       : Offspring is ready to be placed.
  *     OnInjectReady(Organism & inject_org, Population & pop)
  *       : Organism to be injected into pop is ready to be placed.
- *     BeforePlacement(Organism & org, OrgPosition target_pos)
+ *     BeforePlacement(Organism & org, OrgPosition target_pos, OrgPosition parent_pos)
  *       : Placement location has been identified (For birth or inject)
  *     OnPlacement(OrgPosition placement_pos)
  *       : New organism has been placed in the poulation.
