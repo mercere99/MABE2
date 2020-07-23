@@ -4,7 +4,7 @@
  *  @date 2019-2020.
  *
  *  @file  ConfigFunction.h
- *  @brief Manages functions for config..
+ *  @brief Manages individual functions for config.
  *  @note Status: ALPHA
  */
 

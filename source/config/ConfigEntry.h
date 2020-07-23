@@ -4,7 +4,7 @@
  *  @date 2019-2020.
  *
  *  @file  ConfigEntry.h
- *  @brief Manages a single configuration entry.
+ *  @brief Manages a single configuration entry (e.g., variables + base for scopes and functions).
  *  @note Status: ALPHA
  * 
  * 
@@ -113,7 +113,7 @@ namespace mabe {
     ConfigEntry & SetMin(double min) { range.SetLower(min); return *this; }
     ConfigEntry & SetMax(double max) { range.SetLower(max); return *this; }
 
-    // Try to copy another config entry into this one; return true if successfule.
+    // Try to copy another config entry into this one; return true if successful.
     virtual bool CopyValue(const ConfigEntry & in) { return false; }
 
     /// If this entry is a scope, we should be able to lookup other entries inside it.
