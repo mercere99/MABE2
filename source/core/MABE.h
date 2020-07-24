@@ -540,8 +540,11 @@ namespace mabe {
     /// Give birth to one or more offspring; return position of last placed.
     /// Triggers 'before repro' signal on parent (once) and 'offspring ready' on each offspring.
     /// Regular signal triggers occur in AddOrgAt.
-    OrgPosition DoBirth(const Organism & org, OrgPosition ppos, Population & target_pop,
-                        size_t birth_count=1, bool do_mutations=true) {
+    OrgPosition DoBirth(const Organism & org,
+                        OrgPosition ppos,
+                        Population & target_pop,
+                        size_t birth_count=1,
+                        bool do_mutations=true) {
       emp_assert(org.IsEmpty() == false);  // Empty cells cannot reproduce.
       before_repro_sig.Trigger(ppos);
       OrgPosition pos;                                      // Position of each offspring placed.
@@ -559,6 +562,23 @@ namespace mabe {
       }
       return pos;
     }
+
+    OrgPosition DoBirth(const Organism & org,
+                        OrgPosition ppos,
+                        OrgPosition target_pos,
+                        bool do_mutations=true) {
+      emp_assert(org.IsEmpty() == false);  // Empty cells cannot reproduce.
+      emp_assert(target_pos.IsValid());    // Target positions must already be valid.
+
+      before_repro_sig.Trigger(ppos);
+      emp::Ptr<Organism> new_org = do_mutations ? org.MakeOffspring(random) : org.Clone();
+      on_offspring_ready_sig.Trigger(*new_org, ppos, target_pos.Pop());
+
+      AddOrgAt(new_org, target_pos, ppos);
+
+      return target_pos;
+    }
+
 
     /// A shortcut to DoBirth where only the parent position needs to be supplied.
     OrgPosition Replicate(OrgPosition ppos, Population & target_pop,
