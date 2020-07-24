@@ -541,19 +541,13 @@ namespace mabe {
     /// Triggers 'before repro' signal on parent (once) and 'offspring ready' on each offspring.
     /// Regular signal triggers occur in AddOrgAt.
     OrgPosition DoBirth(const Organism & org, OrgPosition ppos, Population & target_pop,
-                        size_t birth_count=1, size_t clone_count=0) {
+                        size_t birth_count=1, bool do_mutations=true) {
       emp_assert(org.IsEmpty() == false);  // Empty cells cannot reproduce.
       before_repro_sig.Trigger(ppos);
       OrgPosition pos;                                      // Position of each offspring placed.
-      birth_count += clone_count;                           // Total number of orgs to be born.
       emp::Ptr<Organism> new_org;
       for (size_t i = 0; i < birth_count; i++) {            // Loop through offspring, adding each
-        if (i < clone_count) {                              // First clone_count orgs have no muts.
-          new_org = org.Clone();         // Clone org to put copy in population
-        } else {
-          // Make a proper offspring (including mutations!)
-          new_org = org.MakeOffspring(random); 
-        }
+        new_org = do_mutations ? org.MakeOffspring(random) : org.Clone();
 
         // Alert modules that offspring is ready, then find its birth position.
         on_offspring_ready_sig.Trigger(*new_org, ppos, target_pop);
@@ -568,8 +562,8 @@ namespace mabe {
 
     /// A shortcut to DoBirth where only the parent position needs to be supplied.
     OrgPosition Replicate(OrgPosition ppos, Population & target_pop,
-                          size_t birth_count=1, size_t clone_count=0) {
-      return DoBirth(*ppos, ppos, target_pop, birth_count, clone_count);
+                          size_t birth_count=1, bool do_mutations=true) {
+      return DoBirth(*ppos, ppos, target_pop, birth_count, do_mutations);
     }
 
     /// Resize a population while clearing all of the organisms in it.
