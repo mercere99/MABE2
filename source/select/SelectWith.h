@@ -24,11 +24,11 @@ namespace mabe {
       size_t offspring_pos;  // Population position where offspring placed.
     };
 
-    emp::vector<ReproRecord> record;      ///< Set of reproduce events to replicate in this module.
+    emp::vector<ReproRecord> record;    ///< Set of reproduce events to replicate in this module.
 
-    emp::Ptr<ModuleBase> tracked_module;  ///< Module that we are linked to.
-    int parent_pop_id = 0;                ///< Which population are we taking parents from?
-    int offspring_pop_id = 1;             ///< Which population should births go into?
+    int tracked_module_id = -1;         ///< Module that we are linked to.
+    int parent_pop_id = 0;              ///< Which population are we taking parents from?
+    int offspring_pop_id = 1;           ///< Which population should births go into?
 
   public:
     SelectWith(mabe::MABE & control,
@@ -41,34 +41,32 @@ namespace mabe {
     ~SelectWith() { }
 
     void SetupConfig() override {
-      LinkPop(select_pop_id, "select_pop", "Which population should we select parents from?");
-      LinkPop(birth_pop_id, "birth_pop", "Which population should births go into?");
-      LinkVar(top_count, "top_count", "Number of top-fitness orgs to be replicated");
-      LinkVar(copy_count, "copy_count", "Number of copies to make of replicated organisms");
-      LinkVar(trait, "fitness_trait", "Which trait provides the fitness value to use?");
+      LinkModule(tracked_module_id, "tracked_module", "Which module should we parallel?");
+      LinkPop(parent_pop_id, "select_pop", "Which population should we select parents from?");
+      LinkPop(offspring_pop_id, "birth_pop", "Which population should births go into?");
     }
 
     void SetupModule() override {
-      AddRequiredTrait<double>(trait);  ///< The fitness trait must be set by another module.
+      // No traits are required for this module.
     }
 
     void OnUpdate(size_t update) override {
-      // Construct a map of all IDs to their associated fitness values.
-      emp::valsort_map<OrgPosition, double> id_fit_map;
-      Collection select_col = control.GetAlivePopulation(select_pop_id);
-      for (auto it = select_col.begin(); it != select_col.end(); it++) {
-        id_fit_map.Set(it.AsPosition(), it->GetVar<double>(trait));
-        //std::cout << "Measuring fit " << it->GetVar<double>(trait) << std::endl;
-      }
+      Population & parent_pop = control.GetPopulation(parent_pop_id);
+      Population & offspring_pop = control.GetPopulation(offspring_pop_id);
 
-      // Loop through the IDs in fitness order (from highest), replicating each
-      size_t num_reps = 0;
-      Population & birth_pop = control.GetPopulation(birth_pop_id);
-      for (auto it = id_fit_map.crvbegin(); it != id_fit_map.crvend() && num_reps++ < top_count; it++) {
-        //std::cout << "Replicating fit " << it->first->GetVar<double>(trait) << std::endl;
-        control.Replicate(it->first, birth_pop, copy_count);
+      // Loop through all replication events and trigger the corresponding event.
+      for (auto repro_event : record) {
+        control.DoBirth(
+          parent_pop[repro_event.parent_pos],
+          parent_pop.IteratorAt(repro_event.parent_pos),
+          offspring_pop.IteratorAt(repro_event.offspring_pos)
+        );
       }
     }
+
+    void BeforePlacement(Organism &, OrgPosition to_pos, OrgPosition from_pos) override {
+    }
+
   };
 
   MABE_REGISTER_MODULE(SelectWith, "Choose the top fitness organisms for replication.");
