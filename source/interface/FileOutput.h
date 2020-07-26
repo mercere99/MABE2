@@ -5,6 +5,11 @@
  *
  *  @file  FileOutput.h
  *  @brief Module to output collected data into a specified file.
+ * 
+ *  Format for files is pretty versitile.  It is a comma separated list of the columns.
+ * 
+ *  Example:
+ *   update, main_pop.ave.generation, main_pop.ave.score, main_pop.max.score
  */
 
 #ifndef MABE_FILE_OUTPUT_H
@@ -18,6 +23,7 @@ namespace mabe {
   class FileOutput : public Module {
   private:
     std::string filename;
+    std::string format;
 
   public:
     FileOutput(mabe::MABE & control,
@@ -30,7 +36,8 @@ namespace mabe {
     ~FileOutput() { }
 
     void SetupConfig() override {
-      LinkPop(filename, "filename", "Name of file to print into.");
+      LinkVar(filename, "filename", "Name of file to print into.");
+      LinkVar(format, "format", "Column format to use in the file.");
     }
 
     void SetupModule() override {
@@ -42,7 +49,7 @@ namespace mabe {
     }
 
     void BeforeExit() override {
-      // @CAO: Clost file.
+      // @CAO: Close file.
     }
 
   };
