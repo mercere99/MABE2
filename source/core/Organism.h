@@ -63,11 +63,19 @@ namespace mabe {
     template <typename T> const T & GetVar(const std::string & name) const {
       return data_map.Get<T>(name);
     }
+    template <typename T> T & GetVar(size_t id) { return data_map.Get<T>(id); }
+    template <typename T> const T & GetVar(size_t id) const { return data_map.Get<T>(id); }
 
     template <typename T>
     void SetVar(const std::string & name, const T & value) {
       if (data_map.HasName(name) == false) data_map.AddVar<T>(name, value);
       else data_map.Set<T>(name, value);
+    }
+
+    template <typename T>
+    void SetVar(size_t id, const T & value) {
+      emp_assert(data_map.HasID(id), id);
+      data_map.Set<T>(id, value);
     }
 
     emp::DataMap & GetDataMap() { return data_map; }
