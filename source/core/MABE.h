@@ -728,6 +728,31 @@ namespace mabe {
       return *cur_trait;
     }
 
+    using trait_fun_t = std::function<std::string(const Collection &)>;
+
+    /// Generate a function that will find and return the minimum value of a trait as a string.
+    trait_fun_t GetTraitFunction_Min(const std::string & trait_name) {
+      return [](const Collection &){ return std::string("testing."); };
+    }
+
+    /// Generate a function that will take a collection and return the current value of this trait
+    /// as a string.
+    trait_fun_t GetTraitFunction(Collection & collect, std::string trait_input) {
+      // The trait input has two components: the trait name and the trait type (min, max, ave)
+
+      // Everything before the first colon is the trait name.
+      std::string name = emp::string_pop(trait_input,':');
+
+      // The remainder indicates how to aggregate the trait.
+      if (trait_input == "min") {
+        return GetTraitFunction_Min(name);
+      }
+
+      // If we made it past the 'if' statements, we don't know this aggregation type.
+      AddError("Unknown trait aggregation mode '", trait_input, "' for trait '", name, "'.");
+
+      return [](const Collection &){ return std::string("Error! Unknown trait function"); };
+    }
 
     // --- Manage configuration scope ---
 
