@@ -730,23 +730,58 @@ namespace mabe {
 
     using trait_fun_t = std::function<std::string(const Collection &)>;
 
-    /// Generate a function that will find and return the minimum value of a trait as a string.
-    trait_fun_t GetTraitFunction_Min(const std::string & trait_name) {
-      return [](const Collection &){ return std::string("testing."); };
+    /// Determine if a trait is of a numeric type that MABE supports.
+    bool IsNumericTypeID(emp::TypeID type_id) {
+      if (type_id == emp::GetTypeID<bool>()) return true;
+      if (type_id == emp::GetTypeID<double>()) return true;
+      if (type_id == emp::GetTypeID<int>()) return true;
+      if (type_id == emp::GetTypeID<size_t>()) return true;
+      return false;
     }
 
-    /// Generate a function that will take a collection and return the current value of this trait
-    /// as a string.
-    trait_fun_t GetTraitFunction(Collection & collect, std::string trait_input) {
+    /// Generate a function that will find and return the minimum value of a trait as a string.
+    trait_fun_t GetTraitFunction_Min(const std::string & trait_name) {
+      size_t trait_id = org_data_map.GetId(trait_name);      
+      emp::TypeID trait_type = org_data_map.GetType(trait_id);
+
+      if (trait_type == emp::GetTypeID<int>()) {
+        return [trait_id](const Collection & collect){
+          return std::string("Error: non-numeric trait.");
+        };
+      }
+
+      return [trait_id](const Collection &){ return std::string("Error: non-numeric trait."); };
+    }
+
+    /// Generate a function -- after knowing a trait name and type -- that will take a collection
+    /// and return the current value of this trait as a string.
+    template <typename T>
+    trait_fun_t GetTraitFunction(size_t trait_id, const std_string & fun_name) {
+      // The remainder indicates how to aggregate the trait.
+      if (fun_name == "min") {
+        return GetTraitFunction_Min(name);
+      }
+
+      // If we made it past the 'if' statements, we don't know this aggregation type.
+      AddError("Unknown trait aggregation mode '", trait_input, "' for trait '", name, "'.");
+
+      return [](const Collection &){ return std::string("Error! Unknown trait function"); };
+    }
+
+    /// Parse a descriptor to Generate a function that will take a collection and return the
+    /// current value of this trait as a string.
+    trait_fun_t ParseTraitFunction(std::string trait_input) {
       // The trait input has two components: the trait name and the trait type (min, max, ave)
 
       // Everything before the first colon is the trait name.
-      std::string name = emp::string_pop(trait_input,':');
+      std::string trait_name = emp::string_pop(trait_input,':');
+      size_t trait_id = org_data_map.GetId(trait_name);      
 
-      // The remainder indicates how to aggregate the trait.
-      if (trait_input == "min") {
-        return GetTraitFunction_Min(name);
-      }
+      if (type_id == emp::GetTypeID<bool>()) return GetTraitFunction<bool>(trait_id, trait_input);
+      if (type_id == emp::GetTypeID<double>()) return GetTraitFunction<double>(trait_id, trait_input);
+      if (type_id == emp::GetTypeID<int>()) return GetTraitFunction<int>(trait_id, trait_input);
+      if (type_id == emp::GetTypeID<size_t>()) return GetTraitFunction<size_t>(trait_id, trait_input);
+
 
       // If we made it past the 'if' statements, we don't know this aggregation type.
       AddError("Unknown trait aggregation mode '", trait_input, "' for trait '", name, "'.");
