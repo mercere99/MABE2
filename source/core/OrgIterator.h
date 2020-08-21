@@ -37,14 +37,8 @@ namespace mabe {
     virtual int GetID() const noexcept { return -1; }
     virtual size_t GetSize() const noexcept = 0;
 
-    virtual Organism & At(size_t org_id) {
-      emp_error("At() not implemented!");
-      return *((Organism *) nullptr);
-    }
-    virtual const Organism & At(size_t org_id) const {
-      emp_error("At() not implemented!");
-      return *((const Organism *) nullptr);
-    }
+    virtual Organism & At(size_t org_id) = 0;
+    virtual const Organism & At(size_t org_id) const = 0;
 
     size_t size() const { return GetSize(); }
   };
