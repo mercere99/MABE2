@@ -92,6 +92,17 @@ namespace mabe {
         return (size_t) pos_set.FindBit(pos+1);
       }
 
+      /// Remap an ID from the collection to a population position.
+      size_t GetPos(size_t org_id) {
+        if (full_pop) return org_id;
+
+        size_t cur_pos = 0;
+        while(org_id--) {
+          cur_pos = pos_set.FindBit(cur_pos+1);
+        }
+        return cur_pos;
+      }
+
       /// Insert a single position into the pos_set.
       void InsertPos(size_t pos) {
         if (full_pop) return;
@@ -124,12 +135,40 @@ namespace mabe {
     using iterator_t = CollectionIterator;
 
     /// Calculation the total number of positions represented in this collection.
-    size_t GetSize() const noexcept {
+    size_t GetSize() const noexcept override {
       size_t count = 0;
       for (auto [pop_ptr, pop_info] : pos_map) {
         count += pop_info.GetSize(pop_ptr);
       }
       return count;
+    }
+
+    Organism & At(size_t org_id) override {
+      for (auto [pop_ptr, pop_info] : pos_map) {
+        if (org_id < pop_info.GetSize(pop_ptr)) {
+          size_t pop_id = pop_info.GetPos(org_id);
+          return pop_ptr->At(pop_id);
+        }
+        org_id -= pop_info.GetSize(pop_ptr);
+      }
+
+      // @CAO Should report error to user!
+      emp_error("Trying to find org id out of range for a collection.");
+      return pos_map.begin()->first->At(0); // Return the first organism since out of range.
+    }
+
+    const Organism & At(size_t org_id) const override {
+      for (auto [pop_ptr, pop_info] : pos_map) {
+        if (org_id < pop_info.GetSize(pop_ptr)) {
+          size_t pop_id = pop_info.GetPos(org_id);
+          return pop_ptr->At(pop_id);
+        }
+        org_id -= pop_info.GetSize(pop_ptr);
+      }
+
+      // @CAO Should report error to user!
+      emp_error("Trying to find org id out of range for a collection.");
+      return pos_map.begin()->first->At(0); // Return the first organism since out of range.
     }
 
     bool HasPopulation(const mabe::Population & pop) const {
