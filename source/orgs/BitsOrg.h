@@ -44,7 +44,7 @@ namespace mabe {
     };
 
     /// Use "to_string" to convert.
-    std::string ToString() override { return emp::to_string(bits); }
+    std::string ToString() const override { return emp::to_string(bits); }
 
     size_t Mutate(emp::Random & random) override {
       const size_t num_muts = SharedData().mut_dist.PickRandom(random);
