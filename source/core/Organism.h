@@ -145,7 +145,7 @@ namespace mabe {
     /// Convert this organism into a string of characters.
     /// @note Required if we are going to print organisms to screen or to file).  If this function
     /// is not overridden, try to the equivilent function in the organism manager.
-    virtual std::string ToString() { return manager.OrgToString(*this); }
+    virtual std::string ToString() const { return manager.OrgToString(*this); }
 
     /// Completely randomize a new organism (typically for initialization)
     virtual void Randomize(emp::Random & random) { manager.Randomize(*this, random); }
