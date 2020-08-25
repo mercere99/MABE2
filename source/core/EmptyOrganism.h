@@ -20,7 +20,7 @@ namespace mabe {
   public:
     EmptyOrganism(OrganismManager<EmptyOrganism> & _manager) : Organism(_manager) { ; }
     emp::Ptr<Organism> Clone() const override { emp_error("Do not clone EmptyOrganism"); return nullptr; }
-    std::string ToString() override { return "[empty]"; }
+    std::string ToString() const override { return "[empty]"; }
     size_t Mutate(emp::Random &) override { emp_error("EmptyOrganism cannot Mutate()"); return -1; }
     void Randomize(emp::Random &) override { emp_error("EmptyOrganism cannot Randomize()"); }
     bool IsEmpty() const noexcept override { return true; }
