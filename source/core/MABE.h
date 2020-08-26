@@ -768,34 +768,30 @@ namespace mabe {
     //   return [](const Collection &){ return std::string("Error! Unknown trait function"); };
     // }
 
-    // /// Parse a descriptor to Generate a function that will take a collection and return the
-    // /// current value of this trait as a string.
-    // trait_fun_t ParseTraitFunction(std::string trait_input) {
-    //   // The trait input has two components: the trait name and the trait type (min, max, ave)
+    /// Parse a descriptor to Generate a function that will take a collection and return the
+    /// current value of this trait as a string.
+    trait_fun_t ParseTraitFunction(std::string trait_input) {
+      // The trait input has two components: the trait name and the trait function (min, max, ave)
 
-    //   // Everything before the first colon is the trait name.
-    //   std::string trait_name = emp::string_pop(trait_input,':');
-    //   size_t trait_id = org_data_map.GetId(trait_name);      
+      // Everything before the first colon is the trait name.
+      std::string trait_name = emp::string_pop(trait_input,':');
+      size_t trait_id = org_data_map.GetID(trait_name);
+      emp::TypeID trait_type = org_data_map.GetType(trait_id);
 
-    //   if (type_id == emp::GetTypeID<bool>()) {
-    //     return GetTraitFunction<bool>(trait_id, trait_input);
-    //   }
-    //   if (type_id == emp::GetTypeID<double>()) {
-    //     return GetTraitFunction<double>(trait_id, trait_input);
-    //   }
-    //   if (type_id == emp::GetTypeID<int>()) {
-    //     return GetTraitFunction<int>(trait_id, trait_input);
-    //   }
-    //   if (type_id == emp::GetTypeID<size_t>()) {
-    //     return GetTraitFunction<size_t>(trait_id, trait_input);
-    //   }
+      // If no trait function is specified, assume that we should use the first organism.
+      if (trait_input == "") trait_input = "0";
 
+      // If the trait function is an int, use it as an index into the collection.
+      if (emp::is_digits(trait_input)) {
+        size_t org_id = emp::from_string<size_t>(trait_input);
+        // @CAO: DO THIS!
+      }
 
-    //   // If we made it past the 'if' statements, we don't know this aggregation type.
-    //   AddError("Unknown trait aggregation mode '", trait_input, "' for trait '", name, "'.");
+      // If we made it past the 'if' statements, we don't know this aggregation type.
+      AddError("Unknown trait aggregation mode '", trait_input, "' for trait '", trait_name, "'.");
 
-    //   return [](const Collection &){ return std::string("Error! Unknown trait function"); };
-    // }
+      return [](const Collection &){ return std::string("Error! Unknown trait function"); };
+    }
 
     // --- Manage configuration scope ---
 
