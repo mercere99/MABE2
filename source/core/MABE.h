@@ -787,6 +787,38 @@ namespace mabe {
         // @CAO: DO THIS!
       }
 
+      else if (trait_input == "min") {
+        // @CAO: DO THIS!
+      }
+
+      else if (trait_input == "max") {
+        // @CAO: DO THIS!
+      }
+
+      else if (trait_input == "ave" || trait_input == "mean") {
+        // @CAO: DO THIS!
+      }
+
+      else if (trait_input == "median") {
+        // @CAO: DO THIS!
+      }
+
+      else if (trait_input == "stddev") {
+        // @CAO: DO THIS!
+      }
+
+      else if (trait_input == "sum") {
+        // @CAO: DO THIS!
+      }
+
+      else if (trait_input == "count") {
+        // @CAO: DO THIS!
+      }
+
+      else if (trait_input == "entropy") {
+        // @CAO: DO THIS!
+      }
+
       // If we made it past the 'if' statements, we don't know this aggregation type.
       AddError("Unknown trait aggregation mode '", trait_input, "' for trait '", trait_name, "'.");
 
