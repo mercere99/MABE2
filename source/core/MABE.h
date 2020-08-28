@@ -787,35 +787,55 @@ namespace mabe {
         // @CAO: DO THIS!
       }
 
+      // Return the number if distinct values found in this trait.
+      else if (trait_input == "count" || trait_input == "richness") {
+        // @CAO: DO THIS!
+      }
+
+      // Return the most common value found for this trait.
+      else if (trait_input == "mode" || trait_input == "dom" || trait_input == "dominant") {
+        // @CAO: DO THIS!
+      }
+
+      // Return the entropy of values for this trait.
+      else if (trait_input == "entropy") {
+        // @CAO: DO THIS!
+      }
+
+      // Return the number of times a specific value was found.
+      else if (trait_input[0] == '=') {
+        trait_input.erase(0,1); // Erase the '=' and we are left with the string to match.
+      }
+
+      // -- The remainder of these function require a numerical trait! --
+
+      // Return the lowest trait value.
       else if (trait_input == "min") {
         // @CAO: DO THIS!
       }
 
+      // Return the highest trait value.
       else if (trait_input == "max") {
         // @CAO: DO THIS!
       }
 
+      // Return the average trait value.
       else if (trait_input == "ave" || trait_input == "mean") {
         // @CAO: DO THIS!
       }
 
+      // Return the middle-most trait value.
       else if (trait_input == "median") {
         // @CAO: DO THIS!
       }
 
+      // Return the standard deviation of all trait values.
       else if (trait_input == "stddev") {
         // @CAO: DO THIS!
       }
 
+      // Return the total of all trait values.
       else if (trait_input == "sum") {
-        // @CAO: DO THIS!
-      }
-
-      else if (trait_input == "count") {
-        // @CAO: DO THIS!
-      }
-
-      else if (trait_input == "entropy") {
         // @CAO: DO THIS!
       }
 
