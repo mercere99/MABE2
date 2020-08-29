@@ -730,15 +730,6 @@ namespace mabe {
 
     using trait_fun_t = std::function<std::string(const Collection &)>;
 
-    /// Determine if a trait is of a numeric type that MABE supports.
-    bool IsNumericTypeID(emp::TypeID type_id) {
-      if (type_id == emp::GetTypeID<bool>()) return true;
-      if (type_id == emp::GetTypeID<double>()) return true;
-      if (type_id == emp::GetTypeID<int>()) return true;
-      if (type_id == emp::GetTypeID<size_t>()) return true;
-      return false;
-    }
-
     // /// Generate a function that will find and return the minimum value of a trait as a string.
     // trait_fun_t GetTraitFunction_Min(const std::string & trait_name) {
     //   size_t trait_id = org_data_map.GetID(trait_name);      
@@ -784,7 +775,10 @@ namespace mabe {
       // If the trait function is an int, use it as an index into the collection.
       if (emp::is_digits(trait_input)) {
         size_t org_id = emp::from_string<size_t>(trait_input);
-        // @CAO: DO THIS!
+
+        return [org_id, trait_id, trait_type](const Collection & collect) {
+          return collect.At(org_id).GetTraitAsString(trait_id, trait_type);
+        }
       }
 
       // Return the number if distinct values found in this trait.
