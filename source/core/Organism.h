@@ -83,6 +83,49 @@ namespace mabe {
 
     void SetDataMap(emp::DataMap & in_dm) { data_map = in_dm; }
 
+    bool HasTraitID(size_t id) const { return data_map.HasID(id); }
+    bool HasTrait(const std::string & name) const { return data_map.HasName(name); }
+    template <typename T>
+    bool TestTraitType(size_t id) const { return data_map.IsType<T>(id); }
+    template <typename T>
+    bool TestTraitType(const std::string & name) const { return data_map.IsType<T>(name); }
+
+    size_t GetTraitID(const std::string & name) const { return data_map.GetID(name); }
+
+    template <typename T>
+    T & GetTrait(size_t id) { return data_map.Get<T>(id); }
+
+    template <typename T>
+    const T & GetTrait(size_t id) const { return data_map.Get<T>(id); }
+
+    template <typename T>
+    T & GetTrait(const std::string & name) { return data_map.Get<T>(name); }
+
+    template <typename T>
+    const T & GetTrait(const std::string & name) const { return data_map.Get<T>(name); }
+
+    template <typename T>
+    T & SetTrait(size_t id, const T & val) { return data_map.Set<T>(id, val); }
+
+    template <typename T>
+    T & SetTrait(const std::string & name, const T & val) { return data_map.Set<T>(name, val); }
+
+    emp::TypeID GetTraitType(size_t id) const { data_map.GetType(id); }
+    emp::TypeID GetTraitType(const std::string & name) const { data_map.GetType(name); }
+
+    double GetTraitAsDouble(size_t id) const { return data_map.GetAsDouble(id); }
+
+    double GetTraitAsDouble(size_t trait_id, emp::TypeID type_id) const {
+      return data_map.GetAsDouble(trait_id, type_id);
+    }
+
+    std::string GetTraitAsString(size_t id) const { return data_map.GetAsString(id); }
+
+    std::string GetTraitAsString(size_t trait_id, emp::TypeID type_id) const {
+      return data_map.GetAsString(trait_id, type_id);
+    }
+
+
     /// Test if this organism represents an empy cell.
     virtual bool IsEmpty() const noexcept { return false; }
 
