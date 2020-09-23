@@ -110,8 +110,8 @@ namespace mabe {
     template <typename T>
     T & SetTrait(const std::string & name, const T & val) { return data_map.Set<T>(name, val); }
 
-    emp::TypeID GetTraitType(size_t id) const { data_map.GetType(id); }
-    emp::TypeID GetTraitType(const std::string & name) const { data_map.GetType(name); }
+    emp::TypeID GetTraitType(size_t id) const { return data_map.GetType(id); }
+    emp::TypeID GetTraitType(const std::string & name) const { return data_map.GetType(name); }
 
     double GetTraitAsDouble(size_t id) const { return data_map.GetAsDouble(id); }
 
