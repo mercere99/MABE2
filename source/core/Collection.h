@@ -31,12 +31,18 @@ namespace mabe {
 
   class Collection;
 
-  class CollectionIterator : public OrgIterator_Interface<CollectionIterator, Organism, Population> {
+  // A curtiously recursive template to create a base class for all collection iterators.
+  template <typename DERIVED_T, typename ORG_T, typename COLLECTION_T=Collection>
+  class CollectionIterator_Interface
+    : public OrgIterator_Interface<DERIVED_T, ORG_T, emp::match_const_t<Population,COLLECTION_T>>
+  {
     friend Collection;
   protected:
-    emp::Ptr<Collection> collection_ptr = nullptr;
+    emp::Ptr<COLLECTION_T> collection_ptr = nullptr;
 
-    using base_t = OrgIterator_Interface<CollectionIterator, Organism, Population>;
+    using base_t =
+      OrgIterator_Interface<DERIVED_T, ORG_T, emp::match_const_t<Population,COLLECTION_T>>;
+    using this_t = CollectionIterator_Interface<DERIVED_T, ORG_T>;
 
     void IncPosition() override;
     void DecPosition() override;
@@ -47,25 +53,69 @@ namespace mabe {
 
   public:
     /// Constructor where you can optionally supply population pointer and position.
-    CollectionIterator(emp::Ptr<Collection> _col=nullptr, size_t _pos=0);
+    CollectionIterator_Interface(emp::Ptr<COLLECTION_T> _col=nullptr, size_t _pos=0);
 
     /// Constructor where you can optionally supply population pointer and position.
-    CollectionIterator(emp::Ptr<Collection> _col, emp::Ptr<Population> pop, size_t _pos=0);
+    CollectionIterator_Interface(emp::Ptr<COLLECTION_T> _col, emp::Ptr<Population> pop, size_t _pos=0);
 
-    /// Supply Population by reference instead of pointer.
-    CollectionIterator(Collection & col, size_t _pos=0);
+    /// Supply Collection by reference instead of pointer.
+    CollectionIterator_Interface(COLLECTION_T & col, size_t _pos=0);
 
     /// Copy constructor
-    CollectionIterator(const CollectionIterator &) = default;
-
+    template <typename T2, typename ORG_T2>
+    CollectionIterator_Interface(const CollectionIterator_Interface<T2, ORG_T2> &);
+ 
     /// Copy operator
-    CollectionIterator & operator=(const CollectionIterator & in) = default;
+    template <typename T2, typename ORG_T2>
+    CollectionIterator_Interface & operator=(const CollectionIterator_Interface<T2, ORG_T2> & in);
+  };
+
+  class CollectionIterator
+    : public CollectionIterator_Interface<CollectionIterator, Organism> {
+  public:
+    using base_t = CollectionIterator_Interface<CollectionIterator, Organism>;
+
+    /// Constructor where you can optionally supply population pointer and position.
+    CollectionIterator(emp::Ptr<Collection> _col=nullptr, size_t _pos=0) : base_t(_col, _pos) {}
+
+    /// Constructor where you can optionally supply population pointer and position.
+    CollectionIterator(emp::Ptr<Collection> _col, emp::Ptr<Population> pop, size_t _pos=0)
+      : base_t(_col, pop, _pos) {}
+
+    /// Supply Collection by reference instead of pointer.
+    CollectionIterator(Collection & col, size_t _pos=0) : base_t(col, _pos) {}
+
+    /// Copy constructor
+    CollectionIterator(const CollectionIterator & in) : base_t(in) {}
+  };
+
+  class ConstCollectionIterator
+    : public CollectionIterator_Interface<ConstCollectionIterator, const Organism, const Collection>
+  {
+  public:
+    using base_t =
+      CollectionIterator_Interface<ConstCollectionIterator, const Organism, const Collection>;
+
+    /// Constructor where you can optionally supply population pointer and position.
+    ConstCollectionIterator(emp::Ptr<const Collection> _col=nullptr, size_t _pos=0) : base_t(_col, _pos) {}
+
+    /// Constructor where you can optionally supply population pointer and position.
+    ConstCollectionIterator(emp::Ptr<const Collection> _col, emp::Ptr<Population> pop, size_t _pos=0)
+      : base_t(_col, pop, _pos) {}
+
+    /// Supply Collection by reference instead of pointer.
+    ConstCollectionIterator(const Collection & col, size_t _pos=0) : base_t(col, _pos) {}
+
+    /// Copy constructors
+    ConstCollectionIterator(const CollectionIterator & in) : base_t(in) {}
+    ConstCollectionIterator(const ConstCollectionIterator & in) : base_t(in) {}
   };
 
 
   class Collection : public OrgContainer {
   private:
     using pop_ptr_t = emp::Ptr<mabe::Population>;
+    using const_pop_ptr_t = emp::Ptr<const mabe::Population>;
 
     /// Information about a single population in this collection.
     struct PopInfo {
@@ -133,6 +183,7 @@ namespace mabe {
     Collection & operator=(Collection &&) = default;
 
     using iterator_t = CollectionIterator;
+    using const_iterator_t = ConstCollectionIterator;
 
     /// Calculation the total number of positions represented in this collection.
     size_t GetSize() const noexcept override {
@@ -209,6 +260,11 @@ namespace mabe {
       else return pos_map.begin()->first;
     }
 
+    const_pop_ptr_t GetFirstPop() const {
+      if (pos_map.size() == 0) return nullptr;
+      else return pos_map.begin()->first;
+    }
+
     void IncPosition(CollectionIterator & it) const {
       pop_ptr_t cur_pop = it.PopPtr();
       auto info_it = pos_map.find(cur_pop);
@@ -239,6 +295,8 @@ namespace mabe {
 
     CollectionIterator begin() { return CollectionIterator(this); }
     CollectionIterator end() { return CollectionIterator(this, nullptr); }
+    ConstCollectionIterator begin() const { return ConstCollectionIterator(this); }
+    ConstCollectionIterator end() const { return ConstCollectionIterator(this, nullptr); }
 
     /// Add a Population to this collection.
     Collection & Insert(Population & pop) {
@@ -355,42 +413,52 @@ namespace mabe {
   // -------------------------------------------------------
   //  Implementations of CollectionItertor member functions
   // -------------------------------------------------------
+  
+  template <typename DERIVED_T, typename ORG_T, typename COLLECTION_T>
+  void CollectionIterator_Interface<DERIVED_T, ORG_T, COLLECTION_T>::IncPosition() {
+    emp_assert(collection_ptr);
+    collection_ptr->IncPosition(*this);
+  }
+  template <typename DERIVED_T, typename ORG_T, typename COLLECTION_T>
+  void CollectionIterator_Interface<DERIVED_T, ORG_T, COLLECTION_T>::DecPosition() {
+    emp_assert(collection_ptr);
+    collection_ptr->DecPosition(*this);
+  }
+  template <typename DERIVED_T, typename ORG_T, typename COLLECTION_T>
+  void CollectionIterator_Interface<DERIVED_T, ORG_T, COLLECTION_T>::ShiftPosition(int shift) {
+    emp_assert(collection_ptr);
+    collection_ptr->ShiftPosition(*this, shift);
+  }
+  template <typename DERIVED_T, typename ORG_T, typename COLLECTION_T>
+  void CollectionIterator_Interface<DERIVED_T, ORG_T, COLLECTION_T>::ToBegin() {
+    emp_assert(collection_ptr);
+    *this = collection_ptr->begin();
+  }
+  template <typename DERIVED_T, typename ORG_T, typename COLLECTION_T>
+  void CollectionIterator_Interface<DERIVED_T, ORG_T, COLLECTION_T>::ToEnd() {
+    emp_assert(collection_ptr);
+    *this = collection_ptr->end();
+  }
+  template <typename DERIVED_T, typename ORG_T, typename COLLECTION_T>
+  void CollectionIterator_Interface<DERIVED_T, ORG_T, COLLECTION_T>::MakeValid() {
+    if (collection_ptr) collection_ptr->MakeValid(*this);
+  }
 
-    void CollectionIterator::IncPosition() {
-      emp_assert(collection_ptr);
-      collection_ptr->IncPosition(*this);
-    }
-    void CollectionIterator::DecPosition() {
-      emp_assert(collection_ptr);
-      collection_ptr->DecPosition(*this);
-    }
-    void CollectionIterator::ShiftPosition(int shift) {
-      emp_assert(collection_ptr);
-      collection_ptr->ShiftPosition(*this, shift);
-    }
-    void CollectionIterator::ToBegin() {
-      emp_assert(collection_ptr);
-      *this = collection_ptr->begin();
-    }
-    void CollectionIterator::ToEnd() {
-      emp_assert(collection_ptr);
-      *this = collection_ptr->end();
-    }
-    void CollectionIterator::MakeValid() {
-      if (collection_ptr) collection_ptr->MakeValid(*this);
-    }
+  /// Constructor where you can optionally supply population pointer and position.
+  template <typename DERIVED_T, typename ORG_T, typename COLLECTION_T>
+  CollectionIterator_Interface<DERIVED_T, ORG_T, COLLECTION_T>
+    ::CollectionIterator_Interface(emp::Ptr<COLLECTION_T> _col, size_t _pos)
+    : base_t(_col->GetFirstPop(), _pos), collection_ptr(_col)
+  {      
+  }
 
-    /// Constructor where you can optionally supply population pointer and position.
-    CollectionIterator::CollectionIterator(emp::Ptr<Collection> _col, size_t _pos)
-      : base_t(_col->GetFirstPop(), _pos), collection_ptr(_col)
-    {      
-    }
-
-    /// Constructor where you can optionally supply population pointer and position.
-    CollectionIterator::CollectionIterator(emp::Ptr<Collection> _col, emp::Ptr<Population> pop, size_t _pos)
-      : base_t(pop, _pos), collection_ptr(_col)
-    {
-    }
+  /// Constructor where you can optionally supply population pointer and position.
+  template <typename DERIVED_T, typename ORG_T, typename COLLECTION_T>
+  CollectionIterator_Interface<DERIVED_T, ORG_T, COLLECTION_T>
+    ::CollectionIterator_Interface(emp::Ptr<COLLECTION_T> _col, emp::Ptr<Population> pop, size_t _pos)
+    : base_t(pop, _pos), collection_ptr(_col)
+  {
+  }
 }
 
 #endif
