@@ -778,12 +778,18 @@ namespace mabe {
 
         return [org_id, trait_id, trait_type](const Collection & collect) {
           return collect.At(org_id).GetTraitAsString(trait_id, trait_type);
-        }
+        };
       }
 
       // Return the number if distinct values found in this trait.
       else if (trait_input == "count" || trait_input == "richness") {
-        // @CAO: DO THIS!
+        return [trait_id, trait_type](const Collection & collect) {
+          double total = 0.0;
+          for (const auto & org : collect) {
+            org.GetTraitAsDouble(trait_id, trait_type);
+          }
+          return emp::to_string(total);
+        };
       }
 
       // Return the most common value found for this trait.
@@ -830,7 +836,13 @@ namespace mabe {
 
       // Return the total of all trait values.
       else if (trait_input == "sum") {
-        // @CAO: DO THIS!
+        return [trait_id, trait_type](const Collection & collect) {
+          double total = 0.0;
+          for (const auto & org : collect) {
+            org.GetTraitAsDouble(trait_id, trait_type);
+          }
+          return emp::to_string(total);
+        };
       }
 
       // If we made it past the 'if' statements, we don't know this aggregation type.
