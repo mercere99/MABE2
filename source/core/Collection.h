@@ -265,7 +265,8 @@ namespace mabe {
       else return pos_map.begin()->first;
     }
 
-    void IncPosition(CollectionIterator & it) const {
+    template <typename T>
+    void IncPosition(T & it) const {
       pop_ptr_t cur_pop = it.PopPtr();
       auto info_it = pos_map.find(cur_pop);
       emp_assert(info_it != pos_map.end());
@@ -283,10 +284,12 @@ namespace mabe {
         else it.Set(info_it->first, info_it->second.GetFirstPos());
       }
     }
-    void DecPosition(CollectionIterator & it) const {
+    template <typename T>
+    void DecPosition(T & it) const {
       emp_error("DecPosition() not yet implemented for CollectionIterator.");
     }
-    void ShiftPosition(CollectionIterator & it, int shift) const {
+    template <typename T>
+    void ShiftPosition(T & it, int shift) const {
       emp_error("ShiftPosition() not yet implemented for CollectionIterator.");
     }
     void MakeValid(CollectionIterator & it) const {
