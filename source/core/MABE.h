@@ -263,7 +263,7 @@ namespace mabe {
     const std::string VERSION = "0.0.1";
 
     /// Populations used; generated based on the needs of modules.
-    emp::vector<Population> pops;
+    emp::vector< emp::Ptr<Population> > pops;
 
     /// Organism pointer to use for all empty cells.
     emp::Ptr<Organism> empty_org = nullptr;
@@ -395,6 +395,7 @@ namespace mabe {
       if (empty_org) empty_org.Delete();                           // Delete empty_org ptr.
       for (auto x : modules) x.Delete();                           // Delete all modules.
       for (auto [name,trait_ptr] : trait_map) trait_ptr.Delete();  // Delete all trait info.
+      for (auto x : pops) x.Delete();                              // Delete all populations.
     }
 
     // --- Basic accessors ---
@@ -457,16 +458,18 @@ namespace mabe {
 
     size_t GetNumPopulations() const { return pops.size(); }
     int GetPopID(std::string_view pop_name) const {
-      return emp::FindEval(pops, [pop_name](const auto & p){ return p.GetName() == pop_name; });
+      return emp::FindEval(pops, [pop_name](const auto & p){ return p->GetName() == pop_name; });
     }
-    const Population & GetPopulation(size_t id) const { return pops[id]; }
-    Population & GetPopulation(size_t id) { return pops[id]; }
+    const Population & GetPopulation(size_t id) const { return *pops[id]; }
+    Population & GetPopulation(size_t id) { return *pops[id]; }
 
     /// New populaitons must be given a name and an optional size.
     Population & AddPopulation(const std::string & name, size_t pop_size=0) {
-      cur_pop_id = (int) pops.size();                           // New population will be "current"
-      pops.emplace_back(name, cur_pop_id, pop_size, empty_org); // Create the new population.
-      return pops[cur_pop_id];                                  // Return the new population.
+      cur_pop_id = (int) pops.size();                                   // Set new pop to "current"
+      emp::Ptr<Population> new_pop =
+        emp::NewPtr<Population>(name, cur_pop_id, pop_size, empty_org); // Create new population.
+      pops.push_back(new_pop);                                          // Record new population.
+      return *new_pop;                                                  // Return new population.
     }
 
     /// If GetPopulation() is called without an ID, return the current population or create one.
@@ -475,7 +478,7 @@ namespace mabe {
         emp_assert(cur_pop_id == (size_t) -1);  // Current population should now be default;
         AddPopulation("main");                  // Default population is named main.
       }
-      return pops[cur_pop_id];
+      return *pops[cur_pop_id];
     }
 
     /// Move an organism from one position to another; kill anything that previously occupied
@@ -1244,7 +1247,7 @@ namespace mabe {
 
     // Make sure the populations are all OK.
     for (size_t pop_id = 0; pop_id < pops.size(); pop_id++) {
-      result &= pops[pop_id].OK();
+      result &= pops[pop_id]->OK();
     }
 
     // @CAO: Should check to make sure modules are okay too.
