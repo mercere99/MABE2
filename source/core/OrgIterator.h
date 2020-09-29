@@ -64,7 +64,6 @@ namespace mabe {
     virtual void ShiftPosition(int=1) = 0;
     virtual void ToBegin() = 0;
     virtual void ToEnd() = 0;
-    virtual void MakeValid() = 0;
 
     DERIVED_T & AsDerived() { return (DERIVED_T &) *this; }
 
@@ -202,7 +201,6 @@ namespace mabe {
 
     /// Return a reference to the organism pointed to by this iterator; may advance iterator.
     ORG_T & operator*() {
-      MakeValid();              // If the population has changed, adjust appropriately.
       emp_assert(IsValid());    // Make sure we're not outside of the vector.
       return *(OrgPtr());
     }
@@ -249,7 +247,6 @@ namespace mabe {
     void ShiftPosition(int=1) override { emp_error("ShiftPosition(shift_size) not defined in OrgPosition."); }
     void ToBegin() override { emp_error("ToBegin() not defined in OrgPosition."); }
     void ToEnd() override { emp_error("ToEnd() not defined in OrgPosition."); }
-    void MakeValid() override { }
 
   public:
     /// Constructor where you can optionally supply population pointer and position.
@@ -276,7 +273,6 @@ namespace mabe {
     void ShiftPosition(int=1) override { emp_error("ShiftPosition(shift_size) not defined in ConstOrgPosition."); }
     void ToBegin() override { emp_error("ToBegin() not defined in ConstOrgPosition."); }
     void ToEnd() override { emp_error("ToEnd() not defined in ConstOrgPosition."); }
-    void MakeValid() override { }
 
   public:
     /// Constructor where you can optionally supply population pointer and position.
