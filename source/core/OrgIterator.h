@@ -57,6 +57,7 @@ namespace mabe {
 
     using this_t = OrgIterator_Interface<DERIVED_T, ORG_T, CONTAINER_T, INDEX_T>;
     using container_ptr_t = emp::Ptr<CONTAINER_T>;
+    using pop_t = emp::match_const_t<Population, CONTAINER_T>;
 
     // Helper functions to be overloaded in derived classes.
     virtual void IncPosition() = 0;
@@ -86,8 +87,8 @@ namespace mabe {
 
     // Information direct from this iterator.
     INDEX_T Pos() const noexcept { return pos; };
-    emp::Ptr<Population> PopPtr() noexcept {
-      emp_assert(pop_ptr.template DynamicCast<Population>());
+    emp::Ptr<pop_t> PopPtr() noexcept {
+      emp_assert(pop_ptr.template DynamicCast<pop_t>());
       return pop_ptr.template Cast<Population>();
     }
     emp::Ptr<const Population> PopPtr() const noexcept {
