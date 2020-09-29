@@ -37,7 +37,7 @@ namespace mabe {
     void ShiftPosition(int shift=1) override;
     void ToBegin() override;
     void ToEnd() override;
-    void MakeValid() override;
+    void MakeValid();
 
   public:
     /// Constructor where you can optionally supply population pointer and position.
@@ -63,7 +63,7 @@ namespace mabe {
     void ShiftPosition(int shift=1) override;
     void ToBegin() override;
     void ToEnd() override;
-    void MakeValid() override;
+    void MakeValid();
 
   public:
     /// Constructor where you can optionally supply population pointer and position.
