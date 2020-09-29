@@ -49,7 +49,6 @@ namespace mabe {
     void ShiftPosition(int shift=1) override;
     void ToBegin() override;
     void ToEnd() override;
-    void MakeValid() override;
 
   public:
     /// Constructor where you can optionally supply population pointer and position.
@@ -292,9 +291,6 @@ namespace mabe {
     void ShiftPosition(T & it, int shift) const {
       emp_error("ShiftPosition() not yet implemented for CollectionIterator.");
     }
-    void MakeValid(CollectionIterator & it) const {
-      // @CAO Implement this?
-    }
 
     CollectionIterator begin() { return CollectionIterator(this); }
     CollectionIterator end() { return CollectionIterator(this, nullptr); }
@@ -441,10 +437,6 @@ namespace mabe {
   void CollectionIterator_Interface<DERIVED_T, ORG_T, COLLECTION_T>::ToEnd() {
     emp_assert(collection_ptr);
     *this = collection_ptr->end();
-  }
-  template <typename DERIVED_T, typename ORG_T, typename COLLECTION_T>
-  void CollectionIterator_Interface<DERIVED_T, ORG_T, COLLECTION_T>::MakeValid() {
-    if (collection_ptr) collection_ptr->MakeValid(*this);
   }
 
   /// Constructor where you can optionally supply population pointer and position.
