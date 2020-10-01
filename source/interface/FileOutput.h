@@ -24,6 +24,7 @@ namespace mabe {
   private:
     std::string filename;
     std::string format;
+    Collection target_collect;
 
   public:
     FileOutput(mabe::MABE & control,
@@ -38,6 +39,7 @@ namespace mabe {
     void SetupConfig() override {
       LinkVar(filename, "filename", "Name of file to print into.");
       LinkVar(format, "format", "Column format to use in the file.");
+      LinkCollection(target_collect, "target", "Which population(s) should we print from?");
     }
 
     void SetupModule() override {
