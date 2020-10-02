@@ -169,7 +169,22 @@ namespace mabe {
       }
     };
 
-    std::map<pop_ptr_t, PopInfo> pos_map;
+    using pos_map_t = std::map<pop_ptr_t, PopInfo>;
+    pos_map_t pos_map;
+
+    // Helper Functions
+    auto GetInfoIT(pop_ptr_t pop_ptr) {
+      return pos_map.find(pop_ptr);
+    }
+    auto GetInfoIT(const_pop_ptr_t pop_ptr) {
+      return pos_map.find(pop_ptr.ConstCast<mabe::Population>());
+    }
+    auto GetInfoIT(pop_ptr_t pop_ptr) const {
+      return pos_map.find(pop_ptr);
+    }
+    auto GetInfoIT(const_pop_ptr_t pop_ptr) const {
+      return pos_map.find(pop_ptr.ConstCast<mabe::Population>());
+    }
 
   public:
     Collection() = default;
@@ -196,8 +211,8 @@ namespace mabe {
     Organism & At(size_t org_id) override {
       for (auto [pop_ptr, pop_info] : pos_map) {
         if (org_id < pop_info.GetSize(pop_ptr)) {
-          size_t pop_id = pop_info.GetPos(org_id);
-          return pop_ptr->At(pop_id);
+          size_t pos = pop_info.GetPos(org_id);
+          return pop_ptr->At(pos);
         }
         org_id -= pop_info.GetSize(pop_ptr);
       }
@@ -266,8 +281,8 @@ namespace mabe {
 
     template <typename T>
     void IncPosition(T & it) const {
-      pop_ptr_t cur_pop = it.PopPtr();
-      auto info_it = pos_map.find(cur_pop);
+      const_pop_ptr_t cur_pop = it.PopPtr();
+      auto info_it = GetInfoIT(cur_pop);
       emp_assert(info_it != pos_map.end());
 
       // Find the position of the next organism from this population
