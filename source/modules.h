@@ -14,6 +14,7 @@
 
 // Interface Modules
 #include "interface/CommandLine.h"
+#include "interface/FileOutput.h"
 
 // Placement Modules
 #include "placement/GrowthPlacement.h"
