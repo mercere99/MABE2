@@ -15,6 +15,8 @@
 #ifndef MABE_FILE_OUTPUT_H
 #define MABE_FILE_OUTPUT_H
 
+#include "tools/string_utils.h"
+
 #include "../core/MABE.h"
 #include "../core/Module.h"
 
@@ -25,6 +27,11 @@ namespace mabe {
     std::string filename;
     std::string format;
     Collection target_collect;
+
+    // Calculated values from the inputs.
+    using trait_fun_t = std::function<std::string(const Collection &)>;
+    emp::vector<std::string> cols;  // Names of the columns to use.
+    emp::vector<trait_fun_t> funs;  // Functions to call each update.
 
   public:
     FileOutput(mabe::MABE & control,
@@ -43,7 +50,11 @@ namespace mabe {
     }
 
     void SetupModule() override {
-      // For now, nothing here.
+      emp::slice(format, cols, ',');
+      funs.resize(cols.size());
+      for (size_t i = 0; i < cols.size(); i++) {
+        funs[i] = control.ParseTraitFunction(cols[i]);
+      }
     }
 
     void OnUpdate(size_t ud) override {
