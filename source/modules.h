@@ -11,6 +11,7 @@
 #include "evaluate/EvalCountBits.h"
 #include "evaluate/EvalMatchBits.h"
 #include "evaluate/EvalNK.h"
+#include "evaluate/EvalRandom.h"
 
 // Interface Modules
 #include "interface/CommandLine.h"
@@ -21,6 +22,7 @@
 // Selection Modules
 #include "select/SelectElite.h"
 #include "select/SelectTournament.h"
+#include "select/SchedulerProbabilistic.h"
 
 // Other schema
 #include "schema/MovePopulation.h"
