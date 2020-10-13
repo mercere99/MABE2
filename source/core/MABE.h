@@ -765,7 +765,9 @@ namespace mabe {
     /// Parse a descriptor to Generate a function that will take a collection and return the
     /// current value of this trait as a string.
     trait_fun_t ParseTraitFunction(std::string trait_input) {
-      // The trait input has two components: the trait name and the trait function (min, max, ave)
+      // The trait input has two components:
+      // (1) the trait NAME and
+      // (2) (optionally) how to calculate the trait SUMMARY, such as min, max, ave, etc.
 
       // Everything before the first colon is the trait name.
       std::string trait_name = emp::string_pop(trait_input,':');
@@ -787,11 +789,11 @@ namespace mabe {
       // Return the number if distinct values found in this trait.
       else if (trait_input == "count" || trait_input == "richness") {
         return [trait_id, trait_type](const Collection & collect) {
-          double total = 0.0;
+          std::unordered_set<double> vals;
           for (const auto & org : collect) {
-            org.GetTraitAsDouble(trait_id, trait_type);
+            vals.insert( org.GetTraitAsDouble(trait_id, trait_type) );
           }
-          return emp::to_string(total);
+          return emp::to_string(vals.size());
         };
       }
 
