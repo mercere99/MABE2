@@ -15,6 +15,8 @@
 #ifndef MABE_FILE_OUTPUT_H
 #define MABE_FILE_OUTPUT_H
 
+#include <fstream>
+
 #include "tools/string_utils.h"
 
 #include "../core/MABE.h"
@@ -32,6 +34,7 @@ namespace mabe {
     using trait_fun_t = std::function<std::string(const Collection &)>;
     emp::vector<std::string> cols;  // Names of the columns to use.
     emp::vector<trait_fun_t> funs;  // Functions to call each update.
+    std::ofstream file;
 
   public:
     FileOutput(mabe::MABE & control,
@@ -50,6 +53,9 @@ namespace mabe {
     }
 
     void SetupModule() override {
+      file.open(filename);
+
+      emp::remove_whitespace(format);
       emp::slice(format, cols, ',');
       funs.resize(cols.size());
       for (size_t i = 0; i < cols.size(); i++) {
@@ -58,11 +64,16 @@ namespace mabe {
     }
 
     void OnUpdate(size_t ud) override {
-      // @CAO: Print data to file.
+      bool first = true;
+      for (auto & fun : funs) {
+        if (!first) file << ", ";
+        file << fun(target_collect);
+        first = false;
+      }
     }
 
     void BeforeExit() override {
-      // @CAO: Close file.
+      file.close();
     }
 
   };
