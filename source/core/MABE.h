@@ -844,7 +844,7 @@ namespace mabe {
         return [trait_id, trait_type](const Collection & collect) {
           double total = 0.0;
           for (const auto & org : collect) {
-            org.GetTraitAsDouble(trait_id, trait_type);
+            total += org.GetTraitAsDouble(trait_id, trait_type);
           }
           return emp::to_string(total);
         };
