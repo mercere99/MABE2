@@ -47,7 +47,7 @@ namespace mabe {
     ~FileOutput() { }
 
     void SetupConfig() override {
-      LinkVar(filename, "filename", "Name of file to print into.");
+      LinkVar(filename, "filename", "Name of file for output data.");
       LinkVar(format, "format", "Column format to use in the file.");
       LinkCollection(target_collect, "target", "Which population(s) should we print from?");
     }
@@ -55,12 +55,23 @@ namespace mabe {
     void SetupModule() override {
       file.open(filename);
 
+      // Identify the contents of each column.
       emp::remove_whitespace(format);
       emp::slice(format, cols, ',');
+
+      // Setup a function to collect data associated with each column.
       funs.resize(cols.size());
       for (size_t i = 0; i < cols.size(); i++) {
         funs[i] = control.ParseTraitFunction(cols[i]);
       }
+
+      // Print the headers into the file.
+      file << '#';
+      for (size_t i = 0; i < cols.size(); i++) {
+        if (i) file << ", ";
+        file << cols[i];
+      }
+      file << '\n';
     }
 
     void OnUpdate(size_t ud) override {
@@ -70,6 +81,7 @@ namespace mabe {
         file << fun(target_collect);
         first = false;
       }
+      file << '\n';
     }
 
     void BeforeExit() override {
