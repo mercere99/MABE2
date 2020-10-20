@@ -17,6 +17,7 @@
 #ifndef MABE_MABE_H
 #define MABE_MABE_H
 
+#include <limits>
 #include <string>
 #include <sstream>
 
@@ -809,6 +810,7 @@ namespace mabe {
 
       // Return the number of times a specific value was found.
       else if (trait_input[0] == '=') {
+        // @CAO: DO THIS!
         trait_input.erase(0,1); // Erase the '=' and we are left with the string to match.
       }
 
@@ -816,12 +818,26 @@ namespace mabe {
 
       // Return the lowest trait value.
       else if (trait_input == "min") {
-        // @CAO: DO THIS!
+        return [trait_id, trait_type](const Collection & collect) {
+          double min = std::numeric_limits<double>::max();
+          for (const auto & org : collect) {
+            double cur_val = org.GetTraitAsDouble(trait_id, trait_type);
+            if (cur_val < min) min = cur_val;
+          }
+          return emp::to_string(min);
+        };
       }
 
       // Return the highest trait value.
       else if (trait_input == "max") {
-        // @CAO: DO THIS!
+        return [trait_id, trait_type](const Collection & collect) {
+          double max = std::numeric_limits<double>::min();
+          for (const auto & org : collect) {
+            double cur_val = org.GetTraitAsDouble(trait_id, trait_type);
+            if (cur_val > max) max = cur_val;
+          }
+          return emp::to_string(max);
+        };
       }
 
       // Return the average trait value.
