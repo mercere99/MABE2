@@ -30,3 +30,4 @@
 
 // Organism Types
 #include "orgs/BitsOrg.h"
+#include "orgs/AvidaGP.h"

@@ -66,15 +66,15 @@ namespace mabe {
       // Dole out updates
       for(size_t i = 0; i < N * avg_updates; ++i){
          selected_idx = weight_map.Index(random.GetDouble() * total_weight);
-         // Here we would call pop[selected_idx].ProcessStep()!
+         pop[selected_idx].ProcessStep();
          hit_counter[selected_idx] += 1;
       }
       std::cout << "Total weight: " << total_weight << std::endl;
-      double fitness;
-      for(size_t org_idx = 0; org_idx < N; ++org_idx){
-        fitness = pop[org_idx].GetVar<double>(trait);
-        std::cout << org_idx << " " << fitness  << " " << hit_counter[org_idx] << " (" << (fitness / total_weight) * N * avg_updates << ")" << std::endl;
-      } 
+      //double fitness;
+      //for(size_t org_idx = 0; org_idx < N; ++org_idx){
+      //  fitness = pop[org_idx].GetVar<double>(trait);
+      //  //std::cout << org_idx << " " << fitness  << " " << hit_counter[org_idx] << " (" << (fitness / total_weight) * N * avg_updates << ")" << std::endl;
+      //} 
     }
   };
 
