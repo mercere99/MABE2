@@ -62,7 +62,9 @@ namespace mabe {
       // Setup a function to collect data associated with each column.
       funs.resize(cols.size());
       for (size_t i = 0; i < cols.size(); i++) {
-        funs[i] = control.ParseTraitFunction(cols[i]);
+        std::string trait_filter = cols[i];
+        std::string trait_name = emp::string_pop(trait_filter,':');
+        funs[i] = control.BuildTraitFunction(trait_name, trait_filter);
       }
 
       // Print the headers into the file.
@@ -81,7 +83,7 @@ namespace mabe {
         file << fun(target_collect);
         first = false;
       }
-      file << '\n';
+      file << std::endl;
     }
 
     void BeforeExit() override {
