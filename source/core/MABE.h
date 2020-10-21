@@ -733,6 +733,32 @@ namespace mabe {
     }
 
 
+    /// Build a function to scan a collection of organisms, reading the value for the given
+    /// trait_name from each, aggregating those values based on the trait_filter and returning
+    /// the result as a string.
+    ///
+    ///  trait_filter option are:
+    ///   <none>      : Default to the value of the trait for the first organism in the collection.
+    ///   [ID]        : Value of this trait for the organism at the given index of the collection.
+    ///   [OP][VALUE] : Count how often this value has the [OP] relationship with [VALUE].
+    ///                  [OP] can be ==, !=, <, >, <=, or >=
+    ///                  [VALUE] can be any numeric value
+    ///   [OP][TRAIT] : Count how often this trait has the [OP] relationship with [TRAIT]
+    ///                  [OP] can be ==, !=, <, >, <=, or >=
+    ///                  [TRAIT] can be any other trait name
+    ///   count       : Return the number of distinct value for this trait (alias="richness").
+    ///   mode        : Return the most common value in this colection (aliases="dom","dominant").
+    ///   min         : Return the smallest value of this trait present.
+    ///   max         : Return the largest value of this trait present.
+    ///   ave         : Return the average value of this trait (alias="mean").
+    ///   median      : Return the median value of this trait.
+    ///   variance    : Return the variance of this trait.
+    ///   stddev      : Return the standard deviation of this trait.
+    ///   stderr      : Return the standard error of this trait.
+    ///   sum         : Return the summation of all values of this trait (alias="total")
+    ///   entopy      : Return the Shannon entropy of this value.
+    ///   :trait      : Return the mutual information with another provided trait.
+
     using trait_fun_t = std::function<std::string(const Collection &)>;
     trait_fun_t BuildTraitFunction(const std::string & trait_name,
                                    std::string trait_filter) {
