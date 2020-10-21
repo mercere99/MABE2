@@ -732,55 +732,24 @@ namespace mabe {
       return *cur_trait;
     }
 
+
     using trait_fun_t = std::function<std::string(const Collection &)>;
-
-    // /// Generate a function that will find and return the minimum value of a trait as a string.
-    // trait_fun_t GetTraitFunction_Min(const std::string & trait_name) {
-    //   size_t trait_id = org_data_map.GetID(trait_name);      
-    //   emp::TypeID trait_type = org_data_map.GetType(trait_id);
-
-    //   if (trait_type == emp::GetTypeID<int>()) {
-    //     return [trait_id](const Collection & collect){
-    //       return std::string("Error: non-numeric trait.");
-    //     };
-    //   }
-
-    //   return [trait_id](const Collection &){ return std::string("Error: non-numeric trait."); };
-    // }
-
-    // /// Generate a function -- after knowing a trait name and type -- that will take a collection
-    // /// and return the current value of this trait as a string.
-    // template <typename T>
-    // trait_fun_t GetTraitFunction(size_t trait_id, const std::string & fun_name) {
-    //   // The remainder indicates how to aggregate the trait.
-    //   if (fun_name == "min") {
-    //     return GetTraitFunction_Min(name);
-    //   }
-
-    //   // If we made it past the 'if' statements, we don't know this aggregation type.
-    //   AddError("Unknown trait aggregation mode '", trait_input, "' for trait '", name, "'.");
-
-    //   return [](const Collection &){ return std::string("Error! Unknown trait function"); };
-    // }
-
-    /// Parse a descriptor to Generate a function that will take a collection and return the
-    /// current value of this trait as a string.
-    trait_fun_t ParseTraitFunction(std::string trait_input) {
+    trait_fun_t BuildTraitFunction(const std::string & trait_name,
+                                   std::string trait_filter) {
       // The trait input has two components:
       // (1) the trait NAME and
       // (2) (optionally) how to calculate the trait SUMMARY, such as min, max, ave, etc.
 
       // Everything before the first colon is the trait name.
-      std::string trait_name = emp::string_pop(trait_input,':');
       size_t trait_id = org_data_map.GetID(trait_name);
       emp::TypeID trait_type = org_data_map.GetType(trait_id);
 
       // If no trait function is specified, assume that we should use the first organism.
-      if (trait_input == "") trait_input = "0";
+      if (trait_filter == "") trait_filter = "0";
 
       // If the trait function is an int, use it as an index into the collection.
-      if (emp::is_digits(trait_input)) {
-        size_t org_id = emp::from_string<size_t>(trait_input);
+      if (emp::is_digits(trait_filter)) {
+        size_t org_id = emp::from_string<size_t>(trait_filter);
 
         return [org_id, trait_id, trait_type](const Collection & collect) {
           return collect.At(org_id).GetTraitAsString(trait_id, trait_type);
@@ -788,7 +757,7 @@ namespace mabe {
       }
 
       // Return the number if distinct values found in this trait.
-      else if (trait_input == "count" || trait_input == "richness") {
+      else if (trait_filter == "count" || trait_filter == "richness") {
         return [trait_id, trait_type](const Collection & collect) {
           std::unordered_set<double> vals;
           for (const auto & org : collect) {
@@ -799,25 +768,25 @@ namespace mabe {
       }
 
       // Return the most common value found for this trait.
-      else if (trait_input == "mode" || trait_input == "dom" || trait_input == "dominant") {
+      else if (trait_filter == "mode" || trait_filter == "dom" || trait_filter == "dominant") {
         // @CAO: DO THIS!
       }
 
       // Return the entropy of values for this trait.
-      else if (trait_input == "entropy") {
+      else if (trait_filter == "entropy") {
         // @CAO: DO THIS!
       }
 
       // Return the number of times a specific value was found.
-      else if (trait_input[0] == '=') {
+      else if (trait_filter[0] == '=') {
         // @CAO: DO THIS!
-        trait_input.erase(0,1); // Erase the '=' and we are left with the string to match.
+        trait_filter.erase(0,1); // Erase the '=' and we are left with the string to match.
       }
 
       // -- The remainder of these function require a numerical trait! --
 
       // Return the lowest trait value.
-      else if (trait_input == "min") {
+      else if (trait_filter == "min") {
         return [trait_id, trait_type](const Collection & collect) {
           double min = std::numeric_limits<double>::max();
           for (const auto & org : collect) {
@@ -829,7 +798,7 @@ namespace mabe {
       }
 
       // Return the highest trait value.
-      else if (trait_input == "max") {
+      else if (trait_filter == "max") {
         return [trait_id, trait_type](const Collection & collect) {
           double max = std::numeric_limits<double>::min();
           for (const auto & org : collect) {
@@ -841,22 +810,22 @@ namespace mabe {
       }
 
       // Return the average trait value.
-      else if (trait_input == "ave" || trait_input == "mean") {
+      else if (trait_filter == "ave" || trait_filter == "mean") {
         // @CAO: DO THIS!
       }
 
       // Return the middle-most trait value.
-      else if (trait_input == "median") {
+      else if (trait_filter == "median") {
         // @CAO: DO THIS!
       }
 
       // Return the standard deviation of all trait values.
-      else if (trait_input == "stddev") {
+      else if (trait_filter == "stddev") {
         // @CAO: DO THIS!
       }
 
       // Return the total of all trait values.
-      else if (trait_input == "sum") {
+      else if (trait_filter == "sum" || trait_filter=="total") {
         return [trait_id, trait_type](const Collection & collect) {
           double total = 0.0;
           for (const auto & org : collect) {
@@ -867,7 +836,7 @@ namespace mabe {
       }
 
       // If we made it past the 'if' statements, we don't know this aggregation type.
-      AddError("Unknown trait aggregation mode '", trait_input, "' for trait '", trait_name, "'.");
+      AddError("Unknown trait filter '", trait_filter, "' for trait '", trait_name, "'.");
 
       return [](const Collection &){ return std::string("Error! Unknown trait function"); };
     }
