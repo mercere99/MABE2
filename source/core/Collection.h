@@ -236,6 +236,9 @@ namespace mabe {
       return pos_map.begin()->first->At(0); // Return the first organism since out of range.
     }
 
+    Organism & operator[](size_t org_id) { return At(org_id); }
+    const Organism & operator[](size_t org_id) const { return At(org_id); }
+
     bool HasPopulation(const mabe::Population & pop) const {
       return emp::Has(pos_map, (Population *) &pop);
     }
