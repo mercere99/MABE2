@@ -770,9 +770,11 @@ namespace mabe {
       size_t trait_id = org_data_map.GetID(trait_name);
       emp::TypeID trait_type = org_data_map.GetType(trait_id);
 
+      // ### <none>
       // If no trait function is specified, assume that we should use the first organism.
       if (trait_filter == "") trait_filter = "0";
 
+      // ### [ID]
       // If the trait function is an int, use it as an index into the collection.
       if (emp::is_digits(trait_filter)) {
         size_t org_id = emp::from_string<size_t>(trait_filter);
@@ -782,6 +784,7 @@ namespace mabe {
         };
       }
 
+      // ### count
       // Return the number if distinct values found in this trait.
       else if (trait_filter == "count" || trait_filter == "richness") {
         return [trait_id, trait_type](const Collection & collect) {
@@ -793,9 +796,43 @@ namespace mabe {
         };
       }
 
+      // ### mode
       // Return the most common value found for this trait.
       else if (trait_filter == "mode" || trait_filter == "dom" || trait_filter == "dominant") {
-        // @CAO: DO THIS!
+        // If this trait is arithmetic, we can convert it to double for fast and accurate handling.
+        if (trait_type.IsArithmetic()) {
+          return [trait_id, trait_type](const Collection & collect) {
+            std::map<double, int> vals;
+            for (const auto & org : collect) {
+              vals[ org.GetTraitAsDouble(trait_id, trait_type) ]++;
+            }
+            double mode_val = std::numeric_limits<double>::min();
+            int mode_count = 0;
+
+            for (auto [cur_val, cur_count] : vals) {
+              if (cur_count > mode_count) {
+                mode_count = cur_count;
+                mode_val = cur_val;
+              }
+            }
+            return emp::to_string(mode_val);
+          };
+        }
+
+        // Otherwise return a function where we convert the trait to a string.
+        return [trait_id, trait_type](const Collection & collect) {
+          std::map<std::string, int> vals;
+          for (const auto & org : collect) {
+            vals[ org.GetTraitAsString(trait_id, trait_type) ]++;
+          }
+          std::string mode_val = "";
+          int mode_count = 0;
+          for (auto [cur_val, cur_count] : vals) {
+            mode_val = cur_val;
+            mode_count = emp::Max(mode_count, cur_count);
+          }
+          return mode_val;
+        };
       }
 
       // Return the entropy of values for this trait.
