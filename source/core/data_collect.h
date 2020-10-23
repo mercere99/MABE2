@@ -27,7 +27,29 @@ namespace emp {
       }
       return emp::to_string(vals.size());
     };
-  };
+  }
+
+
+  template <typename DATA_T, typename CONTAIN_T, typename FUN_T>
+  auto BuildCollectFun_Mode(FUN_T get_fun) {
+    return [get_fun](const CONTAIN_T & container) {
+      std::map<DATA_T, size_t> vals;
+      for (const auto & entry : container) {
+        vals[ get_fun(entry) ]++;
+      }
+      DATA_T mode_val;
+      size_t mode_count = 0;
+
+      for (auto [cur_val, cur_count] : vals) {
+        if (cur_count > mode_count) {
+          mode_count = cur_count;
+          mode_val = cur_val;
+        }
+      }
+      return emp::to_string(mode_val);
+    };
+  }
+
 
 
 };
