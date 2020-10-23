@@ -33,6 +33,7 @@
 #include "../config/Config.h"
 
 #include "Collection.h"
+#include "data_collect.h"
 #include "ModuleBase.h"
 #include "Population.h"
 
@@ -769,6 +770,14 @@ namespace mabe {
       // Everything before the first colon is the trait name.
       size_t trait_id = org_data_map.GetID(trait_name);
       emp::TypeID trait_type = org_data_map.GetType(trait_id);
+      const bool is_numeric = trait_type.IsArithmetic();
+
+      auto get_double_fun = [trait_id, trait_type](const Organism & org) {
+        return org.GetTraitAsDouble(trait_id, trait_type);
+      };
+      auto get_string_fun = [trait_id, trait_type](const Organism & org) {
+        return org.GetTraitAsString(trait_id, trait_type);
+      };
 
       // ### <none>
       // If no trait function is specified, assume that we should use the first organism.
@@ -787,52 +796,15 @@ namespace mabe {
       // ### count
       // Return the number if distinct values found in this trait.
       else if (trait_filter == "count" || trait_filter == "richness") {
-        return [trait_id, trait_type](const Collection & collect) {
-          std::unordered_set<double> vals;
-          for (const auto & org : collect) {
-            vals.insert( org.GetTraitAsDouble(trait_id, trait_type) );
-          }
-          return emp::to_string(vals.size());
-        };
+        if (is_numeric) return emp::BuildCollectFun_Count<double, Collection>(get_double_fun);
+        return emp::BuildCollectFun_Count<std::string, Collection>(get_string_fun);
       }
 
       // ### mode
       // Return the most common value found for this trait.
       else if (trait_filter == "mode" || trait_filter == "dom" || trait_filter == "dominant") {
-        // If this trait is arithmetic, we can convert it to double for fast and accurate handling.
-        if (trait_type.IsArithmetic()) {
-          return [trait_id, trait_type](const Collection & collect) {
-            std::map<double, int> vals;
-            for (const auto & org : collect) {
-              vals[ org.GetTraitAsDouble(trait_id, trait_type) ]++;
-            }
-            double mode_val = std::numeric_limits<double>::min();
-            int mode_count = 0;
-
-            for (auto [cur_val, cur_count] : vals) {
-              if (cur_count > mode_count) {
-                mode_count = cur_count;
-                mode_val = cur_val;
-              }
-            }
-            return emp::to_string(mode_val);
-          };
-        }
-
-        // Otherwise return a function where we convert the trait to a string.
-        return [trait_id, trait_type](const Collection & collect) {
-          std::map<std::string, int> vals;
-          for (const auto & org : collect) {
-            vals[ org.GetTraitAsString(trait_id, trait_type) ]++;
-          }
-          std::string mode_val = "";
-          int mode_count = 0;
-          for (auto [cur_val, cur_count] : vals) {
-            mode_val = cur_val;
-            mode_count = emp::Max(mode_count, cur_count);
-          }
-          return mode_val;
-        };
+        if (is_numeric) return emp::BuildCollectFun_Mode<double, Collection>(get_double_fun);
+        return emp::BuildCollectFun_Mode<std::string, Collection>(get_string_fun);
       }
 
       // Return the entropy of values for this trait.
