@@ -68,19 +68,17 @@ namespace mabe {
       }
 
       // Print the headers into the file.
-      file << '#';
+      file << "#update";
       for (size_t i = 0; i < cols.size(); i++) {
-        if (i) file << ", ";
-        file << cols[i];
+        file << ", " << cols[i];
       }
       file << '\n';
     }
 
     void OnUpdate(size_t ud) override {
-      bool first = true;
+      file << ud;
       for (auto & fun : funs) {
-        if (!first) file << ", ";
-        file << fun(target_collect);
+        file << ", " << fun(target_collect);
         first = false;
       }
       file << std::endl;
