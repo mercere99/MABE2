@@ -807,6 +807,33 @@ namespace mabe {
         return emp::BuildCollectFun_Mode<std::string, Collection>(get_string_fun);
       }
 
+      // ### min
+      // Return the lowest trait value.
+      else if (trait_filter == "min") {
+        if (is_numeric) return emp::BuildCollectFun_Min<double, Collection>(get_double_fun);
+        return emp::BuildCollectFun_Min<std::string, Collection>(get_string_fun);
+      }
+
+      // ### max
+      // Return the highest trait value.
+      else if (trait_filter == "max") {
+        if (is_numeric) return emp::BuildCollectFun_Max<double, Collection>(get_double_fun);
+        return emp::BuildCollectFun_Max<std::string, Collection>(get_string_fun);
+      }
+
+      // ### mean / ave
+      // Return the average trait value.
+      else if (trait_filter == "ave" || trait_filter == "mean") {
+        if (is_numeric) return emp::BuildCollectFun_Mean<double, Collection>(get_double_fun);
+        return emp::BuildCollectFun_Mean<std::string, Collection>(get_string_fun);
+      }
+
+      // ### median
+      // Return the middle-most trait value.
+      else if (trait_filter == "median") {
+        if (is_numeric) return emp::BuildCollectFun_Median<double, Collection>(get_double_fun);
+        return emp::BuildCollectFun_Median<std::string, Collection>(get_string_fun);
+      }
 
 
       // Return the entropy of values for this trait.
@@ -821,28 +848,6 @@ namespace mabe {
       }
 
       // -- The remainder of these function require a numerical trait! --
-
-      // Return the lowest trait value.
-      else if (trait_filter == "min") {
-        if (is_numeric) return emp::BuildCollectFun_Min<double, Collection>(get_double_fun);
-        return emp::BuildCollectFun_Min<std::string, Collection>(get_string_fun);
-      }
-
-      // Return the highest trait value.
-      else if (trait_filter == "max") {
-        if (is_numeric) return emp::BuildCollectFun_Max<double, Collection>(get_double_fun);
-        return emp::BuildCollectFun_Max<std::string, Collection>(get_string_fun);
-      }
-
-      // Return the average trait value.
-      else if (trait_filter == "ave" || trait_filter == "mean") {
-        // @CAO: DO THIS!
-      }
-
-      // Return the middle-most trait value.
-      else if (trait_filter == "median") {
-        // @CAO: DO THIS!
-      }
 
       // Return the standard deviation of all trait values.
       else if (trait_filter == "stddev") {
