@@ -83,6 +83,22 @@ namespace emp {
     };
   }
 
+  template <typename DATA_T, typename CONTAIN_T, typename FUN_T>
+  auto BuildCollectFun_Mean(FUN_T get_fun) {
+    return [get_fun](const CONTAIN_T & container) {
+      if constexpr (std::is_arithmetic_v<DATA_T>) {
+        double total = 0.0;
+        size_t count = 0;
+        for (const auto & entry : container) {
+          total += (double) get_fun(entry);
+          count++;
+        }
+        return emp::to_string( total / count );
+      }
+      return std::string{"nan"};
+    };
+  }
+
 };
 
 #endif
