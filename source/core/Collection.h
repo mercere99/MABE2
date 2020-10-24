@@ -207,7 +207,6 @@ namespace mabe {
       }
       return count;
     }
-    inline size_t size() { return GetSize(); }  // Alias for STL compatibility.
 
     Organism & At(size_t org_id) override {
       for (auto [pop_ptr, pop_info] : pos_map) {
