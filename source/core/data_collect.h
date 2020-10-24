@@ -50,7 +50,23 @@ namespace emp {
     };
   }
 
-
+  template <typename DATA_T, typename CONTAIN_T, typename FUN_T>
+  auto BuildCollectFun_Min(FUN_T get_fun) {
+    return [get_fun](const CONTAIN_T & container) {
+      DATA_T min{};
+      if constexpr (std::is_arithmetic_v<DATA_T>) {
+        min = std::numeric_limits<DATA_T>::max();
+      }
+      else if constexpr (std::is_same_v<std::string, DATA_T>) {
+        min = std::string('~',22);   // '~' is ascii char 126 (last printable one.)
+      }
+      for (const auto & entry : container) {
+        DATA_T cur_val = get_fun(entry);
+        if (cur_val < min) min = cur_val;
+      }
+      return emp::to_string(min);
+    };
+  }
 
 };
 
