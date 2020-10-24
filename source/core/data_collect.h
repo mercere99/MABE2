@@ -61,10 +61,25 @@ namespace emp {
         min = std::string('~',22);   // '~' is ascii char 126 (last printable one.)
       }
       for (const auto & entry : container) {
-        DATA_T cur_val = get_fun(entry);
+        const DATA_T cur_val = get_fun(entry);
         if (cur_val < min) min = cur_val;
       }
       return emp::to_string(min);
+    };
+  }
+
+  template <typename DATA_T, typename CONTAIN_T, typename FUN_T>
+  auto BuildCollectFun_Max(FUN_T get_fun) {
+    return [get_fun](const CONTAIN_T & container) {
+      DATA_T max{};
+      if constexpr (std::is_arithmetic_v<DATA_T>) {
+        max = std::numeric_limits<DATA_T>::min();
+      }
+      for (const auto & entry : container) {
+        const DATA_T cur_val = get_fun(entry);
+        if (cur_val > max) max = cur_val;
+      }
+      return emp::to_string(max);
     };
   }
 
