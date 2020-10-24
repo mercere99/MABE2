@@ -99,6 +99,19 @@ namespace emp {
     };
   }
 
+  template <typename DATA_T, typename CONTAIN_T, typename FUN_T>
+  auto BuildCollectFun_Median(FUN_T get_fun) {
+    return [get_fun](const CONTAIN_T & container) {
+      emp::vector<DATA_T> values(container.size());
+      size_t count = 0;
+      for (const auto & entry : container) {
+        values[count++] = get_fun(entry);
+      }
+      emp::Sort(values);
+      return emp::to_string( values[count/2] );
+    };
+  }
+
 };
 
 #endif
