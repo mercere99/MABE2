@@ -807,6 +807,8 @@ namespace mabe {
         return emp::BuildCollectFun_Mode<std::string, Collection>(get_string_fun);
       }
 
+
+
       // Return the entropy of values for this trait.
       else if (trait_filter == "entropy") {
         // @CAO: DO THIS!
@@ -822,26 +824,14 @@ namespace mabe {
 
       // Return the lowest trait value.
       else if (trait_filter == "min") {
-        return [trait_id, trait_type](const Collection & collect) {
-          double min = std::numeric_limits<double>::max();
-          for (const auto & org : collect) {
-            double cur_val = org.GetTraitAsDouble(trait_id, trait_type);
-            if (cur_val < min) min = cur_val;
-          }
-          return emp::to_string(min);
-        };
+        if (is_numeric) return emp::BuildCollectFun_Min<double, Collection>(get_double_fun);
+        return emp::BuildCollectFun_Min<std::string, Collection>(get_string_fun);
       }
 
       // Return the highest trait value.
       else if (trait_filter == "max") {
-        return [trait_id, trait_type](const Collection & collect) {
-          double max = std::numeric_limits<double>::min();
-          for (const auto & org : collect) {
-            double cur_val = org.GetTraitAsDouble(trait_id, trait_type);
-            if (cur_val > max) max = cur_val;
-          }
-          return emp::to_string(max);
-        };
+        if (is_numeric) return emp::BuildCollectFun_Max<double, Collection>(get_double_fun);
+        return emp::BuildCollectFun_Max<std::string, Collection>(get_string_fun);
       }
 
       // Return the average trait value.
