@@ -39,6 +39,18 @@ namespace mabe {
     emp::vector<trait_fun_t> funs;  ///< Functions to call each update.
     std::ofstream file;
 
+    void DoOutput(size_t ud) {
+      // Check if we should print this update.
+      if ((ud < start_ud) ||
+          (stop_ud != -1 && ud > stop_ud) ||
+          ((ud - start_ud)%step_ud != 0) ) return;
+      file << ud;
+      for (auto & fun : funs) {
+        file << ", " << fun(target_collect);
+      }
+      file << std::endl;
+    }
+
   public:
     FileOutput(mabe::MABE & control,
                const std::string & name="FileOutput",
@@ -79,19 +91,13 @@ namespace mabe {
       file << '\n';
     }
 
-    void OnUpdate(size_t ud) override {
-      // Check if we should print this update.
-      if ((ud < start_ud) ||
-          (stop_ud != -1 && ud > stop_ud) ||
-          ((ud - start_ud)%step_ud != 0) ) return;
-      file << ud;
-      for (auto & fun : funs) {
-        file << ", " << fun(target_collect);
-      }
-      file << std::endl;
+    void BeforeUpdate(size_t ud) override {
+      DoOutput(ud);
     }
 
     void BeforeExit() override {
+      // Do a final printing at the end and close the file.
+      DoOutput(control.GetUpdate());
       file.close();
     }
 
