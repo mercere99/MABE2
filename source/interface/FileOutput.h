@@ -29,11 +29,14 @@ namespace mabe {
     std::string filename;
     std::string format;
     Collection target_collect;
+    int start_ud=0;   ///< When should outputs start being printed?
+    int step_ud=1;    ///< How often should outputs be printed?
+    int stop_ud=-1;   ///< When should outputs stop being printed?
 
     // Calculated values from the inputs.
     using trait_fun_t = std::function<std::string(const Collection &)>;
-    emp::vector<std::string> cols;  // Names of the columns to use.
-    emp::vector<trait_fun_t> funs;  // Functions to call each update.
+    emp::vector<std::string> cols;  ///< Names of the columns to use.
+    emp::vector<trait_fun_t> funs;  ///< Functions to call each update.
     std::ofstream file;
 
   public:
@@ -50,6 +53,7 @@ namespace mabe {
       LinkVar(filename, "filename", "Name of file for output data.");
       LinkVar(format, "format", "Column format to use in the file.");
       LinkCollection(target_collect, "target", "Which population(s) should we print from?");
+      LinkRange(start_ud, step_ud, stop_ud, "output_updates", "Which updates should we output data?");
     }
 
     void SetupModule() override {
@@ -76,10 +80,13 @@ namespace mabe {
     }
 
     void OnUpdate(size_t ud) override {
+      // Check if we should print this update.
+      if ((ud < start_ud) ||
+          (stop_ud != -1 && ud > stop_ud) ||
+          ((ud - start_ud)%step_ud != 0) ) return;
       file << ud;
       for (auto & fun : funs) {
         file << ", " << fun(target_collect);
-        first = false;
       }
       file << std::endl;
     }
