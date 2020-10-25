@@ -422,11 +422,12 @@ namespace mabe {
     void Update();
 
     /// Update MABE a specified number of time steps.
-    void Update(size_t num_updates) {
+    void DoRun(size_t num_updates) {
       config.TriggerEvents("start");
       for (size_t ud = 0; ud < num_updates && !exit_now; ud++) {
         Update();
       }
+      Exit();
     }
 
     // -- Error Handling --
@@ -747,7 +748,7 @@ namespace mabe {
     ///   [OP][TRAIT] : Count how often this trait has the [OP] relationship with [TRAIT]
     ///                  [OP] can be ==, !=, <, >, <=, or >=
     ///                  [TRAIT] can be any other trait name
-    ///   count       : Return the number of distinct value for this trait (alias="richness").
+    ///   unique      : Return the number of distinct value for this trait (alias="richness").
     ///   mode        : Return the most common value in this colection (aliases="dom","dominant").
     ///   min         : Return the smallest value of this trait present.
     ///   max         : Return the largest value of this trait present.
@@ -755,7 +756,6 @@ namespace mabe {
     ///   median      : Return the median value of this trait.
     ///   variance    : Return the variance of this trait.
     ///   stddev      : Return the standard deviation of this trait.
-    ///   stderr      : Return the standard error of this trait.
     ///   sum         : Return the summation of all values of this trait (alias="total")
     ///   entopy      : Return the Shannon entropy of this value.
     ///   :trait      : Return the mutual information with another provided trait.
@@ -793,11 +793,11 @@ namespace mabe {
         };
       }
 
-      // ### count
+      // ### unique
       // Return the number if distinct values found in this trait.
-      else if (trait_filter == "count" || trait_filter == "richness") {
-        if (is_numeric) return emp::BuildCollectFun_Count<double, Collection>(get_double_fun);
-        return emp::BuildCollectFun_Count<std::string, Collection>(get_string_fun);
+      else if (trait_filter == "unique" || trait_filter == "richness") {
+        if (is_numeric) return emp::BuildCollectFun_Unique<double, Collection>(get_double_fun);
+        return emp::BuildCollectFun_Unique<std::string, Collection>(get_string_fun);
       }
 
       // ### mode
@@ -835,6 +835,20 @@ namespace mabe {
         return emp::BuildCollectFun_Median<std::string, Collection>(get_string_fun);
       }
 
+      // ### vairance
+      // Return the standard deviation of all trait values.
+      else if (trait_filter == "variance") {
+        if (is_numeric) return emp::BuildCollectFun_Variance<double, Collection>(get_double_fun);
+        return emp::BuildCollectFun_Variance<std::string, Collection>(get_string_fun);
+      }
+
+      // ### stddev
+      // Return the standard deviation of all trait values.
+      else if (trait_filter == "stddev") {
+        if (is_numeric) return emp::BuildCollectFun_StandardDeviation<double, Collection>(get_double_fun);
+        return emp::BuildCollectFun_StandardDeviation<std::string, Collection>(get_string_fun);
+      }
+
 
       // Return the entropy of values for this trait.
       else if (trait_filter == "entropy") {
@@ -848,11 +862,6 @@ namespace mabe {
       }
 
       // -- The remainder of these function require a numerical trait! --
-
-      // Return the standard deviation of all trait values.
-      else if (trait_filter == "stddev") {
-        // @CAO: DO THIS!
-      }
 
       // Return the total of all trait values.
       else if (trait_filter == "sum" || trait_filter=="total") {
