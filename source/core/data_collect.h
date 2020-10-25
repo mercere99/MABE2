@@ -18,8 +18,9 @@
 
 namespace emp {
 
+  // Count up the number of distinct values.
   template <typename DATA_T, typename CONTAIN_T, typename FUN_T>
-  auto BuildCollectFun_Count(FUN_T get_fun) {
+  auto BuildCollectFun_Unique(FUN_T get_fun) {
     return [get_fun](const CONTAIN_T & container) {
       std::unordered_set<DATA_T> vals;
       for (const auto & entry : container) {
@@ -111,6 +112,52 @@ namespace emp {
       return emp::to_string( values[count/2] );
     };
   }
+
+  template <typename DATA_T, typename CONTAIN_T, typename FUN_T>
+  auto BuildCollectFun_Variance(FUN_T get_fun) {
+    return [get_fun](const CONTAIN_T & container) {
+      if constexpr (std::is_arithmetic_v<DATA_T>) {
+        double total = 0.0;
+        const double N = (double) container.size();
+        for (const auto & entry : container) {
+          total += (double) get_fun(entry);
+        }
+        double mean = total / N;
+        double var_total = 0.0;
+        for (const auto & entry : container) {
+          double cur_val = mean - (double) get_fun(entry);
+          var_total += cur_val * cur_val;
+        }
+
+        return emp::to_string( var_total / (N-1) );
+      }
+      return std::string{"nan"};
+    };
+  }
+
+  template <typename DATA_T, typename CONTAIN_T, typename FUN_T>
+  auto BuildCollectFun_StandardDeviation(FUN_T get_fun) {
+    return [get_fun](const CONTAIN_T & container) {
+      if constexpr (std::is_arithmetic_v<DATA_T>) {
+        double total = 0.0;
+        const double N = (double) container.size();
+        for (const auto & entry : container) {
+          total += (double) get_fun(entry);
+        }
+        double mean = total / N;
+        double var_total = 0.0;
+        for (const auto & entry : container) {
+          double cur_val = mean - (double) get_fun(entry);
+          var_total += cur_val * cur_val;
+        }
+
+        return emp::to_string( sqrt(var_total / (N-1)) );
+      }
+      return std::string{"nan"};
+    };
+  }
+
+
 
 };
 
