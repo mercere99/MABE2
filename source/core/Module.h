@@ -97,6 +97,28 @@ namespace mabe {
       return GetScope().LinkFuns<std::string>(name, get_fun, set_fun, desc);
     }
 
+    /// Link a range of values with a start, stop, and step.
+    ConfigEntry_Functions<std::string> & LinkRange(int & start_var,
+                                                   int & step_var,
+                                                   int & stop_var,
+                                                   const std::string & name,
+                                                   const std::string & desc) {
+      std::function<std::string()> get_fun =
+        [&start_var,&step_var,&stop_var]() {
+          // If stop_var is -1, don't bother printing it (i.e. NO stop)
+          if (stop_var == -1) return emp::to_string(start_var, ':', step_var);
+          return emp::to_string(start_var, ':', step_var, ':', stop_var);
+        };
+
+      std::function<void(std::string)> set_fun =
+        [&start_var,&step_var,&stop_var](std::string name){
+          start_var = emp::from_string<int>(emp::string_pop(name, ':'));
+          step_var = emp::from_string<int>(emp::string_pop(name, ':'));
+          stop_var = name.size() ? emp::from_string<int>(name) : -1; // -1 indicates no stop.
+        };
+
+      return GetScope().LinkFuns<std::string>(name, get_fun, set_fun, desc);
+    }
   public:
 
     // ---== Trait management ==---
