@@ -157,6 +157,36 @@ namespace emp {
     };
   }
 
+  template <typename DATA_T, typename CONTAIN_T, typename FUN_T>
+  auto BuildCollectFun_Sum(FUN_T get_fun) {
+    return [get_fun](const CONTAIN_T & container) {
+      if constexpr (std::is_arithmetic_v<DATA_T>) {
+        double total = 0.0;
+        for (const auto & entry : container) {
+          total += (double) get_fun(entry);
+        }
+        return emp::to_string( total );
+      }
+      return std::string{"nan"};
+    };
+  }
+
+  template <typename DATA_T, typename CONTAIN_T, typename FUN_T>
+  auto BuildCollectFun_Entropy(FUN_T get_fun) {
+    return [get_fun](const CONTAIN_T & container) {
+      std::map<DATA_T, size_t> vals;
+      for (const auto & entry : container) {
+        vals[ get_fun(entry) ]++;
+      }
+      const size_t N = container.size();
+      double entropy = 0.0;
+      for (auto [entry, count] : vals) {
+        double p = ((double) count) / (double) N;
+        entropy -= p * log2(p);
+      }
+      return emp::to_string(entropy);
+    };
+  }
 
 
 };
