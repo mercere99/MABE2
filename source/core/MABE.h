@@ -793,6 +793,12 @@ namespace mabe {
         };
       }
 
+      // Return the number of times a specific value was found.
+      else if (trait_filter[0] == '=') {
+        // @CAO: DO THIS!
+        trait_filter.erase(0,1); // Erase the '=' and we are left with the string to match.
+      }
+
       // ### unique
       // Return the number if distinct values found in this trait.
       else if (trait_filter == "unique" || trait_filter == "richness") {
@@ -849,30 +855,19 @@ namespace mabe {
         return emp::BuildCollectFun_StandardDeviation<std::string, Collection>(get_string_fun);
       }
 
+      // ### sum / total
+      // Return the total of all trait values.
+      else if (trait_filter == "sum" || trait_filter=="total") {
+        if (is_numeric) return emp::BuildCollectFun_Sum<double, Collection>(get_double_fun);
+        return emp::BuildCollectFun_Sum<std::string, Collection>(get_string_fun);
+      }
 
       // Return the entropy of values for this trait.
       else if (trait_filter == "entropy") {
-        // @CAO: DO THIS!
+        if (is_numeric) return emp::BuildCollectFun_Entropy<double, Collection>(get_double_fun);
+        return emp::BuildCollectFun_Entropy<std::string, Collection>(get_string_fun);
       }
 
-      // Return the number of times a specific value was found.
-      else if (trait_filter[0] == '=') {
-        // @CAO: DO THIS!
-        trait_filter.erase(0,1); // Erase the '=' and we are left with the string to match.
-      }
-
-      // -- The remainder of these function require a numerical trait! --
-
-      // Return the total of all trait values.
-      else if (trait_filter == "sum" || trait_filter=="total") {
-        return [trait_id, trait_type](const Collection & collect) {
-          double total = 0.0;
-          for (const auto & org : collect) {
-            total += org.GetTraitAsDouble(trait_id, trait_type);
-          }
-          return emp::to_string(total);
-        };
-      }
 
       // If we made it past the 'if' statements, we don't know this aggregation type.
       AddError("Unknown trait filter '", trait_filter, "' for trait '", trait_name, "'.");
