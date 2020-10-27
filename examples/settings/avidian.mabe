@@ -34,19 +34,19 @@ SelectTournament select_t {     // Select the top fitness organisms from random 
   fitness_trait = "fitness";    // Which trait provides the fitness value to use?
 }
 
-GrowthPlacement place_next {    // Always appened births to the end of a population.
-  target = "next_pop,main_pop"; // Population(s) to manage.
+RandomReplacement place_next {    // Always appened births to the end of a population.
+  target = "main_pop"; // Population(s) to manage.
 }
 
-MovePopulation sync_gen {       // Move organisms from one populaiton to another.
-  from_pop = "next_pop";        // Population to move organisms from.
-  to_pop = "main_pop";          // Population to move organisms into.
-  reset_to = 1;                 // Should we erase organisms at the destination?
-}
+//MovePopulation sync_gen {       // Move organisms from one populaiton to another.
+//  from_pop = "next_pop";        // Population to move organisms from.
+//  to_pop = "main_pop";          // Population to move organisms into.
+//  reset_to = 1;                 // Should we erase organisms at the destination?
+//}
 
 AvidaGPOrg gp_orgs {            // Organism consisting of a series of N bits.
   output_name = "bits";         // Name of variable to contain bit sequence.
-  base_size = 20;               // Number of instructions in randomly created organisms
+  base_size = 100;               // Number of instructions in randomly created organisms
   mut_prob = 0.01;          		// Probability of each bit mutating on reproduction.
 }
 BitsOrg bits_org {              // Organism consisting of a series of N bits.
@@ -58,4 +58,4 @@ BitsOrg bits_org {              // Organism consisting of a series of N bits.
 @start() print("random_seed = ", random_seed, "\n");
 @start() inject("gp_orgs", "main_pop", pop_size);
 @update(500) select_t.tournament_size = 4;
-@update(1000) exit();
+@update(50) exit();

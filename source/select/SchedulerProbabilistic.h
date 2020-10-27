@@ -65,9 +65,12 @@ namespace mabe {
       double total_weight = weight_map.GetWeight();
       // Dole out updates
       for(size_t i = 0; i < N * avg_updates; ++i){
-         selected_idx = weight_map.Index(random.GetDouble() * total_weight);
-         pop[selected_idx].ProcessStep();
-         hit_counter[selected_idx] += 1;
+        selected_idx = weight_map.Index(random.GetDouble() * total_weight);
+        if(pop[selected_idx].ProcessStep()){
+          std::cout << "Birth!" << std::endl;
+          control.Replicate(OrgPosition(pop, selected_idx), pop, 1); 
+        }
+        hit_counter[selected_idx] += 1;
       }
       std::cout << "Total weight: " << total_weight << std::endl;
       //double fitness;

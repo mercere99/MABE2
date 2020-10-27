@@ -18,6 +18,7 @@
 
 // Placement Modules
 #include "placement/GrowthPlacement.h"
+#include "placement/RandomReplacement.h"
 
 // Selection Modules
 #include "select/SelectElite.h"

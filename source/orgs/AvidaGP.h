@@ -14,8 +14,8 @@
 #include "../core/MABE.h"
 #include "../core/Organism.h"
 #include "../core/OrganismManager.h"
+#include "./AvidaGP_InstLib.h"
 
-#include "tools/BitVector.h"
 #include "tools/Distribution.h"
 #include "tools/random_utils.h"
 #include "hardware/AvidaGP.h"
@@ -24,11 +24,17 @@ namespace mabe {
 
   class AvidaGPOrg : public OrganismTemplate<AvidaGPOrg> {
   protected:
-    emp::AvidaGP cpu;
+    hardware_t cpu;
+    OrganismManager<AvidaGPOrg> & manager;
 
   public:
     AvidaGPOrg(OrganismManager<AvidaGPOrg> & _manager)
-      : OrganismTemplate<AvidaGPOrg>(_manager){ }
+      : OrganismTemplate<AvidaGPOrg>(_manager),
+        cpu(BaseInstLib()),
+        manager(_manager)
+    {
+      cpu.SetTrait(0, 0);
+    }
     AvidaGPOrg(const AvidaGPOrg &) = default;
     AvidaGPOrg(AvidaGPOrg &&) = default;
     ~AvidaGPOrg() { ; }
@@ -36,8 +42,6 @@ namespace mabe {
     struct ManagerData : public Organism::ManagerData {
       double mut_prob = 0.01;            ///< Probability of each bit mutating on reproduction.
       std::string output_name = "bits";  ///< Name of trait that should be used to access bits.
-      emp::Binomial mut_dist;            ///< Distribution of number of mutations to occur.
-      emp::BitVector mut_sites;          ///< A pre-allocated vector for mutation sites. 
       size_t base_size = 10;             ///< Default number of instructions in a random organism
     };
 
@@ -64,6 +68,10 @@ namespace mabe {
     /// Execute as single instruction
     bool ProcessStep() override{ 
       cpu.Process(1);
+      if(cpu.GetTrait(0) >= 30){
+        cpu.SetTrait(0,0);
+        return true;
+      }
       return false; 
     }
 
@@ -82,7 +90,27 @@ namespace mabe {
     }
   };
 
-  MABE_REGISTER_ORG_TYPE(AvidaGPOrg, "Genetic programming-focused Avida digital organism");
+  class AvidaGPOrgManager : public OrganismManager<AvidaGPOrg>{
+    public:
+    AvidaGPOrgManager(MABE & in_control, const std::string & in_name, 
+          const std::string & in_desc="")
+      : OrganismManager(in_control, in_name, in_desc){}
+    
+  };
+  
+  struct AvidaGPModuleRegistrar {
+    ModuleInfo new_info;
+    AvidaGPModuleRegistrar() {
+      const std::string& desc = "Genetic programming-focused Avida digital organism";
+      new_info.name = "AvidaGPOrg";
+      new_info.desc = desc;
+      new_info.init_fun = [desc](MABE & control, const std::string & name) -> ConfigType & {
+        return control.AddModule<AvidaGPOrgManager>(name, desc);
+      };
+      GetModuleInfo().insert(new_info);
+    }
+  };
+  mabe::AvidaGPModuleRegistrar MABE_AvidaGPOrgManager_Registrar;
 }
 
 #endif
