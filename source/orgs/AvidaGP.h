@@ -34,6 +34,7 @@ namespace mabe {
         manager(_manager)
     {
       cpu.SetTrait(0, 0);
+      cpu.SetTrait(1, 0);
     }
     AvidaGPOrg(const AvidaGPOrg &) = default;
     AvidaGPOrg(AvidaGPOrg &&) = default;
@@ -49,7 +50,7 @@ namespace mabe {
     std::string ToString() override { return "GP"; }
 
     size_t Mutate(emp::Random & random) override {
-      size_t num_muts = random.GetUInt(4);
+      size_t num_muts = random.GetUInt(2);
         for (uint32_t m = 0; m < num_muts; m++) {
           const uint32_t pos = random.GetUInt(cpu.genome.sequence.size());
           cpu.RandomizeInst(pos, random);
@@ -66,14 +67,22 @@ namespace mabe {
     }
     
     /// Execute as single instruction
-    bool ProcessStep() override{ 
-      cpu.Process(1);
-      if(cpu.GetTrait(0) >= 30){
-        cpu.SetTrait(0,0);
-        return true;
-      }
-      return false; 
-    }
+    bool ProcessStep() override;
+    //{ 
+    //  cpu.Process(1);
+    //  // Check outputs
+    //  if(cpu.GetTrait(1) >= 0){
+    //    cpu.SetTrait(1,0);
+    //    SetVar<std::unordered_map<int, double>>("outputs", cpu.outputs);
+    //    static_cast<AvidaGPOrgManager*>(&GetManager())->TriggerManualEval(this);
+    //  }
+    //  // Check replication
+    //  if(cpu.GetTrait(0) >= 30){
+    //    cpu.SetTrait(0,0);
+    //    return true;
+    //  }
+    //  return false; 
+    //}
 
     /// Setup this organism type to be able to load from config.
     void SetupConfig() override {
@@ -85,9 +94,6 @@ namespace mabe {
                       "Name of variable to contain bit sequence.");
     }
 
-    /// Setup this organism type with the traits it need to track.
-    void SetupModule() override {
-    }
   };
 
   class AvidaGPOrgManager : public OrganismManager<AvidaGPOrg>{
@@ -96,7 +102,33 @@ namespace mabe {
           const std::string & in_desc="")
       : OrganismManager(in_control, in_name, in_desc){}
     
+    /// Setup this organism type with the traits it need to track.
+    void SetupModule() override {
+      AddOwnedTrait<std::unordered_map<int, double>>("outputs", "Vectors of organism's outputs", 
+          std::unordered_map<int, double>());
+    }
+    void TriggerManualEval(Organism & org){
+      control.on_manual_eval_sig.Trigger(org);
+    }
+    
   };
+
+  bool mabe::AvidaGPOrg::ProcessStep(){ 
+    cpu.Process(1);
+    // Check outputs
+    if(cpu.GetTrait(1) >= 0){
+      cpu.SetTrait(1,0);
+      SetVar<std::unordered_map<int, double>>("outputs", cpu.outputs);
+      static_cast<AvidaGPOrgManager*>(&GetManager())->TriggerManualEval(*this);
+    }
+    // Check replication
+    if(cpu.GetTrait(0) >= 30){
+      cpu.SetTrait(0,0);
+      return true;
+    }
+    return false; 
+  }
+
   
   struct AvidaGPModuleRegistrar {
     ModuleInfo new_info;

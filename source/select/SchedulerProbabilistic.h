@@ -67,8 +67,7 @@ namespace mabe {
       for(size_t i = 0; i < N * avg_updates; ++i){
         selected_idx = weight_map.Index(random.GetDouble() * total_weight);
         if(pop[selected_idx].ProcessStep()){
-          std::cout << "Birth!" << std::endl;
-          control.Replicate(OrgPosition(pop, selected_idx), pop, 1); 
+          control.Replicate(OrgPosition(pop, selected_idx), pop, 1, true); 
         }
         hit_counter[selected_idx] += 1;
       }

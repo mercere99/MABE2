@@ -16,6 +16,15 @@ namespace mabe{
     hw.SetTrait(0, static_cast<size_t>(hw.GetTrait(0)) + 1);
     //std::cout << "Starting birth!" << std::endl;
   }
+  static void Inst_Output_Trig(hardware_t & hw, const inst_t & inst) {
+    // Save the date in the target reg to the specified output position.
+    int output_id = (int) hw.regs[ inst.args[1] ];  // Grab ID from register.
+    hw.outputs[output_id] = hw.regs[inst.args[0]];     // Copy target reg to appropriate output.
+    hw.SetTrait(1, 1);
+  }
+  //static void Inst_Nand(hardware_t & hw, const inst_t & inst) {
+  //    hw.regs[inst.args[2]] = ~(hw.regs[inst.args[0]] & hw.regs[inst.args[1]]);
+  //}
 
   static const inst_lib_t & BaseInstLib(){
     static inst_lib_t inst_lib;
@@ -64,7 +73,9 @@ namespace mabe{
 				"Pop stack Arg1 into reg Arg2");
       inst_lib.AddInst("Input", inst_lib_t::Inst_Input, 2,
 				"Pull next value from input Arg1 into reg Arg2");
-      inst_lib.AddInst("Output", inst_lib_t::Inst_Output, 2,
+      //inst_lib.AddInst("Output", inst_lib_t::Inst_Output, 2,
+			//	"Push reg Arg1 into output Arg2");
+      inst_lib.AddInst("Output", Inst_Output_Trig, 2,
 				"Push reg Arg1 into output Arg2");
       inst_lib.AddInst("CopyVal", inst_lib_t::Inst_CopyVal, 2,
 				"Copy reg Arg1 into reg Arg2");
@@ -72,6 +83,8 @@ namespace mabe{
 				"Backup reg Arg1; restore at end of scope");
       inst_lib.AddInst("StartBirth", Inst_StartBirth, 0,
 				"Begin replication");
+      //inst_lib.AddInst("Nand", Inst_Nand, 3,
+			//	"Perform the NAND logic operation");
 
       for (size_t i = 0; i < hardware_t::CPU_SIZE; i++) {
         inst_lib.AddArg(emp::to_string((int)i), i);                   // Args can be called by value

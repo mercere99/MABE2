@@ -7,10 +7,15 @@ Value pop_size = 100;
 CommandLine cl {                // Handle basic I/O on the command line.
   target_pop = "main_pop";      // Which population should we print stats about?
 }
-EvalRandom eval_random {                
-  target = "main_pop";          // Which population should we evaluate?
-  max_score = 100;
-  output_trait = "fitness";    // Which trait should we store the random score in?
+//EvalRandom eval_random {                
+//  target = "main_pop";          // Which population should we evaluate?
+//  max_score = 100;
+//  output_trait = "fitness";    // Which trait should we store the random score in?
+//}
+EvalTaskNot eval_not{
+  target = "main_pop";
+  outputs_trait = "outputs";
+  fitness_trait = "fitness";
 }
 SchedulerProbabilistic scheduler {
   pop = "main_pop";
@@ -58,4 +63,4 @@ BitsOrg bits_org {              // Organism consisting of a series of N bits.
 @start() print("random_seed = ", random_seed, "\n");
 @start() inject("gp_orgs", "main_pop", pop_size);
 @update(500) select_t.tournament_size = 4;
-@update(50) exit();
+@update(1000) exit();

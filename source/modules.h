@@ -12,6 +12,7 @@
 #include "evaluate/EvalMatchBits.h"
 #include "evaluate/EvalNK.h"
 #include "evaluate/EvalRandom.h"
+#include "evaluate/EvalTaskNot.h"
 
 // Interface Modules
 #include "interface/CommandLine.h"
