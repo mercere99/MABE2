@@ -16,6 +16,11 @@
 #ifndef EMP_DATA_COLLECT_H
 #define EMP_DATA_COLLECT_H
 
+#include <functional>
+#include <string>
+
+#include "tools/string_utils.h"
+
 namespace emp {
 
   // Count up the number of distinct values.
@@ -188,6 +193,61 @@ namespace emp {
     };
   }
 
+  template <typename DATA_T, typename CONTAIN_T, typename FUN_T>
+  std::function<std::string(const CONTAIN_T &)>
+  BuildCollectFun(const std::string & type, FUN_T get_fun) {
+    // Return the number if distinct values found in this trait.
+    if (type == "unique" || type == "richness") {
+      return emp::BuildCollectFun_Unique<DATA_T, CONTAIN_T>(get_fun);
+    }
+
+    // Return the most common value found for this trait.
+    else if (type == "mode" || type == "dom" || type == "dominant") {
+      return emp::BuildCollectFun_Mode<DATA_T, CONTAIN_T>(get_fun);
+    }
+
+    // Return the lowest trait value.
+    else if (type == "min") {
+      return emp::BuildCollectFun_Min<DATA_T, CONTAIN_T>(get_fun);
+    }
+
+    // Return the highest trait value.
+    else if (type == "max") {
+      return emp::BuildCollectFun_Max<DATA_T, CONTAIN_T>(get_fun);
+    }
+
+    // Return the average trait value.
+    else if (type == "ave" || type == "mean") {
+      return emp::BuildCollectFun_Mean<DATA_T, CONTAIN_T>(get_fun);
+    }
+
+    // Return the middle-most trait value.
+    else if (type == "median") {
+      return emp::BuildCollectFun_Median<DATA_T, CONTAIN_T>(get_fun);
+    }
+
+    // Return the standard deviation of all trait values.
+    else if (type == "variance") {
+      return emp::BuildCollectFun_Variance<DATA_T, CONTAIN_T>(get_fun);
+    }
+
+    // Return the standard deviation of all trait values.
+    else if (type == "stddev") {
+      return emp::BuildCollectFun_StandardDeviation<DATA_T, CONTAIN_T>(get_fun);
+    }
+
+    // Return the total of all trait values.
+    else if (type == "sum" || type=="total") {
+      return emp::BuildCollectFun_Sum<DATA_T, CONTAIN_T>(get_fun);
+    }
+
+    // Return the entropy of values for this trait.
+    else if (type == "entropy") {
+      return emp::BuildCollectFun_Entropy<DATA_T, CONTAIN_T>(get_fun);
+    }
+
+    return std::function<std::string(const CONTAIN_T &)>();
+  }
 
 };
 
