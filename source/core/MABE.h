@@ -799,80 +799,20 @@ namespace mabe {
         trait_filter.erase(0,1); // Erase the '=' and we are left with the string to match.
       }
 
-      // ### unique
-      // Return the number if distinct values found in this trait.
-      else if (trait_filter == "unique" || trait_filter == "richness") {
-        if (is_numeric) return emp::BuildCollectFun_Unique<double, Collection>(get_double_fun);
-        return emp::BuildCollectFun_Unique<std::string, Collection>(get_string_fun);
-      }
 
-      // ### mode
-      // Return the most common value found for this trait.
-      else if (trait_filter == "mode" || trait_filter == "dom" || trait_filter == "dominant") {
-        if (is_numeric) return emp::BuildCollectFun_Mode<double, Collection>(get_double_fun);
-        return emp::BuildCollectFun_Mode<std::string, Collection>(get_string_fun);
-      }
-
-      // ### min
-      // Return the lowest trait value.
-      else if (trait_filter == "min") {
-        if (is_numeric) return emp::BuildCollectFun_Min<double, Collection>(get_double_fun);
-        return emp::BuildCollectFun_Min<std::string, Collection>(get_string_fun);
-      }
-
-      // ### max
-      // Return the highest trait value.
-      else if (trait_filter == "max") {
-        if (is_numeric) return emp::BuildCollectFun_Max<double, Collection>(get_double_fun);
-        return emp::BuildCollectFun_Max<std::string, Collection>(get_string_fun);
-      }
-
-      // ### mean / ave
-      // Return the average trait value.
-      else if (trait_filter == "ave" || trait_filter == "mean") {
-        if (is_numeric) return emp::BuildCollectFun_Mean<double, Collection>(get_double_fun);
-        return emp::BuildCollectFun_Mean<std::string, Collection>(get_string_fun);
-      }
-
-      // ### median
-      // Return the middle-most trait value.
-      else if (trait_filter == "median") {
-        if (is_numeric) return emp::BuildCollectFun_Median<double, Collection>(get_double_fun);
-        return emp::BuildCollectFun_Median<std::string, Collection>(get_string_fun);
-      }
-
-      // ### vairance
-      // Return the standard deviation of all trait values.
-      else if (trait_filter == "variance") {
-        if (is_numeric) return emp::BuildCollectFun_Variance<double, Collection>(get_double_fun);
-        return emp::BuildCollectFun_Variance<std::string, Collection>(get_string_fun);
-      }
-
-      // ### stddev
-      // Return the standard deviation of all trait values.
-      else if (trait_filter == "stddev") {
-        if (is_numeric) return emp::BuildCollectFun_StandardDeviation<double, Collection>(get_double_fun);
-        return emp::BuildCollectFun_StandardDeviation<std::string, Collection>(get_string_fun);
-      }
-
-      // ### sum / total
-      // Return the total of all trait values.
-      else if (trait_filter == "sum" || trait_filter=="total") {
-        if (is_numeric) return emp::BuildCollectFun_Sum<double, Collection>(get_double_fun);
-        return emp::BuildCollectFun_Sum<std::string, Collection>(get_string_fun);
-      }
-
-      // Return the entropy of values for this trait.
-      else if (trait_filter == "entropy") {
-        if (is_numeric) return emp::BuildCollectFun_Entropy<double, Collection>(get_double_fun);
-        return emp::BuildCollectFun_Entropy<std::string, Collection>(get_string_fun);
-      }
+      // Otherwise pass along to the BuildCollectFun with the correct type...
+      auto result = is_numeric
+                  ? emp::BuildCollectFun<double,      Collection>(trait_filter, get_double_fun)
+                  : emp::BuildCollectFun<std::string, Collection>(trait_filter, get_string_fun);
 
 
       // If we made it past the 'if' statements, we don't know this aggregation type.
-      AddError("Unknown trait filter '", trait_filter, "' for trait '", trait_name, "'.");
+      if (!result) {
+        AddError("Unknown trait filter '", trait_filter, "' for trait '", trait_name, "'.");
+        return [](const Collection &){ return std::string("Error! Unknown trait function"); };
+      }
 
-      return [](const Collection &){ return std::string("Error! Unknown trait function"); };
+      return result;
     }
 
     // --- Manage configuration scope ---
