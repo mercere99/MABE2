@@ -22,9 +22,11 @@ namespace mabe{
     hw.outputs[output_id] = hw.regs[inst.args[0]];     // Copy target reg to appropriate output.
     hw.SetTrait(1, 1);
   }
-  //static void Inst_Nand(hardware_t & hw, const inst_t & inst) {
-  //    hw.regs[inst.args[2]] = ~(hw.regs[inst.args[0]] & hw.regs[inst.args[1]]);
-  //}
+  static void Inst_Nand(hardware_t & hw, const inst_t & inst) {
+    const uint64_t a = static_cast<uint64_t>(hw.regs[inst.args[0]]);
+    const uint64_t b = static_cast<uint64_t>(hw.regs[inst.args[1]]);
+    hw.regs[inst.args[2]] = static_cast<double>(~(a & b));
+  }
 
   static const inst_lib_t & BaseInstLib(){
     static inst_lib_t inst_lib;
@@ -83,8 +85,8 @@ namespace mabe{
 				"Backup reg Arg1; restore at end of scope");
       inst_lib.AddInst("StartBirth", Inst_StartBirth, 0,
 				"Begin replication");
-      //inst_lib.AddInst("Nand", Inst_Nand, 3,
-			//	"Perform the NAND logic operation");
+      inst_lib.AddInst("Nand", Inst_Nand, 3,
+				"Perform the NAND logic operation");
 
       for (size_t i = 0; i < hardware_t::CPU_SIZE; i++) {
         inst_lib.AddArg(emp::to_string((int)i), i);                   // Args can be called by value

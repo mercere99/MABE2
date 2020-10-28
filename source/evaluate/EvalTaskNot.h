@@ -49,20 +49,27 @@ namespace mabe {
     }
 
     void SetupModule() override {
-      //AddRequiredTrait<std::unordered_map<int,double>>(inputs_trait);
+      AddRequiredTrait<std::unordered_map<int,double>>(inputs_trait);
       AddRequiredTrait<std::unordered_map<int,double>>(outputs_trait);
       AddOwnedTrait<double>(fitness_trait, "All-ones fitness value", 1.0);
     }
 
     void OnManualEval(Organism& org) override {
         // Count the number of ones in the bit sequence.
-//        const std::unordered_map<int,double> & inputs = org.GetVar<std::unordered_map<int,double>>(inputs_trait);
-        const std::unordered_map<int,double> & outputs = org.GetVar<std::unordered_map<int,double>>(outputs_trait);
-        if(outputs.size() > 0){
-          double fitness = outputs.begin()->second;
-          //std::cout << "Analyzing: " << fitness << std::endl;
-          // Store the in the fitness trait.
-          org.SetVar<double>(fitness_trait, fitness > 1 ? fitness : 1);
+        const std::unordered_map<int,double> & inputs = 
+            org.GetVar<std::unordered_map<int,double>>(inputs_trait);
+        const std::unordered_map<int,double> & outputs = 
+            org.GetVar<std::unordered_map<int,double>>(outputs_trait);
+        if(inputs.size() > 0 && outputs.size() > 0){
+          const uint64_t input = static_cast<uint64_t>(inputs.begin()->second);
+          const uint64_t output = static_cast<uint64_t>(outputs.begin()->second);
+          if(output == ~input){
+            org.SetVar<double>(fitness_trait, 2);
+            std::cout << "NOT performed!" << std::endl;
+            exit(0);
+          }
+          else
+            org.SetVar<double>(fitness_trait, 1);
         }
         else
           org.SetVar<double>(fitness_trait, 1);
