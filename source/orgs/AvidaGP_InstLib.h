@@ -1,3 +1,13 @@
+/**
+*  @note This file is part of MABE, https://github.com/mercere99/MABE2
+*  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
+*  @date 2019-2020.
+*
+*  @file  AvidaGP_InstLib.h
+*  @brief Collection of instructions and base instruction set for AvidaGPOrgs 
+*  @note Status: ALPHA
+*/
+
 #ifndef MABE_AVIDA_GP_ORGANISM_ILIB_H
 #define MABE_AVIDA_GP_ORGANISM_ILIB_H
 
@@ -10,24 +20,31 @@ namespace mabe{
   using arg_t = hardware_t::arg_t;
   using inst_lib_t = emp::AvidaCPU_InstLib<hardware_t, arg_t, hardware_t::INST_ARGS>;
 
-  static inst_lib_t base_inst_lib = inst_lib_t();//::DefaultInstLib();
-
+  // TODO: Revamp once AvidaGPOrg is a AvidaGP
+  // TODO: Shift birth logic to mirror that of Avida
+  /// Increments the "birth counter" (Trait 0), which will trigger replication when it hits a threshold
   static void Inst_StartBirth(hardware_t & hw, const inst_t & inst) {
     hw.SetTrait(0, static_cast<size_t>(hw.GetTrait(0)) + 1);
-    //std::cout << "Starting birth!" << std::endl;
   }
+  
+  // TODO: Revamp once AvidaGPOrg is a AvidaGP
+  /// Modified verion of inst_lib_t::Inst_Output that also set the temporary output flag (Trait 1)
   static void Inst_Output_Trig(hardware_t & hw, const inst_t & inst) {
-    // Save the date in the target reg to the specified output position.
+    // Save the data in the target reg to the specified output position.
     int output_id = (int) hw.regs[ inst.args[1] ];  // Grab ID from register.
-    hw.outputs[output_id] = hw.regs[inst.args[0]];     // Copy target reg to appropriate output.
+    hw.outputs[output_id] = hw.regs[inst.args[0]];  // Copy target reg to appropriate output.
     hw.SetTrait(1, 1);
   }
+
+  /// Performs bitwise NAND of the two specified registers and stores result in a specified register
   static void Inst_Nand(hardware_t & hw, const inst_t & inst) {
     const uint64_t a = static_cast<uint64_t>(hw.regs[inst.args[0]]);
     const uint64_t b = static_cast<uint64_t>(hw.regs[inst.args[1]]);
     hw.regs[inst.args[2]] = static_cast<double>(~(a & b));
   }
 
+  // TODO: Allow instruction library to be modified in config
+  /// Singleton that returns a modified instruction library for AvidGPOrgs to use
   static const inst_lib_t & BaseInstLib(){
     static inst_lib_t inst_lib;
     if (inst_lib.GetSize() == 0) {
@@ -77,14 +94,14 @@ namespace mabe{
 				"Pull next value from input Arg1 into reg Arg2");
       //inst_lib.AddInst("Output", inst_lib_t::Inst_Output, 2,
 			//	"Push reg Arg1 into output Arg2");
-      inst_lib.AddInst("Output", Inst_Output_Trig, 2,
-				"Push reg Arg1 into output Arg2");
       inst_lib.AddInst("CopyVal", inst_lib_t::Inst_CopyVal, 2,
 				"Copy reg Arg1 into reg Arg2");
       inst_lib.AddInst("ScopeReg", inst_lib_t::Inst_ScopeReg, 1,
 				"Backup reg Arg1; restore at end of scope");
       inst_lib.AddInst("StartBirth", Inst_StartBirth, 0,
 				"Begin replication");
+      inst_lib.AddInst("Output", Inst_Output_Trig, 2,
+				"Push reg Arg1 into output Arg2");
       inst_lib.AddInst("Nand", Inst_Nand, 3,
 				"Perform the NAND logic operation");
 
@@ -93,7 +110,6 @@ namespace mabe{
         inst_lib.AddArg(emp::to_string("Reg", 'A'+(char)i), i);  // ...or as a register.
       }
     }
-    
     return inst_lib;
   }
 }
