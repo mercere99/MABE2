@@ -7,12 +7,12 @@ Value pop_size = 100;
 CommandLine cl {                // Handle basic I/O on the command line.
   target_pop = "main_pop";      // Which population should we print stats about?
 }
-//EvalRandom eval_random {                
-//  target = "main_pop";          // Which population should we evaluate?
-//  max_score = 100;
-//  output_trait = "fitness";    // Which trait should we store the random score in?
+//EvalTaskNot eval_task{
+//  target = "main_pop";
+//  outputs_trait = "outputs";
+//  fitness_trait = "fitness";
 //}
-EvalTaskNot eval_not{
+EvalTaskMax eval_task{
   target = "main_pop";
   outputs_trait = "outputs";
   fitness_trait = "fitness";

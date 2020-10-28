@@ -13,6 +13,7 @@
 #include "evaluate/EvalNK.h"
 #include "evaluate/EvalRandom.h"
 #include "evaluate/EvalTaskNot.h"
+#include "evaluate/EvalTaskMax.h"
 
 // Interface Modules
 #include "interface/CommandLine.h"
