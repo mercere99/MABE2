@@ -8,7 +8,7 @@ CommandLine cl {                // Handle basic I/O on the command line.
   target_pop = "main_pop";      // Which population should we print stats about?
 }
 //EvalTaskNot eval_task{
-//  target = "main_pop";
+//  outputs_trait = "inputs";
 //  outputs_trait = "outputs";
 //  fitness_trait = "fitness";
 //}
