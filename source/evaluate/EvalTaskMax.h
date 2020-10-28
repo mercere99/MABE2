@@ -4,10 +4,11 @@
  *  @date 2019-2020.
  *
  *  @file  EvalTaskMax.h
- *  @brief This is JUST A TEST (should be deleted later) to see test task eval via triggers
+ *  @brief This is JUST A TEST (should be deleted later) to demonstrate task eval via triggers
  *
- * This was created to see if an organism can requested to be re-evaluated by external modules
- *    This is set up like an Avida task (e.g., nand, not), but due to the output being
+ * This was created to see if an organism can request to be evaluated by external modules
+ *    This is set up like an Avida task (e.g., nand, not), but since it takes a while for even NOT to 
+ *    evolve, this just looks for an output > 1 and sets fitness to that output.  
  */
 
 #ifndef MABE_EVAL_TASK_MAX_H
@@ -16,13 +17,11 @@
 #include "../core/MABE.h"
 #include "../core/Module.h"
 
-#include "tools/reference_vector.h"
 
 namespace mabe {
 
   class EvalTaskMax : public Module {
   private:
-    Collection target_collect;
     std::string outputs_trait;
     std::string fitness_trait;
 
@@ -33,7 +32,6 @@ namespace mabe {
                   const std::string & _otrait="outputs",
                   const std::string & _ftrait="fitness")
       : Module(control, name, desc)
-      , target_collect(control.GetPopulation(0))
       , outputs_trait(_otrait)
       , fitness_trait(_ftrait)
     {
@@ -42,7 +40,6 @@ namespace mabe {
     ~EvalTaskMax() { }
 
     void SetupConfig() override {
-      LinkCollection(target_collect, "target", "Which population(s) should we evaluate?");
       LinkVar(outputs_trait, "outputs_trait", "Which trait containts the organism's outputs?");
       LinkVar(fitness_trait, "fitness_trait", "Which trait should we store NK fitness in?");
     }
@@ -52,8 +49,8 @@ namespace mabe {
       AddOwnedTrait<double>(fitness_trait, "All-ones fitness value", 1.0);
     }
 
+    // Check outputs of org, if first output > 1 then set fitness to that value
     void OnManualEval(Organism& org) override {
-        // Count the number of ones in the bit sequence.
         const std::unordered_map<int,double> & outputs = 
             org.GetVar<std::unordered_map<int,double>>(outputs_trait);
         if(outputs.size() > 0){

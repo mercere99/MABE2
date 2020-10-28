@@ -13,7 +13,6 @@ CommandLine cl {                // Handle basic I/O on the command line.
 //  fitness_trait = "fitness";
 //}
 EvalTaskMax eval_task{
-  target = "main_pop";
   outputs_trait = "outputs";
   fitness_trait = "fitness";
 }
