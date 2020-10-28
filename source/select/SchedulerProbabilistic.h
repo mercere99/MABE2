@@ -15,7 +15,7 @@
 #include "./tools/IndexMap.h"
 namespace mabe {
 
-  /// Add elite selection with the current population.
+  /// Rations out updates to organisms based on a specified attribute, used a method akin to roulette wheel selection  
   class SchedulerProbabilistic : public Module {
   private:
     std::string trait;       ///< Which trait should we select on?
@@ -45,8 +45,13 @@ namespace mabe {
       AddRequiredTrait<double>(trait); ///< The fitness trait must be set by another module.
     }
 
+    // TODO: Currently, the weight map is dropped and recreated every update. Switch to only updating 
+    //          an organism's weight when it changes
+    // TODO: Check to see if organism can get updates in the update they are born, and see if above todo 
+    //          will do the right thing
+    /// Ration out updates to members of the population
     void OnUpdate(size_t update) override {
-      // Grab the variable we'll use over and over
+      // Grab the variables we'll use over and over
       emp::Random & random = control.GetRandom();
       Population & pop = control.GetPopulation(pop_id);
       const size_t N = pop.GetSize();
@@ -55,28 +60,22 @@ namespace mabe {
         control.AddError("Trying to schedule an empty population.");
         return;
       }
-      // Setup the IndexMap with current values
+      // Recreate the IndexMap with current values
       weight_map.ResizeClear(N);
       for(size_t org_idx = 0; org_idx < N; ++org_idx){
         weight_map.Adjust(org_idx, pop[org_idx].GetVar<double>(trait));
       } 
-      std::vector<size_t> hit_counter(N, 0);
       size_t selected_idx;
       double total_weight = weight_map.GetWeight();
       // Dole out updates
       for(size_t i = 0; i < N * avg_updates; ++i){
         selected_idx = weight_map.Index(random.GetDouble() * total_weight);
+        // If ProcessStep returns true, org needs to replicate (will be reworked soon!)
         if(pop[selected_idx].ProcessStep()){
           control.Replicate(OrgPosition(pop, selected_idx), pop, 1, true); 
         }
-        hit_counter[selected_idx] += 1;
       }
       std::cout << "Total weight: " << total_weight << std::endl;
-      //double fitness;
-      //for(size_t org_idx = 0; org_idx < N; ++org_idx){
-      //  fitness = pop[org_idx].GetVar<double>(trait);
-      //  //std::cout << org_idx << " " << fitness  << " " << hit_counter[org_idx] << " (" << (fitness / total_weight) * N * avg_updates << ")" << std::endl;
-      //} 
     }
   };
 
