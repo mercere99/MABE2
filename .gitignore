@@ -35,4 +35,7 @@
 *.out
 *.app
 
+# Files open in vim
+*.swp
+
 examples/NK

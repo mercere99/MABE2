@@ -1,0 +1,38 @@
+random_seed = 0;                // Seed for random number generator; use 0 to base on time.
+Population main_pop;            // Collection of organisms
+Population next_pop;            // Collection of organisms
+Value pop_size = 100;
+
+CommandLine cl {                // Handle basic I/O on the command line.
+  target_pop = "main_pop";      // Which population should we print stats about?
+}
+
+//EvalTaskNot eval_task{
+//  outputs_trait = "inputs";
+//  outputs_trait = "outputs";
+//  fitness_trait = "fitness";
+//}
+EvalTaskMax eval_task{
+  outputs_trait = "outputs";
+  fitness_trait = "fitness";
+}
+
+SchedulerProbabilistic scheduler {
+  pop = "main_pop";
+  trait = "fitness";
+  avg_updates = 30;  
+}
+
+RandomReplacement place_next {    // Always appened births to the end of a population.
+  target = "main_pop"; // Population(s) to manage.
+}
+
+AvidaGPOrg gp_orgs {            // Organism consisting of a series of N bits.
+  output_name = "outputs";      // Name of variable to contain bit sequence.
+  base_size = 100;              // Number of instructions in randomly created organisms
+  mut_prob = 0.01;          		// Probability of each bit mutating on reproduction.
+}
+
+@start() print("random_seed = ", random_seed, "\n");
+@start() inject("gp_orgs", "main_pop", pop_size);
+@update(1000) exit();
