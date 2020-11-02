@@ -1,4 +1,4 @@
-EMP_DIR := ../../Empirical/source
+EMP_DIR := ../../Empirical/include
 MABE_DIR := ../source
 
 # Flags to use regardless of compiler
@@ -50,13 +50,13 @@ native: all
 
 all: $(TARGETS)
 
-$(TARGETS): % : %.cc
+$(TARGETS): % : %.cpp ../source/modules.hpp
 	$(CXX) $(CFLAGS_version) $(CFLAGS) $< -o $@
 
-$(JS_TARGETS): %.js : %.cc
+$(JS_TARGETS): %.js : %.cpp
 	$(CXX_web) $(CFLAGS_web) $< -o $@
 
-debug-%: $*.cc
+debug-%: $*.cpp
 	$(CXX) $(CFLAGS_version) $(CFLAGS_native_debug) $< -o $@
 
 clean:
