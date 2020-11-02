@@ -18,7 +18,7 @@
 #include "emp/datastructs/tuple_utils.hpp"
 #include "emp/meta/ValPack.hpp"
 
-#include "ConfigEntry.h"
+#include "ConfigEntry.hpp"
 
 namespace mabe {
 
