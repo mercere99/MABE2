@@ -25,6 +25,15 @@ namespace emp {
 
   // Count up the number of distinct values.
   template <typename DATA_T, typename CONTAIN_T, typename FUN_T>
+  auto BuildCollectFun_Index(FUN_T get_fun, const size_t index) {
+    return [get_fun,index](const CONTAIN_T & container) {
+      return get_fun( container.At(index) );
+    };
+  }
+
+
+  // Count up the number of distinct values.
+  template <typename DATA_T, typename CONTAIN_T, typename FUN_T>
   auto BuildCollectFun_Unique(FUN_T get_fun) {
     return [get_fun](const CONTAIN_T & container) {
       std::unordered_set<DATA_T> vals;
