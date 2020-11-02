@@ -36,6 +36,12 @@ GrowthPlacement place_next {    // Always appened births to the end of a populat
   target = "next_pop,main_pop"; // Population(s) to manage.
 }
 
+FileOutput output {
+  filename = "output.csv";      // Name of file for output data.
+  format = "fitness,fitness:richness,fitness:sum"; // Column format to use in the file.
+  target = "main_pop";          // Which population(s) should we print from?
+}
+
 MovePopulation sync_gen {       // Move organisms from one populaiton to another.
   from_pop = "next_pop";        // Population to move organisms from.
   to_pop = "main_pop";          // Population to move organisms into.
