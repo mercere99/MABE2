@@ -10,8 +10,8 @@
 #ifndef MABE_EVAL_TASK_NOT_H
 #define MABE_EVAL_TASK_NOT_H
 
-#include "../core/MABE.h"
-#include "../core/Module.h"
+#include "../core/MABE.hpp"
+#include "../core/Module.hpp"
 
 namespace mabe {
 

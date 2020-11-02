@@ -11,6 +11,9 @@
 #include "evaluate/EvalCountBits.hpp"
 #include "evaluate/EvalMatchBits.hpp"
 #include "evaluate/EvalNK.hpp"
+#include "evaluate/EvalRandom.hpp"
+#include "evaluate/EvalTaskNot.hpp"
+#include "evaluate/EvalTaskMax.hpp"
 
 // Interface Modules
 #include "interface/CommandLine.hpp"
@@ -18,10 +21,12 @@
 
 // Placement Modules
 #include "placement/GrowthPlacement.hpp"
+#include "placement/RandomReplacement.hpp"
 
 // Selection Modules
 #include "select/SelectElite.hpp"
 #include "select/SelectTournament.hpp"
+#include "select/SchedulerProbabilistic.hpp"
 
 // Other schema
 #include "schema/MovePopulation.hpp"
@@ -29,3 +34,4 @@
 
 // Organism Types
 #include "orgs/BitsOrg.hpp"
+#include "orgs/AvidaGP.hpp"

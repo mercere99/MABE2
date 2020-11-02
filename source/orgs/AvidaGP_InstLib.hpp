@@ -11,7 +11,7 @@
 #ifndef MABE_AVIDA_GP_ORGANISM_ILIB_H
 #define MABE_AVIDA_GP_ORGANISM_ILIB_H
 
-#include "hardware/AvidaGP.h"
+#include "emp/hardware/AvidaGP.hpp"
 
 namespace mabe{
   using hardware_t = emp::AvidaGP;

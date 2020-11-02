@@ -10,9 +10,9 @@
 #ifndef MABE_SCHEDULER_PROB_H
 #define MABE_SCHEDULER_PROB_H
 
-#include "../core/MABE.h"
-#include "../core/Module.h"
-#include "./tools/IndexMap.h"
+#include "../core/MABE.hpp"
+#include "../core/Module.hpp"
+#include "emp/datastructs/IndexMap.hpp"
 namespace mabe {
 
   /// Rations out updates to organisms based on a specified attribute, used a method akin to roulette wheel selection  

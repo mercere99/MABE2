@@ -17,8 +17,8 @@
 #ifndef MABE_RANDOM_REPLACEMENT_H
 #define MABE_RANDOM_REPLACEMENT_H
 
-#include "../core/MABE.h"
-#include "../core/Module.h"
+#include "../core/MABE.hpp"
+#include "../core/Module.hpp"
 
 namespace mabe {
 

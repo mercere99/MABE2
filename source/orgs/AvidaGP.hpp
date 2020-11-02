@@ -11,14 +11,13 @@
 #ifndef MABE_AVIDA_GP_ORGANISM_H
 #define MABE_AVIDA_GP_ORGANISM_H
 
-#include "../core/MABE.h"
-#include "../core/Organism.h"
-#include "../core/OrganismManager.h"
-#include "./AvidaGP_InstLib.h"
+#include "../core/MABE.hpp"
+#include "../core/Organism.hpp"
+#include "../core/OrganismManager.hpp"
+#include "./AvidaGP_InstLib.hpp"
 
-#include "tools/Distribution.h"
-#include "tools/random_utils.h"
-#include "hardware/AvidaGP.h"
+#include "emp/math/Distribution.hpp"
+#include "emp/math/random_utils.hpp"
 
   namespace mabe {
 
@@ -53,7 +52,7 @@
 
       // TODO: Return something actually helpful (genome?)
       /// Use "to_string" to convert. 
-      std::string ToString() override { return "<AvidaGPOrg instance>"; }
+      std::string ToString() const override { return "<AvidaGPOrg instance>"; }
 
       // TODO: actually use the per-bit mutation rate from the config 
       size_t Mutate(emp::Random & random) override {

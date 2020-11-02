@@ -14,8 +14,8 @@
 #ifndef MABE_EVAL_TASK_MAX_H
 #define MABE_EVAL_TASK_MAX_H
 
-#include "../core/MABE.h"
-#include "../core/Module.h"
+#include "../core/MABE.hpp"
+#include "../core/Module.hpp"
 
 
 namespace mabe {

@@ -10,11 +10,10 @@
 #ifndef MABE_EVAL_RANDOM_H
 #define MABE_EVAL_RANDOM_H
 
-#include "../core/MABE.h"
-#include "../core/Module.h"
-#include "../tools/NK.h"
+#include "../core/MABE.hpp"
+#include "../core/Module.hpp"
+#include "../tools/NK.hpp"
 
-#include "tools/reference_vector.h"
 
 namespace mabe {
 
