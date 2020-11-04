@@ -783,16 +783,6 @@ namespace mabe {
       // If no trait function is specified, assume that we should use the first organism.
       if (trait_filter == "") trait_filter = "0";
 
-      // ### [ID]
-      // If the trait function is an int, use it as an index into the collection.
-      if (emp::is_digits(trait_filter)) {
-        size_t org_id = emp::from_string<size_t>(trait_filter);
-
-        return [org_id, trait_id, trait_type](const Collection & collect) {
-          return collect.At(org_id).GetTraitAsString(trait_id, trait_type);
-        };
-      }
-
       // Return the number of times a specific value was found.
       else if (trait_filter[0] == '=') {
         // @CAO: DO THIS!
