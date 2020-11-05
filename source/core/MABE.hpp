@@ -107,6 +107,7 @@ namespace mabe {
       }
     };
 
+
     /// Maintain a master array of pointers to all SigListeners.
     emp::array< emp::Ptr<SigListenerBase>, (size_t) ModuleBase::NUM_SIGNALS > sig_ptrs;
 
@@ -164,6 +165,82 @@ namespace mabe {
     /// If a module fails to use a signal, we never check it again UNLESS we are explicitly
     /// told to rescan the signals (perhaps because new functionality was enabled.)
     bool rescan_signals = true;
+    
+    /// Empty struct to allow polymorphism so we can have signals of arbitrary signatures
+    struct SigListenerGenericBase{
+      // Virtual destructor to make class polymorphic for dynamic casting
+      virtual ~SigListenerGenericBase() = default;
+    };
+
+    /// Custom triggers can be created, when the signal is fired an arbitray number of generic
+    /// functions (passed from modules) will run
+    /// Conditional return type code:
+    /// https://stackoverflow.com/questions/41496547/conditional-return-type-with-template
+    template <typename RETURN, typename... ARGS>
+    struct SigListenerGeneric : public SigListenerGenericBase, emp::vector<std::function<RETURN(ARGS...)>>{
+      using type = emp::vector<RETURN>;
+      std::tuple<ARGS...> param_tuple;
+      template <typename... ARGS_PASSED>
+      emp::vector<RETURN> Trigger(ARGS_PASSED && ... args){
+        emp::vector<RETURN> return_vals(this->size());
+        for(size_t func_idx = 0; func_idx < this->size(); ++func_idx){
+          return_vals[func_idx] = (*this)[func_idx](std::forward<ARGS_PASSED>(args)...);
+        }
+        return return_vals;
+      }
+    };
+
+    /// Template specialization to avoid returning creating void vectors
+    template <typename... ARGS>
+    struct SigListenerGeneric<void, ARGS...>:
+          public SigListenerGenericBase, emp::vector<std::function<void(ARGS...)>>{
+      using type = void; 
+      std::tuple<ARGS...> param_tuple;
+      template <typename... ARGS_PASSED>
+      void Trigger(ARGS_PASSED && ... args){
+        for(size_t func_idx = 0; func_idx < this->size(); ++func_idx){
+          (*this)[func_idx](std::forward<ARGS_PASSED>(args)...);
+        }
+        return;
+      }
+    };
+   
+    /// Allow modules to create arbitrary signals, store them via a string name
+    std::unordered_map<std::string, emp::Ptr<SigListenerGenericBase>> custom_sig_map;
+
+    public:
+    /// Allow modules to define a custom signal that other modules can listen to
+    template <typename RETURN, typename... ARGS>
+    void CreateCustomSignal(std::string name){
+      emp_assert(!emp::Has(custom_sig_map, name), "Custom signal already defined!");
+      SigListenerGenericBase * ptr= new SigListenerGeneric<RETURN, ARGS...>();
+      custom_sig_map[name] = emp::Ptr<SigListenerGenericBase>(ptr);
+    }
+
+    // TODO: Are we comfortable only type checking in debug mode?
+    //          In most use cases, this should only be called once per listener at the beginning of 
+    //          execution. Because of this we *could* always type check to avoid nastiness. 
+    //          However, I'm assuming there are other situations where listeners are attached repeatedly?
+    /// Attach generic function that will be run every time the signal fires
+    template <typename RETURN, typename... ARGS>
+    void AttachSignalListener(std::string name, std::function<RETURN(ARGS...)> func){
+      emp_assert(emp::Has(custom_sig_map, name), "Custom signal does not exist!");
+      auto sig = dynamic_cast<SigListenerGeneric<RETURN, ARGS...>*>(custom_sig_map[name].Raw());
+      emp_assert(sig, "Trying to attach listener to signal with different signature");
+      sig->push_back(func);
+    }
+    
+    /// Run all functions attached to this signal and return the appropriate data
+    template <typename RETURN, typename... ARGS>
+    typename SigListenerGeneric<RETURN, ARGS...>::type FireSignal(std::string name, ARGS && ... args){
+      emp_assert(emp::Has(custom_sig_map, name), "Custom signal does not exist!");
+      auto sig = dynamic_cast<SigListenerGeneric<RETURN, ARGS...>*>(custom_sig_map[name].Raw());
+      emp_assert(sig, "Argument mismatch when trying to fire signal: " + name);
+      return sig->Trigger(std::forward<ARGS>(args)...);
+    }
+
+    protected:
+
 
     // Protected constructor so that base class cannot be instantiated except from derived class.
     MABEBase()
