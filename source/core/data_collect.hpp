@@ -205,6 +205,10 @@ namespace emp {
   template <typename DATA_T, typename CONTAIN_T, typename FUN_T>
   std::function<std::string(const CONTAIN_T &)>
   BuildCollectFun(const std::string & type, FUN_T get_fun) {
+    // ### DEFAULT
+    // If no trait function is specified, assume that we should use the first index.
+    if (trait_filter == "") trait_filter = "0";
+
     // Return the index if a simple number was provided.
     if (emp::is_digits(type)) {
       size_t index = emp::from_string<size_t>(trait_filter);
