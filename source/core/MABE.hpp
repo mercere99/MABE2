@@ -779,22 +779,16 @@ namespace mabe {
         return org.GetTraitAsString(trait_id, trait_type);
       };
 
-      // ### <none>
-      // If no trait function is specified, assume that we should use the first organism.
-      if (trait_filter == "") trait_filter = "0";
-
       // Return the number of times a specific value was found.
       else if (trait_filter[0] == '=') {
         // @CAO: DO THIS!
         trait_filter.erase(0,1); // Erase the '=' and we are left with the string to match.
       }
 
-
       // Otherwise pass along to the BuildCollectFun with the correct type...
       auto result = is_numeric
                   ? emp::BuildCollectFun<double,      Collection>(trait_filter, get_double_fun)
                   : emp::BuildCollectFun<std::string, Collection>(trait_filter, get_string_fun);
-
 
       // If we made it past the 'if' statements, we don't know this aggregation type.
       if (!result) {
