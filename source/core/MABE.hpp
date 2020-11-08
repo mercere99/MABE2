@@ -780,7 +780,7 @@ namespace mabe {
       };
 
       // Return the number of times a specific value was found.
-      else if (trait_filter[0] == '=') {
+      if (trait_filter[0] == '=') {
         // @CAO: DO THIS!
         trait_filter.erase(0,1); // Erase the '=' and we are left with the string to match.
       }
