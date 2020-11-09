@@ -776,7 +776,7 @@ namespace mabe {
         return org.GetTraitAsDouble(trait_id, trait_type);
       };
       auto get_string_fun = [trait_id, trait_type](const Organism & org) {
-        return org.GetTraitAsString(trait_id, trait_type);
+        return emp::to_literal( org.GetTraitAsString(trait_id, trait_type) );
       };
 
       // Return the number of times a specific value was found.
