@@ -40,6 +40,7 @@ namespace mabe {
       out_ptr->SetTemporary();
       return out_ptr;    
     }
+    size_t ast_tree_id = 0; 
   public:
     ASTNode() { ; }
     virtual ~ASTNode() { ; }
@@ -55,6 +56,10 @@ namespace mabe {
     virtual entry_ptr_t Process() = 0;
 
     virtual void Write(std::ostream & os=std::cout, const std::string & offset="") const { }
+    
+    virtual void WriteASTFile(emp::File& file, size_t & cur_id){ }
+
+    size_t GetASTTreeID() const { return ast_tree_id; }
   };
 
   /// An ASTNode representing an internal node.
@@ -77,6 +82,15 @@ namespace mabe {
     node_ptr_t GetChild(size_t id) override { return children[id]; }
 
     void AddChild(node_ptr_t child) { children.push_back(child); }
+    
+    void WriteASTFile(emp::File& file, size_t&  cur_id) override { 
+      if(ast_tree_id == 0) ast_tree_id = cur_id++;
+      file.Append(emp::to_string(ast_tree_id) + " [label=\"[Internal]\"]");
+      for (auto child_ptr : children) {
+        child_ptr->WriteASTFile(file, cur_id);
+        file.Append(emp::to_string(ast_tree_id) + "->" + emp::to_string(child_ptr->GetASTTreeID()));
+      }
+    }
   };
 
   /// An ASTNode representing a leaf in the tree (i.e., a variable or literal)
@@ -111,6 +125,21 @@ namespace mabe {
       }
       os << output;
     }
+    
+    void WriteASTFile(emp::File& file, size_t & cur_id) override{
+      // If this is a variable, print the variable name,
+      std::string output = entry_ptr->GetName();
+
+      // If it is a literal, print the value.
+      if (output == "") {
+        output = entry_ptr->AsString();
+
+        // If the entry is a string, convert it to a string literal.
+        if (entry_ptr->IsString()) output = "'" + output + "'";
+      }
+      if(ast_tree_id == 0) ast_tree_id = cur_id++;
+      file.Append(emp::to_string(ast_tree_id) + " [label=\"[Leaf]\\n" + output + "\"]");
+    }
   };
 
   class ASTNode_Block : public ASTNode_Internal {
@@ -127,6 +156,15 @@ namespace mabe {
       for (auto child_ptr : children) {
         child_ptr->Write(os, offset+"  ");
         os << ";\n" << offset;
+      }
+    }
+    
+    void WriteASTFile(emp::File& file, size_t&  cur_id) override { 
+      if(ast_tree_id == 0) ast_tree_id = cur_id++;
+      file.Append(emp::to_string(ast_tree_id) + " [label=\"[Block]\"]");
+      for (auto child_ptr : children) {
+        child_ptr->WriteASTFile(file, cur_id);
+        file.Append(emp::to_string(ast_tree_id) + "->" + emp::to_string(child_ptr->GetASTTreeID()));
       }
     }
   };
@@ -152,6 +190,14 @@ namespace mabe {
     void Write(std::ostream & os, const std::string & offset) const override { 
       os << name;
       children[0]->Write(os, offset);
+    }
+    void WriteASTFile(emp::File& file, size_t&  cur_id) override{
+      if(ast_tree_id == 0) ast_tree_id = cur_id++;
+      file.Append(emp::to_string(ast_tree_id) + " [label=\"[Math1]\\n" + name + "\"]");
+      children[0]->WriteASTFile(file, cur_id);
+      file.Append(emp::to_string(ast_tree_id) + "->" + emp::to_string(children[0]->GetASTTreeID()));
+      children[1]->WriteASTFile(file, cur_id);
+      file.Append(emp::to_string(ast_tree_id) + "->" + emp::to_string(children[1]->GetASTTreeID()));
     }
   };
 
@@ -180,6 +226,14 @@ namespace mabe {
       os << " " << name << " ";
       children[1]->Write(os, offset);
     }
+    void WriteASTFile(emp::File& file, size_t&  cur_id) override{
+      if(ast_tree_id == 0) ast_tree_id = cur_id++;
+      file.Append(emp::to_string(ast_tree_id) + " [label=\"[Math2]\\n" + name + "\"]");
+      children[0]->WriteASTFile(file, cur_id);
+      file.Append(emp::to_string(ast_tree_id) + "->" + emp::to_string(children[0]->GetASTTreeID()));
+      children[1]->WriteASTFile(file, cur_id);
+      file.Append(emp::to_string(ast_tree_id) + "->" + emp::to_string(children[1]->GetASTTreeID()));
+    }
   };
 
   class ASTNode_Assign : public ASTNode_Internal {
@@ -203,6 +257,14 @@ namespace mabe {
       children[0]->Write(os, offset);
       os << " = ";
       children[1]->Write(os, offset);
+    }
+    void WriteASTFile(emp::File& file, size_t&  cur_id) override{
+      if(ast_tree_id == 0) ast_tree_id = cur_id++;
+      file.Append(emp::to_string(ast_tree_id) + " [label=\"=\"]");
+      children[0]->WriteASTFile(file, cur_id);
+      file.Append(emp::to_string(ast_tree_id) + "->" + emp::to_string(children[0]->GetASTTreeID()));
+      children[1]->WriteASTFile(file, cur_id);
+      file.Append(emp::to_string(ast_tree_id) + "->" + emp::to_string(children[1]->GetASTTreeID()));
     }
   };
 
@@ -238,6 +300,14 @@ namespace mabe {
       }
       os << ")";
     }
+    void WriteASTFile(emp::File& file, size_t&  cur_id) override{
+      if(ast_tree_id == 0) ast_tree_id = cur_id++;
+      file.Append(emp::to_string(ast_tree_id) + " [label=\"[Call]\"]");
+      for (auto child_ptr : children) {
+        child_ptr->WriteASTFile(file, cur_id);
+        file.Append(emp::to_string(ast_tree_id) + "->" + emp::to_string(child_ptr->GetASTTreeID()));
+      }
+    }
   };
 
   class ASTNode_Event : public ASTNode_Internal {
@@ -271,6 +341,15 @@ namespace mabe {
       }
       os << ") ";
       children[0]->Write(os, offset);  // Action.
+    }
+
+    void WriteASTFile(emp::File& file, size_t&  cur_id) override{
+      if(ast_tree_id == 0) ast_tree_id = cur_id++;
+      file.Append(emp::to_string(ast_tree_id) + " [label=\"[Event]\\n" + name + "\"]");
+      for (auto child_ptr : children) {
+        child_ptr->WriteASTFile(file, cur_id);
+        file.Append(emp::to_string(ast_tree_id) + "->" + emp::to_string(child_ptr->GetASTTreeID()));
+      }
     }
   };
 
