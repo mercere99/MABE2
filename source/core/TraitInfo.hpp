@@ -132,7 +132,7 @@ namespace mabe {
     emp::vector<ModuleInfo> access_info;
 
     // Specific access categories
-    emp::array<size_t, NUM_ACCESS> access_counts = { 0, 0, 0, 0, 0 };
+    emp::array<size_t, NUM_ACCESS> access_counts = { 0, 0, 0, 0, 0, 0 };
 
     // Helper functions
     int GetInfoID(const std::string & mod_name) const {
