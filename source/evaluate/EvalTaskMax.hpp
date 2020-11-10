@@ -45,20 +45,37 @@ namespace mabe {
     }
 
     void SetupModule() override {
-      AddRequiredTrait<std::unordered_map<int,double>>(outputs_trait);
+      //AddRequiredTrait<std::unordered_map<int,double>>(outputs_trait);
+      AddRequiredTrait<double>(outputs_trait);
       AddOwnedTrait<double>(fitness_trait, "All-ones fitness value", 1.0);
+      std::function<void(Organism&)> eval_func = [this](Organism& org){
+        const double output = org.GetVar<double>(outputs_trait);
+        org.SetVar<double>(fitness_trait, output > 1 ? output : 1);
+        //const std::unordered_map<int,double> & outputs = 
+        //    org.GetVar<std::unordered_map<int,double>>(outputs_trait);
+        //if(outputs.size() > 0){
+        //  const double output = outputs.begin()->second;
+        //  org.SetVar<double>(fitness_trait, output > 1 ? output : 1);
+        //}
+        //else
+        //  org.SetVar<double>(fitness_trait, 1);
+      };
+      control.AttachSignalListener<void, Organism&>("evaluate_org", eval_func);
     }
 
     // Check outputs of org, if first output > 1 then set fitness to that value
     void OnManualEval(Organism& org) override {
-        const std::unordered_map<int,double> & outputs = 
-            org.GetVar<std::unordered_map<int,double>>(outputs_trait);
-        if(outputs.size() > 0){
-          const double output = outputs.begin()->second;
-          org.SetVar<double>(fitness_trait, output > 1 ? output : 1);
-        }
-        else
-          org.SetVar<double>(fitness_trait, 1);
+        const double output = org.GetVar<double>(outputs_trait);
+        org.SetVar<double>(fitness_trait, output > 1 ? output : 1);
+        
+        //const std::unordered_map<int,double> & outputs = 
+        //    org.GetVar<std::unordered_map<int,double>>(outputs_trait);
+        //if(outputs.size() > 0){
+        //  const double output = outputs.begin()->second;
+        //  org.SetVar<double>(fitness_trait, output > 1 ? output : 1);
+        //}
+        //else
+        //  org.SetVar<double>(fitness_trait, 1);
     }
   };
 

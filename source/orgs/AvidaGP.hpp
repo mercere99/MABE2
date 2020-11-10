@@ -112,20 +112,23 @@
         //          OrganismTemplate has access because it's a friend of OrganismManager... 
         AddOwnedTrait<std::unordered_map<int, double>>("inputs", "Map of organism's inputs", 
             std::unordered_map<int, double>());
-        AddOwnedTrait<std::unordered_map<int, double>>("outputs", "Map of organism's outputs", 
-            std::unordered_map<int, double>());
+        //AddOwnedTrait<std::unordered_map<int, double>>("outputs", "Map of organism's outputs", 
+        //    std::unordered_map<int, double>());
+        AddOwnedTrait<double>("outputs", "filler", 0);
+        control.CreateCustomSignal<void, Organism&>("evaluate_org");
       }
       
       /// Fires the ManualEval trigger in the main MABE object
       void TriggerManualEval(Organism & org){
-        control.on_manual_eval_sig.Trigger(org);
+        //control.on_manual_eval_sig.Trigger(org);
+        control.FireSignal<void, Organism&>("evaluate_org", org);
       }
       
     };
 
 
     // TODO: Move away from trait flags for cpu->AvidaGPOrg communication (see todo above class decl)
-    // TODO: Create a better system for birth. Should be easy once main MABE object allows triggers
+    // TODO: Create a better system for tasks. Should be easy once main MABE object allows triggers
     //          to be called from modules
     /// Process a single instruction and handle any results
     bool mabe::AvidaGPOrg::ProcessStep(){ 
@@ -134,7 +137,8 @@
       if(cpu.GetTrait(1) >= 0){
         cpu.SetTrait(1,0);
         SetVar<std::unordered_map<int, double>>("inputs", cpu.inputs);
-        SetVar<std::unordered_map<int, double>>("outputs", cpu.outputs);
+        //SetVar<std::unordered_map<int, double>>("outputs", cpu.outputs);
+        SetVar<double>("outputs", cpu.GetOutput(0));
         static_cast<AvidaGPOrgManager*>(&GetManager())->TriggerManualEval(*this);
       }
       // Check replication

@@ -179,7 +179,6 @@ namespace mabe {
     template <typename RETURN, typename... ARGS>
     struct SigListenerGeneric : public SigListenerGenericBase, emp::vector<std::function<RETURN(ARGS...)>>{
       using type = emp::vector<RETURN>;
-      std::tuple<ARGS...> param_tuple;
       template <typename... ARGS_PASSED>
       emp::vector<RETURN> Trigger(ARGS_PASSED && ... args){
         emp::vector<RETURN> return_vals(this->size());
@@ -195,7 +194,6 @@ namespace mabe {
     struct SigListenerGeneric<void, ARGS...>:
           public SigListenerGenericBase, emp::vector<std::function<void(ARGS...)>>{
       using type = void; 
-      std::tuple<ARGS...> param_tuple;
       template <typename... ARGS_PASSED>
       void Trigger(ARGS_PASSED && ... args){
         for(size_t func_idx = 0; func_idx < this->size(); ++func_idx){
@@ -214,7 +212,7 @@ namespace mabe {
     void CreateCustomSignal(std::string name){
       emp_assert(!emp::Has(custom_sig_map, name), "Custom signal already defined!");
       SigListenerGenericBase * ptr= new SigListenerGeneric<RETURN, ARGS...>();
-      custom_sig_map[name] = emp::Ptr<SigListenerGenericBase>(ptr);
+      custom_sig_map[name] = emp::Ptr<SigListenerGenericBase>(ptr, true);
     }
 
     // TODO: Are we comfortable only type checking in debug mode?
@@ -282,6 +280,7 @@ namespace mabe {
       before_placement_sig.Trigger(*org_ptr, pos, ppos);
       ClearOrgAt(pos);      // Clear out any organism already in this position.
       pos.PopPtr()->SetOrg(pos.Pos(), org_ptr);  // Put the new organism in place.
+      //org_ptr->SetVar<OrgPosition>("index", pos);
       on_placement_sig.Trigger(pos);
     }
 
@@ -480,6 +479,10 @@ namespace mabe {
       for (auto x : modules) x.Delete();                           // Delete all modules.
       for (auto [name,trait_ptr] : trait_map) trait_ptr.Delete();  // Delete all trait info.
       for (auto x : pops) x.Delete();                              // Delete all populations.
+      // Clean up custom signal pointers (map is string -> emp::Ptr<SigListener>)
+      for(auto it = custom_sig_map.begin(); it != custom_sig_map.end(); ++it){
+        it->second.Delete();
+      }
     }
 
     // --- Basic accessors ---
