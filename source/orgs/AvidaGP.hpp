@@ -115,13 +115,12 @@
         //AddOwnedTrait<std::unordered_map<int, double>>("outputs", "Map of organism's outputs", 
         //    std::unordered_map<int, double>());
         AddOwnedTrait<double>("outputs", "filler", 0);
-        control.CreateCustomSignal<void, Organism&>("evaluate_org");
+        control.GetSignalControl().AddSignal<void(Organism&)>("evaluate_org");
       }
       
       /// Fires the ManualEval trigger in the main MABE object
       void TriggerManualEval(Organism & org){
-        //control.on_manual_eval_sig.Trigger(org);
-        control.FireSignal<void, Organism&>("evaluate_org", org);
+        control.GetSignalControl().Trigger<Organism&>("evaluate_org", org);
       }
       
     };

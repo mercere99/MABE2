@@ -60,7 +60,9 @@ namespace mabe {
         //else
         //  org.SetVar<double>(fitness_trait, 1);
       };
-      control.AttachSignalListener<void, Organism&>("evaluate_org", eval_func);
+      emp::Action<void(Organism&)> action(eval_func);
+      control.GetSignalControl().AddAction(action);
+      control.GetSignalControl().Link("evaluate_org", action);
     }
 
     // Check outputs of org, if first output > 1 then set fitness to that value
