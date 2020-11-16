@@ -302,14 +302,6 @@ namespace mabe {
       control.RescanSignals();
     }
     
-    // Format:  OnManualEval(Organism & org)
-    // Trigger: A request has been made for org to be evaluated
-    void OnManualEval(Organism &) override {
-      has_signal[SIG_OnManualEval] = false;
-      control.RescanSignals();
-    }
-
-
     // Functions to be called based on actions that need to happen.  Each of these returns a
     // viable result or an invalid object if need to pass on to the next module.  Modules will
     // be querried in order until one of them returns a valid result.
@@ -375,7 +367,6 @@ namespace mabe {
     bool DoPlaceBirth_IsTriggered() override { return control.DoPlaceBirth_IsTriggered(this); };
     bool DoPlaceInject_IsTriggered() override { return control.DoPlaceInject_IsTriggered(this); };
     bool DoFindNeighbor_IsTriggered() override { return control.DoFindNeighbor_IsTriggered(this); };
-    bool OnManualEval_IsTriggered() override { return control.OnManualEval_IsTriggered(this); };
   };
 
   /// Build a class that will automatically register modules when created (globally)

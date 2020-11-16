@@ -48,7 +48,7 @@ namespace mabe {
     }
 
     /// Test to see if organism performed the NOT operation
-    void OnManualEval(Organism& org) override {
+    void OnManualEval(Organism& org) {
         const std::unordered_map<int,double> & inputs = 
             org.GetVar<std::unordered_map<int,double>>(inputs_trait);
         const std::unordered_map<int,double> & outputs = 

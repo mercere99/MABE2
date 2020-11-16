@@ -66,7 +66,7 @@ namespace mabe {
     }
 
     // Check outputs of org, if first output > 1 then set fitness to that value
-    void OnManualEval(Organism& org) override {
+    void OnManualEval(Organism& org) {
         const double output = org.GetVar<double>(outputs_trait);
         org.SetVar<double>(fitness_trait, output > 1 ? output : 1);
         

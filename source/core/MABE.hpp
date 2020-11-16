@@ -155,10 +155,6 @@ namespace mabe {
     SigListener<void> before_exit_sig;
     // OnHelp()
     SigListener<void> on_help_sig;
-    public:
-    // OnManualEvaluate(Organism & org)
-    SigListener<void,Organism &> on_manual_eval_sig; // TO IMPLEMENT
-    protected:
     // OrgPosition DoPlaceBirth(Organism & offspring, OrgPosition parent_position, Population & target_pop);
     SigListener<OrgPosition, Organism &, OrgPosition, Population &> do_place_birth_sig;
     // OrgPosition DoPlaceInject(Organism & new_organism)
@@ -192,7 +188,6 @@ namespace mabe {
     , on_warning_sig("on_warning", ModuleBase::SIG_OnWarning, &ModuleBase::OnWarning, sig_ptrs)
     , before_exit_sig("before_exit", ModuleBase::SIG_BeforeExit, &ModuleBase::BeforeExit, sig_ptrs)
     , on_help_sig("on_help", ModuleBase::SIG_OnHelp, &ModuleBase::OnHelp, sig_ptrs)
-    , on_manual_eval_sig("on_manual_eval", ModuleBase::SIG_OnManualEval, &ModuleBase::OnManualEval, sig_ptrs)
     , do_place_birth_sig("do_place_birth", ModuleBase::SIG_DoPlaceBirth, &ModuleBase::DoPlaceBirth, sig_ptrs)
     , do_place_inject_sig("do_place_inject", ModuleBase::SIG_DoPlaceInject, &ModuleBase::DoPlaceInject, sig_ptrs)
     , do_find_neighbor_sig("do_find_neighbor", ModuleBase::SIG_DoFindNeighbor, &ModuleBase::DoFindNeighbor, sig_ptrs)
@@ -887,7 +882,6 @@ namespace mabe {
     bool DoPlaceBirth_IsTriggered(mod_ptr_t mod) { return do_place_birth_sig.cur_mod == mod; };
     bool DoPlaceInject_IsTriggered(mod_ptr_t mod) { return do_place_inject_sig.cur_mod == mod; };
     bool DoFindNeighbor_IsTriggered(mod_ptr_t mod) { return do_find_neighbor_sig.cur_mod == mod; };
-    bool OnManualEval_IsTriggered(mod_ptr_t mod) { return on_manual_eval_sig.cur_mod == mod; };
   };
 
 
