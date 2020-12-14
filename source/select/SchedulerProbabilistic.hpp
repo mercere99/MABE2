@@ -60,22 +60,31 @@ namespace mabe {
         control.AddError("Trying to schedule an empty population.");
         return;
       }
-      // Recreate the IndexMap with current values
-      weight_map.ResizeClear(N);
-      for(size_t org_idx = 0; org_idx < N; ++org_idx){
-        weight_map.Adjust(org_idx, pop[org_idx].GetVar<double>(trait));
-      } 
       size_t selected_idx;
       double total_weight = weight_map.GetWeight();
       // Dole out updates
       for(size_t i = 0; i < N * avg_updates; ++i){
-        selected_idx = weight_map.Index(random.GetDouble() * total_weight);
+        if(total_weight > 0)
+          selected_idx = weight_map.Index(random.GetDouble() * total_weight);
+        else
+          selected_idx = random.GetUInt(pop.GetSize()); 
         // If ProcessStep returns true, org needs to replicate (will be reworked soon!)
         if(pop[selected_idx].ProcessStep()){
           control.Replicate(OrgPosition(pop, selected_idx), pop, 1, true); 
+          weight_map.Adjust(selected_idx, pop[selected_idx].GetVar<double>(trait));
         }
       }
       std::cout << "Total weight: " << total_weight << std::endl;
+    }
+ 
+    void OnPlacement(OrgPosition placement_pos){
+      if(weight_map.GetSize() == 0){
+        Population & pop = control.GetPopulation(pop_id);
+        const size_t N = pop.GetSize();
+        weight_map.ResizeClear(N);
+      }
+      size_t org_idx = placement_pos.Pos();
+      weight_map.Adjust(org_idx, placement_pos.Pop()[org_idx].GetVar<double>(trait));
     }
   };
 
