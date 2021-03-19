@@ -163,6 +163,10 @@ namespace mabe {
       GetManager().AddSharedTrait(SharedData().output_name,
                                   "Value vector output from organism.",
                                   emp::vector<double>(vals.size()));
+      // Setup the output trait.
+      GetManager().AddSharedTrait(SharedData().total_name,
+                                  "Total of all organism outputs.",
+                                  0.0);
     }
   };
 
@@ -219,7 +223,7 @@ namespace mabe {
   }
 
 
-  MABE_REGISTER_ORG_TYPE(ValsOrg, "Organism consisting of a series of N bits.");
+  MABE_REGISTER_ORG_TYPE(ValsOrg, "Organism consisting of a series of N floating-point values.");
 }
 
 #endif
