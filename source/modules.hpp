@@ -29,3 +29,4 @@
 
 // Organism Types
 #include "orgs/BitsOrg.hpp"
+#include "orgs/ValsOrg.hpp"
