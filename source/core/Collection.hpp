@@ -190,7 +190,13 @@ namespace mabe {
     Collection() = default;
     Collection(const Collection &) = default;
     Collection(Collection &&) = default;
-    Collection(Population & pop) { Insert(pop); }
+
+    template <typename... Ts>
+    Collection(Population & pop, Ts &&... extras) { Insert( pop, std::forward<Ts>(extras)... ); }
+
+    template <typename... Ts>
+    Collection(OrgPosition pos, Ts &&... extras) { Insert( pos, std::forward<Ts>(extras)... ); }
+
     ~Collection() { }
 
     Collection & operator=(const Collection &) = default;
@@ -316,19 +322,22 @@ namespace mabe {
     ConstCollectionIterator end() const { return ConstCollectionIterator(this, nullptr); }
 
     /// Add a Population to this collection.
-    Collection & Insert(Population & pop) {
+    template <typename... Ts>
+    Collection & Insert(Population & pop, Ts &&... extras) {
       pos_map[&pop].full_pop = true;
-      return *this;
+      return Insert( std::forward<Ts>(extras)... );
     }
 
     /// Add an organism (by position!)
-    Collection & Insert(OrgPosition pos) {
+    template <typename... Ts>
+    Collection & Insert(OrgPosition pos, Ts &&... extras) {
       pos_map[pos.PopPtr()].InsertPos(pos.Pos());
-      return *this;
+      return Insert( std::forward<Ts>(extras)... );
     }
 
     /// Add a whole other collection.
-    Collection & Insert(const Collection & in_collection) {
+    template <typename... Ts>
+    Collection & Insert(const Collection & in_collection, Ts &&... extras) {
       for (auto & [pop_ptr, in_pop_info] : in_collection.pos_map) {
         PopInfo & pop_info = pos_map[pop_ptr];
 
@@ -354,8 +363,11 @@ namespace mabe {
         pos_set |= in_pos_set;
       }
 
-      return *this;
+      return Insert( std::forward<Ts>(extras)... );
     }
+
+    /// Base case...
+    Collection & Insert() { return *this; }
 
     // @CAO: Add:
     // * Remove()  - works with position or population (or another collection?)
