@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2020.
+ *  @date 2020-2021.
  *
  *  @file  Collection.hpp
  *  @brief A collection of organisms or whole populations; not owner.
@@ -131,14 +131,14 @@ namespace mabe {
       /// should never happen!)
       size_t GetFirstPos() const {
         if (full_pop) return 0;
-        return (size_t) pos_set.FindBit();
+        return (size_t) pos_set.FindOne();
       }
 
       /// Identify the next position after the one provided.  If there is no next position,
       /// return a value >= population size.
       size_t GetNextPos(size_t pos) const {
         if (full_pop) return ++pos;
-        return (size_t) pos_set.FindBit(pos+1);
+        return (size_t) pos_set.FindOne(pos+1);
       }
 
       /// Remap an ID from the collection to a population position.
@@ -147,7 +147,7 @@ namespace mabe {
 
         size_t cur_pos = 0;
         while(org_id--) {
-          cur_pos = pos_set.FindBit(cur_pos+1);
+          cur_pos = pos_set.FindOne(cur_pos+1);
         }
         return cur_pos;
       }
@@ -375,7 +375,7 @@ namespace mabe {
         pop_info.RemoveFull(pop_ptr); 
 
         // Scan through organisms, removing inclusion of those that are empty.
-        for (int pos = pos_set.FindBit(); pos != -1; pos = pos_set.FindBit(pos+1)) {
+        for (int pos = pos_set.FindOne(); pos != -1; pos = pos_set.FindOne(pos+1)) {
           if (!pop_ptr->IsOccupied((size_t) pos)) pos_set.Set(pos,false);
         }
       }
