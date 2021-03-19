@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019-2020.
+ *  @date 2019-2021.
  *
  *  @file  GrowthPlacement.hpp
  *  @brief Default placement rules for how an organism should be added to a population.
@@ -37,7 +37,7 @@ namespace mabe {
     GrowthPlacement(mabe::MABE & control,
                     const std::string & name="GrowthPlacement",
                     const std::string & desc="Module to always appened organisms onto a population.")
-      : Module(control, name, desc), target_collect(control.GetPopulation(1))
+      : Module(control, name, desc), target_collect(control.GetPopulation(1),control.GetPopulation(0))
     {
       SetPlacementMod(true);
     }
