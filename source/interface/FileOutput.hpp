@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2020.
+ *  @date 2020-2021.
  *
  *  @file  FileOutput.hpp
  *  @brief Module to output collected data into a specified file.
@@ -29,9 +29,10 @@ namespace mabe {
     std::string filename;
     std::string format;
     Collection target_collect;
-    int start_ud=0;   ///< When should outputs start being printed?
-    int step_ud=1;    ///< How often should outputs be printed?
-    int stop_ud=-1;   ///< When should outputs stop being printed?
+    int start_ud=0;    ///< When should outputs start being printed?
+    int step_ud=1;     ///< How often should outputs be printed?
+    int stop_ud=-1;    ///< When should outputs stop being printed?
+    bool init = false; ///< Has the file been initialized?
 
     // Calculated values from the inputs.
     using trait_fun_t = std::function<std::string(const Collection &)>;
@@ -39,36 +40,10 @@ namespace mabe {
     emp::vector<trait_fun_t> funs;  ///< Functions to call each update.
     std::ofstream file;
 
-    void DoOutput(size_t ud) {
-      // Check if we should print this update.
-      if ((ud < start_ud) ||
-          (stop_ud != -1 && ud > stop_ud) ||
-          ((ud - start_ud)%step_ud != 0) ) return;
-      file << ud;
-      for (auto & fun : funs) {
-        file << ", " << fun(target_collect);
-      }
-      file << std::endl;
-    }
-
-  public:
-    FileOutput(mabe::MABE & control,
-               const std::string & name="FileOutput",
-               const std::string & desc="Module to output collected data into a specified file.")
-      : Module(control, name, desc)
-    {
-      SetInterfaceMod();
-    }
-    ~FileOutput() { }
-
-    void SetupConfig() override {
-      LinkVar(filename, "filename", "Name of file for output data.");
-      LinkVar(format, "format", "Column format to use in the file.");
-      LinkCollection(target_collect, "target", "Which population(s) should we print from?");
-      LinkRange(start_ud, step_ud, stop_ud, "output_updates", "Which updates should we output data?");
-    }
-
-    void SetupModule() override {
+    // Setup the columns to be printed right before the first time we print
+    // (to make sure all of the values we are using have known types.)
+    void InitializeFile() {
+      // Open the file that we will be writing to.
       file.open(filename);
 
       // Identify the contents of each column.
@@ -89,6 +64,44 @@ namespace mabe {
         file << ", " << cols[i];
       }
       file << '\n';
+
+      init = true;
+    }
+
+    void DoOutput(size_t ud) {
+      if (!init) InitializeFile();
+
+      // Check if we should print this update.
+      if ((ud < start_ud) ||
+          (stop_ud != -1 && ud > stop_ud) ||
+          ((ud - start_ud)%step_ud != 0) ) return;
+      file << ud;
+      for (auto & fun : funs) {
+        file << ", " << fun(target_collect);
+      }
+      file << std::endl;
+    }
+
+  public:
+    FileOutput(mabe::MABE & control,
+               const std::string & name="FileOutput",
+               const std::string & desc="Module to output collected data into a specified file.")
+      : Module(control, name, desc), filename("output.csv"), format("fitness:max,fitness:mean"),
+        target_collect(control.GetPopulation(0))
+    {
+      SetInterfaceMod();
+    }
+    ~FileOutput() { }
+
+    void SetupConfig() override {
+      LinkVar(filename, "filename", "Name of file for output data.");
+      LinkVar(format, "format", "Column format to use in the file.");
+      LinkCollection(target_collect, "target", "Which population(s) should we print from?");
+      LinkRange(start_ud, step_ud, stop_ud, "output_updates", "Which updates should we output data?");
+    }
+
+    void SetupModule() override {
+      // Nothing for now.
     }
 
     void BeforeUpdate(size_t ud) override {
