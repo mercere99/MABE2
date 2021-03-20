@@ -53,6 +53,11 @@ namespace mabe {
       return "unknown_error";
     }
 
+    void CalculateTotal() {
+      for (double x : vals) total += x;
+      SetVar<double>(SharedData().total_name, total);
+    }
+
   public:
     struct ManagerData : public Organism::ManagerData {
       std::string output_name = "vals";  ///< Name of trait that should be used to access values.
@@ -81,14 +86,14 @@ namespace mabe {
       : OrganismTemplate<ValsOrg>(_manager), vals(in)
     {
       SharedData().ApplyBounds(vals);  // Make sure all data is within range.
-      for (double x : in) total += x;  // Calculate the total.
+      CalculateTotal();
     }
     ValsOrg(size_t N, OrganismManager<ValsOrg> & _manager)
       : OrganismTemplate<ValsOrg>(_manager), vals(N, 0.0), total(0.0) { }
     ~ValsOrg() { ; }
 
     /// Use "to_string" to convert.
-    std::string ToString() const override { return emp::to_string(vals); }
+    std::string ToString() const override { return emp::to_string(vals, ":(TOTAL=", total, ")"); }
 
     size_t Mutate(emp::Random & random) override {
       // Identify number of and positions for mutations.
@@ -107,15 +112,17 @@ namespace mabe {
         mut_pos = mut_sites.FindOne(mut_pos+1);  // Move on to the next site to mutate.
       }
 
+      SetVar<double>(SharedData().total_name, total);  // Store total in data map.
       return num_muts;
     }
 
     void Randomize(emp::Random & random) override {
-      total = 0;
+      total = 0.0;
       for (double & x : vals) {
         x = random.GetDouble(SharedData().min_value, SharedData().max_value);
         total += x;
       }
+      SetVar<double>(SharedData().total_name, total);  // Store total in data map.
     }
 
     /// Put the values in the correct output positions.
