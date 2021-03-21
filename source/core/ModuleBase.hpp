@@ -98,6 +98,7 @@ namespace mabe {
     mabe::MABE & control;             ///< Reference to main mabe controller using this module
     emp::vector<std::string> errors;  ///< Has this class detected any configuration errors?
     bool is_builtin=false;            ///< Is this a built-in module that shouldn't go in config?
+    bool is_active=true;              ///< Should this module be used in the current run?
 
     /// Informative tags about this module.  Expected tags include:
     ///   "Analyze"     : Makes measurements on the population.
