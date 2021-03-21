@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019-2020.
+ *  @date 2019-2021.
  *
  *  @file  MABE.hpp
  *  @brief Master controller object for a MABE run.
@@ -56,7 +56,7 @@ namespace mabe {
       mod_ptr_t cur_mod; ///< Which module is currently running?
 
       SigListenerBase(const std::string & _name="",
-                    ModuleBase::SignalID _id=ModuleBase::SIG_UNKNOWN)
+                      ModuleBase::SignalID _id=ModuleBase::SIG_UNKNOWN)
         : name(_name), id(_id) {;}
       SigListenerBase(const SigListenerBase &) = default;
       SigListenerBase(SigListenerBase &&) = default;
@@ -264,7 +264,7 @@ namespace mabe {
   private:
     const std::string VERSION = "0.0.1";
 
-    /// Populations used; generated based on the needs of modules.
+    /// Populations used; generated in the configuration file.
     emp::vector< emp::Ptr<Population> > pops;
 
     /// Organism pointer to use for all empty cells.
@@ -354,10 +354,10 @@ namespace mabe {
     void ShowModules() {
       std::cout << "MABE v" << VERSION << "\n"
                 << "Active modules:\n";
-      for (auto mod_ptr : modules) {
-        std::cout << "  " << mod_ptr->GetName() << " : " << mod_ptr->GetDesc() << "\n";
-      }          
-      std::cout << "All available modules:\n";
+      // for (auto mod_ptr : modules) {
+      //   std::cout << "  " << mod_ptr->GetName() << " : " << mod_ptr->GetDesc() << "\n";
+      // }          
+      std::cout << "Available modules:\n";
       for (auto & info : GetModuleInfo()) {
         std::cout << "  " << info.name << " : " << info.desc << "\n";
       }          
@@ -504,8 +504,7 @@ namespace mabe {
           AddOrgAt( inject_org, pos);
         } else {
           inject_org.Delete();          
-          AddError("Invalid position (pop=", pos.PopPtr(), "; pos=", pos.Pos(),
-                   "); failed to inject organism ", i, "!");
+          AddError("Invalid position; failed to inject organism ", i, "!");
         }
       }
       return pos;
@@ -1181,7 +1180,8 @@ namespace mabe {
 
       AddScope(m->GetName(), m->GetDesc());  // Add a config scope for each module we've created.
       m->SetupScope(*cur_scope);             // Notify the module about it's own scope.
-      m->SetupConfig();                      // Allow to module to configure its scope.
+      m->LinkVar(m->is_active, "is_active", "Should we activate this module? (0=off, 1=on)");
+      m->SetupConfig();                      // Allow module to configure its scope.
       LeaveScope();                          // Exit the module's scope before move to next module.
     }
   }
