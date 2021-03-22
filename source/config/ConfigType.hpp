@@ -26,12 +26,15 @@ namespace mabe {
     STRUCT
   };
 
-  // Abstract base class for types that we want to be used for scripting..
+  // Base class for types that we want to be used for scripting.
   class ConfigType {
   private:
     emp::Ptr<ConfigScope> cur_scope;
   
   public:
+    // Some special, internal variables associated with each object.
+    bool _active=true;       ///< Should this object be used in the current run?
+    std::string _desc="";    ///< Special description for this object.
     
     // ---==  Configuration Management ==---
 
