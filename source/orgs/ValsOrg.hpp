@@ -147,11 +147,21 @@ namespace mabe {
       GetManager().LinkFuns<std::string>(
         [this](){ return LimitToName(SharedData().lower_bound); },
         [this](const std::string & name){ SharedData().lower_bound = NameToLimit(name); },
-        "lower_bound", "How should the lower limit be enforced?\n\"no_limit\": Allow values to be arbirarily low.\n\"clamp\": Reduce too-low values to min_value.\n\"wrap\": Make low values loop around to maximum.\n\"rebound\": Make low values 'bounce' back up." );
+        "lower_bound",
+        "How should the lower limit be enforced?"
+        "\n- \"no_limit\": Allow values to be arbirarily low."
+        "\n- \"clamp\": Reduce too-low values to min_value."
+        "\n- \"wrap\": Make low values loop around to maximum."
+        "\n- \"rebound\": Make low values 'bounce' back up." );
       GetManager().LinkFuns<std::string>(
         [this](){ return LimitToName(SharedData().upper_bound); },
         [this](const std::string & name){ SharedData().upper_bound = NameToLimit(name); },
-        "upper_bound", "How should the upper limit be enforced?\n\"no_limit\": Allow values to be arbirarily high.\n\"clamp\": Reduce too-high values to max_value.\n\"wrap\": Make high values loop around to minimum.\n\"rebound\": Make high values 'bounce' back down." );
+        "upper_bound",
+        "How should the upper limit be enforced?"
+        "\n- \"no_limit\": Allow values to be arbirarily high."
+        "\n- \"clamp\": Reduce too-high values to max_value."
+        "\n- \"wrap\": Make high values loop around to minimum."
+        "\n- \"rebound\": Make high values 'bounce' back down." );
       GetManager().LinkVar(SharedData().output_name, "output_name",
                       "Name of variable to contain set of values.");
       GetManager().LinkVar(SharedData().total_name, "total_name",
