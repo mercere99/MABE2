@@ -868,7 +868,7 @@ namespace mabe {
       };
     config.AddType("Population", "Collection of organisms", pop_init_fun);
 
-    // Setup all known modules as types in the config file.
+    // Setup all known modules as available types in the config file.
     for (auto & mod : GetModuleInfo()) {
       std::function<ConfigType &(const std::string &)> mod_init_fun =
         [this,&mod](const std::string & name) -> ConfigType & {
@@ -902,7 +902,7 @@ namespace mabe {
       };
     config.AddFunction("print", print_fun, "Print out the provided variable.");
 
-    // Add in built-in event triggers; these are used to say when events should happen.
+    // Add in built-in event triggers; these are used to indicate when events should happen.
     config.AddEventType("start");   // Triggered at the beginning of a run.
     config.AddEventType("update");  // Tested every update.
   }
@@ -911,7 +911,7 @@ namespace mabe {
     SetupConfig();                   // Load all of the parameters needed by modules, etc.
     ProcessArgs();                   // Deal with command-line inputs.
 
-    // Sometime command-line arguments will require an immediate exit (such as after '--help')
+    // Sometimes command-line arguments will require an immediate exit (such as after '--help')
     if (exit_now) return false;
 
     // If configuration filenames have been specified, load each of them in order.
@@ -1153,6 +1153,9 @@ namespace mabe {
 
     // Loop through each module to update its signals.
     for (emp::Ptr<ModuleBase> mod_ptr : modules) {
+      // If a module is deactivated, don't use it's signals.
+      if (mod_ptr->_active == false) continue;
+
       // For the current module, loop through all of the signals.
       for (size_t sig_id = 0; sig_id < sig_ptrs.size(); sig_id++) {
         if (mod_ptr->has_signal[sig_id]) sig_ptrs[sig_id]->push_back(mod_ptr);
@@ -1173,17 +1176,6 @@ namespace mabe {
     cur_scope->LinkVar("random_seed",
                         random_seed,
                         "Seed for random number generator; use 0 to base on time.").SetMin(0);
-
-    // Call the SetupConfig of module base classes (they will call the dervived version)
-    for (auto m : modules) {
-      if (m->IsBuiltIn()) continue;          // Built-in modules don't need to be configured.
-
-      AddScope(m->GetName(), m->GetDesc());  // Add a config scope for each module we've created.
-      m->SetupScope(*cur_scope);             // Notify the module about it's own scope.
-      m->LinkVar(m->is_active, "is_active", "Should we activate this module? (0=off, 1=on)");
-      m->SetupConfig();                      // Allow module to configure its scope.
-      LeaveScope();                          // Exit the module's scope before move to next module.
-    }
   }
 
 
