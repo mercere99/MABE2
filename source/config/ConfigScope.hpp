@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019-2020.
+ *  @date 2019-2021.
  *
  *  @file  ConfigScope.hpp
  *  @brief Manages a full scope with many conig entries (or sub-scopes).
@@ -201,12 +201,7 @@ namespace mabe {
       os << cur_line;
 
       // Indent the comment for the description (if there is one)
-      if (desc.size()) {
-        size_t char_count = cur_line.size();
-        while (char_count++ < comment_offset) os << " ";
-        os << "// " << desc;
-      }
-      os << std::endl;
+      WriteDesc(os, comment_offset, cur_line.size());
 
       // If we have internal entries, write them out.
       if (entry_list.size()) {
