@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019-2020.
+ *  @date 2019-2021.
  *
  *  @file  ConfigEntry.hpp
  *  @brief Manages a single configuration entry (e.g., variables + base for scopes and functions).
@@ -48,6 +48,28 @@ namespace mabe {
     // If we know the constraints on this parameter we can perform better error checking.
     emp::Range<double> range;  ///< Min and max values allowed for this config entry (if numerical).
     bool integer_only=false;   ///< Should we only allow integer values?
+
+    // Helper functions.
+
+    /// Write out the provided description at the comment_offset.  The start_pos is where the
+    /// text currently is.   For multi-line comments, make sure to indent properly.
+    void WriteDesc(std::ostream & os, size_t comment_offset, size_t start_pos) const {
+      // If there is no description, provide a newline and stop.
+      if (desc.size() == 0) {
+        std::cout << '\n';
+        return;
+      }
+
+      // Break the description at the newlines.
+      emp::vector<std::string> lines = emp::slice(desc);
+
+      for (const auto & line : lines) {
+        // Find the current line to print.
+        while (start_pos++ < comment_offset) os << " ";
+        os << "// " << line << '\n';
+        start_pos = 0;
+      }
+    }
 
   public:
     ConfigEntry(const std::string & _name,
@@ -147,15 +169,8 @@ namespace mabe {
       cur_line += ";";
       os << cur_line;
 
-      // Keep track of how many characters we've printed.
-      size_t char_count = cur_line.size();
-
-      // Print a comment if we have one.
-      if (desc.size()) {
-        while (char_count++ < comment_offset) os << " ";
-        os << "// " << desc;
-      }
-      os << std::endl;
+      // Write out the description for this line.
+      WriteDesc(os, comment_offset, cur_line.size());
 
       return *this;
     }
