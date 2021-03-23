@@ -92,42 +92,72 @@ namespace mabe {
     }
 
     void SetupModule() override {
-      AddRequiredTrait<emp::BitVector>(bits_trait);
-      AddOwnedTrait<double>(fitness_trait, "All-ones fitness value", 0.0);
+      AddRequiredTrait<emp::vector<double>>(vals_trait);
+      AddOwnedTrait<emp::vector<double>>(scores_trait, "Individual scores for current diagnostic.", emp::vector<double>({0.0}));
+      AddOwnedTrait<double>(total_trait, "Combined score for current diagnostic.", 0.0);
     }
 
     void OnUpdate(size_t update) override {
       emp_assert(control.GetNumPopulations() >= 1);
 
-      // Loop through the population and evaluate each organism.
-      double max_fitness = 0.0;
+      // Track the organism with the highest total score.
+      double max_total = 0.0;
       emp::Ptr<Organism> max_org = nullptr;
+
+      // Loop through the living organisms in the target collection to evaluate each.
       mabe::Collection alive_collect( target_collect.GetAlive() );
       for (Organism & org : alive_collect) {        
-        // Make sure this organism has its bit sequence ready for us to access.
+        // Make sure this organism has its values ready for us to access.
         org.GenerateOutput();
 
-        // Count the number of ones in the bit sequence.
-        const emp::BitVector & bits = org.GetVar<emp::BitVector>(bits_trait);
-        double fitness = (double) bits.CountOnes();
+        // Get access to the data_map elements that we need.
+        const emp::vector<double> & vals = org.GetVar<emp::vector<double>>(vals_trait);
+        emp::vector<double> & scores = org.GetVar<emp::vector<double>>(scores_trait);
+        double & total_score = org.GetVar<double>(total_trait);
 
-        // If we were supposed to count zeros, subtract ones count from total number of bits.
-        if (count_type == 0) fitness = bits.size() - fitness;
+        // Initialize output values.
+        scores.resize(vals.size());
+        total_score = 0.0;
+        size_t pos = 0;
 
-        // Store the count on the organism in the fitness trait.
-        org.SetVar<double>(fitness_trait, fitness);
+        // Determine the scores based on the diagnostic type that we're using.
+        switch (type) {
+        case EXPLOIT:
+          scores = vals;
+          for (double x : scores) total_score += x;
+          break;
+        case STRUCTURED_EXPLOIT:
+          total_score = scores[0] = vals[0];
 
-        if (fitness > max_fitness || !max_org) {
-          max_fitness = fitness;
+          // Use values as long as they are monotonically dectreasing.
+          for (pos = 1; pos < vals.size() && vals[pos] <= vals[pos-1]; ++pos) {
+            total_score += (scores[pos] = vals[pos]);
+          }
+
+          // Clear out the remaining values.
+          while (pos < scores.size()) { scores[pos] = 0.0; ++pos; }
+          break;
+        case EXPLORE:
+          break;
+        case DIVERSITY:
+          break;
+        case WEAK_DIVERSITY:
+          break;
+        default:
+          emp_error("Unknown Diganostic.");
+        }
+
+        if (total_score > max_total || !max_org) {
+          max_total = total_score;
           max_org = &org;
         }
       }
 
-      std::cout << "Max " << fitness_trait << " = " << max_fitness << std::endl;
+      std::cout << "Max " << total_trait_trait << " = " << max_total << std::endl;
     }
   };
 
-  MABE_REGISTER_MODULE(EvalDiagnostic, "Evaluate bitstrings by counting ones (or zeros).");
+  MABE_REGISTER_MODULE(EvalDiagnostic, "Evaluate set of values with a specified diagnostic problem.");
 }
 
 #endif
