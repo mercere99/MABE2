@@ -43,7 +43,7 @@ namespace mabe {
         case EXPLORE: return "explore"; break;
         case DIVERSITY: return "diversity"; break;
         case WEAK_DIVERSITY: return "weak_diversity"; break;
-        default;
+        default: break;
       }
       return "unknown";
     }
@@ -82,7 +82,7 @@ namespace mabe {
       LinkFuns<std::string>(
         [this](){ return TypeToName(type); },
         [this](const std::string & name){ type = NameToType(name); },
-        "disagnostic", "Which Diagnostic should we use?"
+        "diagnostic", "Which Diagnostic should we use?"
         "\n\"exploit\": All values must independently optimize to the max."
         "\n\"struct_exploit\": Values must decrease from begining AND optimize."
         "\n\"explore\": Only count max value and decreasing values after it."
@@ -129,7 +129,7 @@ namespace mabe {
         case STRUCTURED_EXPLOIT:
           total_score = scores[0] = vals[0];
 
-          // Use values as long as they are monotonically dectreasing.
+          // Use values as long as they are monotonically decreasing.
           for (pos = 1; pos < vals.size() && vals[pos] <= vals[pos-1]; ++pos) {
             total_score += (scores[pos] = vals[pos]);
           }
@@ -138,10 +138,45 @@ namespace mabe {
           while (pos < scores.size()) { scores[pos] = 0.0; ++pos; }
           break;
         case EXPLORE:
+          // Start at highest value (clearing everything before it)
+          pos = emp::FindMaxIndex(vals);  // Find the position to start.
+          for (size_t i = 0; i < pos; i++) scores[i] = 0.0;
+
+          total_score = scores[pos] = vals[pos];
+          pos++;
+
+          // Use values as long as they are monotonically decreasing.
+          while (pos < vals.size() && vals[pos] <= vals[pos-1]) {
+            total_score += (scores[pos] = vals[pos]);
+            pos++;
+          }
+
+          // Clear out the remaining values.
+          while (pos < scores.size()) { scores[pos] = 0.0; ++pos; }
+
           break;
         case DIVERSITY:
+          // Only count highest value
+          pos = emp::FindMaxIndex(vals);  // Find the position to start.
+          total_score = scores[pos] = vals[pos];
+
+          // All others are subtracted from max and divided by two, creating a
+          // pressure to minimize.
+          for (size_t i = 0; i < vals.size(); i++) {
+            if (i != pos) total_score += (scores[i] = (vals[pos] - vals[i]) / 2.0);
+          }
+
           break;
         case WEAK_DIVERSITY:
+          // Only count highest value
+          pos = emp::FindMaxIndex(vals);  // Find the position to start.
+          total_score = scores[pos] = vals[pos];
+
+          // Clear all other schores.
+          for (size_t i = 0; i < vals.size(); i++) {
+            if (i != pos) scores[i] = 0.0;
+          }
+
           break;
         default:
           emp_error("Unknown Diganostic.");
@@ -153,7 +188,7 @@ namespace mabe {
         }
       }
 
-      std::cout << "Max " << total_trait_trait << " = " << max_total << std::endl;
+      std::cout << "Max " << total_trait << " = " << max_total << std::endl;
     }
   };
 
