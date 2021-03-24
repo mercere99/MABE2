@@ -9,6 +9,7 @@
 
 // Evaluation Modules
 #include "evaluate/EvalCountBits.hpp"
+#include "evaluate/EvalDiagnostic.hpp"
 #include "evaluate/EvalMatchBits.hpp"
 #include "evaluate/EvalNK.hpp"
 
