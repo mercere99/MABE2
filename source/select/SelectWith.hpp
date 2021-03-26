@@ -1,10 +1,17 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2020.
+ *  @date 2020-2021.
  *
  *  @file  SelectWith.hpp
  *  @brief MABE module to link selection in one population to that of another.
+ * 
+ *  Reproduction in two populations can be linked; this module will monitor another
+ *  module and whenever it triggers a reproduction event, this module will select the
+ *  corresponding organism position in a population that it is managing to replicate
+ *  as well.
+ * 
+ *  STATUS: Under development.
  */
 
 #ifndef MABE_SELECT_WITH_H
@@ -65,6 +72,7 @@ namespace mabe {
     }
 
     void BeforePlacement(Organism &, OrgPosition to_pos, OrgPosition from_pos) override {
+      // @CAO need to record events to duplicate the replications later in the up date.
     }
 
   };
