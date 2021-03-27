@@ -75,6 +75,8 @@ namespace mabe {
       if ((ud < start_ud) ||
           (stop_ud != -1 && ud > stop_ud) ||
           ((ud - start_ud)%step_ud != 0) ) return;
+
+      // If so, print!
       file << ud;
       for (auto & fun : funs) {
         file << ", " << fun(target_collect);
