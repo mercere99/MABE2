@@ -114,16 +114,20 @@ namespace mabe {
     size_t GetNumValues() const { return num_values; }
 
     /// Get a value at the specified index of this map.
-    T GetIndex(const DataMap & dmap, size_t id) const {
-      emp_assert(id < num_values, id, num_values);
+    T GetIndex(const DataMap & dmap, size_t value_index) const {
+      emp_assert(value_index < num_values, value_index, num_values);
 
       // If this is a regular trait, return its value.
-      if (id < base_IDs.size()) return dmap.Get<T>(id);
+      if (value_index < base_IDs.size()) return dmap.Get<T>(value_index);
 
       // If it's a vector trait, look it up.
-      id -= base_IDs.size();
-      size_t vec_id = 0;
-      while ()
+      value_index -= base_IDs.size();
+      size_t vec_index = 0;
+      while (value_index >= vec_sizes[vec_index]) {
+        value_index -= vec_sizes[vec_index];
+        vec_index++;
+      }
+      return dmap.Get<emp::vector<T>>(vector_IDs[vec_index])[value_index];
     }
   };
 
