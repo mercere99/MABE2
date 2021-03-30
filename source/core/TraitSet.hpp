@@ -30,6 +30,7 @@ namespace mabe {
     emp::vector<std::string> vector_names;
     emp::vector<size_t> base_IDs;
     emp::vector<size_t> vector_IDs;
+    emp::vector<size_t> vec_sizes;
 
     const emp::DataLayout & layout;
 
@@ -41,12 +42,13 @@ namespace mabe {
 
     void Clear() {
       base_names.resize(0); vector_names.resize(0);
-      base_IDs.resize(0); vector_IDs.resize(0);
+      base_IDs.resize(0); vector_IDs.resize(0); vec_sizes.resize(0);
       num_values = 0;
     }
 
     /// Add any number of traits, separated by commas.
     bool AddTraits(const std::string & in_names) {
+      num_values = 0;
       auto names = emp::slice(in_names, ',');
       for (const std::string & name : names) {
         if (!layout.HasName(name)) {
@@ -96,11 +98,32 @@ namespace mabe {
 
     /// Count the total number of individual values across all traits and store for future use.
     size_t CountValues(const DataMap & dmap) const {
-      size_t count = base_IDs.size();
-      for (size_t id : vectorIDs) {
-        count += dmap.Get<emp::vector<T>>(id).size();
+      emp_assert(dmap.HasLayout(layout), "Attempting CountValues() on DataMap with wrong layout");
+
+      num_values = base_IDs.size();
+      for (size_t i = 0; i < vector_IDs.size(); ++i) {
+        const size_t id = vector_IDs[i];
+        const size_t cur_size = dmap.Get<emp::vector<T>>(id).size();
+        num_values += cur_size;
+        vec_sizes[i] = cur_size;
       }
-      return count;
+      return num_values;
+    }
+
+    /// Get last calculated count of values; set to zero if count not up to date.
+    size_t GetNumValues() const { return num_values; }
+
+    /// Get a value at the specified index of this map.
+    T GetIndex(const DataMap & dmap, size_t id) const {
+      emp_assert(id < num_values, id, num_values);
+
+      // If this is a regular trait, return its value.
+      if (id < base_IDs.size()) return dmap.Get<T>(id);
+
+      // If it's a vector trait, look it up.
+      id -= base_IDs.size();
+      size_t vec_id = 0;
+      while ()
     }
   };
 
