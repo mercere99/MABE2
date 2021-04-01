@@ -12,6 +12,7 @@
 
 #include "../core/MABE.hpp"
 #include "../core/Module.hpp"
+#include "../core/TraitSet.hpp"
 
 #include "emp/datastructs/valsort_map.hpp"
 
@@ -20,12 +21,12 @@ namespace mabe {
   /// Add Lexicase selection with the current population.
   class SelectLexicase : public Module {
   private:
-    using string_vec_t = emp::vector<std::string>;
-
-    string_vec_t trait_set;  ///< Which set of trait values should we select on?
-    double epsilon = 0.0;    ///< Range from max value to be preserved? (fraction of max)
-    int select_pop_id = 0;   ///< Which population are we selecting from?
-    int birth_pop_id = 1;    ///< Which population should births go into?
+    std::string trait_inputs;  ///< Which set of trait values should we select on?
+    TraitSet trait_set;        ///< Processed version of trait_inputs.
+    double epsilon = 0.0;      ///< Range from max value to be preserved? (fraction of max)
+    int select_pop_id = 0;     ///< Which population are we selecting from?
+    int birth_pop_id = 1;      ///< Which population should births go into?
+    size_t num_births = 1;     ///< How many offspring organisms should we produce?
 
   public:
     SelectLexicase(mabe::MABE & control,
@@ -40,12 +41,14 @@ namespace mabe {
     void SetupConfig() override {
       LinkPop(select_pop_id, "select_pop", "Which population should we select parents from?");
       LinkPop(birth_pop_id, "birth_pop", "Which population should births go into?");
-      LinkVarSet(trait_set, "fitness_traits", "Which traits provide the fitness values to use?");
+      LinkVar(trait_inputs, "fitness_traits", "Which traits provide the fitness values to use?");
       LinkVar(epsilon, "epsilon", "Range from max value to be preserved? (fraction of max)");
+      LinkVar(num_births, "num_births", "Number of offspring organisms to produce")
     }
 
     void SetupModule() override {
-      AddRequiredTrait<double>(trait);  ///< The fitness trait must be set by another module.
+      trait_set.SetTraits(trait_inputs);     ///< Parse set of trait inputs passed in.
+      AddRequiredTraits<double>(trait_set);  ///< The fitness trait must be set by another module.
     }
 
     void OnUpdate(size_t update) override {
