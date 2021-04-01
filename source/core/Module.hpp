@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019-2020.
+ *  @date 2019-2021.
  *
  *  @file  Module.hpp
  *  @brief Base class for all MABE modules.
@@ -154,17 +154,27 @@ namespace mabe {
       return AddTrait<T>(TraitInfo::Access::GENERATED, name, desc, default_val);
     }
    
-    /// Add trait that this module can READ & WRITE this trait; other modules can too.
+    /// Add trait that this module can READ & WRITE; other modules can too.
     template <typename T>
     TraitInfo & AddSharedTrait(const std::string & name, const std::string & desc, const T & default_val) {
       return AddTrait<T>(TraitInfo::Access::SHARED, name, desc, default_val);
     }
    
-    /// Add trait that this module can READ this trait, but another module must WRITE to it.
+    /// Add trait that this module can READ, but another module must WRITE to it.
     /// That other module should also provide the description for the trait.
     template <typename T>
     TraitInfo & AddRequiredTrait(const std::string & name) {
       return AddTrait<T>(TraitInfo::Access::REQUIRED, name);
+    }
+
+    /// Add a full set of traits that this module can READ, but another module must WRITE to them.
+    /// That other module should also provide the description for the trait.
+    template <typename T>
+    void AddRequiredTraits(const TraitSet & trait_set) {
+      emp::vector<std::string> trait_names(trait_set.GetNames());
+      for (const std::string & name : trait_names) {
+        AddTrait<T>(TraitInfo::Access::REQUIRED, name);
+      }
     }
 
 
