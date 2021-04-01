@@ -20,11 +20,12 @@
 #include "emp/data/DataMap.hpp"
 #include "emp/meta/TypeID.hpp"
 #include "emp/tools/string_utils.hpp"
+#include "emp/datastruct/vector_utils.hpp"
 
 namespace mabe {
 
   template <typename T>
-  class TriatSet {
+  class TraitSet {
   private:
     emp::vector<std::string> base_names;
     emp::vector<std::string> vector_names;
@@ -39,6 +40,8 @@ namespace mabe {
   public:
     TraitSet(const emp::DataLayout & in_layout) : layout(in_layout) { }
     ~TraitSet() = 0;
+
+    emp::vector<std::string> GetNames() const { return emp::Concat(base_names, vector_names); }
 
     void Clear() {
       base_names.resize(0); vector_names.resize(0);
@@ -62,7 +65,7 @@ namespace mabe {
         }
         else if (layout.IsType<emp::vector<T>>(id)) {
           vector_names.push_back(name);
-          vector_IDs.push_back(id)l
+          vector_IDs.push_back(id);
         }
         else {
           error_trait = name;
@@ -97,7 +100,7 @@ namespace mabe {
     }
 
     /// Count the total number of individual values across all traits and store for future use.
-    size_t CountValues(const DataMap & dmap) const {
+    size_t CountValues(const emp::DataMap & dmap) const {
       emp_assert(dmap.HasLayout(layout), "Attempting CountValues() on DataMap with wrong layout");
 
       num_values = base_IDs.size();
@@ -114,7 +117,7 @@ namespace mabe {
     size_t GetNumValues() const { return num_values; }
 
     /// Get a value at the specified index of this map.
-    T GetIndex(const DataMap & dmap, size_t value_index) const {
+    T GetIndex(const emp::DataMap & dmap, size_t value_index) const {
       emp_assert(value_index < num_values, value_index, num_values);
 
       // If this is a regular trait, return its value.
