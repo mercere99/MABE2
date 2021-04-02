@@ -44,6 +44,9 @@ namespace mabe {
 
     emp::vector<std::string> GetNames() const { return emp::Concat(base_names, vector_names); }
 
+    const emp::DataLayout & GetLayout() const { return *layout; }
+    void SetLayout(const emp::DataLayout & in_layout) { layout = &in_layout; }
+
     void Clear() {
       base_names.resize(0); vector_names.resize(0);
       base_IDs.resize(0); vector_IDs.resize(0); vec_sizes.resize(0);
@@ -135,7 +138,8 @@ namespace mabe {
 
       // Collect the vector values.
       for (size_t trait_id : vector_IDs) {
-        emp::Append( out, dmap.Get<emp::vector<T>>(trait_id) );
+        const emp::vector<T> & cur_vec = dmap.Get<emp::vector<T>>(trait_id);
+        out.insert(out.end(), cur_vec.begin(), cur_vec.end());
       }
     }
 
