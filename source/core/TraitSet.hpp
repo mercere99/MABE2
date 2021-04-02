@@ -20,7 +20,7 @@
 #include "emp/data/DataMap.hpp"
 #include "emp/meta/TypeID.hpp"
 #include "emp/tools/string_utils.hpp"
-#include "emp/datastruct/vector_utils.hpp"
+#include "emp/datastructs/vector_utils.hpp"
 
 namespace mabe {
 
@@ -33,13 +33,14 @@ namespace mabe {
     emp::vector<size_t> vector_IDs;
     emp::vector<size_t> vec_sizes;
 
-    const emp::DataLayout & layout;
+    emp::Ptr<const emp::DataLayout> layout;
 
     size_t num_values = 0;
     std::string error_trait = "";
   public:
-    TraitSet(const emp::DataLayout & in_layout) : layout(in_layout) { }
-    ~TraitSet() = 0;
+    TraitSet() : layout(nullptr) { }
+    TraitSet(const emp::DataLayout & in_layout) : layout(&in_layout) { }
+    ~TraitSet() = default;
 
     emp::vector<std::string> GetNames() const { return emp::Concat(base_names, vector_names); }
 
@@ -51,19 +52,21 @@ namespace mabe {
 
     /// Add any number of traits, separated by commas.
     bool AddTraits(const std::string & in_names) {
+      emp_assert(!layout.IsNull());
+
       num_values = 0;
       auto names = emp::slice(in_names, ',');
       for (const std::string & name : names) {
-        if (!layout.HasName(name)) {
+        if (!layout->HasName(name)) {
           error_trait = name;
           return false;
         }
-        size_t id = layout.GetID(name);
-        if (layout.IsType<T>(id)) {
+        size_t id = layout->GetID(name);
+        if (layout->IsType<T>(id)) {
           base_names.push_back(name);
           base_IDs.push_back(id);
         }
-        else if (layout.IsType<emp::vector<T>>(id)) {
+        else if (layout->IsType<emp::vector<T>>(id)) {
           vector_names.push_back(name);
           vector_IDs.push_back(id);
         }
@@ -101,7 +104,8 @@ namespace mabe {
 
     /// Count the total number of individual values across all traits and store for future use.
     size_t CountValues(const emp::DataMap & dmap) const {
-      emp_assert(dmap.HasLayout(layout), "Attempting CountValues() on DataMap with wrong layout");
+      emp_assert(!layout.IsNull());
+      emp_assert(dmap.HasLayout(*layout), "Attempting CountValues() on DataMap with wrong layout");
 
       num_values = base_IDs.size();
       for (size_t i = 0; i < vector_IDs.size(); ++i) {
@@ -115,6 +119,25 @@ namespace mabe {
 
     /// Get last calculated count of values; set to zero if count not up to date.
     size_t GetNumValues() const { return num_values; }
+
+    /// Get all associated values out of a data map and place them into a provided vector.
+    void GetValues(const emp::DataMap & dmap, emp::vector<T> & out) {
+      emp_assert(!layout.IsNull());
+
+      // Make sure we have the right amount of room for the values.
+      out.reserve(GetNumValues());
+      out.resize(0);
+
+      // Collect the base values.
+      for (size_t trait_id : base_IDs) {
+        out.push_back( dmap.Get<T>(trait_id) );
+      }
+
+      // Collect the vector values.
+      for (size_t trait_id : vector_IDs) {
+        emp::Append( out, dmap.Get<emp::vector<T>>(trait_id) );
+      }
+    }
 
     /// Get a value at the specified index of this map.
     T GetIndex(const emp::DataMap & dmap, size_t value_index) const {
