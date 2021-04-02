@@ -1,20 +1,23 @@
-This directory contains all of the core functionality for MABE.  None of this code should be
+This directory contains all of the core functionality for MABE.  This code should never be
 changed for individual experients.
 
 # Layout
 
-The core components of MABE are below.  Each component depends on all of those above it.
+The core components of MABE are below.  The first three files are tools with no internal dependancies.  Each of the remaining files depend on all of those above it.
 
-TraitInfo.h       - Specifications for module/trait interactions (on organisms, populations, etc.)
-ModuleBase.h      - Core functionality for interfacing with all module types.
-Organism.h        - Information about a single agent; ModuleBase is interface for OrganismManager.
-OrgIterator.h     - Tools for identifying organism locations and stepping through sets of them.
-Population.h      - Collection of Organisms (some of which could be EmptyOrganisms)
-Collection.h      - A more flexible collection of organisms or whole populations for manipulation.
-MABE.h            - Main contoller object; manipulates Populations and Organisms
-Module.h          - Modify main MABE contoller functions.
-OrganismManager.h - Specialty Module type to manage organisms with shared configuration.
-EmptyOrganism.h   - Specialty Organism type to represent empty cells.
+data_collect.hpp    - Tools to extract data from elements in a container. 
+TraitInfo.hpp       - Specifications for module/trait interactions (on organisms, populations, etc.)
+TraitSet.hpp        - Collections of traits, all with the same type (or a vector of that type)
+
+ModuleBase.hpp      - Core functionality for interfacing with all module types.
+Organism.hpp        - Information about a single agent; ModuleBase is interface for OrganismManager.
+OrgIterator.hpp     - Tools for identifying organism locations and stepping through sets of them.
+Population.hpp      - Collection of Organisms (some of which could be EmptyOrganisms)
+Collection.hpp      - A more flexible collection of organisms or whole populations for manipulation.
+MABE.hpp            - Main contoller object; manipulates Populations and Organisms
+Module.hpp          - Modify main MABE contoller functions.
+OrganismManager.hpp - Specialty Module type to manage organisms with shared configuration.
+EmptyOrganism.hpp   - Specialty Organism type to represent empty cells.
 
 
 # Component Development
