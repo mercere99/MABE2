@@ -167,16 +167,6 @@ namespace mabe {
       return AddTrait<T>(TraitInfo::Access::REQUIRED, name);
     }
 
-    /// Add a full set of traits that this module can READ, but another module must WRITE to them.
-    /// That other module should also provide the description for the trait.
-    template <typename T>
-    void AddRequiredTraits(const TraitSet & trait_set) {
-      emp::vector<std::string> trait_names(trait_set.GetNames());
-      for (const std::string & name : trait_names) {
-        AddTrait<T>(TraitInfo::Access::REQUIRED, name);
-      }
-    }
-
 
     // ---== Signal Handling ==---
 
