@@ -128,8 +128,8 @@ namespace mabe {
       emp_assert(!layout.IsNull());
 
       // Make sure we have the right amount of room for the values.
-      out.reserve(GetNumValues());
       out.resize(0);
+      out.reserve(GetNumValues());
 
       // Collect the base values.
       for (size_t trait_id : base_IDs) {
@@ -158,6 +158,11 @@ namespace mabe {
         vec_index++;
       }
       return dmap.Get<emp::vector<T>>(vector_IDs[vec_index])[value_index];
+    }
+
+    void PrintDebug() const {
+      std::cout << "Base names: " << emp::ToString(base_names) << std::endl;
+      std::cout << "Vector names: " << emp::ToString(vector_names) << std::endl;
     }
   };
 
