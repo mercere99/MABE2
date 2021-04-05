@@ -717,7 +717,7 @@ namespace mabe {
                    trait_name, "'.");
         }
 
-        // Make sure the type is consistent across modules.
+        // Make sure type is consistent across modules.
         if (cur_trait->GetType() != emp::GetTypeID<T>()) {
           AddError("Module ", mod_name, " is trying to use trait '",
                    trait_name, "' of type ", emp::GetTypeID<T>(),
