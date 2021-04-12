@@ -17,6 +17,7 @@
 #include "emp/bits/BitVector.hpp"
 #include "emp/datastructs/valsort_map.hpp"
 #include "emp/datastructs/vector_utils.hpp"
+#include "emp/math/random_utils.hpp"
 
 namespace mabe {
 
@@ -68,14 +69,13 @@ namespace mabe {
       mabe::Population & select_pop = control.GetPopulation(select_pop_id);
       mabe::Population & birth_pop = control.GetPopulation(birth_pop_id);
       const size_t num_orgs = select_pop.GetSize();
-      const size_t num_traits = trait_set.GetNumValues();
 
       // Build a fitness map for each trait.  A fitness map is an ordered map (low fitness to
       // high) when each entry is associated with a BitVector indicating which organism have
       // the fitness.  We'll then be able to quickly jump through fitness tiers during organism
       // selection.
       using trait_map_t = std::map<double, emp::BitVector>;  // Map of fitness for a single trait.
-      emp::vector< trait_map_t > trait_scores; 
+      emp::vector< trait_map_t > trait_scores;               // Set of maps for ALL traits.
 
       // Loop through each organism to collect trait information.
       emp::vector<double> cur_values;  // Vector to collect each org's trait values.
@@ -83,11 +83,16 @@ namespace mabe {
         // Skip empty positions in the population.
         if (select_pop.IsEmpty(org_id)) continue;
 
-        // Collect all of the values for this organism.
+        // Collect all of the trait values for the current organism.
         trait_set.GetValues(select_pop[org_id].GetDataMap(), cur_values);
 
+        // Update the number of traits if we haven't set it yet.
+        if (trait_scores.size() == 0) {
+          trait_scores.resize(cur_values.size());
+        }
+
         // Place organism values into associated fitness maps.
-        for (size_t trait_id = 0; trait_id < num_traits; ++trait_id) {
+        for (size_t trait_id = 0; trait_id < cur_values.size(); ++trait_id) {
           double cur_val = cur_values[trait_id];                  // Get this organism's trait value.
           trait_map_t & trait_map = trait_scores[trait_id];       // Grab proper fitness map.
           emp::BitVector & trait_bits = trait_map[cur_val];       // Find entry in the fitness map.
@@ -95,6 +100,8 @@ namespace mabe {
           trait_bits.Set(org_id);                                 // Include this org in fitness entry.
         }
       }
+
+      const size_t num_traits = trait_scores.size();
 
       // Move trait bit collections over to vectors ordered by fitness.
       using fit_rank_t = emp::vector<emp::BitVector>;
