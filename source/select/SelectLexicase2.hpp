@@ -70,76 +70,90 @@ namespace mabe {
       mabe::Population & birth_pop = control.GetPopulation(birth_pop_id);
       const size_t num_orgs = select_pop.GetSize();
 
-      // Build a trait vector to hold the scores for each organism.
-      using org_traits_t = emp::vector<double>;
-      emp::vector< org_traits_t > trait_scores(num_orgs);
+      // Build a fitness map for each trait.  A fitness map is an ordered map (low fitness to
+      // high) when each entry is associated with a BitVector indicating which organism have
+      // the fitness.  We'll then be able to quickly jump through fitness tiers during organism
+      // selection.
+      using trait_map_t = std::map<double, emp::BitVector>;  // Map of fitness for a single trait.
+      emp::vector< trait_map_t > trait_scores;               // Set of maps for ALL traits.
 
       // Loop through each organism to collect trait information.
-      size_t num_traits = 0;
-      emp::vector<size_t> start_orgs;
+      emp::vector<double> cur_values;  // Vector to collect each org's trait values.
       for (size_t org_id = 0; org_id < num_orgs; ++org_id) {
-        if (select_pop.IsEmpty(org_id)) continue;  // Skip empty positions in the population.
-
-        // This cell is not empty so add it to the full set of organisms.
-        start_orgs.push_back(org_id);
+        // Skip empty positions in the population.
+        if (select_pop.IsEmpty(org_id)) continue;
 
         // Collect all of the trait values for the current organism.
-        trait_set.GetValues(select_pop[org_id].GetDataMap(), trait_scores[org_id]);
-        if (num_traits == 0) num_traits = trait_scores[org_id].size();
-        emp_assert(num_traits == trait_scores[org_id].size(),
-                   org_id, num_traits, trait_scores[org_id].size(),
-                   "All organisms need to have the same number of traits!");
+        trait_set.GetValues(select_pop[org_id].GetDataMap(), cur_values);
+
+        // Update the number of traits if we haven't set it yet.
+        if (trait_scores.size() == 0) {
+          trait_scores.resize(cur_values.size());
+        }
+
+        // Place organism values into associated fitness maps.
+        for (size_t trait_id = 0; trait_id < cur_values.size(); ++trait_id) {
+          double cur_val = cur_values[trait_id];                  // Get this organism's trait value.
+          trait_map_t & trait_map = trait_scores[trait_id];       // Grab proper fitness map.
+          emp::BitVector & trait_bits = trait_map[cur_val];       // Find entry in the fitness map.
+          if (!trait_bits.GetSize()) trait_bits.Resize(num_orgs); // Initialize entry if needed.
+          trait_bits.Set(org_id);                                 // Include this org in fitness entry.
+        }
+      }
+
+      const size_t num_traits = trait_scores.size();
+
+      // Move trait bit collections over to vectors ordered by fitness.
+      using fit_rank_t = emp::vector<emp::BitVector>;
+      emp::vector<fit_rank_t> trait_fit_ranks(num_traits);
+      for (size_t trait_id = 0; trait_id < trait_scores.size(); ++trait_id) {
+        trait_map_t & trait_map = trait_scores[trait_id];
+        fit_rank_t & fit_rank = trait_fit_ranks[trait_id];
+        fit_rank.reserve(trait_map.size());
+        for (auto it = trait_map.rbegin(); it != trait_map.rend(); ++it) {
+          fit_rank.push_back(it->second);
+        }
       }
 
       // Setup a vector with each trait index to be shuffled as needed for selection.
       emp::vector<size_t> trait_ids = emp::NRange<size_t>(0, num_traits);
-      emp::vector<size_t> cur_orgs, next_orgs;
+
+      emp::BitVector cur_orgs(num_orgs);
 
       // Create the correct number of offspring.
       for (size_t birth_id = 0; birth_id < num_births; ++birth_id) {
         // For each offspring, start with full population
-        cur_orgs = start_orgs;
+        cur_orgs.SetAll();
 
         // Shuffle traits into a random order.
         emp::Shuffle(control.GetRandom(), trait_ids);
 
         // then step through traits and filter based on each.
-        for (size_t trait_id : trait_ids) {
-          // Find the maximum value of the current trait.
-          double min_value = std::numeric_limits<double>::max();
-          double max_value = std::numeric_limits<double>::min();
-          for (size_t org_id : cur_orgs) {
-            const double cur_value = trait_scores[org_id][trait_id];
-            if (cur_value < min_value) min_value = cur_value;
-            if (cur_value > max_value) max_value = cur_value;
+        for (size_t trait_id : trait_ids) {          // @CAO Track used traits to limit shuffling?
+          // For the current trait, step through to figure out how it limits organisms.
+          for (const emp::BitVector & fit_ids : trait_fit_ranks[trait_id]) {
+            if (cur_orgs.HasOverlap(fit_ids)) {
+              cur_orgs &= fit_ids;
+              break;
+            }
           }
 
-          // If there's no variation in this trait, move on to the next trait.
-          if (min_value == max_value) continue;
-
-          // Eliminate all organisms with a lower score.
-          for (size_t org_id : cur_orgs) {
-            if (trait_scores[org_id][trait_id] == max_value) next_orgs.push_back(org_id);
-          }
-
-          // Cleanup for the next trait.
-          cur_orgs.resize(0);
-          std::swap(cur_orgs, next_orgs);
-
-          // If we are down to just one organism, stop early!
-          if (cur_orgs.size() == 1) break;
+          // If we are down to one organism, stop filtering.
+          if (cur_orgs.CountOnes() == 1) break;    // @CAO Add BitVector::HasMultiple() or similar?
         }
 
-        emp_assert(cur_orgs.size() > 0);
-
         // If there's only one organism left, replicate it!
-        if (cur_orgs.size() == 1) {
-          control.Replicate(select_pop.IteratorAt(cur_orgs[0]), birth_pop);
+        const size_t orgs_remaining = cur_orgs.CountOnes();
+        if (orgs_remaining == 1) {
+          int org_id = cur_orgs.FindOne();
+          control.Replicate(select_pop.IteratorAt(org_id), birth_pop);
         }
 
         // Otherwise pick a random organism from the ones remaining.
         else {
-          int org_id = cur_orgs[ control.GetRandom().GetUInt(cur_orgs.size()) ];
+          const size_t rep_pos = control.GetRandom().GetUInt(orgs_remaining);
+          int org_id = cur_orgs.FindOne();
+          for (size_t i = 0; i < rep_pos; ++i) org_id = cur_orgs.FindOne(org_id+1);
           control.Replicate(select_pop.IteratorAt(org_id), birth_pop);
         }
 
