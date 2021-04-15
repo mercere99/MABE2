@@ -50,7 +50,7 @@ namespace mabe {
     }
 
     void SetupModule() override {
-      // @CAO: We should set these traits up as required, but cannot be sure of their type yet...
+      // @CAO: We should set required traits, but cannot be sure of their type yet...
       //       (They may be double or emp::vector<double>)
       // emp::vector<std::string> trait_names = emp::slice(trait_inputs);
       // for (const std::string & name : trait_names) {
@@ -114,12 +114,13 @@ namespace mabe {
             if (cur_value > max_value) max_value = cur_value;
           }
 
-          // If there's no variation in this trait, move on to the next trait.
-          if (min_value == max_value) continue;
+          // If there's not enough variation in this trait, move on to the next trait.
+          if (min_value + epsilon >= max_value) continue;
 
-          // Eliminate all organisms with a lower score.
+          // Eliminate all organisms with a lower score than the threshold.
+          double threshold = max_value - epsilon;
           for (size_t org_id : cur_orgs) {
-            if (trait_scores[org_id][trait_id] == max_value) next_orgs.push_back(org_id);
+            if (trait_scores[org_id][trait_id] >= threshold) next_orgs.push_back(org_id);
           }
 
           // Cleanup for the next trait.
