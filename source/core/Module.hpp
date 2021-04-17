@@ -45,6 +45,37 @@ namespace mabe {
     Module(const Module &) = delete;
     Module(Module &&) = delete;
 
+  private:
+    // Helper functions and info.
+    template <typename ENUM_T>
+    struct MenuEntry {
+      ENUM_T value;
+      std::string name;
+      std::string desc;      
+    };
+
+    template <typename ENUM_T>
+    using menu_t = emp::vector<MenuEntry<ENUM_T>>;
+
+    // base case
+    template <typename ENUM_T>
+    void BuildMenu(menu_t<ENUM_T> &) { }
+
+    template <typename ENUM_T, typename... Ts>
+    void BuildMenu(menu_t<ENUM_T> & menu,
+                   ENUM_T value, const std::string & name, const std::string & desc,
+                   Ts &... extras) {
+      menu.emplace_back( { value, name, desc } );
+      BuildMenu(menu, extras...);
+    }
+
+    template <typename ENUM_T, typename... Ts>
+    menu_t<ENUM_T> BuildMenu(Ts &... args) {
+      menu_t<ENUM_T> out_menu;
+      BuildMenu(out_menu, args...);
+      return out_menu;
+    }
+
   protected:
 
     // Specialized configuration links for MABE-specific modules.
