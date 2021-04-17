@@ -51,7 +51,10 @@ namespace mabe {
     struct MenuEntry {
       ENUM_T value;
       std::string name;
-      std::string desc;      
+      std::string desc;
+
+      MenuEntry(ENUM_T v, const std::string & n, const std::string & d)
+        : value(v), name(n), desc(d) {}
     };
 
     template <typename ENUM_T>
@@ -65,7 +68,7 @@ namespace mabe {
     void BuildMenu(menu_t<ENUM_T> & menu,
                    ENUM_T value, const std::string & name, const std::string & desc,
                    Ts &... extras) {
-      menu.emplace_back( { value, name, desc } );
+      menu.emplace_back( value, name, desc );
       BuildMenu(menu, extras...);
     }
 
@@ -126,6 +129,46 @@ namespace mabe {
         };
 
       return GetScope().LinkFuns<std::string>(name, get_fun, set_fun, desc);
+    }
+
+    /// Link a set of menu option to a variable value.
+    /// Each option should include three arguments:
+    /// The return value, the option name, and the option description.
+    template <typename ENUM_T, typename... Ts>
+    ConfigEntry_Functions<std::string> & LinkMenu(ENUM_T & var,
+                                                  const std::string & name,
+                                                  const std::string & desc,
+                                                  const Ts &... options) {
+      auto menu = BuildMenu<ENUM_T>(options...);
+
+      // Build the "get" function: take the current value of the menu and return the name.
+      std::function<std::string()> get_fun =
+        [&var,menu](){
+          for (const MenuEntry<ENUM_T> & entry : menu) {
+            if (var == entry.value) return entry.name;
+          }
+          return std::string("UNKNOWN");
+        };
+
+      // Build the "set" function: take the name of the menu option and update variable..
+      std::function<void(std::string)> set_fun =
+        [this,&var,name,menu](const std::string & entry_name){
+          for (const MenuEntry<ENUM_T> & entry : menu) {
+            if (entry_name == entry.name) { var = entry.value; return; }
+          };
+          control.AddError("Trying to set menu '", name, "' to '", entry_name, "'; does not exist.");
+        };
+
+      // Update the description to list all of the menu options.
+      std::stringstream new_desc;
+
+      // Start with the input description and add the description for each menu option.
+      new_desc << desc;
+      for (const MenuEntry<ENUM_T> & entry : menu) {
+        new_desc << "\n- \"" << entry.name << "\": " << entry.desc;
+      }
+
+      return GetScope().LinkFuns<std::string>(name, get_fun, set_fun, new_desc.str());
     }
 
     /// Link a range of values with a start, stop, and step.
