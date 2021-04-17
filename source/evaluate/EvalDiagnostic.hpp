@@ -35,28 +35,6 @@ namespace mabe {
 
     Type type;
 
-    // Helper functions.
-    std::string TypeToName(Type type) {
-      switch (type) {
-        case EXPLOIT: return "exploit"; break;
-        case STRUCT_EXPLOIT: return "struct_exploit"; break;
-        case EXPLORE: return "explore"; break;
-        case DIVERSITY: return "diversity"; break;
-        case WEAK_DIVERSITY: return "weak_diversity"; break;
-        default: break;
-      }
-      return "unknown";
-    }
-
-    Type NameToType(const std::string & name) {
-      if (name == "exploit") return Type::EXPLOIT;
-      else if (name == "struct_exploit") return Type::STRUCT_EXPLOIT;
-      else if (name == "explore") return Type::EXPLORE;
-      else if (name == "diversity") return Type::DIVERSITY;
-      else if (name == "weak_diversity") return Type::WEAK_DIVERSITY;
-      return Type::UNKNOWN;
-    }
-
   public:
     EvalDiagnostic(mabe::MABE & control,
                    const std::string & name="EvalDiagnostic",
@@ -79,16 +57,6 @@ namespace mabe {
       LinkVar(vals_trait, "vals_trait", "Which trait stores the values to evaluate?");
       LinkVar(scores_trait, "scores_trait", "Which trait should we store revised scores in?");
       LinkVar(total_trait, "total_trait", "Which trait should we store the total score in?");
-      // LinkFuns<std::string>(
-      //   [this](){ return TypeToName(type); },
-      //   [this](const std::string & name){ type = NameToType(name); },
-      //   "diagnostic", "Which Diagnostic should we use?"
-      //   "\n\"exploit\": All values must independently optimize to the max."
-      //   "\n\"struct_exploit\": Values must decrease from begining AND optimize."
-      //   "\n\"explore\": Only count max value and decreasing values after it."
-      //   "\n\"diversity\": Only count max value; all others must be low."
-      //   "\n\"weak_diversity\": Only count max value; all others locked at zero."
-      // );
       LinkMenu(type, "diagnostic", "Which Diagnostic should we use?",
                EXPLOIT, "exploit", "All values must independently optimize to the max.",
                STRUCT_EXPLOIT, "struct_exploit", "Values must decrease from begining AND optimize.",
