@@ -165,7 +165,7 @@ namespace mabe {
       // Start with the input description and add the description for each menu option.
       new_desc << desc;
       for (const MenuEntry<ENUM_T> & entry : menu) {
-        new_desc << "\n- \"" << entry.name << "\": " << entry.desc;
+        new_desc << "\n " << entry.name << ": " << entry.desc;
       }
 
       return GetScope().LinkFuns<std::string>(name, get_fun, set_fun, new_desc.str());
