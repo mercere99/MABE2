@@ -57,6 +57,57 @@ namespace mabe {
       return GetScope().LinkFuns<VAR_T>(name, get_fun, set_fun, desc);
     }
 
+    // Helper functions and info.
+    template <typename VAR_T>
+    struct MenuEntry {
+      VAR_T value;
+      std::string name;
+      std::string desc;
+
+      MenuEntry(VAR_T v, const std::string & n, const std::string & d)
+        : value(v), name(n), desc(d) {}
+    };
+
+    /// Link a set of menu option to a variable value.
+    /// Each option should include three arguments:
+    /// The return value, the option name, and the option description.
+    template <typename VAR_T, typename... Ts>
+    ConfigEntry_Functions<std::string> & LinkMenu(VAR_T & var,
+                                                  const std::string & name,
+                                                  const std::string & desc,
+                                                  const Ts &... entries) {
+      auto menu = emp::BuildObjVector<MenuEntry<VAR_T>, 3>(entries...);
+
+      // Build the "get" function: take the current value of the menu and return the name.
+      std::function<std::string()> get_fun =
+        [&var,menu](){
+          for (const MenuEntry<VAR_T> & entry : menu) {
+            if (var == entry.value) return entry.name;
+          }
+          return std::string("UNKNOWN");
+        };
+
+      // Build the "set" function: take the name of the menu option and update variable..
+      std::function<void(std::string)> set_fun =
+        [&var,name,menu](const std::string & entry_name){
+          for (const MenuEntry<VAR_T> & entry : menu) {
+            if (entry_name == entry.name) { var = entry.value; return; }
+          };
+          // AddError("Trying to set menu '", name, "' to '", entry_name, "'; does not exist.");
+        };
+
+      // Update the description to list all of the menu options.
+      std::stringstream new_desc;
+
+      // Start with the input description and add the description for each menu option.
+      new_desc << desc;
+      for (const MenuEntry<VAR_T> & entry : menu) {
+        new_desc << "\n " << entry.name << ": " << entry.desc;
+      }
+
+      return GetScope().LinkFuns<std::string>(name, get_fun, set_fun, new_desc.str());
+    }
+
   public:
     virtual void SetupScope(ConfigScope & scope) { cur_scope = &scope; }
     virtual void SetupConfig() = 0;
