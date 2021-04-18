@@ -35,24 +35,6 @@ namespace mabe {
       LIMIT_ERROR    // Invalid limit type.
     };
 
-    static BoundType NameToLimit(const std::string & name) {
-      if (name == "no_limit") return LIMIT_NONE;
-      else if (name == "clamp") return LIMIT_CLAMP;
-      else if (name == "wrap") return LIMIT_WRAP;
-      else if (name == "rebound") return LIMIT_REBOUND;
-      return LIMIT_ERROR;
-    }
-    static std::string LimitToName(BoundType bound) {
-      switch (bound) {
-        case LIMIT_NONE: return "no_limit"; break;
-        case LIMIT_CLAMP: return "clamp"; break;
-        case LIMIT_WRAP: return "wrap"; break;
-        case LIMIT_REBOUND: return "rebound"; break;
-        case LIMIT_ERROR: return "type_error"; break;
-      }
-      return "unknown_error";
-    }
-
     void CalculateTotal() {
       for (double x : vals) total += x;
       SetVar<double>(SharedData().total_name, total);
@@ -144,24 +126,18 @@ namespace mabe {
                       "Lower limit for value fields.");
       GetManager().LinkVar(SharedData().max_value, "max_value",
                       "Upper limit for value fields.");
-      GetManager().LinkFuns<std::string>(
-        [this](){ return LimitToName(SharedData().lower_bound); },
-        [this](const std::string & name){ SharedData().lower_bound = NameToLimit(name); },
-        "lower_bound",
-        "How should the lower limit be enforced?"
-        "\n- \"no_limit\": Allow values to be arbirarily low."
-        "\n- \"clamp\": Reduce too-low values to min_value."
-        "\n- \"wrap\": Make low values loop around to maximum."
-        "\n- \"rebound\": Make low values 'bounce' back up." );
-      GetManager().LinkFuns<std::string>(
-        [this](){ return LimitToName(SharedData().upper_bound); },
-        [this](const std::string & name){ SharedData().upper_bound = NameToLimit(name); },
-        "upper_bound",
-        "How should the upper limit be enforced?"
-        "\n- \"no_limit\": Allow values to be arbirarily high."
-        "\n- \"clamp\": Reduce too-high values to max_value."
-        "\n- \"wrap\": Make high values loop around to minimum."
-        "\n- \"rebound\": Make high values 'bounce' back down." );
+      GetManager().LinkMenu(
+        SharedData().lower_bound, "lower_bound", "How should the lower limit be enforced?",
+        LIMIT_NONE, "no_limit", "Allow values to be arbirarily low.",
+        LIMIT_CLAMP, "clamp", "Reduce too-low values to min_value.",
+        LIMIT_WRAP, "wrap", "Make low values loop around to maximum.",
+        LIMIT_REBOUND, "rebound", "Make low values 'bounce' back up." );
+      GetManager().LinkMenu(
+        SharedData().upper_bound, "upper_bound", "How should the upper limit be enforced?",
+        LIMIT_NONE, "no_limit", "Allow values to be arbirarily high.",
+        LIMIT_CLAMP, "clamp", "Reduce too-high values to max_value.",
+        LIMIT_WRAP, "wrap", "Make high values loop around to minimum.",
+        LIMIT_REBOUND, "rebound", "Make high values 'bounce' back down." );
       GetManager().LinkVar(SharedData().output_name, "output_name",
                       "Name of variable to contain set of values.");
       GetManager().LinkVar(SharedData().total_name, "total_name",
