@@ -30,6 +30,7 @@ namespace mabe {
     int select_pop_id = 0;      ///< Which population are we selecting from?
     int birth_pop_id = 1;       ///< Which population should births go into?
     size_t num_births = 1;      ///< How many offspring organisms should we produce?
+    double sample_frac = 1.0;   ///< Fraction of test cases to use each generation
 
   public:
     SelectLexicase(mabe::MABE & control,
@@ -47,6 +48,7 @@ namespace mabe {
       LinkVar(trait_inputs, "fitness_traits", "Which traits provide the fitness values to use?");
       LinkVar(epsilon, "epsilon", "Range from max value to be preserved? (fraction of max)");
       LinkVar(num_births, "num_births", "Number of offspring organisms to produce");
+      LinkVar(sample_frac, "sample_frac", "Fraction of test cases to use each generation" );
     }
 
     void SetupModule() override {
@@ -74,10 +76,15 @@ namespace mabe {
       using org_traits_t = emp::vector<double>;
       emp::vector< org_traits_t > trait_scores(num_orgs);
 
+      // Find a living organism to setup traits.
+      size_t live_id = 0;
+      while (select_pop.IsEmpty(live_id)) live_id++;
+      if (live_id == select_pop.size()) return;  // @CAO + error?  No living orgs!!
+      size_t num_traits = trait_set.CountValues(select_pop[live_id].GetDataMap());
+
       // Loop through each organism to collect trait information.
-      size_t num_traits = 0;
       emp::vector<size_t> start_orgs;
-      for (size_t org_id = 0; org_id < num_orgs; ++org_id) {
+      for (size_t org_id = live_id; org_id < num_orgs; ++org_id) {
         if (select_pop.IsEmpty(org_id)) continue;  // Skip empty positions in the population.
 
         // This cell is not empty so add it to the full set of organisms.
