@@ -33,7 +33,7 @@ namespace mabe {
       UNKNOWN
     };
 
-    Type type;
+    Type diagnostc_id;
 
   public:
     EvalDiagnostic(mabe::MABE & control,
@@ -57,7 +57,7 @@ namespace mabe {
       LinkVar(vals_trait, "vals_trait", "Which trait stores the values to evaluate?");
       LinkVar(scores_trait, "scores_trait", "Which trait should we store revised scores in?");
       LinkVar(total_trait, "total_trait", "Which trait should we store the total score in?");
-      LinkMenu(type, "diagnostic", "Which Diagnostic should we use?",
+      LinkMenu(diagnostic_id, "diagnostic", "Which Diagnostic should we use?",
                EXPLOIT, "exploit", "All values must independently optimize to the max.",
                STRUCT_EXPLOIT, "struct_exploit", "Values must decrease from begining AND optimize.",
                EXPLORE, "explore", "Only count max value and decreasing values after it.",
@@ -96,7 +96,7 @@ namespace mabe {
         size_t pos = 0;
 
         // Determine the scores based on the diagnostic type that we're using.
-        switch (type) {
+        switch (diagnostic_id) 
         case EXPLOIT:
           scores = vals;
           for (double x : scores) total_score += x;
