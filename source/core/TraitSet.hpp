@@ -106,11 +106,12 @@ namespace mabe {
     }
 
     /// Count the total number of individual values across all traits and store for future use.
-    size_t CountValues(const emp::DataMap & dmap) const {
+    size_t CountValues(const emp::DataMap & dmap) {
       emp_assert(!layout.IsNull());
       emp_assert(dmap.HasLayout(*layout), "Attempting CountValues() on DataMap with wrong layout");
 
       num_values = base_IDs.size();
+      vec_sizes.resize(vector_IDs.size());
       for (size_t i = 0; i < vector_IDs.size(); ++i) {
         const size_t id = vector_IDs[i];
         const size_t cur_size = dmap.Get<emp::vector<T>>(id).size();
@@ -140,6 +141,46 @@ namespace mabe {
       for (size_t trait_id : vector_IDs) {
         const emp::vector<T> & cur_vec = dmap.Get<emp::vector<T>>(trait_id);
         out.insert(out.end(), cur_vec.begin(), cur_vec.end());
+      }
+    }
+
+    /// Copy associated values from data map to a provided vector, only for positions specified.
+    void GetValues(const emp::DataMap & dmap,
+                   emp::vector<T> & out,
+                   const emp::vector<size_t> & ids_used) {
+      emp_assert(!layout.IsNull());
+
+      // Make sure we have the right amount of room for the values.
+      out.resize(0);
+      out.reserve(ids_used.size());
+
+      for (size_t id : ids_used) {
+        // If the ID is for a base trait, grab it.
+        if (id < base_IDs.size()) {
+          const size_t trait_id = base_IDs[id];
+          out.push_back( dmap.Get<T>(trait_id) );
+        }
+
+        // Otherwise it must be from a vector.
+        else {
+          id -= base_IDs.size();  // Adjust id to be in range.
+
+          // Step through the vectors to find the one with this index.
+          size_t vid = 0;
+          bool found = false;
+          while (vid < vector_IDs.size()) {
+            const size_t trait_id = vector_IDs[vid];
+            const emp::vector<T> & cur_vec = dmap.Get<emp::vector<T>>(trait_id);
+            if (id < cur_vec.size()) {
+              out.push_back( cur_vec[id] );
+              found = true;
+              break;
+            }
+            id -= cur_vec.size();
+            vid++;
+          }
+          emp_assert(found, "PROBLEM!  TraitSet ran out of vectors without finding trait id.");
+        }
       }
     }
 
