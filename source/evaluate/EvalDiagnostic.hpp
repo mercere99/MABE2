@@ -33,7 +33,7 @@ namespace mabe {
       UNKNOWN
     };
 
-    Type diagnostc_id;
+    Type diagnostic_id;
 
   public:
     EvalDiagnostic(mabe::MABE & control,
@@ -96,7 +96,7 @@ namespace mabe {
         size_t pos = 0;
 
         // Determine the scores based on the diagnostic type that we're using.
-        switch (diagnostic_id) 
+        switch (diagnostic_id) {
         case EXPLOIT:
           scores = vals;
           for (double x : scores) total_score += x;
@@ -162,8 +162,6 @@ namespace mabe {
           max_org = &org;
         }
       }
-
-      std::cout << "Max " << total_trait << " = " << max_total << std::endl;
     }
   };
 
