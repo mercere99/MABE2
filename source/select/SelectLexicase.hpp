@@ -66,6 +66,8 @@ namespace mabe {
     }
 
     void OnUpdate(size_t update) override {
+      emp_assert(sample_frac >= 0.0);
+      emp_assert(sample_frac <= 1.0);
 
       // Collect information about the population we're using.
       mabe::Population & select_pop = control.GetPopulation(select_pop_id);
@@ -82,6 +84,14 @@ namespace mabe {
       if (live_id == select_pop.size()) return;  // @CAO + error?  No living orgs!!
       size_t num_traits = trait_set.CountValues(select_pop[live_id].GetDataMap());
 
+      // If we're not using all of the traits, determine which ones to select on.
+      size_t num_used = sample_frac * num_traits;
+      if (num_used == 0) return;                   // If we have no traits, don't continue!
+      emp::vector<size_t> traits_used;
+      if (sample_frac < 1.0) {
+        emp::Choose(control.GetRandom(), num_traits, num_used, traits_used);
+      }
+
       // Loop through each organism to collect trait information.
       emp::vector<size_t> start_orgs;
       for (size_t org_id = live_id; org_id < num_orgs; ++org_id) {
@@ -91,8 +101,12 @@ namespace mabe {
         start_orgs.push_back(org_id);
 
         // Collect all of the trait values for the current organism.
-        trait_set.GetValues(select_pop[org_id].GetDataMap(), trait_scores[org_id]);
-        if (num_traits == 0) num_traits = trait_scores[org_id].size();
+        // If we are using a subset of traits, take that into account.
+        if (traits_used.size() > 0) {
+          trait_set.GetValues(select_pop[org_id].GetDataMap(), trait_scores[org_id], traits_used);
+        } else {
+          trait_set.GetValues(select_pop[org_id].GetDataMap(), trait_scores[org_id]);
+        }
         emp_assert(num_traits == trait_scores[org_id].size(),
                    org_id, num_traits, trait_scores[org_id].size(),
                    "All organisms need to have the same number of traits!");
