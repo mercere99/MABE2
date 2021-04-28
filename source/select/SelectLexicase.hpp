@@ -30,7 +30,7 @@ namespace mabe {
     int select_pop_id = 0;      ///< Which population are we selecting from?
     int birth_pop_id = 1;       ///< Which population should births go into?
     size_t num_births = 1;      ///< How many offspring organisms should we produce?
-    double sample_frac = 1.0;   ///< Fraction of test cases to use each generation
+    size_t sample_traits = 0;   ///< Number of test cases to use each generation
 
   public:
     SelectLexicase(mabe::MABE & control,
@@ -48,7 +48,7 @@ namespace mabe {
       LinkVar(trait_inputs, "fitness_traits", "Which traits provide the fitness values to use?");
       LinkVar(epsilon, "epsilon", "Range from max value to be preserved? (fraction of max)");
       LinkVar(num_births, "num_births", "Number of offspring organisms to produce");
-      LinkVar(sample_frac, "sample_frac", "Fraction of test cases to use each generation" );
+      LinkVar(sample_traits, "sample_traits", "Number of test cases to use each generation (0=all)" );
     }
 
     void SetupModule() override {
@@ -66,9 +66,6 @@ namespace mabe {
     }
 
     void OnUpdate(size_t update) override {
-      emp_assert(sample_frac >= 0.0);
-      emp_assert(sample_frac <= 1.0);
-
       // Collect information about the population we're using.
       mabe::Population & select_pop = control.GetPopulation(select_pop_id);
       mabe::Population & birth_pop = control.GetPopulation(birth_pop_id);
@@ -85,11 +82,9 @@ namespace mabe {
       size_t num_traits = trait_set.CountValues(select_pop[live_id].GetDataMap());
 
       // If we're not using all of the traits, determine which ones to select on.
-      size_t num_used = sample_frac * num_traits;
-      if (num_used == 0) return;                   // If we have no traits, don't continue!
       emp::vector<size_t> traits_used;
-      if (sample_frac < 1.0) {
-        emp::Choose(control.GetRandom(), num_traits, num_used, traits_used);
+      if (sample_traits) {
+        emp::Choose(control.GetRandom(), num_traits, sample_traits, traits_used);
       }
 
       // Loop through each organism to collect trait information.
