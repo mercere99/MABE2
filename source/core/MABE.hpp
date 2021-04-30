@@ -510,6 +510,21 @@ namespace mabe {
       return pos;
     }
 
+    /// Inject this specific instance of an organism and turn over the pointer to be managed
+    /// by MABE.  Teturn the position the organism was placed in.
+    OrgPosition InjectInstance(emp::Ptr<Organism> org_ptr, Population & pop) {
+      emp_assert(org_ptr->GetDataMap().SameLayout(org_data_map));
+      on_inject_ready_sig.Trigger(*org_ptr, pop);
+      OrgPosition pos = FindInjectPosition(*org_ptr, pop);
+      if (pos.IsValid()) AddOrgAt( org_ptr, pos);
+      else {
+        org_ptr.Delete();          
+        AddError("Invalid position; failed to inject organism ", i, "!");
+      }
+      return pos;
+    }
+    
+
     /// Add an organsim of a specified type to the world (provide the type name and the
     /// MABE controller will create an instance of it.)
     OrgPosition Inject(const std::string & type_name, Population & pop, size_t copy_count=1) {
