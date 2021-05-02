@@ -519,20 +519,23 @@ namespace mabe {
       if (pos.IsValid()) AddOrgAt( org_ptr, pos);
       else {
         org_ptr.Delete();          
-        AddError("Invalid position; failed to inject organism ", i, "!");
+        AddError("Invalid position; failed to inject organism!");
       }
       return pos;
     }
     
 
     /// Add an organsim of a specified type to the world (provide the type name and the
-    /// MABE controller will create an instance of it.)
+    /// MABE controller will create instances of it.)  Returns the position of the last
+    /// organism placed.
     OrgPosition Inject(const std::string & type_name, Population & pop, size_t copy_count=1) {
-      auto & org_manager = GetModule(type_name);            // Look up type of organism.
-      auto org_ptr = org_manager.MakeOrganism(random);      // Build an org of this type.
-      OrgPosition pos = Inject(*org_ptr, pop, copy_count);  // Inject a copy of the organism.
-      org_ptr.Delete();                                     // Delete generated organism.
-      return pos;                                           // Return last position injected.
+      auto & org_manager = GetModule(type_name);          // Look up type of organism.
+      OrgPosition pos;                                    // Place to save injection position.
+      for (size_t i = 0; i < copy_count; i++) {           // Loop through, injecting each instance.
+        auto org_ptr = org_manager.MakeOrganism(random);  // ...Build an org of this type.
+        pos = InjectInstance(org_ptr, pop);               // ...Inject it into the popultation.
+      }
+      return pos;                                         // Return last position injected.
     }
 
     /// Add an organism of a specified type and population (provide names of both and they
