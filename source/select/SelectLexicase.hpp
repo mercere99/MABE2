@@ -19,6 +19,8 @@
 #include "emp/datastructs/vector_utils.hpp"
 #include "emp/math/random_utils.hpp"
 
+#include "emp/debug/debug.hpp"
+
 namespace mabe {
 
   /// Add Lexicase selection with the current population.
@@ -52,6 +54,9 @@ namespace mabe {
     }
 
     void SetupModule() override {
+      // We should always have a minimal epsilon to handle mathematical imprecision of doubles.
+      if (epsilon <= 0.0) epsilon = 0.000000001; // One billionth.
+
       // @CAO: We should set required traits, but cannot be sure of their type yet...
       //       (They may be double or emp::vector<double>)
       // emp::vector<std::string> trait_names = emp::slice(trait_inputs);
@@ -70,10 +75,10 @@ namespace mabe {
       mabe::Population & select_pop = control.GetPopulation(select_pop_id);
       mabe::Population & birth_pop = control.GetPopulation(birth_pop_id);
       const size_t num_orgs = select_pop.GetSize();
+      emp_assert(num_orgs > 0);
 
       // Build a trait vector to hold the scores for each organism.
-      using org_traits_t = emp::vector<double>;
-      emp::vector< org_traits_t > trait_scores(num_orgs);
+      emp::vector< emp::vector<double> > trait_scores(num_orgs);
 
       // Find a living organism to setup traits.
       size_t live_id = 0;
@@ -121,9 +126,9 @@ namespace mabe {
 
         // then step through traits and filter based on each.
         for (size_t trait_id : trait_ids) {
-          // Find the maximum value of the current trait.
+          // Find the minimum and maximum values of the current trait.
           double min_value = std::numeric_limits<double>::max();
-          double max_value = std::numeric_limits<double>::min();
+          double max_value = std::numeric_limits<double>::lowest();
           for (size_t org_id : cur_orgs) {
             const double cur_value = trait_scores[org_id][trait_id];
             if (cur_value < min_value) min_value = cur_value;
@@ -139,12 +144,15 @@ namespace mabe {
             if (trait_scores[org_id][trait_id] >= threshold) next_orgs.push_back(org_id);
           }
 
+          emp_assert(next_orgs.size() > 0);
+
           // Cleanup for the next trait.
           cur_orgs.resize(0);
           std::swap(cur_orgs, next_orgs);
 
           // If we are down to just one organism, stop early!
           if (cur_orgs.size() == 1) break;
+          emp_assert(cur_orgs.size() > 0);
         }
 
         emp_assert(cur_orgs.size() > 0);
