@@ -136,13 +136,15 @@ namespace mabe {
     ConfigEntry & SetMax(double max) { range.SetLower(max); return *this; }
 
     // Try to copy another config entry into this one; return true if successful.
-    virtual bool CopyValue(const ConfigEntry & in) { return false; }
+    virtual bool CopyValue(const ConfigEntry & ) { return false; }
 
     /// If this entry is a scope, we should be able to lookup other entries inside it.
-    virtual emp::Ptr<ConfigEntry> LookupEntry(const std::string & in_name, bool scan_scopes=true) {
+    virtual emp::Ptr<ConfigEntry>
+    LookupEntry(const std::string & in_name, bool /* scan_scopes */=true) {
       return (in_name == "") ? this : nullptr;
     }
-    virtual emp::Ptr<const ConfigEntry> LookupEntry(const std::string & in_name, bool scan_scopes=true) const {
+    virtual emp::Ptr<const ConfigEntry>
+    LookupEntry(const std::string & in_name, bool /* scan_scopes */=true) const {
       return (in_name == "") ? this : nullptr;
     }
     virtual bool Has(const std::string & in_name) const { return (bool) LookupEntry(in_name); }
@@ -371,7 +373,7 @@ namespace mabe {
   ////////////////////////////////////////////////////
   //  Function definitions...
 
-  emp::Ptr<ConfigEntry> ConfigEntry::Call( emp::vector<emp::Ptr<ConfigEntry>> args ) {
+  emp::Ptr<ConfigEntry> ConfigEntry::Call( emp::vector<emp::Ptr<ConfigEntry>> /* args */ ) {
     return emp::NewPtr<ConfigEntry_Error>("Cannot call a function on non-function '", name, "'.");
   }
 
