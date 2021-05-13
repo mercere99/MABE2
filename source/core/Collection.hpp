@@ -308,11 +308,11 @@ namespace mabe {
       }
     }
     template <typename T>
-    void DecPosition(T & it) const {
+    void DecPosition(T & /* it */) const {
       emp_error("DecPosition() not yet implemented for CollectionIterator.");
     }
     template <typename T>
-    void ShiftPosition(T & it, int shift) const {
+    void ShiftPosition(T & /* it */, int /* shift */) const {
       emp_error("ShiftPosition() not yet implemented for CollectionIterator.");
     }
 
