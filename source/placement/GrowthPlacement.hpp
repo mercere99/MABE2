@@ -62,7 +62,7 @@ namespace mabe {
     }
 
     // Injections always go into the active population.
-    OrgPosition DoPlaceInject(Organism & org, Population & target_pop) override {
+    OrgPosition DoPlaceInject(Organism & /* org */, Population & target_pop) override {
       // If inject is going to a monitored population, place it in a new, empty cell!
       if (target_collect.HasPopulation(target_pop)) return control.PushEmpty(target_pop);
 

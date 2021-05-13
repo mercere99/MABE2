@@ -70,7 +70,7 @@ namespace mabe {
       trait_set.SetTraits(trait_inputs);     ///< Parse set of trait inputs passed in.
     }
 
-    void OnUpdate(size_t update) override {
+    void OnUpdate(size_t /* update */) override {
       // Collect information about the population we're using.
       mabe::Population & select_pop = control.GetPopulation(select_pop_id);
       mabe::Population & birth_pop = control.GetPopulation(birth_pop_id);

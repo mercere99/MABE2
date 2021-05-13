@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2020.
+ *  @date 2020-2021.
  *
  *  @file  MovePopulation.hpp
  *  @brief Module to move organisms from one population to another (optionally clearing the destination)
@@ -37,7 +37,7 @@ namespace mabe {
       LinkVar(reset_to, "reset_to", "Should we erase organisms at the destination?");
     }
 
-    void OnUpdate(size_t update) override {
+    void OnUpdate(size_t /* update */) override {
       Population & from_pop = control.GetPopulation(from_id);
       Population & to_pop = control.GetPopulation(to_id);
 

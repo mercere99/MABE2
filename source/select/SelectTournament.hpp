@@ -49,7 +49,7 @@ namespace mabe {
       AddRequiredTrait<double>(trait); ///< The fitness trait must be set by another module.
     }
 
-    void OnUpdate(size_t update) override {
+    void OnUpdate(size_t /* update */) override {
       emp::Random & random = control.GetRandom();
       Population & select_pop = control.GetPopulation(select_pop_id);
       Population & birth_pop = control.GetPopulation(birth_pop_id);

@@ -72,7 +72,7 @@ namespace mabe {
       AddOwnedTrait<double>(total_trait, "Combined score for current diagnostic.", 0.0);
     }
 
-    void OnUpdate(size_t update) override {
+    void OnUpdate(size_t /* update */) override {
       emp_assert(control.GetNumPopulations() >= 1);
 
       // Track the organism with the highest total score.

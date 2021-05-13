@@ -50,7 +50,7 @@ namespace mabe {
       AddRequiredTrait<double>(trait);  ///< The fitness trait must be set by another module.
     }
 
-    void OnUpdate(size_t update) override {
+    void OnUpdate(size_t /* update */) override {
       // Construct a map of all IDs to their associated fitness values.
       emp::valsort_map<OrgPosition, double> id_fit_map;
       Collection select_col = control.GetAlivePopulation(select_pop_id);

@@ -54,7 +54,7 @@ namespace mabe {
       AddOwnedTrait<double>(fitness_trait, "All-ones fitness value", 0.0);
     }
 
-    void OnUpdate(size_t update) override {
+    void OnUpdate(size_t /* update */) override {
       emp_assert(control.GetNumPopulations() >= 1);
 
       // Loop through the populations and evaluate each organism pair.
