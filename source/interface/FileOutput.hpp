@@ -72,8 +72,8 @@ namespace mabe {
       if (!init) InitializeFile();
 
       // Check if we should print this update.
-      if ((ud < start_ud) ||
-          (stop_ud != -1 && ud > stop_ud) ||
+      if (((int) ud < start_ud) ||
+          (stop_ud != -1 && (int) ud > stop_ud) ||
           ((ud - start_ud)%step_ud != 0) ) return;
 
       // If so, print!
