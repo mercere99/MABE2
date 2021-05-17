@@ -314,6 +314,7 @@ namespace mabe {
     emp::vector<ArgInfo> arg_set;              ///< Info about valid command-line arguments.
     emp::vector<std::string> args;             ///< Command-line arguments passed in.
     emp::vector<std::string> config_filenames; ///< Names of configuration files to load.
+    emp::vector<std::string> config_settings;  ///< Additional config commands to run.
     std::string gen_filename;                  ///< Name of output file to generate.
     Config config;                             ///< Configutation information for this run.
     emp::Ptr<ConfigScope> cur_scope;           ///< Which config scope are we currently using?
@@ -1007,15 +1008,15 @@ namespace mabe {
       [this](const emp::vector<std::string> &){ show_help = true; } );
     arg_set.emplace_back("--modules", "-m", "              ", "Module list",
       [this](const emp::vector<std::string> &){ ShowModules(); } );
-    // arg_set.emplace_back("--set", "-s", "[param=value] ", "Set specified parameter",
-    //   [this](const emp::vector<std::string> &){ emp_assert(false); } );
-    arg_set.emplace_back("--verbose", "-+", "              ", "Output extra setup info",
-      [this](const emp::vector<std::string> &){ verbose = true; } );
+    arg_set.emplace_back("--set", "-s", "[param=value] ", "Set specified parameter",
+      [this](const emp::vector<std::string> & in){ config_settings = in; } );
     arg_set.emplace_back("--version", "-v", "              ", "Version ID of MABE",
       [this](const emp::vector<std::string> &){
         std::cout << "MABE v" << VERSION << "\n";
         Exit();
       });
+    arg_set.emplace_back("--verbose", "-+", "              ", "Output extra setup info",
+      [this](const emp::vector<std::string> &){ verbose = true; } );
 
     // Scan through all input argument positions.
     for (size_t pos = 1; pos < args.size(); pos++) {
