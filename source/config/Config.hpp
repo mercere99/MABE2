@@ -321,7 +321,7 @@ namespace mabe {
     const ConfigScope & GetRootScope() const { return root_scope; }
 
     // Load a single, specified configuration file.
-    void Load(std::string filename) {
+    void Load(const std::string & filename) {
       Debug("Running Load(", filename, ")");
       std::ifstream file(filename);           // Load the provided file.
       tokens = lexer.Tokenize(file);          // Convert to more-usable tokens.
@@ -339,6 +339,20 @@ namespace mabe {
     // Sequentially load a series of configuration files.
     void Load(const emp::vector<std::string> & filenames) {
       for ( const std::string & fn : filenames) Load(fn);
+    }
+
+    // Load a single, specified configuration file.
+    void LoadStatements(const emp::vector<std::string> & statements) {
+      Debug("Running LoadStatements()");
+      tokens = lexer.Tokenize(statements);    // Convert to more-usable tokens.
+      size_t pos = 0;                         // Start at the beginning of the file.
+
+      // Parse and run the program, starting from the outer scope.
+      auto cur_block = ParseStatementList(pos, root_scope);
+      cur_block->Process();
+
+      // Store this AST onto the full set we're working with.
+      ast_root.AddChild(cur_block);
     }
 
 
