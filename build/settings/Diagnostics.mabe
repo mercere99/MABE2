@@ -1,0 +1,98 @@
+random_seed = 0;                // Seed for random number generator; use 0 to base on time.
+Value pop_size = 512;
+Value num_gens = 50000;
+
+Population main_pop;
+Population next_pop;
+
+CommandLine cl {                // Handle basic I/O on the command line.
+  target_pop = "main_pop";      // Which population should we print stats about?
+} 
+
+EvalDiagnostic eval {           // Evaluate set of values with a specified diagnostic problem.
+  target = "main_pop";          // Which population(s) should we evaluate?
+  vals_trait = "vals";          // Which trait stores the values to evaluate?
+  scores_trait = "scores";      // Which trait should we store revised scores in?
+  total_trait = "fitness";      // Which trait should we store the total score in?
+  diagnostic = "explore";       // Which Diagnostic should we use?
+                                // "exploit": All values must independently optimize to the max.
+                                // "struct_exploit": Values must decrease from begining AND optimize.
+                                // "explore": Only count max value and decreasing values after it.
+                                // "diversity": Only count max value; all others must be low.
+                                // "weak_diversity": Only count max value; all others locked at zero.
+}
+
+SelectElite select_e {          // Choose the top fitness organisms for replication.
+  _active = 0;                  // Should we activate this module? (0=off, 1=on)
+  _desc = "";                   // Special description for those object.
+  select_pop = "main_pop";      // Which population should we select parents from?
+  birth_pop = "next_pop";       // Which population should births go into?
+  top_count = pop_size;         // Number of top-fitness orgs to be replicated
+  copy_count = 1;               // Number of copies to make of replicated organisms
+  fitness_trait = "fitness";    // Which trait provides the fitness value to use?
+}
+SelectTournament select_t {     // Select the top fitness organisms from random subgroups for replication.
+  _active = 0;                  // Should we activate this module? (0=off, 1=on)
+  _desc = "";                   // Special description for those object.
+  select_pop = "main_pop";      // Which population should we select parents from?
+  birth_pop = "next_pop";       // Which population should births go into?
+  tournament_size = 7;          // Number of orgs in each tournament
+  num_tournaments = pop_size;   // Number of tournaments to run
+  fitness_trait = "fitness";    // Which trait provides the fitness value to use?
+}
+SelectLexicase select_l {       // Shuffle traits each time an organism is chose for replication.
+  _active = 1;                  // Should we activate this module? (0=off, 1=on)
+  _desc = "";                   // Special description for those object.
+  select_pop = "main_pop";      // Which population should we select parents from?
+  birth_pop = "next_pop";       // Which population should births go into?
+  fitness_traits = "scores";    // Which traits provide the fitness values to use?
+  epsilon = 0.0;                // Range from max value to be preserved? (fraction of max)
+  num_births = pop_size;        // Number of offspring organisms to produce
+}
+
+FileOutput output {             // Output collected data into a specified file.
+  _active = 1;                  // Should we activate this module? (0=off, 1=on)
+  _desc = "";                   // Special description for those object.
+  filename = "output.csv";      // Name of file for output data.
+  format = "fitness:max,fitness:mean,fitness:min,fitness,vals,scores";  // Column format to use in the file.
+  target = "main_pop";          // Which population(s) should we print from?
+  output_updates = "0:1";       // Which updates should we output data?
+}
+
+GrowthPlacement place_next {    // Always appened births to the end of a population.
+  _active = 1;                  // Should we activate this module? (0=off, 1=on)
+  _desc = "";                   // Special description for those object.
+  target = "main_pop,next_pop"; // Population(s) to manage.
+}
+MovePopulation sync_gen {       // Move organisms from one populaiton to another.
+  _active = 1;                  // Should we activate this module? (0=off, 1=on)
+  _desc = "";                   // Special description for those object.
+  from_pop = "next_pop";        // Population to move organisms from.
+  to_pop = "main_pop";          // Population to move organisms into.
+  reset_to = 1;                 // Should we erase organisms at the destination?
+}
+ValsOrg vals_org {              // Organism consisting of a series of N floating-point values.
+  _active = 1;                  // Should we activate this module? (0=off, 1=on)
+  _desc = "";                   // Special description for those object.
+  N = 100;                      // Number of values in organism
+  mut_prob = 0.007;              // Probability of each value mutating on reproduction.
+  mut_size = 1.0;               // Standard deviation on size of mutations.
+  min_value = 0;                // Lower limit for value fields.
+  max_value = 100;              // Upper limit for value fields.
+  lower_bound = "clamp";        // How should the lower limit be enforced?
+                                // - "no_limit": Allow values to be arbirarily low.
+                                // - "clamp": Reduce too-low values to min_value.
+                                // - "wrap": Make low values loop around to maximum.
+                                // - "rebound": Make low values 'bounce' back up.
+  upper_bound = "rebound";      // How should the upper limit be enforced?
+                                // - "no_limit": Allow values to be arbirarily high.
+                                // - "clamp": Reduce too-high values to max_value.
+                                // - "wrap": Make high values loop around to minimum.
+                                // - "rebound": Make high values 'bounce' back down.
+  output_name = "vals";         // Name of variable to contain set of values.
+  total_name = "total";         // Name of variable to contain total of all values.
+}
+
+@start(0) print("random_seed = ", random_seed, "\n");
+@start(0) inject("vals_org", "main_pop", pop_size);
+@update(num_gens) exit();
