@@ -939,6 +939,11 @@ namespace mabe {
       config.Load(config_filenames);   // Load files
     }
 
+    if (config_settings.size()) {
+      std::cout << "Loading command-line settings." << std::endl;
+      config.LoadStatements(config_settings);      
+    }
+
     // If we are writing a file, do so and then exit.
     if (gen_filename != "") {
       std::cout << "Generating file '" << gen_filename << "'." << std::endl;
@@ -1009,7 +1014,10 @@ namespace mabe {
     arg_set.emplace_back("--modules", "-m", "              ", "Module list",
       [this](const emp::vector<std::string> &){ ShowModules(); } );
     arg_set.emplace_back("--set", "-s", "[param=value] ", "Set specified parameter",
-      [this](const emp::vector<std::string> & in){ config_settings = in; } );
+      [this](const emp::vector<std::string> & in){
+        emp::Append(config_settings, in);
+        config_settings.push_back(";"); // Extra semi-colon so not needed on command line.
+      });
     arg_set.emplace_back("--version", "-v", "              ", "Version ID of MABE",
       [this](const emp::vector<std::string> &){
         std::cout << "MABE v" << VERSION << "\n";
