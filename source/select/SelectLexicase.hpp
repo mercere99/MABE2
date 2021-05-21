@@ -92,7 +92,7 @@ namespace mabe {
         emp::Choose(control.GetRandom(), num_traits, sample_traits, traits_used);
       }
 
-      // Loop through each organism to collect trait information.
+      // Loop through each organism to collect its trait information.
       emp::vector<size_t> start_orgs;
       for (size_t org_id = live_id; org_id < num_orgs; ++org_id) {
         if (select_pop.IsEmpty(org_id)) continue;  // Skip empty positions in the population.
@@ -106,16 +106,16 @@ namespace mabe {
           trait_set.GetValues(select_pop[org_id].GetDataMap(), trait_scores[org_id], traits_used);
         } else {
           trait_set.GetValues(select_pop[org_id].GetDataMap(), trait_scores[org_id]);
-        }
 
-        // @CAO: This should be a user error, not a program error:
-        emp_assert(num_traits == trait_scores[org_id].size(),
-                   org_id, num_traits, trait_scores[org_id].size(),
-                   "All organisms need to have the same number of traits!");
+          // @CAO: This should be a user error, not a program error:
+          emp_assert(num_traits == trait_scores[org_id].size(),
+                    org_id, num_traits, trait_scores[org_id].size(),
+                    "All organisms need to have the same number of traits!");
+        }
       }
 
       // Setup a vector with each trait index to be shuffled as needed for selection.
-      emp::vector<size_t> trait_ids = emp::NRange<size_t>(0, num_traits);
+      if (traits_used.size() == 0) traits_used = emp::NRange<size_t>(0, num_traits);
       emp::vector<size_t> cur_orgs, next_orgs;
 
       // Create the correct number of offspring.
@@ -124,10 +124,10 @@ namespace mabe {
         cur_orgs = start_orgs;
 
         // Shuffle traits into a random order.
-        emp::Shuffle(control.GetRandom(), trait_ids);
+        emp::Shuffle(control.GetRandom(), traits_used);
 
         // then step through traits and filter based on each.
-        for (size_t trait_id : trait_ids) {
+        for (size_t trait_id : traits_used) {
           // Find the minimum and maximum values of the current trait.
           double min_value = std::numeric_limits<double>::max();
           double max_value = std::numeric_limits<double>::lowest();
