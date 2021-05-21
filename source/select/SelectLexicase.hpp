@@ -32,7 +32,7 @@ namespace mabe {
     int select_pop_id = 0;      ///< Which population are we selecting from?
     int birth_pop_id = 1;       ///< Which population should births go into?
     size_t num_births = 1;      ///< How many offspring organisms should we produce?
-    size_t sample_traits = 0;   ///< Number of test cases to use each generation
+    size_t sample_traits = 0;   ///< Number of test cases to use each generation (0=off)
 
   public:
     SelectLexicase(mabe::MABE & control,
@@ -107,6 +107,8 @@ namespace mabe {
         } else {
           trait_set.GetValues(select_pop[org_id].GetDataMap(), trait_scores[org_id]);
         }
+
+        // @CAO: This should be a user error, not a program error:
         emp_assert(num_traits == trait_scores[org_id].size(),
                    org_id, num_traits, trait_scores[org_id].size(),
                    "All organisms need to have the same number of traits!");
@@ -143,8 +145,6 @@ namespace mabe {
           for (size_t org_id : cur_orgs) {
             if (trait_scores[org_id][trait_id] >= threshold) next_orgs.push_back(org_id);
           }
-
-          emp_assert(next_orgs.size() > 0);
 
           // Cleanup for the next trait.
           cur_orgs.resize(0);
