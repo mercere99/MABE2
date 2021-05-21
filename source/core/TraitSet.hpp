@@ -144,7 +144,8 @@ namespace mabe {
       }
     }
 
-    /// Copy associated values from data map to a provided vector, only for positions specified.
+    /// Copy associated values from data map to a provided vector, only for positions specified;
+    /// all other positions are 0.0.
     void GetValues(const emp::DataMap & dmap,
                    emp::vector<T> & out,
                    const emp::vector<size_t> & ids_used) {
@@ -152,18 +153,18 @@ namespace mabe {
 
       // Make sure we have the right amount of room for the values.
       out.resize(0);
-      out.reserve(ids_used.size());
+      out.resize(GetNumValues(), 0.0);
 
       for (size_t id : ids_used) {
         // If the ID is for a base trait, grab it.
         if (id < base_IDs.size()) {
           const size_t trait_id = base_IDs[id];
-          out.push_back( dmap.Get<T>(trait_id) );
+          out[id] = dmap.Get<T>(trait_id);
         }
 
         // Otherwise it must be from a vector.
         else {
-          id -= base_IDs.size();  // Adjust id to be in range.
+          size_t vpos = id - base_IDs.size();  // Adjust id to be in range.
 
           // Step through the vectors to find the one with this index.
           size_t vid = 0;
@@ -171,12 +172,12 @@ namespace mabe {
           while (vid < vector_IDs.size()) {
             const size_t trait_id = vector_IDs[vid];
             const emp::vector<T> & cur_vec = dmap.Get<emp::vector<T>>(trait_id);
-            if (id < cur_vec.size()) {
-              out.push_back( cur_vec[id] );
+            if (vpos < cur_vec.size()) {
+              out[id] = cur_vec[vpos];
               found = true;
               break;
             }
-            id -= cur_vec.size();
+            vpos -= cur_vec.size();
             vid++;
           }
           emp_assert(found, "PROBLEM!  TraitSet ran out of vectors without finding trait id.");
