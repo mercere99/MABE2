@@ -25,24 +25,30 @@ namespace mabe {
   class SimpleProgramOrg : public OrganismTemplate<SimpleProgramOrg> {
   protected:
     enum class Inst {
-      INC, DEC,                         // (2) Shift ARG1 by 1
-      ADD, SUB, MULT, DIV, MOD,         // (4) Basic two-input math (ARG3 = ARG1 op ARG2)
-      NOT, NAND,                        // (2) Boolean logic operations (ARG3 = ARG1 op ARG2)
-      SET_REG,                          // (1) Set ARG1 to value determined by ARG2 and ARG3
-      MOVE,                             // (1) Remove value from ARG1 and place in ARG2
-      COPY,                             // (1) Copy ARG1 into ARG2
-      POP,                              // (1) Remove ARG1
+      GET_CONST, ADD_CONST, SHIFT_CONST, // (3) Modify ARG1 by ARG2c
+      ADD, SUB, MULT, DIV, MOD,          // (5) Basic two-input math (ARG3 = ARG1 op ARG2)
+      NOT, AND, OR,                      // (3) Bitwise logic operations (ARG3 = ARG1 op ARG2)
+      COPY,                              // (1) Copy ARG1 into ARG2
       TEST_EQU, TEST_NEQU, TEST_GTR, TEST_LESS, // (4) COMPARE ARG1 and ARG2; put 0/1 result in ARG3
-      IF,                               // (1) Inc scope; skip new scope if ARG1 is 0.
-      WHILE,                            // (1) Inc scope; repeat as long as ARG1 is non-zero
-      COUNTDOWN,                        // (1) Inc scope; repeat and dec ARG1 while non-zero
-      CONTINUE,                         // (1) Jump back to WHILE or COUNTDOWN start or dec scope
-      BREAK,                            // (1) Jump to end of WHILE or COUNTDOWN scope
-      END_SCOPE,                        // (1) Dec scope
-      DEFINE, CALL,                     // (2) Inc scope; define creates function, call runs it.
-      NUM_BASE_INSTS,                   // 24 - Marker for total instruction count in base set
-      ERROR                             // Invalid instruction!
+      IF,                                // (1) Inc scope; skip new scope if ARG1 is 0.
+      WHILE,                             // (1) Inc scope; repeat as long as ARG1 is non-zero
+      COUNTDOWN,                         // (1) Inc scope; repeat and dec ARG1 while non-zero
+      CONTINUE,                          // (1) Jump back to WHILE or COUNTDOWN start or end scope
+      BREAK,                             // (1) Jump to end of WHILE or COUNTDOWN scope
+      END_SCOPE,                         // (1) Dec scope
+      DEFINE, CALL,                      // (2) Inc scope; define creates function, call runs it.
+      NUM_BASE_INSTS,                    // 24 - Marker for total instruction count in base set
+      ERROR                              // Invalid instruction!
     };
+
+    // Arguments can be values (constants) or variables (direct or indirect memory positions).
+    // Constants are just used in CONST instrustions where ARG2c is a direct value centered at zero
+    //   Range is -11 to 12 by default.
+    // Variables are:
+    //   registers (12),
+    //   indirections to input memory (4),
+    //   indirections to output memory (4)
+    //   or indirections to internal memory (4)
 
     emp::vector<Inst> genome;           // Series of instructions.
     size_t inst_ptr;                    // Position in genome to execute next.
