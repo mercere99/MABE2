@@ -40,39 +40,26 @@ namespace mabe {
       BREAK,                            // (1) Jump to end of WHILE or COUNTDOWN scope
       END_SCOPE,                        // (1) Dec scope
       DEFINE, CALL,                     // (2) Inc scope; define creates function, call runs it.
-      NUM_BASE_INSTS                    // 24 - Marker for total instruction count in base set
+      NUM_BASE_INSTS,                   // 24 - Marker for total instruction count in base set
+      ERROR                             // Invalid instruction!
     };
 
     emp::vector<Inst> genome;           // Series of instructions.
     size_t inst_ptr;                    // Position in genome to execute next.
     emp::vector<size_t> scope_starts;   // Stack of scope starting points.
 
+    // Find the instruction with the provided name.
     Inst GetInst(const std::string & name) const {
-      if (name == "Inc") return Inst::INC;
-      if (name == "Dec") return Inst::DEC;
-      if (name == "Add") return Inst::ADD;
-      if (name == "Sub") return Inst::SUB;
-      if (name == "Mult") return Inst::MULT;
-      if (name == "Div") return Inst::DIV;
-      if (name == "Mod") return Inst::MOD;
-      if (name == "Not") return Inst::NOT;
-      if (name == "Nand") return Inst::NAND;
-      if (name == "SetEeg") return Inst::SET_REG;
-      if (name == "Move") return Inst::MOVE;
-      if (name == "Copy") return Inst::COPY;
-      if (name == "Pop") return Inst::POP;
-      if (name == "TestEqu") return Inst::TEST_EQU;
-      if (name == "TestNEqu") return Inst::TEST_NEQU;
-      if (name == "TestGtr") return Inst::TEST_GTR;
-      if (name == "TestLess") return Inst::TEST_LESS;
-      if (name == "If") return Inst::IF;
-      if (name == "While") return Inst::WHILE;
-      if (name == "Countdown") return Inst::COUNTDOWN;
-      if (name == "Continue") return Inst::CONTINUE;
-      if (name == "Break") return Inst::BREAK;
-      if (name == "End_scope") return Inst::END_SCOPE;
-      if (name == "Define") return Inst::DEFINE;
-      if (name == "Call") return Inst::CALL;
+      const auto & inst_names = SharedData().inst_names;
+      for (size_t i = 0; i < inst_names.size(); i++) {
+        if (inst_names[i] == name) return (Inst) i;
+      }
+      return Inst::ERROR;
+    }
+
+    // Find the name associated with a given instruction.
+    const std::string & GetName(Inst inst) const {
+      return SharedData().inst_names[(size_t) inst];
     }
 
   public:
@@ -82,7 +69,10 @@ namespace mabe {
 
       // Helper member variables.
       emp::Binomial mut_dist;            ///< Distribution of number of mutations to occur.
-      emp::BitVector mut_sites;          ///< A pre-allocated vector for mutation sites. 
+      emp::BitVector mut_sites;          ///< A pre-allocated vector for mutation sites.
+
+      // Instruction Set
+      emp::vector<std::string> inst_names;      
     };
 
     SimpleProgramOrg(OrganismManager<SimpleProgramOrg> & _manager)
@@ -172,6 +162,35 @@ namespace mabe {
       GetManager().AddSharedTrait(SharedData().total_name,
                                   "Total of all organism outputs.",
                                   0.0);
+
+      // Setup the instruction set.
+      SharedData().inst_names.resize((size_t) Inst::NUM_BASE_INSTS);
+      SharedData().inst_names[(size_t) Inst::INC] == "Inc";
+      SharedData().inst_names[(size_t) Inst::DEC] == "Dec";
+      SharedData().inst_names[(size_t) Inst::ADD] == "Add";
+      SharedData().inst_names[(size_t) Inst::SUB] == "Sub";
+      SharedData().inst_names[(size_t) Inst::MULT] == "Mult";
+      SharedData().inst_names[(size_t) Inst::DIV] == "Div";
+      SharedData().inst_names[(size_t) Inst::MOD] == "Mod";
+      SharedData().inst_names[(size_t) Inst::NOT] == "Not";
+      SharedData().inst_names[(size_t) Inst::NAND] == "Nand";
+      SharedData().inst_names[(size_t) Inst::SET_REG] == "SetEeg";
+      SharedData().inst_names[(size_t) Inst::MOVE] == "Move";
+      SharedData().inst_names[(size_t) Inst::COPY] == "Copy";
+      SharedData().inst_names[(size_t) Inst::POP] == "Pop";
+      SharedData().inst_names[(size_t) Inst::TEST_EQU] == "TestEqu";
+      SharedData().inst_names[(size_t) Inst::TEST_NEQU] == "TestNEqu";
+      SharedData().inst_names[(size_t) Inst::TEST_GTR] == "TestGtr";
+      SharedData().inst_names[(size_t) Inst::TEST_LESS] == "TestLess";
+      SharedData().inst_names[(size_t) Inst::IF] == "If";
+      SharedData().inst_names[(size_t) Inst::WHILE] == "While";
+      SharedData().inst_names[(size_t) Inst::COUNTDOWN] == "Countdown";
+      SharedData().inst_names[(size_t) Inst::CONTINUE] == "Continue";
+      SharedData().inst_names[(size_t) Inst::BREAK] == "Break";
+      SharedData().inst_names[(size_t) Inst::END_SCOPE] == "EndScope";
+      SharedData().inst_names[(size_t) Inst::DEFINE] == "Define";
+      SharedData().inst_names[(size_t) Inst::CALL] == "Call";
+      
     }
   };
 
