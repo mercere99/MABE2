@@ -15,6 +15,7 @@
 #include "../core/Organism.hpp"
 #include "../core/OrganismManager.hpp"
 
+#include "emp/base/array.hpp"
 #include "emp/base/vector.hpp"
 #include "emp/math/Distribution.hpp"
 #include "emp/math/random_utils.hpp"
@@ -23,7 +24,56 @@ namespace mabe {
 
   class SimpleProgramOrg : public OrganismTemplate<SimpleProgramOrg> {
   protected:
-    emp::vector<size_t> genome;  // Series of instructions.
+    enum class Inst {
+      INC, DEC,                         // (2) Shift ARG1 by 1
+      ADD, SUB, MULT, DIV, MOD,         // (4) Basic two-input math (ARG3 = ARG1 op ARG2)
+      NOT, NAND,                        // (2) Boolean logic operations (ARG3 = ARG1 op ARG2)
+      SET_REG,                          // (1) Set ARG1 to value determined by ARG2 and ARG3
+      MOVE,                             // (1) Remove value from ARG1 and place in ARG2
+      COPY,                             // (1) Copy ARG1 into ARG2
+      POP,                              // (1) Remove ARG1
+      TEST_EQU, TEST_NEQU, TEST_GTR, TEST_LESS, // (4) COMPARE ARG1 and ARG2; put 0/1 result in ARG3
+      IF,                               // (1) Inc scope; skip new scope if ARG1 is 0.
+      WHILE,                            // (1) Inc scope; repeat as long as ARG1 is non-zero
+      COUNTDOWN,                        // (1) Inc scope; repeat and dec ARG1 while non-zero
+      CONTINUE,                         // (1) Jump back to WHILE or COUNTDOWN start or dec scope
+      BREAK,                            // (1) Jump to end of WHILE or COUNTDOWN scope
+      END_SCOPE,                        // (1) Dec scope
+      DEFINE, CALL,                     // (2) Inc scope; define creates function, call runs it.
+      NUM_BASE_INSTS                    // 24 - Marker for total instruction count in base set
+    };
+
+    emp::vector<Inst> genome;           // Series of instructions.
+    size_t inst_ptr;                    // Position in genome to execute next.
+    emp::vector<size_t> scope_starts;   // Stack of scope starting points.
+
+    Inst GetInst(const std::string & name) const {
+      if (name == "Inc") return Inst::INC;
+      if (name == "Dec") return Inst::DEC;
+      if (name == "Add") return Inst::ADD;
+      if (name == "Sub") return Inst::SUB;
+      if (name == "Mult") return Inst::MULT;
+      if (name == "Div") return Inst::DIV;
+      if (name == "Mod") return Inst::MOD;
+      if (name == "Not") return Inst::NOT;
+      if (name == "Nand") return Inst::NAND;
+      if (name == "SetEeg") return Inst::SET_REG;
+      if (name == "Move") return Inst::MOVE;
+      if (name == "Copy") return Inst::COPY;
+      if (name == "Pop") return Inst::POP;
+      if (name == "TestEqu") return Inst::TEST_EQU;
+      if (name == "TestNEqu") return Inst::TEST_NEQU;
+      if (name == "TestGtr") return Inst::TEST_GTR;
+      if (name == "TestLess") return Inst::TEST_LESS;
+      if (name == "If") return Inst::IF;
+      if (name == "While") return Inst::WHILE;
+      if (name == "Countdown") return Inst::COUNTDOWN;
+      if (name == "Continue") return Inst::CONTINUE;
+      if (name == "Break") return Inst::BREAK;
+      if (name == "End_scope") return Inst::END_SCOPE;
+      if (name == "Define") return Inst::DEFINE;
+      if (name == "Call") return Inst::CALL;
+    }
 
   public:
     struct ManagerData : public Organism::ManagerData {
