@@ -37,7 +37,8 @@ namespace mabe {
       BREAK,                             // (1) Jump to end of WHILE or COUNTDOWN scope
       END_SCOPE,                         // (1) Dec scope
       DEFINE, CALL,                      // (2) Inc scope; define creates function, call runs it.
-      NUM_BASE_INSTS,                    // 24 - Marker for total instruction count in base set
+      PUSH, POP,                         // (2) Treat ARG1 as stack pointer; push/pop with ARG2
+      NUM_BASE_INSTS,                    // 26 - Marker for total instruction count in base set
       ERROR                              // Invalid instruction!
     };
 
@@ -45,14 +46,26 @@ namespace mabe {
     // Constants are just used in CONST instrustions where ARG2c is a direct value centered at zero
     //   Range is -11 to 12 by default.
     // Variables are:
-    //   registers (12),
+    //   registers (16),
     //   indirections to input memory (4),
     //   indirections to output memory (4)
-    //   or indirections to internal memory (4)
+    //   or indirections to internal memory A (4)
+    //   or indirections to internal memory B (4)
 
-    emp::vector<Inst> genome;           // Series of instructions.
+    using genome_t = emp::vector<Inst>;
+    using memory_t = std::map<size_t, double>;
+
+    genome_t genome;                    // Series of instructions.
     size_t inst_ptr;                    // Position in genome to execute next.
+
+    emp::array<double, 16> regs;        // Registers
+    memory_t input_mem;                 // Input memory space
+    memory_t output_mem;                // Output memory space
+    memory_t internal_memA;             // Internal memory space A
+    memory_t internal_memB;             // Internal memory space B
+
     emp::vector<size_t> scope_starts;   // Stack of scope starting points.
+    emp::vector<size_t> fun_starts;     // Positions where specific functions begin.
 
     // Find the instruction with the provided name.
     Inst GetInst(const std::string & name) const {
