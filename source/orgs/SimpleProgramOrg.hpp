@@ -87,9 +87,10 @@ namespace mabe {
       return SharedData().inst_names[(size_t) inst];
     }
 
-    double & GetArgVar(const unsigned char arg1) {
+    // Convert an argument to the associated variable.
+    double & GetArgVar(const unsigned char arg) {
       // We're assuming 16 registers, where the last 6 are indirections.
-      switch (arg1 & REG_MASK) {
+      switch (arg & REG_MASK) {
         case 0: return mem[0];
         case 1: return mem[1];
         case 2: return mem[2];
@@ -109,6 +110,29 @@ namespace mabe {
       };
     }
 
+    // Convert an argument to the associated constant.
+    double GetArgConst(const unsigned char arg) {
+      // Easy access to a range of potentially useful constants.
+      switch (arg & REG_MASK) {
+        case 0:  return  -2.0;
+        case 1:  return  -1.0;
+        case 2:  return   0.0;
+        case 3:  return   0.0;  // Second zero since it's the most useful value.
+        case 4:  return   0.25;
+        case 5:  return   0.5;
+        case 6:  return   1.0;
+        case 7:  return   2.0;
+        case 8:  return   3.0;
+        case 9:  return   4.0;
+        case 10: return   8.0;
+        case 11: return  16.0;
+        case 12: return  32.0;
+        case 13: return  64.0;
+        case 14: return 128.0;
+        case 15: return 256.0;
+      };
+    }
+
     // Execute the next instruction.
     void RunInst() {
       // Loop around to zero if we're off the end.
@@ -122,7 +146,8 @@ namespace mabe {
 
       if (cur_inst < (unsigned char) Inst::NUM_BASE_INSTS) {
         switch ((Inst) cur_inst) {
-        case Inst::GET_CONST:
+        case Inst::GET_CONST:       // Set ARG1 to the constant value represented by ARG2
+          GetArgVar(arg1) = GetArgConst(arg2);
           break;
         case Inst::ADD_CONST:
           break;
@@ -174,9 +199,11 @@ namespace mabe {
           break;
         case Inst::POP:
           break;
-        default:
-          // Special instruction!
         };
+      }
+      // Special instruction! (or nop?)
+      else {
+
       }
     }
 
