@@ -46,24 +46,28 @@ namespace mabe {
     // Constants are just used in CONST instrustions where ARG2c is a direct value centered at zero
     //   Range is -11 to 12 by default.
     // Variables are:
-    //   registers (16),
-    //   indirections to input memory (4),
-    //   indirections to output memory (4)
-    //   or indirections to internal memory A (4)
-    //   or indirections to internal memory B (4)
+    //   direct registers (10: A-J), first four are regs only; next 6 are ALSO indirect memory.
+    //   indirections to internal memory (2: E,F),
+    //   indirections to input memory (2: G,H), uses offset of + 512.
+    //   indirections to output memory (2: I,J), uses offset of + 768.
 
-    static constexpr size_t MEM_SIZE = 256;
+    static constexpr size_t NUM_REGS = 16;
+    static constexpr size_t MEM_SIZE = 1024;
+    static constexpr size_t MEM_IO_SIZE = 256;
+    static constexpr size_t MEM_INTERNAL_START = 0;
+    static constexpr size_t MEM_INPUT_START = 512;
+    static constexpr size_t MEM_OUTPUT_START = MEM_INPUT_START + MEM_IO_SIZE;
+    static_assert(MEM_OUTPUT_START + MEM_IO_SIZE <= MEM_SIZE, "IO must fit inside other memoery.");
+
+    static constexpr size_t MEM_MASK = MEM_SIZE - 1;
+    static constexpr size_t REG_MASK = NUM_REGS - 1;
 
     using genome_t = emp::vector<unsigned char>;
     using memory_t = emp::array<double, MEM_SIZE>;
 
     genome_t genome;                    // Series of instructions.
     size_t inst_ptr;                    // Position in genome to execute next.
-
-    memory_t internal_memA;             // Internal memory space A; initial spaces are registers.
-    memory_t internal_memB;             // Internal memory space B
-    memory_t input_mem;                 // Input memory space
-    memory_t output_mem;                // Output memory space
+    memory_t mem;   
 
     emp::vector<size_t> scope_starts;   // Stack of scope starting points.
     emp::vector<size_t> fun_starts;     // Positions where specific functions begin.
@@ -84,7 +88,25 @@ namespace mabe {
     }
 
     double & GetArgVar(const unsigned char arg1) {
-
+      // We're assuming 16 registers, where the last 6 are indirections.
+      switch (arg1 & REG_MASK) {
+        case 0: return mem[0];
+        case 1: return mem[1];
+        case 2: return mem[2];
+        case 3: return mem[3];
+        case 4: return mem[4];
+        case 5: return mem[5];
+        case 6: return mem[6];
+        case 7: return mem[7];
+        case 8: return mem[8];
+        case 9: return mem[9];
+        case 10: return mem[(((size_t) mem[4]) & MEM_MASK)]; // Internal memory.
+        case 11: return mem[(((size_t) mem[5]) & MEM_MASK)]; // Internal memory.
+        case 12: return mem[((MEM_INPUT_START + (size_t) mem[6]) & MEM_MASK)]; // Input memory.
+        case 13: return mem[((MEM_INPUT_START + (size_t) mem[7]) & MEM_MASK)]; // Input memory.
+        case 14: return mem[((MEM_OUTPUT_START + (size_t) mem[8]) & MEM_MASK)]; // Output memory.
+        case 15: return mem[((MEM_OUTPUT_START + (size_t) mem[9]) & MEM_MASK)]; // Output memory.
+      };
     }
 
     // Execute the next instruction.
