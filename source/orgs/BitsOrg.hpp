@@ -41,6 +41,7 @@ namespace mabe {
       std::string output_name = "bits";  ///< Name of trait that should be used to access bits.
       emp::Binomial mut_dist;            ///< Distribution of number of mutations to occur.
       emp::BitVector mut_sites;          ///< A pre-allocated vector for mutation sites. 
+      bool init_random = true;           ///< Should we randomize ancestor?  (false = all zeros)
     };
 
     /// Use "to_string" to convert.
@@ -73,6 +74,10 @@ namespace mabe {
       emp::RandomizeBitVector(bits, random, 0.5);
     }
 
+    void Initialize(emp::Random & random) override {
+      if (SharedData().init_random) emp::RandomizeBitVector(bits, random, 0.5);
+    }
+
     /// Put the bits in the correct output position.
     void GenerateOutput() override {
       SetVar<emp::BitVector>(SharedData().output_name, bits);
@@ -87,6 +92,8 @@ namespace mabe {
                       "Probability of each bit mutating on reproduction.");
       GetManager().LinkVar(SharedData().output_name, "output_name",
                       "Name of variable to contain bit sequence.");
+      GetManager().LinkVar(SharedData().init_random, "init_random",
+                      "Should we randomize ancestor?  (0 = all zeros)");
     }
 
     /// Setup this organism type with the traits it need to track.
