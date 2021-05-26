@@ -54,6 +54,7 @@ namespace mabe {
       // Helper member variables.
       emp::Binomial mut_dist;            ///< Distribution of number of mutations to occur.
       emp::BitVector mut_sites;          ///< A pre-allocated vector for mutation sites. 
+      bool init_random = true;           ///< Should we randomize ancestor?  (false = all 0.0)
 
       // Helper functions.
       inline void ApplyBounds(double & value);              ///< Put a single value back in range.
@@ -107,6 +108,12 @@ namespace mabe {
       SetVar<double>(SharedData().total_name, total);  // Store total in data map.
     }
 
+    void Initialize(emp::Random & random) override {
+      if (SharedData().init_random) Randomize(random);
+      else { total = 0.0; for (double & x : vals) x = 0.0; }
+    }
+
+
     /// Put the values in the correct output positions.
     void GenerateOutput() override {
       SetVar<emp::vector<double>>(SharedData().output_name, vals);
@@ -142,6 +149,8 @@ namespace mabe {
                       "Name of variable to contain set of values.");
       GetManager().LinkVar(SharedData().total_name, "total_name",
                       "Name of variable to contain total of all values.");
+      GetManager().LinkVar(SharedData().init_random, "init_random",
+                      "Should we randomize ancestor?  (0 = all 0.0)");
     }
 
     /// Setup this organism type with the traits it need to track.
