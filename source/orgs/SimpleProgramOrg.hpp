@@ -52,20 +52,22 @@ namespace mabe {
     //   or indirections to internal memory A (4)
     //   or indirections to internal memory B (4)
 
-    using genome_t = emp::vector<Inst>;
-    using memory_t = std::map<size_t, double>;
+    static constexpr size_t MEM_SIZE = 256;
+
+    using genome_t = emp::vector<unsigned char>;
+    using memory_t = emp::array<double, MEM_SIZE>;
 
     genome_t genome;                    // Series of instructions.
     size_t inst_ptr;                    // Position in genome to execute next.
 
-    emp::array<double, 16> regs;        // Registers
+    memory_t internal_memA;             // Internal memory space A; initial spaces are registers.
+    memory_t internal_memB;             // Internal memory space B
     memory_t input_mem;                 // Input memory space
     memory_t output_mem;                // Output memory space
-    memory_t internal_memA;             // Internal memory space A
-    memory_t internal_memB;             // Internal memory space B
 
     emp::vector<size_t> scope_starts;   // Stack of scope starting points.
     emp::vector<size_t> fun_starts;     // Positions where specific functions begin.
+    emp::vector<size_t> call_stack;     // Where should function ends return to?
 
     // Find the instruction with the provided name.
     Inst GetInst(const std::string & name) const {
@@ -81,6 +83,81 @@ namespace mabe {
       return SharedData().inst_names[(size_t) inst];
     }
 
+    double & GetArgVar(const unsigned char arg1) {
+
+    }
+
+    // Execute the next instruction.
+    void RunInst() {
+      // Loop around to zero if we're off the end.
+      if (inst_ptr >= genome.size()) { inst_ptr = 0; }
+
+      const unsigned char cur_inst = genome[inst_ptr];
+      const unsigned char arg1 = genome[inst_ptr+1];
+      const unsigned char arg2 = genome[inst_ptr+2];
+      const unsigned char arg3 = genome[inst_ptr+3];
+      inst_ptr += 4;
+
+      if (cur_inst < (unsigned char) Inst::NUM_BASE_INSTS) {
+        switch ((Inst) cur_inst) {
+        case Inst::GET_CONST:
+          break;
+        case Inst::ADD_CONST:
+          break;
+        case Inst::SHIFT_CONST:
+          break;
+        case Inst::ADD:
+          break;
+        case Inst::SUB:
+          break;
+        case Inst::MULT:
+          break;
+        case Inst::DIV:
+          break;
+        case Inst::MOD:
+          break;
+        case Inst::NOT:
+          break;
+        case Inst::AND:
+          break;
+        case Inst::OR:
+          break;
+        case Inst::COPY:
+          break;
+        case Inst::TEST_EQU:
+          break;
+        case Inst::TEST_NEQU:
+          break;
+        case Inst::TEST_GTR:
+          break;
+        case Inst::TEST_LESS:
+          break;
+        case Inst::IF:
+          break;
+        case Inst::WHILE:
+          break;
+        case Inst::COUNTDOWN:
+          break;
+        case Inst::CONTINUE:
+          break;
+        case Inst::BREAK:
+          break;
+        case Inst::END_SCOPE:
+          break;
+        case Inst::DEFINE:
+          break;
+        case Inst::CALL:
+          break;
+        case Inst::PUSH:
+          break;
+        case Inst::POP:
+          break;
+        default:
+          // Special instruction!
+        };
+      }
+    }
+
   public:
     struct ManagerData : public Organism::ManagerData {
       std::string output_name = "vals";  ///< Name of trait that should be used to access values.
@@ -91,7 +168,10 @@ namespace mabe {
       emp::BitVector mut_sites;          ///< A pre-allocated vector for mutation sites.
 
       // Instruction Set
-      emp::vector<std::string> inst_names;      
+      emp::vector<std::string> inst_names;  ///< Names of all instructions in use.
+      size_t num_regs;                      ///< Number of registers in the CPU.
+      size_t num_indirect_args;             ///< Number of indirect args for each group.
+      size_t const_shift;                   ///< How far should constant arguments be shifted?
     };
 
     SimpleProgramOrg(OrganismManager<SimpleProgramOrg> & _manager)
@@ -167,49 +247,57 @@ namespace mabe {
 
     /// Setup this organism type with the traits it need to track.
     void SetupModule() override {
+      auto & data = SharedData();
+
       // Setup the mutation distribution.
-      SharedData().mut_dist.Setup(SharedData().mut_prob, vals.size());
+      data.mut_dist.Setup(data.mut_prob, vals.size());
 
       // Setup the default vector to indicate mutation positions.
-      SharedData().mut_sites.Resize(vals.size());
+      data.mut_sites.Resize(vals.size());
 
       // Setup the output trait.
-      GetManager().AddSharedTrait(SharedData().output_name,
+      GetManager().AddSharedTrait(data.output_name,
                                   "Value vector output from organism.",
                                   emp::vector<double>(vals.size()));
       // Setup the output trait.
-      GetManager().AddSharedTrait(SharedData().total_name,
+      GetManager().AddSharedTrait(data.total_name,
                                   "Total of all organism outputs.",
                                   0.0);
 
       // Setup the instruction set.
-      SharedData().inst_names.resize((size_t) Inst::NUM_BASE_INSTS);
-      SharedData().inst_names[(size_t) Inst::INC] == "Inc";
-      SharedData().inst_names[(size_t) Inst::DEC] == "Dec";
-      SharedData().inst_names[(size_t) Inst::ADD] == "Add";
-      SharedData().inst_names[(size_t) Inst::SUB] == "Sub";
-      SharedData().inst_names[(size_t) Inst::MULT] == "Mult";
-      SharedData().inst_names[(size_t) Inst::DIV] == "Div";
-      SharedData().inst_names[(size_t) Inst::MOD] == "Mod";
-      SharedData().inst_names[(size_t) Inst::NOT] == "Not";
-      SharedData().inst_names[(size_t) Inst::NAND] == "Nand";
-      SharedData().inst_names[(size_t) Inst::SET_REG] == "SetEeg";
-      SharedData().inst_names[(size_t) Inst::MOVE] == "Move";
-      SharedData().inst_names[(size_t) Inst::COPY] == "Copy";
-      SharedData().inst_names[(size_t) Inst::POP] == "Pop";
-      SharedData().inst_names[(size_t) Inst::TEST_EQU] == "TestEqu";
-      SharedData().inst_names[(size_t) Inst::TEST_NEQU] == "TestNEqu";
-      SharedData().inst_names[(size_t) Inst::TEST_GTR] == "TestGtr";
-      SharedData().inst_names[(size_t) Inst::TEST_LESS] == "TestLess";
-      SharedData().inst_names[(size_t) Inst::IF] == "If";
-      SharedData().inst_names[(size_t) Inst::WHILE] == "While";
-      SharedData().inst_names[(size_t) Inst::COUNTDOWN] == "Countdown";
-      SharedData().inst_names[(size_t) Inst::CONTINUE] == "Continue";
-      SharedData().inst_names[(size_t) Inst::BREAK] == "Break";
-      SharedData().inst_names[(size_t) Inst::END_SCOPE] == "EndScope";
-      SharedData().inst_names[(size_t) Inst::DEFINE] == "Define";
-      SharedData().inst_names[(size_t) Inst::CALL] == "Call";
+      data.inst_names.resize((size_t) Inst::NUM_BASE_INSTS);
+      data.inst_names[(size_t) Inst::GET_CONST] = "GetConst":
+      data.inst_names[(size_t) Inst::ADD_CONST] = "AddConst":
+      data.inst_names[(size_t) Inst::SHIFT_CONST] = "ShiftConst":
+      data.inst_names[(size_t) Inst::ADD] == "Add";
+      data.inst_names[(size_t) Inst::SUB] == "Sub";
+      data.inst_names[(size_t) Inst::MULT] == "Mult";
+      data.inst_names[(size_t) Inst::DIV] == "Div";
+      data.inst_names[(size_t) Inst::MOD] == "Mod";
+      data.inst_names[(size_t) Inst::NOT] == "Not";
+      data.inst_names[(size_t) Inst::AND] == "And";
+      data.inst_names[(size_t) Inst::OR] == "Or";
+      data.inst_names[(size_t) Inst::COPY] == "Copy";
+      data.inst_names[(size_t) Inst::TEST_EQU] == "TestEqu";
+      data.inst_names[(size_t) Inst::TEST_NEQU] == "TestNEqu";
+      data.inst_names[(size_t) Inst::TEST_GTR] == "TestGtr";
+      data.inst_names[(size_t) Inst::TEST_LESS] == "TestLess";
+      data.inst_names[(size_t) Inst::IF] == "If";
+      data.inst_names[(size_t) Inst::WHILE] == "While";
+      data.inst_names[(size_t) Inst::COUNTDOWN] == "Countdown";
+      data.inst_names[(size_t) Inst::CONTINUE] == "Continue";
+      data.inst_names[(size_t) Inst::BREAK] == "Break";
+      data.inst_names[(size_t) Inst::END_SCOPE] == "EndScope";
+      data.inst_names[(size_t) Inst::DEFINE] == "Define";
+      data.inst_names[(size_t) Inst::CALL] == "Call";
+      data.inst_names[(size_t) Inst::POP] == "Pop";
+      data.inst_names[(size_t) Inst::PUSH] == "Push";
       
+      // @CAO ADD NON-STANDARD INSTRUCTIONS!
+
+      data.num_indirect_args = data.inst_names.size() / 8;
+      data.const_shift = 4 * data.num_indirect_args;
+      data.num_regs = data.inst_names.size() - data.const_shift;
     }
   };
 
