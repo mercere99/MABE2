@@ -11,6 +11,8 @@
 #ifndef MABE_SIMPLE_PROGRAM_ORGANISM_H
 #define MABE_SIMPLE_PROGRAM_ORGANISM_H
 
+#include <math>
+
 #include "../core/MABE.hpp"
 #include "../core/Organism.hpp"
 #include "../core/OrganismManager.hpp"
@@ -133,6 +135,20 @@ namespace mabe {
       };
     }
 
+    // Identify how an instruction changes the current scope.
+    int TestScopeChange(Inst inst) {
+      switch (inst) {
+        case Inst::IF:
+        case Inst::WHILE:
+        case Inst::COUNTDOWN:
+          return 1;
+        case Inst::END_SCOPE:
+          return -1;
+        default:
+          return 0;
+      }
+    }
+
     // Execute the next instruction.
     void RunInst() {
       // Loop around to zero if we're off the end.
@@ -150,34 +166,51 @@ namespace mabe {
           GetArgVar(arg1) = GetArgConst(arg2);
           break;
         case Inst::ADD_CONST:
+          GetArgVar(arg1) += GetArgConst(arg2);
           break;
         case Inst::SHIFT_CONST:
+          GetArgVar(arg1) *= emp::Pow2(GetArgConst(arg2));
           break;
         case Inst::ADD:
+          GetArgVar(arg3) = GetArgVar(arg1) + GetArgVar(arg2);
           break;
         case Inst::SUB:
+          GetArgVar(arg3) = GetArgVar(arg1) - GetArgVar(arg2);
           break;
         case Inst::MULT:
+          GetArgVar(arg3) = GetArgVar(arg1) * GetArgVar(arg2);
           break;
         case Inst::DIV:
+          if (GetArgVar(arg2) != 0.0) GetArgVar(arg3) = GetArgVar(arg1) / GetArgVar(arg2);
+          // @CAO Do something on error?
           break;
         case Inst::MOD:
+          if (GetArgVar(arg2) != 0.0) GetArgVar(arg3) = std::remainder(GetArgVar(arg1) / GetArgVar(arg2));
+          // @CAO Do something on error?
           break;
         case Inst::NOT:
+          GetArgVar(arg3) = ~GetArgVar(arg1);
           break;
         case Inst::AND:
+          GetArgVar(arg3) = GetArgVar(arg1) & GetArgVar(arg2);
           break;
         case Inst::OR:
+          GetArgVar(arg3) = GetArgVar(arg1) | GetArgVar(arg2);
           break;
         case Inst::COPY:
+          GetArgVar(arg2) = GetArgVar(arg1);
           break;
         case Inst::TEST_EQU:
+          GetArgVar(arg3) = (GetArgVar(arg1) == GetArgVar(arg2));
           break;
         case Inst::TEST_NEQU:
+          GetArgVar(arg3) = (GetArgVar(arg1) != GetArgVar(arg2));
           break;
         case Inst::TEST_GTR:
+          GetArgVar(arg3) = (GetArgVar(arg1) > GetArgVar(arg2));
           break;
         case Inst::TEST_LESS:
+          GetArgVar(arg3) = (GetArgVar(arg1) < GetArgVar(arg2));
           break;
         case Inst::IF:
           break;
