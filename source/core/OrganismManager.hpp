@@ -74,7 +74,7 @@ namespace mabe {
     /// and then randomize if a random number generator is provided.
     emp::Ptr<Organism> MakeOrganism(emp::Random & random) override {
       auto org_ptr = org_prototype->Clone();
-      org_ptr->Randomize(random);
+      org_ptr->Initialize(random);
       return org_ptr;
     }
 
