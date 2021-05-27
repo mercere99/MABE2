@@ -143,20 +143,6 @@ namespace mabe {
       };
     }
 
-    // Identify how an instruction changes the current scope.
-    int TestScopeChange(Inst inst) {
-      switch (inst) {
-        case Inst::IF:
-        case Inst::WHILE:
-        case Inst::COUNTDOWN:
-          return 1;
-        case Inst::END_SCOPE:
-          return -1;
-        default:
-          return 0;
-      }
-    }
-
     // What kind of scope are we in?
     Inst GetScopeType() {
       if (scope_starts.size() == 0) return Inst::NONE;
@@ -167,6 +153,22 @@ namespace mabe {
 
         default: return Inst::ERROR; // The above are the only legal scope types!
       };
+    }
+
+    // Jump past the current scope.
+    void SkipScope() {
+      int scope_level = 1;
+      while (scope_level > 0 && inst_ptr < genome.size()) {
+        switch (genome[inst_ptr]) {
+          case (size_t) Inst::IF:
+          case (size_t) Inst::WHILE:
+          case (size_t) Inst::COUNTDOWN:
+            scope_level++;
+            break;
+          case (size_t) Inst::END_SCOPE:
+            scope_level--;
+        }
+      }
     }
 
     // Execute the next instruction.
@@ -253,7 +255,7 @@ namespace mabe {
             case Inst::WHILE:
               inst_ptr = scope_starts.back();
               break;
-            default;
+            default:
               emp_error("Internal error; Invalid context for CONTINUE");
           };
 
@@ -273,7 +275,7 @@ namespace mabe {
             case Inst::WHILE:
               inst_ptr = scope_starts.back();
               break;
-            default;
+            default:
               emp_error("Internal error; Invalid context for CONTINUE");
           };          
           break;
