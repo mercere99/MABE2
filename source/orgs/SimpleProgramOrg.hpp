@@ -11,7 +11,7 @@
 #ifndef MABE_SIMPLE_PROGRAM_ORGANISM_H
 #define MABE_SIMPLE_PROGRAM_ORGANISM_H
 
-#include <math>
+#include <math.h>
 
 #include "../core/MABE.hpp"
 #include "../core/Organism.hpp"
@@ -26,6 +26,9 @@ namespace mabe {
 
   class SimpleProgramOrg : public OrganismTemplate<SimpleProgramOrg> {
   protected:
+    using base_t = OrganismTemplate<SimpleProgramOrg>;
+    using base_t::SharedData;
+
     enum class Inst {
       GET_CONST, ADD_CONST, SHIFT_CONST, // (3) Modify ARG1 by ARG2c
       ADD, SUB, MULT, DIV, MOD,          // (5) Basic two-input math (ARG3 = ARG1 op ARG2)
@@ -38,9 +41,9 @@ namespace mabe {
       CONTINUE,                          // (1) Jump back to WHILE or COUNTDOWN start or end scope
       BREAK,                             // (1) Jump to end of WHILE or COUNTDOWN scope
       END_SCOPE,                         // (1) Dec scope
-      DEFINE, CALL,                      // (2) Inc scope; define creates function, call runs it.
       PUSH, POP,                         // (2) Treat ARG1 as stack pointer; push/pop with ARG2
       NUM_BASE_INSTS,                    // 26 - Marker for total instruction count in base set
+      NONE,                              // Empty instruction!
       ERROR                              // Invalid instruction!
     };
 
@@ -112,6 +115,11 @@ namespace mabe {
       };
     }
 
+    // Convert an argument variable to a size_t
+    size_t GetArgBits(const unsigned char arg) {
+      return (size_t) GetArgVar(arg);
+    }
+
     // Convert an argument to the associated constant.
     double GetArgConst(const unsigned char arg) {
       // Easy access to a range of potentially useful constants.
@@ -147,6 +155,18 @@ namespace mabe {
         default:
           return 0;
       }
+    }
+
+    // What kind of scope are we in?
+    Inst GetScopeType() {
+      if (scope_starts.size() == 0) return Inst::NONE;
+      switch (genome[scope_starts.back()]) {
+        case (size_t) Inst::IF:        return Inst::IF;
+        case (size_t) Inst::WHILE:     return Inst::WHILE;
+        case (size_t) Inst::COUNTDOWN: return Inst::COUNTDOWN;
+
+        default: return Inst::ERROR; // The above are the only legal scope types!
+      };
     }
 
     // Execute the next instruction.
@@ -185,17 +205,17 @@ namespace mabe {
           // @CAO Do something on error?
           break;
         case Inst::MOD:
-          if (GetArgVar(arg2) != 0.0) GetArgVar(arg3) = std::remainder(GetArgVar(arg1) / GetArgVar(arg2));
+          if (GetArgVar(arg2) != 0.0) GetArgVar(arg3) = std::remainder(GetArgVar(arg1), GetArgVar(arg2));
           // @CAO Do something on error?
           break;
         case Inst::NOT:
-          GetArgVar(arg3) = ~GetArgVar(arg1);
+          GetArgVar(arg3) = ~GetArgBits(arg1);
           break;
         case Inst::AND:
-          GetArgVar(arg3) = GetArgVar(arg1) & GetArgVar(arg2);
+          GetArgVar(arg3) = GetArgBits(arg1) & GetArgBits(arg2);
           break;
         case Inst::OR:
-          GetArgVar(arg3) = GetArgVar(arg1) | GetArgVar(arg2);
+          GetArgVar(arg3) = GetArgBits(arg1) | GetArgBits(arg2);
           break;
         case Inst::COPY:
           GetArgVar(arg2) = GetArgVar(arg1);
@@ -212,21 +232,50 @@ namespace mabe {
         case Inst::TEST_LESS:
           GetArgVar(arg3) = (GetArgVar(arg1) < GetArgVar(arg2));
           break;
+
         case Inst::IF:
-          break;
         case Inst::WHILE:
+        case Inst::COUNTDOWN:  // Differ only at END_SCOPE
+          scope_starts.push_back(inst_ptr - 4); // Enter a new scope!
+          if (GetArgBits(arg1) == 0) SkipScope();
           break;
-        case Inst::COUNTDOWN:
-          break;
-        case Inst::CONTINUE:
+
+        case Inst::CONTINUE:  // Return to the begining of this scope!
+          // Skip over any 'IF' scopes that we may be in.
+          while (GetScopeType() == Inst::IF) scope_starts.pop_back();
+
+          // If we are in a loop, go back to the start; otherwise go to the start of the genome.
+          switch (GetScopeType()) {
+            case Inst::NONE: inst_ptr = 0; break;
+            case Inst::COUNTDOWN:
+              GetArgVar(arg1) -= 1.0;
+              [[fallthrough]];
+            case Inst::WHILE:
+              inst_ptr = scope_starts.back();
+              break;
+            default;
+              emp_error("Internal error; Invalid context for CONTINUE");
+          };
+
           break;
         case Inst::BREAK:
+          // Skip over any 'IF' scopes that we may be in, and then one more for break.
+          while (GetScopeType() == Inst::IF) SkipScope();
+          SkipScope();
           break;
         case Inst::END_SCOPE:
-          break;
-        case Inst::DEFINE:
-          break;
-        case Inst::CALL:
+          switch (GetScopeType()) {
+            case Inst::NONE: break;                         // No scope?  Ignore it!
+            case Inst::IF: scope_starts.pop_back(); break;  // We are done with the IF!
+            case Inst::COUNTDOWN:
+              GetArgVar(arg1) -= 1.0;
+              [[fallthrough]];
+            case Inst::WHILE:
+              inst_ptr = scope_starts.back();
+              break;
+            default;
+              emp_error("Internal error; Invalid context for CONTINUE");
+          };          
           break;
         case Inst::PUSH:
           break;
@@ -370,8 +419,6 @@ namespace mabe {
       data.inst_names[(size_t) Inst::CONTINUE] == "Continue";
       data.inst_names[(size_t) Inst::BREAK] == "Break";
       data.inst_names[(size_t) Inst::END_SCOPE] == "EndScope";
-      data.inst_names[(size_t) Inst::DEFINE] == "Define";
-      data.inst_names[(size_t) Inst::CALL] == "Call";
       data.inst_names[(size_t) Inst::POP] == "Pop";
       data.inst_names[(size_t) Inst::PUSH] == "Push";
       
