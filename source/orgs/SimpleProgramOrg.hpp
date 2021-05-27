@@ -30,19 +30,18 @@ namespace mabe {
     using base_t::SharedData;
 
     enum class Inst {
-      GET_CONST, ADD_CONST, SHIFT_CONST, // (3) Modify ARG1 by ARG2c
-      ADD, SUB, MULT, DIV, MOD,          // (5) Basic two-input math (ARG3 = ARG1 op ARG2)
-      NOT, AND, OR,                      // (3) Bitwise logic operations (ARG3 = ARG1 op ARG2)
+      GET_CONST, ADD_CONST, MULT_CONST,  // (3) Modify ARG1 by ARG2c
+      ADD, SUB, MULT, DIV, MOD, NAND,    // (6) Basic two-input math (ARG3 = ARG1 op ARG2)
       COPY,                              // (1) Copy ARG1 into ARG2
-      TEST_EQU, TEST_NEQU, TEST_GTR, TEST_LESS, // (4) COMPARE ARG1 and ARG2; put 0/1 result in ARG3
+      TEST_EQU, TEST_NEQU, TEST_LESS,    // (3) COMPARE ARG1 and ARG2; put 0/1 result in ARG3
       IF,                                // (1) Inc scope; skip new scope if ARG1 is 0.
       WHILE,                             // (1) Inc scope; repeat as long as ARG1 is non-zero
       COUNTDOWN,                         // (1) Inc scope; repeat and dec ARG1 while non-zero
       CONTINUE,                          // (1) Jump back to WHILE or COUNTDOWN start or end scope
       BREAK,                             // (1) Jump to end of WHILE or COUNTDOWN scope
-      END_SCOPE,                         // (1) Dec scope
+      END_SCOPE,                         // (1) Close current scope
       PUSH, POP,                         // (2) Treat ARG1 as stack pointer; push/pop with ARG2
-      NUM_BASE_INSTS,                    // 26 - Marker for total instruction count in base set
+      NUM_BASE_INSTS,                    // 21 - Marker for total instruction count in base set
       NONE,                              // Empty instruction!
       ERROR                              // Invalid instruction!
     };
@@ -56,6 +55,8 @@ namespace mabe {
     //   indirections to input memory (2: G,H), uses offset of + 512.
     //   indirections to output memory (2: I,J), uses offset of + 768.
 
+    static constexpr size_t GENOME_SIZE = 64;
+
     static constexpr size_t NUM_REGS = 16;
     static constexpr size_t MEM_SIZE = 1024;
     static constexpr size_t MEM_IO_SIZE = 256;
@@ -67,7 +68,7 @@ namespace mabe {
     static constexpr size_t MEM_MASK = MEM_SIZE - 1;
     static constexpr size_t REG_MASK = NUM_REGS - 1;
 
-    using genome_t = emp::vector<unsigned char>;
+    using genome_t = emp::array<unsigned char, GENOME_SIZE*4>;
     using memory_t = emp::array<double, MEM_SIZE>;
 
     genome_t genome;                    // Series of instructions.
@@ -75,8 +76,6 @@ namespace mabe {
     memory_t mem;   
 
     emp::vector<size_t> scope_starts;   // Stack of scope starting points.
-    emp::vector<size_t> fun_starts;     // Positions where specific functions begin.
-    emp::vector<size_t> call_stack;     // Where should function ends return to?
 
     // Find the instruction with the provided name.
     Inst GetInst(const std::string & name) const {
@@ -190,8 +189,8 @@ namespace mabe {
         case Inst::ADD_CONST:
           GetArgVar(arg1) += GetArgConst(arg2);
           break;
-        case Inst::SHIFT_CONST:
-          GetArgVar(arg1) *= emp::Pow2(GetArgConst(arg2));
+        case Inst::MULT_CONST:
+          GetArgVar(arg1) *= GetArgConst(arg2);
           break;
         case Inst::ADD:
           GetArgVar(arg3) = GetArgVar(arg1) + GetArgVar(arg2);
@@ -210,14 +209,8 @@ namespace mabe {
           if (GetArgVar(arg2) != 0.0) GetArgVar(arg3) = std::remainder(GetArgVar(arg1), GetArgVar(arg2));
           // @CAO Do something on error?
           break;
-        case Inst::NOT:
-          GetArgVar(arg3) = ~GetArgBits(arg1);
-          break;
-        case Inst::AND:
-          GetArgVar(arg3) = GetArgBits(arg1) & GetArgBits(arg2);
-          break;
-        case Inst::OR:
-          GetArgVar(arg3) = GetArgBits(arg1) | GetArgBits(arg2);
+        case Inst::NAND:
+          GetArgVar(arg3) = ~(GetArgBits(arg1) & GetArgBits(arg2));
           break;
         case Inst::COPY:
           GetArgVar(arg2) = GetArgVar(arg1);
@@ -227,9 +220,6 @@ namespace mabe {
           break;
         case Inst::TEST_NEQU:
           GetArgVar(arg3) = (GetArgVar(arg1) != GetArgVar(arg2));
-          break;
-        case Inst::TEST_GTR:
-          GetArgVar(arg3) = (GetArgVar(arg1) > GetArgVar(arg2));
           break;
         case Inst::TEST_LESS:
           GetArgVar(arg3) = (GetArgVar(arg1) < GetArgVar(arg2));
@@ -280,8 +270,18 @@ namespace mabe {
           };          
           break;
         case Inst::PUSH:
+          {
+            double & stack_ptr = GetArgVar(arg1);
+            mem[(size_t) stack_ptr] = GetArgVar(arg2);
+            stack_ptr += 1.0;
+          }
           break;
         case Inst::POP:
+          {
+            double & stack_ptr = GetArgVar(arg1);
+            stack_ptr -= 1.0;
+            GetArgVar(arg2) = mem[(size_t) stack_ptr];
+          }
           break;
         };
       }
@@ -311,7 +311,7 @@ namespace mabe {
       : OrganismTemplate<SimpleProgramOrg>(_manager) { }
     SimpleProgramOrg(const SimpleProgramOrg &) = default;
     SimpleProgramOrg(SimpleProgramOrg &&) = default;
-    SimpleProgramOrg(const emp::vector<double> & in, OrganismManager<SimpleProgramOrg> & _manager)
+    SimpleProgramOrg(const genome_t & in, OrganismManager<SimpleProgramOrg> & _manager)
       : OrganismTemplate<SimpleProgramOrg>(_manager)
     {
       // SharedData().ApplyBounds(vals);  // Make sure all data is within range.
@@ -334,11 +334,7 @@ namespace mabe {
     }
 
     void Randomize(emp::Random & random) override {
-      for (double & x : vals) {
-        x = random.GetDouble(SharedData().min_value, SharedData().max_value);
-        total += x;
-      }
-      SetVar<double>(SharedData().total_name, total);  // Store total in data map.
+      for (unsigned char & x : genome) { x = random.GetUInt(0, 256); }
     }
 
     /// Put the values in the correct output positions.
@@ -399,21 +395,18 @@ namespace mabe {
 
       // Setup the instruction set.
       data.inst_names.resize((size_t) Inst::NUM_BASE_INSTS);
-      data.inst_names[(size_t) Inst::GET_CONST] = "GetConst":
-      data.inst_names[(size_t) Inst::ADD_CONST] = "AddConst":
-      data.inst_names[(size_t) Inst::SHIFT_CONST] = "ShiftConst":
+      data.inst_names[(size_t) Inst::GET_CONST] = "GetConst";
+      data.inst_names[(size_t) Inst::ADD_CONST] = "AddConst";
+      data.inst_names[(size_t) Inst::MULT_CONST] = "MultConst";
       data.inst_names[(size_t) Inst::ADD] == "Add";
       data.inst_names[(size_t) Inst::SUB] == "Sub";
       data.inst_names[(size_t) Inst::MULT] == "Mult";
       data.inst_names[(size_t) Inst::DIV] == "Div";
       data.inst_names[(size_t) Inst::MOD] == "Mod";
-      data.inst_names[(size_t) Inst::NOT] == "Not";
-      data.inst_names[(size_t) Inst::AND] == "And";
-      data.inst_names[(size_t) Inst::OR] == "Or";
+      data.inst_names[(size_t) Inst::NAND] == "Nand";
       data.inst_names[(size_t) Inst::COPY] == "Copy";
       data.inst_names[(size_t) Inst::TEST_EQU] == "TestEqu";
       data.inst_names[(size_t) Inst::TEST_NEQU] == "TestNEqu";
-      data.inst_names[(size_t) Inst::TEST_GTR] == "TestGtr";
       data.inst_names[(size_t) Inst::TEST_LESS] == "TestLess";
       data.inst_names[(size_t) Inst::IF] == "If";
       data.inst_names[(size_t) Inst::WHILE] == "While";
