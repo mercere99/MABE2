@@ -5,7 +5,20 @@
  *
  *  @file SimpleProgramOrg.hpp
  *  @brief A simple organism with a program-based genome.
- *  @note Status: ALPHA
+ *  @note Status: UNFINISHED.
+ * 
+ *  Tracking scopes became more complex than was intended for this simple model;
+ *  shifting back to using ScopeGP hardware from Empirical, but keep this here
+ *  to finish later if warranted.
+ * 
+ *  Main advantages were intended to be:
+ *  - Fixed instruction set, so insts can be looked up in a switch block.
+ *  - Fixed sized (array based) memory, for less indirection.
+ *  - Fixed chunk of memory (rather than array) for faster access.
+ *  - Indirect references to memory built in to arguments.
+ *  - Rgisters were part of memory, so they could be more dynamically accessed
+ * 
+ *  Most of these can be explored in other hardware.
  */
 
 #ifndef MABE_SIMPLE_PROGRAM_ORGANISM_H
@@ -32,14 +45,14 @@ namespace mabe {
     enum class Inst {
       GET_CONST, ADD_CONST, MULT_CONST,  // (3) Modify ARG1 by ARG2c
       ADD, SUB, MULT, DIV, MOD, NAND,    // (6) Basic two-input math (ARG3 = ARG1 op ARG2)
-      COPY,                              // (1) Copy ARG1 into ARG2
       TEST_EQU, TEST_NEQU, TEST_LESS,    // (3) COMPARE ARG1 and ARG2; put 0/1 result in ARG3
-      IF,                                // (1) Inc scope; skip new scope if ARG1 is 0.
-      WHILE,                             // (1) Inc scope; repeat as long as ARG1 is non-zero
-      COUNTDOWN,                         // (1) Inc scope; repeat and dec ARG1 while non-zero
-      CONTINUE,                          // (1) Jump back to WHILE or COUNTDOWN start or end scope
-      BREAK,                             // (1) Jump to end of WHILE or COUNTDOWN scope
-      END_SCOPE,                         // (1) Close current scope
+      COPY,                              // (1) Copy ARG1 into ARG2
+      IF,                                // (1) Set scope to ARG1; Skip if ARG2 is 0.
+      WHILE,                             // (1) Set scope to ARG1; repeat as long as ARG2 is non-zero
+      COUNTDOWN,                         // (1) Set scope to ARG1; repeat and dec ARG2 while non-zero
+      CONTINUE,                          // (1) Jump back to WHILE or COUNTDOWN start, or prog start
+      BREAK,                             // (1) Jump to end of WHILE or COUNTDOWN scope, or halt prog
+      SET_SCOPE,                         // (1) Set the current scope to ARG1 (end deeper scopes)
       PUSH, POP,                         // (2) Treat ARG1 as stack pointer; push/pop with ARG2
       NUM_BASE_INSTS,                    // 21 - Marker for total instruction count in base set
       NONE,                              // Empty instruction!
@@ -69,17 +82,17 @@ namespace mabe {
     static constexpr size_t REG_MASK = NUM_REGS - 1;
 
     using genome_t = emp::array<unsigned char, GENOME_SIZE*4>;
+    using jump_map_t = emp::array<size_t, GENOME_SIZE>;
     using memory_t = emp::array<double, MEM_SIZE>;
 
-    genome_t genome;                    // Series of instructions.
-    size_t inst_ptr;                    // Position in genome to execute next.
-    memory_t mem;   
-
-    emp::vector<size_t> scope_starts;   // Stack of scope starting points.
+    genome_t genome;          // Series of instructions.
+    jump_map_t inst_target;  // Pre-processed jump points for CONTINUE, BREAK, or scope ends
+    size_t inst_ptr;          // Position in genome to execute next.
+    memory_t mem;             // Memory for program to manipulate
 
     // Find the instruction with the provided name.
     Inst GetInst(const std::string & name) const {
-      const auto & inst_names = SharedData().inst_names;
+      const emp::vector<std::string> & inst_names = SharedData().inst_names;
       for (size_t i = 0; i < inst_names.size(); i++) {
         if (inst_names[i] == name) return (Inst) i;
       }
@@ -126,21 +139,52 @@ namespace mabe {
         case 0:  return  -2.0;
         case 1:  return  -1.0;
         case 2:  return   0.0;
-        case 3:  return   0.0;  // Second zero since it's the most useful value.
-        case 4:  return   0.25;
-        case 5:  return   0.5;
-        case 6:  return   1.0;
-        case 7:  return   2.0;
-        case 8:  return   3.0;
-        case 9:  return   4.0;
-        case 10: return   8.0;
-        case 11: return  16.0;
-        case 12: return  32.0;
-        case 13: return  64.0;
-        case 14: return 128.0;
-        case 15: return 256.0;
+        case 3:  return   0.25;
+        case 4:  return   0.5;
+        case 5:  return   1.0;
+        case 6:  return   2.0;
+        case 7:  return   3.0;
+        case 8:  return   4.0;
+        case 9: return   8.0;
+        case 10: return  16.0;
+        case 11: return  32.0;
+        case 12: return  64.0;
+        case 13: return 128.0;
+        case 14: return 256.0;
+        case 15: return 512.0;
+        default: return 0.0;   // Error?
       };
     }
+
+
+    // Analyze this program to figure out scope information for each position.
+    void PreprocessScopes() {
+      unsigned char cur_scope = 0;
+      emp::vector<size_t> scope_starts;
+      scope_starts.reserve(16);
+      for (size_t i = 0; i < GENOME_SIZE; i++) {
+        const size_t genome_pos = i*4;
+        switch (genome[genome_pos]) {          
+        case (size_t) Inst::IF:
+          unsigned char new_scope = genome[genome_pos+1] % 16;
+          break;
+        case (size_t) Inst::WHILE:
+        case (size_t) Inst::COUNTDOWN:
+          unsigned char new_scope = genome[genome_pos+1] % 16;
+          break;
+        case (size_t) Inst::SET_SCOPE:
+          unsigned char new_scope = genome[genome_pos+1] % 16;
+          break;
+        case (size_t) Inst::BREAK:
+          break;
+        case (size_t) Inst::CONTINUE:
+          break;
+        default:
+      
+        };
+      }
+    }
+
 
     // What kind of scope are we in?
     Inst GetScopeType() {
@@ -212,9 +256,6 @@ namespace mabe {
         case Inst::NAND:
           GetArgVar(arg3) = ~(GetArgBits(arg1) & GetArgBits(arg2));
           break;
-        case Inst::COPY:
-          GetArgVar(arg2) = GetArgVar(arg1);
-          break;
         case Inst::TEST_EQU:
           GetArgVar(arg3) = (GetArgVar(arg1) == GetArgVar(arg2));
           break;
@@ -223,6 +264,9 @@ namespace mabe {
           break;
         case Inst::TEST_LESS:
           GetArgVar(arg3) = (GetArgVar(arg1) < GetArgVar(arg2));
+          break;
+        case Inst::COPY:
+          GetArgVar(arg2) = GetArgVar(arg1);
           break;
 
         case Inst::IF:
@@ -404,10 +448,10 @@ namespace mabe {
       data.inst_names[(size_t) Inst::DIV] == "Div";
       data.inst_names[(size_t) Inst::MOD] == "Mod";
       data.inst_names[(size_t) Inst::NAND] == "Nand";
-      data.inst_names[(size_t) Inst::COPY] == "Copy";
       data.inst_names[(size_t) Inst::TEST_EQU] == "TestEqu";
       data.inst_names[(size_t) Inst::TEST_NEQU] == "TestNEqu";
       data.inst_names[(size_t) Inst::TEST_LESS] == "TestLess";
+      data.inst_names[(size_t) Inst::COPY] == "Copy";
       data.inst_names[(size_t) Inst::IF] == "If";
       data.inst_names[(size_t) Inst::WHILE] == "While";
       data.inst_names[(size_t) Inst::COUNTDOWN] == "Countdown";
