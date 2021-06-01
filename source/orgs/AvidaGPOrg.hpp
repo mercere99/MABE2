@@ -33,23 +33,28 @@ namespace mabe {
     ~AvidaGPOrg() { ; }
 
     struct ManagerData : public Organism::ManagerData {
+      // Configuration variables
       double mut_prob = 0.01;              ///< Probability of each bit mutating on reproduction.
-      std::string output_name = "output";  ///< Name of trait that should be used to access bits.
-      emp::Binomial mut_dist;              ///< Distribution of number of mutations to occur.
-      emp::BitVector mut_sites;            ///< A pre-allocated vector for mutation sites. 
+      size_t init_length = 100;            ///< Length of new organisms.
       bool init_random = true;             ///< Should we randomize ancestor?  (false = all zeros)
+      size_t eval_time = 500;              ///< How long should the CPU be given on each evaluate?
+      std::string output_name = "output";  ///< Name of trait that should be used to access bits.
+
+      // Internal use
+      emp::Binomial mut_dist;            ///< Distribution of number of mutations to occur.
+      emp::BitVector mut_sites;            ///< A pre-allocated vector for mutation sites. 
     };
 
     /// Use "to_string" to convert.
-    std::string ToString() const override { return emp::to_string(bits); }
+    std::string ToString() const override { return hardware.ToString(); }
 
     size_t Mutate(emp::Random & random) override {
       const size_t num_muts = SharedData().mut_dist.PickRandom(random);
 
       if (num_muts == 0) return 0;
       if (num_muts == 1) {
-        const size_t pos = random.GetUInt(bits.size());
-        bits.Toggle(pos);
+        const size_t pos = random.GetUInt(hardware.GetSize());
+        hardware.RandomizeInst(pos, random);
         return 1;
       }
 
@@ -57,21 +62,22 @@ namespace mabe {
       auto & mut_sites = SharedData().mut_sites;
       mut_sites.Clear();
       for (size_t i = 0; i < num_muts; i++) {
-        const size_t pos = random.GetUInt(bits.size());
+        const size_t pos = random.GetUInt(hardware.GetSize());
         if (mut_sites[pos]) { --i; continue; }  // Duplicate position; try again.
-        mut_sites.Set(pos);
+        hardware.RandomizeInst(pos, random);
       }
-      bits ^= mut_sites;
 
       return num_muts;
     }
 
     void Randomize(emp::Random & random) override {
-      emp::RandomizeBitVector(bits, random, 0.5);
+      for (size_t pos = 0; pos < hardware.GetSize(); pos++) {
+        hardware.RandomizeInst(pos, random);
+      }
     }
 
     void Initialize(emp::Random & random) override {
-      if (SharedData().init_random) emp::RandomizeBitVector(bits, random, 0.5);
+      if (SharedData().init_random) Randomize(random);
     }
 
     /// Put the bits in the correct output position.
@@ -94,9 +100,6 @@ namespace mabe {
 
     /// Setup this organism type with the traits it need to track.
     void SetupModule() override {
-      // Setup the mutation distribution.
-      SharedData().mut_dist.Setup(SharedData().mut_prob, bits.size());
-
       // Setup the default vector to indicate mutation positions.
       SharedData().mut_sites.Resize(bits.size());
 
