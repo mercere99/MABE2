@@ -8,10 +8,10 @@
  */
 
 // Evaluation Modules
-#include "evaluate/EvalCountBits.hpp"
-#include "evaluate/EvalDiagnostic.hpp"
-#include "evaluate/EvalMatchBits.hpp"
-#include "evaluate/EvalNK.hpp"
+#include "evaluate/static/EvalCountBits.hpp"
+#include "evaluate/static/EvalDiagnostic.hpp"
+#include "evaluate/static/EvalMatchBits.hpp"
+#include "evaluate/static/EvalNK.hpp"
 
 // Interface Modules
 #include "interface/CommandLine.hpp"
