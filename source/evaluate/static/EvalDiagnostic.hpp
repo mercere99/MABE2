@@ -10,8 +10,8 @@
 #ifndef MABE_EVAL_DIAGNOSTIC_H
 #define MABE_EVAL_DIAGNOSTIC_H
 
-#include "../core/MABE.hpp"
-#include "../core/Module.hpp"
+#include "../../core/MABE.hpp"
+#include "../../core/Module.hpp"
 
 namespace mabe {
 
