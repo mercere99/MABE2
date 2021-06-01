@@ -80,37 +80,49 @@ namespace mabe {
       if (SharedData().init_random) Randomize(random);
     }
 
-    /// Put the bits in the correct output position.
+    /// Put the output values in the correct output position.
+    /// (Should be of type std::unordered_map<int,double>)
     void GenerateOutput() override {
-      SetVar<emp::BitVector>(SharedData().output_name, bits);
+      hardware.ResetHardware();
+
+      // @CAO Setup the input!
+      // org.SetInputs(game.AsInput(game.GetCurPlayer()));
+
+      // Run the code.
+      hardware.Process(SharedData().eval_time);
+
+      // Store the results.
+      SetVar<std::unordered_map<int,double>>(SharedData().output_name, hardware.GetOutputs());
     }
 
     /// Setup this organism type to be able to load from config.
     void SetupConfig() override {
-      GetManager().LinkFuns<size_t>([this](){ return bits.size(); },
-                       [this](const size_t & N){ return bits.Resize(N); },
-                       "N", "Number of bits in organism");
       GetManager().LinkVar(SharedData().mut_prob, "mut_prob",
-                      "Probability of each bit mutating on reproduction.");
+                      "Probability of each instruction mutating on reproduction.");
+      GetManager().LinkFuns<size_t>([this](){ return hardware.size(); },
+                       [this](const size_t & N){ hardware.Reset(); hardware.PushDefaultInst(N); },
+                       "N", "Initial number of instructions in genome");
+      GetManager().LinkVar(SharedData().init_random, "init_random",
+                      "Should we randomize ancestor?  (0 = \"blank\" default)");
+      GetManager().LinkVar(SharedData().eval_time, "eval_time",
+                      "How many CPU cycles should we give organisms to run?");
       GetManager().LinkVar(SharedData().output_name, "output_name",
                       "Name of variable to contain bit sequence.");
-      GetManager().LinkVar(SharedData().init_random, "init_random",
-                      "Should we randomize ancestor?  (0 = all zeros)");
     }
 
     /// Setup this organism type with the traits it need to track.
     void SetupModule() override {
       // Setup the default vector to indicate mutation positions.
-      SharedData().mut_sites.Resize(bits.size());
+      SharedData().mut_sites.Resize(hardware.GetSize());
 
       // Setup the output trait.
       GetManager().AddSharedTrait(SharedData().output_name,
-                                  "Bitset output from organism.",
-                                  emp::BitVector(0));
+                                  "Value map output from organism.",
+                                  std::unordered_map<int,double>());
     }
   };
 
-  MABE_REGISTER_ORG_TYPE(AvidaGPOrg, "Organism consisting of a series of N bits.");
+  MABE_REGISTER_ORG_TYPE(AvidaGPOrg, "Organism consisting of Avida instructions.");
 }
 
 #endif
