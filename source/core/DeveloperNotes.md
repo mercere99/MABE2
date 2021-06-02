@@ -3,9 +3,10 @@ changed for individual experients.
 
 # Layout
 
-The core components of MABE are below.  The first three files are tools with no internal dependancies.  Each of the remaining files depend on all of those above it.
+The core components of MABE are below.  The first four files are tools with no internal dependancies.  Each of the remaining files depend on all of those above it.
 
 data_collect.hpp    - Tools to extract data from elements in a container. 
+SigListener.hpp     - Tool to trigger a specified member function on other classes when triggered.
 TraitInfo.hpp       - Specifications for module/trait interactions (on organisms, populations, etc.)
 TraitSet.hpp        - Collections of traits, all with the same type (or a vector of that type)
 
