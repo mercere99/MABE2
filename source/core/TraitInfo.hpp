@@ -53,6 +53,7 @@
 
 #include <string>
 
+#include "emp/data/DataMap.hpp"
 #include "emp/meta/TypeID.hpp"
 
 namespace mabe {
@@ -209,7 +210,7 @@ namespace mabe {
     emp::vector<std::string> GetRequiredNames() const { return GetModuleNames(Access::REQUIRED); }
 
     /// Was a default value set for this trait (can only be done in overload that knows type)
-    virtual bool HasDefault() { return false; }
+    virtual bool HasDefault() const { return false; }
     bool GetResetParent() const { return reset_parent; }
 
     Init GetInit() const { return init; }
@@ -246,9 +247,13 @@ namespace mabe {
 
     /// Set ALL previous values of this trait to be store after each reset.
     TraitInfo & SetArchiveAll() { archive = Archive::ALL_REPRO; return *this; }
+
+    /// Register this trait in the provided DataMap.
+    virtual void Register(emp::DataMap & dm) const = 0;
   };
 
-  template <typename T>
+  // Information about this trait, including type information and alternate type options.
+  template <typename T, typename... ALT_Ts>
   class TypedTraitInfo : public TraitInfo {
   private:
     T default_value;
@@ -268,7 +273,7 @@ namespace mabe {
       type = emp::GetTypeID<T>();
     }
 
-    bool HasDefault() { return has_default; }
+    bool HasDefault() const override { return has_default; }
 
     const T & GetDefault() const { return default_value; }
 
@@ -277,6 +282,11 @@ namespace mabe {
       has_default = true;
       return *this;
     }
+
+    void Register(emp::DataMap & dm) const override {
+      dm.AddVar(name, default_value, desc);
+    }
+
   };
 
 }
