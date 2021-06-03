@@ -11,7 +11,6 @@
  *
  *  MABE allows modules to interact via a set of SIGNALS that they can listen for by overriding
  *  specific base class functions.  See Module.h for a full list of available signals.
- *
  */
 
 #ifndef MABE_MABE_H
@@ -65,9 +64,8 @@ namespace mabe {
     /// archived, and summarized.
     std::unordered_map<std::string, emp::Ptr<TraitInfo>> trait_map;
 
-    /// Trait information to be stored on each organism.  This is the prototype map, which
-    /// tracks the name, type, and current value of all traits that modules associate with
-    /// organisms.
+    /// Trait information to be stored on each organism.  Tracks the name, type, and current
+    /// value of all traits that modules associate with organisms.
     emp::DataMap org_data_map;
 
     emp::Random random;                ///< Master random number generator
@@ -82,8 +80,6 @@ namespace mabe {
     emp::vector<std::string> errors;   ///< Log any errors that have occured.
     bool show_help = false;            ///< Should we show "help" before exiting?
     bool exit_now = false;             ///< Do we need to immediately clean up and exit the run?
-
-    using mod_ptr_t = emp::Ptr<ModuleBase>;
 
     // --- Config information for command-line arguments ---
     struct ArgInfo {
@@ -486,17 +482,25 @@ namespace mabe {
 
     // --- Deal with Organism TRAITS ---
 
-    /// Add a new organism trait.
-    template <typename T>
+    /**
+     *  Add a new organism trait.
+     *  @param T The preferred type for this trait.
+     *  @param ALT_Ts Alternative types that can be allowed for non-owning of this trait.
+     *  @param mod_ptr Pointer to the module that uses this trait.
+     *  @param access The accesses method the module is requesting for this trait.
+     *  @param desc A brief description of this trait.
+     *  @param default_value The value to use for this trait when it is not otherwise set.
+     */
+    template <typename T, typename... ALT_Ts>
     TypedTraitInfo<T> & AddTrait(emp::Ptr<ModuleBase> mod_ptr,
                                  TraitInfo::Access access,
                                  const std::string & trait_name,
                                  const std::string & desc,
                                  const T & default_val)
     {
-      emp::Ptr<TypedTraitInfo<T>> cur_trait = nullptr;
       const std::string & mod_name = mod_ptr->GetName();
 
+      // All traits must be setup in SetupConfig(); afterward linking new traits is locked.
       if (allow_trait_linking == false) {
         AddError("Module '", mod_name, "' adding trait '", trait_name,
                  "' before config files have loaded; should be done in SetupModule().");
@@ -509,11 +513,11 @@ namespace mabe {
       }
 
       // If the trait does not already exist, build it as a new trait.
+      emp::Ptr<TypedTraitInfo<T>> cur_trait = nullptr;
       if (emp::Has(trait_map, trait_name) == false) {
-        cur_trait = emp::NewPtr<TypedTraitInfo<T>>(trait_name);
+        cur_trait = emp::NewPtr<TypedTraitInfo<T,ALT_Ts...>>(trait_name, default_val);
         cur_trait->SetDesc(desc);
         trait_map[trait_name] = cur_trait;
-        org_data_map.AddVar(trait_name, default_val, desc);
       }
       
       // Otherwise make sure that it is consistent with previous modules.
@@ -619,27 +623,20 @@ namespace mabe {
     }
 
     /// Move up one level of scope.
-    ConfigScope & LeaveScope() {
-      cur_scope = cur_scope->GetScope();
-      return *cur_scope;
-    }
+    ConfigScope & LeaveScope() { return *(cur_scope = cur_scope->GetScope()); }
 
     /// Return to the root scope.
-    ConfigScope & ResetScope() {
-      cur_scope = &(config.GetRootScope());
-      return *cur_scope;
-    }
+    ConfigScope & ResetScope() { return *(cur_scope = &(config.GetRootScope())); }
 
     /// Setup the configuration options for MABE, including for each module.
     void SetupConfig();
 
-    /// Do some basic sanity checks for debugging; return whether all details of the current
-    /// MABE setup are "okay".
+    /// Sanity checks for debugging
     bool OK();
 
 
     // Checks for which modules are currently being triggered.
-
+    using mod_ptr_t = emp::Ptr<ModuleBase>;
     bool BeforeUpdate_IsTriggered(mod_ptr_t mod) { return before_update_sig.cur_mod == mod; };
     bool OnUpdate_IsTriggered(mod_ptr_t mod) { return on_update_sig.cur_mod == mod; };
     bool BeforeRepro_IsTriggered(mod_ptr_t mod) { return before_repro_sig.cur_mod == mod; };
@@ -952,10 +949,14 @@ namespace mabe {
       }
     }
 
-    // STEP 2: Lock in the DataMap and make sure that all of the modules (especially org managers)
-    // are aware of the final set of traits.
+    // STEP 2: Load in all of the traits to the DataMap and lock it.
+    for (auto [name,trait_ptr] : trait_map) {
+      trait_ptr->Register(org_data_map);
+    }
     org_data_map.LockLayout();
 
+
+    // STEP 3: Alert modules (especially org managers) to the final set of traits.
     for (emp::Ptr<ModuleBase> mod_ptr : modules) {
       mod_ptr->SetupDataMap(org_data_map);
     }
