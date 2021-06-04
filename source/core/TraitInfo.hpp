@@ -157,6 +157,10 @@ namespace mabe {
     const std::string & GetDesc() const { return desc; }
     emp::TypeID GetType() const { return type; }
 
+    template <typename T> bool IsType() const { return GetType() == emp::GetTypeID<T>(); }
+    virtual bool IsAllowedType(emp::TypeID) const = 0;
+    template <typename T> bool IsAllowedType() const { return IsAllowedType(emp::GetTypeID<T>()); }
+
     /// Determine what kind of access a module has.
     Access GetAccess(mod_ptr_t mod_ptr) const {
       int id = GetInfoID(mod_ptr);
@@ -281,6 +285,10 @@ namespace mabe {
       default_value = in_default;
       has_default = true;
       return *this;
+    }
+
+    bool IsAllowedType(emp::TypeID type_id) const override {
+      return type_id.template IsTypeIn<T, ALT_Ts...>();
     }
 
     void Register(emp::DataMap & dm) const override {
