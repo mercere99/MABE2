@@ -41,7 +41,7 @@ namespace mabe {
   class Module : public ModuleBase {
   public:
     Module(MABE & in_control, const std::string & in_name, const std::string & in_desc="")
-      : ModuleBase(in_control, in_name, in_desc) { ; }
+      : ModuleBase(in_control, in_name, in_desc) { error_man = &control.GetErrorManager(); }
     Module(const Module &) = delete;
     Module(Module &&) = delete;
 
@@ -60,7 +60,7 @@ namespace mabe {
       std::function<void(std::string)> set_fun =
         [this,&var](const std::string & name){
           var = control.GetPopID(name);
-          if (var == -1) control.AddError("Trying to access population '", name, "'; does not exist.");
+          if (var == -1) AddError("Trying to access population '", name, "'; does not exist.");
         };
 
       return GetScope().LinkFuns<std::string>(name, get_fun, set_fun, desc);
@@ -91,7 +91,7 @@ namespace mabe {
       std::function<void(std::string)> set_fun =
         [this,&var](const std::string & name){
           var = control.GetModuleID(name);
-          if (var == -1) control.AddError("Trying to access module '", name, "'; does not exist.");
+          if (var == -1) AddError("Trying to access module '", name, "'; does not exist.");
         };
 
       return GetScope().LinkFuns<std::string>(name, get_fun, set_fun, desc);
