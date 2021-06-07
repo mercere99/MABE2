@@ -51,6 +51,7 @@
 #ifndef MABE_TRAIT_INFO_H
 #define MABE_TRAIT_INFO_H
 
+#include <set>
 #include <string>
 
 #include "emp/data/DataMap.hpp"
@@ -62,9 +63,10 @@ namespace mabe {
 
   class TraitInfo {
   protected:
-    std::string name="";         ///< Unique name for this trait.
-    std::string desc="";         ///< Description of this trait.
-    emp::TypeID type;            ///< Type identifier for this trait.
+    std::string name="";              ///< Unique name for this trait.
+    std::string desc="";              ///< Description of this trait.
+    emp::TypeID type;                 ///< Type identifier for this trait.
+    std::set<emp::TypeID> alt_types;  ///< What other types should be allowed?
 
   public:
     /// Which modules are allowed to read or write this trait?
@@ -268,6 +270,7 @@ namespace mabe {
     {
       name = in_name;
       type = emp::GetTypeID<T>();
+      AddAllowedTypes<T,ALT_Ts>();
     }
 
     TypedTraitInfo(const std::string & in_name, const T & in_default)
@@ -275,6 +278,7 @@ namespace mabe {
     {
       name = in_name;
       type = emp::GetTypeID<T>();
+      AddAllowedTypes<T,ALT_Ts>();
     }
 
     bool HasDefault() const override { return has_default; }
@@ -285,6 +289,14 @@ namespace mabe {
       default_value = in_default;
       has_default = true;
       return *this;
+    }
+    
+    template <typename ADD_T, typename... OTHER_Ts>
+    void AddAllowedTypes() {
+      alt_types.insert( emp::GetTypeID<T>() );
+      if constexpr (sizeof...(OTHER_Ts) > 0) {
+        AddAllowedTypes<OTHER_Ts>();
+      }
     }
 
     bool IsAllowedType(emp::TypeID type_id) const override {
