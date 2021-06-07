@@ -25,21 +25,36 @@ namespace mabe {
 
   class ErrorManager {
   private:
-    emp::vector<std::string> errors;                   ///< Log of any errors that have occured.
-    std::function<void(const std::string &)> trigger;  ///< Function to call on errors.
-    bool active = false;                               ///< Print immediately or hold messages?
-    size_t next = 0;                                   ///< ID of next message to notify about.
+    emp::vector<std::string> errors;                           ///< Log of errors
+    emp::vector<std::string> warnings;                         ///< Log of warnings
+    std::function<void(const std::string &)> error_callback;   ///< Function to call on errors
+    std::function<void(const std::string &)> warning_callback; ///< Function to call on warnings
+    bool active = false;                                       ///< Print immediately or hold?
+    size_t next_error = 0;                                     ///< ID of next error to notify
+    size_t next_warning = 0;                                   ///< ID of next warning to notify
 
   public:
-    ErrorManager(std::function<void(const std::string &)> in_trigger) : trigger(in_trigger) { }
+    ErrorManager(std::function<void(const std::string &)> _error_cb,
+                 std::function<void(const std::string &)> _warning_cb)
+    : error_callback(_error_cb)
+    , warning_callback(_warning_cb)
+    { }
 
     const emp::vector<std::string> & GetErrors() const { return errors; }
+    const emp::vector<std::string> & GetWarnings() const { return warnings; }
     size_t GetNumErrors() const { return errors.size(); }
+    size_t GetNumWarnings() const { return warnings.size(); }
     bool IsActive() const { return active; }
 
-    void SetTrigger(std::function<void(const std::string &)> in_trigger) { trigger = in_trigger; }
+    void SetErrorCallback(std::function<void(const std::string &)> in_cb) {
+      error_callback = in_cb;
+    }
 
-     // -- Error Handling --
+    void SetWarningCallback(std::function<void(const std::string &)> in_cb) {
+      warning_callback = in_cb;
+    }
+
+    /// Notify about a new error; details can be any types convertable to strings.
     template <typename... Ts>
     void AddError(Ts &&... args) {
       // If we are in debug mode, trigger the error immediately.
@@ -50,34 +65,49 @@ namespace mabe {
 
       // If active, deal with it immediately.
       if (active) {
-        trigger(errors.back());
-        next = errors.size();
+        error_callback(errors.back());
+        next_error = errors.size();
       }
     }
 
-    // Output held errors, but do not change active status.
+    /// Notify about a new warning; details can be any types convertable to strings.
+    template <typename... Ts>
+    void AddWarning(Ts &&... args) {
+      // If we are in debug mode, trigger the warning immediately.
+      emp_warning(args...);
+
+      // Otherwise store it to deal with it when requested.
+      warnings.push_back( emp::to_string( std::forward<Ts>(args)... ));
+
+      // If active, deal with it immediately.
+      if (active) {
+        warning_callback(warnings.back());
+        next_warning = warnings.size();
+      }
+    }
+
+    /// Output held errors and warnings, but do not change active status.
     void Flush() {
-      while (next < errors.size()) {
-        trigger(errors[next]);
-        next++;
-      }
+      while (next_error   < errors.size())   error_callback(errors[next_error++]);
+      while (next_warning < warnings.size()) warning_callback(warnings[next_warning++]);
     }
 
-    // Unlock the ErrorManager and output all held errors.
+    /// Unlock the ErrorManager and output all held errors.
     void Activate() {
       active = true;
       Flush();
     }
 
-    // Lock the ErrorManager; it will still collect errors but not pass them on.
+    /// Lock the ErrorManager; it will still collect errors but not pass them on.
     void Deactivate() {
       active = false;
     }
 
-    // Remove all errors.
+    /// Remove all errors (don't change active status)
     void Clear() {
       errors.resize(0);
-      next = 0;
+      next_error = 0;
+      next_warning = 0;
     }
 
   };
