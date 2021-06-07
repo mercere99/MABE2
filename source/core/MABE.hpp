@@ -675,7 +675,8 @@ namespace mabe {
   // ========================== OUT-OF-CLASS DEFINITIONS! ==========================
 
   MABE::MABE(int argc, char* argv[])
-    : error_man( [this](const std::string & msg){ on_error_sig.Trigger(msg); })
+    : error_man( [this](const std::string & msg){ on_error_sig.Trigger(msg); },
+                 [this](const std::string & msg){ on_warning_sig.Trigger(msg); } )
     , args(emp::cl::args_to_strings(argc, argv))
     , cur_scope(&(config.GetRootScope()))
   {
