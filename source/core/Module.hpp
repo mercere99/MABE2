@@ -130,7 +130,7 @@ namespace mabe {
                          const std::string & name,
                          const std::string & desc="",
                          const T & default_val=T()) {
-      return control.AddTrait<T,ALT_Ts...>(this, access, name, desc, default_val);
+      return control.GetTraitManager().AddTrait<T,ALT_Ts...>(this, access, name, desc, default_val);
     }
 
     /// Add trait that this module can READ & WRITE this trait.  Others cannot use it.
