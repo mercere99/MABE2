@@ -492,11 +492,11 @@ namespace mabe {
      *  @param default_value The value to use for this trait when it is not otherwise set.
      */
     template <typename T, typename... ALT_Ts>
-    TypedTraitInfo<T> & AddTrait(emp::Ptr<ModuleBase> mod_ptr,
-                                 TraitInfo::Access access,
-                                 const std::string & trait_name,
-                                 const std::string & desc,
-                                 const T & default_val)
+    TraitInfo & AddTrait(emp::Ptr<ModuleBase> mod_ptr,
+                         TraitInfo::Access access,
+                         const std::string & trait_name,
+                         const std::string & desc,
+                         const T & default_val)
     {
       const std::string & mod_name = mod_ptr->GetName();
 
@@ -512,17 +512,22 @@ namespace mabe {
                  "' with UNKNOWN access type.");
       }
 
+      // Determine the type options this module can handle.
+      emp::vector<emp::TypeID> alt_types = emp::GetTypeIDs<T, ALT_Ts...>();
+      emp::Sort(alt_types);
+ 
       // If the trait does not already exist, build it as a new trait.
-      emp::Ptr<TypedTraitInfo<T>> cur_trait = nullptr;
+      emp::Ptr<TraitInfo> cur_trait = nullptr;
       if (emp::Has(trait_map, trait_name) == false) {
-        cur_trait = emp::NewPtr<TypedTraitInfo<T,ALT_Ts...>>(trait_name, default_val);
+        cur_trait = emp::NewPtr<TypedTraitInfo<T>>(trait_name, default_val);
+        cur_trait->SetAltTypes(alt_types);
         cur_trait->SetDesc(desc);
         trait_map[trait_name] = cur_trait;
       }
       
       // Otherwise make sure that it is consistent with previous modules.
       else {
-        cur_trait = trait_map[trait_name].DynamicCast<TypedTraitInfo<T>>();
+        cur_trait = trait_map[trait_name];
 
         // Make sure that the SAME module isn't defining a trait twice.
         if (cur_trait->HasAccess(mod_ptr)) {
@@ -530,14 +535,32 @@ namespace mabe {
                    trait_name, "'.");
         }
 
-        // Make sure type is consistent across modules.
-        if (cur_trait->GetType() != emp::GetTypeID<T>()) {
-          AddError("Module ", mod_name, " is trying to use trait '",
-                   trait_name, "' of type ", emp::GetTypeID<T>(),
-                   "; Previously defined in module(s) ",
-                   emp::to_english_list(cur_trait->GetModuleNames()),
-                   " as type ", cur_trait->GetType());
+        // Figure out if the alternative types are compatable.
+        emp::vector<emp::TypeID> prev_alt_types = cur_trait->GetAltTypes();
+        emp::vector<emp::TypeID> intersect_types = emp::FindIntersect(alt_types, prev_alt_types);
+
+        // Make sure the type setup for this trait is compatable with the current module.
+        if ( !emp::Has(alt_types, cur_trait->GetType()) ) {
+          // Previous type does not match current options; can we switch over to type T?
+          if (cur_trait->IsAllowedType<T>()) {
+            cur_trait.Delete();
+            cur_trait = emp::NewPtr<TypedTraitInfo<T>>(trait_name, default_val);
+            cur_trait->SetDesc(desc);
+            trait_map[trait_name] = cur_trait;
+          }
+
+          // Otherwise we have incompatable types...
+          else {
+            AddError("Module ", mod_name, " is trying to use trait '",
+                    trait_name, "' of type ", emp::GetTypeID<T>(),
+                    "; Previously defined in module(s) ",
+                    emp::to_english_list(cur_trait->GetModuleNames()),
+                    " as type ", cur_trait->GetType());
+          }
         }
+
+        // Update the alternate types
+        cur_trait->SetAltTypes(intersect_types);
       }
 
       // Add this modules access to the trait.
