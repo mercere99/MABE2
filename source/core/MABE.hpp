@@ -38,6 +38,7 @@
 #include "ModuleBase.hpp"
 #include "Population.hpp"
 #include "SigListener.hpp"
+#include "TraitManager.hpp"
 
 namespace mabe {
 
@@ -54,16 +55,20 @@ namespace mabe {
   private:
     const std::string VERSION = "0.0.1";
 
+    // --- Variables to handle configuration, initialization, and error reporting ---
+
+    bool verbose = false;              ///< Should we output extra information during setup?
+    bool show_help = false;            ///< Should we show "help" before exiting?
+    bool exit_now = false;             ///< Do we need to immediately clean up and exit the run?
+    ErrorManager error_man;            ///< Object to manage warnings and errors.
+
     /// Populations used; generated in the configuration file.
     emp::vector< emp::Ptr<Population> > pops;
 
     /// Organism pointer to use for all empty cells.
     emp::Ptr<Organism> empty_org = nullptr;
 
-    /// Information about organism traits.  TraitInfo specifies which modules are allowed to
-    /// (or expected to) access each trait, as well as how that trait should be initialized,
-    /// archived, and summarized.
-    std::unordered_map<std::string, emp::Ptr<TraitInfo>> trait_map;
+    TraitManager<ModuleBase> trait_man;  ///< Manages which modules are allowed to use each trait.
 
     /// Trait information to be stored on each organism.  Tracks the name, type, and current
     /// value of all traits that modules associate with organisms.
@@ -74,13 +79,6 @@ namespace mabe {
     size_t cur_pop_id = (size_t) -1;   ///< Which population is currently active?
     size_t update = 0;                 ///< How many times has Update() been called?
 
-
-    // --- Variables to handle configuration, initialization, and error reporting ---
-
-    bool verbose = false;              ///< Should we output extra information during setup?
-    bool show_help = false;            ///< Should we show "help" before exiting?
-    bool exit_now = false;             ///< Do we need to immediately clean up and exit the run?
-    ErrorManager error_man;            ///< Object to deal with errors.
 
     // --- Config information for command-line arguments ---
     struct ArgInfo {
@@ -105,9 +103,6 @@ namespace mabe {
     std::string gen_filename;                  ///< Name of output file to generate.
     Config config;                             ///< Configutation information for this run.
     emp::Ptr<ConfigScope> cur_scope;           ///< Which config scope are we currently using?
-
-    // Helpers to ensure proper configuration ordering.
-    bool allow_trait_linking = false;  ///< Modules should link traits only AFTER config is run.
 
 
     // ----------- Helper Functions -----------
@@ -184,7 +179,6 @@ namespace mabe {
     ~MABE() {
       if (empty_org) empty_org.Delete();                           // Delete empty_org ptr.
       for (auto x : modules) x.Delete();                           // Delete all modules.
-      for (auto [name,trait_ptr] : trait_map) trait_ptr.Delete();  // Delete all trait info.
       for (auto x : pops) x.Delete();                              // Delete all populations.
     }
 
@@ -467,96 +461,8 @@ namespace mabe {
       return *new_mod;
     }
 
-
     // --- Deal with Organism TRAITS ---
-
-    /**
-     *  Add a new organism trait.
-     *  @param T The preferred type for this trait.
-     *  @param ALT_Ts Alternative types that can be allowed for non-owning of this trait.
-     *  @param mod_ptr Pointer to the module that uses this trait.
-     *  @param access The accesses method the module is requesting for this trait.
-     *  @param desc A brief description of this trait.
-     *  @param default_value The value to use for this trait when it is not otherwise set.
-     */
-    template <typename T, typename... ALT_Ts>
-    TraitInfo & AddTrait(emp::Ptr<ModuleBase> mod_ptr,
-                         TraitInfo::Access access,
-                         const std::string & trait_name,
-                         const std::string & desc,
-                         const T & default_val)
-    {
-      const std::string & mod_name = mod_ptr->GetName();
-
-      // All traits must be setup in SetupConfig(); afterward linking new traits is locked.
-      if (allow_trait_linking == false) {
-        error_man.AddError("Module '", mod_name, "' adding trait '", trait_name,
-                 "' before config files have loaded; should be done in SetupModule().");
-      }
-
-      // Traits cannot be added without access information.
-      if (access == TraitInfo::UNKNOWN) {
-        error_man.AddError("Module ", mod_name, " trying to add trait named '", trait_name,
-                 "' with UNKNOWN access type.");
-      }
-
-      // Determine the type options this module can handle.
-      emp::vector<emp::TypeID> alt_types = emp::GetTypeIDs<T, ALT_Ts...>();
-      emp::Sort(alt_types);
- 
-      // If the trait does not already exist, build it as a new trait.
-      emp::Ptr<TraitInfo> cur_trait = nullptr;
-      if (emp::Has(trait_map, trait_name) == false) {
-        cur_trait = emp::NewPtr<TypedTraitInfo<T>>(trait_name, default_val);
-        cur_trait->SetAltTypes(alt_types);
-        cur_trait->SetDesc(desc);
-        trait_map[trait_name] = cur_trait;
-      }
-      
-      // Otherwise make sure that it is consistent with previous modules.
-      else {
-        cur_trait = trait_map[trait_name];
-
-        // Make sure that the SAME module isn't defining a trait twice.
-        if (cur_trait->HasAccess(mod_ptr)) {
-          error_man.AddError("Module ", mod_name, " is creating multiple traits named '",
-                   trait_name, "'.");
-        }
-
-        // Figure out if the alternative types are compatable.
-        emp::vector<emp::TypeID> prev_alt_types = cur_trait->GetAltTypes();
-        emp::vector<emp::TypeID> intersect_types = emp::FindIntersect(alt_types, prev_alt_types);
-
-        // Make sure the type setup for this trait is compatable with the current module.
-        if ( !emp::Has(alt_types, cur_trait->GetType()) ) {
-          // Previous type does not match current options; can we switch over to type T?
-          if (cur_trait->IsAllowedType<T>()) {
-            cur_trait.Delete();
-            cur_trait = emp::NewPtr<TypedTraitInfo<T>>(trait_name, default_val);
-            cur_trait->SetDesc(desc);
-            trait_map[trait_name] = cur_trait;
-          }
-
-          // Otherwise we have incompatable types...
-          else {
-            error_man.AddError("Module ", mod_name, " is trying to use trait '",
-                    trait_name, "' of type ", emp::GetTypeID<T>(),
-                    "; Previously defined in module(s) ",
-                    emp::to_english_list(cur_trait->GetModuleNames()),
-                    " as type ", cur_trait->GetType());
-          }
-        }
-
-        // Update the alternate types
-        cur_trait->SetAltTypes(intersect_types);
-      }
-
-      // Add this modules access to the trait.
-      cur_trait->AddAccess(mod_name, mod_ptr, access);
-
-      return *cur_trait;
-    }
-
+    TraitManager<ModuleBase> & GetTraitManager() { return trait_man; }
 
     /// Build a function to scan a collection of organisms, reading the value for the given
     /// trait_name from each, aggregating those values based on the trait_filter and returning
@@ -677,6 +583,7 @@ namespace mabe {
   MABE::MABE(int argc, char* argv[])
     : error_man( [this](const std::string & msg){ on_error_sig.Trigger(msg); },
                  [this](const std::string & msg){ on_warning_sig.Trigger(msg); } )
+    , trait_man(error_man)
     , args(emp::cl::args_to_strings(argc, argv))
     , cur_scope(&(config.GetRootScope()))
   {
@@ -755,7 +662,7 @@ namespace mabe {
     if (exit_now) return false;
 
     // Allow traits to be linked.
-    allow_trait_linking = true;
+    trait_man.Unlock();
 
     Setup_Modules();        // Run SetupModule() on each module for linking traits or other setup.
     Setup_Traits();         // Make sure module traits do not clash.
@@ -864,114 +771,16 @@ namespace mabe {
   /// As part of the main Setup(), load in all of the organism traits that modules need to
   /// read or write and make sure that there aren't any conflicts.
   void MABE::Setup_Traits() {
-    verbose_out("Analyzing configuration of ", trait_map.size(), " traits.");
+    verbose_out("Analyzing configuration of ", trait_man.GetSize(), " traits.");
 
-    // STEP 1: Make sure modules are accessing traits correctly and consistently.
-    int error_count = 0;
+    trait_man.Verify(verbose);            // Make sure modules are accessing traits consistently
+    trait_man.RegisterAll(org_data_map);  // Load in all of the traits to the DataMap
+    org_data_map.LockLayout();            // Freeze the data map into its current state
 
-    // Loop through all of the traits to ensure there are no conflicts.
-    for (auto [trait_name, trait_ptr] : trait_map) {
-      verbose_out("...scanning '", trait_name, "' with ", trait_ptr->GetModuleCount(), " modules:",
-                  " private=", trait_ptr->GetPrivateCount(),
-                  " owned=", trait_ptr->GetOwnedCount(),
-                  " generated=", trait_ptr->GetGeneratedCount(),
-                  " shared=", trait_ptr->GetSharedCount(),
-                  " required=", trait_ptr->GetRequiredCount()
-                 );
-
-      // NO traits should be of UNKNOWN access.
-      if (trait_ptr->GetUnknownCount()) {
-        error_man.AddError("Unknown access mode for trait '", trait_name,
-                 "' in module(s) ", emp::to_english_list(trait_ptr->GetUnknownNames()),
-                 " (internal error!)");
-        error_count++;
-        continue;
-      }
-
-      // Only one module can be involved for PRIVATE access.
-      else if (trait_ptr->GetPrivateCount() > 1) {
-        std::stringstream error_msg;
-        error_msg << "Multiple modules declaring trait '" << trait_name
-                  << "' as private: " << emp::to_english_list(trait_ptr->GetPrivateNames())
-                  << ".\n"
-                  << "[Suggestion: if traits are supposed to be distinct, prepend names with a\n"
-                  << " module-specific prefix.  Otherwise modules need to be edited to not have\n"
-                  << " trait private.]";
-        error_man.AddError(error_msg.str());
-        error_count++;
-        continue;
-      }
-
-      else if (trait_ptr->GetPrivateCount() && trait_ptr->GetModuleCount() > 1) {
-        error_man.AddError("Trait '", trait_name, "' is private in module '", trait_ptr->GetPrivateNames()[0],
-                 "'; should not be used by other modules.\n",
-                 "[Suggestion: if traits are supposed to be distinct, prepend private name with a\n",
-                 " module-specific prefix.  Otherwise module needs to be edited to not have\n",
-                 " trait private.]");
-        error_count++;
-        continue;
-      }
-
-      // A trait that is OWNED or GENERATED cannot have other modules writing to it.
-      else if (trait_ptr->GetOwnedCount() + trait_ptr->GetGeneratedCount() > 1) {
-        auto mod_names = emp::Concat(trait_ptr->GetOwnedNames(), trait_ptr->GetGeneratedNames());
-        std::stringstream error_msg;
-        error_msg << "Multiple modules declaring ownership of trait '" << trait_name << "': "
-                  << emp::to_english_list(mod_names) << ".\n"
-                  << "[Suggestion: if traits are supposed to be distinct, prepend names with a\n"
-                  << " module-specific prefix.  Otherwise modules should be edited to change trait\n"
-                  << " to be SHARED (and all can modify) or have all but one shift to REQUIRED.]";
-        error_man.AddError(error_msg.str());
-        error_count++;
-        continue;
-      }
-
-      else if ((trait_ptr->IsOwned() || trait_ptr->IsGenerated()) && trait_ptr->IsShared()) {
-        error_man.AddError("Trait '", trait_name, "' is fully OWNED by module '", trait_ptr->GetOwnedNames()[0],
-                 "'; it cannot be SHARED (written to) by other modules:",
-                 emp::to_english_list(trait_ptr->GetSharedNames()),
-                 "[Suggestion: if traits are supposed to be distinct, prepend private name with a\n",
-                 " module-specific prefix.  Otherwise module needs to be edited to make trait\n",
-                 " SHARED or have all but one shift to REQUIRED.]");
-        error_count++;
-        continue;
-      }
-
-      // A REQUIRED trait must have another module write to it (i.e. OWNED, GENERATED or SHARED).
-      else if (trait_ptr->IsRequired() &&
-              !trait_ptr->IsOwned() && !trait_ptr->IsShared() && !trait_ptr->IsGenerated()) {
-        error_man.AddError("Trait '", trait_name, "' marked REQUIRED by module(s) ",
-                 emp::to_english_list(trait_ptr->GetRequiredNames()),
-                 "'; must be written to by other modules.\n",
-                 "[Suggestion: set another module to write to this trait (where it is either\n",
-                 " SHARED or OWNED).]");
-        error_count++;
-        continue;
-      }
-
-      // A GENERATED trait requires another module to read (REQUIRE) it.
-      else if (trait_ptr->IsGenerated() && !trait_ptr->IsRequired()) {
-        error_man.AddError("Trait '", trait_name, "' marked GENERATED by module(s) ",
-                 emp::to_english_list(trait_ptr->GetGeneratedNames()),
-                 "'; must be read by other modules.");
-        error_count++;
-        continue;
-      }
-    }
-
-    // STEP 2: Load in all of the traits to the DataMap and lock it.
-    for (auto [name,trait_ptr] : trait_map) {
-      trait_ptr->Register(org_data_map);
-    }
-    org_data_map.LockLayout();
-
-
-    // STEP 3: Alert modules (especially org managers) to the final set of traits.
+    // Alert modules (especially org managers) to the final set of traits.
     for (emp::Ptr<ModuleBase> mod_ptr : modules) {
       mod_ptr->SetupDataMap(org_data_map);
     }
-
-    verbose_out("Trait error_count = ", error_count);
   }
 
   /// Link signals to the modules that implment responses to those signals.
