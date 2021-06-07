@@ -33,6 +33,7 @@
 
 #include "Collection.hpp"
 #include "data_collect.hpp"
+#include "ErrorManager.hpp"
 #include "MABEBase.hpp"
 #include "ModuleBase.hpp"
 #include "Population.hpp"
@@ -74,12 +75,12 @@ namespace mabe {
     size_t update = 0;                 ///< How many times has Update() been called?
 
 
-    // --- Variables to handle configuration and initialization ---
+    // --- Variables to handle configuration, initialization, and error reporting ---
 
     bool verbose = false;              ///< Should we output extra information during setup?
-    emp::vector<std::string> errors;   ///< Log any errors that have occured.
     bool show_help = false;            ///< Should we show "help" before exiting?
     bool exit_now = false;             ///< Do we need to immediately clean up and exit the run?
+    ErrorManager error_man;            ///< Object to deal with errors.
 
     // --- Config information for command-line arguments ---
     struct ArgInfo {
@@ -190,6 +191,7 @@ namespace mabe {
     // --- Basic accessors ---
     emp::Random & GetRandom() { return random; }
     size_t GetUpdate() const noexcept { return update; }
+    mabe::ErrorManager & GetErrorManager() { return error_man; }
 
     // --- Tools to setup runs ---
     bool Setup();
@@ -215,20 +217,6 @@ namespace mabe {
         Update();
       }
       Exit();
-    }
-
-    // -- Error Handling --
-    template <typename... Ts>
-    void AddError(Ts &&... args) {
-      // If we are in debug mode, trigger an error immediately.
-      emp_error(args...);
-
-      // Otherwise deal with it using the error modules.
-      errors.push_back( emp::to_string( std::forward<Ts>(args)... ));
-      on_error_sig.Trigger(errors.back());
-    }
-    void AddErrors(const emp::vector<std::string> & in_errors) {
-      errors.insert(errors.end(), in_errors.begin(), in_errors.end());
     }
 
     // -- World Structure --
@@ -291,7 +279,7 @@ namespace mabe {
           AddOrgAt( inject_org, pos);
         } else {
           inject_org.Delete();          
-          AddError("Invalid position; failed to inject organism ", i, "!");
+          error_man.AddError("Invalid position; failed to inject organism ", i, "!");
         }
       }
       return pos;
@@ -306,7 +294,7 @@ namespace mabe {
       if (pos.IsValid()) AddOrgAt( org_ptr, pos);
       else {
         org_ptr.Delete();          
-        AddError("Invalid position; failed to inject organism!");
+        error_man.AddError("Invalid position; failed to inject organism!");
       }
       return pos;
     }
@@ -332,7 +320,7 @@ namespace mabe {
                        size_t copy_count=1) {      
       int pop_id = GetPopID(pop_name);
       if (pop_id == -1) {
-        AddError("Invalid population name used in inject '", pop_name, "'.");        
+        error_man.AddError("Invalid population name used in inject '", pop_name, "'.");        
       }
       Population & pop = GetPopulation(pop_id);
       OrgPosition pos = Inject(type_name, pop, copy_count);  // Inject a copy of the organism.
@@ -439,7 +427,7 @@ namespace mabe {
       auto slices = emp::view_slices(load_str, ',');
       for (auto name : slices) {
         int pop_id = GetPopID(name);
-        if (pop_id == -1) AddError("Unknown population: ", name);
+        if (pop_id == -1) error_man.AddError("Unknown population: ", name);
         else out.Insert(GetPopulation(pop_id));
       }
       return out;
@@ -502,13 +490,13 @@ namespace mabe {
 
       // All traits must be setup in SetupConfig(); afterward linking new traits is locked.
       if (allow_trait_linking == false) {
-        AddError("Module '", mod_name, "' adding trait '", trait_name,
+        error_man.AddError("Module '", mod_name, "' adding trait '", trait_name,
                  "' before config files have loaded; should be done in SetupModule().");
       }
 
       // Traits cannot be added without access information.
       if (access == TraitInfo::UNKNOWN) {
-        AddError("Module ", mod_name, " trying to add trait named '", trait_name,
+        error_man.AddError("Module ", mod_name, " trying to add trait named '", trait_name,
                  "' with UNKNOWN access type.");
       }
 
@@ -531,7 +519,7 @@ namespace mabe {
 
         // Make sure that the SAME module isn't defining a trait twice.
         if (cur_trait->HasAccess(mod_ptr)) {
-          AddError("Module ", mod_name, " is creating multiple traits named '",
+          error_man.AddError("Module ", mod_name, " is creating multiple traits named '",
                    trait_name, "'.");
         }
 
@@ -551,7 +539,7 @@ namespace mabe {
 
           // Otherwise we have incompatable types...
           else {
-            AddError("Module ", mod_name, " is trying to use trait '",
+            error_man.AddError("Module ", mod_name, " is trying to use trait '",
                     trait_name, "' of type ", emp::GetTypeID<T>(),
                     "; Previously defined in module(s) ",
                     emp::to_english_list(cur_trait->GetModuleNames()),
@@ -627,7 +615,7 @@ namespace mabe {
 
       // If we made it past the 'if' statements, we don't know this aggregation type.
       if (!result) {
-        AddError("Unknown trait filter '", trait_filter, "' for trait '", trait_name, "'.");
+        error_man.AddError("Unknown trait filter '", trait_filter, "' for trait '", trait_name, "'.");
         return [](const Collection &){ return std::string("Error! Unknown trait function"); };
       }
 
@@ -687,7 +675,8 @@ namespace mabe {
   // ========================== OUT-OF-CLASS DEFINITIONS! ==========================
 
   MABE::MABE(int argc, char* argv[])
-    : args(emp::cl::args_to_strings(argc, argv))
+    : error_man( [this](const std::string & msg){ on_error_sig.Trigger(msg); })
+    , args(emp::cl::args_to_strings(argc, argv))
     , cur_scope(&(config.GetRootScope()))
   {
     // Setup "Population" as a type in the config file.
@@ -772,10 +761,7 @@ namespace mabe {
 
     UpdateSignals();        // Setup the appropriate modules to be linked with each signal.
 
-    // Collect errors in any module.
-    for (emp::Ptr<ModuleBase> mod_ptr : modules) {
-      if (mod_ptr->HasErrors()) { AddErrors(mod_ptr->GetErrors()); }
-    }
+    error_man.Activate();
 
     return true;
   }
@@ -813,7 +799,7 @@ namespace mabe {
           // MABE Config files should be generated FROM a *.gen file, typically creating a *.mabe
           // file.  If output file is *.gen assume an error. (for now; override should be allowed)
           if (in[0].size() > 4 && in[0].substr(in[0].size()-4) == ".gen") {
-            AddError("Error: generated file ", in[0], " not allowed to be *.gen; typically should end in *.mabe.");
+            error_man.AddError("Error: generated file ", in[0], " not allowed to be *.gen; typically should end in *.mabe.");
             Exit();
           }
           else gen_filename = in[0];
@@ -894,7 +880,7 @@ namespace mabe {
 
       // NO traits should be of UNKNOWN access.
       if (trait_ptr->GetUnknownCount()) {
-        AddError("Unknown access mode for trait '", trait_name,
+        error_man.AddError("Unknown access mode for trait '", trait_name,
                  "' in module(s) ", emp::to_english_list(trait_ptr->GetUnknownNames()),
                  " (internal error!)");
         error_count++;
@@ -910,13 +896,13 @@ namespace mabe {
                   << "[Suggestion: if traits are supposed to be distinct, prepend names with a\n"
                   << " module-specific prefix.  Otherwise modules need to be edited to not have\n"
                   << " trait private.]";
-        AddError(error_msg.str());
+        error_man.AddError(error_msg.str());
         error_count++;
         continue;
       }
 
       else if (trait_ptr->GetPrivateCount() && trait_ptr->GetModuleCount() > 1) {
-        AddError("Trait '", trait_name, "' is private in module '", trait_ptr->GetPrivateNames()[0],
+        error_man.AddError("Trait '", trait_name, "' is private in module '", trait_ptr->GetPrivateNames()[0],
                  "'; should not be used by other modules.\n",
                  "[Suggestion: if traits are supposed to be distinct, prepend private name with a\n",
                  " module-specific prefix.  Otherwise module needs to be edited to not have\n",
@@ -934,13 +920,13 @@ namespace mabe {
                   << "[Suggestion: if traits are supposed to be distinct, prepend names with a\n"
                   << " module-specific prefix.  Otherwise modules should be edited to change trait\n"
                   << " to be SHARED (and all can modify) or have all but one shift to REQUIRED.]";
-        AddError(error_msg.str());
+        error_man.AddError(error_msg.str());
         error_count++;
         continue;
       }
 
       else if ((trait_ptr->IsOwned() || trait_ptr->IsGenerated()) && trait_ptr->IsShared()) {
-        AddError("Trait '", trait_name, "' is fully OWNED by module '", trait_ptr->GetOwnedNames()[0],
+        error_man.AddError("Trait '", trait_name, "' is fully OWNED by module '", trait_ptr->GetOwnedNames()[0],
                  "'; it cannot be SHARED (written to) by other modules:",
                  emp::to_english_list(trait_ptr->GetSharedNames()),
                  "[Suggestion: if traits are supposed to be distinct, prepend private name with a\n",
@@ -953,7 +939,7 @@ namespace mabe {
       // A REQUIRED trait must have another module write to it (i.e. OWNED, GENERATED or SHARED).
       else if (trait_ptr->IsRequired() &&
               !trait_ptr->IsOwned() && !trait_ptr->IsShared() && !trait_ptr->IsGenerated()) {
-        AddError("Trait '", trait_name, "' marked REQUIRED by module(s) ",
+        error_man.AddError("Trait '", trait_name, "' marked REQUIRED by module(s) ",
                  emp::to_english_list(trait_ptr->GetRequiredNames()),
                  "'; must be written to by other modules.\n",
                  "[Suggestion: set another module to write to this trait (where it is either\n",
@@ -964,7 +950,7 @@ namespace mabe {
 
       // A GENERATED trait requires another module to read (REQUIRE) it.
       else if (trait_ptr->IsGenerated() && !trait_ptr->IsRequired()) {
-        AddError("Trait '", trait_name, "' marked GENERATED by module(s) ",
+        error_man.AddError("Trait '", trait_name, "' marked GENERATED by module(s) ",
                  emp::to_english_list(trait_ptr->GetGeneratedNames()),
                  "'; must be read by other modules.");
         error_count++;
