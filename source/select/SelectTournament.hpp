@@ -56,7 +56,7 @@ namespace mabe {
       const size_t N = select_pop.GetSize();
 
       if (select_pop.GetNumOrgs() == 0) {
-        control.AddError("Trying to run Tournament Selection on an Empty Population.");
+        AddError("Trying to run Tournament Selection on an Empty Population.");
         return;
       }
 
