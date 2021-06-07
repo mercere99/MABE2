@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019-2020.
+ *  @date 2019-2021.
  *
  *  @file  TraitInfo.hpp
  *  @brief Information about a single phenotypic trait.
@@ -21,6 +21,7 @@
  *    [GENERATED]  - Only this module can modify the trait, but other modules MUST read it.
  *    [SHARED]     - This module will read and write this trait, but others are allowed to as well.
  *    [REQUIRED]   - This module will read the trait; another module must write to it.
+ *    [OPTIONAL]   - This module can read the trait; must first check if it exists.
  *
  *  The INIT method describes how a trait should be initialized in a new offspring.
  *  (note that injected organisms always get the DEFAULT value.)
@@ -54,6 +55,7 @@
 #include <set>
 #include <string>
 
+#include "emp/base/vector.hpp"
 #include "emp/data/DataMap.hpp"
 #include "emp/meta/TypeID.hpp"
 
@@ -63,10 +65,10 @@ namespace mabe {
 
   class TraitInfo {
   protected:
-    std::string name="";              ///< Unique name for this trait.
-    std::string desc="";              ///< Description of this trait.
-    emp::TypeID type;                 ///< Type identifier for this trait.
-    std::set<emp::TypeID> alt_types;  ///< What other types should be allowed?
+    std::string name="";                 ///< Unique name for this trait.
+    std::string desc="";                 ///< Description of this trait.
+    emp::TypeID type;                    ///< Type identifier for this trait.
+    emp::vector<emp::TypeID> alt_types;  ///< What other types should be allowed?
 
   public:
     /// Which modules are allowed to read or write this trait?
@@ -77,6 +79,7 @@ namespace mabe {
       GENERATED,   ///< Can READ & WRITE this trait; other modules MUST read it.
       SHARED,      ///< Can READ & WRITE this trait; other modules can too.
       REQUIRED,    ///< Can READ this trait, but another module must WRITE to it.
+      OPTIONAL,    ///< Can READ this trait, but must check if it exists first.
       NUM_ACCESS   ///< How many access methods are there?
     };
 
@@ -158,9 +161,12 @@ namespace mabe {
     const std::string & GetName() const { return name; }
     const std::string & GetDesc() const { return desc; }
     emp::TypeID GetType() const { return type; }
+    const emp::vector<emp::TypeID> & GetAltTypes() const { return alt_types; }
 
+    template <typename... Ts>
+    void SetAltTypes(const emp::vector<emp::TypeID> & in_alt_types) { alt_types = in_alt_types; }
     template <typename T> bool IsType() const { return GetType() == emp::GetTypeID<T>(); }
-    virtual bool IsAllowedType(emp::TypeID) const = 0;
+    bool IsAllowedType(emp::TypeID test_type) const { return Has(alt_types, test_type); };
     template <typename T> bool IsAllowedType() const { return IsAllowedType(emp::GetTypeID<T>()); }
 
     /// Determine what kind of access a module has.
@@ -184,6 +190,7 @@ namespace mabe {
     bool IsGenerated() const { return GetAccessCount(Access::GENERATED); }
     bool IsShared() const { return GetAccessCount(Access::SHARED); }
     bool IsRequired() const { return GetAccessCount(Access::REQUIRED); }
+    bool IsOptional() const { return GetAccessCount(Access::OPTIONAL); }
 
     size_t GetUnknownCount() const { return GetAccessCount(Access::UNKNOWN); }
     size_t GetPrivateCount() const { return GetAccessCount(Access::PRIVATE); }
@@ -191,6 +198,7 @@ namespace mabe {
     size_t GetGeneratedCount() const { return GetAccessCount(Access::GENERATED); }
     size_t GetSharedCount() const { return GetAccessCount(Access::SHARED); }
     size_t GetRequiredCount() const { return GetAccessCount(Access::REQUIRED); }
+    size_t GetOptionalCount() const { return GetAccessCount(Access::OPTIONAL); }
 
     emp::vector<std::string> GetModuleNames() const {
       emp::vector<std::string> mod_names;
@@ -214,6 +222,7 @@ namespace mabe {
     emp::vector<std::string> GetGeneratedNames() const { return GetModuleNames(Access::GENERATED); }
     emp::vector<std::string> GetSharedNames() const { return GetModuleNames(Access::SHARED); }
     emp::vector<std::string> GetRequiredNames() const { return GetModuleNames(Access::REQUIRED); }
+    emp::vector<std::string> GetOptionalNames() const { return GetModuleNames(Access::OPTIONAL); }
 
     /// Was a default value set for this trait (can only be done in overload that knows type)
     virtual bool HasDefault() const { return false; }
@@ -259,7 +268,7 @@ namespace mabe {
   };
 
   // Information about this trait, including type information and alternate type options.
-  template <typename T, typename... ALT_Ts>
+  template <typename T>
   class TypedTraitInfo : public TraitInfo {
   private:
     T default_value;
@@ -270,7 +279,6 @@ namespace mabe {
     {
       name = in_name;
       type = emp::GetTypeID<T>();
-      AddAllowedTypes<T,ALT_Ts>();
     }
 
     TypedTraitInfo(const std::string & in_name, const T & in_default)
@@ -278,7 +286,6 @@ namespace mabe {
     {
       name = in_name;
       type = emp::GetTypeID<T>();
-      AddAllowedTypes<T,ALT_Ts>();
     }
 
     bool HasDefault() const override { return has_default; }
@@ -291,18 +298,6 @@ namespace mabe {
       return *this;
     }
     
-    template <typename ADD_T, typename... OTHER_Ts>
-    void AddAllowedTypes() {
-      alt_types.insert( emp::GetTypeID<T>() );
-      if constexpr (sizeof...(OTHER_Ts) > 0) {
-        AddAllowedTypes<OTHER_Ts>();
-      }
-    }
-
-    bool IsAllowedType(emp::TypeID type_id) const override {
-      return type_id.template IsTypeIn<T, ALT_Ts...>();
-    }
-
     void Register(emp::DataMap & dm) const override {
       dm.AddVar(name, default_value, desc);
     }
