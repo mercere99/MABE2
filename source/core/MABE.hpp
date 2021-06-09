@@ -671,7 +671,8 @@ namespace mabe {
 
     error_man.Activate();
 
-    return true;
+    // Only return success if there were no errors.
+    return (error_man.GetNumErrors() == 0);
   }
 
   /// Update MABE a single step.
