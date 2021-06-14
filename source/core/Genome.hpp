@@ -17,12 +17,12 @@
 namespace mabe {
 
   // Base class for all genome types.
-  class GenomeBase : public emp::BitVector {
+  class Genome : public emp::BitVector {
     /// Set all bits randomly, with a 50/50 probability.
-    virtual GenomeBase & Randomize(emp::Random & random) = 0;
+    virtual Genome & Randomize(emp::Random & random) = 0;
 
     /// Set all bits randomly, with a given probability of being a one.
-    virtual GenomeBase & Randomize(emp::Random & random, const double p) = 0;
+    virtual Genome & Randomize(emp::Random & random, const double p) = 0;
 
     /// Identify the locus type used in this genome.
     virtual emp::TypeID GetLocusType() const = 0;
@@ -69,8 +69,8 @@ namespace mabe {
   };
 
   template <typename LOCUS_T>
-  class Genome : public GenomeBase {
-    using this_t = Genome<LOCUS_T>;
+  class TypedGenome : public Genome {
+    using this_t = TypedGenome<LOCUS_T>;
 
     /// Set all bits randomly, with a 50/50 probability.
     this_t & Randomize(emp::Random & random) override {
