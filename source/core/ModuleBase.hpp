@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019-2020.
+ *  @date 2019-2021.
  *
  *  @file  ModuleBase.hpp
  *  @brief Base class for Module, which (in turn) is the base class for all MABE modules
@@ -81,6 +81,7 @@
 
 #include "../config/Config.hpp"
 
+#include "ErrorManager.hpp"
 #include "TraitInfo.hpp"
 
 namespace mabe {
@@ -93,11 +94,12 @@ namespace mabe {
   class ModuleBase : public mabe::ConfigType {
     friend MABE;
   protected:
-    std::string name;                 ///< Unique name for this module.
-    std::string desc;                 ///< Description for this module.
-    mabe::MABE & control;             ///< Reference to main mabe controller using this module
-    emp::vector<std::string> errors;  ///< Has this class detected any configuration errors?
-    bool is_builtin=false;            ///< Is this a built-in module that shouldn't go in config?
+    std::string name;          ///< Unique name for this module.
+    std::string desc;          ///< Description for this module.
+    mabe::MABE & control;      ///< Reference to main mabe controller using module
+    bool is_builtin=false;     ///< Is this a built-in module not for config?
+
+    emp::Ptr<mabe::ErrorManager> error_man = nullptr;   ///< Redirection for errors.
 
     /// Informative tags about this module.  Expected tags include:
     ///   "Analyze"     : Makes measurements on the population.
@@ -158,8 +160,7 @@ namespace mabe {
     /// All internal errors should be processed through AddError(...)
     template <typename... Ts>
     void AddError(Ts &&... args) {
-      errors.push_back( emp::to_string( std::forward<Ts>(args)... ));
-      std::cerr << "ERROR: " << errors.back() << std::endl;
+      error_man->AddError(std::forward<Ts>(args)...);
     }
 
   public:
@@ -177,8 +178,6 @@ namespace mabe {
 
     const std::string & GetName() const noexcept { return name; }
     const std::string & GetDesc() const noexcept { return desc; }
-    bool HasErrors() const { return errors.size(); }
-    const emp::vector<std::string> & GetErrors() const noexcept { return errors; }
 
     virtual std::string GetTypeName() const { return "ModuleBase"; }
     virtual emp::Ptr<ModuleBase> Clone() { return nullptr; }

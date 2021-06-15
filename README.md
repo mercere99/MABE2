@@ -1,11 +1,11 @@
 # MABE
 Version 2 of the Modular Agent-Based Evolver framework.
 
-MABE is a software framework setup to easily build and customize software in
+MABE is a software framework deigned to easily build and customize software for
 evolutionary computation or artificial life.  The resulting systems should be
-useful for studying evolutionary dynamics, solving complex problems, or
-exploring the open-ended power of evolution.
+useful for studying evolutionary dynamics, solving complex problems, comparing
+evolving systems, or exploring the open-ended power of evolution.
 
-This new version is being re-built from scratch, using the Empirical library
-with the goal of more modular control, flexible agents, and portability to
-the web.
+MABE version 2.0 is being re-built from scratch, using the Empirical library.
+Our goal is to allow for more modular control, flexible agents, faster run times
+and portability to the web.

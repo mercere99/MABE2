@@ -25,6 +25,15 @@ namespace emp {
 
   // Count up the number of distinct values.
   template <typename DATA_T, typename CONTAIN_T, typename FUN_T>
+  auto BuildCollectFun_Index(FUN_T get_fun, const size_t index) {
+    return [get_fun,index](const CONTAIN_T & container) {
+      return emp::to_string( get_fun( container.At(index) ) );
+    };
+  }
+
+
+  // Count up the number of distinct values.
+  template <typename DATA_T, typename CONTAIN_T, typename FUN_T>
   auto BuildCollectFun_Unique(FUN_T get_fun) {
     return [get_fun](const CONTAIN_T & container) {
       std::unordered_set<DATA_T> vals;
@@ -195,9 +204,19 @@ namespace emp {
 
   template <typename DATA_T, typename CONTAIN_T, typename FUN_T>
   std::function<std::string(const CONTAIN_T &)>
-  BuildCollectFun(const std::string & type, FUN_T get_fun) {
-    // Return the number if distinct values found in this trait.
-    if (type == "unique" || type == "richness") {
+  BuildCollectFun(std::string type, FUN_T get_fun) {
+    // ### DEFAULT
+    // If no trait function is specified, assume that we should use the first index.
+    if (type == "") type = "0";
+
+    // Return the index if a simple number was provided.
+    if (emp::is_digits(type)) {
+      size_t index = emp::from_string<size_t>(type);
+      return emp::BuildCollectFun_Index<DATA_T, CONTAIN_T>(get_fun, index);
+    }
+
+    // Return the number of distinct values found in this trait.
+    else if (type == "unique" || type == "richness") {
       return emp::BuildCollectFun_Unique<DATA_T, CONTAIN_T>(get_fun);
     }
 

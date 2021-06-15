@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019-2020.
+ *  @date 2019-2021.
  *
  *  @file  ConfigAST.hpp
  *  @brief Manages Abstract Sytax Tree nodes for Config.
@@ -50,11 +50,12 @@ namespace mabe {
     virtual bool IsInternal() const { return false; }
 
     virtual size_t GetNumChildren() const { return 0; }
-    virtual node_ptr_t GetChild(size_t id) { emp_assert(false); return nullptr; }
+    virtual node_ptr_t GetChild(size_t /* id */) { emp_assert(false); return nullptr; }
 
     virtual entry_ptr_t Process() = 0;
 
-    virtual void Write(std::ostream & os=std::cout, const std::string & offset="") const { }
+    virtual void Write(std::ostream & /* os */=std::cout,
+                       const std::string & /* offset */="") const { }
   };
 
   /// An ASTNode representing an internal node.

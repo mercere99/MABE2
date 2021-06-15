@@ -193,6 +193,9 @@ namespace mabe {
     /// Completely randomize a new organism (typically for initialization)
     virtual void Randomize(emp::Random & random) { manager.Randomize(*this, random); }
 
+    /// Setup a new organism from scratch; by default just randomize.
+    virtual void Initialize(emp::Random & random) { manager.Randomize(*this, random); }
+
     /// Run the organism to generate an output in the pre-configured data_map entries.
     virtual void GenerateOutput() { ; }
 

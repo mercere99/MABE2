@@ -1,11 +1,14 @@
-#How to build your own MABE executable
+# How to build your own MABE executable
 
-##Overview
+## Overview
 
-##Including MABE Modules
+## Including MABE Modules
+
 ### What modules are available?
-### What order should the modules go in?
+* Which types of modules are requires?
+* What order should the modules go in?
+* How does a custom main function relate to the standard MABE config?
 
-##Launching a mabe object.
+## Launching a mabe object.
 
-##Dealing with configuration files
+## Dealing with extra configuration files

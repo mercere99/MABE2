@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019-2020.
+ *  @date 2019-2021.
  *
  *  @file  EvalCountBits.hpp
  *  @brief MABE Evaluation module for counting the number of ones (or zeros) in an output.
@@ -10,8 +10,8 @@
 #ifndef MABE_EVAL_COUNT_BITS_H
 #define MABE_EVAL_COUNT_BITS_H
 
-#include "../core/MABE.hpp"
-#include "../core/Module.hpp"
+#include "../../core/MABE.hpp"
+#include "../../core/Module.hpp"
 
 #include "emp/datastructs/reference_vector.hpp"
 
@@ -54,7 +54,7 @@ namespace mabe {
       AddOwnedTrait<double>(fitness_trait, "All-ones fitness value", 0.0);
     }
 
-    void OnUpdate(size_t update) override {
+    void OnUpdate(size_t /* update */) override {
       emp_assert(control.GetNumPopulations() >= 1);
 
       // Loop through the population and evaluate each organism.

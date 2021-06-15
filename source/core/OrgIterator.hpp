@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2020.
+ *  @date 2020-2021.
  *
  *  @file  OrgIterator.hpp
  *  @brief Tools to step through a group of arbitrary MABE organisms.
@@ -20,6 +20,7 @@
 
 #include <string>
 
+#include "emp/base/error.hpp"
 #include "emp/base/Ptr.hpp"
 #include "emp/base/vector.hpp"
 

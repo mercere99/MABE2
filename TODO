@@ -1,0 +1,18 @@
+MAJOR PROJECTS
+- Setup the concept of genomes throughout MABE with a comprehensive interface.
+- Setup Organisms to be built from arbitrary brains and geneomes.
+- Setup Web interface (for both graphical config and doing runs)
+- Update config files in many ways, but especially:
+    * Handling array types.
+    * Allowing for mathematical expressions to be calculated at run-time based
+      on current values.
+    * Come up with a clean way to distinguish whether identifiers are config
+      variables, organism traits, and population traits.
+    * Printing longer (multi-line) comments.
+- Setup organisms that need to be processed and ideally even processed
+  asynchronusly and interactively.
+
+- FIX evaluation system.  Instead of being limited to an evaluation phase,
+  evaluator modules should be able to indicate on a trait that if it is needed
+  to call them.  Ideally with a caching option as well...  For computationally
+  intensive evaluations, this will allow them to only be called when needed.
