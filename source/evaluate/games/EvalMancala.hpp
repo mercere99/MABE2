@@ -90,7 +90,49 @@ namespace mabe {
       return best_move;
     }
 
+    using mancala_ai_t = std::function< size_t(emp::Mancala & game) >;
 
+    // Setup the fitness function for a whole game.
+    double EvalGame(mancala_ai_t & player0, mancala_ai_t & player1,
+                    bool cur_player=0, bool verbose=false) {
+      emp::Mancala game(cur_player==0);
+      size_t round = 0, errors = 0;
+      while (game.IsDone() == false) {
+        // Determine the current player and their move.
+        auto & play_fun = (cur_player == 0) ? player0 : player1;
+        size_t best_move = play_fun(game);
+
+        if (verbose) {
+          std::cout << "round = " << round++ << "   errors = " << errors << std::endl;
+          game.Print();
+          char move_sym = (char) ('A' + best_move);
+          std::cout << "Move = " << move_sym;
+          if (game.GetCurSide()[best_move] == 0) {
+            std::cout << " (illegal!)";
+          }
+          std::cout << std::endl << std::endl;
+        }
+
+        // If the chosen move is illegal, shift through other options.
+        while (game.GetCurSide()[best_move] == 0) {  // Cannot make a move into an empty pit!
+          if (cur_player == 0) errors++;
+          if (++best_move > 5) best_move = 0;
+        }
+
+        // Do the move and determine who goes next.
+        bool go_again = game.DoMove(cur_player, best_move);
+        if (!go_again) cur_player = !cur_player;
+      }
+
+      if (verbose) {
+        std::cout << "Final scores -- A: " << game.ScoreA()
+                  << "   B: " << game.ScoreB()
+                  << std::endl;
+      }
+
+      return ((double) game.ScoreA()) - ((double) game.ScoreB()) - ((double) errors * 10.0);
+    }
+    
     void OnUpdate(size_t /* update */) override {
       emp_assert(control.GetNumPopulations() >= 1);
 
