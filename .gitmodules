@@ -1,0 +1,3 @@
+[submodule "source/third-party/empirical"]
+	path = source/third-party/empirical
+	url = git@github.com:devosoft/Empirical
