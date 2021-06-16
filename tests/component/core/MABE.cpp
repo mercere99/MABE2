@@ -24,6 +24,6 @@ TEST_CASE("MABE", "[core]"){
   {
     mabe::MABE control(0, NULL);
     REQUIRE(control.GetUpdate() == 0);
-    //REQUIRE(1 + 1 == 2);
+    REQUIRE(1 + 1 == 3); // Should fail
   }
 }
