@@ -90,6 +90,27 @@ namespace mabe {
       return best_move;
     }
 
+    // Determine the next move with human IO.
+    size_t EvalMove(emp::Mancala & game, std::ostream & os=std::cout, std::istream & is=std::cin) {
+      // Present the current board.
+      game.Print();
+
+      // Request a move from the human.
+      char move;
+      os << "Move?" << std::endl;
+      is >> move;
+
+      while (move < 'A' || move > 'F' || game.GetCurSide()[(size_t)(move-'A')] == 0) {
+        os << "Invalid move! (choose a value 'A' to 'F')" <<  std::endl;
+        is.clear();
+        is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        is >> move;
+      }
+
+      return (size_t) (move - 'A');
+    }
+
+
     using mancala_ai_t = std::function< size_t(emp::Mancala & game) >;
 
     // Setup the fitness function for a whole game.
@@ -132,7 +153,23 @@ namespace mabe {
 
       return ((double) game.ScoreA()) - ((double) game.ScoreB()) - ((double) errors * 10.0);
     }
-    
+
+    // Build wrappers for Organisms
+    double EvalGame(mabe::Organism & org0, mabe::Organism & org1, bool cur_player=0, bool verbose=false) {
+      mancala_ai_t org_fun0 = [this,&org0](emp::Mancala & game){ return EvalMove(game, org0); };
+      mancala_ai_t org_fun1 = [this,&org1](emp::Mancala & game){ return EvalMove(game, org1); };
+      return EvalGame(org_fun0, org_fun1, cur_player, verbose);
+    }
+
+    // Otherwise assume a human opponent!
+    double EvalGame(mabe::Organism & org, bool cur_player=0) {
+      mancala_ai_t fun0 = [this,&org](emp::Mancala & game){ return EvalMove(game, org); };
+      mancala_ai_t fun1 = [this](emp::Mancala & game){ return EvalMove(game, std::cout, std::cin); };
+      return EvalGame(fun0, fun1, cur_player, true);
+    }
+
+
+
     void OnUpdate(size_t /* update */) override {
       emp_assert(control.GetNumPopulations() >= 1);
 
