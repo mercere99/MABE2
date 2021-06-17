@@ -173,6 +173,14 @@ namespace mabe {
     void OnUpdate(size_t /* update */) override {
       emp_assert(control.GetNumPopulations() >= 1);
 
+      // Setup a player that make random moves.
+      emp::Random & random = control.GetRandom();
+      mancala_ai_t random_player = [&random](emp::Mancala & game) {
+        size_t move_id = 6;
+        while (!game.IsMoveValid(move_id)) move_id = random.GetUInt(6);
+        return move_id;
+      };
+
       // Loop through the living organisms in the target collection to evaluate each.
       mabe::Collection alive_collect( target_collect.GetAlive() );
       for (Organism & org : alive_collect) {
