@@ -114,7 +114,7 @@ namespace mabe {
     using mancala_ai_t = std::function< size_t(emp::Mancala & game) >;
 
     // Setup the fitness function for a whole game.
-    double EvalGame(mancala_ai_t & player0, mancala_ai_t & player1,
+    double EvalGame(const mancala_ai_t & player0, const mancala_ai_t & player1,
                     bool cur_player=0, bool verbose=false) {
       emp::Mancala game(cur_player==0);
       size_t round = 0, errors = 0;
@@ -154,24 +154,38 @@ namespace mabe {
       return ((double) game.ScoreA()) - ((double) game.ScoreB()) - ((double) errors * 10.0);
     }
 
-    // Build wrappers for Organisms
+    mancala_ai_t ToOrgFun(mabe::Organism & org) {
+      return [this,&org](emp::Mancala & game){ return EvalMove(game, org); };
+    }
+
+    // Wrapper for two Organisms competing
     double EvalGame(mabe::Organism & org0, mabe::Organism & org1, bool cur_player=0, bool verbose=false) {
-      mancala_ai_t org_fun0 = [this,&org0](emp::Mancala & game){ return EvalMove(game, org0); };
-      mancala_ai_t org_fun1 = [this,&org1](emp::Mancala & game){ return EvalMove(game, org1); };
-      return EvalGame(org_fun0, org_fun1, cur_player, verbose);
+      return EvalGame(ToOrgFun(org0), ToOrgFun(org1), cur_player, verbose);
     }
 
-    // Otherwise assume a human opponent!
+    // Wrapper for organism vs. random opponent.
+    double EvalGame(mabe::Organism & org, emp::Random & random, bool cur_player=0, bool verbose=false) {
+      mancala_ai_t rand_fun = [&random](emp::Mancala & game) {
+        size_t move_id = random.GetUInt(6);
+        while (!game.IsMoveValid(move_id)) move_id = random.GetUInt(6);
+        return move_id;
+      };
+      return EvalGame(ToOrgFun(org), rand_fun, cur_player, verbose);
+    }
+
+    // Wrapper for organism vs. human
     double EvalGame(mabe::Organism & org, bool cur_player=0) {
-      mancala_ai_t fun0 = [this,&org](emp::Mancala & game){ return EvalMove(game, org); };
-      mancala_ai_t fun1 = [this](emp::Mancala & game){ return EvalMove(game, std::cout, std::cin); };
-      return EvalGame(fun0, fun1, cur_player, true);
+      mancala_ai_t human_fun = [this](emp::Mancala & game){ return EvalMove(game, std::cout, std::cin); };
+      return EvalGame(ToOrgFun(org), human_fun, cur_player, true);
     }
-
 
 
     void OnUpdate(size_t /* update */) override {
       emp_assert(control.GetNumPopulations() >= 1);
+
+      // Determine the type of competitions to perform.
+
+      // @CAO: For the moment, just doing a random opponent!!
 
       // Setup a player that make random moves.
       emp::Random & random = control.GetRandom();
@@ -184,82 +198,8 @@ namespace mabe {
       // Loop through the living organisms in the target collection to evaluate each.
       mabe::Collection alive_collect( target_collect.GetAlive() );
       for (Organism & org : alive_collect) {
-
-        // Make sure this organism has its values ready for us to access.
-        org.GenerateOutput();
-
-        // Get access to the data_map elements that we need.
-        const emp::vector<double> & vals = org.GetVar<emp::vector<double>>(vals_trait);
-        emp::vector<double> & scores = org.GetVar<emp::vector<double>>(scores_trait);
-        double & total_score = org.GetVar<double>(total_trait);
-
-        // Initialize output values.
-        scores.resize(vals.size());
-        total_score = 0.0;
-        size_t pos = 0;
-
-        // Determine the scores based on the diagnostic type that we're using.
-        switch (diagnostic_id) {
-        case EXPLOIT:
-          scores = vals;
-          for (double x : scores) total_score += x;
-          break;
-        case STRUCT_EXPLOIT:
-          total_score = scores[0] = vals[0];
-
-          // Use values as long as they are monotonically decreasing.
-          for (pos = 1; pos < vals.size() && vals[pos] <= vals[pos-1]; ++pos) {
-            total_score += (scores[pos] = vals[pos]);
-          }
-
-          // Clear out the remaining values.
-          while (pos < scores.size()) { scores[pos] = 0.0; ++pos; }
-          break;
-        case EXPLORE:
-          // Start at highest value (clearing everything before it)
-          pos = emp::FindMaxIndex(vals);  // Find the position to start.
-          for (size_t i = 0; i < pos; i++) scores[i] = 0.0;
-
-          total_score = scores[pos] = vals[pos];
-          pos++;
-
-          // Use values as long as they are monotonically decreasing.
-          while (pos < vals.size() && vals[pos] <= vals[pos-1]) {
-            total_score += (scores[pos] = vals[pos]);
-            pos++;
-          }
-
-          // Clear out the remaining values.
-          while (pos < scores.size()) { scores[pos] = 0.0; ++pos; }
-
-          break;
-        case DIVERSITY:
-          // Only count highest value
-          pos = emp::FindMaxIndex(vals);  // Find the position to start.
-          total_score = scores[pos] = vals[pos];
-
-          // All others are subtracted from max and divided by two, creating a
-          // pressure to minimize.
-          for (size_t i = 0; i < vals.size(); i++) {
-            if (i != pos) total_score += (scores[i] = (vals[pos] - vals[i]) / 2.0);
-          }
-
-          break;
-        case WEAK_DIVERSITY:
-          // Only count highest value
-          pos = emp::FindMaxIndex(vals);  // Find the position to start.
-          total_score = scores[pos] = vals[pos];
-
-          // Clear all other schores.
-          for (size_t i = 0; i < vals.size(); i++) {
-            if (i != pos) scores[i] = 0.0;
-          }
-
-          break;
-        default:
-          emp_error("Unknown Diganostic.");
-        }
-
+        double & score = org.GetVar<double>(score_trait);
+        score = EvalGame(org, )
       }
     }
   };
