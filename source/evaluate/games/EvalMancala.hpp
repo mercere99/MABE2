@@ -184,22 +184,14 @@ namespace mabe {
       emp_assert(control.GetNumPopulations() >= 1);
 
       // Determine the type of competitions to perform.
-
       // @CAO: For the moment, just doing a random opponent!!
-
-      // Setup a player that make random moves.
-      emp::Random & random = control.GetRandom();
-      mancala_ai_t random_player = [&random](emp::Mancala & game) {
-        size_t move_id = 6;
-        while (!game.IsMoveValid(move_id)) move_id = random.GetUInt(6);
-        return move_id;
-      };
 
       // Loop through the living organisms in the target collection to evaluate each.
       mabe::Collection alive_collect( target_collect.GetAlive() );
       for (Organism & org : alive_collect) {
         double & score = org.GetVar<double>(score_trait);
-        score = EvalGame(org, )
+        score = EvalGame(org, control.GetRandom());     // Start first.
+        score += EvalGame(org, control.GetRandom(), 1); // Start second.
       }
     }
   };
