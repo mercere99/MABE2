@@ -40,9 +40,9 @@ jobs:
       - run: sudo update-alternatives --install /usr/bin/llvm-config llvm-config /usr/bin/llvm-config-7 90
       - run: sudo update-alternatives --install /usr/bin/llvm-profdata llvm-profdata /usr/bin/llvm-profdata-7 90
       - run: sudo update-alternatives --install /usr/bin/llvm-cov llvm-cov /usr/bin/llvm-cov-7 90
-        #- run: git fetch origin master:refs/remotes/origin/master
-        #- run: make install-test-dependencies
-        #- run: export CXX=clang++-7 && make install-coverage-dependencies
-      - run: export CXX=clang++-7 && make coverage
-      - run: curl -s https://codecov.io/bash | bash
+      - run: git fetch origin master:refs/remotes/origin/master
+      #- run: make install-test-dependencies
+      #- run: export CXX=clang++-7 && make install-coverage-dependencies
+      #- run: export CXX=clang++-7 && make coverage
+      #- run: curl -s https://codecov.io/bash | bash
       working-directory: tests
