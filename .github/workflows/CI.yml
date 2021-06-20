@@ -26,6 +26,7 @@ jobs:
     name: Measure test coverage
     runs-on: ubuntu-18.04
     steps:
+      working-directory: tests
       - uses: actions/checkout@v2
         with:
           submodules: 'recursive'
@@ -45,4 +46,3 @@ jobs:
       #- run: export CXX=clang++-7 && make install-coverage-dependencies
       #- run: export CXX=clang++-7 && make coverage
       #- run: curl -s https://codecov.io/bash | bash
-      working-directory: tests
