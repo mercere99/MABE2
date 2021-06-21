@@ -38,7 +38,8 @@ namespace mabe {
       size_t init_length = 100;            ///< Length of new organisms.
       bool init_random = true;             ///< Should we randomize ancestor?  (false = all zeros)
       size_t eval_time = 500;              ///< How long should the CPU be given on each evaluate?
-      std::string output_name = "output";  ///< Name of trait that should be used to access bits.
+      std::string input_name = "input";    ///< Name of trait that should be used load input values
+      std::string output_name = "output";  ///< Name of trait that should be used store output values
 
       // Internal use
       emp::Binomial mut_dist;            ///< Distribution of number of mutations to occur.
@@ -106,8 +107,10 @@ namespace mabe {
                       "Should we randomize ancestor?  (0 = \"blank\" default)");
       GetManager().LinkVar(SharedData().eval_time, "eval_time",
                       "How many CPU cycles should we give organisms to run?");
+      GetManager().LinkVar(SharedData().input_name, "input_name",
+                      "Name of variable to load inputs from.");
       GetManager().LinkVar(SharedData().output_name, "output_name",
-                      "Name of variable to contain bit sequence.");
+                      "Name of variable to output results.");
     }
 
     /// Setup this organism type with the traits it need to track.
@@ -115,7 +118,8 @@ namespace mabe {
       // Setup the default vector to indicate mutation positions.
       SharedData().mut_sites.Resize(hardware.GetSize());
 
-      // Setup the output trait.
+      // Setup the input and output traits.
+      GetManager().AddRequiredTrait<emp::vector<double>>(SharedData().input_name);
       GetManager().AddSharedTrait(SharedData().output_name,
                                   "Value map output from organism.",
                                   std::unordered_map<int,double>());
