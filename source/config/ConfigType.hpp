@@ -43,8 +43,9 @@ namespace mabe {
     template <typename VAR_T>
     ConfigEntry_Linked<VAR_T> & LinkVar(VAR_T & var,
                                         const std::string & name,
-                                        const std::string & desc) {
-      return GetScope().LinkVar<VAR_T>(name, var, desc);
+                                        const std::string & desc,
+                                        bool is_builtin = false) {
+      return GetScope().LinkVar<VAR_T>(name, var, desc, is_builtin);
     }
 
     /// Link a configuration entry to a pair of functions - it automatically calls the set
@@ -53,8 +54,9 @@ namespace mabe {
     ConfigEntry_Functions<VAR_T> & LinkFuns(std::function<VAR_T()> get_fun,
                                             std::function<void(const VAR_T &)> set_fun,
                                             const std::string & name,
-                                            const std::string & desc) {
-      return GetScope().LinkFuns<VAR_T>(name, get_fun, set_fun, desc);
+                                            const std::string & desc,
+                                            bool is_builtin = false) {
+      return GetScope().LinkFuns<VAR_T>(name, get_fun, set_fun, desc, is_builtin);
     }
 
     // Helper functions and info.
