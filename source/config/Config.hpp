@@ -577,8 +577,8 @@ namespace mabe {
     ConfigScope & new_scope = scope.AddScope(var_name, type_map[type_name].desc, type_name);
     ConfigType & new_obj = type_map[type_name].init_fun(var_name);
     new_obj.SetupScope(new_scope);
-    new_obj.LinkVar(new_obj._active, "_active", "Should we activate this module? (0=off, 1=on)");
-    new_obj.LinkVar(new_obj._desc, "_desc", "Special description for those object.");
+    new_obj.LinkVar(new_obj._active, "_active", "Should we activate this module? (0=off, 1=on)", true);
+    new_obj.LinkVar(new_obj._desc,   "_desc",   "Special description for those object.", true);
     new_obj.SetupConfig();
 
     return new_scope;
