@@ -58,7 +58,7 @@ namespace mabe {
       LinkVar(output_trait, "output_trait", "Out of which trait should output values be read?");
       LinkVar(score_trait, "score_trait", "Which trait should we store success rating?");
       LinkMenu(opponent_type, "opponent_type", "Which type of opponent should organisms face?",
-               RANDOM_MOVES, "random_moves", "Always choose a random, legal move.",
+               RANDOM_MOVES, "random", "Always choose a random, legal move.",
                AI, "ai", "Human supplied (but not very good) AI",
                RANDOM_ORG, "random_org", "Pick another random organism from collection."
       );
@@ -83,7 +83,8 @@ namespace mabe {
 
       // Determine the chosen move.
       size_t best_move = 0;
-      for (int i = 1; i < 6; i++) {
+      const size_t move_cap = std::min<size_t>(results.size(), 6);
+      for (size_t i = 1; i < move_cap; i++) {
         if (results[best_move] < results[i]) { best_move = i; }
       }
 
