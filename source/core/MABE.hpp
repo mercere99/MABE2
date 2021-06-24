@@ -162,16 +162,6 @@ namespace mabe {
     void UpdateSignals();
 
 
-    // -- Helper functions for debugging and extra output --
-
-    /// Output args if (and only if) we are in verbose mode.
-    template <typename... Ts>
-    void verbose_out(Ts &&... args) {
-      if (verbose) {
-        std::cout << emp::to_string(std::forward<Ts>(args)...) << std::endl;
-      }
-    }
-
   public:
     MABE(int argc, char* argv[]);  ///< MABE command-line constructor.
     MABE(const MABE &) = delete;
@@ -185,7 +175,16 @@ namespace mabe {
     // --- Basic accessors ---
     emp::Random & GetRandom() { return random; }
     size_t GetUpdate() const noexcept { return update; }
+    bool GetVerbose() const { return verbose; }
     mabe::ErrorManager & GetErrorManager() { return error_man; }
+
+    /// Output args if (and only if) we are in verbose mode.
+    template <typename... Ts>
+    void Verbose(Ts &&... args) {
+      if (verbose) {
+        std::cout << emp::to_string(std::forward<Ts>(args)...) << std::endl;
+      }
+    }
 
     // --- Tools to setup runs ---
     bool Setup();
@@ -298,6 +297,9 @@ namespace mabe {
     /// MABE controller will create instances of it.)  Returns the position of the last
     /// organism placed.
     OrgPosition Inject(const std::string & type_name, Population & pop, size_t copy_count=1) {
+      Verbose("Injecting ", copy_count, " orgs of type '", type_name,
+              "' into population ", pop.GetID());
+
       auto & org_manager = GetModule(type_name);          // Look up type of organism.
       OrgPosition pos;                                    // Place to save injection position.
       for (size_t i = 0; i < copy_count; i++) {           // Loop through, injecting each instance.
@@ -772,7 +774,7 @@ namespace mabe {
   /// As part of the main Setup(), load in all of the organism traits that modules need to
   /// read or write and make sure that there aren't any conflicts.
   void MABE::Setup_Traits() {
-    verbose_out("Analyzing configuration of ", trait_man.GetSize(), " traits.");
+    Verbose("Analyzing configuration of ", trait_man.GetSize(), " traits.");
 
     trait_man.Verify(verbose);            // Make sure modules are accessing traits consistently
     trait_man.RegisterAll(org_data_map);  // Load in all of the traits to the DataMap
