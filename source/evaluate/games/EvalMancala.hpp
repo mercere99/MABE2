@@ -181,7 +181,9 @@ namespace mabe {
     }
 
 
-    void OnUpdate(size_t /* update */) override {
+    void OnUpdate(size_t ud) override {
+      control.Verbose("UD ", ud, ": Running EvalMancala::OnUpdate()");
+
       emp_assert(control.GetNumPopulations() >= 1);
 
       // Determine the type of competitions to perform.
@@ -189,6 +191,9 @@ namespace mabe {
 
       // Loop through the living organisms in the target collection to evaluate each.
       mabe::Collection alive_collect( target_collect.GetAlive() );
+
+      control.Verbose(" - ", alive_collect.GetSize(), " organisms found.");
+
       for (Organism & org : alive_collect) {
         double & score = org.GetVar<double>(score_trait);
         score = EvalGame(org, control.GetRandom());     // Start first.
