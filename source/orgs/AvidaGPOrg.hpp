@@ -15,6 +15,7 @@
 #include "../core/Organism.hpp"
 #include "../core/OrganismManager.hpp"
 
+#include "emp/datastructs/vector_utils.hpp"
 #include "emp/hardware/AvidaGP.hpp"
 #include "emp/math/Distribution.hpp"
 #include "emp/math/random_utils.hpp"
@@ -82,18 +83,17 @@ namespace mabe {
     }
 
     /// Put the output values in the correct output position.
-    /// (Should be of type std::unordered_map<int,double>)
     void GenerateOutput() override {
       hardware.ResetHardware();
 
-      // @CAO Setup the input!
-      // org.SetInputs(game.AsInput(game.GetCurPlayer()));
+      // Setup the input.
+      hardware.SetInputs(GetVar<emp::vector<double>>(SharedData().input_name));
 
       // Run the code.
       hardware.Process(SharedData().eval_time);
 
       // Store the results.
-      SetVar<std::unordered_map<int,double>>(SharedData().output_name, hardware.GetOutputs());
+      SetVar<emp::vector<double>>(SharedData().output_name, emp::ToVector(hardware.GetOutputs()));
     }
 
     /// Setup this organism type to be able to load from config.
@@ -115,6 +115,9 @@ namespace mabe {
 
     /// Setup this organism type with the traits it need to track.
     void SetupModule() override {
+      // Setup the mutation distribution.
+      SharedData().mut_dist.Setup(SharedData().mut_prob, hardware.GetSize());
+
       // Setup the default vector to indicate mutation positions.
       SharedData().mut_sites.Resize(hardware.GetSize());
 
@@ -122,7 +125,7 @@ namespace mabe {
       GetManager().AddRequiredTrait<emp::vector<double>>(SharedData().input_name);
       GetManager().AddSharedTrait(SharedData().output_name,
                                   "Value map output from organism.",
-                                  std::unordered_map<int,double>());
+                                  emp::vector<double>());
     }
   };
 
