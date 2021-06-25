@@ -1,8 +1,9 @@
 Population main_pop;
 Population next_pop;
 
+Value pop_size = 200;
+
 CommandLine cl;
-Mutate mut;
 EvalNK eval_nk;
 FileOutput output;
 SelectElite select_elite;
