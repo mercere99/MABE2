@@ -1,4 +1,4 @@
-TEST_NAMES= MABE
+TEST_NAMES= data_collect MABE
 
 EMP_DIR= ../../../source/third-party/empirical
 COV_DIR=./coverage_source
