@@ -36,3 +36,6 @@
 *.app
 
 examples/NK
+
+# Vim swap files
+*.swp
