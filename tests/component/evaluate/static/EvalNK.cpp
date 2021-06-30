@@ -13,11 +13,12 @@
 // Empirical tools
 #include "emp/base/vector.hpp"
 // MABE
-#include "../../../source/core/data_collect.hpp"
+#include "../../../../source/evaluate/static/EvalNK.hpp"
 
 
-TEST_CASE("data_collect__max-int-vector", "[core]"){
+TEST_CASE("EvalNK__my-cool-test-case", "[evaluate/static]"){
   {
+    // leftover from data collect test case; pls replace
     std::function<std::string(emp::vector<int>)> fun = 
         emp::BuildCollectFun_Max<int, emp::vector<int>>([](int i){ return i;});
     emp::vector v{4,8,8,2,3};
