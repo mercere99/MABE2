@@ -1,9 +1,10 @@
 TEST_NAMES= EvalNK
 
+MABE_DIR= ../../.././base
 EMP_DIR= ../../../../source/third-party/empirical
 COV_DIR=./coverage_source
 CATCH_DIR= $(EMP_DIR)/third-party/Catch/single_include/catch2
-FLAGS= -std=c++17 -pthread -Wall -Wno-unused-function -Wno-unused-private-field -I$(EMP_DIR)/include/ -I$(CATCH_DIR)
+FLAGS= -std=c++17 -pthread -Wall -Wno-unused-function -Wno-unused-private-field -I$(EMP_DIR)/include/ -I$(CATCH_DIR) -I$(MABE_DIR)
 
 default: test
 
