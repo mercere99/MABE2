@@ -58,21 +58,32 @@ namespace mabe {
     struct ManagerData {
     };
 
+    [[deprecated("Use Organism::HasTrait() instead of Organism::HasVar()")]]
     bool HasVar(const std::string & name) const { return data_map.HasName(name); }
-    template <typename T> T & GetVar(const std::string & name) { return data_map.Get<T>(name); }
-    template <typename T> const T & GetVar(const std::string & name) const {
+    template <typename T>
+    [[deprecated("Use Organism::GetTrait() instead of Organism::GetVar()")]]
+    T & GetVar(const std::string & name) { return data_map.Get<T>(name); }
+    template <typename T>
+    [[deprecated("Use Organism::GetTrait() instead of Organism::GetVar()")]]
+    const T & GetVar(const std::string & name) const {
       return data_map.Get<T>(name);
     }
-    template <typename T> T & GetVar(size_t id) { return data_map.Get<T>(id); }
-    template <typename T> const T & GetVar(size_t id) const { return data_map.Get<T>(id); }
+    template <typename T>
+    [[deprecated("Use Organism::GetTrait() instead of Organism::GetVar()")]]
+    T & GetVar(size_t id) { return data_map.Get<T>(id); }
+    template <typename T>
+    [[deprecated("Use Organism::GetTrait() instead of Organism::GetVar()")]]
+    const T & GetVar(size_t id) const { return data_map.Get<T>(id); }
 
     template <typename T>
+    [[deprecated("Use Organism::SetTrait() instead of Organism::SetVar()")]]
     void SetVar(const std::string & name, const T & value) {
       if (data_map.HasName(name) == false) data_map.AddVar<T>(name, value);
       else data_map.Set<T>(name, value);
     }
 
     template <typename T>
+    [[deprecated("Use Organism::SetTrait() instead of Organism::SetVar()")]]
     void SetVar(size_t id, const T & value) {
       emp_assert(data_map.HasID(id), id);
       data_map.Set<T>(id, value);
