@@ -65,7 +65,7 @@ namespace mabe {
         org.GenerateOutput();
 
         // Count the number of ones in the bit sequence.
-        const emp::BitVector & bits = org.GetVar<emp::BitVector>(bits_trait);
+        const emp::BitVector & bits = org.GetTrait<emp::BitVector>(bits_trait);
         int road_length = 0.0;
         for (size_t i = 0; i < bits.size(); i++) {
           if (bits[i] == 0) break;
@@ -76,7 +76,7 @@ namespace mabe {
 
         // Store the count on the organism in the fitness trait.
         double fitness = road_length - overage * (extra_bit_cost + 1.0);
-        org.SetVar<double>(fitness_trait, fitness);
+        org.SetTrait<double>(fitness_trait, fitness);
 
         if (fitness > max_fitness) {
           max_fitness = fitness;

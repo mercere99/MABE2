@@ -74,12 +74,12 @@ namespace mabe {
     // Determine the next move of an organism.
     size_t EvalMove(emp::Mancala & game, Organism & org) {
       // Setup the hardware with proper inputs.
-      org.GetVar<emp::vector<double>>(input_trait) = game.AsVectorInput(game.GetCurPlayer());
+      org.GetTrait<emp::vector<double>>(input_trait) = game.AsVectorInput(game.GetCurPlayer());
 
       // Run the code.
       org.GenerateOutput();
 
-      emp::vector<double> results = org.GetVar<emp::vector<double>>(output_trait);
+      emp::vector<double> results = org.GetTrait<emp::vector<double>>(output_trait);
 
       // Determine the chosen move.
       size_t best_move = 0;
@@ -195,7 +195,7 @@ namespace mabe {
       control.Verbose(" - ", alive_collect.GetSize(), " organisms found.");
 
       for (Organism & org : alive_collect) {
-        double & score = org.GetVar<double>(score_trait);
+        double & score = org.GetTrait<double>(score_trait);
         score = EvalGame(org, control.GetRandom());     // Start first.
         score += EvalGame(org, control.GetRandom(), 1); // Start second.
       }
