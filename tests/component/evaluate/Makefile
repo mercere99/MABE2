@@ -1,4 +1,4 @@
-DIR_NAMES= component 
+DIR_NAMES= static
 
 default: test
 
@@ -10,7 +10,4 @@ test: $(addprefix test-, $(DIR_NAMES))
 cov-%:
 	cd $(@:cov-%=%) && make coverage
 
-coverage: coverage_conversion $(addprefix cov-, $(DIR_NAMES))
-
-coverage_conversion:
-	./convert_for_tests.sh
+coverage: $(addprefix cov-, $(DIR_NAMES))
