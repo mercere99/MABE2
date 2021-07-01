@@ -107,6 +107,7 @@ namespace mabe {
     }
 
     void BeforeUpdate(size_t ud) override {
+      control.Verbose("UD ", ud, ": Running FileOutput::BeforeUpdate()");
       DoOutput(ud);
     }
 
