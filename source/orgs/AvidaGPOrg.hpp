@@ -87,13 +87,13 @@ namespace mabe {
       hardware.ResetHardware();
 
       // Setup the input.
-      hardware.SetInputs(GetVar<emp::vector<double>>(SharedData().input_name));
+      hardware.SetInputs(GetTrait<emp::vector<double>>(SharedData().input_name));
 
       // Run the code.
       hardware.Process(SharedData().eval_time);
 
       // Store the results.
-      SetVar<emp::vector<double>>(SharedData().output_name, emp::ToVector(hardware.GetOutputs()));
+      SetTrait<emp::vector<double>>(SharedData().output_name, emp::ToVector(hardware.GetOutputs()));
     }
 
     /// Setup this organism type to be able to load from config.
