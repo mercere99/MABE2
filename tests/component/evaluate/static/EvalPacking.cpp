@@ -15,73 +15,36 @@
 #include "emp/base/vector.hpp"
 // MABE
 #include "../../../../source/evaluate/static/EvalNK.hpp"
-
-int evalPacking(size_t brick_s, size_t packing_s, const emp::BitVector bits) {
-    size_t brick_size = brick_s;
-    size_t packing_size = packing_s;
-
-    if (bits.GetSize() < brick_size) {
-        return 0;
-    }
-
-    int packed = 0; // number of correctly packed bricks
-
-    size_t ones_count = 0;
-    size_t zeros_count = 0;
-    int check_step = 1; // 0 = count front packing, 1 = count brick, 2 = count back packing, 3 = all elements found
-    
-    for (size_t i = 0; i < bits.size(); i++) {
-        if (check_step == 0 || check_step == 2) {
-            if (bits[i] == 0) {
-                zeros_count++;
-            }
-            if (zeros_count == packing_size) {
-                zeros_count = 0;
-                check_step++;
-            }
-            // one found, restart search for front packing
-            else if (bits[i] == 1) {
-                zeros_count = 0;
-                check_step = 0;
-            }
-        }
-        // looking for brick
-        else if (check_step == 1) {
-            if (bits[i] == 1) {
-                ones_count++;
-                // full brick found, begin looking for zeros
-                if (ones_count == brick_size) {
-                    ones_count = 0;
-                    check_step++;
-                }
-            }
-            // zero found, begin looking for front packing
-            else if (bits[i] == 0) {
-                ones_count = 0;
-                zeros_count = 1;
-                check_step = 0;
-            }
-        }
-        if (check_step == 3) {
-            packed++;
-            check_step = 1;
-        }
-    }
-
-    return packed;
-}
+#include "evaluate/static/EvalPacking.hpp"
 
 TEST_CASE("EvalPacking_test-case", "[evaluate/static]"){
   {
+  mabe::MABE control = mabe::MABE(0, NULL);
+  control.AddPopulation("pop");
+  mabe::EvalPacking packing(control);
+  // packing.evaluate(brick_size, packing_size, bits)
+
    const emp::BitVector & bits = emp::BitVector("00");
-   REQUIRE(evalPacking(3, 2, bits) == 0);
    const emp::BitVector & bits1 = emp::BitVector("000011110000");
-   REQUIRE(evalPacking(4, 4, bits1) == 1);
-   const emp::BitVector & bits2 = emp::BitVector("111100111100");
-   REQUIRE(evalPacking(4, 2, bits2) == 2);
+   const emp::BitVector & bits2 = emp::BitVector("11110000111100");
    const emp::BitVector & bits3 = emp::BitVector("00000111011100");
-   REQUIRE_FALSE(evalPacking(3, 2, bits3) == 2);
    const emp::BitVector & bits4 = emp::BitVector("111111111111111");
-   REQUIRE_FALSE(evalPacking(3, 0, bits4) == 5);
+
+
+   // bits length too small 
+   REQUIRE(packing.evaluate(3, 2, bits) == 0);
+   REQUIRE(packing.evaluate(20, 0, bits4) == 0);
+
+   // standard packed bricks 
+   REQUIRE(packing.evaluate(4, 4, bits1) == 1);
+   REQUIRE(packing.evaluate(4, 2, bits2) == 2);
+
+    std::cout << packing.evaluate(3, 0, bits4) << std::endl;
+   REQUIRE_FALSE(packing.evaluate(3, 2, bits3) == 2);
+
+   // no packing
+   //REQUIRE(packing.evaluate(3, 0, bits4) == 5);
+   // no bricks
+   REQUIRE(packing.evaluate(0, 3, bits4) == 0);
   }
 }
