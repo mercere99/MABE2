@@ -1,4 +1,4 @@
-TEST_NAMES= core
+TEST_NAMES= core evaluate
 
 default: test
 
