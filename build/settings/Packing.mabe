@@ -1,4 +1,4 @@
-random_seed = 0;                // Seed for random number generator; use 0 to base on time.
+random_seed = 1;                // Seed for random number generator; use 0 to base on time.
 
 Value pop_size = 1000;          // Local value variable.
 
@@ -27,7 +27,7 @@ EvalPacking eval_packing {      // Evaluate bitstrings by counting ones (or zero
   target = "main_pop";          // Which population(s) should we evaluate?
   bits_trait = "bits";          // Which trait stores the bit sequence to evaluate?
   fitness_trait = "fitness";    // Which trait should we store the fitness in?
-  num_ones = 3;                 // Number of ones to be packaged together.
+  num_ones = 8;                 // Number of ones to be packaged together.
   num_zeros = 2;                // Number of zeros to buffer each side of ones package.
 }
 FileOutput output {             // Output collected data into a specified file.
