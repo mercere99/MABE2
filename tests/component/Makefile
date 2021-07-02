@@ -1,4 +1,4 @@
-DIR_NAMES= core evaluate
+DIR_NAMES=  evaluate core
 
 default: test
 
