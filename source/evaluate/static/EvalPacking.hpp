@@ -56,6 +56,61 @@ namespace mabe {
       AddOwnedTrait<double>(fitness_trait, "Packing fitness value", 0.0);
     }
 
+    size_t evaluate(size_t brick_s, size_t packing_s, const emp::BitVector bits) {
+      size_t brick_size = brick_s;
+      size_t packing_size = packing_s;
+
+      if (bits.GetSize() < brick_size) {
+          return 0;
+      }
+
+      size_t packed = 0; // number of correctly packed bricks
+
+      size_t ones_count = 0;
+      size_t zeros_count = 0;
+      int check_step = 1; // 0 = count front packing, 1 = count brick, 2 = count back packing, 3 = all elements found
+      
+      for (size_t i = 0; i < bits.size(); i++) {
+        if (check_step == 0 || check_step == 2) {
+          if (bits[i] == 0) {
+            zeros_count++;
+          }
+          if (zeros_count == packing_size) {
+            zeros_count = 0;
+            check_step++;
+          }
+          // one found, restart search for front packing
+          else if (bits[i] == 1) {
+            zeros_count = 0;
+            check_step = 0;
+          }
+        }
+        // looking for brick
+        else if (check_step == 1) {
+          if (bits[i] == 1) {
+            ones_count++;
+            // full brick found, begin looking for zeros
+            if (ones_count == brick_size) {
+              ones_count = 0;
+              check_step++;
+            }
+          }
+          // zero found, begin looking for front packing
+          else if (bits[i] == 0) {
+            ones_count = 0;
+            zeros_count = 1;
+            check_step = 0;
+          }
+        }
+        if (check_step == 3) {
+          packed++;
+          check_step = 1;
+        }
+      }
+
+      return packed;
+    }
+
     void OnUpdate(size_t /* update */) override {
       // Loop through the population and evaluate each organism.
       double max_fitness = 0.0;
@@ -67,59 +122,11 @@ namespace mabe {
         // Count the number of ones in the bit sequence.
         const emp::BitVector & bits = org.GetVar<emp::BitVector>(bits_trait);
 
-        int packed = 0; // number of correctly packed bricks
-        double fitness = 0.0;
-
-        size_t ones_count = 0;
-        size_t zeros_count = 0;
-        int check_step = 0; // 0 = count front packing, 1 = count brick, 2 = count back packing, 3 = all elements found
-        
-        for (size_t i = 0; i < bits.size(); i++) {
-
-          if (check_step == 0 || check_step == 2) {
-            if (bits[i] == 0) {
-              zeros_count++;
-            }
-            if (zeros_count == packing_size) {
-              zeros_count = 0;
-              check_step++;
-            }
-            // one found, restart search for front packing
-            else if (bits[i] == 1) {
-              zeros_count = 0;
-              check_step = 0;
-            }
-          }
-          // looking for brick
-          else if (check_step == 1) {
-            if (bits[i] == 1) {
-              ones_count++;
-              // full brick found, begin looking for zeros
-              if (ones_count == brick_size) {
-                ones_count = 0;
-                check_step++;
-              }
-            }
-            // zero found, begin looking for front packing
-            else if (bits[i] == 0) {
-                ones_count = 0;
-                check_step = 0;
-            }
-          } 
-          if (check_step == 3) {
-            packed++;
-            fitness += 1.0;
-            check_step = 1;
-          }
-        }
-
+        size_t fitness = evaluate(brick_size, packing_size, bits);
           // Store the count on the organism in the fitness trait.
-          //fitness = packed;
+
           org.SetVar<double>(fitness_trait, fitness);
 
-          zeros_count = 0;
-          ones_count = 0;
-          check_step = 0;
           if (fitness > max_fitness) {
             max_fitness = fitness;
           }
