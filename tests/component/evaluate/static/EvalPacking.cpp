@@ -13,7 +13,7 @@
 // Empirical tools
 #include "emp/base/vector.hpp"
 // MABE
-#include "../../../source/core/data_collect.hpp"
+#include "../../../../source/evaluate/static/EvalPacking.hpp"
 
 
 TEST_CASE("data_collect__max-int-vector", "[core]"){
