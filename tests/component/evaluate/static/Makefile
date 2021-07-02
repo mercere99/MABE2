@@ -1,6 +1,6 @@
 TEST_NAMES= EvalNK
 
-MABE_DIR= ../../../source
+MABE_DIR= ../../../../source
 EMP_DIR= ../../../../source/third-party/empirical
 COV_DIR=./coverage_source
 CATCH_DIR= $(EMP_DIR)/third-party/Catch/single_include/catch2
