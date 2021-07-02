@@ -1,13 +1,13 @@
-TEST_NAMES= static
+DIR_NAMES= static
 
 default: test
 
 test-%:
 	cd $(@:test-%=%) && make test
 
-test: $(addprefix test-, $(TEST_NAMES))
+test: $(addprefix test-, $(DIR_NAMES))
 
 cov-%:
 	cd $(@:cov-%=%) && make coverage
 
-coverage: $(addprefix cov-, $(TEST_NAMES))
+coverage: $(addprefix cov-, $(DIR_NAMES))
