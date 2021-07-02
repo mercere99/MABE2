@@ -63,16 +63,23 @@ namespace mabe {
 
     // Evaluate the fitness of an organism
     //    bits: a BitVector comprised of the bits_traits of an organism
-    //    package_status: keeps track of where we are in the construction of a package
-    //      if 0: adding zeros to beginning padding 
-    //      if 1: adding ones to fill package (it not preceded by full package)
-    //      if 2: adding zeros to end padding
-    //      if 3: complete package!
-    //    zeros_counter: keeps track of padding size
-    //    ones_counter: keeps track of package size
-    double Evaluate(const emp::BitVector bits, int package_status, size_t zeros_counter, size_t ones_counter) {
+    //    num_zeros: the number of zeros to use as padding (private)
+    //    num_ones: the number of ones to use as the package size (private)
+    double Evaluate(const emp::BitVector bits, size_t num_zeros, size_t num_ones) {
 
+      // Keep track of fitness of organism
       double fitness = 0.0; 
+
+      // Keep track of where we are in the construction of a package
+      //    if 0: adding zeros to beginning padding 
+      //    if 1: adding ones to fill package (it not preceded by full package)
+      //    if 2: adding zeros to end padding
+      //    if 3: complete package!
+      int package_status = 0; 
+        
+      // Keep track of the number of ones and zeros in each package section
+      size_t zeros_counter = 0; 
+      size_t ones_counter = 0; 
 
       for (size_t i = 0; i < bits.size(); i++) {
           
@@ -117,17 +124,6 @@ namespace mabe {
       // Loop through the population and evaluate each organism.
       double max_fitness = 0.0;
 
-      // Keep track of where we are in the construction of a package
-      //    if 0: adding zeros to beginning padding 
-      //    if 1: adding ones to fill package (it not preceded by full package)
-      //    if 2: adding zeros to end padding
-      //    if 3: complete package!
-      int package_status = 0; 
-        
-      // Keep track of the number of ones and zeros in each package section
-      size_t zeros_counter = 0; 
-      size_t ones_counter = 0; 
-
       mabe::Collection alive_collect( target_collect.GetAlive() );
       for (Organism & org : alive_collect) {        
         // Make sure this organism has its bit sequence ready for us to access.
@@ -137,7 +133,7 @@ namespace mabe {
         const emp::BitVector & bits = org.GetVar<emp::BitVector>(bits_trait);
 
         // Evaluate the fitness of the orgnism
-        double fitness = Evaluate(bits, package_status, zeros_counter, ones_counter); 
+        double fitness = Evaluate(bits, num_zeros, num_ones); 
 
         // Set the fitness_trait for the organism
         org.SetVar<double>(fitness_trait, fitness);
