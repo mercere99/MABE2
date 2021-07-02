@@ -1,4 +1,4 @@
-DIR_NAMES= dir1 dir2 
+DIR_NAMES= dir1 dir2 # Replace these with the subdirectories that live beside this Makefile!
 
 default: test
 

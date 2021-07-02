@@ -1,6 +1,6 @@
-TEST_NAMES= test1 test2
+TEST_NAMES= test1 test2 # Replace these with your .cpp files!
 
-MABE_DIR= ../../../build
+MABE_DIR= ../../../source
 EMP_DIR= ../../../source/third-party/empirical
 COV_DIR=./coverage_source
 CATCH_DIR= $(EMP_DIR)/third-party/Catch/single_include/catch2
