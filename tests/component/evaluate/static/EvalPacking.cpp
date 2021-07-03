@@ -28,7 +28,7 @@ TEST_CASE("EvalPacking_test-case", "[evaluate/static]"){
    const emp::BitVector & bits1 = emp::BitVector("000011110000");
    const emp::BitVector & bits2 = emp::BitVector("11110000111100");
    const emp::BitVector & bits3 = emp::BitVector("00000111011100");
-   const emp::BitVector & bits4 = emp::BitVector("111111111111111");
+   const emp::BitVector & bits4 = emp::BitVector("111111111");
 
 
    // bits length too small 
@@ -39,11 +39,11 @@ TEST_CASE("EvalPacking_test-case", "[evaluate/static]"){
    REQUIRE(packing.evaluate(4, 4, bits1) == 1);
    REQUIRE(packing.evaluate(4, 2, bits2) == 2);
 
-    std::cout << packing.evaluate(3, 0, bits4) << std::endl;
+   // check failure
    REQUIRE_FALSE(packing.evaluate(3, 2, bits3) == 2);
 
    // no packing
-   //REQUIRE(packing.evaluate(3, 0, bits4) == 5);
+   REQUIRE(packing.evaluate(3, 0, bits4) == 3);
    // no bricks
    REQUIRE(packing.evaluate(0, 3, bits4) == 0);
   }

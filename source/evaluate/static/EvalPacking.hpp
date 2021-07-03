@@ -56,9 +56,9 @@ namespace mabe {
       AddOwnedTrait<double>(fitness_trait, "Packing fitness value", 0.0);
     }
 
-    size_t evaluate(size_t brick_s, size_t packing_s, const emp::BitVector bits) {
-      size_t brick_size = brick_s;
-      size_t packing_size = packing_s;
+    size_t evaluate(size_t b_s, size_t p_s, const emp::BitVector bits) {
+      size_t brick_size = b_s;
+      size_t packing_size = p_s;
 
       if (bits.GetSize() < brick_size) {
           return 0;
@@ -68,6 +68,7 @@ namespace mabe {
 
       size_t ones_count = 0;
       size_t zeros_count = 0;
+
       int check_step = 1; // 0 = count front packing, 1 = count brick, 2 = count back packing, 3 = all elements found
       
       for (size_t i = 0; i < bits.size(); i++) {
@@ -92,7 +93,11 @@ namespace mabe {
             // full brick found, begin looking for zeros
             if (ones_count == brick_size) {
               ones_count = 0;
-              check_step++;
+              if (packing_size == 0) {
+                check_step = 3;
+              } else {
+                check_step = 2;
+              }
             }
           }
           // zero found, begin looking for front packing
