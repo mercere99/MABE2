@@ -19,11 +19,14 @@ namespace mabe {
 
   class EvalMancala : public Module {
   private:
-    Collection target_collect;  // Which organisms should we evaluate?
+    Collection target_collect;                  ///< Which organisms should we evaluate?
 
-    std::string input_trait;    // Name of trait to put input values.
-    std::string output_trait;   // Name of trait to find output values.
-    std::string score_trait;    // Trait to indicate game results.
+    std::string input_trait = "input";          ///< Name of trait to put input values.
+    std::string output_trait = "output";        ///< Name of trait to find output values.
+    std::string score_trait = "score";          ///< Trait to indicate game results.
+    std::string trace_trait = "mancala_moves";  ///< Where should game traces be stored?
+
+    emp::vector<size_t> game_trace;             ///< Series of moves made in most recent game.
 
     /// What type of opponent should we use?
     enum Opponent {
@@ -39,14 +42,8 @@ namespace mabe {
     EvalMancala(mabe::MABE & control,
                    const std::string & name="EvalMancala",
                    const std::string & desc="Evaluate organisms by having them play Mancala.",
-                   const std::string & _itrait="input",
-                   const std::string & _otrait="output",
-                   const std::string & _strait="score")
       : Module(control, name, desc)
       , target_collect(control.GetPopulation(0))
-      , input_trait(_itrait)
-      , output_trait(_otrait)
-      , score_trait(_strait)
     {
       SetEvaluateMod(true);
     }
@@ -57,6 +54,7 @@ namespace mabe {
       LinkVar(input_trait, "input_trait", "Into which trait should input values be placed?");
       LinkVar(output_trait, "output_trait", "Out of which trait should output values be read?");
       LinkVar(score_trait, "score_trait", "Which trait should we store success rating?");
+      LinkVar(trace_trait, "trace_trait", "Which trait should we track the game moves?");
       LinkMenu(opponent_type, "opponent_type", "Which type of opponent should organisms face?",
                RANDOM_MOVES, "random", "Always choose a random, legal move.",
                AI, "ai", "Human supplied (but not very good) AI",
@@ -68,6 +66,7 @@ namespace mabe {
       AddOwnedTrait<emp::vector<double>>(input_trait, "Input values (curret board state)", emp::vector<double>({0.0}));
       AddRequiredTrait<emp::vector<double>>(output_trait); // Output values (move to make)
       AddOwnedTrait<double>(score_trait, "Play success", 0.0);
+      AddOwnedTrait<emp::vector<size_t>>(trace_trait, "Series of game moves", emp::vector<size_t>());
     }
 
 
@@ -119,6 +118,7 @@ namespace mabe {
                     bool cur_player=0, bool verbose=false) {
       emp::Mancala game(cur_player==0);
       size_t round = 0, errors = 0;
+      game_trace.resize(0);
       while (game.IsDone() == false) {
         // Determine the current player and their move.
         auto & play_fun = (cur_player == 0) ? player0 : player1;
@@ -140,6 +140,8 @@ namespace mabe {
           if (cur_player == 0) errors++;
           if (++best_move > 5) best_move = 0;
         }
+
+        game_trace.push_back(best_move);  // Record the move being done.
 
         // Do the move and determine who goes next.
         bool go_again = game.DoMove(cur_player, best_move);
@@ -197,6 +199,7 @@ namespace mabe {
       for (Organism & org : alive_collect) {
         double & score = org.GetTrait<double>(score_trait);
         score = EvalGame(org, control.GetRandom());     // Start first.
+        org.SetTrait(trace_trait, game_trace);          // Record the trace of the first game.
         score += EvalGame(org, control.GetRandom(), 1); // Start second.
       }
     }
