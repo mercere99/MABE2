@@ -14,16 +14,10 @@ Welcome to MABE2's documentation!
    first_steps/*
 
 .. toctree::
-   :caption: Overview
+   :caption: Modules
    :glob:
-   
-   overview/*
 
-.. toctree::
-   :caption: Usage
-   :glob:
-   
-   usage/*
+   modules/*
 
 MABE is cool and fun to use.
 
