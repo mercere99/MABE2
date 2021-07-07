@@ -13,11 +13,13 @@ Welcome to MABE2's documentation!
 
    first_steps/*
 
+.. toctree::
    :caption: Overview
    :glob:
    
    overview/*
 
+.. toctree::
    :caption: Usage
    :glob:
    
