@@ -28,3 +28,11 @@ Our goal is to allow for more modular control, flexible agents, faster run times
    :glob:
 
    modules/*
+
+
+.. toctree::
+   :hidden:
+   :caption: Evaluators
+   :glob:
+
+   evaluate/*
