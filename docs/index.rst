@@ -6,7 +6,16 @@
 Welcome to MABE2's documentation!
 =================================
 
+`Visit MABE2 on github here <https://github.com/mercere99/MABE2>`_.
+
+MABE is a software framework deigned to easily build and customize software for evolutionary computation or artificial life. 
+The resulting systems should be useful for studying evolutionary dynamics, solving complex problems, comparing evolving systems, or exploring the open-ended power of evolution.
+
+MABE version 2.0 is being re-built from scratch, using the Empirical library. 
+Our goal is to allow for more modular control, flexible agents, faster run times and portability to the web.
+
 .. toctree::
+   :hidden:
    :maxdepth: 2
    :caption: First Steps
    :glob:
@@ -14,16 +23,8 @@ Welcome to MABE2's documentation!
    first_steps/*
 
 .. toctree::
+   :hidden:
    :caption: Modules Overview
    :glob:
 
    modules/*
-
-MABE is cool and fun to use.
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
