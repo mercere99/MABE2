@@ -7,12 +7,12 @@ Welcome to MABE2's documentation!
 =================================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :caption: Contents:
    :glob:
    
-   usage/*
    overview/*
+   usage/*
 
 MABE is cool and fun to use.
 
