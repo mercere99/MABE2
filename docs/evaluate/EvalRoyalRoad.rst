@@ -7,7 +7,7 @@ Overview
 
 The EvalRoyalRoad module evaluates organisms based on the RoyalRoad method. 
 The fitness is awarded to the organism based on how many consecutive bricks (a sequence of n ones) are present with a penalty given for incomplete bricks at the end of the road.
-
+See Example for more details
 Traits
 ------
 
@@ -51,6 +51,12 @@ A single score based on the length of the road minus the penalty.
 Example
 -------
 
+Compling and Running
+********************
+
 To run MABE with the RoyalRoad Evaluator, navigate to the build directory and use the command 
 ``make`` followed by the command ``./MABE -f settings/RoyalRoad.mabe``.
 Parameters may be set in the ``RoyalRoad.mabe`` file.
+
+Organisms
+*********

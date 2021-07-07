@@ -53,6 +53,23 @@ A single score based on the number of correctly packed bricks.
 Example
 -------
 
+Compiling and Running
+*********************
+
 To run MABE with the Packing Evaluator, navigate to the build directory and use the command 
 ``make`` followed by the command ``./MABE -f settings/Packing.mabe``.
 Parameters may be set in the ``Packing.mabe`` file.
+
+Organisms
+*********
++--------------+----------------+------------------+---------------+
+| Bits         | ``brick_size`` | ``packing_size`` | Fitness Score |
++==============+================+==================+===============+
+| 111011101110 | 3              | 1                | 3             |
++--------------+----------------+------------------+---------------+
+| 111001110111 | 3              | 1                | 2             |
++--------------+----------------+------------------+---------------+
+| 001111001111 | 4              | 2                | 1             |
++--------------+----------------+------------------+---------------+
+| 111111111111 | 2              | 0                | 6             |
++--------------+----------------+------------------+---------------+
