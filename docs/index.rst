@@ -8,10 +8,12 @@ Welcome to MABE2's documentation!
 
 .. toctree::
    :maxdepth: 3
-   :caption: Contents:
+   :caption: First Steps
    :glob:
    
    overview/*
+
+   :caption: 
    usage/*
 
 MABE is cool and fun to use.
