@@ -14,7 +14,7 @@ Welcome to MABE2's documentation!
    first_steps/*
 
 .. toctree::
-   :caption: Modules
+   :caption: Modules Overview
    :glob:
 
    modules/*
