@@ -33,7 +33,7 @@ For a description of each type of trait, see traits documentation that doesn't e
   
 Parameters
 ----------
-* ``brick_size`` the number of ones necessary to make a full brick.
+* ``size_t brick_size`` the number of ones necessary to make a full brick.
 
 I/O
 ---
@@ -56,7 +56,7 @@ Compling and Running
 
 To run MABE with the RoyalRoad Evaluator, navigate to the build directory and use the command 
 ``make`` followed by the command ``./MABE -f settings/RoyalRoad.mabe``.
-Parameters may be set in the ``RoyalRoad.mabe`` file.
+Parameters may be set in the ``RoyalRoad.mabe`` file. To see complete output navigate to the ``output.csv`` file.
 
 Organisms
 *********

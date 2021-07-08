@@ -36,3 +36,11 @@ Our goal is to allow for more modular control, flexible agents, faster run times
    :glob:
 
    evaluate/*
+
+
+.. toctree::
+   :hidden:
+   :caption: Organisms
+   :glob:
+
+   organisms/*
