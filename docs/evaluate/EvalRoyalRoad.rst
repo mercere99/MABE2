@@ -34,7 +34,7 @@ For a description of each type of trait, see traits documentation that doesn't e
   
 Parameters
 ----------
-* ``size_t brick_size`` the number of ones necessary to make a full brick.
+* ``size_t brick_size`` the number of ones necessary to make a full brick. The default is set to 8.
 
 I/O
 ---

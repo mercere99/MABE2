@@ -34,8 +34,8 @@ For a description of each type of trait, see traits documentation that doesn't e
   
 Parameters
 ----------
-* ``size_t brick_size`` the number of ones necessary to make a full brick.
-* ``size_t packing_size`` the minimum number of zeros necessary to pack each brick. Packing may be shared between two bricks. 
+* ``size_t brick_size`` the number of ones necessary to make a full brick. The default is set at 6.
+* ``size_t packing_size`` the minimum number of zeros necessary to pack each brick. Packing may be shared between two bricks. The default is set at 3.
 
 I/O
 ---
