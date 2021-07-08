@@ -6,8 +6,9 @@ Overview
 --------
 
 The EvalRoyalRoad module evaluates organisms based on the RoyalRoad method. 
-The fitness is awarded to the organism based on how many consecutive bricks (a sequence of n ones) are present with a penalty given for incomplete bricks at the end of the road.
-See Example for more details
+The fitness is awarded to the organism based on how many consecutive bricks (a sequence of n ones) are present at the beginning of the organism. 
+A penalty is given for incomplete bricks at the end of the road.
+See Example for more details.
 Traits
 ------
 
@@ -60,3 +61,13 @@ Parameters may be set in the ``RoyalRoad.mabe`` file. To see complete output nav
 
 Organisms
 *********
+
++--------------+----------------+------------------+---------------+
+| Bits         | ``brick_size`` | ``extra_bit_cost | Fitness Score |
++==============+================+==================+===============+
+| 111111111    | 3              | 0.5              | 9             |
++--------------+----------------+------------------+---------------+
+| 111111000111 | 3              | 0.5              | 6             |
++--------------+----------------+------------------+---------------+
+| 111111000111 | 4              | 0.5              | 2             |
++--------------+----------------+------------------+---------------+

@@ -7,7 +7,7 @@ Overview
 
 The EvalPacking module evaluates organisms based off their ability to correctly "pack" bricks of bits. A brick is sequence of exactly n ones. 
 It is packed on both sides  by  at least k zeros. The fitness is awarded to the organism based on how many bricks are correctly packed, no partial credit is given. 
-No packing is needed in front of the first brick.
+No packing is needed in front of the first brick. See Example for more details.
 
 Traits
 ------
@@ -35,8 +35,8 @@ For a description of each type of trait, see traits documentation that doesn't e
 Parameters
 ----------
 * ``size_t brick_size`` the number of ones necessary to make a full brick.
-* ``size_t packing_size`` the minimum number of zeros necessary to pack each brick.
-Packing may be shared between two bricks. 
+* ``size_t packing_size`` the minimum number of zeros necessary to pack each brick. Packing may be shared between two bricks. 
+
 I/O
 ---
 
