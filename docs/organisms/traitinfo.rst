@@ -94,11 +94,108 @@ Getter Functions
 
 .. code-block:: cpp
 
+  Init GetInit() const
+
+.. code-block:: cpp
+
+  Archive GetArchive()
+
+.. code-block:: cpp
+
+  Summary GetSummary()
+
+.. code-block:: cpp
+
   const emp::vector<emp::TypeID> & GetAltTypes() const
 
 ..
 
-    What other types are allowed? 
+    What other types are allowed?
+
+.. code-block:: cpp
+
+  bool HasDefault() const
+
+..
+
+    Was a default value set for this trait?
+
+.. code-block:: cpp
+
+  const T & GetDefault() const
+
+..
+
+
+Setter Functions
+****************
+
+.. code-block:: cpp
+
+  TraitInfo & SetName(const std::string & in_name)
+
+.. code-block:: cpp
+
+  TraitInfo & SetDesc(const std::string & in_desc)
+
+.. code-block:: cpp
+
+  TraitInfo & AddAccess(const std::string & in_name, mod_ptr_t in_mod, Access access)
+
+..
+
+    Add a module that can access this trait.
+
+.. code-block:: cpp 
+
+  virtual void Register(emp::DataMap & dm)
+
+..
+
+    Register this trait in the provided DataMap.
+
+Parent Functions
+****************
+
+.. code-block:: cpp
+
+  bool GetResetParent() const 
+
+..
+    Is the parent ALSO reset on birth?
+
+.. code-block:: cpp
+
+  TraitInfo & SetInheritParent()
+
+..
+
+    Set the current value of this trait to be automatically inherited by offspring.
+
+
+To set the average, minimum, or maximum across parents for this trait to be automatically inherited by offspring use the 
+corresponding setter function. For example, to set the average use the function: 
+
+.. code-block:: cpp
+
+  TraitInfo & SetInheritAverage()
+
+..
+
+.. code-block:: cpp
+
+  TraitInfo & SetParentReset()
+
+..
+
+    Set the parent to ALSO reset to the same value as the offspring on divide.
+
+To set the  the previous value or ALL previous values of this trait to be stored on birth or reset
+use the corresponding setter function. For example, to set only the pervious value use the function:
+
+.. code-block:: cpp
+
+  TraitInfo & SetArchiveLast()
 
 Type Functions
 **************
@@ -189,16 +286,3 @@ For example, to determine the specific modules with ``Private`` access is use th
 .. code-block:: cpp
 
   emp::vector<std::string> GetPrivateNames() const
-
-.. code-block:: cpp
-
-  virtual bool HasDefault() const
-
-..
-
-    Was a default value set for this trait?
-
-
-
-
-
