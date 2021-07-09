@@ -45,23 +45,11 @@ namespace mabe {
     using org_t = ORG_T;
 
     /// Also get the TypeID for this organism for more run-time type management.
-    emp::TypeID GetOrgType() const override { return emp::GetTypeID<ORG_T>(); }
-
-    /// Convert this organism to the correct type (after ensuring that it is!)
-    org_t & ConvertOrg(Organism & org) const {
-      emp_assert(&(org.GetManager()) == this);
-      return (org_t &) org;
-    }
-
-    /// Convert this CONST organism to the correct type (after ensuring that it is!)
-    const org_t & ConvertOrg(const Organism & org) const {
-      emp_assert(&(org.GetManager()) == this);
-      return (const org_t &) org;
-    }
+    emp::TypeID GetOrgType() const override { return emp::GetTypeID<org_t>(); }
 
     /// Create a clone of the provided organism; default to using copy constructor.
     emp::Ptr<Organism> CloneOrganism(const Organism & org) override {
-      return emp::NewPtr<org_t>( ConvertOrg(org) );
+      return emp::NewPtr<org_t>( (const org_t &) org );
     }
 
     /// Create a random organism from scratch.  Default to using the org_prototype organism.
@@ -78,16 +66,6 @@ namespace mabe {
       return org_ptr;
     }
 
-    /// Convert an organism to a string for printing; if not overridden, just prints
-    /// "__unknown__".
-    std::string OrgToString(const Organism &) const override { return "__unknown__"; };
-
-    /// By default print an organism by triggering it's ToString() function.
-    std::ostream & PrintOrganism(Organism & org, std::ostream & os) const override {
-      emp_assert(&(org.GetManager()) == this);
-      os << org.ToString();
-      return os;
-    }
 
     void SetupModule() override {
       org_prototype->SetupModule();
