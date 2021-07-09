@@ -291,32 +291,6 @@ namespace mabe {
       emp_assert(false, "MakeOrganism() must be overridden for either Organism or OrganismManager module.");
       return nullptr;
     }
-    virtual std::string OrgToString(const Organism &) const {
-      emp_assert(false, "OrgToString() must be overridden for either Organism or OrganismManager module.");
-      return "";
-    }
-    virtual std::ostream & PrintOrganism(Organism &, std::ostream & is) const {
-      emp_assert(false, "Print() must be overridden for either Organism or OrganismManager module.");
-      return is;
-    }
-    virtual size_t Mutate(Organism &, emp::Random &) const {
-      emp_assert(false, "Mutate() must be overridden for either Organism or OrganismManager module.");
-      return 0;
-    }
-    virtual void Randomize(Organism &, emp::Random &) const {
-      emp_assert(false, "Randomize() must be overridden for either Organism or OrganismManager module.");
-    }
-
-    virtual emp::Ptr<Organism> Recombine(const Organism &, emp::Ptr<Organism>, emp::Random &) const {
-      emp_assert(false, "Recombine() must be overridden for either Organism or OrganismManager module.");
-      return nullptr;
-    }
-
-    virtual emp::vector<emp::Ptr<Organism>>
-    Recombine(const Organism &, emp::vector<emp::Ptr<Organism>>, emp::Random &) const {
-      emp_assert(false, "Recombine() must be overridden for either Organism or OrganismManager module.");
-      return emp::vector< emp::Ptr<Organism> >();
-    }
 
     virtual void SetupConfig() { }
   };
