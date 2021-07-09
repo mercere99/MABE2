@@ -204,6 +204,12 @@ namespace mabe {
     /// is not overridden, try to the equivilent function in the organism manager.
     virtual std::string ToString() const { return "__unknown__"; }
 
+    /// By default print an organism by triggering it's ToString() function.
+    std::ostream & Print(std::ostream & os) const {
+      os << ToString();
+      return os;
+    }
+
     /// Completely randomize a new organism (typically for initialization)
     virtual void Randomize(emp::Random & random) {
       emp_assert(false, "Randomize() must be overridden before it can be called.");
