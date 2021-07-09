@@ -33,7 +33,7 @@ For a description of each type of trait, see traits documentation that doesn't e
   
 Parameters
 ----------
-* ``brick_size`` the number of ones necessary to make a full brick.
+* ``brick_size`` the number of ones necessary to make a full brick. The default is a "brick" of size 8. 
 
 Parameters may be modified in the file ``RoyalRoad.mabe``. 
 
