@@ -213,8 +213,8 @@ namespace mabe {
   template <>
   class TypedGenome<bool> : public Genome {
     // FILL ALL THIS OUT USING emp::BitVector instead!!!
-  }
+  };
 
-};
+}
 
 #endif
