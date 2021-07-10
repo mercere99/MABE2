@@ -159,7 +159,7 @@ namespace mabe {
     /// Merge this organism's genome with that of another organism to produce an offspring.
     /// @note Required for basic sexual recombination to work.
     [[nodiscard]] virtual emp::Ptr<Organism>
-    Recombine(emp::Ptr<Organism> parent2, emp::Random & random) const {
+    Recombine(emp::Ptr<Organism> /* parent2 */, emp::Random & /* random */) const {
       emp_assert(false, "Recombine() must be overridden for it to work.");
       return nullptr;
     }
@@ -169,7 +169,7 @@ namespace mabe {
     /// @note More flexible version of recombine (allowing many parents and/or many offspring),
     /// but also slower.
     [[nodiscard]] virtual emp::vector<emp::Ptr<Organism>>
-    Recombine(emp::vector<emp::Ptr<Organism>> other_parents, emp::Random & random) const {
+    Recombine(emp::vector<emp::Ptr<Organism>> /*other_parents*/, emp::Random & /*random*/) const {
       emp_assert(false, "Recombine() must be overridden for it to work.");
       return emp::vector<emp::Ptr<Organism>>();
     }
@@ -211,7 +211,7 @@ namespace mabe {
     }
 
     /// Completely randomize a new organism (typically for initialization)
-    virtual void Randomize(emp::Random & random) {
+    virtual void Randomize(emp::Random & /*random*/) {
       emp_assert(false, "Randomize() must be overridden before it can be called.");
     }
 
