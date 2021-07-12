@@ -13,7 +13,7 @@
 // Empirical tools
 #include "emp/base/vector.hpp"
 // MABE
-#include "../../../../source/evaluate/static/EvalNK.hpp"
+#include "evaluate/static/EvalNK.hpp"
 
 
 TEST_CASE("EvalNK__my-cool-test-case", "[evaluate/static]"){
