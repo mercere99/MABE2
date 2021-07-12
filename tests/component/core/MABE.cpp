@@ -15,9 +15,9 @@
 #include "emp/config/ArgManager.hpp"
 #include "emp/math/Random.hpp"
 // MABE
-#include "../../../source/core/MABE.hpp"
-#include "../../../source/core/EmptyOrganism.hpp"
-#include "../../../source/modules.hpp"
+#include "core/MABE.hpp"
+#include "core/EmptyOrganism.hpp"
+#include "modules.hpp"
 
 
 TEST_CASE("MABE", "[core]"){

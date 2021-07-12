@@ -1,4 +1,4 @@
-DIR_NAMES= component 
+DIR_NAMES= component # Add additional directories here 
 
 default: test
 
