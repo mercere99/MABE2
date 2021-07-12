@@ -1,8 +1,8 @@
-EMP_DIR := ../../Empirical/include
+EMP_DIR := ../source/third-party/empirical/include
 MABE_DIR := ../source
 
 # Flags to use regardless of compiler
-CFLAGS_all := -Wall -Wno-unused-function -I$(EMP_DIR)/ -I$(MABE_DIR)/
+CFLAGS_all := -Wall -Wextra -Wno-unused-function -I$(EMP_DIR)/ -I$(MABE_DIR)/
 CFLAGS_version := -std=c++17
 
 # Emscripten compiler information
@@ -17,6 +17,7 @@ OFLAGS_web_opt := -Os -DNDEBUG -s TOTAL_MEMORY=67108864
 OFLAGS_web_debug := -g4 -pedantic -Wno-dollar-in-identifier-extension -s TOTAL_MEMORY=67108864 -s ASSERTIONS=2 -s DEMANGLE_SUPPORT=1 # -s SAFE_HEAP=1
 
 CFLAGS_native_opt := $(CFLAGS_all) $(OFLAGS_native_opt)
+CFLAGS_native_noblock := $(CFLAGS_all) $(OFLAGS_native_opt) -DEMP_NO_BLOCK
 CFLAGS_native_debug := $(CFLAGS_all) $(OFLAGS_native_debug)
 CFLAGS_native_grumpy := $(CFLAGS_all) $(OFLAGS_native_grumpy)
 
@@ -34,6 +35,9 @@ CFLAGS := $(CFLAGS_native_opt)
 
 debug: CFLAGS := $(CFLAGS_native_debug)
 debug: all
+
+noblock: CFLAGS := $(CFLAGS_native_noblock)
+noblock: all
 
 grumpy: CFLAGS := $(CFLAGS_native_grumpy)
 grumpy: all

@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2020.
+ *  @date 2020-2021.
  *
  *  @file  Collection.hpp
  *  @brief A collection of organisms or whole populations; not owner.
@@ -131,14 +131,14 @@ namespace mabe {
       /// should never happen!)
       size_t GetFirstPos() const {
         if (full_pop) return 0;
-        return (size_t) pos_set.FindBit();
+        return (size_t) pos_set.FindOne();
       }
 
       /// Identify the next position after the one provided.  If there is no next position,
       /// return a value >= population size.
       size_t GetNextPos(size_t pos) const {
         if (full_pop) return ++pos;
-        return (size_t) pos_set.FindBit(pos+1);
+        return (size_t) pos_set.FindOne(pos+1);
       }
 
       /// Remap an ID from the collection to a population position.
@@ -147,7 +147,7 @@ namespace mabe {
 
         size_t cur_pos = 0;
         while(org_id--) {
-          cur_pos = pos_set.FindBit(cur_pos+1);
+          cur_pos = pos_set.FindOne(cur_pos+1);
         }
         return cur_pos;
       }
@@ -190,7 +190,13 @@ namespace mabe {
     Collection() = default;
     Collection(const Collection &) = default;
     Collection(Collection &&) = default;
-    Collection(Population & pop) { Insert(pop); }
+
+    template <typename... Ts>
+    Collection(Population & pop, Ts &&... extras) { Insert( pop, std::forward<Ts>(extras)... ); }
+
+    template <typename... Ts>
+    Collection(OrgPosition pos, Ts &&... extras) { Insert( pos, std::forward<Ts>(extras)... ); }
+
     ~Collection() { }
 
     Collection & operator=(const Collection &) = default;
@@ -302,11 +308,11 @@ namespace mabe {
       }
     }
     template <typename T>
-    void DecPosition(T & it) const {
+    void DecPosition(T & /* it */) const {
       emp_error("DecPosition() not yet implemented for CollectionIterator.");
     }
     template <typename T>
-    void ShiftPosition(T & it, int shift) const {
+    void ShiftPosition(T & /* it */, int /* shift */) const {
       emp_error("ShiftPosition() not yet implemented for CollectionIterator.");
     }
 
@@ -316,19 +322,22 @@ namespace mabe {
     ConstCollectionIterator end() const { return ConstCollectionIterator(this, nullptr); }
 
     /// Add a Population to this collection.
-    Collection & Insert(Population & pop) {
+    template <typename... Ts>
+    Collection & Insert(Population & pop, Ts &&... extras) {
       pos_map[&pop].full_pop = true;
-      return *this;
+      return Insert( std::forward<Ts>(extras)... );
     }
 
     /// Add an organism (by position!)
-    Collection & Insert(OrgPosition pos) {
+    template <typename... Ts>
+    Collection & Insert(OrgPosition pos, Ts &&... extras) {
       pos_map[pos.PopPtr()].InsertPos(pos.Pos());
-      return *this;
+      return Insert( std::forward<Ts>(extras)... );
     }
 
     /// Add a whole other collection.
-    Collection & Insert(const Collection & in_collection) {
+    template <typename... Ts>
+    Collection & Insert(const Collection & in_collection, Ts &&... extras) {
       for (auto & [pop_ptr, in_pop_info] : in_collection.pos_map) {
         PopInfo & pop_info = pos_map[pop_ptr];
 
@@ -354,8 +363,11 @@ namespace mabe {
         pos_set |= in_pos_set;
       }
 
-      return *this;
+      return Insert( std::forward<Ts>(extras)... );
     }
+
+    /// Base case...
+    Collection & Insert() { return *this; }
 
     // @CAO: Add:
     // * Remove()  - works with position or population (or another collection?)
@@ -375,7 +387,7 @@ namespace mabe {
         pop_info.RemoveFull(pop_ptr); 
 
         // Scan through organisms, removing inclusion of those that are empty.
-        for (int pos = pos_set.FindBit(); pos != -1; pos = pos_set.FindBit(pos+1)) {
+        for (int pos = pos_set.FindOne(); pos != -1; pos = pos_set.FindOne(pos+1)) {
           if (!pop_ptr->IsOccupied((size_t) pos)) pos_set.Set(pos,false);
         }
       }

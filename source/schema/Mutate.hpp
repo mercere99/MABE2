@@ -36,7 +36,7 @@ namespace mabe {
       LinkVar(skip, "skip", "Number of orgs to exempt from mutating");
     }
 
-    void OnUpdate(size_t update) override {
+    void OnUpdate(size_t /* update */) override {
       // @CAO: When we move this over to using collections, we can handle the skip more efficiently.
 
       Population & pop = control.GetPopulation(pop_id);

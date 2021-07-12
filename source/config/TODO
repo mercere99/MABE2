@@ -6,7 +6,7 @@ with a meaningful error included, but it's then ignored and never printed.
 What should happen is that an error message is raised and the appropriate interface
 module handles it.
 
-* Events need to be made much more flexible.
+* Events need to be made more flexible.
 Right now, all events are "timer" based, which means they are given a threshold for
 when a particular signal variable reaches a certain value they start running and then
 each time it makes it to the next threshold they run again until they pass the end
@@ -16,20 +16,23 @@ parameter types.
 
 * Functions should be able to be defined inside of a config script.
 
-* We need a symbol to turn off a whole statement (so that the parser keeps going until
-the end of the statement, but then ignores everything is said to do).  This will allow
-us to more easily turn on and off whole objects that we want to sometimes build.
-e.g.: !Population pop_special;
+* We need a symbol to turn off a whole statement.
+The parser should keep going until the end of the statement, but then ignore everything
+it said to do.  This will allow us to more easily turn on and off whole objects that we
+want to sometimes build.  e.g.: !Population pop_special;
 
-* Arrays (possibly including generators, which are open-ended arrays).
+* Arrays (possibly including generators that act like open-ended arrays).
 
 * Literal arrays/generators.  5:10 should be 5,15,25,35,... while 6:1:9 should be 6,7,8,9
 
-* Built-in types for scopes, probably beginning with an underscope.  For example,
-my_array._size will be the number of elements in the array.  my_scope._var_names will
-be an array of all variable names in the current scope.  
+* Built-in types for scopes, probably beginning with an underscope.
+We now have _active, which if set to false will deactivate an object.  We have _desc 
+added to handle custom descriptions for object (different from the class description),
+but it's not hooked in.  We would also want things like my_array._size as the number of
+elements in the array.  my_scope._var_names will be an array of all variable names in the
+current scope.  
 
-* Need a stand-along config interpretor along with a full test suite to make sure it's
+* Need a stand-alone config interpretor along with a full test suite to make sure it's
 working properly.
 
 * Should be able to make new types (not just new objects) inside the interpretor.

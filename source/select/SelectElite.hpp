@@ -1,10 +1,10 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019-2020.
+ *  @date 2019-2021.
  *
  *  @file  SelectElite.hpp
- *  @brief MABE module to enable elite selection.
+ *  @brief MABE module to enable elite selection (flexible to handle mu-lambda selection)
  */
 
 #ifndef MABE_SELECT_ELITE_H
@@ -20,9 +20,9 @@ namespace mabe {
   /// Add elite selection with the current population.
   class SelectElite : public Module {
   private:
-    std::string trait;    ///< Which trait should we select on?
-    size_t top_count=1;   ///< Top how-many should we select?
-    size_t copy_count=1;  ///< How many copies of each should we make?
+    std::string trait;       ///< Which trait should we select on?
+    size_t top_count=1;      ///< Top how-many should we select?
+    size_t copy_count=1;     ///< How many copies of each should we make?
     int select_pop_id = 0;   ///< Which population are we selecting from?
     int birth_pop_id = 1;    ///< Which population should births go into?
 
@@ -50,7 +50,7 @@ namespace mabe {
       AddRequiredTrait<double>(trait);  ///< The fitness trait must be set by another module.
     }
 
-    void OnUpdate(size_t update) override {
+    void OnUpdate(size_t /* update */) override {
       // Construct a map of all IDs to their associated fitness values.
       emp::valsort_map<OrgPosition, double> id_fit_map;
       Collection select_col = control.GetAlivePopulation(select_pop_id);

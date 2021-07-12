@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2020.
+ *  @date 2020-2021.
  *
  *  @file  EvalMatchBits.hpp
  *  @brief MABE Evaluation module for counting the number of bits that MATCH with another organism.
@@ -14,8 +14,8 @@
 #ifndef MABE_EVAL_MATCH_BITS_H
 #define MABE_EVAL_MATCH_BITS_H
 
-#include "../core/MABE.hpp"
-#include "../core/Module.hpp"
+#include "../../core/MABE.hpp"
+#include "../../core/Module.hpp"
 
 #include "emp/datastructs/reference_vector.hpp"
 
@@ -54,7 +54,7 @@ namespace mabe {
       AddOwnedTrait<double>(fitness_trait, "All-ones fitness value", 0.0);
     }
 
-    void OnUpdate(size_t update) override {
+    void OnUpdate(size_t /* update */) override {
       emp_assert(control.GetNumPopulations() >= 1);
 
       // Loop through the populations and evaluate each organism pair.

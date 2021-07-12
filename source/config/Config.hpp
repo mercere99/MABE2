@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019-2020.
+ *  @date 2019-2021.
  *
  *  @file  Config.hpp
  *  @brief Manages all configuration of MABE runs (full parser implementation here)
@@ -95,7 +95,7 @@ namespace mabe {
     ConfigLexer lexer;                ///< Lexer to process input code.
     emp::vector<emp::Token> tokens;   ///< Tokenized version of input file.
     ASTNode_Block ast_root;           ///< Abstract syntax tree version of input file.
-    bool debug = false;                ///< Should we print full debug information?
+    bool debug = false;               ///< Should we print full debug information?
 
     ConfigScope root_scope;           ///< All variables from the root level.
 
@@ -321,7 +321,7 @@ namespace mabe {
     const ConfigScope & GetRootScope() const { return root_scope; }
 
     // Load a single, specified configuration file.
-    void Load(std::string filename) {
+    void Load(const std::string & filename) {
       Debug("Running Load(", filename, ")");
       std::ifstream file(filename);           // Load the provided file.
       tokens = lexer.Tokenize(file);          // Convert to more-usable tokens.
@@ -339,6 +339,20 @@ namespace mabe {
     // Sequentially load a series of configuration files.
     void Load(const emp::vector<std::string> & filenames) {
       for ( const std::string & fn : filenames) Load(fn);
+    }
+
+    // Load a single, specified configuration file.
+    void LoadStatements(const emp::vector<std::string> & statements) {
+      Debug("Running LoadStatements()");
+      tokens = lexer.Tokenize(statements);    // Convert to more-usable tokens.
+      size_t pos = 0;                         // Start at the beginning of the file.
+
+      // Parse and run the program, starting from the outer scope.
+      auto cur_block = ParseStatementList(pos, root_scope);
+      cur_block->Process();
+
+      // Store this AST onto the full set we're working with.
+      ast_root.AddChild(cur_block);
     }
 
 
@@ -563,6 +577,8 @@ namespace mabe {
     ConfigScope & new_scope = scope.AddScope(var_name, type_map[type_name].desc, type_name);
     ConfigType & new_obj = type_map[type_name].init_fun(var_name);
     new_obj.SetupScope(new_scope);
+    new_obj.LinkVar(new_obj._active, "_active", "Should we activate this module? (0=off, 1=on)");
+    new_obj.LinkVar(new_obj._desc, "_desc", "Special description for those object.");
     new_obj.SetupConfig();
 
     return new_scope;
