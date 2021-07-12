@@ -37,6 +37,7 @@ namespace mabe {
     OrganismManager(MABE & in_control, const std::string & in_name, const std::string & in_desc="")
       : Module(in_control, in_name, in_desc)
     {
+      SetManageMod();
       org_prototype = emp::NewPtr<org_t>(*this);
     }
     virtual ~OrganismManager() { org_prototype.Delete(); }
