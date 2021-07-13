@@ -5,6 +5,8 @@ Types of Modules
 Organisms
 =========
 
+For more detailed information on organisms, see the `organisms page <../organisms/traitinfo.html>`_ .
+
 An organism is a combination of a genome and a brain. Kind of.
 
 Genomes
@@ -37,7 +39,7 @@ states, and internal data structures.
 Evaluators
 ==========
 
-For detailed information on genomes, see `evaluator page <../evaluate/EvalPacking.html>`_
+For detailed information on genomes, see the `evaluator page <../evaluate/EvalPacking.html>`_ .
 
 Evaluators are the functions on which organisms get tested. Evaluation modules are categorized by the types of IO they work with.
 
@@ -78,7 +80,13 @@ Placement
 
 For detailed information on placement, see **placement page link**.
 
+Placement modules dictate what happens when a new organism is placed into a population. 
+This applies to both injected organisms, as happens at the start of the run, and offspring organisms.  
+
 Schema
 ======
 
 For detailed information on schema, see **schema page link**.
+
+Schema modules are those which don't fit elsewhere. This includes modules such as ``MovePopulation``, which dictates how organisms
+are shifter from one population to another, and ``Mutate``, which allows for extra mutations in a population.
