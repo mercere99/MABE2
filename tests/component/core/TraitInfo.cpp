@@ -63,7 +63,7 @@ TEST_CASE("TraitInfoBasic", "[core]"){
   }
 }
 
-TEST_CASE("TraitInfoGet{ACCESS}Count", "[core]") {
+TEST_CASE("TraitInfoAccessTest", "[core]") {
   {
     // Create the TraitInfos to be tested (TraitInfo is abstract so we must make a TypedTraitInfo)
     mabe::TypedTraitInfo<int> trait_1("trait_1");
@@ -170,8 +170,66 @@ TEST_CASE("TraitInfoGet{ACCESS}Count", "[core]") {
     REQUIRE(trait_2.GetAccess(&nk2_mod) == mabe::TraitInfo::Access::SHARED);
     REQUIRE(trait_2.GetAccess(&nk3_mod) == mabe::TraitInfo::Access::REQUIRED);
     REQUIRE(trait_4.GetAccess(&nk1_mod) == mabe::TraitInfo::Access::OPTIONAL);
-   
+  }
+
+  {
+    // Create a MABE object, a population, and a module (could be any module) for testing
+    mabe::MABE control(0, NULL);
+    control.AddPopulation("test_pop");
+
+    // Create a module for each type of trait access + 1 that has no access
+    mabe::EvalNK nk1_mod(control);
+    mabe::EvalNK nk2_mod(control); 
+    mabe::EvalNK nk3_mod(control); 
+    mabe::EvalNK nk4_mod(control);
+    mabe::EvalNK nk5_mod(control); 
+    mabe::EvalNK nk6_mod(control); 
+    mabe::EvalNK nk7_mod(control);
+    mabe::EvalNK nk8_mod(control); 
+    //mabe::EvalNK nk3_mod(control); 
+
+    // Create a trait to get each type of access
+    mabe::TypedTraitInfo<int> trait_1("trait_1");
+    mabe::TypedTraitInfo<double> trait_2("trait_2");
+    mabe::TypedTraitInfo<std::string> trait_3("trait_3");
+    mabe::TypedTraitInfo<int> trait_4("trait_4");
+    mabe::TypedTraitInfo<int> trait_5("trait_5");
+    mabe::TypedTraitInfo<double> trait_6("trait_6");
+    mabe::TypedTraitInfo<std::string> trait_7("trait_7");
+
+    //Set up access
+    trait_1.AddAccess("mod_name", &nk1_mod, mabe::TraitInfo::Access::UNKNOWN); 
+    trait_2.AddAccess("mod_name", &nk2_mod, mabe::TraitInfo::Access::PRIVATE); 
+    trait_3.AddAccess("mod_name", &nk3_mod, mabe::TraitInfo::Access::OWNED); 
+    trait_4.AddAccess("mod_name", &nk4_mod, mabe::TraitInfo::Access::GENERATED);
+    trait_5.AddAccess("mod_name", &nk5_mod, mabe::TraitInfo::Access::SHARED);
+    trait_6.AddAccess("mod_name", &nk6_mod, mabe::TraitInfo::Access::REQUIRED);   
+    trait_7.AddAccess("mod_name", &nk7_mod, mabe::TraitInfo::Access::OPTIONAL); 
     
+
+    // Test HasAccess returns correctly for both having and not having access to a trait
+    //REQUIRE(trait_1.HasAccess(&nk1_mod) == true); 
+    REQUIRE(trait_1.HasAccess(&nk8_mod) == false); 
+
+    REQUIRE(trait_2.HasAccess(&nk2_mod) == true); 
+    REQUIRE(trait_2.HasAccess(&nk8_mod) == false); 
+
+    REQUIRE(trait_3.HasAccess(&nk3_mod) == true); 
+    REQUIRE(trait_3.HasAccess(&nk8_mod) == false); 
+
+    REQUIRE(trait_4.HasAccess(&nk4_mod) == true); 
+    REQUIRE(trait_4.HasAccess(&nk8_mod) == false); 
+
+    REQUIRE(trait_5.HasAccess(&nk5_mod) == true); 
+    REQUIRE(trait_5.HasAccess(&nk8_mod) == false); 
+  
+    REQUIRE(trait_6.HasAccess(&nk6_mod) == true); 
+    REQUIRE(trait_6.HasAccess(&nk8_mod) == false); 
+
+    REQUIRE(trait_7.HasAccess(&nk7_mod) == true); 
+    REQUIRE(trait_7.HasAccess(&nk8_mod) == false); 
+
+
 
   }
 }
