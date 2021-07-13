@@ -7,8 +7,13 @@ Organisms
 
 An organism is a combination of a genome and a brain. Kind of.
 
+Example
+*******
+
+Link to organism page.
+
 Genomes
--------
+=======
 
 A genome is a source of heritable and mutable data. Genomes usually provide 
 data that is used to construct other elements of a module. For example, a genome 
@@ -21,10 +26,10 @@ structures, access function behaviors, and mutation operators.
 Example
 *******
 
-An example of a genome!!
+Link to genome page.
 
 Brains
-------
+======
 
 Brains are data processors that receive input and deliver
 output. Brains are the most common method bu which agents communicate with worlds
@@ -38,7 +43,7 @@ states, and internal data structures.
 Example
 *******
 
-An example of a brain!!
+Link to brain page.
 
 Evaluators
 ==========
@@ -71,10 +76,10 @@ vector lists all possible moves and the highest value of a legal move is the
 one that is automatically chosen.  Such a system allows the organism to simply
 weight each possible move without needing to actually select one.
 
-At the current moment there are no value I/O evaluators. 
-
 Example
 *******
+
+At the current moment there are no value I/O evaluators. 
 
 Selectors
 =========
@@ -83,8 +88,23 @@ Selectors manage populations, select parents, oversee re- production, and termin
 Roulette selection, tournament selection, lambda+n, lexicase selection, and MAP-Elites are all examples of the types of algorithms optimizers 
 typically implement.
 
+Example
+*******
+
+Link to selector page.
+
 Placement
 =========
 
+Example
+*******
+
+Link to placement page.
+
 Schema
 ======
+
+Example
+*******
+
+Link to schema page.
