@@ -1,4 +1,5 @@
 random_seed = 0;                // Seed for random number generator; use 0 to base on time.
+<<<<<<< HEAD
 Population main_pop;            // Collection of organisms
 Population next_pop;            // Collection of organisms
 
@@ -44,10 +45,78 @@ GrowthPlacement place_next {    // Always appened births to the end of a populat
 }
 
 MovePopulation sync_gen {       // Move organisms from one populaiton to another.
+=======
+
+Value pop_size = 1000;          // Local value variable.
+
+Population main_pop {           // Collection of organisms
+  _active = 1;                  // Should we activate this module? (0=off, 1=on)
+  _desc = "";                   // Special description for those object.
+}
+Population next_pop {           // Collection of organisms
+  _active = 1;                  // Should we activate this module? (0=off, 1=on)
+  _desc = "";                   // Special description for those object.
+}
+CommandLine cl {                // Handle basic I/O on the command line.
+  _active = 1;                  // Should we activate this module? (0=off, 1=on)
+  _desc = "";                   // Special description for those object.
+  target_pop = "main_pop";      // Which population should we print stats about?
+}
+Mutate mut {                    // Trigger mutations in organisms.
+  _active = 1;                  // Should we activate this module? (0=off, 1=on)
+  _desc = "";                   // Special description for those object.
+  target_pop = "main_pop";      // Which population should we mutate?
+  skip = 0;                     // Number of orgs to exempt from mutating
+}
+EvalRoyalRoad eval_royal_road { // Evaluate bitstrings by counting ones (or zeros).
+  _active = 1;                  // Should we activate this module? (0=off, 1=on)
+  _desc = "";                   // Special description for those object.
+  target = "main_pop";          // Which population(s) should we evaluate?
+  bits_trait = "bits";          // Which trait stores the bit sequence to evaluate?
+  fitness_trait = "fitness";    // Which trait should we store the fitness in?
+  brick_size = 8;               // Size of brick that we are using to build the road
+}
+FileOutput output {             // Output collected data into a specified file.
+  _active = 1;                  // Should we activate this module? (0=off, 1=on)
+  _desc = "";                   // Special description for those object.
+  filename = "output.csv";      // Name of file for output data.
+  format = "fitness:max,fitness:mean";// Column format to use in the file.
+  target = "main_pop";          // Which population(s) should we print from?
+  output_updates = "0:1";       // Which updates should we output data?
+}
+SelectElite select_elite {      // Choose the top fitness organisms for replication.
+  _active = 1;                  // Should we activate this module? (0=off, 1=on)
+  _desc = "";                   // Special description for those object.
+  select_pop = "main_pop";      // Which population should we select parents from?
+  birth_pop = "next_pop";       // Which population should births go into?
+  top_count = 1;                // Number of top-fitness orgs to be replicated
+  copy_count = 1;               // Number of copies to make of replicated organisms
+  fitness_trait = "fitness";    // Which trait provides the fitness value to use?
+  Value total_count = top_count * copy_count;
+}
+SelectTournament select_tourny { // Select the top fitness organisms from random subgroups for replication.
+  _active = 1;                  // Should we activate this module? (0=off, 1=on)
+  _desc = "";                   // Special description for those object.
+  select_pop = "main_pop";      // Which population should we select parents from?
+  birth_pop = "next_pop";       // Which population should births go into?
+  tournament_size = 7;          // Number of orgs in each tournament
+  num_tournaments = pop_size - select_elite.total_count;          // Number of tournaments to run
+  fitness_trait = "fitness";    // Which trait provides the fitness value to use?
+}
+GrowthPlacement place_next {    // Always appened births to the end of a population.
+  _active = 1;                  // Should we activate this module? (0=off, 1=on)
+  _desc = "";                   // Special description for those object.
+  target = "main_pop,next_pop"; // Population(s) to manage.
+}
+MovePopulation sync_gen {       // Move organisms from one populaiton to another.
+  _active = 1;                  // Should we activate this module? (0=off, 1=on)
+  _desc = "";                   // Special description for those object.
+>>>>>>> 8abdd5ce85047abf742e14caf5219383fcaa9e1f
   from_pop = "next_pop";        // Population to move organisms from.
   to_pop = "main_pop";          // Population to move organisms into.
   reset_to = 1;                 // Should we erase organisms at the destination?
 }
+<<<<<<< HEAD
 
 BitsOrg bits_org {              // Organism consisting of a series of N bits.
   output_name = "bits";         // Name of variable to contain bit sequence.
@@ -57,4 +126,18 @@ BitsOrg bits_org {              // Organism consisting of a series of N bits.
 @start() print("random_seed = ", random_seed, "\n");
 @start() inject("bits_org", "main_pop", pop_size);
 @update(500) select_t.tournament_size = 4;
+=======
+BitsOrg bits_org {              // Organism consisting of a series of N bits.
+  _active = 1;                  // Should we activate this module? (0=off, 1=on)
+  _desc = "";                   // Special description for those object.
+  N = 100;                      // Number of bits in organism
+  mut_prob = 0.01;              // Probability of each bit mutating on reproduction.
+  output_name = "bits";         // Name of variable to contain bit sequence.
+  init_random = 1;              // Should we randomize ancestor?  (0 = all zeros)
+}
+
+
+@start(0) print("random_seed = ", random_seed, "\n");
+@start(0) inject("bits_org", "main_pop", pop_size);
+>>>>>>> 8abdd5ce85047abf742e14caf5219383fcaa9e1f
 @update(1000) exit();

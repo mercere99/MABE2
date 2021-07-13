@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 TEST_NAMES= EvalPacking EvalNK 
+=======
+TEST_NAMES= EvalPacking #EvalNK
+>>>>>>> 8abdd5ce85047abf742e14caf5219383fcaa9e1f
 
 MABE_DIR= ../../../../source
 EMP_DIR= ../../../../source/third-party/empirical

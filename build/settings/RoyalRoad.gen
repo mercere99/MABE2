@@ -3,7 +3,11 @@ Population next_pop;
 
 CommandLine cl;
 Mutate mut;
+<<<<<<< HEAD
 EvalRoyalRoad eval_rr;
+=======
+EvalRoyalRoad eval_royal_road;
+>>>>>>> 8abdd5ce85047abf742e14caf5219383fcaa9e1f
 FileOutput output;
 SelectElite select_elite;
 SelectTournament select_tourny;
@@ -12,6 +16,14 @@ MovePopulation sync_gen;
 
 BitsOrg bits_org;
 
+<<<<<<< HEAD
 @start() print("random_seed = ", random_seed, "\n");
 @start() inject("bits_org", "main_pop", pop_size);
 @update(1000) exit();
+=======
+Value pop_size = 1000; 
+
+@start() print("random_seed = ", random_seed, "\n");
+@start() inject("bits_org", "main_pop", pop_size);
+@update(1000) exit();
+>>>>>>> 8abdd5ce85047abf742e14caf5219383fcaa9e1f

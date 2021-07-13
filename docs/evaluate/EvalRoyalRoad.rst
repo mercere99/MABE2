@@ -1,14 +1,14 @@
 ==========
-RoyalRoad
+Royal Road
 ==========
 
 Overview
 --------
 
-The EvalRoyalRoad module evaluates organisms based on the RoyalRoad method. 
-The fitness is awarded to the organism based on how many consecutive bricks (a sequence of n ones) are present at the beginning of the organism. 
-A penalty is given for incomplete bricks at the end of the road.
-See Example for more details.
+The EvalRoyalRoad module evaluates organisms based on their ability to sequentially place "bricks" of ones. A "brick" is 
+completed once a set of n ones are grouped together. "Bricks" are placed from the beginning of the organism to the end. 
+A brick can only be placed immediately succeeding another brick. 
+
 Traits
 ------
 
@@ -20,8 +20,7 @@ For a description of each type of trait, see traits documentation that doesn't e
 +================+===================+============================================+
 |  Private       |    N/A            |                                            |
 +----------------+-------------------+--------------------------------------------+
-|  Owned         | ``fitness_trait`` |  Stores the score (length of road minus    |
-|                |                   |  penalty) of each organism.                |
+|  Owned         | ``fitness_trait`` |  Stores the score of each organism.        |
 +----------------+-------------------+--------------------------------------------+
 |  Generated     |    N/A            |                                            |
 +----------------+-------------------+--------------------------------------------+
@@ -34,7 +33,9 @@ For a description of each type of trait, see traits documentation that doesn't e
   
 Parameters
 ----------
-* ``size_t brick_size`` the number of ones necessary to make a full brick. The default is set to 8.
+* ``brick_size`` the number of ones necessary to make a full brick. The default is a "brick" of size 8. 
+
+Parameters may be modified in the file ``RoyalRoad.mabe``. 
 
 I/O
 ---
@@ -47,27 +48,27 @@ None.
 Output
 ******
 
-A single score based on the length of the road minus the penalty.
+None.
 
-Example
+Compiling and Running
 -------
 
-Compling and Running
-********************
+To run MABE with the RoyalRoad evaluator, navigate to the build directory. 
+First run the command ``make``. 
+Next run the command ``./MABE -f settings/EvalRoyalRoad.mabe``.
 
-To run MABE with the RoyalRoad Evaluator, navigate to the build directory and use the command 
-``make`` followed by the command ``./MABE -f settings/RoyalRoad.mabe``.
-Parameters may be set in the ``RoyalRoad.mabe`` file. To see complete output navigate to the ``output.csv`` file.
+Examples
+-------
+Here are a couple of example ``BitOrgs`` and how they would be evaluated by the RoyalRoad evaluator. 
 
-Organisms
-*********
-
-+--------------+----------------+------------------+---------------+
-| Bits         | ``brick_size`` | ``extra_bit_cost | Fitness Score |
-+==============+================+==================+===============+
-| 111111111    | 3              | 0.5              | 9             |
-+--------------+----------------+------------------+---------------+
-| 111111000111 | 3              | 0.5              | 6             |
-+--------------+----------------+------------------+---------------+
-| 111111000111 | 4              | 0.5              | 2             |
-+--------------+----------------+------------------+---------------+
++-------------------------------+-------------------+-----------------------------+
+| Organism                      | ``brick_size``    | Fitness Score               |
++===============================+===================+=============================+
+|    111000111                  |    3              |     1                       |
++-------------------------------+-------------------+-----------------------------+
+|    111111000                  |    3              |     2                       |
++-------------------------------+-------------------+-----------------------------+
+|    00111000                   |    3              |     0                       |
++-------------------------------+-------------------+-----------------------------+
+|    11001110                   |    3              |     0                       |
++-------------------------------+-------------------+-----------------------------+
