@@ -67,8 +67,8 @@ For an example of a static evaluator, visit the :ref:`NK evaluator page<../evalu
 Value I/O
 ---------
 
-These evaluation modules provide a set of doubles (`emp::vector<double>` or
-`std::unordered_set<size_t,double>`) as input, and expect a new vector of
+These evaluation modules provide a set of doubles (``emp::vector<double>`` or
+``std::unordered_set<size_t,double>``) as input, and expect a new vector of
 doubles back as an output.
 
 In some cases, these are used for choosing a move in a game, where the output
