@@ -7,13 +7,10 @@ Organisms
 
 An organism is a combination of a genome and a brain. Kind of.
 
-Example
-*******
-
-Link to organism page.
-
 Genomes
 =======
+
+For detailed information on genomes, see **genome page link**.
 
 A genome is a source of heritable and mutable data. Genomes usually provide 
 data that is used to construct other elements of a module. For example, a genome 
@@ -23,13 +20,10 @@ functions to write values into the genome (including randomizing the genome) and
 read values from the genome. Each type of genome defines its own internal data 
 structures, access function behaviors, and mutation operators. 
 
-Example
-*******
-
-Link to genome page.
-
 Brains
 ======
+
+For detailed information on brains, see **brain page link**.
 
 Brains are data processors that receive input and deliver
 output. Brains are the most common method bu which agents communicate with worlds
@@ -40,13 +34,10 @@ solvers, solutions, I?O machines, or even as chemical processes. The brian inter
 specifies how brains must define its internal workings, including update function, internal 
 states, and internal data structures. 
 
-Example
-*******
-
-Link to brain page.
-
 Evaluators
 ==========
+
+For detailed information on genomes, see `evaluator page <../evaluate/EvalPacking.html>`_
 
 Evaluators are the functions on which organisms get tested. Evaluation modules are categorized by the types of IO they work with.
 
@@ -58,11 +49,6 @@ Static evaluators do not take any input. They produce output as the solution to 
 `here`_ ) and ``emp::vector<double>``.
 
 .. _here: https://empirical.readthedocs.io/en/latest/library/bits/bits.html#bitvector
-
-Example
-*******
-
-For an example of a static evaluator, visit the :ref:`NK evaluator page<../evaluate/EvalNK>`.
 
 Value I/O
 ---------
@@ -76,35 +62,23 @@ vector lists all possible moves and the highest value of a legal move is the
 one that is automatically chosen.  Such a system allows the organism to simply
 weight each possible move without needing to actually select one.
 
-Example
-*******
-
-At the current moment there are no value I/O evaluators. 
+At the current moment there are no static evaluators. 
 
 Selectors
 =========
+
+For detailed information on selectors, see **selectors page link**.
 
 Selectors manage populations, select parents, oversee re- production, and terminate agents who get to be too old or fail to meet certain criteria. 
 Roulette selection, tournament selection, lambda+n, lexicase selection, and MAP-Elites are all examples of the types of algorithms optimizers 
 typically implement.
 
-Example
-*******
-
-Link to selector page.
-
 Placement
 =========
 
-Example
-*******
-
-Link to placement page.
+For detailed information on placement, see **placement page link**.
 
 Schema
 ======
 
-Example
-*******
-
-Link to schema page.
+For detailed information on schema, see **schema page link**.
