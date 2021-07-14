@@ -304,3 +304,9 @@ TEST_CASE ("TraitInfo_IsMethods", "[core]") {
 
   }
 }
+
+TEST_CASE("TratInfo_DefaultMethods", "[core]") {
+  {
+    
+  }
+}
