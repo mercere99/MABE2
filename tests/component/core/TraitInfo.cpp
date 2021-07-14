@@ -63,7 +63,7 @@ TEST_CASE("TraitInfo_Basic", "[core]"){
   }
 }
 
-TEST_CASE("TraitInfo_AccessMethods", "[core]") {
+TEST_CASE("TraitInfo_GetMethods", "[core]") {
   {
     // Create the TraitInfos to be tested (TraitInfo is abstract so we must make a TypedTraitInfo)
     mabe::TypedTraitInfo<int> trait_1("trait_1");
@@ -171,7 +171,9 @@ TEST_CASE("TraitInfo_AccessMethods", "[core]") {
     REQUIRE(trait_2.GetAccess(&nk3_mod) == mabe::TraitInfo::Access::REQUIRED);
     REQUIRE(trait_4.GetAccess(&nk1_mod) == mabe::TraitInfo::Access::OPTIONAL);
   }
+}
 
+TEST_CASE("TraitInfo_HasMethods", "[core]") {
   {
     // Create a MABE object, a population, and a module (could be any module) for testing
     mabe::MABE control(0, NULL);
