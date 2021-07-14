@@ -10,41 +10,86 @@ that you can use to run your experiments! In the ``.mabe`` file, you can change 
 have been set up in the different modules connected to the ``.mabe`` file. 
 
 To generate your ``.mabe`` file, first you will want to make sure that you have run the ``make`` command 
-since your last updates. To do so, navigate to the build directory (``cd MABE2/build``). From there, run the
-command ``make clean ; make``, which will set you up with a clean run. If there are any errors that pop up, 
-now is the time to fix them!
+since your last updates. To do so, navigate to the ``build`` directory and set up a clean run. From the ``MABE2`` directory, run the following commands: 
 
-Next, you will navigate to the ``settings`` directory inside of ``build``. To do so, first make sure you 
-are in the ``build`` directory. From there, run the following command: ``cd settings``. 
+.. code-block:: cpp
 
-From here, you'll want to make sure you can see your .gen file! You can list all of the files inside this 
-directory by running ``ls``. You should see a file labled ``<example_filename>.gen``. If not, you can create it by 
+    cd build
+    make clean ; make
+    
+If there are any errors that pop up, now is the time to fix them!
+
+Next, you will navigate to the ``settings`` directory inside of ``build``, and check to see you have an appropriate ``.gen`` file. To do so, first make sure you 
+are in the ``build`` directory, and then list all of the files in the settings to make sure the ``.gen`` file is there. 
+
+.. code-block:: cpp
+
+    cd settings
+    ls
+
+From here, you'll want to make sure you can see your .gen file! You should see a file labled ``<example_filename>.gen``. If not, you can create it by 
 running the directions in the page "Writing your ``.gen`` file". 
 
 
-Now we're ready to create our ``.mabe`` file! Navigate back up one directory to ``build``, which can be done by 
-running: ``cd ..``. From here you will run the command ``./MABE -f settings/<example_filename>.gen -g settings/<example_filename>.mabe``, 
-which will generate a ``.mabe`` file named ``<example_filename>.mabe`` with the specifications from the ``<example_filename>.gen`` file. 
+Now we're ready to create our ``.mabe`` file! To do so, we'll navigate back up to ``build`` and then create the ``.mabe`` file. You'll run the
+following commands to do so: 
+
+.. code-block:: cpp
+
+    cd ..
+    ./MABE -f settings/<example_filename>.gen -g settings/<example_filename>.mabe
+
+
+This will generate a ``.mabe`` file named ``<example_filename>.mabe`` with the specifications from the ``<example_filename>.gen`` file. 
+You can check to see that it exists by going into the ``settings`` directory and checking that it's there. To do so, run the following: 
+
+.. code-block:: cpp
+
+    cd settings
+    ls
 
 Congratulations! You've created your first ``.mabe`` file!
 
 Summary
 *****
-Step 1: ``make clean ; make`` inside of the ``build`` directory. 
+Step 1: In the ``build`` directory, run the following: 
 
-Step 2: ``cd settings`` and then ``ls`` to make sure your ``.gen`` file is there. If not, create it using the instructions from the 
-"Writing your ``.gen`` file" page. 
+.. code-block:: cpp
 
-Step 3: ``cd ..`` and then run ``./MABE -f settings/<example_filename>.gen -g settings/<example_filename>.mabe`` to create the 
-``.mabe`` file. 
+    make clean ; make
+
+
+Step 2: Then run these commands to make sure your ``.gen`` file exists. 
+
+.. code-block:: cpp
+
+    cd settings
+    ls 
+
+If you don't see it, you can create a ``.gen`` file by following the steps 
+in the "Writing your ``.gen`` file" page. 
+
+
+Step 3: Create your ``.mabe`` file and check to make sure it's created by running the following: 
+
+.. code-block:: cpp
+
+    cd ..
+    ./MABE -f settings/<example_filename>.gen -g settings/<example_filename>.mabe
+    cd settings
+    ls
 
 
 Running the ``.mabe`` File
 --------
 
-To run your ``.mabe`` file, navigate to the ``build`` directory. To do so, from the ``MABE2`` folder, run 
-the following command: ``cd build``. From here, simply run the command ``./MABE -f settings/<example_filename>.mabe``. 
+To run your ``.mabe`` file, navigate to the ``build`` directory and run your ``.mabe`` file. To do so, start in the ``MABE2`` folder and run the following commands: 
 
+.. code-block:: cpp 
+
+    cd build
+    ./MABE -f settings/<example_filename>.mabe
+    
 
 Changing the ``.mabe`` File
 --------
@@ -56,15 +101,27 @@ From there, modifying your ``.mabe`` file is as easy as changing the values asso
 you want to change. You can even add new variables, as long as they only rely on information you are accessing from the ``.mabe`` file
 you're editing! However, if you want a new variable that takes new data inputs, then you will need to modify the specific module 
 that is associated with gathering that data. You can learn more about the different modules and what they do by reading the documentation for each
-module, located in the "Modules" page. 
+module, located in the `Modules Page <../modules/00_module_overview.html>`_ . 
 
-To run your modified ``.mabe`` file, first make sure you have saved your file, then simply run ``./MABE -f settings/<example_filename>.mabe``.
+To run your modified ``.mabe`` file, first make sure you have saved your file, then simply run the following command from the ``build`` directory: 
+
+.. code-block:: cpp
+    ./MABE -f settings/<example_filename>.mabe
+
+
 
 Viewing and Saving Your Data
 --------
 
 The data you have collected has been saved in a CSV file called ``output.csv``, which is located in the ``build`` directory. 
-From the main ``MABE2`` folder, you can find this file by running ``cd build`` and then ``ls``. To open the file, you can do so from the terminal, 
+From the main ``MABE2`` folder, you can find this file by running the following commands: 
+
+.. code-block:: cpp
+
+    cd build
+    ls
+    
+To open the file, you can do so from the terminal, 
 or navigate to the same ``build`` folder from your file manager and open the file from there. 
 
 Every time that you run your ``.mabe`` file, ``output.csv`` is overwritten, which means that it is important that if you wnat to save your data, you do so between 
@@ -83,7 +140,7 @@ The second way to save your data is to modify the ``.mabe`` file itself so that 
 
 To do so, first open the ``.mabe`` file in question in your preferred text editor. It will be in the ``settings`` folder inside of ``build``. 
 
-Within the ``.mabe`` file, there is a section called ``FileOutput``, which looks like this: 
+Within the ``.mabe`` file, there is a section called ``FileOutput``, which looks something like this: 
 
 .. code-block:: cpp
 
