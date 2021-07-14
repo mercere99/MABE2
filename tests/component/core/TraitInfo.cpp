@@ -63,7 +63,7 @@ TEST_CASE("TraitInfoBasic", "[core]"){
   }
 }
 
-TEST_CASE("TraitInfoAccess", "[core]") {
+TEST_CASE("TraitInfoAccessMethods", "[core]") {
   {
     // Create the TraitInfos to be tested (TraitInfo is abstract so we must make a TypedTraitInfo)
     mabe::TypedTraitInfo<int> trait_1("trait_1");
@@ -229,4 +229,59 @@ TEST_CASE("TraitInfoAccess", "[core]") {
     REQUIRE(trait_7.HasAccess(&nk7_mod) == true); 
     REQUIRE(trait_7.HasAccess(&nk8_mod) == false); 
   }
+}
+
+TEST_CASE ("TraitInfoIsMethods", "[core]") {
+  {
+    // Create a MABE object, a population, and a module (could be any module) for testing
+    mabe::MABE control(0, NULL);
+    control.AddPopulation("test_pop");
+    mabe::EvalNK nk_mod(control); 
+    mabe::EvalNK nk2_mod(control); 
+
+    // Create a trait to get each type of access
+    mabe::TypedTraitInfo<int> trait_1("trait_1");
+    mabe::TypedTraitInfo<double> trait_2("trait_2");
+    mabe::TypedTraitInfo<std::string> trait_3("trait_3");
+    mabe::TypedTraitInfo<int> trait_4("trait_4");
+    mabe::TypedTraitInfo<int> trait_5("trait_5");
+    mabe::TypedTraitInfo<double> trait_6("trait_6");
+    mabe::TypedTraitInfo<double> trait_7("trait_7");
+    
+    // Set up access
+    trait_1.AddAccess("mod_name", &nk_mod, mabe::TraitInfo::Access::PRIVATE); 
+    trait_2.AddAccess("mod_name", &nk_mod, mabe::TraitInfo::Access::OWNED); 
+    trait_3.AddAccess("mod_name", &nk_mod, mabe::TraitInfo::Access::GENERATED);
+    trait_4.AddAccess("mod_name", &nk_mod, mabe::TraitInfo::Access::SHARED);
+    trait_5.AddAccess("mod_name", &nk_mod, mabe::TraitInfo::Access::REQUIRED);   
+    trait_6.AddAccess("mod_name", &nk_mod, mabe::TraitInfo::Access::OPTIONAL); 
+    trait_7.AddAccess("mod_name", &nk_mod, mabe::TraitInfo::Access::GENERATED); 
+    trait_7.AddAccess("mod_name", &nk2_mod, mabe::TraitInfo::Access::GENERATED); 
+
+
+    // Check Is{ACESS} methods work
+    //REQUIRE(trait_i.IsRequired() == true);
+    REQUIRE(trait_1.IsPrivate() == true); 
+    REQUIRE(trait_2.IsOwned() == true); 
+    REQUIRE(trait_3.IsGenerated() == true); 
+    REQUIRE(trait_4.IsShared() == true); 
+    REQUIRE(trait_5.IsRequired() == true); 
+    REQUIRE(trait_6.IsOptional() == true); 
+    REQUIRE(trait_7.IsGenerated() == true); //check that when multiple modules have same access, returns correctly
+
+    // Check Is{ACCESS} methods return false when access isn't there
+    REQUIRE(trait_2.IsPrivate() == false); 
+    REQUIRE(trait_3.IsOwned() == false); 
+    REQUIRE(trait_4.IsGenerated() == false); 
+    REQUIRE(trait_5.IsShared() == false); 
+    REQUIRE(trait_6.IsRequired() == false); 
+    REQUIRE(trait_1.IsOptional() == false);
+    REQUIRE(trait_7.IsShared() == false); 
+
+
+
+
+
+  }
+
 }
