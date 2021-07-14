@@ -113,21 +113,21 @@ TEST_CASE("TraitInfo_GetMethods", "[core]") {
     REQUIRE(trait_4.GetOptionalCount() == 0);
     
     // Add the Traits to the modules
-    trait_1.AddAccess("mod_name", &nk1_mod, mabe::TraitInfo::Access::UNKNOWN); 
-    trait_1.AddAccess("mod_name", &nk2_mod, mabe::TraitInfo::Access::PRIVATE); 
-    trait_1.AddAccess("mod_name", &nk3_mod, mabe::TraitInfo::Access::OWNED); 
+    trait_1.AddAccess("mod1_name", &nk1_mod, mabe::TraitInfo::Access::UNKNOWN); 
+    trait_1.AddAccess("mod2_name", &nk2_mod, mabe::TraitInfo::Access::PRIVATE); 
+    trait_1.AddAccess("mod3_name", &nk3_mod, mabe::TraitInfo::Access::OWNED); 
 
-    trait_2.AddAccess("mod_name", &nk1_mod, mabe::TraitInfo::Access::GENERATED);
-    trait_2.AddAccess("mod_name", &nk2_mod, mabe::TraitInfo::Access::SHARED);
-    trait_2.AddAccess("mod_name", &nk3_mod, mabe::TraitInfo::Access::REQUIRED); 
+    trait_2.AddAccess("mod1_name", &nk1_mod, mabe::TraitInfo::Access::GENERATED);
+    trait_2.AddAccess("mod2_name", &nk2_mod, mabe::TraitInfo::Access::SHARED);
+    trait_2.AddAccess("mod3_name", &nk3_mod, mabe::TraitInfo::Access::REQUIRED); 
 
-    trait_3.AddAccess("mod_name", &nk1_mod, mabe::TraitInfo::Access::SHARED);
-    trait_3.AddAccess("mod_name", &nk2_mod, mabe::TraitInfo::Access::PRIVATE);
-    trait_3.AddAccess("mod_name", &nk3_mod, mabe::TraitInfo::Access::SHARED);
+    trait_3.AddAccess("mod1_name", &nk1_mod, mabe::TraitInfo::Access::SHARED);
+    trait_3.AddAccess("mod2_name", &nk2_mod, mabe::TraitInfo::Access::PRIVATE);
+    trait_3.AddAccess("mod3_name", &nk3_mod, mabe::TraitInfo::Access::SHARED);
 
-    trait_4.AddAccess("mod_name", &nk1_mod, mabe::TraitInfo::Access::OPTIONAL);
-    trait_4.AddAccess("mod_name", &nk2_mod, mabe::TraitInfo::Access::OPTIONAL);
-    trait_4.AddAccess("mod_name", &nk3_mod, mabe::TraitInfo::Access::OWNED);
+    trait_4.AddAccess("mod1_name", &nk1_mod, mabe::TraitInfo::Access::OPTIONAL);
+    trait_4.AddAccess("mod2_name", &nk2_mod, mabe::TraitInfo::Access::OPTIONAL);
+    trait_4.AddAccess("mod3_name", &nk3_mod, mabe::TraitInfo::Access::OWNED);
 
     // Test to see if Get{ACCESS}Count has updated for each trait
     REQUIRE(trait_1.GetUnknownCount() == 1); 
@@ -170,6 +170,23 @@ TEST_CASE("TraitInfo_GetMethods", "[core]") {
     REQUIRE(trait_2.GetAccess(&nk2_mod) == mabe::TraitInfo::Access::SHARED);
     REQUIRE(trait_2.GetAccess(&nk3_mod) == mabe::TraitInfo::Access::REQUIRED);
     REQUIRE(trait_4.GetAccess(&nk1_mod) == mabe::TraitInfo::Access::OPTIONAL);
+
+    // Test GetModuleNames (trait version) gets all module names
+    REQUIRE(trait_1.GetModuleNames().size() == 3); 
+    REQUIRE(trait_1.GetModuleNames().at(0) == "mod1_name"); 
+    REQUIRE(trait_1.GetModuleNames().at(1) == "mod2_name"); 
+    REQUIRE(trait_1.GetModuleNames().at(2) == "mod3_name"); 
+
+    // Test GetModuleNames (access version) gets all module names
+    REQUIRE(trait_3.GetModuleNames(mabe::TraitInfo::Access::OWNED).size() == 0); 
+
+    REQUIRE(trait_3.GetModuleNames(mabe::TraitInfo::Access::PRIVATE).size() == 1); 
+    REQUIRE(trait_3.GetModuleNames(mabe::TraitInfo::Access::PRIVATE).at(0) == "mod2_name"); 
+
+    REQUIRE(trait_3.GetModuleNames(mabe::TraitInfo::Access::SHARED).size() == 2); 
+    REQUIRE(trait_3.GetModuleNames(mabe::TraitInfo::Access::SHARED).at(0) == "mod1_name"); 
+    REQUIRE(trait_3.GetModuleNames(mabe::TraitInfo::Access::SHARED).at(1) == "mod3_name"); 
+    
   }
 }
 
