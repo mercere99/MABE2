@@ -16,7 +16,7 @@
 #include "evaluate/static/EvalNK.hpp"
 
 
-TEST_CASE("TraitInfoBasic", "[core]"){
+TEST_CASE("TraitInfo_Basic", "[core]"){
   {
     // Create the TraitInfo to be tested (TraitInfo is abstract so we must make a TypedTraitInfo)
     mabe::TypedTraitInfo<int> trait_i("trait_i");
@@ -63,7 +63,7 @@ TEST_CASE("TraitInfoBasic", "[core]"){
   }
 }
 
-TEST_CASE("TraitInfoAccessMethods", "[core]") {
+TEST_CASE("TraitInfo_AccessMethods", "[core]") {
   {
     // Create the TraitInfos to be tested (TraitInfo is abstract so we must make a TypedTraitInfo)
     mabe::TypedTraitInfo<int> trait_1("trait_1");
@@ -231,7 +231,7 @@ TEST_CASE("TraitInfoAccessMethods", "[core]") {
   }
 }
 
-TEST_CASE ("TraitInfoIsMethods", "[core]") {
+TEST_CASE ("TraitInfo_IsMethods", "[core]") {
   {
     // Create a MABE object, a population, and a module (could be any module) for testing
     mabe::MABE control(0, NULL);
@@ -278,10 +278,5 @@ TEST_CASE ("TraitInfoIsMethods", "[core]") {
     REQUIRE(trait_1.IsOptional() == false);
     REQUIRE(trait_7.IsShared() == false); 
 
-
-
-
-
   }
-
 }
