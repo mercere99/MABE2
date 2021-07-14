@@ -176,9 +176,6 @@ TEST_CASE("ErrorManagerGetters", "[core]"){
     manager01.Clear();
 
     REQUIRE(manager01.GetErrors().empty() == true);
-    REQUIRE(manager01.GetWarnings().empty() == true);
     REQUIRE(manager01.GetNumErrors() == 0);
-    REQUIRE(manager01.GetNumWarnings() == 0);
-
   }
 }
