@@ -94,5 +94,14 @@ are shifter from one population to another, and ``Mutate``, which allows for ext
 Analyze
 =======
 
+For detailed information on analysis modules, see **analyze page link**.
+
+Analyze modules track and store data about organisms in a world. 
+
 Interface
 =========
+
+For detailed information on interface, see **interface page link**.
+
+Interface modules allow the user to interact with and understand MABE objects and experiments. These modules handle
+ the I/O stream and generate output files. 
