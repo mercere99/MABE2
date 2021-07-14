@@ -27,8 +27,8 @@ are in the ``build`` directory, and then list all of the files in the settings t
     cd settings
     ls
 
-From here, you'll want to make sure you can see your .gen file! You should see a file labled ``<example_filename>.gen``. If not, you can create it by 
-running the directions in the page "Writing your ``.gen`` file". 
+From here, you'll want to make sure you can see your .gen file. You should see a file labled ``<example_filename>.gen``. If not, you can create it by 
+following the directions in the page "Writing your ``.gen`` file". 
 
 
 Now we're ready to create our ``.mabe`` file! To do so, we'll navigate back up to ``build`` and then create the ``.mabe`` file. You'll run the
