@@ -63,7 +63,7 @@ TEST_CASE("TraitInfoBasic", "[core]"){
   }
 }
 
-TEST_CASE("TraitInfoAccessTest", "[core]") {
+TEST_CASE("TraitInfoAccess", "[core]") {
   {
     // Create the TraitInfos to be tested (TraitInfo is abstract so we must make a TypedTraitInfo)
     mabe::TypedTraitInfo<int> trait_1("trait_1");
@@ -208,7 +208,7 @@ TEST_CASE("TraitInfoAccessTest", "[core]") {
     
 
     // Test HasAccess returns correctly for both having and not having access to a trait
-    //REQUIRE(trait_1.HasAccess(&nk1_mod) == true); 
+    REQUIRE(trait_1.HasAccess(&nk1_mod) == false); //if access is unknown, access it not automatically given
     REQUIRE(trait_1.HasAccess(&nk8_mod) == false); 
 
     REQUIRE(trait_2.HasAccess(&nk2_mod) == true); 
@@ -228,8 +228,5 @@ TEST_CASE("TraitInfoAccessTest", "[core]") {
 
     REQUIRE(trait_7.HasAccess(&nk7_mod) == true); 
     REQUIRE(trait_7.HasAccess(&nk8_mod) == false); 
-
-
-
   }
 }
