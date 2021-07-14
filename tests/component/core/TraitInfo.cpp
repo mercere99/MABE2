@@ -171,11 +171,16 @@ TEST_CASE("TraitInfo_GetMethods", "[core]") {
     REQUIRE(trait_2.GetAccess(&nk3_mod) == mabe::TraitInfo::Access::REQUIRED);
     REQUIRE(trait_4.GetAccess(&nk1_mod) == mabe::TraitInfo::Access::OPTIONAL);
 
+    // Add a trait with no accessing modules
+    mabe::TypedTraitInfo<int> trait_i("trait_i");
+
     // Test GetModuleNames (trait version) gets all module names
     REQUIRE(trait_1.GetModuleNames().size() == 3); 
     REQUIRE(trait_1.GetModuleNames().at(0) == "mod1_name"); 
     REQUIRE(trait_1.GetModuleNames().at(1) == "mod2_name"); 
     REQUIRE(trait_1.GetModuleNames().at(2) == "mod3_name"); 
+
+    REQUIRE(trait_i.GetModuleNames().size() == 0); 
 
     // Test GetModuleNames (access version) gets all module names
     REQUIRE(trait_3.GetModuleNames(mabe::TraitInfo::Access::OWNED).size() == 0); 
