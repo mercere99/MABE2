@@ -31,7 +31,7 @@ Brains
 For detailed information on brains, see **brain page link**.
 
 Brains are data processors that receive input and deliver
-output. Brains are the most common method bu which agents communicate with worlds
+output. Brains are the most common method by which agents communicate with worlds
 (although worlds interfacing directly with genomes is an option). Under this abstraction, 
 genetic programs, artificial neural networks, Markov Brains, ~et cetera~ are classified 
 as brains. Depending on the user's context, they may find it easier to think of brains as controllers, 
