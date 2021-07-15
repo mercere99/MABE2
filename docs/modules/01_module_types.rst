@@ -7,7 +7,10 @@ Organisms
 
 For more detailed information on organisms, see the `organisms page <../organisms/traitinfo.html>`_ .
 
-An organism is a combination of a genome and a brain.
+An organism is an individual agent and the target of evolution in MABE2. The genetic material of an 
+organisms is stored in the genome. Organisms use brains to process input and determine outputs. 
+Genomes and brains can be uniquely combined at runtime to easily create custom organisms, instead of 
+creating them from scratch.
 
 Genomes
 -------
