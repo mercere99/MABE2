@@ -3,9 +3,14 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+.. 
+   Less of a technical page, more of a scicomm page. Should be written for a broad general audience. Why do you want to use MABE over other softwares? What advantages does it confer? What are its possible downsides? Why should you join us?
+
 Welcome to MABE2's documentation!
 =================================
-
+.. image:: images/MABE.png
+  :width: 600
+  
 `Visit MABE2 on github here <https://github.com/mercere99/MABE2>`_.
 
 MABE is a software framework deigned to easily build and customize software for evolutionary computation or artificial life. 
