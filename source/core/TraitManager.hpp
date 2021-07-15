@@ -87,7 +87,8 @@ namespace mabe {
     {
       const std::string & mod_name = mod_ptr->GetName();
 
-      // All configurations must be setup in SetupConfig(); afterward linking new traits is allowed.
+      // Traits must be added in the SetupModule() function for the given modules;
+      // afterward the trait manager is locked and additional new traits are not allowed.
       if (locked) {
         AddError("Module '", mod_name, "' adding trait '", trait_name,
                  "' before config files have loaded; should be done in SetupModule().");
@@ -136,6 +137,8 @@ namespace mabe {
             trait_map[trait_name] = cur_trait;
           }
 
+          // @CAO Technically, we can shift to any of the intersect types.
+
           // Otherwise we have incompatable types...
           else {
             AddError("Module ", mod_name, " is trying to use trait '",
@@ -151,7 +154,8 @@ namespace mabe {
       }
 
       // Add this module's access to the trait.
-      cur_trait->AddAccess(mod_name, mod_ptr, access);
+      bool is_manager = mod_ptr->IsManageMod();
+      cur_trait->AddAccess(mod_name, mod_ptr, access, is_manager);
 
       return *cur_trait;
     }
@@ -178,8 +182,7 @@ namespace mabe {
       if (trait_ptr->GetPrivateCount() > 1) {
         std::stringstream error_msg;
         error_msg << "Multiple modules declaring trait '" << trait_name
-                  << "' as private: " << emp::to_english_list(trait_ptr->GetPrivateNames())
-                  << ".\n"
+                  << "' as private: " << emp::to_english_list(trait_ptr->GetPrivateNames()) << ".\n"
                   << "[Suggestion: if traits are supposed to be distinct, prepend names with a\n"
                   << " module-specific prefix.  Otherwise modules need to be edited to not have\n"
                   << " trait private.]";
