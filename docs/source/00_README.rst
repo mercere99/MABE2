@@ -5,18 +5,20 @@ README for /source
 The source directory is broken doen into seven folders, five for modules,
 plus core functionality and tools to build new modules:
 
- * core/      - All of the core code required for any MABE run
- * tools/     - Extra tools to simplify building MABE modules
- * config/    - Configuration scripting language.
+* Core Functionality: 
+    * core/      - All of the core code required for any MABE run
+    * tools/     - Extra tools to simplify building MABE modules
+    * config/    - Configuration scripting language.
 
- * orgs/      - Default organisms available for MABE runs
+* Tools for New Modules: 
+    * orgs/      - Default organisms available for MABE runs
 
- * evaluate/  - Modules that evaluate organisms in a run, using any metrics.
- * select/    - Modules that manage selection/reproduction mechanisms.
- * placement/ - Modules that organize where newborn offspring should be placed.
- * analyze/   - Modules that collect, process, and store population data.
- * interface/ - Modules thar provide a user interface for MABE.
- * schema/    - Extra Modules that control other aspects of MABE runs.
+    * evaluate/  - Modules that evaluate organisms in a run, using any metrics.
+    * select/    - Modules that manage selection/reproduction mechanisms.
+    * placement/ - Modules that organize where newborn offspring should be placed.
+    * analyze/   - Modules that collect, process, and store population data.
+    * interface/ - Modules thar provide a user interface for MABE.
+    * schema/    - Extra Modules that control other aspects of MABE runs.
 
 An ORGANSIM is a single agent in a MABE run.  A POPULATION is a collection of
 organisms, which may all be defined individually.  A WORLD maintains one or
