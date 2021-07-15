@@ -27,8 +27,8 @@ are in the ``build`` directory, and then list all of the files in the settings t
     cd settings
     ls
 
-From here, you'll want to make sure you can see your .gen file. You should see a file labled ``<example_filename>.gen``. If not, you can create it by 
-following the directions in the page "Writing your ``.gen`` file". 
+From here, you'll want to make sure you can see your .gen file. You should see a file labled ``<example_filename>.gen``. If not, you can  
+follow the directions to `write your .gen file <000_write_gen_file.html>`_. 
 
 
 Now we're ready to create our ``.mabe`` file! To do so, we'll navigate back up to ``build`` and then create the ``.mabe`` file. You'll run the
@@ -67,8 +67,7 @@ Step 2: Then run these commands to make sure your ``.gen`` file exists.
     ls 
 
 If you don't see it, you can create a ``.gen`` file by following the steps 
-in the "Writing your ``.gen`` file" page. 
-
+to `write your .gen file <000_write_gen_file.html>`_. 
 
 Step 3: Create your ``.mabe`` file and check to make sure it's created by running the following: 
 
@@ -124,7 +123,7 @@ From the main ``MABE2`` folder, you can find this file by running the following 
 To open the file, you can do so from the terminal, 
 or navigate to the same ``build`` folder from your file manager and open the file from there. 
 
-Every time that you run your ``.mabe`` file, ``output.csv`` is overwritten, which means that it is important that if you wnat to save your data, you do so between 
+Every time that you run your ``.mabe`` file, ``output.csv`` is overwritten, which means that it is important that if you want to save your data, you do so between 
 runs. There are a couple of ways to save your data. 
 
 Copy the CSV File
