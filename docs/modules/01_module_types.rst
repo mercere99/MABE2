@@ -7,7 +7,7 @@ Organisms
 
 For more detailed information on organisms, see the `organisms page <../organisms/traitinfo.html>`_ .
 
-An organism is a combination of a genome and a brain. Kind of.
+An organism is a combination of a genome and a brain.
 
 Genomes
 -------
