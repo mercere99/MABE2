@@ -5,15 +5,17 @@ Types of Modules
 Organisms
 =========
 
-An organism is a combination of a genome and a brain. Kind of.
+For more detailed information on organisms, see the `organisms page <../organisms/traitinfo.html>`_ .
 
-Example
-*******
-
-Link to organism page.
+An organism is an individual agent and the target of evolution in MABE2. The genetic material of an 
+organisms is stored in the genome. Organisms use brains to process input and determine outputs. 
+Genomes and brains can be uniquely combined at runtime to easily create custom organisms, instead of 
+creating them from scratch.
 
 Genomes
-=======
+-------
+
+For detailed information on genomes, see **genome page link**.
 
 A genome is a source of heritable and mutable data. Genomes usually provide 
 data that is used to construct other elements of a module. For example, a genome 
@@ -23,16 +25,13 @@ functions to write values into the genome (including randomizing the genome) and
 read values from the genome. Each type of genome defines its own internal data 
 structures, access function behaviors, and mutation operators. 
 
-Example
-*******
-
-Link to genome page.
-
 Brains
-======
+------
+
+For detailed information on brains, see **brain page link**.
 
 Brains are data processors that receive input and deliver
-output. Brains are the most common method bu which agents communicate with worlds
+output. Brains are the most common method by which agents communicate with worlds
 (although worlds interfacing directly with genomes is an option). Under this abstraction, 
 genetic programs, artificial neural networks, Markov Brains, ~et cetera~ are classified 
 as brains. Depending on the user's context, they may find it easier to think of brains as controllers, 
@@ -40,13 +39,10 @@ solvers, solutions, I?O machines, or even as chemical processes. The brian inter
 specifies how brains must define its internal workings, including update function, internal 
 states, and internal data structures. 
 
-Example
-*******
-
-Link to brain page.
-
 Evaluators
 ==========
+
+For detailed information on genomes, see the `evaluator page <../evaluate/EvalPacking.html>`_ .
 
 Evaluators are the functions on which organisms get tested. Evaluation modules are categorized by the types of IO they work with.
 
@@ -58,11 +54,6 @@ Static evaluators do not take any input. They produce output as the solution to 
 `here`_ ) and ``emp::vector<double>``.
 
 .. _here: https://empirical.readthedocs.io/en/latest/library/bits/bits.html#bitvector
-
-Example
-*******
-
-For an example of a static evaluator, visit the :ref:`NK evaluator page<../evaluate/EvalNK>`.
 
 Value I/O
 ---------
@@ -76,35 +67,44 @@ vector lists all possible moves and the highest value of a legal move is the
 one that is automatically chosen.  Such a system allows the organism to simply
 weight each possible move without needing to actually select one.
 
-Example
-*******
-
-At the current moment there are no value I/O evaluators. 
+At the current moment there are no static evaluators. 
 
 Selectors
 =========
+
+For detailed information on selectors, see **selectors page link**.
 
 Selectors manage populations, select parents, oversee re- production, and terminate agents who get to be too old or fail to meet certain criteria. 
 Roulette selection, tournament selection, lambda+n, lexicase selection, and MAP-Elites are all examples of the types of algorithms optimizers 
 typically implement.
 
-Example
-*******
-
-Link to selector page.
-
 Placement
 =========
 
-Example
-*******
+For detailed information on placement, see **placement page link**.
 
-Link to placement page.
+Placement modules dictate what happens when a new organism is placed into a population. 
+This applies to both injected organisms, as happens at the start of the run, and offspring organisms.  
 
 Schema
 ======
 
-Example
-*******
+For detailed information on schema, see **schema page link**.
 
-Link to schema page.
+Schema modules are those which don't fit elsewhere. This includes modules such as ``MovePopulation``, which dictates how organisms
+are shifter from one population to another, and ``Mutate``, which allows for extra mutations in a population.
+
+Analyze
+=======
+
+For detailed information on analysis modules, see **analyze page link**.
+
+Analyze modules track and store data about organisms in a world. 
+
+Interface
+=========
+
+For detailed information on interface, see **interface page link**.
+
+Interface modules allow the user to interact with and understand MABE objects and experiments. These modules handle
+ the I/O stream and generate output files. 

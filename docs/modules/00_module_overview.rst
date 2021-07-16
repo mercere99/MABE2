@@ -11,7 +11,7 @@ to them, by reusing existing modules when possible, and by not requiring detaile
 of MABE2. The implementation of modules is left entirely to users. As long as a user defined module conforms to the module 
 interface, then there are no restrictions on how a module behaves. 
 
-The typical experiment uses one module of each types, but this is not a requirement. 
+The typical experiment uses one module of each type, but this is not a requirement. 
 Consider a foraging world where organisms divide whenever they collect enough resources. This world might 
 manage reproduction locally and not rely on an optimizer. Or, consider a world where agents have a brain 
 and world-defined sensors that are are placed using a genome. A user could configure MABE so that the 
