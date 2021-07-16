@@ -14,8 +14,6 @@
 #include "catch.hpp"
 // MABE
 #include "core/ErrorManager.hpp"
-#include "core/MABE.hpp"
-#include "evaluate/static/EvalNK.hpp"
 
 // to test:
 
