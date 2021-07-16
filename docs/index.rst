@@ -48,9 +48,10 @@ so these elements can be used interchangeably.
 
 .. toctree::
    :hidden:
-   :caption: Modules Overview
+   :caption: Overview
    :glob:
 
+   source/*
    modules/*
 
 
