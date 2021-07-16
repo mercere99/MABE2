@@ -307,6 +307,35 @@ TEST_CASE ("TraitInfo_IsMethods", "[core]") {
 
 TEST_CASE("TratInfo_DefaultMethods", "[core]") {
   {
+    // Create a MABE object, a population, and a module (could be any module) for testing
+    mabe::MABE control(0, NULL);
+    control.AddPopulation("test_pop");
+    mabe::EvalNK nk_mod(control); 
+
+    // [INT] 
+    //   Create trait without default value 
+    //   Test HasDefault, SetDefault and GetDefault
+    mabe::TypedTraitInfo<int> trait_i("trait_i");
+
+    REQUIRE(trait_i.HasDefault() == false); 
+    trait_i.SetDefault(7); 
+    REQUIRE(trait_i.HasDefault() == true); 
+    REQUIRE(trait_i.GetDefault() == 7); 
+
+    //   Create trait with default value 
+    //   Test HasDefault, SetDefault and GetDefault
+    mabe::TypedTraitInfo<int> trait_j("trait_j", 7);
+
+    REQUIRE(trait_j.HasDefault() == true); 
+    REQUIRE(trait_j.GetDefault() == 7);
+
+    trait_j.SetDefault(10); 
+    REQUIRE(trait_j.HasDefault() == true); 
+    REQUIRE(trait_j.GetDefault() == 10);  
+
+    
+
+
     
   }
 }
