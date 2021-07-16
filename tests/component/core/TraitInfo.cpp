@@ -305,7 +305,14 @@ TEST_CASE ("TraitInfo_IsMethods", "[core]") {
   }
 }
 
-TEST_CASE("TratInfo_DefaultMethods", "[core]") {
+TEST_CASE("TraitInfo_IDMethods", "[core]") {
+  {
+
+    fs
+  }
+}
+
+TEST_CASE("TraitInfo_DefaultMethods", "[core]") {
   {
     // Create a MABE object, a population, and a module (could be any module) for testing
     mabe::MABE control(0, NULL);
