@@ -7,18 +7,38 @@
  *  @brief Tests for ConfigLexer with various types and edge cases 
  */
 
-#include <functional>
-#include <string>
-
 // CATCH
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
 // MABE
 #include "config/ConfigLexer.hpp"
-#include "core/MABE.hpp"
 
-TEST_CASE("ConfigLexerBasic", "[config]"){
+TEST_CASE("ConfigLexerGetter", "[config]"){
   {
-    mabe::ConfigLexer config_lexer();
+    mabe::ConfigLexer config_lexer;
+
+    emp::Token token00 = 0;
+    bool result = config_lexer.IsID(token00);
+    REQUIRE(result == true);
+
+    emp::Token token01 = 0;
+    bool result = config_lexer.IsNumber(token01);
+    REQUIRE(result == true);
+
+    emp::Token token02 = 0;
+    bool result = config_lexer.IsString(token02);
+    REQUIRE(result == true);
+
+    emp::Token token03 = 0;
+    bool result = config_lexer.IsChar(token03);
+    REQUIRE(result == true);
+
+    emp::Token token04 = 0;
+    bool result = config_lexer.IsDots(token04);
+    REQUIRE(result == true);
+
+    emp::Token token05 = 0;
+    bool result = config_lexer.IsSymbol(token05);
+    REQUIRE(result == true);
   }
 }
