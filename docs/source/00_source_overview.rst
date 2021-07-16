@@ -63,12 +63,12 @@ Key Terms
 
 An ORGANSIM is a single agent in a MABE run.  A POPULATION is a collection of
 organisms, which may all be defined individually.  A WORLD maintains one or
-more populations of organisms an evalutation technique (its environment")
+more populations of organisms an evaluation technique (its environment")
 
 The dynamics of EVOLUTION are defined by a combination of an evaluation module
 (i.e., a world/environment) for how their phenotype will be assessed, and a
 selection module (i.e., a selection scheme) to determine how that phenotype will
-influce and organism's ability to move on to the next generation.
+influence and organism's ability to move on to the next generation.
 
 Finally, DATA COLLECTION is defined by a set of analysis modules that monitor
 a population throughout the evolution process.
@@ -79,6 +79,6 @@ Future Plans
 
 Organisms should be defined by a controller module (i.e., a brain) to
 handle how they process data, and a representation module (i.e., a genome) for
-how that organism is stored and mutatated.
+how that organism is stored and mutated.
 
 
