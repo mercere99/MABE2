@@ -2,11 +2,13 @@
 What is a Module?
 =================
 
-MABE2 experiments are created by combining various types of modules. Modules contain the aspects of an experiment that 
-cannot be held constant (i.e., requiring unique internal implementation). 
+MABE2 experiments are created by combining various types of modules. **Modules contain the aspects of an experiment that 
+cannot be held constant** (i.e., requiring unique internal implementation). 
 
-MABE2 implements six types of modules:
-genomes, brains, evaluators, selectors, and placement modules. Modules of a given type are interchangeable, 
+MABE2 implements seven types of modules:
+`organism modules <01_module_types.html>`_, `evaluation modules <01_module_types.html>`_, `selection modules <01_module_types.html>`_, 
+`placement modules <01_module_types.html>`_, `schema modules <01_module_types.html>`_, `analysis modules <01_module_types.html>`_, 
+and `interface modules <01_module_types.html>`_. Modules of a given type are interchangeable, 
 so switching from one brain type to another is as simple as changing a brain type parameter. This feature allows
 users to focus their efforts specific aspects of their projects by only developing or modifying the modules of interest 
 to them, by reusing existing modules when possible, and by not requiring detailed understanding of the entirety 
