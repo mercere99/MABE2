@@ -308,7 +308,7 @@ TEST_CASE ("TraitInfo_IsMethods", "[core]") {
 TEST_CASE("TraitInfo_IDMethods", "[core]") {
   {
 
-    fs
+    //fs
   }
 }
 
@@ -339,6 +339,27 @@ TEST_CASE("TraitInfo_DefaultMethods", "[core]") {
     trait_j.SetDefault(10); 
     REQUIRE(trait_j.HasDefault() == true); 
     REQUIRE(trait_j.GetDefault() == 10);  
+
+    // [DOUBLE] 
+    //   Create trait without default value 
+    //   Test HasDefault, SetDefault and GetDefault
+    mabe::TypedTraitInfo<int> trait_k("trait_i");
+
+    REQUIRE(trait_k.HasDefault() == false); 
+    trait_i.SetDefault(7.0); 
+    REQUIRE(trait_k.HasDefault() == true); 
+    REQUIRE(trait_k.GetDefault() == 7.0); 
+
+    //   Create trait with default value 
+    //   Test HasDefault, SetDefault and GetDefault
+    mabe::TypedTraitInfo<int> trait_l("trait_l", 7.0);
+
+    REQUIRE(trait_l.HasDefault() == true); 
+    REQUIRE(trait_l.GetDefault() == 7.0);
+
+    trait_j.SetDefault(10); 
+    REQUIRE(trait_l.HasDefault() == true); 
+    REQUIRE(trait_l.GetDefault() == 10.0); 
 
     
 
