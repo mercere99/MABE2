@@ -2,18 +2,18 @@
 Overview of Source
 ==========
 
-The files in the ``source`` directory an be divided into four different groups: CORE, MODULES, TOOLS and DEPENDENCIES. 
+The files in the ``source`` directory an be divided into four different groups: Modules, Tools for Analysis, Core and Dependencies. 
 Below, we'll get into what each category means, and how items are sorted into each individual category. 
 This page is meant to give an high-level overview of how the ``source`` folder is organized and define some key terms, as well as provide a resource
 that can be used to understand some of the structure of ``MABE2``. 
 
-MODULES
+Modules
 -------
 
 Modules can be thought of as puzzle pieces - picking and choosing different modules to slot together allows experiments to be 
 both customizable and easily modifiable. As an end user, you will spend a decent amount of time creating and using modules of all types. 
 There are currently several different types of modules in ``MABE2``. Below is a list of each type, and where they are located inside of ``MABE2``. 
-More in-depth information about each module can be found in the `Modules Page <../modules/00_module_overview.html>`_.
+More in-depth information about each module can be found in the `Modules Page <../modules/01_module_types.html>`_.
 
 *  ``source/evaluate:`` Evaluator modules evaluate organisms in a run using any metrics.
 
@@ -41,7 +41,7 @@ use when processing their analysis.
 Currently, all of the tools can be found in the ``source/tools`` directory. 
 
 
-CORE
+Core
 ----
 
 Files and directories inside of the Core category are things that end users probably won't touch. 
@@ -50,7 +50,7 @@ These are the files and folders containing all of the core code required for any
 All files in the Core category can be found in either ``source/core`` or ``source/config``.
 
 
-DEPENDENCIES
+Dependencies
 ------------
 
 The files and directories in this category include libraries and other source code that ``MABE2`` uses to run. 
