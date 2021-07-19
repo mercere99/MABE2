@@ -59,7 +59,6 @@ TEST_CASE("TraitInfo_Basic", "[core]"){
     // Test HasAccess for nk and nk2
     REQUIRE(trait_i.HasAccess(&nk_mod) ); 
     REQUIRE_FALSE(trait_i.HasAccess(&nk2_mod));
-
   }
 }
 
