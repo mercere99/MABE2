@@ -38,7 +38,7 @@ TEST_CASE("TraitInfo_Basic", "[core]"){
     REQUIRE(trait_i.GetModuleNames(mabe::TraitInfo::Access::REQUIRED).size() == 1);
 
     // Test REQUIRED is actually required. 
-    REQUIRE(trait_i.IsRequired() == true); 
+    REQUIRE(trait_i.IsRequired()); 
 
     // Test the description of the trait
     REQUIRE(trait_i.GetDesc() == ""); 
@@ -57,7 +57,7 @@ TEST_CASE("TraitInfo_Basic", "[core]"){
     REQUIRE(trait_i.GetName() == "new_trait_name"); 
 
     // Test HasAccess for nk and nk2
-    REQUIRE(trait_i.HasAccess(&nk_mod) == true); 
+    REQUIRE(trait_i.HasAccess(&nk_mod) ); 
     REQUIRE(trait_i.HasAccess(&nk2_mod) == false);
 
   }
@@ -235,22 +235,22 @@ TEST_CASE("TraitInfo_HasMethods", "[core]") {
     REQUIRE(trait_1.HasAccess(&nk1_mod) == false); //if access is unknown, access it not automatically given
     REQUIRE(trait_1.HasAccess(&nk8_mod) == false); 
 
-    REQUIRE(trait_2.HasAccess(&nk2_mod) == true); 
+    REQUIRE(trait_2.HasAccess(&nk2_mod)); 
     REQUIRE(trait_2.HasAccess(&nk8_mod) == false); 
 
-    REQUIRE(trait_3.HasAccess(&nk3_mod) == true); 
+    REQUIRE(trait_3.HasAccess(&nk3_mod)); 
     REQUIRE(trait_3.HasAccess(&nk8_mod) == false); 
 
-    REQUIRE(trait_4.HasAccess(&nk4_mod) == true); 
+    REQUIRE(trait_4.HasAccess(&nk4_mod)); 
     REQUIRE(trait_4.HasAccess(&nk8_mod) == false); 
 
-    REQUIRE(trait_5.HasAccess(&nk5_mod) == true); 
+    REQUIRE(trait_5.HasAccess(&nk5_mod)); 
     REQUIRE(trait_5.HasAccess(&nk8_mod) == false); 
   
-    REQUIRE(trait_6.HasAccess(&nk6_mod) == true); 
+    REQUIRE(trait_6.HasAccess(&nk6_mod)); 
     REQUIRE(trait_6.HasAccess(&nk8_mod) == false); 
 
-    REQUIRE(trait_7.HasAccess(&nk7_mod) == true); 
+    REQUIRE(trait_7.HasAccess(&nk7_mod)); 
     REQUIRE(trait_7.HasAccess(&nk8_mod) == false); 
   }
 }
@@ -284,14 +284,14 @@ TEST_CASE ("TraitInfo_IsMethods", "[core]") {
 
 
     // Check Is{ACESS} methods work
-    //REQUIRE(trait_i.IsRequired() == true);
-    REQUIRE(trait_1.IsPrivate() == true); 
-    REQUIRE(trait_2.IsOwned() == true); 
-    REQUIRE(trait_3.IsGenerated() == true); 
-    REQUIRE(trait_4.IsShared() == true); 
-    REQUIRE(trait_5.IsRequired() == true); 
-    REQUIRE(trait_6.IsOptional() == true); 
-    REQUIRE(trait_7.IsGenerated() == true); //check that when multiple modules have same access, returns correctly
+    REQUIRE(trait_1.IsPrivate()); 
+    REQUIRE(trait_2.IsOwned()); 
+    REQUIRE(trait_3.IsGenerated()); 
+    REQUIRE(trait_4.IsShared()); 
+    REQUIRE(trait_5.IsRequired()); 
+    REQUIRE(trait_6.IsOptional());
+    //check that when multiple modules have same access, returns correctly
+    REQUIRE(trait_7.IsGenerated()); 
 
     // Check Is{ACCESS} methods return false when access isn't there
     REQUIRE(trait_2.IsPrivate() == false); 
@@ -319,6 +319,8 @@ TEST_CASE("TraitInfo_DefaultMethods", "[core]") {
     control.AddPopulation("test_pop");
     mabe::EvalNK nk_mod(control); 
 
+    // -------------------------------------------------
+
     // [INT] 
     //   Create trait without default value 
     //   Test HasDefault, SetDefault and GetDefault
@@ -326,19 +328,21 @@ TEST_CASE("TraitInfo_DefaultMethods", "[core]") {
 
     REQUIRE(trait_i.HasDefault() == false); 
     trait_i.SetDefault(7); 
-    REQUIRE(trait_i.HasDefault() == true); 
+    REQUIRE(trait_i.HasDefault()); 
     REQUIRE(trait_i.GetDefault() == 7); 
 
     //   Create trait with default value 
     //   Test HasDefault, SetDefault and GetDefault
     mabe::TypedTraitInfo<int> trait_j("trait_j", 7);
 
-    REQUIRE(trait_j.HasDefault() == true); 
+    REQUIRE(trait_j.HasDefault()); 
     REQUIRE(trait_j.GetDefault() == 7);
 
     trait_j.SetDefault(10); 
-    REQUIRE(trait_j.HasDefault() == true); 
+    REQUIRE(trait_j.HasDefault()); 
     REQUIRE(trait_j.GetDefault() == 10);  
+
+    // -------------------------------------------------
 
     // [DOUBLE] 
     //   Create trait without default value 
@@ -347,19 +351,21 @@ TEST_CASE("TraitInfo_DefaultMethods", "[core]") {
 
     REQUIRE(trait_k.HasDefault() == false); 
     trait_k.SetDefault(7.0); 
-    REQUIRE(trait_k.HasDefault() == true); 
+    REQUIRE(trait_k.HasDefault()); 
     REQUIRE(trait_k.GetDefault() == 7.0); 
 
     //   Create trait with default value 
     //   Test HasDefault, SetDefault and GetDefault
     mabe::TypedTraitInfo<int> trait_l("trait_l", 7.0);
 
-    REQUIRE(trait_l.HasDefault() == true); 
+    REQUIRE(trait_l.HasDefault()); 
     REQUIRE(trait_l.GetDefault() == 7.0);
 
     trait_l.SetDefault(10.0); 
-    REQUIRE(trait_l.HasDefault() == true); 
+    REQUIRE(trait_l.HasDefault()); 
     REQUIRE(trait_l.GetDefault() == 10.0); 
+
+    // -------------------------------------------------
 
     // [STRING] 
     //   Create trait without default value 
