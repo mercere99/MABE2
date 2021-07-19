@@ -221,7 +221,7 @@ TEST_CASE("TraitInfo_HasMethods", "[core]") {
     mabe::TypedTraitInfo<double> trait_6("trait_6");
     mabe::TypedTraitInfo<std::string> trait_7("trait_7");
 
-    //Set up access
+    // Set up access
     trait_1.AddAccess("mod_name", &nk1_mod, mabe::TraitInfo::Access::UNKNOWN); 
     trait_2.AddAccess("mod_name", &nk2_mod, mabe::TraitInfo::Access::PRIVATE); 
     trait_3.AddAccess("mod_name", &nk3_mod, mabe::TraitInfo::Access::OWNED); 
@@ -303,7 +303,6 @@ TEST_CASE ("TraitInfo_IsMethods", "[core]") {
     REQUIRE(trait_6.IsRequired() == false); 
     REQUIRE(trait_1.IsOptional() == false);
     REQUIRE(trait_7.IsShared() == false); 
-
   }
 }
 
@@ -333,16 +332,24 @@ TEST_CASE("TraitInfo_TypesMethods", "[core]") {
     //REQUIRE(trait_double.IsAllowedType(trait_double.GetType()));
     //REQUIRE(trait_string.IsAllowedType(trait_string.GetType()));
 
+    // SetAltTypes for a trait and check to see AltTypes vector has expanded
+    trait_int.SetAltTypes(emp::GetTypeIDs<std::string, double, float, bool>()); 
 
+    REQUIRE(trait_int.GetAltTypes().size() == 4);  
+    REQUIRE(trait_int.GetAltTypes().at(0).GetName() == "std::string"); 
+    REQUIRE(trait_int.GetAltTypes().at(1).GetName() == "double"); 
+    REQUIRE(trait_int.GetAltTypes().at(2).GetName() == "float"); 
+    REQUIRE(trait_int.GetAltTypes().at(3).GetName() == "bool"); 
 
+    // Check each AltType is also allowed
+    REQUIRE(trait_int.IsAllowedType(trait_int.GetAltTypes().at(0))); 
+    REQUIRE(trait_int.IsAllowedType(trait_int.GetAltTypes().at(1))); 
+    REQUIRE(trait_int.IsAllowedType(trait_int.GetAltTypes().at(2))); 
+    REQUIRE(trait_int.IsAllowedType(trait_int.GetAltTypes().at(3))); 
 
-
-
-   
-
-
-
-    
+    // Check non-AltTypes aren't allowed
+    REQUIRE_FALSE(trait_int.IsAllowedType(emp::GetTypeID<uint_fast64_t>())); 
+    REQUIRE_FALSE(trait_int.IsAllowedType(emp::GetTypeID<char>())); 
   }
 }
 
