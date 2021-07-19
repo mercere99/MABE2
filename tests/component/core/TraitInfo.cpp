@@ -328,6 +328,11 @@ TEST_CASE("TraitInfo_TypesMethods", "[core]") {
     // Test AltType vector initially empty
     REQUIRE(trait_int.GetAltTypes().size() == 0); 
 
+    // Test IsAllowedType includes main type
+    //REQUIRE(trait_int.IsAllowedType(trait_int.GetType()));
+    //REQUIRE(trait_double.IsAllowedType(trait_double.GetType()));
+    //REQUIRE(trait_string.IsAllowedType(trait_string.GetType()));
+
 
 
 
