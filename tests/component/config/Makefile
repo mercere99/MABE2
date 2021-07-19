@@ -1,4 +1,4 @@
-TEST_NAMES= ConfigLexer COnfigEntry
+TEST_NAMES= ConfigEntry #ConfigLexer 
 
 MABE_DIR= ../../../source/
 EMP_DIR= ../../../source/third-party/empirical
