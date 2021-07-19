@@ -323,7 +323,12 @@ TEST_CASE("TraitInfo_TypesMethods", "[core]") {
     // Test GetType returns main type
     REQUIRE(trait_int.GetType().GetName() == "int32_t"); 
     REQUIRE(trait_double.GetType().GetName() == "double"); 
-    REQUIRE(trait_string.GetType().GetName() == "std::string"); 
+    REQUIRE(trait_string.GetType().GetName() == "std::string");
+
+    // Test AltType vector initially empty
+    REQUIRE(trait_int.GetAltTypes().size() == 0); 
+
+
 
 
 
