@@ -50,10 +50,15 @@ TEST_CASE("ConfigLexerNumber", "[config]"){
     bool result01 = config_lexer01.IsNumber(token01);
     REQUIRE(result01 == true);
 
-    std::string s02 = ".9";
+    std::string s02 = "0.9";
     emp::Token token02 = config_lexer01.Process(s02);
     bool result02 = config_lexer01.IsNumber(token02);
-    REQUIRE(result02 == false);
+    REQUIRE(result02 == true);
+
+    std::string s03 = ".9";
+    emp::Token token03 = config_lexer01.Process(s03);
+    bool result03 = config_lexer01.IsNumber(token03);
+    REQUIRE(result03 == false);
   }
 }
 
@@ -63,21 +68,31 @@ TEST_CASE("ConfigLexerString", "[config]"){
   {
     mabe::ConfigLexer config_lexer03;
 
-    // Test failing, empty string not accepted 
-    std::string s00 = " \" \" ";
+  
+    std::string s00 = "\"\"";
     emp::Token token00 = config_lexer03.Process(s00);
     bool result00 = config_lexer03.IsString(token00);
     REQUIRE(result00 == true);
 
-    std::string s01 = " \"a \" ";
+    std::string s01 = "\" \"";
     emp::Token token01 = config_lexer03.Process(s01);
     bool result01 = config_lexer03.IsString(token01);
     REQUIRE(result01 == true);
 
-    std::string s02 = " \"0 \" ";
+    std::string s02 = "\"a\"";
     emp::Token token02 = config_lexer03.Process(s02);
     bool result02 = config_lexer03.IsString(token02);
-    REQUIRE(result02 == false);
+    REQUIRE(result02 == true);
+
+    std::string s03 = "\"0 \"";
+    emp::Token token03 = config_lexer03.Process(s03);
+    bool result03 = config_lexer03.IsString(token03);
+    REQUIRE(result03 == true);
+
+    std::string s04 = "\"(3 + (x / 4))\"";
+    emp::Token token04 = config_lexer03.Process(s04);
+    bool result04 = config_lexer03.IsString(token04);
+    REQUIRE(result04 == true);
   }
 }
 
@@ -97,10 +112,16 @@ TEST_CASE("ConfigLexerChar", "[config]"){
     bool result01 = config_lexer04.IsChar(token01);
     REQUIRE(result01 == true);
 
-    std::string s02 = "''a' ";
+    std::string s02 = "''a'";
     emp::Token token02 = config_lexer04.Process(s02);
     bool result02 = config_lexer04.IsChar(token02);
     REQUIRE(result02 == false);
+
+    // Test failing, 'testing' accepted as char
+    std::string s03 = "'testing'";
+    emp::Token token03 = config_lexer04.Process(s03);
+    bool result03 = config_lexer04.IsChar(token03);
+    REQUIRE(result03 == false);
   }
 }
 
@@ -120,7 +141,7 @@ TEST_CASE("ConfigLexerDots", "[config]"){
     bool result01 = config_lexer05.IsDots(token01);
     REQUIRE(result01 == false);
 
-    std::string s02 = ".a";
+    std::string s02 = "a.";
     emp::Token token02 = config_lexer05.Process(s02);
     bool result02 = config_lexer05.IsDots(token02);
     REQUIRE(result02 == false);
@@ -132,7 +153,7 @@ TEST_CASE("ConfigLexerSymbol", "[config]"){
   {
     mabe::ConfigLexer config_lexer06;
 
-    std::string s00 = "!=";
+    std::string s00 = ".";
     emp::Token token00 = config_lexer06.Process(s00);
     bool result00 = config_lexer06.IsSymbol(token00);
     REQUIRE(result00 == true);
@@ -142,7 +163,57 @@ TEST_CASE("ConfigLexerSymbol", "[config]"){
     bool result01 = config_lexer06.IsSymbol(token01);
     REQUIRE(result01 == true);
 
-    std::string s02 = ".";
+    std::string s02 = "==";
+    emp::Token token02 = config_lexer06.Process(s02);
+    bool result02 = config_lexer06.IsSymbol(token02);
+    REQUIRE(result02 == false);
+
+    std::string s02 = "!=";
+    emp::Token token02 = config_lexer06.Process(s02);
+    bool result02 = config_lexer06.IsSymbol(token02);
+    REQUIRE(result02 == false);
+
+    std::string s02 = "<=";
+    emp::Token token02 = config_lexer06.Process(s02);
+    bool result02 = config_lexer06.IsSymbol(token02);
+    REQUIRE(result02 == false);
+
+    std::string s02 = ">=";
+    emp::Token token02 = config_lexer06.Process(s02);
+    bool result02 = config_lexer06.IsSymbol(token02);
+    REQUIRE(result02 == false);
+
+    std::string s02 = "->";
+    emp::Token token02 = config_lexer06.Process(s02);
+    bool result02 = config_lexer06.IsSymbol(token02);
+    REQUIRE(result02 == false);
+
+    std::string s02 = "&&";
+    emp::Token token02 = config_lexer06.Process(s02);
+    bool result02 = config_lexer06.IsSymbol(token02);
+    REQUIRE(result02 == false);
+
+    std::string s02 = "||";
+    emp::Token token02 = config_lexer06.Process(s02);
+    bool result02 = config_lexer06.IsSymbol(token02);
+    REQUIRE(result02 == false);
+
+    std::string s02 = ">>";
+    emp::Token token02 = config_lexer06.Process(s02);
+    bool result02 = config_lexer06.IsSymbol(token02);
+    REQUIRE(result02 == false);
+
+    std::string s02 = "<<";
+    emp::Token token02 = config_lexer06.Process(s02);
+    bool result02 = config_lexer06.IsSymbol(token02);
+    REQUIRE(result02 == false);
+
+    std::string s02 = "<<";
+    emp::Token token02 = config_lexer06.Process(s02);
+    bool result02 = config_lexer06.IsSymbol(token02);
+    REQUIRE(result02 == false);
+
+    std::string s02 = "<<";
     emp::Token token02 = config_lexer06.Process(s02);
     bool result02 = config_lexer06.IsSymbol(token02);
     REQUIRE(result02 == false);
