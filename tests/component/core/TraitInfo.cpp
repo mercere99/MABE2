@@ -58,7 +58,7 @@ TEST_CASE("TraitInfo_Basic", "[core]"){
 
     // Test HasAccess for nk and nk2
     REQUIRE(trait_i.HasAccess(&nk_mod) ); 
-    REQUIRE(trait_i.HasAccess(&nk2_mod) == false);
+    REQUIRE_FALSE(trait_i.HasAccess(&nk2_mod));
 
   }
 }
@@ -210,7 +210,6 @@ TEST_CASE("TraitInfo_HasMethods", "[core]") {
     mabe::EvalNK nk6_mod(control); 
     mabe::EvalNK nk7_mod(control);
     mabe::EvalNK nk8_mod(control); 
-    //mabe::EvalNK nk3_mod(control); 
 
     // Create a trait to get each type of access
     mabe::TypedTraitInfo<int> trait_1("trait_1");
@@ -232,28 +231,27 @@ TEST_CASE("TraitInfo_HasMethods", "[core]") {
     
 
     // Test HasAccess returns correctly for both having and not having access to a trait
-    
-    //if access is unknown, access it not automatically given
-    REQUIRE(trait_1.HasAccess(&nk1_mod) == false); 
-    REQUIRE(trait_1.HasAccess(&nk8_mod) == false); 
+        //if access is unknown, access it not automatically given
+    REQUIRE_FALSE(trait_1.HasAccess(&nk1_mod)); 
+    REQUIRE_FALSE(trait_1.HasAccess(&nk8_mod)); 
 
     REQUIRE(trait_2.HasAccess(&nk2_mod)); 
-    REQUIRE(trait_2.HasAccess(&nk8_mod) == false); 
+    REQUIRE_FALSE(trait_2.HasAccess(&nk8_mod)); 
 
     REQUIRE(trait_3.HasAccess(&nk3_mod)); 
-    REQUIRE(trait_3.HasAccess(&nk8_mod) == false); 
+    REQUIRE_FALSE(trait_3.HasAccess(&nk8_mod)); 
 
     REQUIRE(trait_4.HasAccess(&nk4_mod)); 
-    REQUIRE(trait_4.HasAccess(&nk8_mod) == false); 
+    REQUIRE_FALSE(trait_4.HasAccess(&nk8_mod)); 
 
     REQUIRE(trait_5.HasAccess(&nk5_mod)); 
-    REQUIRE(trait_5.HasAccess(&nk8_mod) == false); 
+    REQUIRE_FALSE(trait_5.HasAccess(&nk8_mod)); 
   
     REQUIRE(trait_6.HasAccess(&nk6_mod)); 
-    REQUIRE(trait_6.HasAccess(&nk8_mod) == false); 
+    REQUIRE_FALSE(trait_6.HasAccess(&nk8_mod)); 
 
     REQUIRE(trait_7.HasAccess(&nk7_mod)); 
-    REQUIRE(trait_7.HasAccess(&nk8_mod) == false); 
+    REQUIRE_FALSE(trait_7.HasAccess(&nk8_mod)); 
   }
 }
 
@@ -296,13 +294,13 @@ TEST_CASE ("TraitInfo_IsMethods", "[core]") {
     REQUIRE(trait_7.IsGenerated()); 
 
     // Check Is{ACCESS} methods return false when access isn't there
-    REQUIRE(trait_2.IsPrivate() == false); 
-    REQUIRE(trait_3.IsOwned() == false); 
-    REQUIRE(trait_4.IsGenerated() == false); 
-    REQUIRE(trait_5.IsShared() == false); 
-    REQUIRE(trait_6.IsRequired() == false); 
-    REQUIRE(trait_1.IsOptional() == false);
-    REQUIRE(trait_7.IsShared() == false); 
+    REQUIRE_FALSE(trait_2.IsPrivate()); 
+    REQUIRE_FALSE(trait_3.IsOwned()); 
+    REQUIRE_FALSE(trait_4.IsGenerated()); 
+    REQUIRE_FALSE(trait_5.IsShared()); 
+    REQUIRE_FALSE(trait_6.IsRequired()); 
+    REQUIRE_FALSE(trait_1.IsOptional());
+    REQUIRE_FALSE(trait_7.IsShared()); 
   }
 }
 
@@ -367,7 +365,7 @@ TEST_CASE("TraitInfo_DefaultMethods", "[core]") {
     //   Test HasDefault, SetDefault and GetDefault
     mabe::TypedTraitInfo<int> trait_i("trait_i");
 
-    REQUIRE(trait_i.HasDefault() == false); 
+    REQUIRE_FALSE(trait_i.HasDefault()); 
     trait_i.SetDefault(7); 
     REQUIRE(trait_i.HasDefault()); 
     REQUIRE(trait_i.GetDefault() == 7); 
@@ -390,7 +388,7 @@ TEST_CASE("TraitInfo_DefaultMethods", "[core]") {
     //   Test HasDefault, SetDefault and GetDefault
     mabe::TypedTraitInfo<double> trait_k("trait_k");
 
-    REQUIRE(trait_k.HasDefault() == false); 
+    REQUIRE_FALSE(trait_k.HasDefault()); 
     trait_k.SetDefault(7.0); 
     REQUIRE(trait_k.HasDefault()); 
     REQUIRE(trait_k.GetDefault() == 7.0); 
@@ -413,7 +411,7 @@ TEST_CASE("TraitInfo_DefaultMethods", "[core]") {
     //   Test HasDefault, SetDefault and GetDefault
     mabe::TypedTraitInfo<std::string> trait_m("trait_m");
 
-    REQUIRE(trait_m.HasDefault() == false); 
+    REQUIRE_FALSE(trait_m.HasDefault()); 
     trait_m.SetDefault("test string"); 
     REQUIRE(trait_m.HasDefault()); 
     REQUIRE(trait_m.GetDefault() == "test string"); 
