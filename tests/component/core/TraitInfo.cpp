@@ -361,6 +361,27 @@ TEST_CASE("TraitInfo_DefaultMethods", "[core]") {
     REQUIRE(trait_l.HasDefault() == true); 
     REQUIRE(trait_l.GetDefault() == 10.0); 
 
+    // [STRING] 
+    //   Create trait without default value 
+    //   Test HasDefault, SetDefault and GetDefault
+    mabe::TypedTraitInfo<std::string> trait_m("trait_m");
+
+    REQUIRE(trait_m.HasDefault() == false); 
+    trait_m.SetDefault("test string"); 
+    REQUIRE(trait_m.HasDefault()); 
+    REQUIRE(trait_m.GetDefault() == "test string"); 
+
+    //   Create trait with default value 
+    //   Test HasDefault, SetDefault and GetDefault
+    mabe::TypedTraitInfo<std::string> trait_n("trait_n", "test string");
+
+    REQUIRE(trait_n.HasDefault()); 
+    REQUIRE(trait_n.GetDefault() == "test string"); 
+
+    trait_n.SetDefault("new test string"); 
+    REQUIRE(trait_n.HasDefault()); 
+    REQUIRE(trait_n.GetDefault() == "new test string"); 
+
     
 
 
