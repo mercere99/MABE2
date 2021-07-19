@@ -232,7 +232,9 @@ TEST_CASE("TraitInfo_HasMethods", "[core]") {
     
 
     // Test HasAccess returns correctly for both having and not having access to a trait
-    REQUIRE(trait_1.HasAccess(&nk1_mod) == false); //if access is unknown, access it not automatically given
+    
+    //if access is unknown, access it not automatically given
+    REQUIRE(trait_1.HasAccess(&nk1_mod) == false); 
     REQUIRE(trait_1.HasAccess(&nk8_mod) == false); 
 
     REQUIRE(trait_2.HasAccess(&nk2_mod)); 
@@ -305,10 +307,32 @@ TEST_CASE ("TraitInfo_IsMethods", "[core]") {
   }
 }
 
-TEST_CASE("TraitInfo_IDMethods", "[core]") {
-  {
 
-    //fs
+// Helpful to look at the TypeID tests in empirical, located 
+//   ../../../source/third-party/empirical/tests/meta/TypeID.cpp
+TEST_CASE("TraitInfo_TypesMethods", "[core]") {
+  {
+    // Create a MABE object, a population, and a module (could be any module) for testing
+    mabe::MABE control(0, NULL);
+    control.AddPopulation("test_pop");
+    mabe::EvalNK nk_mod(control);
+    mabe::TypedTraitInfo<int> trait_int("trait_int");
+    mabe::TypedTraitInfo<double> trait_double("trait_double");
+    mabe::TypedTraitInfo<std::string> trait_string("trait_string");
+
+    // Test GetType returns main type
+    REQUIRE(trait_int.GetType().GetName() == "int32_t"); 
+    REQUIRE(trait_double.GetType().GetName() == "double"); 
+    REQUIRE(trait_string.GetType().GetName() == "std::string"); 
+
+
+
+
+   
+
+
+
+    
   }
 }
 
@@ -387,10 +411,5 @@ TEST_CASE("TraitInfo_DefaultMethods", "[core]") {
     trait_n.SetDefault("new test string"); 
     REQUIRE(trait_n.HasDefault()); 
     REQUIRE(trait_n.GetDefault() == "new test string"); 
-
-    
-
-
-    
   }
 }
