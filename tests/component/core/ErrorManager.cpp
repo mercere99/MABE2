@@ -61,6 +61,8 @@ TEST_CASE("ErrorManagerBasic", "[core]"){
     // Add errors and warnings to active manager, thrown immediately 
     has_error_been_thrown = false;
     has_warning_been_thrown = false;
+    REQUIRE(has_error_been_thrown == false);
+    REQUIRE(has_warning_been_thrown == false);
 
     manager.Activate();
 
@@ -95,6 +97,8 @@ TEST_CASE("ErrorManagerBasic", "[core]"){
     // Add errors and warnings to active manager, throw immediately
     has_error_been_thrown = false;
     has_warning_been_thrown = false;
+    REQUIRE(has_error_been_thrown == false);
+    REQUIRE(has_warning_been_thrown == false);
 
     manager.Activate();
     manager.AddError("Error02");
@@ -108,6 +112,8 @@ TEST_CASE("ErrorManagerBasic", "[core]"){
     // Deactivate manager
     has_error_been_thrown = false;
     has_warning_been_thrown = false;
+    REQUIRE(has_error_been_thrown == false);
+    REQUIRE(has_warning_been_thrown == false);
 
     manager.Deactivate();
     manager.AddError("Error03");
