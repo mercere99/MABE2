@@ -16,5 +16,27 @@
 #include "core/MABE.hpp"
 #include "evaluate/static/EvalNK.hpp"
 
+TEST_CASE("TraitManager_Basic", "[core]") {
+    {
+        //hello
+    }
+}
 
+TEST_CASE("TraitManager_LockMethods", "[core]") {
+    {
+        //hello
+    }
+}
+
+TEST_CASE("TraitManager_AccessSpecifications", "[core]") {
+    {
+        //hello
+    }
+}
+
+TEST_CASE("TraitManager_AddTrait", "[core]") {
+    {
+        //hello
+    }
+}
 
