@@ -20,6 +20,7 @@
 #include "emp/base/Ptr.hpp"
 
 #include "TraitInfo.hpp"
+#include "ErrorManager.hpp"
 
 namespace mabe {
 

@@ -1,4 +1,4 @@
-TEST_NAMES=  TraitManager #MABE data_collect TraitInfo
+TEST_NAMES= TraitManager #MABE data_collect TraitInfo
 
 MABE_DIR= ../../../source/
 EMP_DIR= ../../../source/third-party/empirical
