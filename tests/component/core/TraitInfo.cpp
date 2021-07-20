@@ -261,6 +261,7 @@ TEST_CASE ("TraitInfo_IsMethods", "[core]") {
     control.AddPopulation("test_pop");
     mabe::EvalNK nk_mod(control); 
     mabe::EvalNK nk2_mod(control); 
+    mabe::EvalNK nk3_mod(control); 
 
     // Create a trait to get each type of access
     mabe::TypedTraitInfo<int> trait_1("trait_1");
@@ -280,6 +281,7 @@ TEST_CASE ("TraitInfo_IsMethods", "[core]") {
     trait_6.AddAccess("mod_name", &nk_mod, mabe::TraitInfo::Access::OPTIONAL); 
     trait_7.AddAccess("mod_name", &nk_mod, mabe::TraitInfo::Access::GENERATED); 
     trait_7.AddAccess("mod_name", &nk2_mod, mabe::TraitInfo::Access::GENERATED); 
+    trait_7.AddAccess("mod_name", &nk3_mod, mabe::TraitInfo::Access::PRIVATE); 
 
 
     // Check Is{ACESS} methods work
@@ -289,8 +291,10 @@ TEST_CASE ("TraitInfo_IsMethods", "[core]") {
     REQUIRE(trait_4.IsShared()); 
     REQUIRE(trait_5.IsRequired()); 
     REQUIRE(trait_6.IsOptional());
-    //check that when multiple modules have same access, returns correctly
+    // check that when multiple modules have same access, returns correctly
     REQUIRE(trait_7.IsGenerated()); 
+    // Traits can have multiple types of access from different modules
+    REQUIRE(trait_7.IsPrivate()); 
 
     // Check Is{ACCESS} methods return false when access isn't there
     REQUIRE_FALSE(trait_2.IsPrivate()); 
@@ -316,6 +320,12 @@ TEST_CASE("TraitInfo_TypesMethods", "[core]") {
     mabe::TypedTraitInfo<double> trait_double("trait_double");
     mabe::TypedTraitInfo<std::string> trait_string("trait_string");
 
+    // Create instances of different types
+    size_t string_type = emp::GetTypeID<std::string>(); 
+    size_t double_type = emp::GetTypeID<double>(); 
+    size_t float_type = emp::GetTypeID<float>(); 
+    size_t bool_type = emp::GetTypeID<bool>(); 
+
     // Test GetType returns main type
     REQUIRE(trait_int.GetType().GetName() == "int32_t"); 
     REQUIRE(trait_double.GetType().GetName() == "double"); 
@@ -324,25 +334,42 @@ TEST_CASE("TraitInfo_TypesMethods", "[core]") {
     // Test AltType vector initially empty
     REQUIRE(trait_int.GetAltTypes().size() == 0); 
 
-    // Test IsAllowedType includes main type
-    //REQUIRE(trait_int.IsAllowedType(trait_int.GetType()));
-    //REQUIRE(trait_double.IsAllowedType(trait_double.GetType()));
-    //REQUIRE(trait_string.IsAllowedType(trait_string.GetType()));
+    // Test IsAllowedType includes default type  
+    //    Test is correct, but code fails this check
+    /* REQUIRE(trait_int.IsAllowedType(trait_int.GetType()));
+    REQUIRE(trait_double.IsAllowedType(trait_double.GetType()));
+    REQUIRE(trait_string.IsAllowedType(trait_string.GetType())); */
 
-    // SetAltTypes for a trait and check to see AltTypes vector has expanded
-    trait_int.SetAltTypes(emp::GetTypeIDs<std::string, double, float, bool>()); 
+    // Create vector for AltTypes and populate
+    emp::vector<emp::TypeID> my_vec = emp::GetTypeIDs<std::string, double, float, bool>(); 
+    trait_int.SetAltTypes(my_vec); 
 
-    REQUIRE(trait_int.GetAltTypes().size() == 4);  
-    REQUIRE(trait_int.GetAltTypes().at(0).GetName() == "std::string"); 
-    REQUIRE(trait_int.GetAltTypes().at(1).GetName() == "double"); 
-    REQUIRE(trait_int.GetAltTypes().at(2).GetName() == "float"); 
-    REQUIRE(trait_int.GetAltTypes().at(3).GetName() == "bool"); 
+    // Create a local variable for the AltTypes vector stored in trait
+    emp::vector<emp::TypeID> trait_vec = trait_int.GetAltTypes(); 
 
-    // Check each AltType is also allowed
-    REQUIRE(trait_int.IsAllowedType(trait_int.GetAltTypes().at(0))); 
-    REQUIRE(trait_int.IsAllowedType(trait_int.GetAltTypes().at(1))); 
-    REQUIRE(trait_int.IsAllowedType(trait_int.GetAltTypes().at(2))); 
-    REQUIRE(trait_int.IsAllowedType(trait_int.GetAltTypes().at(3))); 
+    // Check AltTypes vector has updated appropriately 
+    REQUIRE(trait_vec.size() == 4);  
+    REQUIRE(trait_vec[0].GetName() == "std::string"); 
+    REQUIRE(trait_vec[1].GetName() == "double"); 
+    REQUIRE(trait_vec[2].GetName() == "float"); 
+    REQUIRE(trait_vec[3].GetName() == "bool"); 
+
+    REQUIRE(trait_vec[0].GetID() == string_type); 
+    REQUIRE(trait_vec[1].GetID() == double_type);
+    REQUIRE(trait_vec[2].GetID() == float_type);
+    REQUIRE(trait_vec[3].GetID() == bool_type);
+
+    // Check each AltType is allowed (from trait created AltTypes vector)
+    REQUIRE(trait_int.IsAllowedType(trait_vec[0])); 
+    REQUIRE(trait_int.IsAllowedType(trait_vec[1])); 
+    REQUIRE(trait_int.IsAllowedType(trait_vec[2])); 
+    REQUIRE(trait_int.IsAllowedType(trait_vec[3]));
+
+    // Check each AltType is allowed (from our created vector)
+    REQUIRE(trait_int.IsAllowedType(my_vec[0]));  
+    REQUIRE(trait_int.IsAllowedType(my_vec[1])); 
+    REQUIRE(trait_int.IsAllowedType(my_vec[2])); 
+    REQUIRE(trait_int.IsAllowedType(my_vec[3])); 
 
     // Check non-AltTypes aren't allowed
     REQUIRE_FALSE(trait_int.IsAllowedType(emp::GetTypeID<uint_fast64_t>())); 
