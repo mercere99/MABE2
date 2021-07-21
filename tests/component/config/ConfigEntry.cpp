@@ -41,7 +41,8 @@ TEST_CASE("ConfigEntry_Linker_Int", "[config]"){
     REQUIRE(linked_entry_int.IsString() == false);
 
     REQUIRE(linked_entry_int.IsLocal() == false); // should this be true?
-
+    REQUIRE(linked_entry_int.IsTemporary() == false);
+    REQUIRE(linked_entry_int.IsBuiltIn() == false);
     REQUIRE(linked_entry_int.IsFunction() == false);
     //REQUIRE(linked_entry_int.IsScope()) what should this return?
     REQUIRE(linked_entry_int.IsError() == false);
@@ -51,7 +52,7 @@ TEST_CASE("ConfigEntry_Linker_Int", "[config]"){
     REQUIRE(name00.compare("name00") == 0);
     std::string desc00 = linked_entry_int.GetDesc();
     REQUIRE(desc00.compare("variable00") == 0);
-    // emp::Ptr<ConfigScope> ptr = linked_entry_int.GetScope();
+    //emp::Ptr<ConfigScope> ptr = linked_entry_int.GetScope();
     //REQUIRE(ptr == nullptr);
     std::string type = linked_entry_int.GetTypename();
     REQUIRE(type.compare("Value") == 0);
@@ -75,12 +76,6 @@ TEST_CASE("ConfigEntry_Linker_Int", "[config]"){
     std::string s02 = linked_entry_int.AsString();
     REQUIRE(s02.compare("3") == 0);
     REQUIRE(v == 3);
-
-
-    // if we set v to 7 then in Linked should change to 7 
-    // linked always in sync
-    // configentry_var not linked REALLY make sure this works 
-
   }
 }
 
@@ -111,6 +106,8 @@ TEST_CASE("ConfigEntry_Linker_Double", "[config]"){
     REQUIRE(linked_entry_double.IsString() == false);
 
     REQUIRE(linked_entry_double.IsLocal() == false); // !! what should this be?
+    REQUIRE(linked_entry_int.IsTemporary() == false);
+    REQUIRE(linked_entry_int.IsBuiltIn() == false);
     REQUIRE(linked_entry_double.IsFunction() == false);
     //REQUIRE(linked_entry_double.IsScope()) what should this return?
     REQUIRE(linked_entry_double.IsError() == false);
@@ -172,7 +169,8 @@ TEST_CASE("ConfigLEntry_Linker<std::string>", "[config]"){
     REQUIRE(linked_entry_str.IsString() == true);
 
     REQUIRE(linked_entry_str.IsLocal() == false); // should this be true?
-
+    REQUIRE(linked_entry_int.IsTemporary() == false);
+    REQUIRE(linked_entry_int.IsBuiltIn() == false);
     REQUIRE(linked_entry_str.IsFunction() == false);
     //REQUIRE(linked_entry_str.IsScope()) what should this return?
     REQUIRE(linked_entry_str.IsError() == false);
@@ -220,7 +218,7 @@ TEST_CASE("ConfigEntry_Functions", "[config]"){
     
   }
 }
-
+*/
 TEST_CASE("ConfigEntry_Var", "[config]"){
   {
     int v = 2;
@@ -231,7 +229,7 @@ TEST_CASE("ConfigEntry_Var", "[config]"){
     
   }
 }
-
+/*
 TEST_CASE("ConfigEntry_Var<std::string>", "[config]"){
   {
     int v = 2;
