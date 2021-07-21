@@ -78,8 +78,12 @@ TEST_CASE("TraitInfo_Basic", "[core]"){
     mabe::TraitManager<mabe::ModuleBase> trait_man(error_man);
 
     //  [BEGIN TESTS]
+
+    // Keep track of traitmap size
+    int map_size = 0; 
+
     // Check that traitmap begins as empty
-    REQUIRE(trait_man.GetSize() == 0); 
+    REQUIRE(trait_man.GetSize() == map_size); 
 
     // Check manager is initially locked
     REQUIRE(trait_man.GetLocked()); 
@@ -89,7 +93,7 @@ TEST_CASE("TraitInfo_Basic", "[core]"){
     // trait_man.AddTrait(&nk_mod, mabe::TraitInfo::Access::OPTIONAL, "trait_k", "a trait", emp::GetTypeID<double>()); 
     // REQUIRE(has_error_been_thrown); 
     // REQUIRE(trait_man.GetLocked()); 
-    // REQUIRE(trait_man.GetSize() == 0); 
+    // REQUIRE(trait_man.GetSize() == map_size); 
 
     // Reset error flag and unlock manager
     has_error_been_thrown = false; 
@@ -99,7 +103,7 @@ TEST_CASE("TraitInfo_Basic", "[core]"){
     //   TESTS ARE CORRECT, DISPLAYING WEIRD BEHAVIOR
     //trait_man.AddTrait(&nk_mod, mabe::TraitInfo::Access::UNKNOWN, "trait_i", "a trait", emp::GetTypeID<int>()); 
     //REQUIRE(has_error_been_thrown); 
-    //REQUIRE(trait_man.GetSize() == 0); 
+    //REQUIRE(trait_man.GetSize() == map_size); 
 
     // Reset error flag
     has_error_been_thrown = false; 
@@ -108,14 +112,14 @@ TEST_CASE("TraitInfo_Basic", "[core]"){
     trait_man.AddTrait(&nk_mod, mabe::TraitInfo::Access::OPTIONAL, "trait_i", "a trait", emp::GetTypeID<int>()); 
     REQUIRE_FALSE(has_error_been_thrown); 
     REQUIRE_FALSE(has_warning_been_thrown); 
-    REQUIRE(trait_man.GetSize() == 1); 
+    REQUIRE(trait_man.GetSize() == map_size + 1); 
 
     // Add same trait to a different module
     // Shouldn't expand traitmap
     trait_man.AddTrait(&nk2_mod, mabe::TraitInfo::Access::OPTIONAL, "trait_i", "a trait", emp::GetTypeID<int>()); 
     REQUIRE_FALSE(has_error_been_thrown); 
     REQUIRE_FALSE(has_warning_been_thrown); 
-    REQUIRE(trait_man.GetSize() == 1); 
+    REQUIRE(trait_man.GetSize() == map_size); 
 
 
 
@@ -165,17 +169,19 @@ TEST_CASE("TraitInfo_AddTrait", "[core]"){
     trait_man.Unlock(); 
 
     //  [BEGIN TESTS]
+    // keep track of traitmap size
+    int map_size = 0; 
 
     // Initial traitmap is empty
-    REQUIRE(trait_man.GetSize() == 0); 
+    REQUIRE(trait_man.GetSize() == map_size); 
 
     // Add a trait with invalid type
     trait_man.AddTrait(&nk_mod, mabe::TraitInfo::Access::OPTIONAL, "trait_i", "a trait", emp::GetTypeID<std::string>()); 
     REQUIRE_FALSE(has_error_been_thrown); 
     REQUIRE_FALSE(has_warning_been_thrown); 
-    REQUIRE(trait_man.GetSize() == 0); 
+    REQUIRE(trait_man.GetSize() == map_size); 
 
-    // Add same 
+    // Add same trait to same module: throw error and not add it again to the map
 
   } 
 }
