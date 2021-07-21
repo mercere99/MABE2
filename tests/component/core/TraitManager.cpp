@@ -30,3 +30,48 @@ TEST_CASE("TraitInfo_Basic", "[core]"){
   } 
 }
 
+TEST_CASE("TraitInfo_Locks", "[core]"){
+  { 
+    // Create the TraitInfo to be tested (TraitInfo is abstract so we must make a TypedTraitInfo)
+    mabe::TypedTraitInfo<int> trait_i("trait_i");
+    auto error_func = [](const std::string & s){
+      std::cout << "Error: " << s;
+    }; 
+    auto warning_func = [](const std::string & s){
+      std::cout << "Warning: " << s;
+    }; 
+    mabe::ErrorManager error_man(error_func, warning_func);
+    mabe::TraitManager<mabe::ModuleBase> train_man(error_man);
+  } 
+}
+
+TEST_CASE("TraitInfo_AddTrait", "[core]"){
+  { 
+    // Create the TraitInfo to be tested (TraitInfo is abstract so we must make a TypedTraitInfo)
+    mabe::TypedTraitInfo<int> trait_i("trait_i");
+    auto error_func = [](const std::string & s){
+      std::cout << "Error: " << s;
+    }; 
+    auto warning_func = [](const std::string & s){
+      std::cout << "Warning: " << s;
+    }; 
+    mabe::ErrorManager error_man(error_func, warning_func);
+    mabe::TraitManager<mabe::ModuleBase> train_man(error_man);
+  } 
+}
+
+TEST_CASE("TraitInfo_AccessSpecifications", "[core]"){
+  { 
+    // Create the TraitInfo to be tested (TraitInfo is abstract so we must make a TypedTraitInfo)
+    mabe::TypedTraitInfo<int> trait_i("trait_i");
+    auto error_func = [](const std::string & s){
+      std::cout << "Error: " << s;
+    }; 
+    auto warning_func = [](const std::string & s){
+      std::cout << "Warning: " << s;
+    }; 
+    mabe::ErrorManager error_man(error_func, warning_func);
+    mabe::TraitManager<mabe::ModuleBase> train_man(error_man);
+  } 
+}
+
