@@ -221,8 +221,66 @@ TEST_CASE("ConfigEntry_Functions", "[config]"){
 */
 TEST_CASE("ConfigEntry_Var", "[config]"){
   {
-    int v = 2;
-    mabe::ConfigEntry_Linked<int> var_entry("name", v, "variable!", nullptr);
+    int v = 0;
+    mabe::ConfigEntry_Var<int> var_entry_int("name00", v, "variable00", nullptr);
+
+    // Test As() functions
+    REQUIRE(var_entry_int.AsDouble() == 0.0);
+    std::string s00 = var_entry_int.AsString();
+    REQUIRE(s00.compare("0") == 0);
+
+    // Test updating variable
+    v = 1;
+
+    REQUIRE(var_entry_int.AsDouble() == 0.0);
+    std::string s01 = var_entry_int.AsString();
+    REQUIRE(s01.compare("0") == 0);
+
+    // bool functions 
+    // what should this be REQUIRE(var_entry_int.IsTemporary() == true);
+    // what should this be REQUIRE(var_entry_int.IsBuiltIn() == false);
+    REQUIRE(var_entry_int.IsNumeric() == true);
+    REQUIRE(var_entry_int.IsBool() == false);
+    REQUIRE(var_entry_int.IsInt() == true);
+    REQUIRE(var_entry_int.IsDouble() == false);
+    REQUIRE(var_entry_int.IsString() == false);
+
+    REQUIRE(var_entry_int.IsLocal() == true); // should this be false?
+    REQUIRE(var_entry_int.IsTemporary() == false);
+    REQUIRE(var_entry_int.IsBuiltIn() == false);
+    REQUIRE(var_entry_int.IsFunction() == false);
+    //REQUIRE(var_entry_int.IsScope()) what should this return?
+    REQUIRE(var_entry_int.IsError() == false);
+
+    // Getter and setter functions
+    std::string name00 = var_entry_int.GetName();
+    REQUIRE(name00.compare("name00") == 0);
+    std::string desc00 = var_entry_int.GetDesc();
+    REQUIRE(desc00.compare("variable00") == 0);
+    //emp::Ptr<ConfigScope> ptr = var_entry_int.GetScope();
+    //REQUIRE(ptr == nullptr);
+    std::string type = var_entry_int.GetTypename();
+    REQUIRE(type.compare("Value") == 0);
+
+    var_entry_int.SetName("name01");
+    std::string name01 = var_entry_int.GetName();
+    REQUIRE(name01.compare("name01") == 0);
+    var_entry_int.SetDesc("desc01");
+    std::string desc01 = var_entry_int.GetDesc();
+    REQUIRE(desc01.compare("desc01") == 0);
+    // how to set these if already true?
+    var_entry_int.SetTemporary();
+    REQUIRE(var_entry_int.IsTemporary() == true);
+    var_entry_int.SetBuiltIn();
+    REQUIRE(var_entry_int.IsBuiltIn() == true);
+
+    var_entry_int.SetValue(2.0);
+    REQUIRE(var_entry_int.AsDouble() == 2.0);
+    REQUIRE(v == 1);
+    var_entry_int.SetString("3");
+    std::string s02 = var_entry_int.AsString();
+    REQUIRE(s02.compare("3") == 0);
+    REQUIRE(v == 1);
     // if we set v to 7 then in Linked should change to 7 
     // linked always in sync
     // configentry_var not linked REALLY make sure this works 
@@ -232,8 +290,66 @@ TEST_CASE("ConfigEntry_Var", "[config]"){
 /*
 TEST_CASE("ConfigEntry_Var<std::string>", "[config]"){
   {
-    int v = 2;
-    mabe::ConfigEntry_Linked<int> var_string_entry("name", v, "variable!", nullptr);
+    int v = 0;
+    mabe::ConfigEntry_Var<int> var_entry_int("name00", v, "variable00", nullptr);
+
+    // Test As() functions
+    REQUIRE(var_entry_str.AsDouble() == 0.0);
+    std::string s00 = var_entry_str.AsString();
+    REQUIRE(s00.compare("0") == 0);
+
+    // Test updating variable
+    v = 1;
+
+    REQUIRE(var_entry_str.AsDouble() == 1.0);
+    std::string s01 = var_entry_str.AsString();
+    REQUIRE(s01.compare("1") == 0);
+
+    // bool functions 
+    // what should this be REQUIRE(var_entry_str.IsTemporary() == true);
+    // what should this be REQUIRE(var_entry_str.IsBuiltIn() == false);
+    REQUIRE(var_entry_str.IsNumeric() == true);
+    REQUIRE(var_entry_str.IsBool() == false);
+    REQUIRE(var_entry_str.IsInt() == true);
+    REQUIRE(var_entry_str.IsDouble() == false);
+    REQUIRE(var_entry_str.IsString() == false);
+
+    REQUIRE(var_entry_str.IsLocal() == false); // should this be true?
+    REQUIRE(var_entry_str.IsTemporary() == false);
+    REQUIRE(var_entry_str.IsBuiltIn() == false);
+    REQUIRE(var_entry_str.IsFunction() == false);
+    //REQUIRE(var_entry_str.IsScope()) what should this return?
+    REQUIRE(var_entry_str.IsError() == false);
+
+    // Getter and setter functions
+    std::string name00 = var_entry_str.GetName();
+    REQUIRE(name00.compare("name00") == 0);
+    std::string desc00 = var_entry_str.GetDesc();
+    REQUIRE(desc00.compare("variable00") == 0);
+    //emp::Ptr<ConfigScope> ptr = var_entry_str.GetScope();
+    //REQUIRE(ptr == nullptr);
+    std::string type = var_entry_str.GetTypename();
+    REQUIRE(type.compare("Value") == 0);
+
+    var_entry_str.SetName("name01");
+    std::string name01 = var_entry_str.GetName();
+    REQUIRE(name01.compare("name01") == 0);
+    var_entry_str.SetDesc("desc01");
+    std::string desc01 = var_entry_str.GetDesc();
+    REQUIRE(desc01.compare("desc01") == 0);
+    // how to set these if already true?
+    var_entry_str.SetTemporary();
+    REQUIRE(var_entry_str.IsTemporary() == true);
+    var_entry_str.SetBuiltIn();
+    REQUIRE(var_entry_str.IsBuiltIn() == true);
+
+    var_entry_str.SetValue(2.0);
+    REQUIRE(var_entry_str.AsDouble() == 2.0);
+    REQUIRE(v == 2.0);
+    var_entry_str.SetString("3");
+    std::string s02 = var_entry_str.AsString();
+    REQUIRE(s02.compare("3") == 0);
+    REQUIRE(v == 3);
     // if we set v to 7 then in Linked should change to 7 
     // linked always in sync
     // configentry_var not linked REALLY make sure this works 
