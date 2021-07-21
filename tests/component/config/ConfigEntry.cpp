@@ -106,8 +106,8 @@ TEST_CASE("ConfigEntry_Linker_Double", "[config]"){
     REQUIRE(linked_entry_double.IsString() == false);
 
     REQUIRE(linked_entry_double.IsLocal() == false); // !! what should this be?
-    REQUIRE(linked_entry_int.IsTemporary() == false);
-    REQUIRE(linked_entry_int.IsBuiltIn() == false);
+    REQUIRE(linked_entry_double.IsTemporary() == false);
+    REQUIRE(linked_entry_double.IsBuiltIn() == false);
     REQUIRE(linked_entry_double.IsFunction() == false);
     //REQUIRE(linked_entry_double.IsScope()) what should this return?
     REQUIRE(linked_entry_double.IsError() == false);
@@ -169,8 +169,8 @@ TEST_CASE("ConfigLEntry_Linker<std::string>", "[config]"){
     REQUIRE(linked_entry_str.IsString() == true);
 
     REQUIRE(linked_entry_str.IsLocal() == false); // should this be true?
-    REQUIRE(linked_entry_int.IsTemporary() == false);
-    REQUIRE(linked_entry_int.IsBuiltIn() == false);
+    REQUIRE(linked_entry_str.IsTemporary() == false);
+    REQUIRE(linked_entry_str.IsBuiltIn() == false);
     REQUIRE(linked_entry_str.IsFunction() == false);
     //REQUIRE(linked_entry_str.IsScope()) what should this return?
     REQUIRE(linked_entry_str.IsError() == false);
