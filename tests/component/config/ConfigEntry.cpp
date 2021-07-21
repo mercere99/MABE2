@@ -7,6 +7,7 @@
  *  @brief Tests for ConfigEntry with various types and edge cases 
  */
 
+//#include <functional>
 // CATCH
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
@@ -77,6 +78,10 @@ TEST_CASE("ConfigEntry_Linker_Int", "[config]"){
     std::string s02 = linked_entry_int.AsString();
     REQUIRE(s02.compare("3") == 0);
     REQUIRE(v == 3);
+
+    // Test Clone()
+    //emp::Ptr<ConfigEntry> clone_ptr = linked_entry_int.Clone();
+    //REQUIRE(clone_ptr)
   }
 }
 
@@ -213,8 +218,67 @@ TEST_CASE("ConfigLEntry_Linker<std::string>", "[config]"){
 }
 
 
+int v = 0;
+template<typename T>
+T getter() {
+  return (T) v;
+}
+
+template<typename T>
+void setter(const T & in) {
+  v += (int) in;
+}
+
 TEST_CASE("ConfigEntry_Functions", "[config]"){
   {
+    mabe::ConfigEntry_Functions<int> linker_functions("name00", getter, setter, "desc00", nullptr);
+
+    // Test As() functions
+    REQUIRE(linker_functions.AsDouble() == 0.0);
+    std::string s00 = linker_functions.AsString();
+    REQUIRE(s00.compare("0") == 0);
+
+    // Test bool functions 
+    REQUIRE(linker_functions.IsTemporary() == false);
+    REQUIRE(linker_functions.IsBuiltIn() == false);
+    REQUIRE(linker_functions.IsNumeric() == true);
+    REQUIRE(linker_functions.IsBool() == false);
+    REQUIRE(linker_functions.IsInt() == true);
+    REQUIRE(linker_functions.IsDouble() == false);
+    REQUIRE(linker_functions.IsString() == false);
+    REQUIRE(linker_functions.IsLocal() == false);
+    REQUIRE(linker_functions.IsTemporary() == false);
+    REQUIRE(linker_functions.IsBuiltIn() == false);
+    REQUIRE(linker_functions.IsFunction() == true);
+    REQUIRE(linker_functions.IsScope() == false);
+    REQUIRE(linker_functions.IsError() == false);
+
+    // Test getter functions
+    std::string name00 = linker_functions.GetName();
+    REQUIRE(name00.compare("name00") == 0);
+    emp::Ptr<mabe::ConfigScope> ptr = linker_functions.GetScope();
+    REQUIRE(ptr == nullptr);
+    std::string type = linker_functions.GetTypename();
+    REQUIRE(type.compare("[[Function]]") == 0);
+
+    // Test setter functions
+    linker_functions.SetName("name01");
+    std::string name01 = linker_functions.GetName();
+    REQUIRE(name01.compare("name01") == 0);
+    linker_functions.SetTemporary();
+    REQUIRE(linker_functions.IsTemporary() == true);
+    linker_functions.SetBuiltIn();
+    REQUIRE(linker_functions.IsBuiltIn() == true);
+
+    // Test setter functions, original variable should change
+    linker_functions.SetValue(2.0);
+    REQUIRE(linker_functions.AsDouble() == 2.0);
+    linker_functions.SetValue(2.5);
+    REQUIRE(linker_functions.AsDouble() == 2.5);
+    linker_functions.SetString("3");
+    std::string s02 = linker_functions.AsString();
+    REQUIRE(s02.compare("3") == 0);
+
     // assume nothing about variable
     // calling getter function will return some variable
       // what ever type we said, give something of this type
@@ -232,6 +296,7 @@ TEST_CASE("ConfigEntry_Functions", "[config]"){
     // then also test in one direction and not the other 
   }
 }
+
 
 TEST_CASE("ConfigEntry_Var", "[config]"){
   {
