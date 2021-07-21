@@ -144,6 +144,70 @@ TEST_CASE("ConfigEntry_Linker_Double", "[config]"){
   }
 }
 
+TEST_CASE("ConfigEntry_Linker_Double", "[config]"){
+  {
+    double v = 0.0;
+    mabe::ConfigEntry_Linked<double> linked_entry_double("name00", v, "variable00", nullptr);
+
+    // Test As() functions
+    REQUIRE(linked_entry_double.AsDouble() == 0.0);
+    std::string s00 = linked_entry_double.AsString();
+    REQUIRE(s00.compare("0") == 0);
+
+    // Test updating variable, ConfigEntry should change
+    v = 1;
+
+    REQUIRE(linked_entry_double.AsDouble() == 1.0);
+    std::string s01 = linked_entry_double.AsString();
+    REQUIRE(s01.compare("1") == 0);
+
+    // Test bool functions 
+    // what should this be REQUIRE(linked_entry_double.IsTemporary() == true);
+    // what should this be REQUIRE(linked_entry_double.IsBuiltIn() == false);
+    REQUIRE(linked_entry_double.IsNumeric() == true);
+    REQUIRE(linked_entry_double.IsBool() == false);
+    REQUIRE(linked_entry_double.IsInt() == false);
+    REQUIRE(linked_entry_double.IsDouble() == true);
+    REQUIRE(linked_entry_double.IsString() == false);
+    REQUIRE(linked_entry_double.IsLocal() == false); // !! what should this be?
+    REQUIRE(linked_entry_double.IsTemporary() == false);
+    REQUIRE(linked_entry_double.IsBuiltIn() == false);
+    REQUIRE(linked_entry_double.IsFunction() == false);
+    //REQUIRE(linked_entry_double.IsScope()) what should this return?
+    REQUIRE(linked_entry_double.IsError() == false);
+
+    // Test getter functions
+    std::string name00 = linked_entry_double.GetName();
+    REQUIRE(name00.compare("name00") == 0);
+    std::string desc00 = linked_entry_double.GetDesc();
+    REQUIRE(desc00.compare("variable00") == 0);
+    // emp::Ptr<ConfigScope> ptr = linked_entry_double.GetScope();
+    //REQUIRE(ptr == nullptr);
+    std::string type = linked_entry_double.GetTypename();
+    REQUIRE(type.compare("Value") == 0);
+
+    // Test setter functions
+    linked_entry_double.SetName("name01");
+    std::string name01 = linked_entry_double.GetName();
+    REQUIRE(name01.compare("name01") == 0);
+    linked_entry_double.SetDesc("desc01");
+    std::string desc01 = linked_entry_double.GetDesc();
+    REQUIRE(desc01.compare("desc01") == 0);
+    // how to set these if already true?
+    linked_entry_double.SetTemporary();
+    REQUIRE(linked_entry_double.IsTemporary() == true);
+    linked_entry_double.SetBuiltIn();
+    REQUIRE(linked_entry_double.IsBuiltIn() == true);
+
+    // Test setter functions, original variable should change
+    linked_entry_double.SetValue(2.0);
+    REQUIRE(linked_entry_double.AsDouble() == 2.0);
+    linked_entry_double.SetString("3");
+    std::string s02 = linked_entry_double.AsString();
+    REQUIRE(s02.compare("3") == 0);
+  }
+}
+
 TEST_CASE("ConfigLEntry_Linker<std::string>", "[config]"){
   {
     std::string v = "0";
@@ -210,18 +274,16 @@ TEST_CASE("ConfigLEntry_Linker<std::string>", "[config]"){
     
   }
 }
-/*
+
+
 TEST_CASE("ConfigEntry_Functions", "[config]"){
   {
-    int v = 2;
-    mabe::ConfigEntry_Linked<int> functions_entry("name", v, "variable!", nullptr);
-    // if we set v to 7 then in Linked should change to 7 
-    // linked always in sync
-    // configentry_var not linked REALLY make sure this works 
+    
+    //mabe::ConfigEntry_Functions<char> funct_entry("name00, ")
     
   }
 }
-*/
+
 TEST_CASE("ConfigEntry_Var", "[config]"){
   {
     int v = 0;
