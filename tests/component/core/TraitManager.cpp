@@ -27,6 +27,8 @@ TEST_CASE("TraitInfo_Basic", "[core]"){
     }; 
     mabe::ErrorManager error_man(error_func, warning_func);
     mabe::TraitManager<mabe::ModuleBase> train_man(error_man);
+
+    // Check that traitmap begins as empty!
   } 
 }
 
@@ -41,7 +43,22 @@ TEST_CASE("TraitInfo_Locks", "[core]"){
       std::cout << "Warning: " << s;
     }; 
     mabe::ErrorManager error_man(error_func, warning_func);
-    mabe::TraitManager<mabe::ModuleBase> train_man(error_man);
+    mabe::TraitManager<mabe::ModuleBase> trait_man(error_man);
+
+    // Make sure GetLocked returns a boolean
+    REQUIRE(trait_man.GetLocked() <= 1); 
+    REQUIRE(trait_man.GetLocked() >= 0);
+    
+    // Manager should begin as locked 
+    REQUIRE(trait_man.GetLocked()); 
+
+    // Check that Unlock works
+    trait_man.Unlock(); 
+    REQUIRE_FALSE(trait_man.GetLocked()); 
+
+    // Check that Lock works
+    trait_man.Lock(); 
+    REQUIRE(trait_man.GetLocked()); 
   } 
 }
 
