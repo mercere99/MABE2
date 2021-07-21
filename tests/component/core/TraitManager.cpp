@@ -57,6 +57,7 @@ TEST_CASE("TraitInfo_Basic", "[core]"){
     mabe::MABE control(0, NULL);
     control.AddPopulation("test_pop");
     mabe::EvalNK nk_mod(control);
+    mabe::EvalNK nk2_mod(control); 
 
     // Setup a TraitManager
     // Use bools to tell if an error has been thrown 
@@ -109,6 +110,14 @@ TEST_CASE("TraitInfo_Basic", "[core]"){
     REQUIRE_FALSE(has_warning_been_thrown); 
     REQUIRE(trait_man.GetSize() == 1); 
 
+    // Add same trait to a different module
+    // Shouldn't expand traitmap
+    trait_man.AddTrait(&nk2_mod, mabe::TraitInfo::Access::OPTIONAL, "trait_i", "a trait", emp::GetTypeID<int>()); 
+    REQUIRE_FALSE(has_error_been_thrown); 
+    REQUIRE_FALSE(has_warning_been_thrown); 
+    REQUIRE(trait_man.GetSize() == 1); 
+
+
 
     /*
     Problems
@@ -130,32 +139,76 @@ TEST_CASE("TraitInfo_AddTrait", "[core]"){
     //  [SETUP]
     // Create the TraitInfo to be tested (TraitInfo is abstract so we must make a TypedTraitInfo)
     mabe::TypedTraitInfo<int> trait_i("trait_i");
-    auto error_func = [](const std::string & s){
+    mabe::TypedTraitInfo<double> trait_k("trait_k"); 
+    
+    // Add module(s) to access the trait
+    mabe::MABE control(0, NULL);
+    control.AddPopulation("test_pop");
+    mabe::EvalNK nk_mod(control);
+
+    // Setup a TraitManager
+    // Use bools to tell if an error has been thrown 
+    bool has_error_been_thrown = false; 
+    bool has_warning_been_thrown = false; 
+
+    auto error_func = [&has_error_been_thrown](const std::string & s){
       std::cout << "Error: " << s;
+      has_error_been_thrown = true;
     }; 
-    auto warning_func = [](const std::string & s){
+    auto warning_func = [&has_warning_been_thrown](const std::string & s){
       std::cout << "Warning: " << s;
+      has_warning_been_thrown = true; 
     }; 
     mabe::ErrorManager error_man(error_func, warning_func);
-    mabe::TraitManager<mabe::ModuleBase> train_man(error_man);
+    error_man.Activate(); 
+    mabe::TraitManager<mabe::ModuleBase> trait_man(error_man);
+    trait_man.Unlock(); 
 
     //  [BEGIN TESTS]
+
+    // Initial traitmap is empty
+    REQUIRE(trait_man.GetSize() == 0); 
+
+    // Add a trait with invalid type
+    trait_man.AddTrait(&nk_mod, mabe::TraitInfo::Access::OPTIONAL, "trait_i", "a trait", emp::GetTypeID<std::string>()); 
+    REQUIRE_FALSE(has_error_been_thrown); 
+    REQUIRE_FALSE(has_warning_been_thrown); 
+    REQUIRE(trait_man.GetSize() == 0); 
+
+    // Add same 
+
   } 
 }
 
 TEST_CASE("TraitInfo_AccessSpecifications", "[core]"){
   { 
-    //  [SETUP]
+    /  [SETUP]
     // Create the TraitInfo to be tested (TraitInfo is abstract so we must make a TypedTraitInfo)
     mabe::TypedTraitInfo<int> trait_i("trait_i");
-    auto error_func = [](const std::string & s){
+    mabe::TypedTraitInfo<double> trait_k("trait_k"); 
+    
+    // Add module(s) to access the trait
+    mabe::MABE control(0, NULL);
+    control.AddPopulation("test_pop");
+    mabe::EvalNK nk_mod(control);
+
+    // Setup a TraitManager
+    // Use bools to tell if an error has been thrown 
+    bool has_error_been_thrown = false; 
+    bool has_warning_been_thrown = false; 
+
+    auto error_func = [&has_error_been_thrown](const std::string & s){
       std::cout << "Error: " << s;
+      has_error_been_thrown = true;
     }; 
-    auto warning_func = [](const std::string & s){
+    auto warning_func = [&has_warning_been_thrown](const std::string & s){
       std::cout << "Warning: " << s;
+      has_warning_been_thrown = true; 
     }; 
     mabe::ErrorManager error_man(error_func, warning_func);
-    mabe::TraitManager<mabe::ModuleBase> train_man(error_man);
+    error_man.Activate(); 
+    mabe::TraitManager<mabe::ModuleBase> trait_man(error_man);
+    trait_man.Unlock(); 
 
     //  [BEGIN TESTS]
   } 
