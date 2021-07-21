@@ -118,53 +118,80 @@ TEST_CASE("TraitInfo_Basic", "[core]"){
   } 
 }
 
-// TEST_CASE("TraitInfo_AddTrait", "[core]"){
-//   { 
-//     //  [SETUP]
-//     // Create the TraitInfo to be tested (TraitInfo is abstract so we must make a TypedTraitInfo)
-//     // Add module(s) to access the trait
-//     mabe::MABE control(0, NULL);
-//     control.AddPopulation("test_pop");
-//     mabe::EvalNK nk_mod(control);
-//     mabe::EvalNK nk2_mod(control); 
+TEST_CASE("TraitInfo_AddTrait", "[core]"){
+  { 
+    //  [SETUP]
+    // Create the TraitInfo to be tested (TraitInfo is abstract so we must make a TypedTraitInfo)
+    // Add module(s) to access the trait
+    mabe::MABE control(0, NULL);
+    control.AddPopulation("test_pop");
+    mabe::EvalNK nk_mod(control);
+    mabe::EvalNK nk2_mod(control); 
 
-//     // Setup a TraitManager
-//     // Use bools to tell if an error has been thrown 
-//     bool has_error_been_thrown = false; 
-//     bool has_warning_been_thrown = false; 
+    // Setup a TraitManager
+    // Use bools to tell if an error has been thrown 
+    bool has_error_been_thrown = false; 
+    bool has_warning_been_thrown = false; 
 
-//     auto error_func = [&has_error_been_thrown](const std::string & s){
-//       std::cout << "Error: " << s;
-//       has_error_been_thrown = true;
-//     }; 
-//     auto warning_func = [&has_warning_been_thrown](const std::string & s){
-//       std::cout << "Warning: " << s;
-//       has_warning_been_thrown = true; 
-//     }; 
-//     mabe::ErrorManager error_man(error_func, warning_func);
-//     error_man.Activate(); 
-//     mabe::TraitManager<mabe::ModuleBase> trait_man(error_man);
-//     trait_man.Unlock(); 
+    auto error_func = [&has_error_been_thrown](const std::string & s){
+      std::cout << "Error: " << s;
+      has_error_been_thrown = true;
+    }; 
+    auto warning_func = [&has_warning_been_thrown](const std::string & s){
+      std::cout << "Warning: " << s;
+      has_warning_been_thrown = true; 
+    }; 
+    mabe::ErrorManager error_man(error_func, warning_func);
+    error_man.Activate(); 
+    mabe::TraitManager<mabe::ModuleBase> trait_man(error_man);
+    trait_man.Unlock(); 
 
-//     //  [BEGIN TESTS]
-//     // keep track of traitmap size
-//     int map_size = 0; 
+    //  [BEGIN TESTS]
+    // Initial traitmap is empty
+    REQUIRE(trait_man.GetSize() == 0); 
 
-//     // Initial traitmap is empty
-//     REQUIRE(trait_man.GetSize() == map_size); 
+    // Add a trait normally
+    trait_man.AddTrait(&nk_mod, mabe::TraitInfo::Access::OPTIONAL, "trait_i", "a trait", emp::GetTypeID<std::string>()); 
+    REQUIRE_FALSE(has_error_been_thrown); 
+    REQUIRE_FALSE(has_warning_been_thrown); 
+    REQUIRE(trait_man.GetSize() == 1); 
 
-//     // Add a trait with invalid type
-//     trait_man.AddTrait(&nk_mod, mabe::TraitInfo::Access::OPTIONAL, "trait_i", "a trait", emp::GetTypeID<std::string>()); 
-//     REQUIRE_FALSE(has_error_been_thrown); 
-//     REQUIRE_FALSE(has_warning_been_thrown); 
-//     //REQUIRE(trait_man.GetSize() == map_size); 
+    // Add same trait to same module
+    // Should throw error and not add it again to the map
+    trait_man.AddTrait(&nk_mod, mabe::TraitInfo::Access::OPTIONAL, "trait_i", "a trait", emp::GetTypeID<std::string>()); 
+    REQUIRE(has_error_been_thrown); 
+    REQUIRE_FALSE(has_warning_been_thrown); 
+    REQUIRE(trait_man.GetSize() == 1);
 
-//     /* adds trait with invalid type even though error is thrown */
+    has_error_been_thrown = false; 
 
-//     // Add same trait to same module: throw error and not add it again to the map
+    // Add the same trait, but with a non-AltType 
+    // Should throw error, and not add to traitmap <<- this fails??
+    // trait_man.AddTrait(&nk2_mod, mabe::TraitInfo::Access::OPTIONAL, "trait_i", "a trait", emp::GetTypeID<int>()); 
+    // REQUIRE(has_error_been_thrown); 
+    // REQUIRE_FALSE(has_warning_been_thrown); 
+    // REQUIRE(trait_man.GetSize() == 1); 
 
-//   } 
-// }
+    has_error_been_thrown = false; 
+
+    // Add a trait with specified optional types
+    trait_man.AddTrait<int, double, float>(&nk_mod, mabe::TraitInfo::Access::OPTIONAL, "trait_j", "a trait", emp::GetTypeID<int>()); 
+    REQUIRE_FALSE(has_error_been_thrown); 
+    REQUIRE_FALSE(has_warning_been_thrown); 
+    REQUIRE(trait_man.GetSize() == 2); 
+
+    // Add it to another module using one of the specified alt-types
+    trait_man.AddTrait(&nk2_mod, mabe::TraitInfo::Access::OPTIONAL, "trait_j", "a trait", emp::GetTypeID<float>()); 
+    REQUIRE_FALSE(has_error_been_thrown); 
+    REQUIRE_FALSE(has_warning_been_thrown); 
+    REQUIRE(trait_man.GetSize() == 2); 
+
+    // ^^ failing by saying: 
+    // Error: Module EvalNK is trying to use trait 'trait_j' of type N3emp6TypeIDE; Previously defined in module(s) EvalNK as type int32_t
+    // Even though it's specified as an alternate trait???
+    // See Module.hpp for examples of adding altTypes in the AddTrait
+  } 
+}
 
 // TEST_CASE("TraitInfo_AccessSpecifications", "[core]"){
 //   { 
