@@ -287,11 +287,11 @@ TEST_CASE("ConfigEntry_Var", "[config]"){
     
   }
 }
-/*
+
 TEST_CASE("ConfigEntry_Var<std::string>", "[config]"){
   {
-    int v = 0;
-    mabe::ConfigEntry_Var<int> var_entry_int("name00", v, "variable00", nullptr);
+    std::string v = "0";
+    mabe::ConfigEntry_Var<std::string> var_entry_str("name00", v, "variable00", nullptr);
 
     // Test As() functions
     REQUIRE(var_entry_str.AsDouble() == 0.0);
@@ -299,22 +299,22 @@ TEST_CASE("ConfigEntry_Var<std::string>", "[config]"){
     REQUIRE(s00.compare("0") == 0);
 
     // Test updating variable
-    v = 1;
+    v = "1";
 
-    REQUIRE(var_entry_str.AsDouble() == 1.0);
+    REQUIRE(var_entry_str.AsDouble() == 0.0);
     std::string s01 = var_entry_str.AsString();
-    REQUIRE(s01.compare("1") == 0);
+    REQUIRE(s01.compare("0") == 0);
 
     // bool functions 
     // what should this be REQUIRE(var_entry_str.IsTemporary() == true);
     // what should this be REQUIRE(var_entry_str.IsBuiltIn() == false);
-    REQUIRE(var_entry_str.IsNumeric() == true);
+    REQUIRE(var_entry_str.IsNumeric() == false);
     REQUIRE(var_entry_str.IsBool() == false);
-    REQUIRE(var_entry_str.IsInt() == true);
+    REQUIRE(var_entry_str.IsInt() == false);
     REQUIRE(var_entry_str.IsDouble() == false);
-    REQUIRE(var_entry_str.IsString() == false);
+    REQUIRE(var_entry_str.IsString() == true);
 
-    REQUIRE(var_entry_str.IsLocal() == false); // should this be true?
+    REQUIRE(var_entry_str.IsLocal() == true); // should this be true?
     REQUIRE(var_entry_str.IsTemporary() == false);
     REQUIRE(var_entry_str.IsBuiltIn() == false);
     REQUIRE(var_entry_str.IsFunction() == false);
@@ -329,7 +329,7 @@ TEST_CASE("ConfigEntry_Var<std::string>", "[config]"){
     //emp::Ptr<ConfigScope> ptr = var_entry_str.GetScope();
     //REQUIRE(ptr == nullptr);
     std::string type = var_entry_str.GetTypename();
-    REQUIRE(type.compare("Value") == 0);
+    REQUIRE(type.compare("String") == 0);
 
     var_entry_str.SetName("name01");
     std::string name01 = var_entry_str.GetName();
@@ -345,15 +345,10 @@ TEST_CASE("ConfigEntry_Var<std::string>", "[config]"){
 
     var_entry_str.SetValue(2.0);
     REQUIRE(var_entry_str.AsDouble() == 2.0);
-    REQUIRE(v == 2.0);
+    REQUIRE(v == "1");
     var_entry_str.SetString("3");
     std::string s02 = var_entry_str.AsString();
     REQUIRE(s02.compare("3") == 0);
-    REQUIRE(v == 3);
-    // if we set v to 7 then in Linked should change to 7 
-    // linked always in sync
-    // configentry_var not linked REALLY make sure this works 
-    
+    REQUIRE(v == "1");
   }
 }
-*/
