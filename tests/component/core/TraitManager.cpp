@@ -15,7 +15,12 @@
 #include "core/MABE.hpp"
 #include "evaluate/static/EvalNK.hpp"
 
-// Even if an error is thrown, the traitmap still updates with the new trait!
+// NOTE: Errors/Warnings will print to the terminal as "Error: " and "Warning: " without the
+//          actual error/warning message. Add the message by writing 
+//              std::cout << "Error: "/"Warning: " << s; 
+//          instead of 
+//              std::cout << "Error: "/"Warning: ";
+// NOTE: Even if an error is thrown, the traitmap still updates with the new trait
 
 TEST_CASE("TraitManager_Locks", "[core]"){
   { 
