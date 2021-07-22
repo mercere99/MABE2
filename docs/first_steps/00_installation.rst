@@ -16,7 +16,9 @@ Downloading MABE2 from GitHub
 The first step for installation on any machine is to visit MABE2 on  
 `GitHub <https://github.com/mercere99/MABE2>`_. The simplest way to 
 download source code form GitHub is to download the entire repository. 
-MABE2 can be downloaded as a zip file, or via the command line.
+MABE2 can be downloaded :ref:`as a zip file<zip>`, or :ref:`via the command line<url>`.
+
+.. _zip:
 
 Downloading MABE2 as a Zip File
 -------------------------------
@@ -28,6 +30,7 @@ full zip of everything in MABE2's master branch to your computer.
 .. image:: ../images/GitHub_Zip.png
   :width: 600
 
+.. _url:
 
 Downloading MABE2 via the Command Line
 --------------------------------------
