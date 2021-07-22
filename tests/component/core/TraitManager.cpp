@@ -16,8 +16,8 @@
 #include "evaluate/static/EvalNK.hpp"
 
 // Even if an error is thrown, the traitmap still updates with the new trait!
-/*
- TEST_CASE("TraitManager_Locks", "[core]"){
+
+TEST_CASE("TraitManager_Locks", "[core]"){
   { 
     //  [SETUP]
     // Create the TraitInfo to be tested (TraitInfo is abstract so we must make a TypedTraitInfo)
@@ -47,10 +47,8 @@
     REQUIRE(trait_man.GetLocked()); 
   } 
 } 
-*/
 
-/*
- TEST_CASE("TraitManager_Basic", "[core]"){
+TEST_CASE("TraitManager_Basic", "[core]"){
   { 
     //  [SETUP]
     // Add module(s) to access the trait
@@ -119,8 +117,6 @@
     REQUIRE(trait_man.GetSize() == 3); 
   } 
 } 
-*/
-
 
 TEST_CASE("TraitManager_AddTrait", "[core]"){
   { 
@@ -194,42 +190,58 @@ TEST_CASE("TraitManager_AddTrait", "[core]"){
     mabe::ErrorManager error_man(error_func, warning_func);
     error_man.Activate(); 
     mabe::TraitManager<mabe::ModuleBase> trait_man(error_man);
-    trait_man.Unlock(); 
+    trait_man.Unlock();
+
 
     //  [BEGIN TESTS] 
+    // Test to pass a valid alternative type
 
-    /*has_error_been_thrown = false; 
-
-    // Add the same trait, but with a non-AltType 
-    // Should throw error, and not add to traitmap <<- this fails??
-    trait_man.AddTrait<int>(&nk2_mod, mabe::TraitInfo::Access::OPTIONAL, "trait_i", "a trait", 7); 
-    REQUIRE(has_error_been_thrown); 
-    REQUIRE_FALSE(has_warning_been_thrown); 
+    // Create a trait with ints, doubles and strings allowed
+    trait_man.AddTrait<int, double, std::string>(&nk_mod, mabe::TraitInfo::Access::OPTIONAL, "trait_i", "a trait", 7); 
     REQUIRE(trait_man.GetSize() == 1); 
-
-    has_error_been_thrown = false; 
-
-    // Add a trait with specified optional types
-    trait_man.AddTrait<int, double, float>(&nk_mod, mabe::TraitInfo::Access::OPTIONAL, "trait_j", "a trait", 7); 
     REQUIRE_FALSE(has_error_been_thrown); 
     REQUIRE_FALSE(has_warning_been_thrown); 
-    REQUIRE(trait_man.GetSize() == 2); 
 
-    // Add it to another module using one of the specified alt-types
-    trait_man.AddTrait<double>(&nk2_mod, mabe::TraitInfo::Access::OPTIONAL, "trait_j", "a trait", 7.0); 
+    // Add a module that accesses with one of the AltTypes
+    trait_man.AddTrait<double>(&nk2_mod, mabe::TraitInfo::Access::OPTIONAL, "trait_i", "a trait", 7.0); 
+    REQUIRE(trait_man.GetSize() == 1); 
     REQUIRE_FALSE(has_error_been_thrown); 
     REQUIRE_FALSE(has_warning_been_thrown); 
-    REQUIRE(trait_man.GetSize() == 2); 
 
-    // ^^ failing by saying: 
-    // See Module.hpp for examples of adding altTypes in the AddTrait
-    */
+    // -----------------------------------------------------
+    // Test to pass valid non-AltType 
+
+    // Create a trait with ints, doubles and strings allowed
+    trait_man.AddTrait<int, double, std::string>(&nk_mod, mabe::TraitInfo::Access::OPTIONAL, "trait_j", "a trait", 7); 
+    REQUIRE(trait_man.GetSize() == 2); 
+    REQUIRE_FALSE(has_error_been_thrown); 
+    REQUIRE_FALSE(has_warning_been_thrown); 
+
+    // Add a module that accesses using float (double and float should sub for eachother) << this fails
+    // trait_man.AddTrait<float>(&nk2_mod, mabe::TraitInfo::Access::OPTIONAL, "trait_j", "a trait", 7.0); 
+    // REQUIRE(trait_man.GetSize() == 2); 
+    // REQUIRE_FALSE(has_error_been_thrown); 
+    // REQUIRE_FALSE(has_warning_been_thrown); 
+
+
+    // ----------------------------------------------------
+    // Test pass invalid non-AltType 
+
+    // Create trait that only takes ints and doubles
+    trait_man.AddTrait<int, double>(&nk_mod, mabe::TraitInfo::Access::OPTIONAL, "trait_k", "a trait", 7); 
+    REQUIRE(trait_man.GetSize() == 3); 
+    REQUIRE_FALSE(has_error_been_thrown); 
+    REQUIRE_FALSE(has_warning_been_thrown); 
+
+
+    // Add another module to that trait with non-AltTypes type
+    trait_man.AddTrait<std::string>(&nk2_mod, mabe::TraitInfo::Access::OPTIONAL, "trait_k", "a trait", "test string"); 
+    REQUIRE(trait_man.GetSize() == 3);
+    REQUIRE(has_error_been_thrown); 
+    REQUIRE_FALSE(has_warning_been_thrown);    
   } 
 } 
 
-
-
- /*
 TEST_CASE("TraitManager_Verify", "[core]") {
    
   { 
@@ -628,11 +640,11 @@ TEST_CASE("TraitManager_Verify", "[core]") {
     
     REQUIRE(has_error_been_thrown2); 
     REQUIRE_FALSE(has_warning_been_thrown); 
-    
+    */
     
 
   }
    
 }
-*/
+
 
