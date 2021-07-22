@@ -22,10 +22,10 @@ TEST_CASE("TraitManager_Locks", "[core]"){
     //  [SETUP]
     // Create the TraitInfo to be tested (TraitInfo is abstract so we must make a TypedTraitInfo)
     auto error_func = [](const std::string & s){
-      std::cout << "Error: " << s;
+      std::cout << "Error: ";
     }; 
     auto warning_func = [](const std::string & s){
-      std::cout << "Warning: " << s;
+      std::cout << "Warning: ";
     }; 
     mabe::ErrorManager error_man(error_func, warning_func);
     mabe::TraitManager<mabe::ModuleBase> trait_man(error_man);
@@ -63,11 +63,11 @@ TEST_CASE("TraitManager_Basic", "[core]"){
     bool has_warning_been_thrown = false; 
 
     auto error_func = [&has_error_been_thrown](const std::string & s){
-      std::cout << "Error: " << s;
+      std::cout << "Error: ";
       has_error_been_thrown = true;
     }; 
     auto warning_func = [&has_warning_been_thrown](const std::string & s){
-      std::cout << "Warning: " << s;
+      std::cout << "Warning: ";
       has_warning_been_thrown = true; 
     }; 
     
@@ -135,15 +135,15 @@ TEST_CASE("TraitManager_AddTrait", "[core]"){
     bool has_warning_been_thrown = false; 
 
     auto error_func = [&has_error_been_thrown](const std::string & s){
-      std::cout << "Error: " << s;
+      std::cout << "Error: ";
       has_error_been_thrown = true;
     }; 
     auto error_func2 = [&has_error_been_thrown2](const std::string & s){
-      std::cout << "Error: " << s;
+      std::cout << "Error: ";
       has_error_been_thrown2 = true;
     }; 
     auto warning_func = [&has_warning_been_thrown](const std::string & s){
-      std::cout << "Warning: " << s;
+      std::cout << "Warning: ";
       has_warning_been_thrown = true; 
     }; 
     mabe::ErrorManager error_man(error_func, warning_func);
@@ -188,7 +188,20 @@ TEST_CASE("TraitManager_AddTrait", "[core]"){
     REQUIRE(trait_man2.GetSize() == 1); 
     REQUIRE_FALSE(has_error_been_thrown2); 
     REQUIRE_FALSE(has_warning_been_thrown); 
+/*
+    // Also check the reverse order! << second REQUIRE_FALSE for error fails
 
+    trait_man2.AddTrait<double>(&nk_mod, mabe::TraitInfo::Access::OPTIONAL, "trait_ij", "a trait", 7.0); 
+    REQUIRE(trait_man2.GetSize() == 1); 
+    REQUIRE_FALSE(has_error_been_thrown2); 
+    REQUIRE_FALSE(has_warning_been_thrown); 
+
+    trait_man2.AddTrait<int, double, std::string>(&nk_mod, mabe::TraitInfo::Access::OPTIONAL, "trait_ij", "a trait", 7); 
+    REQUIRE(trait_man2.GetSize() == 1); 
+    REQUIRE_FALSE(has_error_been_thrown2); 
+    REQUIRE_FALSE(has_warning_been_thrown);
+    
+*/
     // -----------------------------------------------------
     // Test to pass valid non-AltType 
 
@@ -219,11 +232,11 @@ TEST_CASE("TraitManager_AddTrait", "[core]"){
     REQUIRE(trait_man2.GetSize() == 3);
     REQUIRE(has_error_been_thrown2); 
     REQUIRE_FALSE(has_warning_been_thrown);    
+    
   } 
 } 
 
 TEST_CASE("TraitManager_Verify", "[core]") {
-   
   { 
     //  [SETUP]
     // Add module(s) to access the trait
@@ -238,11 +251,11 @@ TEST_CASE("TraitManager_Verify", "[core]") {
     bool has_warning_been_thrown = false; 
 
     auto error_func = [&has_error_been_thrown](const std::string & s){
-      std::cout << "Error: " << s;
+      std::cout << "Error: ";
       has_error_been_thrown = true;
     }; 
     auto warning_func = [&has_warning_been_thrown](const std::string & s){
-      std::cout << "Warning: " << s;
+      std::cout << "Warning: ";
       has_warning_been_thrown = true; 
     }; 
     mabe::ErrorManager error_man(error_func, warning_func);
@@ -304,8 +317,6 @@ TEST_CASE("TraitManager_Verify", "[core]") {
     REQUIRE_FALSE(has_error_been_thrown); 
     REQUIRE_FALSE(has_warning_been_thrown);
   } 
-  
-  
  
   {
     //  [SETUP]
@@ -323,17 +334,17 @@ TEST_CASE("TraitManager_Verify", "[core]") {
     bool has_warning_been_thrown = false; 
 
     auto error_func1 = [&has_error_been_thrown1](const std::string & s){
-      std::cout << "Error: " << s;
+      std::cout << "Error: ";
       has_error_been_thrown1 = true;
     }; 
 
     auto error_func2 = [&has_error_been_thrown2](const std::string & s){
-      std::cout << "Warning: " << s;
+      std::cout << "Error: ";
       has_error_been_thrown2 = true; 
     }; 
 
     auto warning_func = [&has_warning_been_thrown](const std::string & s){
-      std::cout << "Warning: " << s;
+      std::cout << "Warning: ";
       has_warning_been_thrown = true; 
     }; 
 
@@ -382,12 +393,12 @@ TEST_CASE("TraitManager_Verify", "[core]") {
     bool has_error_been_thrown4 = false; 
 
     auto error_func3 = [&has_error_been_thrown3](const std::string & s){
-      std::cout << "Error: " << s;
+      std::cout << "Error: ";
       has_error_been_thrown3 = true;
     }; 
 
     auto error_func4 = [&has_error_been_thrown4](const std::string & s){
-      std::cout << "Warning: " << s;
+      std::cout << "Error ";
       has_error_been_thrown4 = true; 
     }; 
 
@@ -447,9 +458,8 @@ TEST_CASE("TraitManager_Verify", "[core]") {
     REQUIRE_FALSE(has_warning_been_thrown);
   }
   
-
   {
-      //  [SETUP]
+    //  [SETUP]
     // Add module(s) to access the trait
     mabe::MABE control(0, NULL);
     control.AddPopulation("test_pop");
@@ -463,17 +473,17 @@ TEST_CASE("TraitManager_Verify", "[core]") {
     bool has_warning_been_thrown = false; 
 
     auto error_func1 = [&has_error_been_thrown1](const std::string & s){
-      std::cout << "Error: " << s;
+      std::cout << "Error: ";
       has_error_been_thrown1 = true;
     }; 
 
     auto error_func2 = [&has_error_been_thrown2](const std::string & s){
-      std::cout << "Warning: " << s;
+      std::cout << "Error: ";
       has_error_been_thrown2 = true; 
     }; 
 
     auto warning_func = [&has_warning_been_thrown](const std::string & s){
-      std::cout << "Warning: " << s;
+      std::cout << "Warning: ";
       has_warning_been_thrown = true; 
     }; 
 
@@ -531,7 +541,6 @@ TEST_CASE("TraitManager_Verify", "[core]") {
     REQUIRE_FALSE(has_warning_been_thrown); 
   }
     
-  
   {
     //  [SETUP]
     // Add module(s) to access the trait
@@ -548,17 +557,17 @@ TEST_CASE("TraitManager_Verify", "[core]") {
     bool has_warning_been_thrown = false; 
 
     auto error_func1 = [&has_error_been_thrown1](const std::string & s){
-      std::cout << "Error: " << s;
+      std::cout << "Error: ";
       has_error_been_thrown1 = true;
     }; 
 
     auto error_func2 = [&has_error_been_thrown2](const std::string & s){
-      std::cout << "Warning: " << s;
+      std::cout << "Error: ";
       has_error_been_thrown2 = true; 
     }; 
 
     auto warning_func = [&has_warning_been_thrown](const std::string & s){
-      std::cout << "Warning: " << s;
+      std::cout << "Warning: ";
       has_warning_been_thrown = true; 
     }; 
 
