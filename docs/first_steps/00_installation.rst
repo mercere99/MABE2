@@ -9,8 +9,8 @@ Before attempting to install MABE2 **you must have Git installed so that you
 can use the MABE2 software on your local computer**. For information on installing 
 Git on any device, see `this guide <https://github.com/git-guides/install-git#:~:text=Git%20packages%20are%20available%20using%20dnf%20.,installation%20by%20typing%3A%20git%20version%20.>`_.
 
-Downloading MABE2 from GitHub
-=============================
+Downloading MABE2 from GitHub as a Zip File
+===========================================
 
 The first step for installation on any machine is to visit MABE2 on  
 `GitHub <https://github.com/mercere99/MABE2>`_. The simplest way to 
@@ -24,16 +24,29 @@ full zip of everything in MABE2's master branch to your computer.
 
 For more information about GitHub, checkout the `GitHub Guides <https://guides.github.com/>`_.
 
-MABE2 can also be downloaded 
-Mac and Linux Installation Instructions
-=======================================
+MABE2 can also be downloaded via the command line.
 
+Command Line Installation Instructions
+======================================
 
-Windows Installation Instructions
-=================================
+Once again, you will need to visit MABE2 on `GitHub <https://github.com/mercere99/MABE2>`_.
+From the repository's main page, find the green *Code* button in the upper
+right hand corner. Click this button, then click the *clipboard icon* to copy the url to your 
+clip board. 
+
+Mac and Linux
+-------------
 
 Installation with WSL
 ---------------------
 
 Installation with the Windows Shell
 -----------------------------------
+
+Necessary compilers
+===================
+
+Once you have MABE2 downloaded you must make sure you have the necessary compilers
+installed so you can run your MABE2 projects. 
+
+To compile MABE2 **you must have a native C++ compiler**. 
