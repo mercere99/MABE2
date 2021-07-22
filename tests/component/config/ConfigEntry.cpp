@@ -80,7 +80,7 @@ TEST_CASE("ConfigEntry_Linker_Int", "[config]"){
     REQUIRE(v == 3);
 
     // Test Clone()
-    emp::Ptr<mabe::ConfigEntry> clone_ptr = linked_entry_int.Clone(); // check name, desc, getValue and string, should all be the same
+    emp::Ptr<mabe::ConfigEntry> clone_ptr = linked_entry_int.Clone();
     const std::string s03 = clone_ptr->GetName();
     REQUIRE(s03.compare(linked_entry_int.GetName()) == 0);
     const std::string s04 = clone_ptr->GetDesc();
@@ -160,7 +160,7 @@ TEST_CASE("ConfigEntry_Linker_Double", "[config]"){
     REQUIRE(s02.compare("3") == 0);
 
     // Test Clone()
-    emp::Ptr<mabe::ConfigEntry> clone_ptr = linked_entry_double.Clone(); // check name, desc, getValue and string, should all be the same
+    emp::Ptr<mabe::ConfigEntry> clone_ptr = linked_entry_double.Clone();
     const std::string s03 = clone_ptr->GetName();
     REQUIRE(s03.compare(linked_entry_double.GetName()) == 0);
     const std::string s04 = clone_ptr->GetDesc();
@@ -243,7 +243,7 @@ TEST_CASE("ConfigLEntry_Linker<std::string>", "[config]"){
     REQUIRE(v == "3");
 
     // Test Clone()
-    emp::Ptr<mabe::ConfigEntry> clone_ptr = linked_entry_str.Clone(); // check name, desc, getValue and string, should all be the same
+    emp::Ptr<mabe::ConfigEntry> clone_ptr = linked_entry_str.Clone();
     const std::string s03 = clone_ptr->GetName();
     REQUIRE(s03.compare(linked_entry_str.GetName()) == 0);
     const std::string s04 = clone_ptr->GetDesc();
@@ -323,7 +323,7 @@ TEST_CASE("ConfigEntry_Functions", "[config]"){
     REQUIRE(s02.compare("7") == 0);
 
     // Test Clone()
-    emp::Ptr<mabe::ConfigEntry> clone_ptr = linker_functions.Clone(); // check name, desc, getValue and string, should all be the same
+    emp::Ptr<mabe::ConfigEntry> clone_ptr = linker_functions.Clone();
     const std::string s03 = clone_ptr->GetName();
     REQUIRE(s03.compare(linker_functions.GetName()) == 0);
     const std::string s04 = clone_ptr->GetDesc();
@@ -405,7 +405,7 @@ TEST_CASE("ConfigEntry_Var_Int", "[config]"){
     REQUIRE(v == 1); 
 
     // Test Clone()
-    emp::Ptr<mabe::ConfigEntry> clone_ptr = var_entry_int.Clone(); // check name, desc, getValue and string, should all be the same
+    emp::Ptr<mabe::ConfigEntry> clone_ptr = var_entry_int.Clone();
     const std::string s03 = clone_ptr->GetName();
     REQUIRE(s03.compare(var_entry_int.GetName()) == 0);
     const std::string s04 = clone_ptr->GetDesc();
@@ -484,7 +484,7 @@ TEST_CASE("ConfigEntry_Var_Double", "[config]"){
     REQUIRE(v == 1.0);
 
     // Test Clone()
-    emp::Ptr<mabe::ConfigEntry> clone_ptr = var_entry_double.Clone(); // check name, desc, getValue and string, should all be the same
+    emp::Ptr<mabe::ConfigEntry> clone_ptr = var_entry_double.Clone();
     const std::string s03 = clone_ptr->GetName();
     REQUIRE(s03.compare(var_entry_double.GetName()) == 0);
     const std::string s04 = clone_ptr->GetDesc();
@@ -565,7 +565,7 @@ TEST_CASE("ConfigEntry_Var<std::string>", "[config]"){
     REQUIRE(v == "1");
 
     // Test Clone()
-    emp::Ptr<mabe::ConfigEntry> clone_ptr = var_entry_str.Clone(); // check name, desc, getValue and string, should all be the same
+    emp::Ptr<mabe::ConfigEntry> clone_ptr = var_entry_str.Clone();
     const std::string s03 = clone_ptr->GetName();
     REQUIRE(s03.compare(var_entry_str.GetName()) == 0);
     const std::string s04 = clone_ptr->GetDesc();
