@@ -25,6 +25,9 @@ TEST_CASE("ConfigEntry_Linker_Int", "[config]"){
     REQUIRE(linked_entry_int.AsDouble() == 0.0);
     std::string s00 = linked_entry_int.AsString();
     REQUIRE(s00.compare("0") == 0);
+    emp::Ptr<mabe::ConfigScope> scope_ptr = linked_entry_int.AsScopePtr();
+    REQUIRE(scope_ptr == nullptr);
+
 
     // Test updating variable, ConfigEntry should change
     v = 1;
@@ -107,6 +110,8 @@ TEST_CASE("ConfigEntry_Linker_Double", "[config]"){
     REQUIRE(linked_entry_double.AsDouble() == 0.0);
     std::string s00 = linked_entry_double.AsString();
     REQUIRE(s00.compare("0") == 0);
+    emp::Ptr<mabe::ConfigScope> scope_ptr = linked_entry_double.AsScopePtr();
+    REQUIRE(scope_ptr == nullptr);
 
     // Test updating variable, ConfigEntry should change
     v = 1;
@@ -185,6 +190,8 @@ TEST_CASE("ConfigLEntry_Linker<std::string>", "[config]"){
     REQUIRE(linked_entry_str.AsDouble() == 0.0);
     std::string s00 = linked_entry_str.AsString();
     REQUIRE(s00.compare("0") == 0);
+    emp::Ptr<mabe::ConfigScope> scope_ptr = linked_entry_str.AsScopePtr();
+    REQUIRE(scope_ptr == nullptr);
 
     // Test updating variable, ConfigEntry should change
     v = "1";
@@ -280,6 +287,8 @@ TEST_CASE("ConfigEntry_Functions", "[config]"){
     REQUIRE(linker_functions.AsDouble() == 0.0);
     std::string s00 = linker_functions.AsString();
     REQUIRE(s00.compare("0") == 0);
+    emp::Ptr<mabe::ConfigScope> scope_ptr = linker_functions.AsScopePtr();
+    REQUIRE(scope_ptr == nullptr);
 
     // Test bool functions 
     REQUIRE(linker_functions.IsTemporary() == false);
@@ -349,6 +358,8 @@ TEST_CASE("ConfigEntry_Var_Int", "[config]"){
     REQUIRE(var_entry_int.AsDouble() == 0.0);
     std::string s00 = var_entry_int.AsString();
     REQUIRE(s00.compare("0") == 0);
+    emp::Ptr<mabe::ConfigScope> scope_ptr = var_entry_int.AsScopePtr();
+    REQUIRE(scope_ptr == nullptr);
 
     // Test updating variable, ConfigEntry should not change
     v = 1;
@@ -430,6 +441,8 @@ TEST_CASE("ConfigEntry_Var_Double", "[config]"){
     REQUIRE(var_entry_double.AsDouble() == 0.0);
     std::string s00 = var_entry_double.AsString();
     REQUIRE(s00.compare("0") == 0);
+    emp::Ptr<mabe::ConfigScope> scope_ptr = var_entry_double.AsScopePtr();
+    REQUIRE(scope_ptr == nullptr);
 
     // Test updating variable, ConfigEntry should not change
     v = 1.0;
@@ -509,6 +522,8 @@ TEST_CASE("ConfigEntry_Var<std::string>", "[config]"){
     REQUIRE(var_entry_str.AsDouble() == 0.0);
     std::string s00 = var_entry_str.AsString();
     REQUIRE(s00.compare("0") == 0);
+    emp::Ptr<mabe::ConfigScope> scope_ptr = var_entry_str.AsScopePtr();
+    REQUIRE(scope_ptr == nullptr);
 
     // Test updating variable, ConfigEntry should not change
     v = "1";
