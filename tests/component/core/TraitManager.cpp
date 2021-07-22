@@ -416,6 +416,67 @@ TEST_CASE("TraitInfo_Verify", "[core]"){
   }
 
   {
+      //  [SETUP]
+    // Add module(s) to access the trait
+    mabe::MABE control(0, NULL);
+    control.AddPopulation("test_pop");
+    mabe::EvalNK nk_mod(control);
+    mabe::EvalNK nk2_mod(control); 
+    mabe::EvalNK nk3_mod(control);  
+
+    // Setup a TraitManager
+    // Use bools to tell if an error has been thrown 
+    bool has_error_been_thrown1 = false; 
+    bool has_error_been_thrown2 = false; 
+    bool has_warning_been_thrown = false; 
+
+    auto error_func1 = [&has_error_been_thrown1](const std::string & s){
+      std::cout << "Error: " << s;
+      has_error_been_thrown1 = true;
+    }; 
+
+    auto error_func2 = [&has_error_been_thrown2](const std::string & s){
+      std::cout << "Warning: " << s;
+      has_error_been_thrown2 = true; 
+    }; 
+
+    auto warning_func = [&has_warning_been_thrown](const std::string & s){
+      std::cout << "Warning: " << s;
+      has_warning_been_thrown = true; 
+    }; 
+
+
+    mabe::ErrorManager error_man1(error_func1, warning_func);
+    mabe::ErrorManager error_man2(error_func2, warning_func); 
+    error_man1.Activate(); 
+    error_man2.Activate();
+    mabe::TraitManager<mabe::ModuleBase> trait_man1(error_man1);
+    mabe::TraitManager<mabe::ModuleBase> trait_man2(error_man2);
+    trait_man1.Unlock(); 
+    trait_man2.Unlock(); 
+
+    //  [BEGIN TESTS] 
+    // A GENERATED trait must have another module REQUIRE it
+
+    // Create a generated trait
+    trait_man1.AddTrait(&nk_mod, mabe::TraitInfo::Access::GENERATED, "trait_l", "a trait", emp::GetTypeID<int>()); 
+    REQUIRE(trait_man1.GetSize() == 1); 
+
+    // Verify should fail because another module does not REQUIRE
+    trait_man1.Verify(true); 
+    REQUIRE(has_error_been_thrown1); 
+    REQUIRE_FALSE(has_warning_been_thrown); 
+
+    has_error_been_thrown1 = false; 
+
+    // Add a module that REQUIRES the trait
+    trait_man1.AddTrait(&nk2_mod, mabe::TraitInfo::Access::REQUIRED, "trait_l", "a trait", emp::GetTypeID<int>()); 
+    REQUIRE(trait_man1.GetSize() == 1); 
+
+    // Verify should succeed now
+    trait_man1.Verify(true); 
+    REQUIRE_FALSE(has_error_been_thrown1); 
+    REQUIRE_FALSE(has_warning_been_thrown); 
 
 
 
@@ -423,7 +484,7 @@ TEST_CASE("TraitInfo_Verify", "[core]"){
 
 
 
-      
+
   }
 }
 
