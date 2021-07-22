@@ -80,7 +80,20 @@ TEST_CASE("ConfigEntry_Linker_Int", "[config]"){
     REQUIRE(v == 3);
 
     // Test Clone()
-    //emp::Ptr<ConfigEntry> clone_ptr = linked_entry_int.Clone();
+    emp::Ptr<mabe::ConfigEntry> clone_ptr = linked_entry_int.Clone(); // check name, desc, getValue and string, should all be the same
+    const std::string s03 = clone_ptr->GetName();
+    REQUIRE(s03.compare(linked_entry_int.GetName()) == 0);
+    const std::string s04 = clone_ptr->GetDesc();
+    REQUIRE(s04.compare(linked_entry_int.GetDesc()) == 0);
+
+    REQUIRE(clone_ptr->AsDouble() == linked_entry_int.AsDouble());
+
+    // Test updating clone, should update original ConfigEntry and original variable
+    clone_ptr->SetValue(4.0);
+    REQUIRE(clone_ptr->AsDouble() == 4.0);
+    REQUIRE(linked_entry_int.AsDouble() == 4.0);
+    REQUIRE(v == 4);
+    // check linked v var things
     //REQUIRE(clone_ptr)
   }
 }
@@ -145,6 +158,21 @@ TEST_CASE("ConfigEntry_Linker_Double", "[config]"){
     linked_entry_double.SetString("3");
     std::string s02 = linked_entry_double.AsString();
     REQUIRE(s02.compare("3") == 0);
+
+    // Test Clone()
+    emp::Ptr<mabe::ConfigEntry> clone_ptr = linked_entry_double.Clone(); // check name, desc, getValue and string, should all be the same
+    const std::string s03 = clone_ptr->GetName();
+    REQUIRE(s03.compare(linked_entry_double.GetName()) == 0);
+    const std::string s04 = clone_ptr->GetDesc();
+    REQUIRE(s04.compare(linked_entry_double.GetDesc()) == 0);
+
+    REQUIRE(clone_ptr->AsDouble() == linked_entry_double.AsDouble());
+
+    // Test updating clone, should update original ConfigEntry and original variable
+    clone_ptr->SetValue(4.0);
+    REQUIRE(clone_ptr->AsDouble() == 4.0);
+    REQUIRE(linked_entry_double.AsDouble() == 4.0);
+    REQUIRE(v == 4.0);
   }
 }
 
@@ -213,6 +241,21 @@ TEST_CASE("ConfigLEntry_Linker<std::string>", "[config]"){
     std::string s02 = linked_entry_str.AsString();
     REQUIRE(s02.compare("3") == 0);
     REQUIRE(v == "3");
+
+    // Test Clone()
+    emp::Ptr<mabe::ConfigEntry> clone_ptr = linked_entry_str.Clone(); // check name, desc, getValue and string, should all be the same
+    const std::string s03 = clone_ptr->GetName();
+    REQUIRE(s03.compare(linked_entry_str.GetName()) == 0);
+    const std::string s04 = clone_ptr->GetDesc();
+    REQUIRE(s04.compare(linked_entry_str.GetDesc()) == 0);
+
+    REQUIRE(clone_ptr->AsDouble() == linked_entry_str.AsDouble());
+
+    // Test updating clone, should update original ConfigEntry and original variable
+    clone_ptr->SetValue(4.0);
+    REQUIRE(clone_ptr->AsDouble() == 4.0);
+    REQUIRE(linked_entry_str.AsDouble() == 4.0);
+    REQUIRE(v == "4");
     
   }
 }
@@ -231,7 +274,7 @@ void setter(const T & in) {
 
 TEST_CASE("ConfigEntry_Functions", "[config]"){
   {
-    mabe::ConfigEntry_Functions<int> linker_functions("name00", getter, setter, "desc00", nullptr);
+    mabe::ConfigEntry_Functions<int> linker_functions("name00", getter<int>, setter<int>, "desc00", nullptr);
 
     // Test As() functions
     REQUIRE(linker_functions.AsDouble() == 0.0);
@@ -249,7 +292,7 @@ TEST_CASE("ConfigEntry_Functions", "[config]"){
     REQUIRE(linker_functions.IsLocal() == false);
     REQUIRE(linker_functions.IsTemporary() == false);
     REQUIRE(linker_functions.IsBuiltIn() == false);
-    REQUIRE(linker_functions.IsFunction() == true);
+    REQUIRE(linker_functions.IsFunction() == false);
     REQUIRE(linker_functions.IsScope() == false);
     REQUIRE(linker_functions.IsError() == false);
 
@@ -274,31 +317,30 @@ TEST_CASE("ConfigEntry_Functions", "[config]"){
     linker_functions.SetValue(2.0);
     REQUIRE(linker_functions.AsDouble() == 2.0);
     linker_functions.SetValue(2.5);
-    REQUIRE(linker_functions.AsDouble() == 2.5);
+    REQUIRE(linker_functions.AsDouble() == 4.0); // Correct, 2.5 cast as int, then added to 2 
     linker_functions.SetString("3");
     std::string s02 = linker_functions.AsString();
-    REQUIRE(s02.compare("3") == 0);
+    REQUIRE(s02.compare("7") == 0);
 
-    // assume nothing about variable
-    // calling getter function will return some variable
-      // what ever type we said, give something of this type
-      // mirrors linked config entry, somewhere var has been defined 
-    // calling setter function sets some variable 
+    // Test Clone()
+    emp::Ptr<mabe::ConfigEntry> clone_ptr = linker_functions.Clone(); // check name, desc, getValue and string, should all be the same
+    const std::string s03 = clone_ptr->GetName();
+    REQUIRE(s03.compare(linker_functions.GetName()) == 0);
+    const std::string s04 = clone_ptr->GetDesc();
+    REQUIRE(s04.compare(linker_functions.GetDesc()) == 0);
 
-    // could be used to get random int, then what would setter do?
+    REQUIRE(clone_ptr->AsDouble() == linker_functions.AsDouble());
 
-    // setter and getter don't have to be linked
-      // allows more flexibility than linked version 
-    //mabe::ConfigEntry_Functions<char> funct_entry("name00, ")
-    
-    // mismatched get returns the value of a variable, set won't actually change variable 
-    // replicate the linked config entry 
-    // then also test in one direction and not the other 
+    // Test updating clone, should update original ConfigEntry and original variable
+    clone_ptr->SetValue(4.0);
+    REQUIRE(clone_ptr->AsDouble() == 11.0);
+    REQUIRE(linker_functions.AsDouble() == 11.0);
+    REQUIRE(v == 11);
   }
 }
 
 
-TEST_CASE("ConfigEntry_Var", "[config]"){
+TEST_CASE("ConfigEntry_Var_Int", "[config]"){
   {
     int v = 0;
     mabe::ConfigEntry_Var<int> var_entry_int("name00", v, "variable00", nullptr);
@@ -361,6 +403,100 @@ TEST_CASE("ConfigEntry_Var", "[config]"){
     std::string s02 = var_entry_int.AsString();
     REQUIRE(s02.compare("3") == 0);
     REQUIRE(v == 1); 
+
+    // Test Clone()
+    emp::Ptr<mabe::ConfigEntry> clone_ptr = var_entry_int.Clone(); // check name, desc, getValue and string, should all be the same
+    const std::string s03 = clone_ptr->GetName();
+    REQUIRE(s03.compare(var_entry_int.GetName()) == 0);
+    const std::string s04 = clone_ptr->GetDesc();
+    REQUIRE(s04.compare(var_entry_int.GetDesc()) == 0);
+
+    REQUIRE(clone_ptr->AsDouble() == var_entry_int.AsDouble());
+
+    // Test updating clone, should not update original ConfigEntry or original variable
+    clone_ptr->SetValue(4.0);
+    REQUIRE(clone_ptr->AsDouble() == 4.0);
+    REQUIRE(var_entry_int.AsDouble() == 3.0);
+    REQUIRE(v == 1);
+  }
+}
+
+TEST_CASE("ConfigEntry_Var_Double", "[config]"){
+  {
+    double v = 0.0;
+    mabe::ConfigEntry_Var<double> var_entry_double("name00", v, "variable00", nullptr);
+
+    // Test As() functions
+    REQUIRE(var_entry_double.AsDouble() == 0.0);
+    std::string s00 = var_entry_double.AsString();
+    REQUIRE(s00.compare("0") == 0);
+
+    // Test updating variable, ConfigEntry should not change
+    v = 1.0;
+
+    REQUIRE(var_entry_double.AsDouble() == 0.0);
+    std::string s01 = var_entry_double.AsString();
+    REQUIRE(s01.compare("0") == 0);
+
+    // Test bool functions 
+    REQUIRE(var_entry_double.IsTemporary() == false);
+    REQUIRE(var_entry_double.IsBuiltIn() == false);
+    REQUIRE(var_entry_double.IsNumeric() == true);
+    REQUIRE(var_entry_double.IsBool() == false);
+    REQUIRE(var_entry_double.IsInt() == false);
+    REQUIRE(var_entry_double.IsDouble() == true);
+    REQUIRE(var_entry_double.IsString() == false);
+    REQUIRE(var_entry_double.IsLocal() == true);
+    REQUIRE(var_entry_double.IsTemporary() == false);
+    REQUIRE(var_entry_double.IsBuiltIn() == false);
+    REQUIRE(var_entry_double.IsFunction() == false);
+    REQUIRE(var_entry_double.IsScope() == false);
+    REQUIRE(var_entry_double.IsError() == false);
+
+    // Test getter functions
+    std::string name00 = var_entry_double.GetName();
+    REQUIRE(name00.compare("name00") == 0);
+    std::string desc00 = var_entry_double.GetDesc();
+    REQUIRE(desc00.compare("variable00") == 0);
+    emp::Ptr<mabe::ConfigScope> ptr = var_entry_double.GetScope();
+    REQUIRE(ptr == nullptr);
+    std::string type = var_entry_double.GetTypename();
+    REQUIRE(type.compare("Value") == 0);
+
+    // Test setter functions
+    var_entry_double.SetName("name01");
+    std::string name01 = var_entry_double.GetName();
+    REQUIRE(name01.compare("name01") == 0);
+    var_entry_double.SetDesc("desc01");
+    std::string desc01 = var_entry_double.GetDesc();
+    REQUIRE(desc01.compare("desc01") == 0);
+    var_entry_double.SetTemporary();
+    REQUIRE(var_entry_double.IsTemporary() == true);
+    var_entry_double.SetBuiltIn();
+    REQUIRE(var_entry_double.IsBuiltIn() == true);
+
+    // Test setter functions, original variable should not change
+    var_entry_double.SetValue(2.0);
+    REQUIRE(var_entry_double.AsDouble() == 2.0);
+    var_entry_double.SetString("3");
+    std::string s02 = var_entry_double.AsString();
+    REQUIRE(s02.compare("3") == 0);
+    REQUIRE(v == 1.0);
+
+    // Test Clone()
+    emp::Ptr<mabe::ConfigEntry> clone_ptr = var_entry_double.Clone(); // check name, desc, getValue and string, should all be the same
+    const std::string s03 = clone_ptr->GetName();
+    REQUIRE(s03.compare(var_entry_double.GetName()) == 0);
+    const std::string s04 = clone_ptr->GetDesc();
+    REQUIRE(s04.compare(var_entry_double.GetDesc()) == 0);
+
+    REQUIRE(clone_ptr->AsDouble() == var_entry_double.AsDouble());
+
+    // Test updating clone, should not update original ConfigEntry or original variable
+    clone_ptr->SetValue(4.0);
+    REQUIRE(clone_ptr->AsDouble() == 4.0);
+    REQUIRE(var_entry_double.AsDouble() == 3.0);
+    REQUIRE(v == 1.0);
   }
 }
 
@@ -426,6 +562,21 @@ TEST_CASE("ConfigEntry_Var<std::string>", "[config]"){
     var_entry_str.SetString("3");
     std::string s02 = var_entry_str.AsString();
     REQUIRE(s02.compare("3") == 0);
+    REQUIRE(v == "1");
+
+    // Test Clone()
+    emp::Ptr<mabe::ConfigEntry> clone_ptr = var_entry_str.Clone(); // check name, desc, getValue and string, should all be the same
+    const std::string s03 = clone_ptr->GetName();
+    REQUIRE(s03.compare(var_entry_str.GetName()) == 0);
+    const std::string s04 = clone_ptr->GetDesc();
+    REQUIRE(s04.compare(var_entry_str.GetDesc()) == 0);
+
+    REQUIRE(clone_ptr->AsDouble() == var_entry_str.AsDouble());
+
+    // Test updating clone, should not update original ConfigEntry or original variable
+    clone_ptr->SetValue(4.0);
+    REQUIRE(clone_ptr->AsDouble() == 4.0);
+    REQUIRE(var_entry_str.AsDouble() == 3.0);
     REQUIRE(v == "1");
   }
 }
