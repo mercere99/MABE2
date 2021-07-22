@@ -282,104 +282,148 @@ TEST_CASE("TraitInfo_Verify", "[core]"){
     control.AddPopulation("test_pop");
     mabe::EvalNK nk_mod(control);
     mabe::EvalNK nk2_mod(control); 
-    mabe::EvalNK nk3_mod(control); 
+    mabe::EvalNK nk3_mod(control);  
 
     // Setup a TraitManager
     // Use bools to tell if an error has been thrown 
-    bool has_error_been_thrown = false; 
+    bool has_error_been_thrown1 = false; 
+    bool has_error_been_thrown2 = false; 
     bool has_warning_been_thrown = false; 
 
-    auto error_func = [&has_error_been_thrown](const std::string & s){
+    auto error_func1 = [&has_error_been_thrown1](const std::string & s){
       std::cout << "Error: " << s;
-      has_error_been_thrown = true;
+      has_error_been_thrown1 = true;
     }; 
+
+    auto error_func2 = [&has_error_been_thrown2](const std::string & s){
+      std::cout << "Warning: " << s;
+      has_error_been_thrown2 = true; 
+    }; 
+
     auto warning_func = [&has_warning_been_thrown](const std::string & s){
       std::cout << "Warning: " << s;
       has_warning_been_thrown = true; 
     }; 
-    mabe::ErrorManager error_man(error_func, warning_func);
-    error_man.Activate(); 
-    mabe::TraitManager<mabe::ModuleBase> trait_man(error_man);
-    trait_man.Unlock(); 
+
+
+    mabe::ErrorManager error_man1(error_func1, warning_func);
+    mabe::ErrorManager error_man2(error_func2, warning_func); 
+    error_man1.Activate(); 
+    error_man2.Activate();
+    mabe::TraitManager<mabe::ModuleBase> trait_man1(error_man1);
+    mabe::TraitManager<mabe::ModuleBase> trait_man2(error_man2);
+    trait_man1.Unlock(); 
+    trait_man2.Unlock(); 
 
     //  [BEGIN TESTS] 
     // A trait that is OWNED or GENERATED cannot have other modules writing to it.
 
     //Create a new OWNED trait
-    trait_man.AddTrait(&nk_mod, mabe::TraitInfo::Access::OWNED, "trait_i", "a trait", emp::GetTypeID<int>()); 
-    REQUIRE(trait_man.GetSize() == 1); 
+    trait_man1.AddTrait(&nk_mod, mabe::TraitInfo::Access::OWNED, "trait_i", "a trait", emp::GetTypeID<int>()); 
+    REQUIRE(trait_man1.GetSize() == 1); 
 
     // Check Verify throws error if another module tries OWNING it
-    trait_man.AddTrait(&nk2_mod, mabe::TraitInfo::Access::OWNED, "trait_i", "a trait", emp::GetTypeID<int>()); 
-    REQUIRE(trait_man.GetSize() == 1); 
+    trait_man1.AddTrait(&nk2_mod, mabe::TraitInfo::Access::OWNED, "trait_i", "a trait", emp::GetTypeID<int>()); 
+    REQUIRE(trait_man1.GetSize() == 1); 
 
-    trait_man.Verify(true); 
-    REQUIRE(has_error_been_thrown); 
+    trait_man1.Verify(true); 
+    REQUIRE(has_error_been_thrown1); 
     REQUIRE_FALSE(has_warning_been_thrown); 
 
-    has_error_been_thrown = false; 
+    // ------------------------ Must be done with new Manager to avoid earlier error
 
     //Create a new OWNED trait
-    trait_man.AddTrait(&nk_mod, mabe::TraitInfo::Access::OWNED, "trait_j", "a trait", emp::GetTypeID<int>()); 
-    REQUIRE(trait_man.GetSize() == 2); 
+    trait_man2.AddTrait(&nk_mod, mabe::TraitInfo::Access::OWNED, "trait_j", "a trait", emp::GetTypeID<int>()); 
+    REQUIRE(trait_man2.GetSize() == 1); 
 
     // Check Verify throws error if another module tries GENERATING it
-    trait_man.AddTrait(&nk2_mod, mabe::TraitInfo::Access::GENERATED, "trait_j", "a trait", emp::GetTypeID<int>()); 
-    REQUIRE(trait_man.GetSize() == 2); 
+    trait_man2.AddTrait(&nk2_mod, mabe::TraitInfo::Access::GENERATED, "trait_j", "a trait", emp::GetTypeID<int>()); 
+    REQUIRE(trait_man2.GetSize() == 1); 
 
-    trait_man.Verify(true); 
-    REQUIRE(has_error_been_thrown); 
+    trait_man2.Verify(true); 
+    REQUIRE(has_error_been_thrown2); 
     REQUIRE_FALSE(has_warning_been_thrown);
+ 
+    // Set up new Managers for GENERATED traits
+    // Use new bools to tell if an error has been thrown 
+    bool has_error_been_thrown3 = false; 
+    bool has_error_been_thrown4 = false; 
 
-    has_error_been_thrown = false; 
+    auto error_func3 = [&has_error_been_thrown3](const std::string & s){
+      std::cout << "Error: " << s;
+      has_error_been_thrown3 = true;
+    }; 
 
-    // --------------------------------------------
+    auto error_func4 = [&has_error_been_thrown4](const std::string & s){
+      std::cout << "Warning: " << s;
+      has_error_been_thrown4 = true; 
+    }; 
 
+    mabe::ErrorManager error_man3(error_func3, warning_func);
+    mabe::ErrorManager error_man4(error_func4, warning_func); 
+    error_man3.Activate(); 
+    error_man4.Activate(); 
+    mabe::TraitManager<mabe::ModuleBase> trait_man3(error_man3);
+    mabe::TraitManager<mabe::ModuleBase> trait_man4(error_man4);
+    trait_man3.Unlock(); 
+    trait_man4.Unlock(); 
+
+    // ------------------------ Must be done with new Manager to avoid earlier error
+   
     //Create a new GENERATED trait
-    trait_man.AddTrait(&nk_mod, mabe::TraitInfo::Access::GENERATED, "trait_k", "a trait", emp::GetTypeID<int>()); 
-    REQUIRE(trait_man.GetSize() == 3); 
+    trait_man3.AddTrait(&nk_mod, mabe::TraitInfo::Access::GENERATED, "trait_k", "a trait", emp::GetTypeID<int>()); 
+    REQUIRE(trait_man3.GetSize() == 1); 
 
     // Add a module that REQUIRES the GENERATED one
-    trait_man.AddTrait(&nk2_mod, mabe::TraitInfo::Access::REQUIRED, "trait_k", "a trait", emp::GetTypeID<int>()); 
-    REQUIRE(trait_man.GetSize() == 3); 
+    trait_man3.AddTrait(&nk2_mod, mabe::TraitInfo::Access::REQUIRED, "trait_k", "a trait", emp::GetTypeID<int>()); 
+    REQUIRE(trait_man3.GetSize() == 1); 
 
     // Check Verify doesn't throw error because no other module tries to OWN or GENERATE 
-    trait_man.Verify(true); 
-    REQUIRE_FALSE(has_error_been_thrown); 
+    trait_man3.Verify(true); 
+    REQUIRE_FALSE(has_error_been_thrown3); 
     REQUIRE_FALSE(has_warning_been_thrown); 
 
     // Check Verify throws error if another module tries OWNING it
-    trait_man.AddTrait(&nk3_mod, mabe::TraitInfo::Access::OWNED, "trait_k", "a trait", emp::GetTypeID<int>()); 
-    REQUIRE(trait_man.GetSize() == 3); 
+    trait_man3.AddTrait(&nk3_mod, mabe::TraitInfo::Access::OWNED, "trait_k", "a trait", emp::GetTypeID<int>()); 
+    REQUIRE(trait_man3.GetSize() == 1); 
 
-    trait_man.Verify(true); 
-    REQUIRE(has_error_been_thrown); 
+    trait_man3.Verify(true); 
+    REQUIRE(has_error_been_thrown3); 
     REQUIRE_FALSE(has_warning_been_thrown); 
 
-    has_error_been_thrown = false; 
+    // ------------------------ Must be done with new Manager to avoid earlier error
 
     //Create a new GENERATED trait
-    trait_man.AddTrait(&nk_mod, mabe::TraitInfo::Access::GENERATED, "trait_l", "a trait", emp::GetTypeID<int>()); 
-    REQUIRE(trait_man.GetSize() == 4); 
+    trait_man4.AddTrait(&nk_mod, mabe::TraitInfo::Access::GENERATED, "trait_l", "a trait", emp::GetTypeID<int>()); 
+    REQUIRE(trait_man4.GetSize() == 1); 
 
     // Add a module that REQUIRES the GENERATED one
-    trait_man.AddTrait(&nk2_mod, mabe::TraitInfo::Access::REQUIRED, "trait_l", "a trait", emp::GetTypeID<int>()); 
-    REQUIRE(trait_man.GetSize() == 4); 
+    trait_man4.AddTrait(&nk2_mod, mabe::TraitInfo::Access::REQUIRED, "trait_l", "a trait", emp::GetTypeID<int>()); 
+    REQUIRE(trait_man4.GetSize() == 1); 
 
     // Check Verify doesn't throw error because no other module tries to OWN or GENERATE 
-    trait_man.Verify(true); 
-    REQUIRE_FALSE(has_error_been_thrown); 
+    trait_man4.Verify(true); 
+    REQUIRE_FALSE(has_error_been_thrown4); 
     REQUIRE_FALSE(has_warning_been_thrown); 
 
     // Check Verify throws error if another module tries GENERATING it
-    trait_man.AddTrait(&nk2_mod, mabe::TraitInfo::Access::GENERATED, "trait_l", "a trait", emp::GetTypeID<int>()); 
-    REQUIRE(trait_man.GetSize() == 4); 
+    trait_man4.AddTrait(&nk2_mod, mabe::TraitInfo::Access::GENERATED, "trait_l", "a trait", emp::GetTypeID<int>()); 
+    REQUIRE(trait_man4.GetSize() == 1); 
 
-    trait_man.Verify(true); 
-    REQUIRE(has_error_been_thrown); 
+    trait_man4.Verify(true); 
+    REQUIRE(has_error_been_thrown4); 
     REQUIRE_FALSE(has_warning_been_thrown);
+  }
 
-    has_error_been_thrown = false; 
+  {
+
+
+
+
+
+
+
+      
   }
 }
 
