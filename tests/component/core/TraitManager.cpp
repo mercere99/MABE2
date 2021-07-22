@@ -421,8 +421,7 @@ TEST_CASE("TraitInfo_Verify", "[core]"){
     mabe::MABE control(0, NULL);
     control.AddPopulation("test_pop");
     mabe::EvalNK nk_mod(control);
-    mabe::EvalNK nk2_mod(control); 
-    mabe::EvalNK nk3_mod(control);  
+    mabe::EvalNK nk2_mod(control);  
 
     // Setup a TraitManager
     // Use bools to tell if an error has been thrown 
@@ -444,7 +443,6 @@ TEST_CASE("TraitInfo_Verify", "[core]"){
       std::cout << "Warning: " << s;
       has_warning_been_thrown = true; 
     }; 
-
 
     mabe::ErrorManager error_man1(error_func1, warning_func);
     mabe::ErrorManager error_man2(error_func2, warning_func); 
@@ -478,13 +476,26 @@ TEST_CASE("TraitInfo_Verify", "[core]"){
     REQUIRE_FALSE(has_error_been_thrown1); 
     REQUIRE_FALSE(has_warning_been_thrown); 
 
+    // -------------------------------------------------------
+    // A trait can only be PRIVATE to one module
 
+    // Add a private trait
+    trait_man2.AddTrait(&nk_mod, mabe::TraitInfo::Access::PRIVATE, "trait_i", "a trait", emp::GetTypeID<int>()); 
+    REQUIRE(trait_man2.GetSize() == 1); 
 
+    // Verify should succeed
+    trait_man2.Verify(true); 
+    REQUIRE_FALSE(has_error_been_thrown2);
+    REQUIRE_FALSE(has_warning_been_thrown); 
 
+    // Add another module that accesses it
+    trait_man2.AddTrait(&nk2_mod, mabe::TraitInfo::Access::OPTIONAL, "trait_i", "a trait", emp::GetTypeID<int>()); 
+    REQUIRE(trait_man2.GetSize() == 1); 
 
-
-
-
+    // Verify should fail
+    trait_man2.Verify(true); 
+    REQUIRE(has_error_been_thrown2);
+    REQUIRE_FALSE(has_warning_been_thrown); 
   }
 }
 
