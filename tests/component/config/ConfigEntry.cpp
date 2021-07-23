@@ -96,8 +96,12 @@ TEST_CASE("ConfigEntry_Linker_Int", "[config]"){
     REQUIRE(clone_ptr->AsDouble() == 4.0);
     REQUIRE(linked_entry_int.AsDouble() == 4.0);
     REQUIRE(v == 4);
-    // check linked v var things
-    //REQUIRE(clone_ptr)
+
+    // Test CopyValue()
+    int n = 5;
+    mabe::ConfigEntry_Linked<int> linked_entry_int_01("name01", n, "variable01", nullptr);
+    linked_entry_int.CopyValue(linked_entry_int_01);
+    REQUIRE(linked_entry_int.AsDouble() == 5.0);
   }
 }
 
@@ -178,6 +182,12 @@ TEST_CASE("ConfigEntry_Linker_Double", "[config]"){
     REQUIRE(clone_ptr->AsDouble() == 4.0);
     REQUIRE(linked_entry_double.AsDouble() == 4.0);
     REQUIRE(v == 4.0);
+
+    // Test CopyValue()
+    double n = 5.0;
+    mabe::ConfigEntry_Linked<double> linked_entry_double_01("name01", n, "variable01", nullptr);
+    linked_entry_double.CopyValue(linked_entry_double_01);
+    REQUIRE(linked_entry_double.AsDouble() == 5.0);
   }
 }
 
@@ -263,10 +273,14 @@ TEST_CASE("ConfigLEntry_Linker<std::string>", "[config]"){
     REQUIRE(clone_ptr->AsDouble() == 4.0);
     REQUIRE(linked_entry_str.AsDouble() == 4.0);
     REQUIRE(v == "4");
-    
+
+    // Test CopyValue()
+    std::string n = "5";
+    mabe::ConfigEntry_Linked<std::string> linked_entry_str_01("name01", n, "variable01", nullptr);
+    linked_entry_str.CopyValue(linked_entry_str_01);
+    REQUIRE(linked_entry_str.AsDouble() == 5.0);
   }
 }
-
 
 int v = 0;
 template<typename T>
@@ -277,6 +291,17 @@ T getter() {
 template<typename T>
 void setter(const T & in) {
   v += (int) in;
+}
+
+int n = 1;
+template<typename T>
+T getter01() {
+  return (T) n;
+}
+
+template<typename T>
+void setter01(const T & in) {
+  n += (int) in;
 }
 
 TEST_CASE("ConfigEntry_Functions", "[config]"){
@@ -345,6 +370,11 @@ TEST_CASE("ConfigEntry_Functions", "[config]"){
     REQUIRE(clone_ptr->AsDouble() == 11.0);
     REQUIRE(linker_functions.AsDouble() == 11.0);
     REQUIRE(v == 11);
+
+    // Test CopyValue()
+    mabe::ConfigEntry_Functions<int> linker_functions_01("name01", getter01<int>, setter01<int>, "desc00", nullptr);
+    linker_functions.CopyValue(linker_functions_01);
+    REQUIRE(linker_functions.AsDouble() == 12.0);
   }
 }
 
@@ -429,6 +459,12 @@ TEST_CASE("ConfigEntry_Var_Int", "[config]"){
     REQUIRE(clone_ptr->AsDouble() == 4.0);
     REQUIRE(var_entry_int.AsDouble() == 3.0);
     REQUIRE(v == 1);
+
+    // Test CopyValue()
+    int n = 5;
+    mabe::ConfigEntry_Var<int> var_entry_int_01("name01", n, "variable01", nullptr);
+    var_entry_int.CopyValue(var_entry_int_01);
+    REQUIRE(var_entry_int.AsDouble() == 5.0);
   }
 }
 
@@ -510,6 +546,12 @@ TEST_CASE("ConfigEntry_Var_Double", "[config]"){
     REQUIRE(clone_ptr->AsDouble() == 4.0);
     REQUIRE(var_entry_double.AsDouble() == 3.0);
     REQUIRE(v == 1.0);
+
+    // Test CopyValue()
+    double n = 5.0;
+    mabe::ConfigEntry_Var<double> var_entry_double_01("name01", n, "variable01", nullptr);
+    var_entry_double.CopyValue(var_entry_double_01);
+    REQUIRE(var_entry_double.AsDouble() == 5.0);
   }
 }
 
@@ -593,5 +635,11 @@ TEST_CASE("ConfigEntry_Var<std::string>", "[config]"){
     REQUIRE(clone_ptr->AsDouble() == 4.0);
     REQUIRE(var_entry_str.AsDouble() == 3.0);
     REQUIRE(v == "1");
+
+    // Test CopyValue()
+    std::string n = "5";
+    mabe::ConfigEntry_Var<std::string> var_entry_str_01("name01", n, "variable01", nullptr);
+    var_entry_str.CopyValue(var_entry_str_01);
+    REQUIRE(var_entry_str.AsDouble() == 5.0);
   }
 }
