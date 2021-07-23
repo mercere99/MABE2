@@ -39,12 +39,12 @@ From the repository's main page, find the green *Code* button in the upper
 right hand corner. Click this button, then click the *clipboard icon* to copy the URL to your 
 clip board. 
 
-.. image:: ../images/GitHub_URL.png
+.. image:: ../images/GitHub_url.png
   :width: 600
 
 *Note*: You can also use SHH keys to clone and download a GitHub repository. 
-
 For more information about SSH keys, checkout `this guide <https://docs.github.com/en/github/authenticating-to-github/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent>`_.
+
 Once you have the URL copied to your clipboard, open your command line. 
 
 Change your current working directory to the location where you want the cloned directory. 
@@ -56,7 +56,8 @@ Type `git clone`, then paste the URL into your command line.
 
 .. 
 
-Then press enter to create your local clone!
+Then press enter to create your local clone! If all goes well, you will see the following
+in your terminal:
 
 .. code-block:: cpp
 
@@ -69,7 +70,7 @@ Then press enter to create your local clone!
 
 ..
 
-For more information about cloning a repository, checkout `this guide <https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/cloning-a-repository-from-github/cloning-a-repository#troubleshooting-cloning-errors>`_.
+If you have issues cloning the repository, checkout `this guide <https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/cloning-a-repository-from-github/cloning-a-repository#troubleshooting-cloning-errors>`_.
 
 Necessary compilers
 ===================
@@ -77,5 +78,59 @@ Necessary compilers
 Once you have MABE2 downloaded you must make sure you have the necessary compilers
 installed so you can run your MABE2 projects. 
 
-To compile MABE2 **you must have a native C++ compiler**. (anything for c++ 17 or above)
-(ask charles and austin!!)
+To compile MABE2 **you must have a native C++ compiler**, particularly one for 
+C++17 or above.
+
+Mac and Linux
+-------------
+
+For Unix (e.g. Linux and MacOS) the most commonly used compilers are GCC and Clang.
+You can check if you have GCC or Clang installed by opening your terminal and entering:
+
+.. code-block:: cpp
+
+  $ which gcc
+  $ which clang
+
+.. 
+
+If a path is returned then you have gcc or clang, respectively. To check the version
+enter:
+
+.. code-block:: cpp
+
+  $ gcc --version
+  $ clang --version
+
+..
+
+To support C++17 you will need GCC version 5 or later or Clang version 5 or later. 
+
+If a path is not returned then you must install gcc.
+
+For Linux, your package manager (e.g. yum, apt, etc) will allow you to do this. 
+Enter the following into your terminal to install gcc;
+
+.. code-block:: cpp
+
+  $ apt-get install gcc-8
+
+.. 
+
+For MacOS, you will need `Apple's Command Line Tools for XCode <https://developer.apple.com/xcode/features/>`_. 
+To install a recent release of gcc, you can use `Homebrew <https://brew.sh/>`_ with 
+`this formula <https://formulae.brew.sh/formula/gcc>`_. 
+
+Windows
+-------
+
+The Windows Subsystem for Linux (WSL) makes it easy to run a GNU/Linux environment 
+directly on Windows. For information on installing WSL, checkout `this guide <https://docs.microsoft.com/en-us/windows/wsl/install-win10>`_.
+Once WSL is installed you can follow the same instructions as above. 
+
+Next Steps
+==========
+
+Once you have downloaded MABE2 and have a C++17 compiler you can begin using MABE2!
+Visit the `Quickstart guide <01_quickstart.html>`_ for detailed instructions about 
+using MABE2 to run experiments. 
