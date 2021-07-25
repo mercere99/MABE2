@@ -26,6 +26,7 @@
 #include "emp/config/command_line.hpp"
 #include "emp/control/Signal.hpp"
 #include "emp/data/DataMap.hpp"
+#include "emp/io/StreamManager.hpp"
 #include "emp/math/Random.hpp"
 #include "emp/datastructs/vector_utils.hpp"
 
@@ -57,10 +58,15 @@ namespace mabe {
 
     // --- Variables to handle configuration, initialization, and error reporting ---
 
-    bool verbose = false;              ///< Should we output extra information during setup?
-    bool show_help = false;            ///< Should we show "help" before exiting?
-    bool exit_now = false;             ///< Do we need to immediately clean up and exit the run?
-    ErrorManager error_man;            ///< Object to manage warnings and errors.
+    bool verbose = false;        ///< Should we output extra information during setup?
+    bool show_help = false;      ///< Should we show "help" before exiting?
+    bool exit_now = false;       ///< Do we need to immediately clean up and exit the run?
+    ErrorManager error_man;      ///< Object to manage warnings and errors.
+    emp::StreamManager files;    ///< Track all of the file streams used in MABE.
+
+    // Setup a cache for functions used to collect data for files.
+    using trait_fun_t = std::function<std::string(const Collection &)>;
+    std::unordered_map<std::string, emp::vector<trait_fun_t>> file_fun_cache;
 
     /// Populations used; generated in the configuration file.
     emp::vector< emp::Ptr<Population> > pops;
@@ -491,7 +497,6 @@ namespace mabe {
     ///   entopy      : Return the Shannon entropy of this value.
     ///   :trait      : Return the mutual information with another provided trait.
 
-    using trait_fun_t = std::function<std::string(const Collection &)>;
     trait_fun_t BuildTraitFunction(const std::string & trait_name,
                                    std::string trait_filter) {
       // The trait input has two components:
@@ -629,6 +634,36 @@ namespace mabe {
         return 0;
       };
     config.AddFunction("print", print_fun, "Print out the provided variable.");
+
+    // 'output' will collect data and write it to a file.
+    files.SetIODefaultFile();  // String manager should use files.
+    std::function<int(const std::string &, const std::string &, const std::string &)> output_fun =
+      [this](const std::string & filename, const std::string & collection, const std::string & output) {
+        emp::vector<trait_fun_t> funs;                       ///< Functions to call each update.
+        std::iostream & file = files.GetIOStream(filename);  ///< File to write to.
+        auto fun_it = file_fun_cache.find(output);
+
+        // If there functions don't exist yet, set them up!
+        if (fun_it == file_fun_cache.end()) {
+          // Identify the contents of each column.
+          std::string format = output;
+          emp::remove_whitespace(format);
+          emp::vector<std::string> cols = emp::slice(format, ',');
+
+          // Setup a function to collect data associated with each column.
+          funs.resize(cols.size());
+          for (size_t i = 0; i < cols.size(); i++) {
+            std::string trait_filter = cols[i];
+            std::string trait_name = emp::string_pop(trait_filter,':');
+            funs[i] = BuildTraitFunction(trait_name, trait_filter);
+          }
+
+          // Insert the new entry into the cache and update the iterator.
+          fun_it = file_fun_cache.insert({output, funs}).first;
+        }
+        return 0;
+      };
+    config.AddFunction("output", output_fun, "Print out the provided variable.");
 
     // Add in built-in event triggers; these are used to indicate when events should happen.
     config.AddEventType("start");   // Triggered at the beginning of a run.
