@@ -97,3 +97,71 @@ TEST_CASE("ASTNode_Math1", "[config]"){
     void AddChild(node_ptr_t child) { children.push_back(child); }
   }
 }
+
+TEST_CASE("ASTNode_Math2", "[config]"){
+  {
+    mabe::ASTNode_Math2 math200("name00");
+
+    // Test getters
+    std::string str00 = math200.GetName();
+    REQUIRE(str00.compare("name00") == 0);
+
+    REQUIRE(math200.GetNumChildren() == 0);
+
+    // Test boolean functiosn
+    REQUIRE(math200.IsInternal());
+
+    size_t GetNumChildren() const override { return children.size(); }
+    node_ptr_t GetChild(size_t id) override { return children[id]; }
+
+    void AddChild(node_ptr_t child) { children.push_back(child); }
+  }
+}
+
+TEST_CASE("ASTNode_Assign", "[config]"){
+  {
+    mabe::ASTNode_Assign assign00("name00");
+
+    // Test getters
+    std::string str00 = assign00.GetName();
+    REQUIRE(str00.compare("name00") == 0);
+
+    REQUIRE(assign00.GetNumChildren() == 0);
+
+    // Test boolean functiosn
+    REQUIRE(assign00.IsInternal());
+
+    entry_ptr_t Process();
+    /*override {
+      emp_assert(children.size() == 2);
+      entry_ptr_t lhs = children[0]->Process();  // Determine the left-hand-side value.
+      entry_ptr_t rhs = children[1]->Process();  // Determine the right-hand-side value.
+      // @CAO Should make sure that lhs is properly assignable.
+      lhs->CopyValue(*rhs);
+      if (rhs->IsTemporary()) rhs.Delete();
+      return lhs;
+    }*/
+
+  }
+}
+
+TEST_CASE("ASTNode_Call", "[config]"){
+  {
+    //mabe::ASTNode_Call call00()
+  }
+}
+
+TEST_CASE("ASTNode_Event", "[config]"){
+  {
+    entry_ptr_t Process();
+    /* override {
+      emp_assert(children.size() >= 1);
+      entry_vector_t arg_entries;
+      for (size_t id = 1; id < children.size(); id++) {
+        arg_entries.push_back( children[id]->Process() );
+      }
+      setup_event(children[0], arg_entries);
+      return nullptr;
+    }*/
+  }
+}
