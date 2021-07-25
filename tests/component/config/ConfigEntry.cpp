@@ -72,6 +72,9 @@ TEST_CASE("ConfigEntry_Linker_Int", "[config]"){
     REQUIRE(linked_entry_int.IsTemporary() == true);
     linked_entry_int.SetBuiltIn();
     REQUIRE(linked_entry_int.IsBuiltIn() == true);
+    linked_entry_int.SetMin(1.0);
+    //REQUIRE(linked_entry_int.range.GetLower == 1.0); how do i test this since protected and no getter method?
+    
 
     // Test setter functions, should update original variable
     linked_entry_int.SetValue(2.0);
@@ -160,6 +163,9 @@ TEST_CASE("ConfigEntry_Linker_Double", "[config]"){
     REQUIRE(linked_entry_double.IsTemporary() == true);
     linked_entry_double.SetBuiltIn();
     REQUIRE(linked_entry_double.IsBuiltIn() == true);
+    linked_entry_double.SetMin(1.0);
+    //REQUIRE(linked_entry_double.range.GetLower == 1.0); how do i test this since protected and no getter method?
+    
 
     // Test setter functions, original variable should change
     linked_entry_double.SetValue(2.0);
@@ -246,6 +252,9 @@ TEST_CASE("ConfigLEntry_Linker<std::string>", "[config]"){
     REQUIRE(linked_entry_str.IsTemporary() == true);
     linked_entry_str.SetBuiltIn();
     REQUIRE(linked_entry_str.IsBuiltIn() == true);
+    linked_entry_str.SetMin(1.0);
+    //REQUIRE(linked_entry_str.range.GetLower == 1.0); how do i test this since protected and no getter method?
+    
 
     // Test setter functions, original variable should change
     linked_entry_str.SetValue(2.0);
@@ -346,6 +355,9 @@ TEST_CASE("ConfigEntry_Functions", "[config]"){
     REQUIRE(linker_functions.IsTemporary() == true);
     linker_functions.SetBuiltIn();
     REQUIRE(linker_functions.IsBuiltIn() == true);
+    linker_functions.SetMin(1.0);
+    //REQUIRE(linker_functions.range.GetLower == 1.0); how do i test this since protected and no getter method?
+    
 
     // Test setter functions, original variable should change
     linker_functions.SetValue(2.0);
@@ -423,6 +435,9 @@ TEST_CASE("ConfigEntry_Var_Int", "[config]"){
     REQUIRE(ptr == nullptr);
     std::string type = var_entry_int.GetTypename();
     REQUIRE(type.compare("Value") == 0);
+    var_entry_int.SetMin(1.0);
+    //REQUIRE(var_entry_int.range.GetLower == 1.0); how do i test this since protected and no getter method?
+    
 
     // Test setter functions
     var_entry_int.SetName("name01");
@@ -523,6 +538,9 @@ TEST_CASE("ConfigEntry_Var_Double", "[config]"){
     REQUIRE(var_entry_double.IsTemporary() == true);
     var_entry_double.SetBuiltIn();
     REQUIRE(var_entry_double.IsBuiltIn() == true);
+    var_entry_double.SetMin(1.0);
+    //REQUIRE(var_entry_double.range.GetLower == 1.0); how do i test this since protected and no getter method?
+    
 
     // Test setter functions, original variable should not change
     var_entry_double.SetValue(2.0);
@@ -611,6 +629,9 @@ TEST_CASE("ConfigEntry_Var<std::string>", "[config]"){
     REQUIRE(var_entry_str.IsTemporary() == true);
     var_entry_str.SetBuiltIn();
     REQUIRE(var_entry_str.IsBuiltIn() == true);
+    var_entry_str.SetMin(1.0);
+    //REQUIRE(var_entry_str.range.GetLower == 1.0); how do i test this since protected and no getter method?
+    
 
     // Test setter functions, original variable should not change
     var_entry_str.SetValue(2.0);
