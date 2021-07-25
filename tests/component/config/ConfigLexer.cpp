@@ -3,7 +3,7 @@
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
  *  @date 2019-2021.
  *
- *  @file  MABE.cpp
+ *  @file  ConfigLexer.cpp
  *  @brief Tests for ConfigLexer with various types and edge cases 
  */
 
