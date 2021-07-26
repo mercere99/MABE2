@@ -638,16 +638,26 @@ namespace mabe {
     // 'output' will collect data and write it to a file.
     files.SetIODefaultFile();  // String manager should use files.
     std::function<int(const std::string &, const std::string &, const std::string &)> output_fun =
-      [this](const std::string & filename, const std::string & collection, const std::string & output) {
+      [this](const std::string & filename, const std::string & collection, const std::string & format) {
         emp::vector<trait_fun_t> funs;                       ///< Functions to call each update.
+        const bool file_exists = files.Has(filename);        ///< Determine if file is already setup.
         std::iostream & file = files.GetIOStream(filename);  ///< File to write to.
-        auto fun_it = file_fun_cache.find(output);
+        auto fun_it = file_fun_cache.find(format);
+        emp::remove_whitespace(format);
+
+        // If we need headers, set them up!
+        if (!file_exists) {
+          // Print the headers into the file.
+          file << "#update";
+          for (size_t i = 0; i < cols.size(); i++) {
+            file << ", " << cols[i];
+          }
+          file << '\n';
+        }
 
         // If there functions don't exist yet, set them up!
         if (fun_it == file_fun_cache.end()) {
           // Identify the contents of each column.
-          std::string format = output;
-          emp::remove_whitespace(format);
           emp::vector<std::string> cols = emp::slice(format, ',');
 
           // Setup a function to collect data associated with each column.
