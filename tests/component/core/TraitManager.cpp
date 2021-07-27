@@ -91,8 +91,7 @@ TEST_CASE("TraitManager_Basic", "[core]"){
     // Verified due to error being thrown 
     trait_man.AddTrait<double>(&nk_mod, mabe::TraitInfo::Access::OPTIONAL, "trait_i", "a trait", 7.0); 
     REQUIRE(has_error_been_thrown); 
-    REQUIRE_FALSE(has_warning_been_thrown); 
-    REQUIRE(trait_man.GetLocked()); 
+    REQUIRE_FALSE(has_warning_been_thrown);  
     REQUIRE(trait_man.GetSize() == 1); 
 
     // Reset error flag and unlock manager
@@ -167,10 +166,13 @@ TEST_CASE("TraitManager_AddTrait", "[core]"){
     REQUIRE(trait_man.GetSize() == 0); 
 
     // Add a trait normally
-    trait_man.AddTrait<std::string>(&nk_mod, mabe::TraitInfo::Access::OPTIONAL, "trait_i", "a trait", "test string"); 
+    mabe::TypedTraitInfo<std::string>& trait_i = (mabe::TypedTraitInfo<std::string>& )trait_man.AddTrait<std::string>(&nk_mod, mabe::TraitInfo::Access::OPTIONAL, "trait_i", "a trait", "test string"); 
+    REQUIRE(trait_man.GetSize() == 1); 
     REQUIRE_FALSE(has_error_been_thrown); 
     REQUIRE_FALSE(has_warning_been_thrown); 
-    REQUIRE(trait_man.GetSize() == 1); 
+    // Check default value added 
+    REQUIRE(trait_i.GetDefault() == "test string"); 
+  
 
     // Add same trait to same module
     // Should throw error and not add it again to the map
@@ -193,20 +195,20 @@ TEST_CASE("TraitManager_AddTrait", "[core]"){
     REQUIRE(trait_man2.GetSize() == 1); 
     REQUIRE_FALSE(has_error_been_thrown2); 
     REQUIRE_FALSE(has_warning_been_thrown); 
-/*
+
     // Also check the reverse order! << second REQUIRE_FALSE for error fails
 
     trait_man2.AddTrait<double>(&nk_mod, mabe::TraitInfo::Access::OPTIONAL, "trait_ij", "a trait", 7.0); 
-    REQUIRE(trait_man2.GetSize() == 1); 
+    REQUIRE(trait_man2.GetSize() == 2); 
     REQUIRE_FALSE(has_error_been_thrown2); 
     REQUIRE_FALSE(has_warning_been_thrown); 
 
-    trait_man2.AddTrait<int, double, std::string>(&nk_mod, mabe::TraitInfo::Access::OPTIONAL, "trait_ij", "a trait", 7); 
-    REQUIRE(trait_man2.GetSize() == 1); 
+    trait_man2.AddTrait<int, double, std::string>(&nk2_mod, mabe::TraitInfo::Access::OPTIONAL, "trait_ij", "a trait", 7); 
+    REQUIRE(trait_man2.GetSize() == 2); 
     REQUIRE_FALSE(has_error_been_thrown2); 
     REQUIRE_FALSE(has_warning_been_thrown);
     
-*/
+
     // -----------------------------------------------------
     // Test to pass valid non-AltType 
 
