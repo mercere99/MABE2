@@ -356,9 +356,16 @@ TEST_CASE("ConfigEntry_Functions", "[config]"){
     linker_functions.SetBuiltIn();
     REQUIRE(linker_functions.IsBuiltIn() == true);
     linker_functions.SetMin(1.0);
-    //REQUIRE(linker_functions.range.GetLower == 1.0); how do i test this since protected and no getter method?
-    
+    linker_functions.SetValue(0.0);
+    REQUIRE_FALSE(linker_functions.AsDouble() < 1.0);
+    linker_functions.SetMax(0.0);
+    linker_functions.SetValue(1.0);
+    REQUIRE_FALSE(linker_functions.AsDouble() > 0.0);
 
+    // Reset value to 0
+    linker_functions.SetValue(-1.0);
+    REQUIRE(linker_functions.AsDouble() == 0);
+    
     // Test setter functions, original variable should change
     linker_functions.SetValue(2.0);
     REQUIRE(linker_functions.AsDouble() == 2.0);
