@@ -108,22 +108,6 @@ namespace mabe {
       /// Convert the function call to using entry pointers.
       else {
         SetFunction_impl( in_fun, emp::ValPackCount<sizeof...(ARGS)+1>() );
-        // fun = [in_fun, name=name, desc=desc](const entry_vector_t & args) -> emp::Ptr<ConfigEntry> {        
-        //   // The call needs to have the correct number of arguments or else it throws an error.
-        //   constexpr int NUM_ARGS = sizeof...(ARGS) + 1;
-        //   if (args.size() != NUM_ARGS) {
-        //     return emp::NewPtr<ConfigEntry_Error>(
-        //       "Function '", name, "' called with ", args.size(), " args, but ", NUM_ARGS, " expected."
-        //     );            
-        //   }
-
-        //   size_t i = 1;
-        //   RETURN_T result = in_fun(args[0]->As<ARG1>(), args[i++]->As<ARGS>()...);
-        //   emp::Ptr<ConfigEntry> out_entry =
-        //     emp::NewPtr<ConfigEntry_Var<RETURN_T>>("return value", result, desc, nullptr);
-        //   out_entry->SetTemporary();
-        //   return out_entry;
-        // };
       }
     }
 
