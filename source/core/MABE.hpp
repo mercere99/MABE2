@@ -638,7 +638,7 @@ namespace mabe {
     // 'output' will collect data and write it to a file.
     files.SetIODefaultFile();  // String manager should use files.
     std::function<int(const std::string &, const std::string &, const std::string &)> output_fun =
-      [this](const std::string & filename, const std::string & collection, const std::string & format) {
+      [this](const std::string & filename, const std::string & collection, std::string format) {
         emp::vector<trait_fun_t> funs;                       ///< Functions to call each update.
         const bool file_exists = files.Has(filename);        ///< Determine if file is already setup.
         std::iostream & file = files.GetIOStream(filename);  ///< File to write to.
@@ -647,6 +647,9 @@ namespace mabe {
 
         // If we need headers, set them up!
         if (!file_exists) {
+          // Identify the contents of each column.
+          emp::vector<std::string> cols = emp::slice(format, ',');
+
           // Print the headers into the file.
           file << "#update";
           for (size_t i = 0; i < cols.size(); i++) {
@@ -669,8 +672,17 @@ namespace mabe {
           }
 
           // Insert the new entry into the cache and update the iterator.
-          fun_it = file_fun_cache.insert({output, funs}).first;
+          fun_it = file_fun_cache.insert({format, funs}).first;
         }
+
+        // And, finally, print the data!
+        Collection target_collect = FromString(collection);
+        file << GetUpdate();
+        for (auto & fun : funs) {
+          file << ", " << fun(target_collect);
+        }
+        file << std::endl;
+
         return 0;
       };
     config.AddFunction("output", output_fun, "Print out the provided variable.");
