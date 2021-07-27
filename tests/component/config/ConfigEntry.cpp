@@ -7,7 +7,7 @@
  *  @brief Tests for ConfigEntry with various types and edge cases 
  */
 
-//#include <functional>
+#include <bits/stdc++.h>
 // CATCH
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
@@ -73,8 +73,17 @@ TEST_CASE("ConfigEntry_Linker_Int", "[config]"){
     linked_entry_int.SetBuiltIn();
     REQUIRE(linked_entry_int.IsBuiltIn() == true);
     linked_entry_int.SetMin(1.0);
-    //REQUIRE(linked_entry_int.range.GetLower == 1.0); how do i test this since protected and no getter method?
+    linked_entry_int.SetValue(0.0);
+    REQUIRE_FALSE(linked_entry_int.AsDouble() < 1.0);
+    linked_entry_int.SetMax(0.0);
+    linked_entry_int.SetValue(1.0);
+    REQUIRE_FALSE(linked_entry_int.AsDouble() > 0.0);
+
+    // Reset Min and Max
     
+    linked_entry_int.SetMin(INT_MIN);
+    // linked_entry_int.SetMax(INT_MAX); // bug: SetMax() sets min, so not being reset right now 
+    linked_entry_int.SetValue(0.0);
 
     // Test setter functions, should update original variable
     linked_entry_int.SetValue(2.0);
@@ -164,8 +173,17 @@ TEST_CASE("ConfigEntry_Linker_Double", "[config]"){
     linked_entry_double.SetBuiltIn();
     REQUIRE(linked_entry_double.IsBuiltIn() == true);
     linked_entry_double.SetMin(1.0);
-    //REQUIRE(linked_entry_double.range.GetLower == 1.0); how do i test this since protected and no getter method?
+    linked_entry_double.SetValue(0.0);
+    REQUIRE_FALSE(linked_entry_double.AsDouble() < 1.0);
+    linked_entry_double.SetMax(0.0);
+    linked_entry_double.SetValue(1.0);
+    REQUIRE_FALSE(linked_entry_double.AsDouble() > 0.0);
+
+    // Reset Min and Max
     
+    linked_entry_double.SetMin(INT_MIN);
+    // linked_entry_double.SetMax(INT_MAX); // bug: SetMax() sets min, so not being reset right now 
+    linked_entry_double.SetValue(0.0);
 
     // Test setter functions, original variable should change
     linked_entry_double.SetValue(2.0);
@@ -253,8 +271,17 @@ TEST_CASE("ConfigLEntry_Linker<std::string>", "[config]"){
     linked_entry_str.SetBuiltIn();
     REQUIRE(linked_entry_str.IsBuiltIn() == true);
     linked_entry_str.SetMin(1.0);
-    //REQUIRE(linked_entry_str.range.GetLower == 1.0); how do i test this since protected and no getter method?
+    linked_entry_str.SetValue(0.0);
+    REQUIRE_FALSE(linked_entry_str.AsDouble() < 1.0);
+    linked_entry_str.SetMax(0.0);
+    linked_entry_str.SetValue(1.0);
+    REQUIRE_FALSE(linked_entry_str.AsDouble() > 0.0);
+
+    // Reset Min and Max
     
+    linked_entry_str.SetMin(INT_MIN);
+    // linked_entry_str.SetMax(INT_MAX); // bug: SetMax() sets min, so not being reset right now 
+    linked_entry_str.SetValue(0.0);
 
     // Test setter functions, original variable should change
     linked_entry_str.SetValue(2.0);
@@ -363,9 +390,11 @@ TEST_CASE("ConfigEntry_Functions", "[config]"){
     REQUIRE_FALSE(linker_functions.AsDouble() > 0.0);
 
     // Reset value to 0
+    linker_functions.SetMin(INT_MIN);
+    // linker_functions.SetMax(INT_MAX); // bug: SetMax() sets min, so not resetting right now 
     linker_functions.SetValue(-1.0);
     REQUIRE(linker_functions.AsDouble() == 0);
-    
+
     // Test setter functions, original variable should change
     linker_functions.SetValue(2.0);
     REQUIRE(linker_functions.AsDouble() == 2.0);
@@ -443,8 +472,17 @@ TEST_CASE("ConfigEntry_Var_Int", "[config]"){
     std::string type = var_entry_int.GetTypename();
     REQUIRE(type.compare("Value") == 0);
     var_entry_int.SetMin(1.0);
-    //REQUIRE(var_entry_int.range.GetLower == 1.0); how do i test this since protected and no getter method?
+    var_entry_int.SetValue(0.0);
+    REQUIRE_FALSE(var_entry_int.AsDouble() < 1.0);
+    var_entry_int.SetMax(0.0);
+    var_entry_int.SetValue(1.0);
+    REQUIRE_FALSE(var_entry_int.AsDouble() > 0.0);
+
+    // Reset Min and Max
     
+    var_entry_int.SetMin(INT_MIN);
+    // var_entry_int.SetMax(INT_MAX); // bug: SetMax() sets min, so not being reset right now 
+    var_entry_int.SetValue(0.0);
 
     // Test setter functions
     var_entry_int.SetName("name01");
@@ -546,8 +584,17 @@ TEST_CASE("ConfigEntry_Var_Double", "[config]"){
     var_entry_double.SetBuiltIn();
     REQUIRE(var_entry_double.IsBuiltIn() == true);
     var_entry_double.SetMin(1.0);
-    //REQUIRE(var_entry_double.range.GetLower == 1.0); how do i test this since protected and no getter method?
+    var_entry_double.SetValue(0.0);
+    REQUIRE_FALSE(var_entry_double.AsDouble() < 1.0);
+    var_entry_double.SetMax(0.0);
+    var_entry_double.SetValue(1.0);
+    REQUIRE_FALSE(var_entry_double.AsDouble() > 0.0);
+
+    // Reset Min and Max
     
+    var_entry_double.SetMin(INT_MIN);
+    // var_entry_double.SetMax(INT_MAX); // bug: SetMax() sets min, so not being reset right now 
+    var_entry_double.SetValue(0.0);
 
     // Test setter functions, original variable should not change
     var_entry_double.SetValue(2.0);
@@ -637,8 +684,17 @@ TEST_CASE("ConfigEntry_Var<std::string>", "[config]"){
     var_entry_str.SetBuiltIn();
     REQUIRE(var_entry_str.IsBuiltIn() == true);
     var_entry_str.SetMin(1.0);
-    //REQUIRE(var_entry_str.range.GetLower == 1.0); how do i test this since protected and no getter method?
+    var_entry_str.SetValue(0.0);
+    REQUIRE_FALSE(var_entry_str.AsDouble() < 1.0);
+    var_entry_str.SetMax(0.0);
+    var_entry_str.SetValue(1.0);
+    REQUIRE_FALSE(var_entry_str.AsDouble() > 0.0);
+
+    // Reset Min and Max
     
+    var_entry_str.SetMin(INT_MIN);
+    // var_entry_str.SetMax(INT_MAX); // bug: SetMax() sets min, so not being reset right now 
+    var_entry_str.SetValue(0.0);
 
     // Test setter functions, original variable should not change
     var_entry_str.SetValue(2.0);
