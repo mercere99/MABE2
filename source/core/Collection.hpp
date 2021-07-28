@@ -10,8 +10,13 @@
  *  to represent and manipulate groups of organisms (by their position).  Organisms can be
  *  added individully or as whole populations.
  * 
- *  Internally, a Collection is represented by a map with keys of Population pointers and
- *  values of a BitVector indicating the positions in those populations that are included.
+ *  Internally, a Collection is represented by a map; keys are pointers to the included Populations
+ *  and values are a PopInfo class (a flag for "do we included the whole population" and a
+ *  BitVector indicating the positions that are included if not the whole population).
+ * 
+ *  A CollectionIterator will track the current population being iterated through, and the position
+ *  currently indicated.  When an iterator reached the end, it's population pointer is set to 
+ *  nullptr.
  */
 
 #ifndef MABE_COLLECTION_H
@@ -169,6 +174,8 @@ namespace mabe {
       }
     };
 
+    // Link each populaiton in the collection (by its pointer) to info about which organisms
+    // are included.
     using pos_map_t = std::map<pop_ptr_t, PopInfo>;
     pos_map_t pos_map;
 
@@ -205,7 +212,7 @@ namespace mabe {
     using iterator_t = CollectionIterator;
     using const_iterator_t = ConstCollectionIterator;
 
-    /// Calculation the total number of positions represented in this collection.
+    /// Calculate the total number of positions represented in this collection.
     size_t GetSize() const noexcept override {
       size_t count = 0;
       for (auto [pop_ptr, pop_info] : pos_map) {
@@ -474,7 +481,9 @@ namespace mabe {
   CollectionIterator_Interface<DERIVED_T, ORG_T, COLLECTION_T>
     ::CollectionIterator_Interface(emp::Ptr<COLLECTION_T> _col, size_t _pos)
     : base_t(_col->GetFirstPop(), _pos), collection_ptr(_col)
-  {      
+  {
+    // Make sure that this iterator is actually valid.  If not, move to next position.
+    if (base_t::IsValid() == false) IncPosition();
   }
 
   /// Constructor where you can optionally supply population pointer and position.
