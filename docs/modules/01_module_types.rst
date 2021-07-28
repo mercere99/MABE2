@@ -99,7 +99,7 @@ Analyze
 
 For detailed information on analysis modules, see **analyze page link**.
 
-Analyze modules track and store data about organisms in a world. 
+Analyze modules collect, process, and store population data.
 
 Interface
 =========
