@@ -134,7 +134,7 @@ TEST_CASE("ASTNode_Math1", "[config]"){
     math100.SetFun(abs_value);
     
     // Test Process() with one child
-    REQUIRE(math100.Process()->AsDouble() == 1);
+    REQUIRE(math100.Process()->AsDouble() == 1.0);
 
     // Test Write()
     std::stringstream ss;
@@ -209,52 +209,66 @@ TEST_CASE("ASTNode_Math2", "[config]"){
     math200.SetFun(add_fun);
 
     // Test Process()
-    REQUIRE(math200.Process()->AsDouble() == 3);
+    REQUIRE(math200.Process()->AsDouble() == 3.0);
 
     // Test Write() is this what it should be ?
     std::stringstream ss;
     math200.Write(ss, "");
     std::cout << ss.str() << std::endl;
     REQUIRE(ss.str().compare("math00name00name01") == 0);
-
-
-
   }
 }
-/*
+
 TEST_CASE("ASTNode_Assign", "[config]"){
   {
-    mabe::ASTNode_Assign assign00("name00");
+    std::string v00 = "variable";
+    mabe::ConfigEntry_Linked<std::string> entry00("name00", v00, "variable00", nullptr);
+    emp::Ptr<mabe::ASTNode_Leaf> lhs = emp::NewPtr<mabe::ASTNode_Leaf>(&entry00);
+
+    int v01 = 1;
+    mabe::ConfigEntry_Linked<int> entry01("name01", v01, "variable01", nullptr);
+    emp::Ptr<mabe::ASTNode_Leaf> rhs = emp::NewPtr<mabe::ASTNode_Leaf>(&entry01);
+
+    mabe::ASTNode_Assign assign00(lhs, rhs);
 
     // Test getters
     std::string str00 = assign00.GetName();
-    REQUIRE(str00.compare("name00") == 0);
+    REQUIRE(str00.compare("") == 0);
 
-    REQUIRE(assign00.GetNumChildren() == 0);
+    REQUIRE(assign00.GetNumChildren() == 2);
 
     // Test boolean functions
     REQUIRE(assign00.IsInternal());
 
-    entry_ptr_t Process();
-    override {
-      emp_assert(children.size() == 2);
-      entry_ptr_t lhs = children[0]->Process();  // Determine the left-hand-side value.
-      entry_ptr_t rhs = children[1]->Process();  // Determine the right-hand-side value.
-      // @CAO Should make sure that lhs is properly assignable.
-      lhs->CopyValue(*rhs);
-      if (rhs->IsTemporary()) rhs.Delete();
-      return lhs;
-    }
+    // Test Process()
+    REQUIRE(assign00.Process()->AsDouble() == 1.0);
+
+    // Test Write() what should this be ?
+    std::stringstream ss;
+    assign00.Write(ss, "");
+    std::cout << ss.str() << std::endl;
+    REQUIRE(ss.str().compare("variable = 1") == 0);
 
   }
 }
 
 TEST_CASE("ASTNode_Call", "[config]"){
   {
-    //mabe::ASTNode_Call call00()
+    // Create ConfigEntry_Functions
+    int v = 0;
+    std::function<int()> getter = [&v](){
+      return v;
+    };
+    std::function<void(int, int)> setter = [&v](int n, int m){
+      v = n * m;
+    };
+    mabe::ConfigEntry_Functions<int> entry_funcs("name00", getter, setter, "desc00", nullptr);
+    emp::Ptr<mabe::ASTNode_Leaf> funcs00 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry_funcs);
+
+    mabe::ASTNode_Call call00(node_ptr_t fun, const node_vector_t & args);
   }
 }
-
+/*
 TEST_CASE("ASTNode_Event", "[config]"){
   {
     entry_ptr_t Process();
