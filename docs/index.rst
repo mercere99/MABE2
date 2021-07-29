@@ -10,8 +10,10 @@ Welcome to MABE2's documentation!
 =================================
 .. image:: images/MABE.png
   :width: 600
-  
-`Visit MABE2 on github here <https://github.com/mercere99/MABE2>`_.
+
+.. important::
+  `Visit MABE2 on github here <https://github.com/mercere99/MABE2>`_.
+
 
 Modular Agent Based Evolver (MABE) is a software framework that allows users to easily build and customize software for evolutionary 
 computation or artificial life. The resulting systems are useful for studying evolutionary dynamics, solving complex 
@@ -28,6 +30,35 @@ researchers.
 
 MABE’s primary goal is to **reduce the time between thinking up a new hypothesis and generating results**. 
 
+
+Example MABE Project 
+********************
+
+Imagine you are a computer scientist studying the performance of evolved neural networks on certain tasks: 
+perhaps you're interested in how these networks evolve on classification tasks vs. on predictive tasks. 
+Without MABE, your process might look something like this:
+
+1. Find an implementation of neural networks that suits your purposes, and is written in your favorite language, or write one from scratch
+2. Write or find a selection scheme for your evolutionary process
+3. Write or find a fitness function or fitness task for your evolutionary process
+4. Make sure these elements incorporate together in order to generate an instance of your experiment
+5. Write a script to randomly seed your experiment and generate multiple replicates of your results
+6. Look at your data
+
+Each of these steps has, of course, multiple sub-steps, and could take a very long time. In MABE, however, 
+your experiment flow would look more like this:
+
+1. Edit a ``.gen`` file to choose which of MABE's pre-built neural nets, selection schemes, and/or tasks you want to use for your experiment. 
+2. Create the corresponding ``.mabe`` file. 
+3. Run ``./MABE -f settings/<example_filename>.mabe``.
+4. View your data in the ``output.csv`` file!
+
+
+If you are still not convinced MABE is useful for you, consider reading *add link* before making up your mind.
+
+Design
+******
+
 MABE's design assumes that there are common elements (*e.g., fitness functions, selection schemes, populations, etc.*) in 
 many evolutionary computation (EC) research projects. Leveraging these similarities allows for efficient reuse of common 
 components while removing communication road blocks and simplifying the comparison, replication, and integration of 
@@ -39,7 +70,9 @@ reusable, and interoperable components, while maintaining the flexibility needed
 MABE also allows for the use of standardized interfaces for  `non-common elements <modules/00_module_overview.html>`_
 so these elements can be used interchangeably. 
 
-
+Next Steps
+----------
+Ready to use MABE? Learn how to `install MABE <first_steps/00_installation.html>`_, then `write and run your own experiments <first_steps/01_quickstart.html>`_!
 
 .. toctree::
    :hidden:
