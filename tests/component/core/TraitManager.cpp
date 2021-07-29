@@ -291,7 +291,7 @@ TEST_CASE("TraitManager_Verify", "[core]") {
     trait_man.Verify(true); 
     REQUIRE(has_error_been_thrown); 
     REQUIRE_FALSE(has_warning_been_thrown); 
-    REQUIRE(error_message == "Trait 'trait_i' marked REQUIRED by module(s) EvalNK'; must be written to by other modules.\n[Suggestion: set another module to write to this trait (where it is either\n SHARED or OWNED).]");
+    REQUIRE(error_message == "Trait 'trait_i' marked REQUIRED by module(s) 'EvalNK'; must be written to by other modules.\n[Suggestion: set another module to write to this trait (where it is either\n SHARED or OWNED).]");
 
     // Add a Trait that OWNES the trait, check Verify works
     has_error_been_thrown = false; 
@@ -312,7 +312,7 @@ TEST_CASE("TraitManager_Verify", "[core]") {
     trait_man.Verify(true); 
     REQUIRE(has_error_been_thrown); 
     REQUIRE_FALSE(has_warning_been_thrown); 
-    REQUIRE(error_message == "Trait 'trait_j' marked REQUIRED by module(s) EvalNK'; must be written to by other modules.\n[Suggestion: set another module to write to this trait (where it is either\n SHARED or OWNED).]");
+    REQUIRE(error_message == "Trait 'trait_j' marked REQUIRED by module(s) 'EvalNK'; must be written to by other modules.\n[Suggestion: set another module to write to this trait (where it is either\n SHARED or OWNED).]");
 
 
     // Add a Trait that GENERATES the trait, check Verify works
@@ -333,7 +333,7 @@ TEST_CASE("TraitManager_Verify", "[core]") {
     trait_man.Verify(true); 
     REQUIRE(has_error_been_thrown); 
     REQUIRE_FALSE(has_warning_been_thrown); 
-    REQUIRE(error_message == "Trait 'trait_k' marked REQUIRED by module(s) EvalNK'; must be written to by other modules.\n[Suggestion: set another module to write to this trait (where it is either\n SHARED or OWNED).]");
+    REQUIRE(error_message == "Trait 'trait_k' marked REQUIRED by module(s) 'EvalNK'; must be written to by other modules.\n[Suggestion: set another module to write to this trait (where it is either\n SHARED or OWNED).]");
 
     // Add a Trait that GENERATES the trait, check Verify works
     has_error_been_thrown = false; 
@@ -600,7 +600,7 @@ TEST_CASE("TraitManager_Verify", "[core]") {
     trait_man2.Verify(true); 
     REQUIRE(has_error_been_thrown2);
     REQUIRE_FALSE(has_warning_been_thrown); 
-    REQUIRE(error_message == "Trait 'trait_i' is private in module 'EvalNK'; should not be used by other modules.\n[Suggestion: if traits are supposed to be distinct, prepend private name with a\n module-specific prefix.  Otherwise module needs to be edited to not have\n trait private.]");
+    REQUIRE(error_message == "Trait 'trait_i' is private in module 'EvalNK'; should not be used by other modules.\n[Suggestion: if traits are supposed to be distinct, prepend private name with\n a module-specific prefix.  Otherwise module needs to be edited to not\n have trait private.]");
 
     //Another module also tries to claim that it's private
     // TODO
@@ -700,11 +700,10 @@ TEST_CASE("TraitManager_Verify", "[core]") {
     
     
     // Verify should fail -- fix this check to also provide instructions for if it does the thing we say it should
-    /*
-    trait_man2.Verify(true); // << THIS SIGABORTS?
+    /*trait_man2.Verify(true); // << THIS SIGABORTS?
     REQUIRE(has_error_been_thrown2); 
-    REQUIRE_FALSE(has_warning_been_thrown); 
-    */
+    REQUIRE_FALSE(has_warning_been_thrown); */
+    
   }
    
 }
