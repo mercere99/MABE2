@@ -78,8 +78,9 @@ namespace mabe {
 
       // If so, print!
       file << ud;
+      mabe::Collection cur_collect = target_collect.GetAlive();
       for (auto & fun : funs) {
-        file << ", " << fun(target_collect);
+        file << ", " << fun(cur_collect);
       }
       file << std::endl;
     }
