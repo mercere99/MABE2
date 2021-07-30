@@ -203,7 +203,7 @@ namespace mabe {
 
     /// Return a reference to the organism pointed to by this iterator; may advance iterator.
     ORG_T & operator*() {
-      emp_assert(IsValid());    // Make sure we're not outside of the vector.
+      emp_assert(IsValid(), pop_ptr, pos, PopSize());  // Make sure we're not outside of the vector.
       return *(OrgPtr());
     }
 
