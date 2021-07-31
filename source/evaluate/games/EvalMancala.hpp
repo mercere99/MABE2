@@ -40,8 +40,8 @@ namespace mabe {
 
   public:
     EvalMancala(mabe::MABE & control,
-                   const std::string & name="EvalMancala",
-                   const std::string & desc="Evaluate organisms by having them play Mancala.",
+                const std::string & name="EvalMancala",
+                const std::string & desc="Evaluate organisms by having them play Mancala.")
       : Module(control, name, desc)
       , target_collect(control.GetPopulation(0))
     {
