@@ -13,10 +13,15 @@
 // CATCH
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
+
 // MABE
 #include "config/ConfigEntry.hpp"
 #include "config/ConfigScope.hpp"
 #include "config/ConfigAST.hpp"
+#include "config/ConfigFunction.hpp"
+
+// Empirical
+#define EMP_TDEBUG
 
 using entry_ptr_t = emp::Ptr<mabe::ConfigEntry>;
 using entry_vector_t = emp::vector<entry_ptr_t>;
@@ -211,10 +216,9 @@ TEST_CASE("ASTNode_Math2", "[config]"){
     // Test Process()
     REQUIRE(math200.Process()->AsDouble() == 3.0);
 
-    // Test Write() is this what it should be ?
+    // Test Write()
     std::stringstream ss;
     math200.Write(ss, "");
-    std::cout << ss.str() << std::endl;
     REQUIRE(ss.str().compare("math00name00name01") == 0);
   }
 }
@@ -246,7 +250,7 @@ TEST_CASE("ASTNode_Assign", "[config]"){
     // Test Write() what should this be ?
     std::stringstream ss;
     assign00.Write(ss, "");
-    std::cout << ss.str() << std::endl;
+    std::cout << ss.str() << std::endl; // "name00 = name01" is this what this should be?
     REQUIRE(ss.str().compare("variable = 1") == 0);
 
   }
@@ -262,7 +266,7 @@ template<typename T>
 void setter(const T & n, const T & m) {
   T r = n * m;
   v = (int) r;
-}*/
+}
 TEST_CASE("ASTNode_Call", "[config]"){
   {
     // Create ConfigEntry_Functions
@@ -295,7 +299,7 @@ TEST_CASE("ASTNode_Call", "[config]"){
     std::string str00 = call00.GetName();
     REQUIRE(str00.compare("") == 0);
 
-    REQUIRE(call00.GetNumChildren() == 2);
+    REQUIRE(call00.GetNumChildren() == args00.size() + 1);
 
     // Test boolean functions
     REQUIRE(call00.IsInternal());
@@ -310,13 +314,13 @@ TEST_CASE("ASTNode_Call", "[config]"){
     REQUIRE(ss.str().compare("func00(name00, name01)") == 0);
   }
 }
-/*
+*/
 TEST_CASE("ASTNode_Event", "[config]"){
   {
     // Create action
     std::string v = "action00";
-    mabe::ConfigEntry_Var<std::string> entry00("name00", v, "desc00", nullptr);
-    emp::Ptr<mabe::ASTNode_Leaf> action00 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry00);
+    mabe::ConfigEntry_Var<std::string> entry("action00", v, "desc00", nullptr);
+    emp::Ptr<mabe::ASTNode_Leaf> action00 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry);
 
     // Create vector of arguments
     node_vector_t args00;
@@ -345,7 +349,23 @@ TEST_CASE("ASTNode_Event", "[config]"){
       }
     };
 
-    mabe::ASTNode_Event event00("name00", action00, args00, setup);
+    mabe::ASTNode_Event event00("event00", action00, args00, setup);
+
+    // Test getters
+    std::string str00 = event00.GetName();
+    REQUIRE(str00.compare("event00") == 0);
+
+    REQUIRE(event00.GetNumChildren() == args00.size() + 1);
+
+    // Test boolean functions
+    REQUIRE(event00.IsInternal());
+
+    // Test Process()
+    event00.Process();
+    std::cout << action_result << std::endl;
+    REQUIRE(action_result.compare("action00") == 0);
+    REQUIRE(children_processed == args00.size());
+
     /*
     entry_ptr_t Process();
     override {
@@ -357,7 +377,12 @@ TEST_CASE("ASTNode_Event", "[config]"){
       setup_event(children[0], arg_entries);
       return nullptr;
     }
-    
+    */
+
+    // Test Write()
+    std::stringstream ss;
+    event00.Write(ss, "");
+    std::cout << ss.str() << std::endl;
+    REQUIRE(ss.str().compare("@event00(name00, name01) action00") == 0);
   }
 }
-*/
