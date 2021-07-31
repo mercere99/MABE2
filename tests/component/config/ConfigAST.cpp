@@ -250,7 +250,7 @@ TEST_CASE("ASTNode_Assign", "[config]"){
 
     // Add third child
     int v02 = 2;
-    mabe::ConfigEntry_Linked<int> entry02("name02", v01, "variable02", nullptr);
+    mabe::ConfigEntry_Linked<int> entry02("name02", v02, "variable02", nullptr);
 
     emp::Ptr<mabe::ASTNode_Leaf> leaf02 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry02);
     assign00.AddChild(leaf02);
@@ -270,30 +270,24 @@ TEST_CASE("ASTNode_Assign", "[config]"){
 
   }
 }
-/*
-int v = 0;
-template<typename T>
-T getter() {
-  return (T) v;
-}
 
-template<typename T>
-void setter(const T & n, const T & m) {
-  T r = n * m;
-  v = (int) r;
-}
 TEST_CASE("ASTNode_Call", "[config]"){
   {
-    // Create ConfigEntry_Functions
-    int v = 0;
-    std::function<int()> getter = [&v](){
-      return v;
+    // Create function
+    std::function<double(node_vector_t)> sum = [](node_vector_t nodes) {
+      double sum = 0.0;
+      for (node_ptr_t node : nodes) { // node_ptr_t = emp::Ptr<mabe::ASTNode>;
+        entry_ptr_t value = node->Process();
+        double result = value->AsDouble();
+        sum += result;
+      }
+      return sum;
     };
-    std::function<void(int)> setter = [&v](int n){
-      v = n;
-    };
-    mabe::ConfigEntry_Functions<int> entry_funcs("func00", getter, setter, "desc00", nullptr);
-    emp::Ptr<mabe::ASTNode_Leaf> funcs00 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry_funcs);
+
+    // Create ConfigFunction
+    mabe::ConfigFunction entry_func("func00", "desc00", nullptr);
+    entry_func.SetFunction(sum);
+    emp::Ptr<mabe::ASTNode_Leaf> funcs00 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry_func);
 
     // Create vector of arguments
     node_vector_t args00;
@@ -306,6 +300,10 @@ TEST_CASE("ASTNode_Call", "[config]"){
     mabe::ConfigEntry_Linked<int> entry01("name01", v01, "variable01", nullptr);
     emp::Ptr<mabe::ASTNode_Leaf> leaf01 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry01);
     args00.push_back(leaf01);
+    int v02 = 4;
+    mabe::ConfigEntry_Linked<int> entry02("name02", v02, "variable02", nullptr);
+    emp::Ptr<mabe::ASTNode_Leaf> leaf02 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry02);
+    args00.push_back(leaf02);
 
     // Create ASTNode_Call
     mabe::ASTNode_Call call00(funcs00, args00);
@@ -320,16 +318,16 @@ TEST_CASE("ASTNode_Call", "[config]"){
     REQUIRE(call00.IsInternal());
 
     // Test Process()
-    REQUIRE(call00.Process()->AsDouble() == 6.0);
+    //REQUIRE(call00.Process()->AsDouble() == 9.0);
 
   // Test Write()
     std::stringstream ss;
     call00.Write(ss, "");
     std::cout << ss.str() << std::endl;
-    REQUIRE(ss.str().compare("func00(name00, name01)") == 0);
+    REQUIRE(ss.str().compare("func00(name00, name01, name02)") == 0);
   }
 }
-*/
+
 TEST_CASE("ASTNode_Event", "[config]"){
   {
     // Create action
