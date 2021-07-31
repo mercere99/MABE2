@@ -12,6 +12,7 @@
 
 // CATCH
 #define CATCH_CONFIG_MAIN
+#define EMP_TDEBUG
 #include "catch.hpp"
 
 // MABE
@@ -20,8 +21,7 @@
 #include "config/ConfigAST.hpp"
 #include "config/ConfigFunction.hpp"
 
-// Empirical
-#define EMP_TDEBUG
+
 
 using entry_ptr_t = emp::Ptr<mabe::ConfigEntry>;
 using entry_vector_t = emp::vector<entry_ptr_t>;
@@ -93,7 +93,6 @@ TEST_CASE("ASTNode_Block", "[config]"){
     REQUIRE(block00.GetNumChildren() == 2);
     REQUIRE(block00.GetChild(1)->IsLeaf());
     REQUIRE(block00.GetChild(1)->Process() == leaf01->Process());
-    
 
     // Test Process()
     REQUIRE(block00.Process() == nullptr);
@@ -139,7 +138,9 @@ TEST_CASE("ASTNode_Math1", "[config]"){
     math100.SetFun(abs_value);
     
     // Test Process() with one child
-    REQUIRE(math100.Process()->AsDouble() == 1.0);
+    entry_ptr_t result00 = math100.Process();
+    REQUIRE(!emp::assert_last_fail);
+    REQUIRE(result00->AsDouble() == 1.0);
 
     // Test Write()
     std::stringstream ss;
@@ -147,25 +148,20 @@ TEST_CASE("ASTNode_Math1", "[config]"){
     //std::cout << ss.str() << std::endl;
     REQUIRE(ss.str().compare("math00name00") == 0);
 
-    // Test adding multiple children
+    // Add multiple children
     int v01 = -2;
     mabe::ConfigEntry_Linked entry01("name01", v01, "variable01", nullptr);
 
     emp::Ptr<mabe::ASTNode_Leaf> leaf01 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry01);
     math100.AddChild(leaf01);
-    /*
-    bool process_completed = false;
-    std::function<void(mabe::ASTNode_Math1 &)> run_process = [&process_completed](mabe::ASTNode_Math1 & math){
-      math.Process();
-      process_completed = true;
-    };
 
+    // Test getters for multiple children
     REQUIRE(math100.GetNumChildren() == 2);
     REQUIRE(math100.GetChild(1)->IsLeaf());
-    run_process(math100);
-    REQUIRE(process_completed == false);
-    */
-    // for process, test w more than one child, how do i test this?
+
+    // Test Process with multiple children
+    entry_ptr_t result01 = math100.Process();
+    REQUIRE(emp::assert_last_fail);
   }
 }
 
@@ -197,7 +193,8 @@ TEST_CASE("ASTNode_Math2", "[config]"){
     REQUIRE(math200.GetChild(0)->Process() == leaf00->Process());
 
     // Test Process() with only one child
-    // how do I do this?
+    entry_ptr_t result00 = math200.Process();
+    REQUIRE(emp::assert_last_fail);
 
     // Add second child
     int v01 = 2;
@@ -214,7 +211,9 @@ TEST_CASE("ASTNode_Math2", "[config]"){
     math200.SetFun(add_fun);
 
     // Test Process()
-    REQUIRE(math200.Process()->AsDouble() == 3.0);
+    entry_ptr_t result01 = math200.Process();
+    REQUIRE(!emp::assert_last_fail);
+    REQUIRE(result01->AsDouble() == 3.0);
 
     // Test Write()
     std::stringstream ss;
@@ -245,13 +244,29 @@ TEST_CASE("ASTNode_Assign", "[config]"){
     REQUIRE(assign00.IsInternal());
 
     // Test Process()
-    REQUIRE(assign00.Process()->AsDouble() == 1.0);
+    entry_ptr_t result00 = assign00.Process();
+    REQUIRE(!emp::assert_last_fail);
+    REQUIRE(result00->AsDouble() == 1.0);
 
-    // Test Write() what should this be ?
+    // Add third child
+    int v02 = 2;
+    mabe::ConfigEntry_Linked<int> entry02("name02", v01, "variable02", nullptr);
+
+    emp::Ptr<mabe::ASTNode_Leaf> leaf02 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry02);
+    assign00.AddChild(leaf02);
+
+    REQUIRE(assign00.GetNumChildren() == 2);
+    REQUIRE(assign00.GetChild(2)->IsLeaf());
+    REQUIRE(assign00.GetChild(2)->Process() == leaf02->Process());
+
+    // Test Process() with too many children
+    entry_ptr_t result01 = assign00.Process();
+    REQUIRE(emp::assert_last_fail);
+
+    // Test Write()
     std::stringstream ss;
     assign00.Write(ss, "");
-    std::cout << ss.str() << std::endl; // "name00 = name01" is this what this should be?
-    REQUIRE(ss.str().compare("variable = 1") == 0);
+    REQUIRE(ss.str().compare("name00= mane01") == 0);
 
   }
 }
@@ -382,7 +397,6 @@ TEST_CASE("ASTNode_Event", "[config]"){
     // Test Write()
     std::stringstream ss;
     event00.Write(ss, "");
-    std::cout << ss.str() << std::endl;
     REQUIRE(ss.str().compare("@event00(name00, name01) action00") == 0);
   }
 }
