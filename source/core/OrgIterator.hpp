@@ -96,6 +96,8 @@ namespace mabe {
       emp_assert(pop_ptr.template DynamicCast<Population>());
       return pop_ptr.template Cast<const Population>();
     }
+    emp::Ptr<const Population> ConstPopPtr() const noexcept { return PopPtr(); }
+
     Population & Pop() noexcept {
       emp_assert(PopPtr() != nullptr);
       return *PopPtr();
