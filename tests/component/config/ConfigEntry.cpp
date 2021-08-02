@@ -10,6 +10,7 @@
 #include <climits>
 // CATCH
 #define CATCH_CONFIG_MAIN
+#define EMP_TDEBUG
 #include "catch.hpp"
 // MABE
 #include "config/ConfigEntry.hpp"
@@ -35,9 +36,9 @@ TEST_CASE("ConfigEntry_Linker_Int", "[config]"){
     REQUIRE(&linked_entry_int == ptr00.Raw());
     mabe::ConfigEntry& ref00 = linked_entry_int.As<mabe::ConfigEntry&>();
     REQUIRE(&ref00 == &linked_entry_int);
-    //REQUIRE(linked_entry_int.As<std::vector<int>>()); //how to do this?
-    //mabe::ConfigScope& scope = linked_entry_int.As<mabe::ConfigScope&>();
-    //REQUIRE(scope == nullptr);
+    emp::assert_clear(); // reset assert
+    mabe::ConfigScope& scope = linked_entry_int.As<mabe::ConfigScope&>();
+    REQUIRE(emp::assert_last_fail);
 
     // Test LookupEntry()
     REQUIRE(linked_entry_int.LookupEntry("").Raw() == &linked_entry_int);
@@ -174,8 +175,9 @@ TEST_CASE("ConfigEntry_Linker_Double", "[config]"){
     REQUIRE(&linked_entry_double == ptr00.Raw());
     mabe::ConfigEntry& ref00 = linked_entry_double.As<mabe::ConfigEntry&>();
     REQUIRE(&ref00 == &linked_entry_double);
-    //mabe::ConfigScope scope = linked_entry_double.As<mabe::ConfigScope&>();
-    //REQUIRE(scope.AsScopePtr() == nullptr);
+    emp::assert_clear(); // reset assert
+    mabe::ConfigScope& scope = linked_entry_double.As<mabe::ConfigScope&>();
+    REQUIRE(emp::assert_last_fail);
 
     // Test LookupEntry()
     REQUIRE(linked_entry_double.LookupEntry("").Raw() == &linked_entry_double);
@@ -304,6 +306,9 @@ TEST_CASE("ConfigEntry_Linked_Bool", "[config]"){
     REQUIRE(&linked_entry_bool == ptr00.Raw());
     mabe::ConfigEntry& ref00 = linked_entry_bool.As<mabe::ConfigEntry&>();
     REQUIRE(&ref00 == &linked_entry_bool);
+    emp::assert_clear(); // reset assert
+    mabe::ConfigScope& scope = linked_entry_bool.As<mabe::ConfigScope&>();
+    REQUIRE(emp::assert_last_fail);
 
     // Test LookupEntry()
     REQUIRE(linked_entry_bool.LookupEntry("").Raw() == &linked_entry_bool);
@@ -423,6 +428,9 @@ TEST_CASE("ConfigEntry_Linked<std::string>", "[config]"){
     REQUIRE(&linked_entry_str == ptr00.Raw());
     mabe::ConfigEntry& ref00 = linked_entry_str.As<mabe::ConfigEntry&>();
     REQUIRE(&ref00 == &linked_entry_str);
+    emp::assert_clear(); // reset assert
+    mabe::ConfigScope& scope = linked_entry_str.As<mabe::ConfigScope&>();
+    REQUIRE(emp::assert_last_fail);
 
     // Test LookupEntry()
     REQUIRE(linked_entry_str.LookupEntry("").Raw() == &linked_entry_str);
@@ -579,6 +587,9 @@ TEST_CASE("ConfigEntry_Functions", "[config]"){
     REQUIRE(&linker_functions == ptr00.Raw());
     mabe::ConfigEntry& ref00 = linker_functions.As<mabe::ConfigEntry&>();
     REQUIRE(&ref00 == &linker_functions);
+    emp::assert_clear(); // reset assert
+    mabe::ConfigScope& scope = linker_functions.As<mabe::ConfigScope&>();
+    REQUIRE(emp::assert_last_fail);
 
     // Test LookupEntry()
     REQUIRE(linker_functions.LookupEntry("").Raw() == &linker_functions);
@@ -697,7 +708,9 @@ TEST_CASE("ConfigEntry_Var_Int", "[config]"){
     REQUIRE(&var_entry_int == ptr00.Raw());
     mabe::ConfigEntry& ref00 = var_entry_int.As<mabe::ConfigEntry&>();
     REQUIRE(&ref00 == &var_entry_int);
-    // REQUIRE(var_entry_int.As<mabe::ConfigScope&>() == nullptr);
+    emp::assert_clear(); // reset assert
+    mabe::ConfigScope& scope = var_entry_int.As<mabe::ConfigScope&>();
+    REQUIRE(emp::assert_last_fail);
 
     // Test LookupEntry()
     REQUIRE(var_entry_int.LookupEntry("").Raw() == &var_entry_int);
@@ -825,6 +838,9 @@ TEST_CASE("ConfigEntry_Var_Double", "[config]"){
     REQUIRE(&var_entry_double == ptr00.Raw());
     mabe::ConfigEntry& ref00 = var_entry_double.As<mabe::ConfigEntry&>();
     REQUIRE(&ref00 == &var_entry_double);
+    emp::assert_clear(); // reset assert
+    mabe::ConfigScope& scope = var_entry_double.As<mabe::ConfigScope&>();
+    REQUIRE(emp::assert_last_fail);
 
     // Test LookupEntry()
     REQUIRE(var_entry_double.LookupEntry("").Raw() == &var_entry_double);
@@ -949,6 +965,9 @@ TEST_CASE("ConfigEntry_Var_Bool", "[config]"){
     REQUIRE(&var_entry_bool == ptr00.Raw());
     mabe::ConfigEntry& ref00 = var_entry_bool.As<mabe::ConfigEntry&>();
     REQUIRE(&ref00 == &var_entry_bool);
+    emp::assert_clear(); // reset assert
+    mabe::ConfigScope& scope = var_entry_bool.As<mabe::ConfigScope&>();
+    REQUIRE(emp::assert_last_fail);
 
     // Test LookupEntry()
     REQUIRE(var_entry_bool.LookupEntry("").Raw() == &var_entry_bool);
@@ -1072,6 +1091,9 @@ TEST_CASE("ConfigEntry_Var<std::string>", "[config]"){
     REQUIRE(&var_entry_str == ptr00.Raw());
     mabe::ConfigEntry& ref00 = var_entry_str.As<mabe::ConfigEntry&>();
     REQUIRE(&ref00 == &var_entry_str);
+    emp::assert_clear(); // reset assert
+    mabe::ConfigScope& scope = var_entry_str.As<mabe::ConfigScope&>();
+    REQUIRE(emp::assert_last_fail);
 
     // Test LookupEntry()
     REQUIRE(var_entry_str.LookupEntry("").Raw() == &var_entry_str);
