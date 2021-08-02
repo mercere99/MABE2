@@ -27,7 +27,7 @@ From the repository's main page, find the green *Code* button in the upper
 right hand corner. Click this button, then click *DownLoad Zip* to save the 
 full zip of everything in MABE2's master branch to your computer. 
 
-.. image:: ../images/GitHub_Zip.png
+.. image:: /images/GitHub_Zip.png
   :width: 600
 
 .. _url:
@@ -39,7 +39,7 @@ From the repository's main page, find the green *Code* button in the upper
 right hand corner. Click this button, then click the *clipboard icon* to copy the URL to your 
 clip board. 
 
-.. image:: ../images/GitHub_url.png
+.. image:: /images/GitHub_url.png
   :width: 600
 
 *Note*: You can also use SHH keys to clone and download a GitHub repository. 

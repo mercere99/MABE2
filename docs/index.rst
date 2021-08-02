@@ -8,7 +8,7 @@
 
 Welcome to MABE2's documentation!
 =================================
-.. image:: images/MABE.png
+.. image:: /images/MABE.png
   :width: 600
 
 .. important::
