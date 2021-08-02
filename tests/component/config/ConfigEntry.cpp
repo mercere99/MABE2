@@ -7,7 +7,7 @@
  *  @brief Tests for ConfigEntry with various types and edge cases 
  */
 
-#include <bits/stdc++.h>
+#include <climits>
 // CATCH
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
@@ -22,12 +22,26 @@ TEST_CASE("ConfigEntry_Linker_Int", "[config]"){
     mabe::ConfigEntry_Linked<int> linked_entry_int("name00", v, "variable00", nullptr);
 
     // Test As() functions
+    REQUIRE(linked_entry_int.As<int>() == 0);
     REQUIRE(linked_entry_int.AsDouble() == 0.0);
+    REQUIRE(linked_entry_int.AsDouble() == linked_entry_int.As<int>());
     std::string s00 = linked_entry_int.AsString();
     REQUIRE(s00.compare("0") == 0);
+    REQUIRE(s00.compare(linked_entry_int.As<std::string>()) == 0);
     emp::Ptr<mabe::ConfigScope> scope_ptr = linked_entry_int.AsScopePtr();
     REQUIRE(scope_ptr == nullptr);
+    emp::Ptr ptr00 = linked_entry_int.As<emp::Ptr<mabe::ConfigEntry>>();
+    REQUIRE(&linked_entry_int == ptr00.Raw());
+    //&mabe::ConfigEntry ref00 = linked_entry_int.As<mabe::ConfigEntry&>;
+    //REQUIRE_ASSERT(linked_entry_int.As<bad_type>()); how to do this?
 
+    // Test LookupEntry()
+    REQUIRE(linked_entry_int.LookupEntry("").Raw() == &linked_entry_int);
+    REQUIRE(linked_entry_int.LookupEntry("test").Raw() == nullptr);
+
+    // Test Has()
+    REQUIRE(linked_entry_int.Has("") == true);
+    REQUIRE(linked_entry_int.Has("test") == false);
 
     // Test updating variable, ConfigEntry should change
     v = 1;
@@ -56,10 +70,12 @@ TEST_CASE("ConfigEntry_Linker_Int", "[config]"){
     REQUIRE(name00.compare("name00") == 0);
     std::string desc00 = linked_entry_int.GetDesc();
     REQUIRE(desc00.compare("variable00") == 0);
-    emp::Ptr<mabe::ConfigScope> ptr = linked_entry_int.GetScope(); // should include config scope at the top, if doesn't work deal with when working on config scope
-    REQUIRE(ptr == nullptr); // come back to after looking at config scope 
+    emp::Ptr<mabe::ConfigScope> ptr01 = linked_entry_int.GetScope(); // should include config scope at the top, if doesn't work deal with when working on config scope
+    REQUIRE(ptr01 == nullptr); // come back to after looking at config scope 
     std::string type = linked_entry_int.GetTypename();
     REQUIRE(type.compare("Value") == 0);
+    // REQUIRE(linked_entry_int.GetFormat() == mabe::ConfigEntry::Format::NONE);
+
 
     // Test setter functions
     linked_entry_int.SetName("name01");
@@ -126,8 +142,19 @@ TEST_CASE("ConfigEntry_Linker_Double", "[config]"){
     REQUIRE(linked_entry_double.AsDouble() == 0.0);
     std::string s00 = linked_entry_double.AsString();
     REQUIRE(s00.compare("0") == 0);
+    REQUIRE(s00.compare(linked_entry_double.As<std::string>()) == 0);
     emp::Ptr<mabe::ConfigScope> scope_ptr = linked_entry_double.AsScopePtr();
     REQUIRE(scope_ptr == nullptr);
+    emp::Ptr ptr00 = linked_entry_double.As<emp::Ptr<mabe::ConfigEntry>>();
+    REQUIRE(&linked_entry_double == ptr00.Raw());
+
+    // Test LookupEntry()
+    REQUIRE(linked_entry_double.LookupEntry("").Raw() == &linked_entry_double);
+    REQUIRE(linked_entry_double.LookupEntry("test").Raw() == nullptr);
+
+    // Test Has()
+    REQUIRE(linked_entry_double.Has("") == true);
+    REQUIRE(linked_entry_double.Has("test") == false);
 
     // Test updating variable, ConfigEntry should change
     v = 1;
@@ -156,8 +183,8 @@ TEST_CASE("ConfigEntry_Linker_Double", "[config]"){
     REQUIRE(name00.compare("name00") == 0);
     std::string desc00 = linked_entry_double.GetDesc();
     REQUIRE(desc00.compare("variable00") == 0);
-    emp::Ptr<mabe::ConfigScope> ptr = linked_entry_double.GetScope();
-    REQUIRE(ptr == nullptr);
+    emp::Ptr<mabe::ConfigScope> ptr01 = linked_entry_double.GetScope();
+    REQUIRE(ptr01 == nullptr);
     std::string type = linked_entry_double.GetTypename();
     REQUIRE(type.compare("Value") == 0);
 
@@ -215,7 +242,106 @@ TEST_CASE("ConfigEntry_Linker_Double", "[config]"){
   }
 }
 
-TEST_CASE("ConfigLEntry_Linker<std::string>", "[config]"){
+TEST_CASE("ConfigEntry_Linked_Bool", "[config]"){
+  {
+    bool v = false;
+    mabe::ConfigEntry_Linked<bool> linked_entry_bool("name00", v, "variable00", nullptr);
+
+    // Test As() functions
+    REQUIRE(linked_entry_bool.AsDouble() == 0.0);
+    std::string s00 = linked_entry_bool.AsString();
+    REQUIRE(s00.compare("0") == 0);
+    REQUIRE(s00.compare(linked_entry_bool.As<std::string>()) == 0);
+    emp::Ptr<mabe::ConfigScope> scope_ptr = linked_entry_bool.AsScopePtr();
+    REQUIRE(scope_ptr == nullptr);
+    emp::Ptr ptr00 = linked_entry_bool.As<emp::Ptr<mabe::ConfigEntry>>();
+    REQUIRE(&linked_entry_bool == ptr00.Raw());
+
+    // Test LookupEntry()
+    REQUIRE(linked_entry_bool.LookupEntry("").Raw() == &linked_entry_bool);
+    REQUIRE(linked_entry_bool.LookupEntry("test").Raw() == nullptr);
+
+    // Test Has()
+    REQUIRE(linked_entry_bool.Has("") == true);
+    REQUIRE(linked_entry_bool.Has("test") == false);
+
+    // Test updating variable, ConfigEntry should change
+    v = true;
+
+    REQUIRE(linked_entry_bool.AsDouble() == 1.0);
+    std::string s01 = linked_entry_bool.AsString();
+    REQUIRE(s01.compare("1") == 0);
+
+    // Test bool functions 
+    REQUIRE(linked_entry_bool.IsTemporary() == false);
+    REQUIRE(linked_entry_bool.IsBuiltIn() == false);
+    REQUIRE(linked_entry_bool.IsNumeric() == true);
+    REQUIRE(linked_entry_bool.IsBool() == true);
+    REQUIRE(linked_entry_bool.IsInt() == false);
+    REQUIRE(linked_entry_bool.IsDouble() == false);
+    REQUIRE(linked_entry_bool.IsString() == false);
+    REQUIRE(linked_entry_bool.IsLocal() == false);
+    REQUIRE(linked_entry_bool.IsTemporary() == false);
+    REQUIRE(linked_entry_bool.IsBuiltIn() == false);
+    REQUIRE(linked_entry_bool.IsFunction() == false);
+    REQUIRE(linked_entry_bool.IsScope() == false);
+    REQUIRE(linked_entry_bool.IsError() == false);
+
+    // Test getter functions
+    std::string name00 = linked_entry_bool.GetName();
+    REQUIRE(name00.compare("name00") == 0);
+    std::string desc00 = linked_entry_bool.GetDesc();
+    REQUIRE(desc00.compare("variable00") == 0);
+    emp::Ptr<mabe::ConfigScope> ptr01 = linked_entry_bool.GetScope();
+    REQUIRE(ptr01 == nullptr);
+    std::string type = linked_entry_bool.GetTypename();
+    REQUIRE(type.compare("Unknown") == 0);
+
+    // Test setter functions
+    linked_entry_bool.SetName("name01");
+    std::string name01 = linked_entry_bool.GetName();
+    REQUIRE(name01.compare("name01") == 0);
+    linked_entry_bool.SetDesc("desc01");
+    std::string desc01 = linked_entry_bool.GetDesc();
+    REQUIRE(desc01.compare("desc01") == 0);
+    linked_entry_bool.SetTemporary();
+    REQUIRE(linked_entry_bool.IsTemporary() == true);
+    linked_entry_bool.SetBuiltIn();
+    REQUIRE(linked_entry_bool.IsBuiltIn() == true);
+
+    // Test setter functions, original variable should change
+    linked_entry_bool.SetValue(0.0);
+    REQUIRE(linked_entry_bool.AsDouble() == 0.0);
+    REQUIRE(!v);
+    linked_entry_bool.SetString("1");
+    std::string s02 = linked_entry_bool.AsString();
+    REQUIRE(s02.compare("1") == 0);
+    REQUIRE(v);
+
+    // Test Clone()
+    emp::Ptr<mabe::ConfigEntry> clone_ptr = linked_entry_bool.Clone();
+    const std::string s03 = clone_ptr->GetName();
+    REQUIRE(s03.compare(linked_entry_bool.GetName()) == 0);
+    const std::string s04 = clone_ptr->GetDesc();
+    REQUIRE(s04.compare(linked_entry_bool.GetDesc()) == 0);
+
+    REQUIRE(clone_ptr->AsDouble() == linked_entry_bool.AsDouble());
+
+    // Test updating clone, should update original ConfigEntry and original variable
+    clone_ptr->SetValue(0.0);
+    REQUIRE(clone_ptr->AsDouble() == 0.0);
+    REQUIRE(linked_entry_bool.AsDouble() == 0.0);
+    REQUIRE(v == 0.0);
+
+    // Test CopyValue()
+    bool n = true;
+    mabe::ConfigEntry_Linked<bool> linked_entry_bool_01("name01", n, "variable01", nullptr);
+    linked_entry_bool.CopyValue(linked_entry_bool_01);
+    REQUIRE(linked_entry_bool.AsDouble() == 1.0);
+  }
+}
+
+TEST_CASE("ConfigEntry_Linked<std::string>", "[config]"){
   {
     std::string v = "0";
     mabe::ConfigEntry_Linked<std::string> linked_entry_str("name00", v, "variable00", nullptr);
@@ -224,8 +350,19 @@ TEST_CASE("ConfigLEntry_Linker<std::string>", "[config]"){
     REQUIRE(linked_entry_str.AsDouble() == 0.0);
     std::string s00 = linked_entry_str.AsString();
     REQUIRE(s00.compare("0") == 0);
+    REQUIRE(s00.compare(linked_entry_str.As<std::string>()) == 0);
     emp::Ptr<mabe::ConfigScope> scope_ptr = linked_entry_str.AsScopePtr();
     REQUIRE(scope_ptr == nullptr);
+    emp::Ptr ptr00 = linked_entry_str.As<emp::Ptr<mabe::ConfigEntry>>();
+    REQUIRE(&linked_entry_str == ptr00.Raw());
+
+    // Test LookupEntry()
+    REQUIRE(linked_entry_str.LookupEntry("").Raw() == &linked_entry_str);
+    REQUIRE(linked_entry_str.LookupEntry("test").Raw() == nullptr);
+
+    // Test Has()
+    REQUIRE(linked_entry_str.Has("") == true);
+    REQUIRE(linked_entry_str.Has("test") == false);
 
     // Test updating variable, ConfigEntry should change
     v = "1";
@@ -254,8 +391,8 @@ TEST_CASE("ConfigLEntry_Linker<std::string>", "[config]"){
     REQUIRE(name00.compare("name00") == 0);
     std::string desc00 = linked_entry_str.GetDesc();
     REQUIRE(desc00.compare("variable00") == 0);
-    emp::Ptr<mabe::ConfigScope> ptr = linked_entry_str.GetScope();
-    REQUIRE(ptr == nullptr);
+    emp::Ptr<mabe::ConfigScope> ptr01 = linked_entry_str.GetScope();
+    REQUIRE(ptr01 == nullptr);
     std::string type = linked_entry_str.GetTypename();
     REQUIRE(type.compare("String") == 0);
 
@@ -348,8 +485,19 @@ TEST_CASE("ConfigEntry_Functions", "[config]"){
     REQUIRE(linker_functions.AsDouble() == 0.0);
     std::string s00 = linker_functions.AsString();
     REQUIRE(s00.compare("0") == 0);
+    REQUIRE(s00.compare(linker_functions.As<std::string>()) == 0);
     emp::Ptr<mabe::ConfigScope> scope_ptr = linker_functions.AsScopePtr();
     REQUIRE(scope_ptr == nullptr);
+    emp::Ptr ptr00 = linker_functions.As<emp::Ptr<mabe::ConfigEntry>>();
+    REQUIRE(&linker_functions == ptr00.Raw());
+
+    // Test LookupEntry()
+    REQUIRE(linker_functions.LookupEntry("").Raw() == &linker_functions);
+    REQUIRE(linker_functions.LookupEntry("test").Raw() == nullptr);
+
+    // Test Has()
+    REQUIRE(linker_functions.Has("") == true);
+    REQUIRE(linker_functions.Has("test") == false);
 
     // Test bool functions 
     REQUIRE(linker_functions.IsTemporary() == false);
@@ -369,8 +517,8 @@ TEST_CASE("ConfigEntry_Functions", "[config]"){
     // Test getter functions
     std::string name00 = linker_functions.GetName();
     REQUIRE(name00.compare("name00") == 0);
-    emp::Ptr<mabe::ConfigScope> ptr = linker_functions.GetScope();
-    REQUIRE(ptr == nullptr);
+    emp::Ptr<mabe::ConfigScope> ptr01 = linker_functions.GetScope();
+    REQUIRE(ptr01 == nullptr);
     std::string type = linker_functions.GetTypename();
     REQUIRE(type.compare("[[Function]]") == 0);
 
@@ -436,8 +584,19 @@ TEST_CASE("ConfigEntry_Var_Int", "[config]"){
     REQUIRE(var_entry_int.AsDouble() == 0.0);
     std::string s00 = var_entry_int.AsString();
     REQUIRE(s00.compare("0") == 0);
+    REQUIRE(s00.compare(var_entry_int.As<std::string>()) == 0);
     emp::Ptr<mabe::ConfigScope> scope_ptr = var_entry_int.AsScopePtr();
     REQUIRE(scope_ptr == nullptr);
+    emp::Ptr ptr00 = var_entry_int.As<emp::Ptr<mabe::ConfigEntry>>();
+    REQUIRE(&var_entry_int == ptr00.Raw());
+
+    // Test LookupEntry()
+    REQUIRE(var_entry_int.LookupEntry("").Raw() == &var_entry_int);
+    REQUIRE(var_entry_int.LookupEntry("test").Raw() == nullptr);
+
+    // Test Has()
+    REQUIRE(var_entry_int.Has("") == true);
+    REQUIRE(var_entry_int.Has("test") == false);
 
     // Test updating variable, ConfigEntry should not change
     v = 1;
@@ -467,8 +626,8 @@ TEST_CASE("ConfigEntry_Var_Int", "[config]"){
     REQUIRE(name00.compare("name00") == 0);
     std::string desc00 = var_entry_int.GetDesc();
     REQUIRE(desc00.compare("variable00") == 0);
-    emp::Ptr<mabe::ConfigScope> ptr = var_entry_int.GetScope();
-    REQUIRE(ptr == nullptr);
+    emp::Ptr<mabe::ConfigScope> ptr01 = var_entry_int.GetScope();
+    REQUIRE(ptr01 == nullptr);
     std::string type = var_entry_int.GetTypename();
     REQUIRE(type.compare("Value") == 0);
     var_entry_int.SetMin(1.0);
@@ -537,8 +696,19 @@ TEST_CASE("ConfigEntry_Var_Double", "[config]"){
     REQUIRE(var_entry_double.AsDouble() == 0.0);
     std::string s00 = var_entry_double.AsString();
     REQUIRE(s00.compare("0") == 0);
+    REQUIRE(s00.compare(var_entry_double.As<std::string>()) == 0);
     emp::Ptr<mabe::ConfigScope> scope_ptr = var_entry_double.AsScopePtr();
     REQUIRE(scope_ptr == nullptr);
+    emp::Ptr ptr00 = var_entry_double.As<emp::Ptr<mabe::ConfigEntry>>();
+    REQUIRE(&var_entry_double == ptr00.Raw());
+
+    // Test LookupEntry()
+    REQUIRE(var_entry_double.LookupEntry("").Raw() == &var_entry_double);
+    REQUIRE(var_entry_double.LookupEntry("test").Raw() == nullptr);
+
+    // Test Has()
+    REQUIRE(var_entry_double.Has("") == true);
+    REQUIRE(var_entry_double.Has("test") == false);
 
     // Test updating variable, ConfigEntry should not change
     v = 1.0;
@@ -567,8 +737,8 @@ TEST_CASE("ConfigEntry_Var_Double", "[config]"){
     REQUIRE(name00.compare("name00") == 0);
     std::string desc00 = var_entry_double.GetDesc();
     REQUIRE(desc00.compare("variable00") == 0);
-    emp::Ptr<mabe::ConfigScope> ptr = var_entry_double.GetScope();
-    REQUIRE(ptr == nullptr);
+    emp::Ptr<mabe::ConfigScope> ptr01 = var_entry_double.GetScope();
+    REQUIRE(ptr01 == nullptr);
     std::string type = var_entry_double.GetTypename();
     REQUIRE(type.compare("Value") == 0);
 
@@ -591,7 +761,6 @@ TEST_CASE("ConfigEntry_Var_Double", "[config]"){
     REQUIRE_FALSE(var_entry_double.AsDouble() > 0.0);
 
     // Reset Min and Max
-    
     var_entry_double.SetMin(INT_MIN);
     // var_entry_double.SetMax(INT_MAX); // bug: SetMax() sets min, so not being reset right now 
     var_entry_double.SetValue(0.0);
@@ -627,6 +796,111 @@ TEST_CASE("ConfigEntry_Var_Double", "[config]"){
   }
 }
 
+TEST_CASE("ConfigEntry_Var_Bool", "[config]"){
+  {
+    bool v = false;
+    mabe::ConfigEntry_Var<bool> var_entry_bool("name00", v, "variable00", nullptr);
+
+    // Test As() functions
+    REQUIRE(var_entry_bool.AsDouble() == 0.0);
+    std::string s00 = var_entry_bool.AsString();
+    REQUIRE(s00.compare("0") == 0);
+    REQUIRE(s00.compare(var_entry_bool.As<std::string>()) == 0);
+    emp::Ptr<mabe::ConfigScope> scope_ptr = var_entry_bool.AsScopePtr();
+    REQUIRE(scope_ptr == nullptr);
+    emp::Ptr ptr00 = var_entry_bool.As<emp::Ptr<mabe::ConfigEntry>>();
+    REQUIRE(&var_entry_bool == ptr00.Raw());
+
+    // Test LookupEntry()
+    REQUIRE(var_entry_bool.LookupEntry("").Raw() == &var_entry_bool);
+    REQUIRE(var_entry_bool.LookupEntry("test").Raw() == nullptr);
+
+    // Test Has()
+    REQUIRE(var_entry_bool.Has("") == true);
+    REQUIRE(var_entry_bool.Has("test") == false);
+
+    // Test updating variable, ConfigEntry should not change
+    v = true;
+
+    REQUIRE(var_entry_bool.AsDouble() == 0.0);
+    std::string s01 = var_entry_bool.AsString();
+    REQUIRE(s01.compare("0") == 0);
+
+    // Test bool functions 
+    REQUIRE(var_entry_bool.IsTemporary() == false);
+    REQUIRE(var_entry_bool.IsBuiltIn() == false);
+    REQUIRE(var_entry_bool.IsNumeric() == true);
+    REQUIRE(var_entry_bool.IsBool() == true);
+    REQUIRE(var_entry_bool.IsInt() == false);
+    REQUIRE(var_entry_bool.IsDouble() == false);
+    REQUIRE(var_entry_bool.IsString() == false);
+    REQUIRE(var_entry_bool.IsLocal() == true);
+    REQUIRE(var_entry_bool.IsTemporary() == false);
+    REQUIRE(var_entry_bool.IsBuiltIn() == false);
+    REQUIRE(var_entry_bool.IsFunction() == false);
+    REQUIRE(var_entry_bool.IsScope() == false);
+    REQUIRE(var_entry_bool.IsError() == false);
+
+    // Test getter functions
+    std::string name00 = var_entry_bool.GetName();
+    REQUIRE(name00.compare("name00") == 0);
+    std::string desc00 = var_entry_bool.GetDesc();
+    REQUIRE(desc00.compare("variable00") == 0);
+    emp::Ptr<mabe::ConfigScope> ptr01 = var_entry_bool.GetScope();
+    REQUIRE(ptr01 == nullptr);
+    std::string type = var_entry_bool.GetTypename();
+    REQUIRE(type.compare("Unknown") == 0);
+
+    // Test setter functions
+    var_entry_bool.SetName("name01");
+    std::string name01 = var_entry_bool.GetName();
+    REQUIRE(name01.compare("name01") == 0);
+    var_entry_bool.SetDesc("desc01");
+    std::string desc01 = var_entry_bool.GetDesc();
+    REQUIRE(desc01.compare("desc01") == 0);
+    var_entry_bool.SetTemporary();
+    REQUIRE(var_entry_bool.IsTemporary() == true);
+    var_entry_bool.SetBuiltIn();
+    REQUIRE(var_entry_bool.IsBuiltIn() == true);
+
+    // Test setter functions, original variable should not change
+    v = 0;
+    REQUIRE(!v);
+    var_entry_bool.SetValue(1.0);
+    REQUIRE(var_entry_bool.AsDouble() == 1.0);
+    REQUIRE(!v);
+    v = 1;
+    REQUIRE(v);
+    var_entry_bool.SetString("0");
+    std::string s02 = var_entry_bool.AsString();
+    REQUIRE(s02.compare("0") == 0);
+    REQUIRE(v);
+
+    // Test Clone()
+    emp::Ptr<mabe::ConfigEntry> clone_ptr = var_entry_bool.Clone();
+    const std::string s03 = clone_ptr->GetName();
+    REQUIRE(s03.compare(var_entry_bool.GetName()) == 0);
+    const std::string s04 = clone_ptr->GetDesc();
+    REQUIRE(s04.compare(var_entry_bool.GetDesc()) == 0);
+
+    REQUIRE(clone_ptr->AsDouble() == var_entry_bool.AsDouble());
+
+    // Test updating clone, should not update original ConfigEntry or original variable
+    v = 0;
+    REQUIRE(!v);
+    clone_ptr->SetValue(1.0);
+    REQUIRE(clone_ptr->AsDouble() == 1.0);
+    REQUIRE(var_entry_bool.AsDouble() == 0.0);
+    REQUIRE(!v);
+
+    // Test CopyValue()
+    bool n = true;
+    mabe::ConfigEntry_Linked<bool> var_entry_bool_01("name01", n, "variable01", nullptr);
+    var_entry_bool.CopyValue(var_entry_bool_01);
+    REQUIRE(var_entry_bool.AsDouble() == 1.0);
+  }
+}
+
 TEST_CASE("ConfigEntry_Var<std::string>", "[config]"){
   {
     std::string v = "0";
@@ -636,8 +910,19 @@ TEST_CASE("ConfigEntry_Var<std::string>", "[config]"){
     REQUIRE(var_entry_str.AsDouble() == 0.0);
     std::string s00 = var_entry_str.AsString();
     REQUIRE(s00.compare("0") == 0);
+    REQUIRE(s00.compare(var_entry_str.As<std::string>()) == 0);
     emp::Ptr<mabe::ConfigScope> scope_ptr = var_entry_str.AsScopePtr();
     REQUIRE(scope_ptr == nullptr);
+    emp::Ptr ptr00 = var_entry_str.As<emp::Ptr<mabe::ConfigEntry>>();
+    REQUIRE(&var_entry_str == ptr00.Raw());
+
+    // Test LookupEntry()
+    REQUIRE(var_entry_str.LookupEntry("").Raw() == &var_entry_str);
+    REQUIRE(var_entry_str.LookupEntry("test").Raw() == nullptr);
+
+    // Test Has()
+    REQUIRE(var_entry_str.Has("") == true);
+    REQUIRE(var_entry_str.Has("test") == false);
 
     // Test updating variable, ConfigEntry should not change
     v = "1";
@@ -667,8 +952,8 @@ TEST_CASE("ConfigEntry_Var<std::string>", "[config]"){
     REQUIRE(name00.compare("name00") == 0);
     std::string desc00 = var_entry_str.GetDesc();
     REQUIRE(desc00.compare("variable00") == 0);
-    emp::Ptr<mabe::ConfigScope> ptr = var_entry_str.GetScope();
-    REQUIRE(ptr == nullptr);
+    emp::Ptr<mabe::ConfigScope> ptr01 = var_entry_str.GetScope();
+    REQUIRE(ptr01 == nullptr);
     std::string type = var_entry_str.GetTypename();
     REQUIRE(type.compare("String") == 0);
 
