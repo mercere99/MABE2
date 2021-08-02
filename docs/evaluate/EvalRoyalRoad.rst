@@ -51,14 +51,15 @@ Output
 None.
 
 Compiling and Running
--------
+-----------------------
 
 To run MABE with the RoyalRoad evaluator, navigate to the build directory. 
 First run the command ``make``. 
 Next run the command ``./MABE -f settings/EvalRoyalRoad.mabe``.
 
 Examples
--------
+--------
+
 Here are a couple of example ``BitOrgs`` and how they would be evaluated by the RoyalRoad evaluator. 
 
 +-------------------------------+-------------------+-----------------------------+

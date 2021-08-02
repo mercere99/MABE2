@@ -3,7 +3,7 @@ Quickstart
 ==========
 
 The ``.mabe`` File
---------
+-------------------
 
 The ``.mabe`` file is generated from your chosen set of modules, and is the configuration page
 that you can use to run your experiments! In the ``.mabe`` file, you can change variables that
@@ -51,7 +51,8 @@ You can check to see that it exists by going into the ``settings`` directory and
 Congratulations! You've created your first ``.mabe`` file!
 
 Summary
-*****
+*********
+
 Step 1: In the ``build`` directory, run the following: 
 
 .. code-block:: cpp
@@ -80,7 +81,7 @@ Step 3: Create your ``.mabe`` file and check to make sure it's created by runnin
 
 
 Running the ``.mabe`` File
---------
+---------------------------
 
 To run your ``.mabe`` file, navigate to the ``build`` directory and run your ``.mabe`` file. To do so, start in the ``MABE2`` folder and run the following commands: 
 
@@ -91,7 +92,8 @@ To run your ``.mabe`` file, navigate to the ``build`` directory and run your ``.
     
 
 Changing the ``.mabe`` File
---------
+---------------------------
+
 You can modify your experiment by changing the variable values inside of the  ``.mabe`` file. 
 
 If you don't have the ``.mabe`` file open, simply open it in your text editor of choice. 
@@ -110,7 +112,7 @@ To run your modified ``.mabe`` file, first make sure you have saved your file, t
 
 
 Viewing and Saving Your Data
---------
+-----------------------------
 
 The data you have collected has been saved in a CSV file called ``output.csv``, which is located in the ``build`` directory. 
 From the main ``MABE2`` folder, you can find this file by running the following commands: 
@@ -133,7 +135,7 @@ The first way to save your data is to create a copy of ``output.csv`` (which can
 Since there is a copy of the CSV file, you can run your ``.mabe`` file again and not worry about losing your data. 
 
 Create a New CSV File from ``.mabe``
-***********************************
+*************************************
 
 The second way to save your data is to modify the ``.mabe`` file itself so that it saves in a different place. 
 
