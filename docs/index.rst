@@ -84,9 +84,10 @@ Ready to use MABE? Learn how to `install MABE <first_steps/00_installation.html>
 
 .. toctree::
    :hidden:
-   :caption: Modules Overview
+   :caption: Overview
    :glob:
-
+   
+   source/*
    modules/*
 
 
