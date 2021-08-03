@@ -164,7 +164,7 @@ TEST_CASE("ASTNode_Math1", "[config]"){
     REQUIRE(emp::assert_last_fail);
   }
 }
-
+/*
 double add_fun(double n, double m) {
   return n + m;
 }
@@ -221,7 +221,7 @@ TEST_CASE("ASTNode_Math2", "[config]"){
     REQUIRE(ss.str().compare("math00name00name01") == 0);
   }
 }
-
+*/
 TEST_CASE("ASTNode_Assign", "[config]"){
   {
     std::string v00 = "variable";
@@ -244,6 +244,7 @@ TEST_CASE("ASTNode_Assign", "[config]"){
     REQUIRE(assign00.IsInternal());
 
     // Test Process()
+    emp::assert_clear(); // do this other places too!
     entry_ptr_t result00 = assign00.Process();
     REQUIRE(!emp::assert_last_fail);
     REQUIRE(result00->AsDouble() == 1.0);
