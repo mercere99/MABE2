@@ -16,7 +16,7 @@
 // MABE
 #include "config/ConfigEntry.hpp"
 #include "config/ConfigScope.hpp"
-/*
+
 TEST_CASE("ConfigEntry_Linker_Int", "[config]"){
   {
     int v = 0;
@@ -152,10 +152,10 @@ TEST_CASE("ConfigEntry_Linker_Int", "[config]"){
 
     // Test Call
     emp::vector<emp::Ptr<mabe::ConfigEntry>> args;
-    emp::Ptr<mabe::ConfigEntry_Linked<int>> arg00 = emp::NewPtr<mabe::ConfigEntry_Linked<int>>(&linked_entry_int); // make sure actuall config entry ptr not sonfig entry linked?
+    emp::Ptr arg00 = linked_entry_int.As<emp::Ptr<mabe::ConfigEntry>>();
     args.push_back(arg00);
     emp::Ptr<mabe::ConfigEntry> call_result = linked_entry_int.Call(args);
-    REQUIRE(call_result->IsError() == true); //how to test this is error
+    REQUIRE(call_result->IsError() == true);
   }
 }
 
@@ -287,6 +287,13 @@ TEST_CASE("ConfigEntry_Linker_Double", "[config]"){
     linked_entry_double_copy.SetValue(7.0);
     REQUIRE(v == 7);
     REQUIRE(linked_entry_double.AsDouble() == 7.0);
+
+    // Test Call()
+    emp::vector<emp::Ptr<mabe::ConfigEntry>> args;
+    emp::Ptr arg00 = linked_entry_double.As<emp::Ptr<mabe::ConfigEntry>>();
+    args.push_back(arg00);
+    emp::Ptr<mabe::ConfigEntry> call_result = linked_entry_double.Call(args);
+    REQUIRE(call_result->IsError() == true);
   }
 }
 
@@ -409,6 +416,13 @@ TEST_CASE("ConfigEntry_Linked_Bool", "[config]"){
     linked_entry_bool_copy.SetValue(1.0);
     REQUIRE(v == 1);
     REQUIRE(linked_entry_bool.AsDouble() == 1.0);
+
+    // Test Call()
+    emp::vector<emp::Ptr<mabe::ConfigEntry>> args;
+    emp::Ptr arg00 = linked_entry_bool.As<emp::Ptr<mabe::ConfigEntry>>();
+    args.push_back(arg00);
+    emp::Ptr<mabe::ConfigEntry> call_result = linked_entry_bool.Call(args);
+    REQUIRE(call_result->IsError() == true);
   }
 }
 
@@ -547,6 +561,13 @@ TEST_CASE("ConfigEntry_Linked<std::string>", "[config]"){
     linked_entry_str_copy.SetValue(7.0);
     REQUIRE(v.compare("7") == 0);
     REQUIRE(linked_entry_str.AsDouble() == 7.0);
+
+    // Test Call
+    emp::vector<emp::Ptr<mabe::ConfigEntry>> args;
+    emp::Ptr arg00 = linked_entry_str.As<emp::Ptr<mabe::ConfigEntry>>();
+    args.push_back(arg00);
+    emp::Ptr<mabe::ConfigEntry> call_result = linked_entry_str.Call(args);
+    REQUIRE(call_result->IsError() == true);
   }
 }
 
@@ -688,6 +709,12 @@ TEST_CASE("ConfigEntry_Functions", "[config]"){
     REQUIRE(linker_functions_copy.AsDouble() == 15.0);
     REQUIRE(linker_functions.AsDouble() == 15.0);
 
+    // Test Call()
+    emp::vector<emp::Ptr<mabe::ConfigEntry>> args;
+    emp::Ptr arg00 = linker_functions.As<emp::Ptr<mabe::ConfigEntry>>();
+    args.push_back(arg00);
+    emp::Ptr<mabe::ConfigEntry> call_result = linker_functions.Call(args);
+    REQUIRE(call_result->IsError() == true);
   }
 }
 
@@ -819,6 +846,12 @@ TEST_CASE("ConfigEntry_Var_Int", "[config]"){
     var_entry_int_copy.SetValue(6.0);
     REQUIRE(v != 6);
     REQUIRE(var_entry_int.AsDouble() == 5.0);
+
+    emp::vector<emp::Ptr<mabe::ConfigEntry>> args;
+    emp::Ptr arg00 = var_entry_int.As<emp::Ptr<mabe::ConfigEntry>>();
+    args.push_back(arg00);
+    emp::Ptr<mabe::ConfigEntry> call_result = var_entry_int.Call(args);
+    REQUIRE(call_result->IsError() == true);
   }
 }
 
@@ -946,6 +979,13 @@ TEST_CASE("ConfigEntry_Var_Double", "[config]"){
     var_entry_double_copy.SetValue(6.0);
     REQUIRE(v != 6);
     REQUIRE(var_entry_double.AsDouble() == 5.0);
+
+    // Test Call()
+    emp::vector<emp::Ptr<mabe::ConfigEntry>> args;
+    emp::Ptr arg00 = var_entry_double.As<emp::Ptr<mabe::ConfigEntry>>();
+    args.push_back(arg00);
+    emp::Ptr<mabe::ConfigEntry> call_result = var_entry_double.Call(args);
+    REQUIRE(call_result->IsError() == true);
   }
 }
 
@@ -1072,6 +1112,13 @@ TEST_CASE("ConfigEntry_Var_Bool", "[config]"){
     var_entry_bool_copy.SetValue(0.0);
     REQUIRE(v != 0);
     REQUIRE(var_entry_bool.AsDouble() == 1.0);
+
+    // Test Call()
+    emp::vector<emp::Ptr<mabe::ConfigEntry>> args;
+    emp::Ptr arg00 = var_entry_bool.As<emp::Ptr<mabe::ConfigEntry>>();
+    args.push_back(arg00);
+    emp::Ptr<mabe::ConfigEntry> call_result = var_entry_bool.Call(args);
+    REQUIRE(call_result->IsError() == true);
   }
 }
 
@@ -1203,9 +1250,16 @@ TEST_CASE("ConfigEntry_Var<std::string>", "[config]"){
     var_entry_str_copy.SetValue(6.0);
     REQUIRE(v.compare("6") != 0);
     REQUIRE(var_entry_str.AsDouble() == 5.0);
+
+    // Test Call()
+    emp::vector<emp::Ptr<mabe::ConfigEntry>> args;
+    emp::Ptr arg00 = var_entry_str.As<emp::Ptr<mabe::ConfigEntry>>();
+    args.push_back(arg00);
+    emp::Ptr<mabe::ConfigEntry> call_result = var_entry_str.Call(args);
+    REQUIRE(call_result->IsError() == true);
   }
 }
-*/
+
 TEST_CASE("ConfigEntry_Error", "[config]"){
   {
     mabe::ConfigEntry_Error error00;
@@ -1281,5 +1335,12 @@ TEST_CASE("ConfigEntry_Error", "[config]"){
     // Test Has()
     REQUIRE(error00.Has("") == true);
     REQUIRE(error00.Has("test") == false);
+
+    // Test Call()
+    emp::vector<emp::Ptr<mabe::ConfigEntry>> args;
+    emp::Ptr arg00 = error00.As<emp::Ptr<mabe::ConfigEntry>>();
+    args.push_back(arg00);
+    emp::Ptr<mabe::ConfigEntry> call_result = error00.Call(args);
+    REQUIRE(call_result->IsError() == true);
   }
 }
