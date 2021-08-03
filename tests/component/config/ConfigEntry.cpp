@@ -621,6 +621,20 @@ void setter01(const T & in) {
   n += (int) in;
 }
 
+std::string s = "1";
+
+std::string string_getter() {
+  return s;
+}
+
+std::string string_setter(const std::string & in) {
+  int i = std::stoi(in, nullptr, 10);
+  int sum = std::stoi(string_getter(), nullptr, 10);
+  sum += i;
+  std::string s = std::to_string(sum);
+  return s;
+}
+
 TEST_CASE("ConfigEntry_Functions", "[config]"){
   {
     mabe::ConfigEntry_Functions<int> linker_functions("name00", getter<int>, setter<int>, "desc00", nullptr);
@@ -669,6 +683,31 @@ TEST_CASE("ConfigEntry_Functions", "[config]"){
     REQUIRE(linker_functions.IsFunction() == false);
     REQUIRE(linker_functions.IsScope() == false);
     REQUIRE(linker_functions.IsError() == false);
+
+    // Retest bool functions with double getter function
+    mabe::ConfigEntry_Functions<double> linker_functions_01("name01", getter<double>, setter<double>, "desc01", nullptr);
+    REQUIRE(linker_functions_01.IsNumeric() == true);
+    REQUIRE(linker_functions_01.IsBool() == false);
+    REQUIRE(linker_functions_01.IsInt() == false);
+    REQUIRE(linker_functions_01.IsDouble() == true);
+    REQUIRE(linker_functions_01.IsString() == false);
+    
+    // Retest bool functions with boolean getter function
+    mabe::ConfigEntry_Functions<bool> linker_functions_02("name02", getter<bool>, setter<bool>, "desc02", nullptr);
+    REQUIRE(linker_functions_02.IsNumeric() == true);
+    REQUIRE(linker_functions_02.IsBool() == true);
+    REQUIRE(linker_functions_02.IsInt() == false);
+    REQUIRE(linker_functions_02.IsDouble() == false);
+    REQUIRE(linker_functions_02.IsString() == false);
+
+    // Retest bool functions with string getter function
+    mabe::ConfigEntry_Functions<std::string> linker_functions_03("name03", string_getter, string_setter, "desc03", nullptr);
+    REQUIRE(linker_functions_03.IsNumeric() == false);
+    REQUIRE(linker_functions_03.IsBool() == false);
+    REQUIRE(linker_functions_03.IsInt() == false);
+    REQUIRE(linker_functions_03.IsDouble() == false);
+    REQUIRE(linker_functions_03.IsString() == true);
+
 
     // Test getter functions
     std::string name00 = linker_functions.GetName();
@@ -733,8 +772,8 @@ TEST_CASE("ConfigEntry_Functions", "[config]"){
     REQUIRE(v == 4);
 
     // Test CopyValue()
-    mabe::ConfigEntry_Functions<int> linker_functions_01("name01", getter01<int>, setter01<int>, "desc00", nullptr);
-    linker_functions.CopyValue(linker_functions_01);
+    mabe::ConfigEntry_Functions<int> linker_functions_04("name04", getter01<int>, setter01<int>, "desc04", nullptr);
+    linker_functions.CopyValue(linker_functions_04);
     REQUIRE(linker_functions.AsDouble() == 5.0);
 
     // Test CopyConstructor, must use same getter and setter
