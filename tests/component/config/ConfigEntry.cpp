@@ -8,6 +8,7 @@
  */
 
 #include <climits>
+#include <vector>
 // CATCH
 #define CATCH_CONFIG_MAIN
 #define EMP_TDEBUG
@@ -15,8 +16,7 @@
 // MABE
 #include "config/ConfigEntry.hpp"
 #include "config/ConfigScope.hpp"
-
-// set min and max? but with set max
+/*
 TEST_CASE("ConfigEntry_Linker_Int", "[config]"){
   {
     int v = 0;
@@ -151,11 +151,11 @@ TEST_CASE("ConfigEntry_Linker_Int", "[config]"){
     REQUIRE(linked_entry_int.AsDouble() == 7.0);
 
     // Test Call
-    // emp::vector<emp::Ptr<mabe::ConfigEntry>> args;
-    // emp::Ptr arg00 = emp::NewPtr<mabe::ConfigEntry_Linked<int>>(&linked_entry_int); // make sure actuall config entry ptr not sonfig entry linked?
-    // args.push_back(arg00);
-    // emp::Ptr<mabe::ConfigEntry> call_result = linked_entry_int.Call(args);
-    // REQUIRE(call_result->IsError() == true); //how to test this is error
+    emp::vector<emp::Ptr<mabe::ConfigEntry>> args;
+    emp::Ptr<mabe::ConfigEntry_Linked<int>> arg00 = emp::NewPtr<mabe::ConfigEntry_Linked<int>>(&linked_entry_int); // make sure actuall config entry ptr not sonfig entry linked?
+    args.push_back(arg00);
+    emp::Ptr<mabe::ConfigEntry> call_result = linked_entry_int.Call(args);
+    REQUIRE(call_result->IsError() == true); //how to test this is error
   }
 }
 
@@ -1164,7 +1164,6 @@ TEST_CASE("ConfigEntry_Var<std::string>", "[config]"){
     //REQUIRE_FALSE(var_entry_str.AsDouble() > 0.0);
 
     // Reset Min and Max
-    
     var_entry_str.SetMin(INT_MIN);
     // var_entry_str.SetMax(INT_MAX); // bug: SetMax() sets min, so not being reset right now 
     var_entry_str.SetValue(0.0);
@@ -1206,12 +1205,69 @@ TEST_CASE("ConfigEntry_Var<std::string>", "[config]"){
     REQUIRE(var_entry_str.AsDouble() == 5.0);
   }
 }
-
+*/
 TEST_CASE("ConfigEntry_Error", "[config]"){
   {
     mabe::ConfigEntry_Error error00;
 
+    // Test As()
+    emp::assert_clear();
+    error00.AsDouble();
+    REQUIRE(emp::assert_last_fail);
+    emp::assert_clear();
+    error00.AsString();
+    REQUIRE(emp::assert_last_fail);
+
+
     // Test getters
-    REQUIRE(error00.GetName() == "__Error");
+    std::string s00 = error00.GetName();
+    REQUIRE(s00.compare("__Error") == 0);
+    std::string s01 = error00.GetDesc();
+    REQUIRE(s01.compare("") == 0);
+    std::string s02 = error00.GetTypename();
+    REQUIRE(s02.compare("[[Error]]") == 0);
+    REQUIRE(error00.GetScope() == nullptr);
+
+    // Test booleans
+    REQUIRE(error00.IsError() == true);
+    REQUIRE(error00.IsNumeric() == false);
+    REQUIRE(error00.IsBool() == false);
+    REQUIRE(error00.IsInt() == false);
+    REQUIRE(error00.IsDouble() == false);
+    REQUIRE(error00.IsString() == false);
+    REQUIRE(error00.IsLocal() == false);
+    REQUIRE(error00.IsTemporary() == true);
+    REQUIRE(error00.IsBuiltIn() == false);
+    REQUIRE(error00.IsFunction() == false);
+    REQUIRE(error00.IsScope() == false);
+
+
+    // Test setters
+    error00.SetName("name00");
+    std::string s03 = error00.GetName();
+    REQUIRE(s03.compare("name00") == 0);
+    error00.SetDesc("desc00");
+    std::string s04 = error00.GetDesc();
+    REQUIRE(s04.compare("desc00") == 0);
+    error00.SetTemporary(true);
+    REQUIRE(error00.IsTemporary() == true);
+    error00.SetBuiltIn(true);
+    REQUIRE(error00.IsBuiltIn() == true);
+
+
+    // Test Clone
+    emp::Ptr<mabe::ConfigEntry> clone_ptr = error00.Clone();
+    const std::string s05 = clone_ptr->GetName();
+    REQUIRE(s05.compare(error00.GetName()) == 0);
+    const std::string s06 = clone_ptr->GetDesc();
+    REQUIRE(s06.compare(error00.GetDesc()) == 0);
+
+    // Test LookupEntry()
+    REQUIRE(error00.LookupEntry("").Raw() == &error00);
+    REQUIRE(error00.LookupEntry("test").Raw() == nullptr);
+
+    // Test Has()
+    REQUIRE(error00.Has("") == true);
+    REQUIRE(error00.Has("test") == false);
   }
 }
