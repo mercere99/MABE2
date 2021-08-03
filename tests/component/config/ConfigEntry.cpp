@@ -62,6 +62,14 @@ TEST_CASE("ConfigEntry_Linker_Int", "[config]"){
     std::string s01 = linked_entry_int.AsString();
     REQUIRE(s01.compare("1") == 0);
 
+    // Retest As<bool>()
+    REQUIRE(linked_entry_int.As<bool>() == true);
+    v = 2;
+    REQUIRE(linked_entry_int.As<bool>() == true);
+    v = -2;
+    REQUIRE(linked_entry_int.As<bool>() == true);
+    v = 1; // reset original variable and ConfigEntry
+
     // Test bool functions 
     REQUIRE(linked_entry_int.IsTemporary() == false);
     REQUIRE(linked_entry_int.IsBuiltIn() == false);
@@ -201,6 +209,14 @@ TEST_CASE("ConfigEntry_Linker_Double", "[config]"){
     std::string s01 = linked_entry_double.AsString();
     REQUIRE(s01.compare("1") == 0);
 
+    // Retest As<bool>()
+    REQUIRE(linked_entry_double.As<bool>() == true);
+    v = 2;
+    REQUIRE(linked_entry_double.As<bool>() == true);
+    v = -2;
+    REQUIRE(linked_entry_double.As<bool>() == true);
+    v = 1; // reset original variable and ConfigEntry
+
     // Test bool functions 
     REQUIRE(linked_entry_double.IsTemporary() == false);
     REQUIRE(linked_entry_double.IsBuiltIn() == false);
@@ -338,6 +354,14 @@ TEST_CASE("ConfigEntry_Linked_Bool", "[config]"){
     std::string s01 = linked_entry_bool.AsString();
     REQUIRE(s01.compare("1") == 0);
 
+    // Retest As<bool>()
+    REQUIRE(linked_entry_bool.As<bool>() == true);
+    v = 2;
+    REQUIRE(linked_entry_bool.As<bool>() == true);
+    v = -2;
+    REQUIRE(linked_entry_bool.As<bool>() == true);
+    v = true; // reset original variable and ConfigEntry
+
     // Test bool functions 
     REQUIRE(linked_entry_bool.IsTemporary() == false);
     REQUIRE(linked_entry_bool.IsBuiltIn() == false);
@@ -467,6 +491,14 @@ TEST_CASE("ConfigEntry_Linked<std::string>", "[config]"){
     std::string s01 = linked_entry_str.AsString();
     REQUIRE(s01.compare("1") == 0);
 
+    // Retest As<bool>()
+    REQUIRE(linked_entry_str.As<bool>() == true);
+    v = "2";
+    REQUIRE(linked_entry_str.As<bool>() == true);
+    v = "-2";
+    REQUIRE(linked_entry_str.As<bool>() == true);
+    v = "1"; // reset original variable and ConfigEntry
+
     // Test bool functions 
     REQUIRE(linked_entry_str.IsTemporary() == false);
     REQUIRE(linked_entry_str.IsBuiltIn() == false);
@@ -511,7 +543,6 @@ TEST_CASE("ConfigEntry_Linked<std::string>", "[config]"){
     REQUIRE_FALSE(linked_entry_str.AsDouble() > 0.0);
 
     // Reset Min and Max
-    
     linked_entry_str.SetMin(INT_MIN);
     // linked_entry_str.SetMax(INT_MAX); // bug: SetMax() sets min, so not being reset right now 
     linked_entry_str.SetValue(0.0);
@@ -677,6 +708,15 @@ TEST_CASE("ConfigEntry_Functions", "[config]"){
     std::string s02 = linker_functions.AsString();
     REQUIRE(s02.compare("7") == 0);
 
+    // Retest As<bool>()
+    REQUIRE(linker_functions.As<bool>() == true);
+    v = 2;
+    REQUIRE(linker_functions.As<bool>() == true);
+    v = -2;
+    REQUIRE(linker_functions.As<bool>() == true);
+    v = 0; // reset ConfigEntry
+    REQUIRE(linker_functions.AsDouble() == 0.0);
+
     // Test Clone()
     emp::Ptr<mabe::ConfigEntry> clone_ptr = linker_functions.Clone();
     const std::string s03 = clone_ptr->GetName();
@@ -688,23 +728,23 @@ TEST_CASE("ConfigEntry_Functions", "[config]"){
 
     // Test updating clone, should update original ConfigEntry and original variable
     clone_ptr->SetValue(4.0);
-    REQUIRE(clone_ptr->AsDouble() == 11.0);
-    REQUIRE(linker_functions.AsDouble() == 11.0);
-    REQUIRE(v == 11);
+    REQUIRE(clone_ptr->AsDouble() == 4.0);
+    REQUIRE(linker_functions.AsDouble() == 4.0);
+    REQUIRE(v == 4);
 
     // Test CopyValue()
     mabe::ConfigEntry_Functions<int> linker_functions_01("name01", getter01<int>, setter01<int>, "desc00", nullptr);
     linker_functions.CopyValue(linker_functions_01);
-    REQUIRE(linker_functions.AsDouble() == 12.0);
+    REQUIRE(linker_functions.AsDouble() == 5.0);
 
     // Test CopyConstructor, must use same getter and setter
     mabe::ConfigEntry_Functions<int> linker_functions_copy = linker_functions;
     linker_functions_copy.SetValue(1);
-    REQUIRE(linker_functions_copy.AsDouble() == 13.0);
-    REQUIRE(linker_functions.AsDouble() == 13.0);
+    REQUIRE(linker_functions_copy.AsDouble() == 6.0);
+    REQUIRE(linker_functions.AsDouble() == 6.0);
     linker_functions.SetValue(2.0);
-    REQUIRE(linker_functions_copy.AsDouble() == 15.0);
-    REQUIRE(linker_functions.AsDouble() == 15.0);
+    REQUIRE(linker_functions_copy.AsDouble() == 8.0);
+    REQUIRE(linker_functions.AsDouble() == 8.0);
 
     // Test Call(), should return ConfigEntry_Error pointer
     emp::vector<emp::Ptr<mabe::ConfigEntry>> args;
@@ -816,6 +856,14 @@ TEST_CASE("ConfigEntry_Var_Int", "[config]"){
     REQUIRE(s02.compare("3") == 0);
     REQUIRE(v == 1); 
 
+    // Retest As<bool>()
+    REQUIRE(var_entry_int.As<bool>() == true);
+    var_entry_int.SetValue(2.0);
+    REQUIRE(var_entry_int.As<bool>() == true);
+    var_entry_int.SetValue(-2.0);
+    REQUIRE(var_entry_int.As<bool>() == true);
+    var_entry_int.SetValue(3.0); // reset ConfigEntry
+
     // Test Clone()
     emp::Ptr<mabe::ConfigEntry> clone_ptr = var_entry_int.Clone();
     const std::string s03 = clone_ptr->GetName();
@@ -894,6 +942,8 @@ TEST_CASE("ConfigEntry_Var_Double", "[config]"){
     std::string s01 = var_entry_double.AsString();
     REQUIRE(s01.compare("0") == 0);
 
+    v = 1; // reset original variable and ConfigEntry
+
     // Test bool functions 
     REQUIRE(var_entry_double.IsTemporary() == false);
     REQUIRE(var_entry_double.IsBuiltIn() == false);
@@ -949,6 +999,12 @@ TEST_CASE("ConfigEntry_Var_Double", "[config]"){
     std::string s02 = var_entry_double.AsString();
     REQUIRE(s02.compare("3") == 0);
     REQUIRE(v == 1.0);
+
+    // Retest As<bool>()
+    REQUIRE(var_entry_double.As<bool>() == true);
+    var_entry_double.SetValue(-2.0);
+    REQUIRE(var_entry_double.As<bool>() == true);
+    var_entry_double.SetValue(3.0); // reset ConfigEntry
 
     // Test Clone()
     emp::Ptr<mabe::ConfigEntry> clone_ptr = var_entry_double.Clone();
@@ -1077,6 +1133,14 @@ TEST_CASE("ConfigEntry_Var_Bool", "[config]"){
     std::string s02 = var_entry_bool.AsString();
     REQUIRE(s02.compare("0") == 0);
     REQUIRE(v);
+
+    // Retest As<bool>()
+    REQUIRE(var_entry_bool.As<bool>() == false);
+    var_entry_bool.SetValue(2.0);
+    REQUIRE(var_entry_bool.As<bool>() == true);
+    var_entry_bool.SetValue(-2.0);
+    REQUIRE(var_entry_bool.As<bool>() == true);
+    var_entry_bool.SetValue(0.0); // reset original variable and ConfigEntry
 
     // Test Clone()
     emp::Ptr<mabe::ConfigEntry> clone_ptr = var_entry_bool.Clone();
@@ -1216,6 +1280,12 @@ TEST_CASE("ConfigEntry_Var<std::string>", "[config]"){
     std::string s02 = var_entry_str.AsString();
     REQUIRE(s02.compare("3") == 0);
     REQUIRE(v == "1");
+
+    // Retest As<bool>()
+    REQUIRE(var_entry_str.As<bool>() == true);
+    var_entry_str.SetValue(-2.0);
+    REQUIRE(var_entry_str.As<bool>() == true);
+    var_entry_str.SetValue(3.0); // reset ConfigEntry
 
     // Test Clone()
     emp::Ptr<mabe::ConfigEntry> clone_ptr = var_entry_str.Clone();
