@@ -1217,7 +1217,21 @@ TEST_CASE("ConfigEntry_Error", "[config]"){
     emp::assert_clear();
     error00.AsString();
     REQUIRE(emp::assert_last_fail);
-
+    emp::assert_clear();
+    error00.As<double>();
+    REQUIRE(emp::assert_last_fail);
+    emp::assert_clear();
+    error00.As<std::string>();
+    REQUIRE(emp::assert_last_fail);
+    emp::Ptr<mabe::ConfigScope> scope_ptr = error00.AsScopePtr();
+    REQUIRE(scope_ptr == nullptr);
+    emp::Ptr ptr00 = error00.As<emp::Ptr<mabe::ConfigEntry>>();
+    REQUIRE(&error00 == ptr00.Raw());
+    mabe::ConfigEntry& ref00 = error00.As<mabe::ConfigEntry&>();
+    REQUIRE(&ref00 == &error00);
+    emp::assert_clear();
+    mabe::ConfigScope& scope = error00.As<mabe::ConfigScope&>();
+    REQUIRE(emp::assert_last_fail);
 
     // Test getters
     std::string s00 = error00.GetName();
@@ -1241,7 +1255,6 @@ TEST_CASE("ConfigEntry_Error", "[config]"){
     REQUIRE(error00.IsFunction() == false);
     REQUIRE(error00.IsScope() == false);
 
-
     // Test setters
     error00.SetName("name00");
     std::string s03 = error00.GetName();
@@ -1253,7 +1266,6 @@ TEST_CASE("ConfigEntry_Error", "[config]"){
     REQUIRE(error00.IsTemporary() == true);
     error00.SetBuiltIn(true);
     REQUIRE(error00.IsBuiltIn() == true);
-
 
     // Test Clone
     emp::Ptr<mabe::ConfigEntry> clone_ptr = error00.Clone();
