@@ -209,7 +209,7 @@ namespace mabe {
       }
 
       // We now know we have a valid population.  Check if we are at a valid position.
-      if (info_it->second.Has(it.Pos())) return true;
+      if (info_it->second.pos_set.Has(it.Pos())) return true;
 
       // Must move to a valid position, either in this population, another populaton, or end.
       // Find the position of the next organism from this population
@@ -218,9 +218,8 @@ namespace mabe {
       // If this position is good, set it!
       if (next_pos < cur_pop->GetSize()) { it.SetPos(next_pos); return false; }
 
-      // Otherwise advance to the first position in the next non-empty population,
-      ++info_it;
-      while (info_it != pos_map.end() && info_it->second.GetSize(it.PopPtr()) == 0) ++info_it;
+      // Otherwise advance to the first position in the next non-empty population OR end iterator.
+      while (++info_it != pos_map.end() && info_it->second.GetSize(info_it->first) == 0);
 
       if (info_it == pos_map.end()) it.Set(nullptr, 0);           // No more populations!
       else it.Set(info_it->first, info_it->second.GetFirstPos()); // First position in next pop.
@@ -348,8 +347,8 @@ namespace mabe {
 
       // Otherwise advance to the next population,
       else {
-        ++info_it;
-        while (info_it != pos_map.end() && info_it->second.GetSize(it.PopPtr()) == 0) ++info_it;
+        // Advance population pointer; If we are at a population and it is empty, keep advancing!
+        while (++info_it != pos_map.end() && info_it->second.GetSize(info_it->first) == 0);
         if (info_it == pos_map.end()) it.Set(nullptr, 0);           // No more populations!
         else it.Set(info_it->first, info_it->second.GetFirstPos());
       }
