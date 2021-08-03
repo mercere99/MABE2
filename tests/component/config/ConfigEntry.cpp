@@ -36,7 +36,7 @@ TEST_CASE("ConfigEntry_Linker_Int", "[config]"){
     REQUIRE(&linked_entry_int == ptr00.Raw());
     mabe::ConfigEntry& ref00 = linked_entry_int.As<mabe::ConfigEntry&>();
     REQUIRE(&ref00 == &linked_entry_int);
-    emp::assert_clear(); // reset assert
+    emp::assert_clear();
     mabe::ConfigScope& scope = linked_entry_int.As<mabe::ConfigScope&>();
     REQUIRE(emp::assert_last_fail);
 
@@ -63,14 +63,14 @@ TEST_CASE("ConfigEntry_Linker_Int", "[config]"){
     REQUIRE(s01.compare("1") == 0);
 
     // Test bool functions 
-    REQUIRE(linked_entry_int.IsTemporary() == false); // should always be false
-    REQUIRE(linked_entry_int.IsBuiltIn() == false); // should all be false
+    REQUIRE(linked_entry_int.IsTemporary() == false);
+    REQUIRE(linked_entry_int.IsBuiltIn() == false);
     REQUIRE(linked_entry_int.IsNumeric() == true);
     REQUIRE(linked_entry_int.IsBool() == false);
     REQUIRE(linked_entry_int.IsInt() == true);
     REQUIRE(linked_entry_int.IsDouble() == false);
     REQUIRE(linked_entry_int.IsString() == false);
-    REQUIRE(linked_entry_int.IsLocal() == false); // should this be true? def false for linked, local for var
+    REQUIRE(linked_entry_int.IsLocal() == false);
     REQUIRE(linked_entry_int.IsTemporary() == false);
     REQUIRE(linked_entry_int.IsBuiltIn() == false);
     REQUIRE(linked_entry_int.IsFunction() == false);
@@ -82,8 +82,8 @@ TEST_CASE("ConfigEntry_Linker_Int", "[config]"){
     REQUIRE(name00.compare("name00") == 0);
     std::string desc00 = linked_entry_int.GetDesc();
     REQUIRE(desc00.compare("variable00") == 0);
-    emp::Ptr<mabe::ConfigScope> ptr01 = linked_entry_int.GetScope(); // should include config scope at the top, if doesn't work deal with when working on config scope
-    REQUIRE(ptr01 == nullptr); // come back to after looking at config scope 
+    emp::Ptr<mabe::ConfigScope> ptr01 = linked_entry_int.GetScope();
+    REQUIRE(ptr01 == nullptr);
     std::string type = linked_entry_int.GetTypename();
     REQUIRE(type.compare("Value") == 0);
 
@@ -100,10 +100,10 @@ TEST_CASE("ConfigEntry_Linker_Int", "[config]"){
     REQUIRE(linked_entry_int.IsBuiltIn() == true);
     linked_entry_int.SetMin(1.0);
     linked_entry_int.SetValue(0.0);
-    //REQUIRE_FALSE(linked_entry_int.AsDouble() < 1.0);
+    REQUIRE_FALSE(linked_entry_int.AsDouble() < 1.0);
     linked_entry_int.SetMax(0.0);
     linked_entry_int.SetValue(1.0);
-    //REQUIRE_FALSE(linked_entry_int.AsDouble() > 0.0);
+    REQUIRE_FALSE(linked_entry_int.AsDouble() > 0.0);
 
     // Reset Min and Max
     linked_entry_int.SetMin(INT_MIN);
@@ -150,7 +150,7 @@ TEST_CASE("ConfigEntry_Linker_Int", "[config]"){
     REQUIRE(v == 7);
     REQUIRE(linked_entry_int.AsDouble() == 7.0);
 
-    // Test Call
+    // Test Call, should return ConfigEntry_Error pointer
     emp::vector<emp::Ptr<mabe::ConfigEntry>> args;
     emp::Ptr arg00 = linked_entry_int.As<emp::Ptr<mabe::ConfigEntry>>();
     args.push_back(arg00);
@@ -175,7 +175,7 @@ TEST_CASE("ConfigEntry_Linker_Double", "[config]"){
     REQUIRE(&linked_entry_double == ptr00.Raw());
     mabe::ConfigEntry& ref00 = linked_entry_double.As<mabe::ConfigEntry&>();
     REQUIRE(&ref00 == &linked_entry_double);
-    emp::assert_clear(); // reset assert
+    emp::assert_clear();
     mabe::ConfigScope& scope = linked_entry_double.As<mabe::ConfigScope&>();
     REQUIRE(emp::assert_last_fail);
 
@@ -239,13 +239,12 @@ TEST_CASE("ConfigEntry_Linker_Double", "[config]"){
     REQUIRE(linked_entry_double.IsBuiltIn() == true);
     linked_entry_double.SetMin(1.0);
     linked_entry_double.SetValue(0.0);
-    //REQUIRE_FALSE(linked_entry_double.AsDouble() < 1.0);
+    REQUIRE_FALSE(linked_entry_double.AsDouble() < 1.0);
     linked_entry_double.SetMax(0.0);
     linked_entry_double.SetValue(1.0);
-    //REQUIRE_FALSE(linked_entry_double.AsDouble() > 0.0);
+    REQUIRE_FALSE(linked_entry_double.AsDouble() > 0.0);
 
     // Reset Min and Max
-    
     linked_entry_double.SetMin(INT_MIN);
     // linked_entry_double.SetMax(INT_MAX); // bug: SetMax() sets min, so not being reset right now 
     linked_entry_double.SetValue(0.0);
@@ -288,7 +287,7 @@ TEST_CASE("ConfigEntry_Linker_Double", "[config]"){
     REQUIRE(v == 7);
     REQUIRE(linked_entry_double.AsDouble() == 7.0);
 
-    // Test Call()
+    // Test Call(), should return ConfigEntry_Error pointer
     emp::vector<emp::Ptr<mabe::ConfigEntry>> args;
     emp::Ptr arg00 = linked_entry_double.As<emp::Ptr<mabe::ConfigEntry>>();
     args.push_back(arg00);
@@ -313,7 +312,7 @@ TEST_CASE("ConfigEntry_Linked_Bool", "[config]"){
     REQUIRE(&linked_entry_bool == ptr00.Raw());
     mabe::ConfigEntry& ref00 = linked_entry_bool.As<mabe::ConfigEntry&>();
     REQUIRE(&ref00 == &linked_entry_bool);
-    emp::assert_clear(); // reset assert
+    emp::assert_clear();
     mabe::ConfigScope& scope = linked_entry_bool.As<mabe::ConfigScope&>();
     REQUIRE(emp::assert_last_fail);
 
@@ -417,7 +416,7 @@ TEST_CASE("ConfigEntry_Linked_Bool", "[config]"){
     REQUIRE(v == 1);
     REQUIRE(linked_entry_bool.AsDouble() == 1.0);
 
-    // Test Call()
+    // Test Call(), should return COnfigEntry_Error pointer
     emp::vector<emp::Ptr<mabe::ConfigEntry>> args;
     emp::Ptr arg00 = linked_entry_bool.As<emp::Ptr<mabe::ConfigEntry>>();
     args.push_back(arg00);
@@ -442,7 +441,7 @@ TEST_CASE("ConfigEntry_Linked<std::string>", "[config]"){
     REQUIRE(&linked_entry_str == ptr00.Raw());
     mabe::ConfigEntry& ref00 = linked_entry_str.As<mabe::ConfigEntry&>();
     REQUIRE(&ref00 == &linked_entry_str);
-    emp::assert_clear(); // reset assert
+    emp::assert_clear();
     mabe::ConfigScope& scope = linked_entry_str.As<mabe::ConfigScope&>();
     REQUIRE(emp::assert_last_fail);
 
@@ -457,11 +456,9 @@ TEST_CASE("ConfigEntry_Linked<std::string>", "[config]"){
     // Test Write()
     std::stringstream ss;
     linked_entry_str.Write(ss, "");
-    std::cout << ss.str() << std::endl;
-    std::string assignment = "name00 = 0;";
+    std::string assignment = "name00 = \"0\";";
     std::string expected = assignment +std::string(32 - assignment.length(), ' ') + "// variable00" + '\n';
-    std::cout << expected << std::endl;
-    //REQUIRE(ss.str().compare(expected) == 0);
+    REQUIRE(ss.str().compare(expected) == 0);
 
     // Test updating variable, ConfigEntry should change
     v = "1";
@@ -508,10 +505,10 @@ TEST_CASE("ConfigEntry_Linked<std::string>", "[config]"){
     REQUIRE(linked_entry_str.IsBuiltIn() == true);
     linked_entry_str.SetMin(1.0);
     linked_entry_str.SetValue(0.0);
-    //REQUIRE_FALSE(linked_entry_str.AsDouble() < 1.0);
+    REQUIRE_FALSE(linked_entry_str.AsDouble() < 1.0);
     linked_entry_str.SetMax(0.0);
     linked_entry_str.SetValue(1.0);
-    //REQUIRE_FALSE(linked_entry_str.AsDouble() > 0.0);
+    REQUIRE_FALSE(linked_entry_str.AsDouble() > 0.0);
 
     // Reset Min and Max
     
@@ -562,7 +559,7 @@ TEST_CASE("ConfigEntry_Linked<std::string>", "[config]"){
     REQUIRE(v.compare("7") == 0);
     REQUIRE(linked_entry_str.AsDouble() == 7.0);
 
-    // Test Call
+    // Test Call, should return ConfigEntry_Error pointer
     emp::vector<emp::Ptr<mabe::ConfigEntry>> args;
     emp::Ptr arg00 = linked_entry_str.As<emp::Ptr<mabe::ConfigEntry>>();
     args.push_back(arg00);
@@ -608,7 +605,7 @@ TEST_CASE("ConfigEntry_Functions", "[config]"){
     REQUIRE(&linker_functions == ptr00.Raw());
     mabe::ConfigEntry& ref00 = linker_functions.As<mabe::ConfigEntry&>();
     REQUIRE(&ref00 == &linker_functions);
-    emp::assert_clear(); // reset assert
+    emp::assert_clear();
     mabe::ConfigScope& scope = linker_functions.As<mabe::ConfigScope&>();
     REQUIRE(emp::assert_last_fail);
 
@@ -660,10 +657,10 @@ TEST_CASE("ConfigEntry_Functions", "[config]"){
     REQUIRE(linker_functions.IsBuiltIn() == true);
     linker_functions.SetMin(1.0);
     linker_functions.SetValue(0.0);
-    //REQUIRE_FALSE(linker_functions.AsDouble() < 1.0);
+    REQUIRE_FALSE(linker_functions.AsDouble() < 1.0);
     linker_functions.SetMax(0.0);
     linker_functions.SetValue(1.0);
-    //REQUIRE_FALSE(linker_functions.AsDouble() > 0.0);
+    REQUIRE_FALSE(linker_functions.AsDouble() > 0.0);
 
     // Reset value to 0
     linker_functions.SetMin(INT_MIN);
@@ -709,7 +706,7 @@ TEST_CASE("ConfigEntry_Functions", "[config]"){
     REQUIRE(linker_functions_copy.AsDouble() == 15.0);
     REQUIRE(linker_functions.AsDouble() == 15.0);
 
-    // Test Call()
+    // Test Call(), should return ConfigEntry_Error pointer
     emp::vector<emp::Ptr<mabe::ConfigEntry>> args;
     emp::Ptr arg00 = linker_functions.As<emp::Ptr<mabe::ConfigEntry>>();
     args.push_back(arg00);
@@ -788,13 +785,12 @@ TEST_CASE("ConfigEntry_Var_Int", "[config]"){
     REQUIRE(type.compare("Value") == 0);
     var_entry_int.SetMin(1.0);
     var_entry_int.SetValue(0.0);
-    //REQUIRE_FALSE(var_entry_int.AsDouble() < 1.0);
+    REQUIRE_FALSE(var_entry_int.AsDouble() < 1.0);
     var_entry_int.SetMax(0.0);
     var_entry_int.SetValue(1.0);
-    //REQUIRE_FALSE(var_entry_int.AsDouble() > 0.0);
+    REQUIRE_FALSE(var_entry_int.AsDouble() > 0.0);
 
     // Reset Min and Max
-    
     var_entry_int.SetMin(INT_MIN);
     // var_entry_int.SetMax(INT_MAX); // bug: SetMax() sets min, so not being reset right now 
     var_entry_int.SetValue(0.0);
@@ -847,6 +843,7 @@ TEST_CASE("ConfigEntry_Var_Int", "[config]"){
     REQUIRE(v != 6);
     REQUIRE(var_entry_int.AsDouble() == 5.0);
 
+    // Test Call(), should return ConfigEntry_Error pointer
     emp::vector<emp::Ptr<mabe::ConfigEntry>> args;
     emp::Ptr arg00 = var_entry_int.As<emp::Ptr<mabe::ConfigEntry>>();
     args.push_back(arg00);
@@ -871,7 +868,7 @@ TEST_CASE("ConfigEntry_Var_Double", "[config]"){
     REQUIRE(&var_entry_double == ptr00.Raw());
     mabe::ConfigEntry& ref00 = var_entry_double.As<mabe::ConfigEntry&>();
     REQUIRE(&ref00 == &var_entry_double);
-    emp::assert_clear(); // reset assert
+    emp::assert_clear();
     mabe::ConfigScope& scope = var_entry_double.As<mabe::ConfigScope&>();
     REQUIRE(emp::assert_last_fail);
 
@@ -935,10 +932,10 @@ TEST_CASE("ConfigEntry_Var_Double", "[config]"){
     REQUIRE(var_entry_double.IsBuiltIn() == true);
     var_entry_double.SetMin(1.0);
     var_entry_double.SetValue(0.0);
-    //REQUIRE_FALSE(var_entry_double.AsDouble() < 1.0);
+    REQUIRE_FALSE(var_entry_double.AsDouble() < 1.0);
     var_entry_double.SetMax(0.0);
     var_entry_double.SetValue(1.0);
-    //REQUIRE_FALSE(var_entry_double.AsDouble() > 0.0);
+    REQUIRE_FALSE(var_entry_double.AsDouble() > 0.0);
 
     // Reset Min and Max
     var_entry_double.SetMin(INT_MIN);
@@ -980,7 +977,7 @@ TEST_CASE("ConfigEntry_Var_Double", "[config]"){
     REQUIRE(v != 6);
     REQUIRE(var_entry_double.AsDouble() == 5.0);
 
-    // Test Call()
+    // Test Call(), should return ConfigEntry_Error pointer
     emp::vector<emp::Ptr<mabe::ConfigEntry>> args;
     emp::Ptr arg00 = var_entry_double.As<emp::Ptr<mabe::ConfigEntry>>();
     args.push_back(arg00);
@@ -1005,7 +1002,7 @@ TEST_CASE("ConfigEntry_Var_Bool", "[config]"){
     REQUIRE(&var_entry_bool == ptr00.Raw());
     mabe::ConfigEntry& ref00 = var_entry_bool.As<mabe::ConfigEntry&>();
     REQUIRE(&ref00 == &var_entry_bool);
-    emp::assert_clear(); // reset assert
+    emp::assert_clear();
     mabe::ConfigScope& scope = var_entry_bool.As<mabe::ConfigScope&>();
     REQUIRE(emp::assert_last_fail);
 
@@ -1020,11 +1017,9 @@ TEST_CASE("ConfigEntry_Var_Bool", "[config]"){
     // Test Write()
     std::stringstream ss;
     var_entry_bool.Write(ss, "");
-    std::cout << ss.str() << std::endl;
-    std::string assignment = "Unknown name00 = 0;"; // should this be Value?
+    std::string assignment = "Value name00 = 0;";
     std::string expected = assignment +std::string(32 - assignment.length(), ' ') + "// variable00" + '\n';
-    std::cout << expected << std::endl;
-    //REQUIRE(ss.str().compare(expected) == 0);
+    REQUIRE(ss.str().compare(expected) == 0);
 
     // Test updating variable, ConfigEntry should not change
     v = true;
@@ -1113,7 +1108,7 @@ TEST_CASE("ConfigEntry_Var_Bool", "[config]"){
     REQUIRE(v != 0);
     REQUIRE(var_entry_bool.AsDouble() == 1.0);
 
-    // Test Call()
+    // Test Call(), should return ConfigEntry_Error pointer
     emp::vector<emp::Ptr<mabe::ConfigEntry>> args;
     emp::Ptr arg00 = var_entry_bool.As<emp::Ptr<mabe::ConfigEntry>>();
     args.push_back(arg00);
@@ -1138,7 +1133,7 @@ TEST_CASE("ConfigEntry_Var<std::string>", "[config]"){
     REQUIRE(&var_entry_str == ptr00.Raw());
     mabe::ConfigEntry& ref00 = var_entry_str.As<mabe::ConfigEntry&>();
     REQUIRE(&ref00 == &var_entry_str);
-    emp::assert_clear(); // reset assert
+    emp::assert_clear();
     mabe::ConfigScope& scope = var_entry_str.As<mabe::ConfigScope&>();
     REQUIRE(emp::assert_last_fail);
 
@@ -1153,10 +1148,8 @@ TEST_CASE("ConfigEntry_Var<std::string>", "[config]"){
     // Test Write()
     std::stringstream ss;
     var_entry_str.Write(ss, "");
-    std::cout << ss.str() << std::endl;
     std::string assignment = "String name00 = \"0\";";
     std::string expected = assignment +std::string(32 - assignment.length(), ' ') + "// variable00" + '\n';
-    std::cout << expected << std::endl;
     REQUIRE(ss.str().compare(expected) == 0);
 
     // Test updating variable, ConfigEntry should not change
@@ -1205,10 +1198,10 @@ TEST_CASE("ConfigEntry_Var<std::string>", "[config]"){
     REQUIRE(var_entry_str.IsBuiltIn() == true);
     var_entry_str.SetMin(1.0);
     var_entry_str.SetValue(0.0);
-    //REQUIRE_FALSE(var_entry_str.AsDouble() < 1.0);
+    REQUIRE_FALSE(var_entry_str.AsDouble() < 1.0);
     var_entry_str.SetMax(0.0);
     var_entry_str.SetValue(1.0);
-    //REQUIRE_FALSE(var_entry_str.AsDouble() > 0.0);
+    REQUIRE_FALSE(var_entry_str.AsDouble() > 0.0);
 
     // Reset Min and Max
     var_entry_str.SetMin(INT_MIN);
@@ -1251,7 +1244,7 @@ TEST_CASE("ConfigEntry_Var<std::string>", "[config]"){
     REQUIRE(v.compare("6") != 0);
     REQUIRE(var_entry_str.AsDouble() == 5.0);
 
-    // Test Call()
+    // Test Call(), should return COnfigEntry_Error pointer
     emp::vector<emp::Ptr<mabe::ConfigEntry>> args;
     emp::Ptr arg00 = var_entry_str.As<emp::Ptr<mabe::ConfigEntry>>();
     args.push_back(arg00);
