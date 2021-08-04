@@ -55,6 +55,8 @@ TEST_CASE("ASTLeaf", "[config]"){
     leaf00.Write(ss, "");
     REQUIRE(ss.str().compare("name00") == 0);
 
+    // Test Destructor()
+    leaf00.~ASTNode_Leaf();
   }
 }
 
@@ -101,6 +103,11 @@ TEST_CASE("ASTNode_Block", "[config]"){
     std::stringstream ss;
     block00.Write(ss, "");
     REQUIRE(ss.str().compare("name00;\nname01;\n") == 0);
+
+    // Test Destructor 
+    //block00.~ASTNode_Block();
+
+
   }
 }
 
@@ -161,6 +168,9 @@ TEST_CASE("ASTNode_Math1", "[config]"){
     // Test Process with multiple children
     entry_ptr_t result01 = math100.Process();
     REQUIRE(emp::assert_last_fail);
+
+    // Test Destructor()
+    //math100.~ASTNode_Math1();
   }
 }
 
@@ -231,6 +241,9 @@ TEST_CASE("ASTNode_Math2", "[config]"){
     emp::assert_clear();
     entry_ptr_t result00 = math200.Process();
     REQUIRE(emp::assert_last_fail);
+
+    // Test Destructor
+    //math200.~ASTNode_Math2();
   }
 }
 
@@ -281,20 +294,25 @@ TEST_CASE("ASTNode_Assign", "[config]"){
     assign00.Write(ss, "");
     REQUIRE(ss.str().compare("name00 = name01") == 0);
 
+    // Test Destructor
+    //assign00.~ASTNode_Assign();
   }
 }
 
 TEST_CASE("ASTNode_Call", "[config]"){
   {
     // Create function
-    std::function<double(node_vector_t)> sum = [](node_vector_t nodes) {
-      double sum = 0.0;
-      for (node_ptr_t node : nodes) { // node_ptr_t = emp::Ptr<mabe::ASTNode>;
-        entry_ptr_t value = node->Process();
-        double result = value->AsDouble();
-        sum += result;
-      }
-      return sum;
+    bool function_called = false;
+    std::function<double(node_vector_t)> sum = [&function_called](node_vector_t nodes) {
+      function_called = true;
+      // double sum = 0.0;
+      // for (node_ptr_t node : nodes) { // node_ptr_t = emp::Ptr<mabe::ASTNode>;
+      //   entry_ptr_t value = node->Process();
+      //   double result = value->AsDouble();
+      //   sum += result;
+      // }
+      // return sum;
+      return 0;
     };
 
     // Create ConfigFunction
@@ -331,12 +349,16 @@ TEST_CASE("ASTNode_Call", "[config]"){
     REQUIRE(call00.IsInternal());
 
     // Test Process()
-    //REQUIRE(call00.Process()->AsDouble() == 9.0);
+    call00.Process();
+    REQUIRE(function_called == true);
 
-  // Test Write()
+    // Test Write()
     std::stringstream ss;
     call00.Write(ss, "");
     REQUIRE(ss.str().compare("func00(name00, name01, name02)") == 0);
+
+    // Test Destructor
+    //call00.~ASTNode_Call();
   }
 }
 
@@ -390,22 +412,12 @@ TEST_CASE("ASTNode_Event", "[config]"){
     REQUIRE(action_result.compare("action00") == 0);
     REQUIRE(children_processed == args00.size());
 
-    /*
-    entry_ptr_t Process();
-    override {
-      emp_assert(children.size() >= 1);
-      entry_vector_t arg_entries;
-      for (size_t id = 1; id < children.size(); id++) {
-        arg_entries.push_back( children[id]->Process() );
-      }
-      setup_event(children[0], arg_entries);
-      return nullptr;
-    }
-    */
-
     // Test Write()
     std::stringstream ss;
     event00.Write(ss, "");
     REQUIRE(ss.str().compare("@event00(name00, name01) action00") == 0);
+
+    // Test Destructor
+    //event00.~ASTNode_Event();
   }
 }
