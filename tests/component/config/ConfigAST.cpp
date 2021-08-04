@@ -145,7 +145,6 @@ TEST_CASE("ASTNode_Math1", "[config]"){
     // Test Write()
     std::stringstream ss;
     math100.Write(ss, "");
-    //std::cout << ss.str() << std::endl;
     REQUIRE(ss.str().compare("math00name00") == 0);
 
     // Add multiple children
@@ -164,7 +163,7 @@ TEST_CASE("ASTNode_Math1", "[config]"){
     REQUIRE(emp::assert_last_fail);
   }
 }
-/*
+
 double add_fun(double n, double m) {
   return n + m;
 }
@@ -192,10 +191,6 @@ TEST_CASE("ASTNode_Math2", "[config]"){
     REQUIRE(math200.GetChild(0)->IsLeaf());
     REQUIRE(math200.GetChild(0)->Process() == leaf00->Process());
 
-    // Test Process() with only one child
-    entry_ptr_t result00 = math200.Process();
-    REQUIRE(emp::assert_last_fail);
-
     // Add second child
     int v01 = 2;
     mabe::ConfigEntry_Linked<int> entry01("name01", v01, "variable01", nullptr);
@@ -211,6 +206,7 @@ TEST_CASE("ASTNode_Math2", "[config]"){
     math200.SetFun(add_fun);
 
     // Test Process()
+    emp::assert_clear();
     entry_ptr_t result01 = math200.Process();
     REQUIRE(!emp::assert_last_fail);
     REQUIRE(result01->AsDouble() == 3.0);
@@ -218,10 +214,26 @@ TEST_CASE("ASTNode_Math2", "[config]"){
     // Test Write()
     std::stringstream ss;
     math200.Write(ss, "");
-    REQUIRE(ss.str().compare("math00name00name01") == 0);
+    REQUIRE(ss.str().compare("name00 math00 name01") == 0);
+
+    // Add third child
+    int v02 = 2;
+    mabe::ConfigEntry_Linked<int> entry02("name02", v02, "variable02", nullptr);
+
+    emp::Ptr<mabe::ASTNode_Leaf> leaf02 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry02);
+    math200.AddChild(leaf02);
+
+    REQUIRE(math200.GetNumChildren() == 3);
+    REQUIRE(math200.GetChild(2)->IsLeaf());
+    REQUIRE(math200.GetChild(2)->Process() == leaf02->Process());
+
+    // Test Process() with three children
+    emp::assert_clear();
+    entry_ptr_t result00 = math200.Process();
+    REQUIRE(emp::assert_last_fail);
   }
 }
-*/
+
 TEST_CASE("ASTNode_Assign", "[config]"){
   {
     std::string v00 = "variable";
@@ -256,7 +268,7 @@ TEST_CASE("ASTNode_Assign", "[config]"){
     emp::Ptr<mabe::ASTNode_Leaf> leaf02 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry02);
     assign00.AddChild(leaf02);
 
-    REQUIRE(assign00.GetNumChildren() == 2);
+    REQUIRE(assign00.GetNumChildren() == 3);
     REQUIRE(assign00.GetChild(2)->IsLeaf());
     REQUIRE(assign00.GetChild(2)->Process() == leaf02->Process());
 
@@ -267,7 +279,7 @@ TEST_CASE("ASTNode_Assign", "[config]"){
     // Test Write()
     std::stringstream ss;
     assign00.Write(ss, "");
-    REQUIRE(ss.str().compare("name00= mane01") == 0);
+    REQUIRE(ss.str().compare("name00 = name01") == 0);
 
   }
 }
@@ -324,7 +336,6 @@ TEST_CASE("ASTNode_Call", "[config]"){
   // Test Write()
     std::stringstream ss;
     call00.Write(ss, "");
-    std::cout << ss.str() << std::endl;
     REQUIRE(ss.str().compare("func00(name00, name01, name02)") == 0);
   }
 }
@@ -376,7 +387,6 @@ TEST_CASE("ASTNode_Event", "[config]"){
 
     // Test Process()
     event00.Process();
-    std::cout << action_result << std::endl;
     REQUIRE(action_result.compare("action00") == 0);
     REQUIRE(children_processed == args00.size());
 
