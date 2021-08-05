@@ -56,7 +56,9 @@ TEST_CASE("ASTLeaf", "[config]"){
     REQUIRE(ss.str().compare("name00") == 0);
 
     // Test Destructor()
-    leaf00.~ASTNode_Leaf();
+    node_ptr_t ast_node_ptr = emp::NewPtr<mabe::ASTNode>(&entry00); // Create pointer of type ASTNode to ConfigEntry
+    ast_node_ptr.Delete();
+    emp::BasePtr(ast_node_ptr.Raw(), 0)::Tracker().IsDeleted(ast_node_ptr);
   }
 }
 
