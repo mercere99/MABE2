@@ -98,8 +98,15 @@ namespace mabe {
     }
   };
 
-#define MABE_REGISTER_FACTORY_MODULE(TYPE, DESC) \
+  /// MACRO for quickly adding new factory modules.
+  #define MABE_REGISTER_FACTORY_MODULE(TYPE, DESC) \
         mabe::FactoryModuleRegistrar<FactoryModule<TYPE>> MABE_ ## TYPE ## _Registrar(#TYPE, DESC)
+
+  // Setup backward compatability with OrganismManager.
+  template <typename ORG_T>
+  using OrganismManager = FactoryModule<ORG_T, mabe::Organism>;
+
+  #define MABE_REGISTER_ORG_TYPE(TYPE, DESC) MABE_REGISTER_FACTORY_MODULE(TYPE, DESC)
 
 }
 
