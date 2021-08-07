@@ -98,6 +98,29 @@ namespace mabe {
     }
   };
 
+  /// Below is a base class for factory products that uses "curiously recursive templates" to fill
+  /// out default functionality for when you know the derived type.
+  template <typename OBJ_T, typename BASE_T>
+  class FactoryProductTemplate : public BASE_T {
+  public:
+    FactoryProductTemplate(ModuleBase & _man) : BASE_T(_man) { ; }
+
+    using obj_t = OBJ_T;
+    using manager_t = FactoryModule<OBJ_T, BASE_T>;
+
+    /// Get the manager for this type of organism.
+    manager_t & GetManager() {
+      return (manager_t &) BASE_T::GetManager();
+    }
+    const manager_t & GetManager() const {
+      return (const manager_t &) BASE_T::GetManager();
+    }
+
+    auto & SharedData() { return GetManager().data; }
+    const auto & SharedData() const { return GetManager().data; }
+  };
+
+
   /// MACRO for quickly adding new factory modules.
   #define MABE_REGISTER_FACTORY_MODULE(TYPE, DESC) \
         mabe::FactoryModuleRegistrar<FactoryModule<TYPE>> MABE_ ## TYPE ## _Registrar(#TYPE, DESC)
@@ -105,6 +128,8 @@ namespace mabe {
   // Setup backward compatability with OrganismManager.
   template <typename ORG_T>
   using OrganismManager = FactoryModule<ORG_T, mabe::Organism>;
+  template <typename ORG_T>
+  using OrganismTemplate = FactoryProductTemplate<ORG_T, mabe::Organism>;
 
   #define MABE_REGISTER_ORG_TYPE(TYPE, DESC) MABE_REGISTER_FACTORY_MODULE(TYPE, DESC)
 
