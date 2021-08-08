@@ -4,7 +4,7 @@
  *  @date 2019-2021.
  *
  *  @file  MABE.cpp
- *  @brief Tests for ConfigEntry with various types and edge cases 
+ *  @brief Tests for ConfigEntry with various types and edge cases
  */
 
 #include <climits>
@@ -70,9 +70,7 @@ TEST_CASE("ConfigEntry_Linker_Int", "[config]"){
     REQUIRE(linked_entry_int.As<bool>() == true);
     v = 1; // reset original variable and ConfigEntry
 
-    // Test bool functions 
-    REQUIRE(linked_entry_int.IsTemporary() == false);
-    REQUIRE(linked_entry_int.IsBuiltIn() == false);
+    // Test bool functions
     REQUIRE(linked_entry_int.IsNumeric() == true);
     REQUIRE(linked_entry_int.IsBool() == false);
     REQUIRE(linked_entry_int.IsInt() == true);
@@ -115,7 +113,7 @@ TEST_CASE("ConfigEntry_Linker_Int", "[config]"){
 
     // Reset Min and Max
     linked_entry_int.SetMin(INT_MIN);
-    // linked_entry_int.SetMax(INT_MAX); // bug: SetMax() sets min, so not being reset right now 
+    // linked_entry_int.SetMax(INT_MAX); // bug: SetMax() sets min, so not being reset right now
     linked_entry_int.SetValue(0.0);
 
     // Test setter functions, should update original variable
@@ -217,9 +215,7 @@ TEST_CASE("ConfigEntry_Linker_Double", "[config]"){
     REQUIRE(linked_entry_double.As<bool>() == true);
     v = 1; // reset original variable and ConfigEntry
 
-    // Test bool functions 
-    REQUIRE(linked_entry_double.IsTemporary() == false);
-    REQUIRE(linked_entry_double.IsBuiltIn() == false);
+    // Test bool functions
     REQUIRE(linked_entry_double.IsNumeric() == true);
     REQUIRE(linked_entry_double.IsBool() == false);
     REQUIRE(linked_entry_double.IsInt() == false);
@@ -262,7 +258,7 @@ TEST_CASE("ConfigEntry_Linker_Double", "[config]"){
 
     // Reset Min and Max
     linked_entry_double.SetMin(INT_MIN);
-    // linked_entry_double.SetMax(INT_MAX); // bug: SetMax() sets min, so not being reset right now 
+    // linked_entry_double.SetMax(INT_MAX); // bug: SetMax() sets min, so not being reset right now
     linked_entry_double.SetValue(0.0);
 
     // Test setter functions, original variable should change
@@ -362,9 +358,7 @@ TEST_CASE("ConfigEntry_Linked_Bool", "[config]"){
     REQUIRE(linked_entry_bool.As<bool>() == true);
     v = true; // reset original variable and ConfigEntry
 
-    // Test bool functions 
-    REQUIRE(linked_entry_bool.IsTemporary() == false);
-    REQUIRE(linked_entry_bool.IsBuiltIn() == false);
+    // Test bool functions
     REQUIRE(linked_entry_bool.IsNumeric() == true);
     REQUIRE(linked_entry_bool.IsBool() == true);
     REQUIRE(linked_entry_bool.IsInt() == false);
@@ -499,9 +493,7 @@ TEST_CASE("ConfigEntry_Linked<std::string>", "[config]"){
     REQUIRE(linked_entry_str.As<bool>() == true);
     v = "1"; // reset original variable and ConfigEntry
 
-    // Test bool functions 
-    REQUIRE(linked_entry_str.IsTemporary() == false);
-    REQUIRE(linked_entry_str.IsBuiltIn() == false);
+    // Test bool functions
     REQUIRE(linked_entry_str.IsNumeric() == false);
     REQUIRE(linked_entry_str.IsBool() == false);
     REQUIRE(linked_entry_str.IsInt() == false);
@@ -544,16 +536,16 @@ TEST_CASE("ConfigEntry_Linked<std::string>", "[config]"){
 
     // Reset Min and Max
     linked_entry_str.SetMin(INT_MIN);
-    // linked_entry_str.SetMax(INT_MAX); // bug: SetMax() sets min, so not being reset right now 
+    // linked_entry_str.SetMax(INT_MAX); // bug: SetMax() sets min, so not being reset right now
     linked_entry_str.SetValue(0.0);
 
     // Test setter functions, original variable should change
     linked_entry_str.SetValue(2.0);
     REQUIRE(linked_entry_str.AsDouble() == 2.0);
-    REQUIRE(v == "2"); 
+    REQUIRE(v == "2");
     linked_entry_str.SetValue(2.5);
     REQUIRE(linked_entry_str.AsDouble() == 2.5);
-    REQUIRE(v == "2.5"); 
+    REQUIRE(v == "2.5");
     linked_entry_str.SetString("3");
     std::string s02 = linked_entry_str.AsString();
     REQUIRE(s02.compare("3") == 0);
@@ -669,9 +661,7 @@ TEST_CASE("ConfigEntry_Functions", "[config]"){
     std::string expected = assignment +std::string(32 - assignment.length(), ' ') + "// desc00" + '\n';
     REQUIRE(ss.str().compare(expected) == 0);
 
-    // Test bool functions 
-    REQUIRE(linker_functions.IsTemporary() == false);
-    REQUIRE(linker_functions.IsBuiltIn() == false);
+    // Test bool functions
     REQUIRE(linker_functions.IsNumeric() == true);
     REQUIRE(linker_functions.IsBool() == false);
     REQUIRE(linker_functions.IsInt() == true);
@@ -691,7 +681,7 @@ TEST_CASE("ConfigEntry_Functions", "[config]"){
     REQUIRE(linker_functions_01.IsInt() == false);
     REQUIRE(linker_functions_01.IsDouble() == true);
     REQUIRE(linker_functions_01.IsString() == false);
-    
+
     // Retest bool functions with boolean getter function
     mabe::ConfigEntry_Functions<bool> linker_functions_02("name02", getter<bool>, setter<bool>, "desc02", nullptr);
     REQUIRE(linker_functions_02.IsNumeric() == true);
@@ -734,7 +724,7 @@ TEST_CASE("ConfigEntry_Functions", "[config]"){
 
     // Reset value to 0
     linker_functions.SetMin(INT_MIN);
-    // linker_functions.SetMax(INT_MAX); // bug: SetMax() sets min, so not resetting right now 
+    // linker_functions.SetMax(INT_MAX); // bug: SetMax() sets min, so not resetting right now
     linker_functions.SetValue(-1.0);
     REQUIRE(linker_functions.AsDouble() == 0);
 
@@ -742,7 +732,7 @@ TEST_CASE("ConfigEntry_Functions", "[config]"){
     linker_functions.SetValue(2.0);
     REQUIRE(linker_functions.AsDouble() == 2.0);
     linker_functions.SetValue(2.5);
-    REQUIRE(linker_functions.AsDouble() == 4.0); // Correct, 2.5 cast as int, then added to 2 
+    REQUIRE(linker_functions.AsDouble() == 4.0); // Correct, 2.5 cast as int, then added to 2
     linker_functions.SetString("3");
     std::string s02 = linker_functions.AsString();
     REQUIRE(s02.compare("7") == 0);
@@ -837,15 +827,12 @@ TEST_CASE("ConfigEntry_Var_Int", "[config]"){
     std::string s01 = var_entry_int.AsString();
     REQUIRE(s01.compare("0") == 0);
 
-    // Test bool functions 
-    REQUIRE(var_entry_int.IsTemporary() == false);
-    REQUIRE(var_entry_int.IsBuiltIn() == false);
+    // Test bool functions
     REQUIRE(var_entry_int.IsNumeric() == true);
     REQUIRE(var_entry_int.IsBool() == false);
     REQUIRE(var_entry_int.IsInt() == true);
     REQUIRE(var_entry_int.IsDouble() == false);
     REQUIRE(var_entry_int.IsString() == false);
-
     REQUIRE(var_entry_int.IsLocal() == true);
     REQUIRE(var_entry_int.IsTemporary() == false);
     REQUIRE(var_entry_int.IsBuiltIn() == false);
@@ -871,7 +858,7 @@ TEST_CASE("ConfigEntry_Var_Int", "[config]"){
 
     // Reset Min and Max
     var_entry_int.SetMin(INT_MIN);
-    // var_entry_int.SetMax(INT_MAX); // bug: SetMax() sets min, so not being reset right now 
+    // var_entry_int.SetMax(INT_MAX); // bug: SetMax() sets min, so not being reset right now
     var_entry_int.SetValue(0.0);
 
     // Test setter functions
@@ -886,14 +873,14 @@ TEST_CASE("ConfigEntry_Var_Int", "[config]"){
     var_entry_int.SetBuiltIn();
     REQUIRE(var_entry_int.IsBuiltIn() == true);
 
-    // Test setter functions, original variable should not change 
+    // Test setter functions, original variable should not change
     var_entry_int.SetValue(2.0);
     REQUIRE(var_entry_int.AsDouble() == 2.0);
     REQUIRE(v == 1);
     var_entry_int.SetString("3");
     std::string s02 = var_entry_int.AsString();
     REQUIRE(s02.compare("3") == 0);
-    REQUIRE(v == 1); 
+    REQUIRE(v == 1);
 
     // Retest As<bool>()
     REQUIRE(var_entry_int.As<bool>() == true);
@@ -983,9 +970,7 @@ TEST_CASE("ConfigEntry_Var_Double", "[config]"){
 
     v = 1; // reset original variable and ConfigEntry
 
-    // Test bool functions 
-    REQUIRE(var_entry_double.IsTemporary() == false);
-    REQUIRE(var_entry_double.IsBuiltIn() == false);
+    // Test bool functions
     REQUIRE(var_entry_double.IsNumeric() == true);
     REQUIRE(var_entry_double.IsBool() == false);
     REQUIRE(var_entry_double.IsInt() == false);
@@ -1028,7 +1013,7 @@ TEST_CASE("ConfigEntry_Var_Double", "[config]"){
 
     // Reset Min and Max
     var_entry_double.SetMin(INT_MIN);
-    // var_entry_double.SetMax(INT_MAX); // bug: SetMax() sets min, so not being reset right now 
+    // var_entry_double.SetMax(INT_MAX); // bug: SetMax() sets min, so not being reset right now
     var_entry_double.SetValue(0.0);
 
     // Test setter functions, original variable should not change
@@ -1123,9 +1108,7 @@ TEST_CASE("ConfigEntry_Var_Bool", "[config]"){
     std::string s01 = var_entry_bool.AsString();
     REQUIRE(s01.compare("0") == 0);
 
-    // Test bool functions 
-    REQUIRE(var_entry_bool.IsTemporary() == false);
-    REQUIRE(var_entry_bool.IsBuiltIn() == false);
+    // Test bool functions
     REQUIRE(var_entry_bool.IsNumeric() == true);
     REQUIRE(var_entry_bool.IsBool() == true);
     REQUIRE(var_entry_bool.IsInt() == false);
@@ -1262,15 +1245,12 @@ TEST_CASE("ConfigEntry_Var<std::string>", "[config]"){
     std::string s01 = var_entry_str.AsString();
     REQUIRE(s01.compare("0") == 0);
 
-    // Test bool functions 
-    REQUIRE(var_entry_str.IsTemporary() == false);
-    REQUIRE(var_entry_str.IsBuiltIn() == false);
+    // Test bool functions
     REQUIRE(var_entry_str.IsNumeric() == false);
     REQUIRE(var_entry_str.IsBool() == false);
     REQUIRE(var_entry_str.IsInt() == false);
     REQUIRE(var_entry_str.IsDouble() == false);
     REQUIRE(var_entry_str.IsString() == true);
-
     REQUIRE(var_entry_str.IsLocal() == true);
     REQUIRE(var_entry_str.IsTemporary() == false);
     REQUIRE(var_entry_str.IsBuiltIn() == false);
@@ -1308,7 +1288,7 @@ TEST_CASE("ConfigEntry_Var<std::string>", "[config]"){
 
     // Reset Min and Max
     var_entry_str.SetMin(INT_MIN);
-    // var_entry_str.SetMax(INT_MAX); // bug: SetMax() sets min, so not being reset right now 
+    // var_entry_str.SetMax(INT_MAX); // bug: SetMax() sets min, so not being reset right now
     var_entry_str.SetValue(0.0);
 
     // Test setter functions, original variable should not change
