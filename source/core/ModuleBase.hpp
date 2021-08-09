@@ -120,9 +120,6 @@ namespace mabe {
     /// Other variables that we want to hook on to this Module externally.
     emp::DataMap data_map;
 
-    /// If this module is an organism manager, maintain a prototype of the organisms it handles.
-    emp::Ptr<Organism> org_prototype;  ///< Base organism to copy.
-
   public:
     // Setup each signal with a unique ID number
     enum SignalID {
@@ -271,24 +268,24 @@ namespace mabe {
     virtual bool DoFindNeighbor_IsTriggered() = 0;
 
     // ---=== Specialty Functions for Organism Managers ===---
-    virtual emp::TypeID GetOrgType() const {
-      emp_assert(false, "GetOrgType() must be overridden for either Organism or OrganismManager module.");
+    virtual emp::TypeID GetObjType() const {
+      emp_assert(false, "GetObjType() must be overridden for FactoryModule.");
       return emp::TypeID();
     }
-    virtual emp::Ptr<Organism> CloneOrganism(const Organism &) {
-      emp_assert(false, "CloneOrganism() must be overridden for either Organism or OrganismManager module.");
+    virtual emp::Ptr<Organism> CloneObject(const Organism &) {
+      emp_assert(false, "CloneObject() must be overridden for FactoryModule.");
       return nullptr;
     }
-    virtual emp::Ptr<Organism> CloneOrganism(const Organism &, emp::Random &) {
-      emp_assert(false, "CloneOrganism() must be overridden for either Organism or OrganismManager module.");
+    virtual emp::Ptr<Organism> CloneObject(const Organism &, emp::Random &) {
+      emp_assert(false, "CloneObject() must be overridden for FactoryModule.");
       return nullptr;
     }
-    virtual emp::Ptr<Organism> MakeOrganism() {
-      emp_assert(false, "MakeOrganism() must be overridden for either Organism or OrganismManager module.");
+    virtual emp::Ptr<Organism> Make() {
+      emp_assert(false, "Make() must be overridden for FactoryModule.");
       return nullptr;
     }
-    virtual emp::Ptr<Organism> MakeOrganism(emp::Random &) {
-      emp_assert(false, "MakeOrganism() must be overridden for either Organism or OrganismManager module.");
+    virtual emp::Ptr<Organism> Make(emp::Random &) {
+      emp_assert(false, "Make() must be overridden for FactoryModule.");
       return nullptr;
     }
 
