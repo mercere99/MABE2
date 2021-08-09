@@ -332,8 +332,9 @@ TEST_CASE("ASTNode_Call", "[config]"){
     int children_processed = 0;
     bool function_called;
 
-    std::function<double(node_vector_t)> setup = [&children_processed, &function_called](node_vector_t nodes) {
-      for (node_ptr_t node : nodes) {
+    std::function<double(entry_vector_t)> setup = [&children_processed, &function_called](entry_vector_t entries) {
+      std::cout << "in function" << std::endl;
+      for (entry_ptr_t entry : entries) {
         children_processed++;
       }
       function_called = true;
@@ -343,22 +344,22 @@ TEST_CASE("ASTNode_Call", "[config]"){
     // Create ConfigFunction
     mabe::ConfigFunction entry_func("func00", "desc00", nullptr);
     entry_func.SetFunction(setup);
-    emp::Ptr<mabe::ASTNode_Leaf> funcs00 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry_func);
+    node_ptr_t funcs00 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry_func);
 
     // Create vector of arguments
     node_vector_t args00;
 
     int v00 = 2;
     mabe::ConfigEntry_Linked<int> entry00("name00", v00, "variable00", nullptr);
-    emp::Ptr<mabe::ASTNode_Leaf> leaf00 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry00);
+    node_ptr_t leaf00 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry00);
     args00.push_back(leaf00);
     int v01 = 3;
     mabe::ConfigEntry_Linked<int> entry01("name01", v01, "variable01", nullptr);
-    emp::Ptr<mabe::ASTNode_Leaf> leaf01 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry01);
+    node_ptr_t leaf01 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry01);
     args00.push_back(leaf01);
     int v02 = 4;
     mabe::ConfigEntry_Linked<int> entry02("name02", v02, "variable02", nullptr);
-    emp::Ptr<mabe::ASTNode_Leaf> leaf02 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry02);
+    node_ptr_t leaf02 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry02);
     args00.push_back(leaf02);
 
     // Create ASTNode_Call
@@ -374,8 +375,8 @@ TEST_CASE("ASTNode_Call", "[config]"){
     REQUIRE(call00.IsInternal());
 
     // Test Process()
-    call00.Process();
-    REQUIRE(children_processed == args00.size() + 1);
+    entry_ptr_t result = call00.Process();
+    REQUIRE(children_processed == args00.size());
     REQUIRE(function_called == true);
 
     // Test Write()
