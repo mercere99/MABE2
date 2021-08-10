@@ -150,7 +150,7 @@ namespace mabe {
     /// @note We MUST be able to make a copy of organisms for MABE to function.  If this function
     /// is not overridden, the organism manager (which knows the derived type) will try to make a
     /// clone using the copy constructor.
-    [[nodiscard]] virtual emp::Ptr<Organism> Clone() const { return manager.CloneOrganism(*this); }
+    [[nodiscard]] virtual emp::Ptr<Organism> Clone() const { return manager.CloneObject(*this); }
 
     /// Modify this organism based on configured mutation parameters.
     /// @note For evolution to function, we need to be able to mutate offspring.
@@ -241,32 +241,32 @@ namespace mabe {
   };
 
 
-  // Pre-declare OrganismManager to allow for conversions.
-  template <typename ORG_T> class OrganismManager;
+  // // Pre-declare OrganismManager to allow for conversions.
+  // template <typename ORG_T> class OrganismManager;
 
 
-  /// Below is a specialty Organism type that uses "curiously recursive templates" to fill out
-  /// more default functionality for when you know the derived organism type.  Specifically,
-  /// it should be used as the base class for any derived organism types.
-  template <typename ORG_T>
-  class OrganismTemplate : public Organism {
-  public:
-    OrganismTemplate(ModuleBase & _man) : Organism(_man) { ; }
+  // /// Below is a specialty Organism type that uses "curiously recursive templates" to fill out
+  // /// more default functionality for when you know the derived organism type.  Specifically,
+  // /// it should be used as the base class for any derived organism types.
+  // template <typename ORG_T>
+  // class OrganismTemplate : public Organism {
+  // public:
+  //   OrganismTemplate(ModuleBase & _man) : Organism(_man) { ; }
 
-    using org_t = ORG_T;
-    using manager_t = OrganismManager<ORG_T>;
+  //   using org_t = ORG_T;
+  //   using manager_t = OrganismManager<ORG_T>;
 
-    /// Get the manager for this type of organism.
-    manager_t & GetManager() {
-      return (manager_t &) Organism::GetManager();
-    }
-    const manager_t & GetManager() const {
-      return (const manager_t &) Organism::GetManager();
-    }
+  //   /// Get the manager for this type of organism.
+  //   manager_t & GetManager() {
+  //     return (manager_t &) Organism::GetManager();
+  //   }
+  //   const manager_t & GetManager() const {
+  //     return (const manager_t &) Organism::GetManager();
+  //   }
 
-    auto & SharedData() { return GetManager().data; }
-    const auto & SharedData() const { return GetManager().data; }
-  };
+  //   auto & SharedData() { return GetManager().data; }
+  //   const auto & SharedData() const { return GetManager().data; }
+  // };
 
 }
 #endif
