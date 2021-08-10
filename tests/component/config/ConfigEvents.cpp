@@ -60,11 +60,17 @@ TEST_CASE("ASTEvents_Leaf", "[config]"){
     // Test TriggerAll()
     events00.TriggerAll();
 
-    // Test Write()
+    // Test Write() with no repeat
+    events00.AddEvent(action00, 0.0, 0.0, -1.0);
     std::string command = "command";
     std::stringstream ss;
     events00.Write(command, ss);
-    //REQUIRE(ss.str().compare() == 0);
+    REQUIRE(ss.str().compare("@command(0) action00;\n") == 0);
+    // Test Write() with repeat
+    events00.AddEvent(action00, 1.0, 2.0, -1.0);
+    std::stringstream ss01;
+    events00.Write(command, ss01);
+    REQUIRE(ss01.str().compare("@command(0) action00;\n@command(1, 2) action00;\n") == 0);
 
   }
 }
@@ -75,8 +81,7 @@ TEST_CASE("ASTEvents_Call", "[config]"){
     bool function_called;
     int times_called = 0;
 
-    std::function<double(entry_vector_t)> setup = [&children_processed, &function_called, &times_called](entry_vector_t entries) {
-      std::cout << "in function" << std::endl;
+    std::function<double(const entry_vector_t&)> setup = [&children_processed, &function_called, &times_called](const entry_vector_t& entries) {
       children_processed = 0;
       for (entry_ptr_t entry : entries) {
         children_processed++;
@@ -130,6 +135,9 @@ TEST_CASE("ASTEvents_Call", "[config]"){
     REQUIRE(!emp::assert_last_fail);
 
     // Test TriggerAll()
+    children_processed = 0;
+    function_called = false;
+    times_called = 0;
     events00.TriggerAll();
     REQUIRE(children_processed == args00.size());
     REQUIRE(function_called == true);
@@ -139,7 +147,7 @@ TEST_CASE("ASTEvents_Call", "[config]"){
     events00.AddEvent(ptr00, 3.0, 2.0, 4.0);
 
     // Test UpdateValue, new event should not be triggered
-    function_called == false;
+    function_called = false;
     events00.UpdateValue(2.0);
     REQUIRE(children_processed == 0);
     REQUIRE(function_called == false);
@@ -151,7 +159,7 @@ TEST_CASE("ASTEvents_Call", "[config]"){
     REQUIRE(function_called == true);
     REQUIRE(times_called == 3);
     // Test UpdateValue, new event should not be triggered
-    function_called == false;
+    function_called = false;
     events00.UpdateValue(4.0);
     REQUIRE(children_processed == 0);
     REQUIRE(function_called == false);
@@ -168,12 +176,13 @@ TEST_CASE("ASTEvents_Call", "[config]"){
     REQUIRE(times_called == 7);
 
 
-    // Test Write() not working?
+    // Test Write()
+    events00.AddEvent(ptr00, 0.0, 0.0, -1.0);
     const std::string command = "command";
     std::stringstream ss;
     events00.Write(command, ss);
     std::cout << "!!!" << ss.str() << std::endl;
-    //REQUIRE(ss.str().compare() == 0)
+    REQUIRE(ss.str().compare("@command(0) func00(name00, name01, name02);\n") == 0);
 
   }
 }
@@ -234,11 +243,12 @@ TEST_CASE("ASTEvents_Assign", "[config]"){
     REQUIRE(entry00.AsDouble() == entry01.AsDouble());
 
     // Test Write() not working?
+    events00.AddEvent(ptr00, 5.0, 0.0, -1.0);
     const std::string command = "command";
     std::stringstream ss;
     events00.Write(command, ss);
     std::cout << "!!!" << ss.str() << std::endl;
-    //REQUIRE(ss.str().compare() == 0)
+    REQUIRE(ss.str().compare("@command(0) name00 = name01;\n") == 0);
 
   }
 }
