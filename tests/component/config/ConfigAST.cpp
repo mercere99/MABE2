@@ -37,84 +37,79 @@ TEST_CASE("ASTLeaf", "[config]"){
     int v = 0;
     mabe::ConfigEntry_Linked<int> entry00("name00", v, "variable00", nullptr);
     entry_ptr_t ptr00 = &entry00;
-    mabe::ASTNode_Leaf leaf00(ptr00);
+    emp::Ptr<mabe::ASTNode_Leaf> leaf00_ptr = emp::NewPtr<mabe::ASTNode_Leaf>(ptr00);
 
     // Test getter functions
-    std::string str00 = leaf00.GetName();
+    std::string str00 = leaf00_ptr->GetName();
     REQUIRE(str00.compare("name00") == 0);
 
-    REQUIRE(&leaf00.GetEntry() == ptr00.Raw());
+    REQUIRE(&leaf00_ptr->GetEntry() == ptr00.Raw());
 
     // Test boolean functions
-    REQUIRE(leaf00.IsLeaf());
+    REQUIRE(leaf00_ptr->IsLeaf());
 
     // Test Process()
-    REQUIRE(leaf00.Process() == ptr00);
+    REQUIRE(leaf00_ptr->Process() == ptr00);
 
     // Test Write()
     std::stringstream ss;
-    leaf00.Write(ss, "");
+    leaf00_ptr->Write(ss, "");
     REQUIRE(ss.str().compare("name00") == 0);
 
     // Test Destructor()
-    node_ptr_t ast_node_ptr = emp::NewPtr<mabe::ASTNode_Leaf>(&entry00); // Create pointer of type ASTNode to ConfigEntry
-    ast_node_ptr.Delete();
-    REQUIRE(emp::BasePtr<void>::Tracker().IsDeleted(ast_node_ptr.id));
+    leaf00_ptr.Delete();
+    REQUIRE(emp::BasePtr<void>::Tracker().IsDeleted(leaf00_ptr.id));
   }
 }
 
 
 TEST_CASE("ASTNode_Block", "[config]"){
   {
-    mabe::ASTNode_Block block00;
+    emp::Ptr<mabe::ASTNode_Block> block00_ptr = emp::NewPtr<mabe::ASTNode_Block>();
 
     // Test getter functions
-    std::string str00 = block00.GetName();
+    std::string str00 = block00_ptr->GetName();
     REQUIRE(str00.compare("") == 0);
 
-    REQUIRE(block00.GetNumChildren() == 0);
+    REQUIRE(block00_ptr->GetNumChildren() == 0);
 
     // Test boolean functions
-    REQUIRE(block00.IsInternal());
+    REQUIRE(block00_ptr->IsInternal());
 
     // Test adding children
     int v00 = 0;
     mabe::ConfigEntry_Linked<int> entry00("name00", v00, "variable00", nullptr);
 
     node_ptr_t leaf00 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry00);
-    block00.AddChild(leaf00);
+    block00_ptr->AddChild(leaf00);
 
-    REQUIRE(block00.GetNumChildren() == 1);
-    REQUIRE(block00.GetChild(0)->IsLeaf());
-    REQUIRE(block00.GetChild(0)->Process() == leaf00->Process());
+    REQUIRE(block00_ptr->GetNumChildren() == 1);
+    REQUIRE(block00_ptr->GetChild(0)->IsLeaf());
+    REQUIRE(block00_ptr->GetChild(0)->Process() == leaf00->Process());
 
     // Test multiple children
     int v01 = 1;
     mabe::ConfigEntry_Linked entry01("name01", v01, "variable01", nullptr);
 
     node_ptr_t leaf01 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry01);
-    block00.AddChild(leaf01);
+    block00_ptr->AddChild(leaf01);
 
-    REQUIRE(block00.GetNumChildren() == 2);
-    REQUIRE(block00.GetChild(1)->IsLeaf());
-    REQUIRE(block00.GetChild(1)->Process() == leaf01->Process());
+    REQUIRE(block00_ptr->GetNumChildren() == 2);
+    REQUIRE(block00_ptr->GetChild(1)->IsLeaf());
+    REQUIRE(block00_ptr->GetChild(1)->Process() == leaf01->Process());
 
     // Test Process()
-    REQUIRE(block00.Process() == nullptr);
+    REQUIRE(block00_ptr->Process() == nullptr);
 
     // Test Write()
     std::stringstream ss;
-    block00.Write(ss, "");
+    block00_ptr->Write(ss, "");
     REQUIRE(ss.str().compare("name00;\nname01;\n") == 0);
 
     // Test Destructor
-    // leaf00.Delete(); why wont this work?!
-    node_ptr_t ast_node_ptr00 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry00); // Create pointer of type ASTNode to ConfigEntry
-    ast_node_ptr00.Delete();
-    REQUIRE(emp::BasePtr<void>::Tracker().IsDeleted(ast_node_ptr00.id));
-    node_ptr_t ast_node_ptr01 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry01); // Create pointer of type ASTNode to ConfigEntry
-    ast_node_ptr01.Delete();
-    REQUIRE(emp::BasePtr<void>::Tracker().IsDeleted(ast_node_ptr01.id));
+    block00_ptr.Delete();
+    REQUIRE(emp::BasePtr<void>::Tracker().IsDeleted(leaf00.id));
+    REQUIRE(emp::BasePtr<void>::Tracker().IsDeleted(leaf01.id));
   }
 }
 
@@ -126,39 +121,39 @@ double abs_value(double n) {
 }
 TEST_CASE("ASTNode_Math1", "[config]"){
   {
-    mabe::ASTNode_Math1 math100("math00");
+    emp::Ptr<mabe::ASTNode_Math1> math100_ptr = emp::NewPtr<mabe::ASTNode_Math1>("math00");
 
     // Test getters
-    std::string str00 = math100.GetName();
+    std::string str00 = math100_ptr->GetName();
     REQUIRE(str00.compare("math00") == 0);
 
-    REQUIRE(math100.GetNumChildren() == 0);
+    REQUIRE(math100_ptr->GetNumChildren() == 0);
 
     // Test adding children
     int v00 = -1;
     mabe::ConfigEntry_Linked<int> entry00("name00", v00, "variable00", nullptr);
 
     emp::Ptr<mabe::ASTNode_Leaf> leaf00 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry00); // i don't think this is getting deleted but when i try i get seg faults
-    math100.AddChild(leaf00);
+    math100_ptr->AddChild(leaf00);
 
-    REQUIRE(math100.GetNumChildren() == 1);
-    REQUIRE(math100.GetChild(0)->IsLeaf());
-    REQUIRE(math100.GetChild(0)->Process() == leaf00->Process());
+    REQUIRE(math100_ptr->GetNumChildren() == 1);
+    REQUIRE(math100_ptr->GetChild(0)->IsLeaf());
+    REQUIRE(math100_ptr->GetChild(0)->Process() == leaf00->Process());
 
     // Test boolean functions
-    REQUIRE(math100.IsInternal());
+    REQUIRE(math100_ptr->IsInternal());
 
     // Test setters
-    math100.SetFun(abs_value);
+    math100_ptr->SetFun(abs_value);
 
     // Test Process() with one child
-    entry_ptr_t result00 = math100.Process();
+    entry_ptr_t result00 = math100_ptr->Process();
     REQUIRE(!emp::assert_last_fail);
     REQUIRE(result00->AsDouble() == 1.0);
 
     // Test Write()
     std::stringstream ss;
-    math100.Write(ss, "");
+    math100_ptr->Write(ss, "");
     REQUIRE(ss.str().compare("math00name00") == 0);
 
     // Add multiple children
@@ -166,23 +161,26 @@ TEST_CASE("ASTNode_Math1", "[config]"){
     mabe::ConfigEntry_Linked entry01("name01", v01, "variable01", nullptr);
 
     emp::Ptr<mabe::ASTNode_Leaf> leaf01 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry01);
-    math100.AddChild(leaf01);
+    math100_ptr->AddChild(leaf01);
 
     // Test getters for multiple children
-    REQUIRE(math100.GetNumChildren() == 2);
-    REQUIRE(math100.GetChild(1)->IsLeaf());
+    REQUIRE(math100_ptr->GetNumChildren() == 2);
+    REQUIRE(math100_ptr->GetChild(1)->IsLeaf());
 
     // Test Process with multiple children
-    entry_ptr_t result01 = math100.Process();
+    entry_ptr_t result01 = math100_ptr->Process();
     REQUIRE(emp::assert_last_fail);
 
     // Test Destructor()
-    node_ptr_t ast_node_ptr00 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry00); // Create pointer of type ASTNode to ConfigEntry
-    ast_node_ptr00.Delete();
-    REQUIRE(emp::BasePtr<void>::Tracker().IsDeleted(ast_node_ptr00.id));
-    node_ptr_t ast_node_ptr01 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry01); // Create pointer of type ASTNode to ConfigEntry
-    ast_node_ptr01.Delete();
-    REQUIRE(emp::BasePtr<void>::Tracker().IsDeleted(ast_node_ptr01.id));
+    math100_ptr.Delete();
+    REQUIRE(emp::BasePtr<void>::Tracker().IsDeleted(leaf00.id));
+    REQUIRE(emp::BasePtr<void>::Tracker().IsDeleted(leaf01.id));
+
+    // Delete additional pointers
+    result00.Delete();
+    result01.Delete();
+    REQUIRE(emp::BasePtr<void>::Tracker().IsDeleted(result00.id));
+    REQUIRE(emp::BasePtr<void>::Tracker().IsDeleted(result01.id));
   }
 }
 
@@ -191,51 +189,51 @@ double add_fun(double n, double m) {
 }
 TEST_CASE("ASTNode_Math2", "[config]"){
   {
-    mabe::ASTNode_Math2 math200("math00");
+    emp::Ptr<mabe::ASTNode_Math2> math200_ptr = emp::NewPtr<mabe::ASTNode_Math2>("math00");
 
     // Test getters
-    std::string str00 = math200.GetName();
+    std::string str00 = math200_ptr->GetName();
     REQUIRE(str00.compare("math00") == 0);
 
-    REQUIRE(math200.GetNumChildren() == 0);
+    REQUIRE(math200_ptr->GetNumChildren() == 0);
 
     // Test boolean functions
-    REQUIRE(math200.IsInternal());
+    REQUIRE(math200_ptr->IsInternal());
 
     // Test adding children
     int v00 = 1;
     mabe::ConfigEntry_Linked<int> entry00("name00", v00, "variable00", nullptr);
 
     emp::Ptr<mabe::ASTNode_Leaf> leaf00 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry00);
-    math200.AddChild(leaf00);
+    math200_ptr->AddChild(leaf00);
 
-    REQUIRE(math200.GetNumChildren() == 1);
-    REQUIRE(math200.GetChild(0)->IsLeaf());
-    REQUIRE(math200.GetChild(0)->Process() == leaf00->Process());
+    REQUIRE(math200_ptr->GetNumChildren() == 1);
+    REQUIRE(math200_ptr->GetChild(0)->IsLeaf());
+    REQUIRE(math200_ptr->GetChild(0)->Process() == leaf00->Process());
 
     // Add second child
     int v01 = 2;
     mabe::ConfigEntry_Linked<int> entry01("name01", v01, "variable01", nullptr);
 
     emp::Ptr<mabe::ASTNode_Leaf> leaf01 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry01);
-    math200.AddChild(leaf01);
+    math200_ptr->AddChild(leaf01);
 
-    REQUIRE(math200.GetNumChildren() == 2);
-    REQUIRE(math200.GetChild(1)->IsLeaf());
-    REQUIRE(math200.GetChild(1)->Process() == leaf01->Process());
+    REQUIRE(math200_ptr->GetNumChildren() == 2);
+    REQUIRE(math200_ptr->GetChild(1)->IsLeaf());
+    REQUIRE(math200_ptr->GetChild(1)->Process() == leaf01->Process());
 
     // Set function
-    math200.SetFun(add_fun);
+    math200_ptr->SetFun(add_fun);
 
     // Test Process()
     emp::assert_clear();
-    entry_ptr_t result01 = math200.Process();
+    entry_ptr_t result00 = math200_ptr->Process();
     REQUIRE(!emp::assert_last_fail);
-    REQUIRE(result01->AsDouble() == 3.0);
+    REQUIRE(result00->AsDouble() == 3.0);
 
     // Test Write()
     std::stringstream ss;
-    math200.Write(ss, "");
+    math200_ptr->Write(ss, "");
     REQUIRE(ss.str().compare("name00 math00 name01") == 0);
 
     // Add third child
@@ -243,27 +241,29 @@ TEST_CASE("ASTNode_Math2", "[config]"){
     mabe::ConfigEntry_Linked<int> entry02("name02", v02, "variable02", nullptr);
 
     emp::Ptr<mabe::ASTNode_Leaf> leaf02 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry02);
-    math200.AddChild(leaf02);
+    math200_ptr->AddChild(leaf02);
 
-    REQUIRE(math200.GetNumChildren() == 3);
-    REQUIRE(math200.GetChild(2)->IsLeaf());
-    REQUIRE(math200.GetChild(2)->Process() == leaf02->Process());
+    REQUIRE(math200_ptr->GetNumChildren() == 3);
+    REQUIRE(math200_ptr->GetChild(2)->IsLeaf());
+    REQUIRE(math200_ptr->GetChild(2)->Process() == leaf02->Process());
 
     // Test Process() with three children
     emp::assert_clear();
-    entry_ptr_t result00 = math200.Process();
+    entry_ptr_t result01 = math200_ptr->Process();
     REQUIRE(emp::assert_last_fail);
 
     // Test Destructor
-    node_ptr_t ast_node_ptr00 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry00); // Create pointer of type ASTNode to ConfigEntry
-    ast_node_ptr00.Delete();
-    REQUIRE(emp::BasePtr<void>::Tracker().IsDeleted(ast_node_ptr00.id));
-    node_ptr_t ast_node_ptr01 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry01); // Create pointer of type ASTNode to ConfigEntry
-    ast_node_ptr01.Delete();
-    REQUIRE(emp::BasePtr<void>::Tracker().IsDeleted(ast_node_ptr01.id));
-    node_ptr_t ast_node_ptr02 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry02); // Create pointer of type ASTNode to ConfigEntry
-    ast_node_ptr02.Delete();
-    REQUIRE(emp::BasePtr<void>::Tracker().IsDeleted(ast_node_ptr02.id));
+    math200_ptr.Delete();
+    REQUIRE(emp::BasePtr<void>::Tracker().IsDeleted(leaf00.id));
+    REQUIRE(emp::BasePtr<void>::Tracker().IsDeleted(leaf01.id));
+    REQUIRE(emp::BasePtr<void>::Tracker().IsDeleted(leaf02.id));
+
+    // Delete additional pointers
+    result00.Delete();
+    result01.Delete();
+    REQUIRE(emp::BasePtr<void>::Tracker().IsDeleted(result00.id));
+    REQUIRE(emp::BasePtr<void>::Tracker().IsDeleted(result01.id));
+
   }
 }
 
@@ -277,20 +277,20 @@ TEST_CASE("ASTNode_Assign", "[config]"){
     mabe::ConfigEntry_Linked<int> entry01("name01", v01, "variable01", nullptr);
     emp::Ptr<mabe::ASTNode_Leaf> rhs = emp::NewPtr<mabe::ASTNode_Leaf>(&entry01);
 
-    mabe::ASTNode_Assign assign00(lhs, rhs);
+    emp::Ptr<mabe::ASTNode_Assign> assign00_ptr = emp::NewPtr<mabe::ASTNode_Assign>(lhs, rhs);
 
     // Test getters
-    std::string str00 = assign00.GetName();
+    std::string str00 = assign00_ptr->GetName();
     REQUIRE(str00.compare("") == 0);
 
-    REQUIRE(assign00.GetNumChildren() == 2);
+    REQUIRE(assign00_ptr->GetNumChildren() == 2);
 
     // Test boolean functions
-    REQUIRE(assign00.IsInternal());
+    REQUIRE(assign00_ptr->IsInternal());
 
     // Test Process()
     emp::assert_clear(); // do this other places too!
-    entry_ptr_t result00 = assign00.Process();
+    entry_ptr_t result00 = assign00_ptr->Process();
     REQUIRE(!emp::assert_last_fail);
     REQUIRE(result00->AsDouble() == 1.0);
 
@@ -299,31 +299,26 @@ TEST_CASE("ASTNode_Assign", "[config]"){
     mabe::ConfigEntry_Linked<int> entry02("name02", v02, "variable02", nullptr);
 
     emp::Ptr<mabe::ASTNode_Leaf> leaf02 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry02);
-    assign00.AddChild(leaf02);
+    assign00_ptr->AddChild(leaf02);
 
-    REQUIRE(assign00.GetNumChildren() == 3);
-    REQUIRE(assign00.GetChild(2)->IsLeaf());
-    REQUIRE(assign00.GetChild(2)->Process() == leaf02->Process());
+    REQUIRE(assign00_ptr->GetNumChildren() == 3);
+    REQUIRE(assign00_ptr->GetChild(2)->IsLeaf());
+    REQUIRE(assign00_ptr->GetChild(2)->Process() == leaf02->Process());
 
     // Test Process() with too many children
-    entry_ptr_t result01 = assign00.Process();
+    entry_ptr_t result01 = assign00_ptr->Process();
     REQUIRE(emp::assert_last_fail);
 
     // Test Write()
     std::stringstream ss;
-    assign00.Write(ss, "");
+    assign00_ptr->Write(ss, "");
     REQUIRE(ss.str().compare("name00 = name01") == 0);
 
     // Test Destructor
-    node_ptr_t ast_node_ptr00 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry00); // Create pointer of type ASTNode to ConfigEntry
-    ast_node_ptr00.Delete();
-    REQUIRE(emp::BasePtr<void>::Tracker().IsDeleted(ast_node_ptr00.id));
-    node_ptr_t ast_node_ptr01 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry01); // Create pointer of type ASTNode to ConfigEntry
-    ast_node_ptr01.Delete();
-    REQUIRE(emp::BasePtr<void>::Tracker().IsDeleted(ast_node_ptr01.id));
-    node_ptr_t ast_node_ptr02 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry02); // Create pointer of type ASTNode to ConfigEntry
-    ast_node_ptr02.Delete();
-    REQUIRE(emp::BasePtr<void>::Tracker().IsDeleted(ast_node_ptr02.id));
+    assign00_ptr.Delete();
+    REQUIRE(emp::BasePtr<void>::Tracker().IsDeleted(lhs.id));
+    REQUIRE(emp::BasePtr<void>::Tracker().IsDeleted(rhs.id));
+    REQUIRE(emp::BasePtr<void>::Tracker().IsDeleted(leaf02.id));
   }
 }
 
@@ -332,7 +327,7 @@ TEST_CASE("ASTNode_Call", "[config]"){
     int children_processed = 0;
     bool function_called;
 
-    std::function<double(entry_vector_t)> setup = [&children_processed, &function_called](entry_vector_t entries) {
+    std::function<double(const entry_vector_t&)> setup = [&children_processed, &function_called](const entry_vector_t& entries) {
       std::cout << "in function" << std::endl;
       for (entry_ptr_t entry : entries) {
         children_processed++;
@@ -363,37 +358,37 @@ TEST_CASE("ASTNode_Call", "[config]"){
     args00.push_back(leaf02);
 
     // Create ASTNode_Call
-    mabe::ASTNode_Call call00(funcs00, args00);
+    emp::Ptr<mabe::ASTNode_Call> call00_ptr = emp::NewPtr<mabe::ASTNode_Call>(funcs00, args00);
 
     // Test getters
-    std::string str00 = call00.GetName();
+    std::string str00 = call00_ptr->GetName();
     REQUIRE(str00.compare("") == 0);
 
-    REQUIRE(call00.GetNumChildren() == args00.size() + 1);
+    REQUIRE(call00_ptr->GetNumChildren() == args00.size() + 1);
 
     // Test boolean functions
-    REQUIRE(call00.IsInternal());
+    REQUIRE(call00_ptr->IsInternal());
 
     // Test Process()
-    entry_ptr_t result = call00.Process();
+    entry_ptr_t result = call00_ptr->Process();
     REQUIRE(children_processed == args00.size());
     REQUIRE(function_called == true);
 
     // Test Write()
     std::stringstream ss;
-    call00.Write(ss, "");
+    call00_ptr->Write(ss, "");
     REQUIRE(ss.str().compare("func00(name00, name01, name02)") == 0);
 
     // Test Destructor
-    node_ptr_t ast_node_ptr00 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry00); // Create pointer of type ASTNode to ConfigEntry
-    ast_node_ptr00.Delete();
-    REQUIRE(emp::BasePtr<void>::Tracker().IsDeleted(ast_node_ptr00.id));
-    node_ptr_t ast_node_ptr01 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry01); // Create pointer of type ASTNode to ConfigEntry
-    ast_node_ptr01.Delete();
-    REQUIRE(emp::BasePtr<void>::Tracker().IsDeleted(ast_node_ptr01.id));
-    node_ptr_t ast_node_ptr02 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry02); // Create pointer of type ASTNode to ConfigEntry
-    ast_node_ptr02.Delete();
-    REQUIRE(emp::BasePtr<void>::Tracker().IsDeleted(ast_node_ptr02.id));
+    call00_ptr.Delete();
+    REQUIRE(emp::BasePtr<void>::Tracker().IsDeleted(funcs00.id));
+    REQUIRE(emp::BasePtr<void>::Tracker().IsDeleted(leaf00.id));
+    REQUIRE(emp::BasePtr<void>::Tracker().IsDeleted(leaf01.id));
+    REQUIRE(emp::BasePtr<void>::Tracker().IsDeleted(leaf02.id));
+
+    // Delete additional pointers
+    result.Delete();
+    REQUIRE(emp::BasePtr<void>::Tracker().IsDeleted(result.id));
   }
 }
 
@@ -431,36 +426,31 @@ TEST_CASE("ASTNode_Event", "[config]"){
       }
     };
 
-    mabe::ASTNode_Event event00("event00", action00, args00, setup);
+    emp::Ptr<mabe::ASTNode_Event> event00_ptr = emp::NewPtr<mabe::ASTNode_Event>("event00", action00, args00, setup);
 
     // Test getters
-    std::string str00 = event00.GetName();
+    std::string str00 = event00_ptr->GetName();
     REQUIRE(str00.compare("event00") == 0);
 
-    REQUIRE(event00.GetNumChildren() == args00.size() + 1);
+    REQUIRE(event00_ptr->GetNumChildren() == args00.size() + 1);
 
     // Test boolean functions
-    REQUIRE(event00.IsInternal());
+    REQUIRE(event00_ptr->IsInternal());
 
     // Test Process()
-    event00.Process();
+    event00_ptr->Process();
     REQUIRE(action_result.compare("action00") == 0);
     REQUIRE(children_processed == args00.size());
 
     // Test Write()
     std::stringstream ss;
-    event00.Write(ss, "");
+    event00_ptr->Write(ss, "");
     REQUIRE(ss.str().compare("@event00(name00, name01) action00") == 0);
 
     // Test Destructor
-    node_ptr_t ast_node_ptr00 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry00); // Create pointer of type ASTNode to ConfigEntry
-    ast_node_ptr00.Delete();
-    REQUIRE(emp::BasePtr<void>::Tracker().IsDeleted(ast_node_ptr00.id));
-    node_ptr_t ast_node_ptr01 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry01); // Create pointer of type ASTNode to ConfigEntry
-    ast_node_ptr01.Delete();
-    REQUIRE(emp::BasePtr<void>::Tracker().IsDeleted(ast_node_ptr01.id));
-    node_ptr_t ast_node_ptr = emp::NewPtr<mabe::ASTNode_Leaf>(&entry); // Create pointer of type ASTNode to ConfigEntry
-    ast_node_ptr.Delete();
-    REQUIRE(emp::BasePtr<void>::Tracker().IsDeleted(ast_node_ptr.id));
+    event00_ptr.Delete();
+    REQUIRE(emp::BasePtr<void>::Tracker().IsDeleted(leaf00.id));
+    REQUIRE(emp::BasePtr<void>::Tracker().IsDeleted(leaf01.id));
+    REQUIRE(emp::BasePtr<void>::Tracker().IsDeleted(action00.id));
   }
 }
