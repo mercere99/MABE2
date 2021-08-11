@@ -90,6 +90,12 @@ Ready to use MABE? Learn how to `install MABE <first_steps/00_installation.html>
    source/*
    modules/*
 
+.. toctree::
+   :hidden:
+   :caption: Organisms
+   :glob:
+
+   organisms/*
 
 .. toctree::
    :hidden:
@@ -97,11 +103,3 @@ Ready to use MABE? Learn how to `install MABE <first_steps/00_installation.html>
    :glob:
 
    evaluate/*
-
-
-.. toctree::
-   :hidden:
-   :caption: Organisms
-   :glob:
-
-   organisms/*
