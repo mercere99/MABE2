@@ -203,7 +203,7 @@ namespace mabe {
         AddModule<EMPTY_MANAGER_T>("EmptyOrg", "Manager for all 'empty' organisms in any population.");
       empty_manager.SetBuiltIn();         // Don't write the empty manager to config.
 
-      empty_org = empty_manager.MakeOrganism();
+      empty_org = empty_manager.Make();
     }
 
     /// Update MABE a single time step.
@@ -306,13 +306,13 @@ namespace mabe {
       Verbose("Injecting ", copy_count, " orgs of type '", type_name,
               "' into population ", pop.GetID());
 
-      auto & org_manager = GetModule(type_name);          // Look up type of organism.
-      OrgPosition pos;                                    // Place to save injection position.
-      for (size_t i = 0; i < copy_count; i++) {           // Loop through, injecting each instance.
-        auto org_ptr = org_manager.MakeOrganism(random);  // ...Build an org of this type.
-        pos = InjectInstance(org_ptr, pop);               // ...Inject it into the popultation.
+      auto & org_manager = GetModule(type_name);    // Look up type of organism.
+      OrgPosition pos;                              // Place to save injection position.
+      for (size_t i = 0; i < copy_count; i++) {     // Loop through, injecting each instance.
+        auto org_ptr = org_manager.Make(random);    // ...Build an org of this type.
+        pos = InjectInstance(org_ptr, pop);         // ...Inject it into the popultation.
       }
-      return pos;                                         // Return last position injected.
+      return pos;                                   // Return last position injected.
     }
 
     /// Add an organism of a specified type and population (provide names of both and they
