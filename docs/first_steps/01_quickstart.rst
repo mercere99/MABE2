@@ -12,7 +12,7 @@ have been set up in the different modules connected to the ``.mabe`` file.
 To generate your ``.mabe`` file, first you will want to make sure that you have run the ``make`` command 
 since your last updates. To do so, navigate to the ``build`` directory and set up a clean run. From the ``MABE2`` directory, run the following commands: 
 
-.. code-block:: cpp
+.. code-block::
 
     cd build
     make clean ; make
@@ -22,7 +22,7 @@ If there are any errors that pop up, now is the time to fix them!
 Next, you will navigate to the ``settings`` directory inside of ``build``, and check to see you have an appropriate ``.gen`` file. To do so, first make sure you 
 are in the ``build`` directory, and then list all of the files in the settings to make sure the ``.gen`` file is there. 
 
-.. code-block:: cpp
+.. code-block::
 
     cd settings
     ls
@@ -34,7 +34,7 @@ follow the directions to `write your .gen file <000_write_gen_file.html>`_.
 Now we're ready to create our ``.mabe`` file! To do so, we'll navigate back up to ``build`` and then create the ``.mabe`` file. You'll run the
 following commands to do so: 
 
-.. code-block:: cpp
+.. code-block::
 
     cd ..
     ./MABE -f settings/<example_filename>.gen -g settings/<example_filename>.mabe
@@ -43,7 +43,7 @@ following commands to do so:
 This will generate a ``.mabe`` file named ``<example_filename>.mabe`` with the specifications from the ``<example_filename>.gen`` file. 
 You can check to see that it exists by going into the ``settings`` directory and checking that it's there. To do so, run the following: 
 
-.. code-block:: cpp
+.. code-block::
 
     cd settings
     ls
@@ -55,14 +55,14 @@ Summary
 
 Step 1: In the ``build`` directory, run the following: 
 
-.. code-block:: cpp
+.. code-block::
 
     make clean ; make
 
 
 Step 2: Then run these commands to make sure your ``.gen`` file exists. 
 
-.. code-block:: cpp
+.. code-block::
 
     cd settings
     ls 
@@ -72,7 +72,7 @@ to `write your .gen file <000_write_gen_file.html>`_.
 
 Step 3: Create your ``.mabe`` file and check to make sure it's created by running the following: 
 
-.. code-block:: cpp
+.. code-block::
 
     cd ..
     ./MABE -f settings/<example_filename>.gen -g settings/<example_filename>.mabe
@@ -85,7 +85,7 @@ Running the ``.mabe`` File
 
 To run your ``.mabe`` file, navigate to the ``build`` directory and run your ``.mabe`` file. To do so, start in the ``MABE2`` folder and run the following commands: 
 
-.. code-block:: cpp 
+.. code-block:: 
 
     cd build
     ./MABE -f settings/<example_filename>.mabe
@@ -106,7 +106,8 @@ module, located in the `Modules Page <../modules/00_module_overview.html>`_ .
 
 To run your modified ``.mabe`` file, first make sure you have saved your file, then simply run the following command from the ``build`` directory: 
 
-.. code-block:: cpp
+.. code-block::
+
     ./MABE -f settings/<example_filename>.mabe
 
 
@@ -117,7 +118,7 @@ Viewing and Saving Your Data
 The data you have collected has been saved in a CSV file called ``output.csv``, which is located in the ``build`` directory. 
 From the main ``MABE2`` folder, you can find this file by running the following commands: 
 
-.. code-block:: cpp
+.. code-block::
 
     cd build
     ls
@@ -143,7 +144,7 @@ To do so, first open the ``.mabe`` file in question in your preferred text edito
 
 Within the ``.mabe`` file, there is a section called ``FileOutput``, which looks something like this: 
 
-.. code-block:: cpp
+.. code-block::
 
     FileOutput output {             // Output collected data into a specified file.
     _active = 1;                  // Should we activate this module? (0=off, 1=on)
@@ -159,7 +160,7 @@ You can modify this name to be something new, and when you run the ``.mabe`` fil
 with that name will appear in the same directory as the original ``output.csv`` file. Below is an example 
 of a new CSV filename inserted called ``NEW_FILE_NAME``. 
 
-.. code-block:: cpp
+.. code-block::
 
     FileOutput output {             // Output collected data into a specified file.
     _active = 1;                  // Should we activate this module? (0=off, 1=on)
