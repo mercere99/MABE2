@@ -241,32 +241,5 @@ namespace mabe {
   };
 
 
-  // // Pre-declare OrganismManager to allow for conversions.
-  // template <typename ORG_T> class OrganismManager;
-
-
-  // /// Below is a specialty Organism type that uses "curiously recursive templates" to fill out
-  // /// more default functionality for when you know the derived organism type.  Specifically,
-  // /// it should be used as the base class for any derived organism types.
-  // template <typename ORG_T>
-  // class OrganismTemplate : public Organism {
-  // public:
-  //   OrganismTemplate(ModuleBase & _man) : Organism(_man) { ; }
-
-  //   using org_t = ORG_T;
-  //   using manager_t = OrganismManager<ORG_T>;
-
-  //   /// Get the manager for this type of organism.
-  //   manager_t & GetManager() {
-  //     return (manager_t &) Organism::GetManager();
-  //   }
-  //   const manager_t & GetManager() const {
-  //     return (const manager_t &) Organism::GetManager();
-  //   }
-
-  //   auto & SharedData() { return GetManager().data; }
-  //   const auto & SharedData() const { return GetManager().data; }
-  // };
-
 }
 #endif

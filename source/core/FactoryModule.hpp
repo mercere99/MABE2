@@ -131,14 +131,6 @@ namespace mabe {
   #define MABE_REGISTER_FACTORY_MODULE(TYPE, BASE_TYPE, DESC) \
         mabe::FactoryModuleRegistrar<FactoryModule<TYPE, BASE_TYPE>> MABE_ ## TYPE ## _Registrar(#TYPE, DESC)
 
-  // Setup backward compatability with OrganismManager.
-  template <typename ORG_T>
-  using OrganismManager = FactoryModule<ORG_T, mabe::Organism>;
-  template <typename ORG_T>
-  using OrganismTemplate = ProductTemplate<ORG_T, mabe::Organism>;
-
-  #define MABE_REGISTER_ORG_TYPE(TYPE, DESC) MABE_REGISTER_FACTORY_MODULE(TYPE, mabe::Organism, DESC)
-
 }
 
 #endif
