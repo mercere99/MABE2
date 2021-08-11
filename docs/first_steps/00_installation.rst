@@ -50,7 +50,7 @@ Once you have the URL copied to your clipboard, open your command line.
 Change your current working directory to the location where you want the cloned directory. 
 Type `git clone`, then paste the URL into your command line.
 
-.. code-block:: cpp
+.. code-block::
 
   $ git clone https://github.com/mercere99/MABE2.git
 
@@ -59,7 +59,7 @@ Type `git clone`, then paste the URL into your command line.
 Then press enter to create your local clone! If all goes well, you will see the following
 in your terminal:
 
-.. code-block:: cpp
+.. code-block::
 
   $ git clone https://github.com/mercere99/MABE2.git
   > Cloning into `MABE2`...
@@ -87,7 +87,7 @@ Mac and Linux
 For Unix (e.g. Linux and MacOS) the most commonly used compilers are GCC and Clang.
 You can check if you have GCC or Clang installed by opening your terminal and entering:
 
-.. code-block:: cpp
+.. code-block::
 
   $ which gcc
   $ which clang
@@ -97,7 +97,7 @@ You can check if you have GCC or Clang installed by opening your terminal and en
 If a path is returned then you have gcc or clang, respectively. To check the version
 enter:
 
-.. code-block:: cpp
+.. code-block::
 
   $ gcc --version
   $ clang --version
@@ -111,7 +111,7 @@ If a path is not returned then you must install gcc.
 For Linux, your package manager (e.g. yum, apt, etc) will allow you to do this. 
 Enter the following into your terminal to install gcc;
 
-.. code-block:: cpp
+.. code-block::
 
   $ apt-get install gcc-8
 
