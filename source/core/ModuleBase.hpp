@@ -269,23 +269,23 @@ namespace mabe {
 
     // ---=== Specialty Functions for Organism Managers ===---
     virtual emp::TypeID GetObjType() const {
-      emp_assert(false, "GetObjType() must be overridden for FactoryModule.");
+      emp_assert(false, "GetObjType() must be overridden for ManagerModule.");
       return emp::TypeID();
     }
     virtual emp::Ptr<Organism> CloneObject(const Organism &) {
-      emp_assert(false, "CloneObject() must be overridden for FactoryModule.");
+      emp_assert(false, "CloneObject() must be overridden for ManagerModule.");
       return nullptr;
     }
     virtual emp::Ptr<Organism> CloneObject(const Organism &, emp::Random &) {
-      emp_assert(false, "CloneObject() must be overridden for FactoryModule.");
+      emp_assert(false, "CloneObject() must be overridden for ManagerModule.");
       return nullptr;
     }
     virtual emp::Ptr<Organism> Make() {
-      emp_assert(false, "Make() must be overridden for FactoryModule.");
+      emp_assert(false, "Make() must be overridden for ManagerModule.");
       return nullptr;
     }
     virtual emp::Ptr<Organism> Make(emp::Random &) {
-      emp_assert(false, "Make() must be overridden for FactoryModule.");
+      emp_assert(false, "Make() must be overridden for ManagerModule.");
       return nullptr;
     }
 

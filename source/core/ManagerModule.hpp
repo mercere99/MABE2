@@ -3,12 +3,12 @@
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
  *  @date 2021.
  *
- *  @file  FactoryModule.hpp
+ *  @file  ManagerModule.hpp
  *  @brief Base module to manage a selection of objects that share a common configiguration.
  */
 
-#ifndef MABE_FACTORY_MODULE_H
-#define MABE_FACTORY_MODULE_H
+#ifndef MABE_MANAGER_MODULE_H
+#define MABE_MANAGER_MODULE_H
 
 #include "emp/meta/TypeID.hpp"
 
@@ -21,9 +21,9 @@ namespace mabe {
 
   // Pre-declarations...
   class MABE;
-  template <typename OBJ_T, typename BASE_T> class FactoryModule;
+  template <typename OBJ_T, typename BASE_T> class ManagerModule;
 
-  /// Base class for factory products that uses "curiously recursive templates" to fill
+  /// Base class for managed products that uses "curiously recursive templates" to fill
   /// out default functionality for when you know the derived type.
   template <typename OBJ_T, typename BASE_T>
   class ProductTemplate : public BASE_T {
@@ -31,7 +31,7 @@ namespace mabe {
     ProductTemplate(ModuleBase & _man) : BASE_T(_man) { ; }
 
     using obj_t = OBJ_T;
-    using manager_t = FactoryModule<OBJ_T, BASE_T>;
+    using manager_t = ManagerModule<OBJ_T, BASE_T>;
 
     /// Get the manager for this type of organism.
     manager_t & GetManager() {
@@ -46,31 +46,31 @@ namespace mabe {
   };
 
 
-  /// @param OBJ_T the object type being managed by the factory.
-  /// @param BASE_T the base object category being mnagaed by the factory.
+  /// @param OBJ_T the object type being managed.
+  /// @param BASE_T the base object category being mnagaed.
   template <typename OBJ_T, typename BASE_T>
-  class FactoryModule : public Module {
-    /// Allow factory products to access private shared data in their own manager only.
+  class ManagerModule : public Module {
+    /// Allow managed products to access private shared data in their own manager only.
     friend class ProductTemplate<OBJ_T, BASE_T>;
 
   private:
-    /// Locate the specification for the data that we need for management in the factory module.
+    /// Locate the specification for the data that we need for management in the manager module.
     using data_t = typename OBJ_T::ManagerData;
     
-    /// Shared data across all objects that use this factory.
+    /// Shared data across all objects that use this manager module.
     data_t data;
 
     /// Maintain a prototype for the objects being created.
     emp::Ptr<BASE_T> obj_prototype;
 
   public:
-    FactoryModule(MABE & in_control, const std::string & in_name, const std::string & in_desc="")
+    ManagerModule(MABE & in_control, const std::string & in_name, const std::string & in_desc="")
       : Module(in_control, in_name, in_desc)
     {
       SetManageMod(); // @CAO should specify what type of object is managed.
       obj_prototype = emp::NewPtr<obj_t>(*this);
     }
-    virtual ~FactoryModule() { obj_prototype.Delete(); }
+    virtual ~ManagerModule() { obj_prototype.Delete(); }
 
     /// Save the object type that uses this manager.
     using obj_t = OBJ_T;
@@ -114,8 +114,8 @@ namespace mabe {
 
   /// Build a class that will automatically register modules when created (globally)
   template <typename FACTORY_T>
-  struct FactoryModuleRegistrar {
-    FactoryModuleRegistrar(const std::string & type_name, const std::string & desc) {
+  struct ManagerModuleRegistrar {
+    ManagerModuleRegistrar(const std::string & type_name, const std::string & desc) {
       ModuleInfo new_info;
       new_info.name = type_name;
       new_info.desc = desc;
@@ -127,9 +127,9 @@ namespace mabe {
   };
 
 
-  /// MACRO for quickly adding new factory modules.
-  #define MABE_REGISTER_FACTORY_MODULE(TYPE, BASE_TYPE, DESC) \
-        mabe::FactoryModuleRegistrar<FactoryModule<TYPE, BASE_TYPE>> MABE_ ## TYPE ## _Registrar(#TYPE, DESC)
+  /// MACRO for quickly adding new manager modules.
+  #define MABE_REGISTER_MANAGER_MODULE(TYPE, BASE_TYPE, DESC) \
+        mabe::ManagerModuleRegistrar<ManagerModule<TYPE, BASE_TYPE>> MABE_ ## TYPE ## _Registrar(#TYPE, DESC)
 
 }
 

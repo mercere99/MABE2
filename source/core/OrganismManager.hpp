@@ -10,19 +10,19 @@
 #ifndef MABE_ORGANISM_MANAGER_H
 #define MABE_ORGANISM_MANAGER_H
 
-#include "FactoryModule.hpp"
+#include "ManagerModule.hpp"
 
 namespace mabe {
 
-  // Setup an OrganismManager as a standard FactoryModule that builds different kinds of Organisms
+  // Setup an OrganismManager as a standard ManagerModule that builds different kinds of Organisms
   template <typename ORG_T>
-  using OrganismManager = FactoryModule<ORG_T, mabe::Organism>;
+  using OrganismManager = ManagerModule<ORG_T, mabe::Organism>;
 
   // Setup OrganismTemplate as a quick way to build new organism types.
   template <typename ORG_T>
   using OrganismTemplate = ProductTemplate<ORG_T, mabe::Organism>;
 
-  #define MABE_REGISTER_ORG_TYPE(TYPE, DESC) MABE_REGISTER_FACTORY_MODULE(TYPE, mabe::Organism, DESC)
+  #define MABE_REGISTER_ORG_TYPE(TYPE, DESC) MABE_REGISTER_MANAGER_MODULE(TYPE, mabe::Organism, DESC)
 }
 
 
