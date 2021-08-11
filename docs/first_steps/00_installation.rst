@@ -50,7 +50,7 @@ For more information about SSH keys, checkout `this guide <https://docs.github.c
 Once you have the URL copied to your clipboard, open your command line. 
 
 Change your current working directory to the location where you want the cloned directory. 
-Type `git clone`, then paste the URL into your command line.
+Type ``git clone``, then paste the URL into your command line.
 
 .. code-block::
 
