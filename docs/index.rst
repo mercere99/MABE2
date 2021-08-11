@@ -9,6 +9,7 @@
 Welcome to MABE2's documentation!
 =================================
 .. image:: images/MABE.png
+  :alt: MABE logo
   :width: 600
 
 .. important::
