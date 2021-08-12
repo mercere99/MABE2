@@ -1,4 +1,4 @@
-TEST_NAMES= ConfigEvents #ConfigAST ConfigEntry ConfigLexer
+TEST_NAMES= ConfigEntry ConfigLexer ConfigAST ConfigEvents 
 
 MABE_DIR= ../../../source/
 EMP_DIR= ../../../source/third-party/empirical
