@@ -1,4 +1,4 @@
-DIR_NAMES= evaluate #core
+DIR_NAMES= evaluate core config
 
 default: test
 
