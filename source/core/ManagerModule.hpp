@@ -21,17 +21,17 @@ namespace mabe {
 
   // Pre-declarations...
   class MABE;
-  template <typename OBJ_T, typename BASE_T> class ManagerModule;
+  template <typename MANAGED_T, typename BASE_T> class ManagerModule;
 
   /// Base class for managed products that uses "curiously recursive templates" to fill
   /// out default functionality for when you know the derived type.
-  template <typename OBJ_T, typename BASE_T>
+  template <typename MANAGED_T, typename BASE_T>
   class ProductTemplate : public BASE_T {
   public:
     ProductTemplate(ModuleBase & _man) : BASE_T(_man) { ; }
 
-    using obj_t = OBJ_T;
-    using manager_t = ManagerModule<OBJ_T, BASE_T>;
+    using managed_t = MANAGED_T;
+    using manager_t = ManagerModule<MANAGED_T, BASE_T>;
 
     /// Get the manager for this type of organism.
     manager_t & GetManager() {
@@ -46,18 +46,18 @@ namespace mabe {
   };
 
 
-  /// @param OBJ_T the object type being managed.
-  /// @param BASE_T the base object category being mnagaed.
-  template <typename OBJ_T, typename BASE_T>
+  /// @param MANAGED_T the type of object type being managed.
+  /// @param BASE_T the base type being mnagaed.
+  template <typename MANAGED_T, typename BASE_T>
   class ManagerModule : public Module {
     /// Allow managed products to access private shared data in their own manager only.
-    friend class ProductTemplate<OBJ_T, BASE_T>;
+    friend class ProductTemplate<MANAGED_T, BASE_T>;
 
   private:
     /// Locate the specification for the data that we need for management in the manager module.
-    using data_t = typename OBJ_T::ManagerData;
+    using data_t = typename MANAGED_T::ManagerData;
     
-    /// Shared data across all objects that use this manager module.
+    /// Shared data across all objects that use the same manager.
     data_t data;
 
     /// Maintain a prototype for the objects being created.
@@ -68,19 +68,19 @@ namespace mabe {
       : Module(in_control, in_name, in_desc)
     {
       SetManageMod(); // @CAO should specify what type of object is managed.
-      obj_prototype = emp::NewPtr<obj_t>(*this);
+      obj_prototype = emp::NewPtr<managed_t>(*this);
     }
     virtual ~ManagerModule() { obj_prototype.Delete(); }
 
-    /// Save the object type that uses this manager.
-    using obj_t = OBJ_T;
+    /// Save the type that uses this manager.
+    using managed_t = MANAGED_T;
 
-    /// Also get the TypeID for this object for more run-time type management.
-    emp::TypeID GetObjType() const override { return emp::GetTypeID<obj_t>(); }
+    /// Also get the TypeID for more run-time type management.
+    emp::TypeID GetObjType() const override { return emp::GetTypeID<managed_t>(); }
 
     /// Create a clone of the provided object; default to using copy constructor.
     emp::Ptr<BASE_T> CloneObject(const BASE_T & obj) override {
-      return emp::NewPtr<obj_t>( (const obj_t &) obj );
+      return emp::NewPtr<managed_t>( (const managed_t &) obj );
     }
 
     /// Create a random object from scratch.  Default to using the obj_prototype object.
@@ -113,14 +113,14 @@ namespace mabe {
   };
 
   /// Build a class that will automatically register modules when created (globally)
-  template <typename FACTORY_T>
+  template <typename MODULE_T>
   struct ManagerModuleRegistrar {
     ManagerModuleRegistrar(const std::string & type_name, const std::string & desc) {
       ModuleInfo new_info;
       new_info.name = type_name;
       new_info.desc = desc;
       new_info.init_fun = [desc](MABE & control, const std::string & name) -> ConfigType & {
-        return control.AddModule<FACTORY_T>(name, desc);
+        return control.AddModule<MODULE_T>(name, desc);
       };
       GetModuleInfo().insert(new_info);
     }
