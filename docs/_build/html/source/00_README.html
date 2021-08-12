@@ -1,0 +1,256 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>README for /source &mdash; MABE2  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> MABE2
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">First Steps</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../first_steps/000_write_gen_file.html">Writing the <code class="docutils literal notranslate"><span class="pre">.gen</span></code> File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../first_steps/00_installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../first_steps/01_quickstart.html">Quickstart</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Modules Overview</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../modules/00_module_overview.html">What is a Module?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules/01_module_types.html">Types of Modules</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Evaluators</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../evaluate/EvalNk.html">NK</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../evaluate/EvalRoyalRoad.html">Royal Road</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">MABE2</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>README for /source</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/source/00_README.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="readme-for-source">
+<h1>README for /source<a class="headerlink" href="#readme-for-source" title="Permalink to this headline">¶</a></h1>
+<p>The source directory is broken doen into seven folders, five for modules,
+plus core functionality and tools to build new modules:</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Core Functionality:</dt><dd><ul>
+<li><p>core/      - All of the core code required for any MABE run</p></li>
+<li><p>tools/     - Extra tools to simplify building MABE modules</p></li>
+<li><p>config/    - Configuration scripting language.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Tools for New Modules:</dt><dd><ul>
+<li><p>orgs/      - Default organisms available for MABE runs</p></li>
+<li><p>evaluate/  - Modules that evaluate organisms in a run, using any metrics.</p></li>
+<li><p>select/    - Modules that manage selection/reproduction mechanisms.</p></li>
+<li><p>placement/ - Modules that organize where newborn offspring should be placed.</p></li>
+<li><p>analyze/   - Modules that collect, process, and store population data.</p></li>
+<li><p>interface/ - Modules thar provide a user interface for MABE.</p></li>
+<li><p>schema/    - Extra Modules that control other aspects of MABE runs.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+<p>An ORGANSIM is a single agent in a MABE run.  A POPULATION is a collection of
+organisms, which may all be defined individually.  A WORLD maintains one or
+more populations of organisms an evalutation technique (its environment”)</p>
+<p>The dynamics of EVOLUTION are defined by a combination of an evaluation module
+(i.e., a world/environment) for how their phenotype will be assessed, and a
+selection module (i.e., a selection scheme) to determine how that phenotype will
+influce and organism’s ability to move on to the next generation.</p>
+<p>Finally, DATA COLLECTION is defined by a set of analysis modules that monitor
+a population throughout the evolution process.</p>
+<p>Plans: Organisms should be defined by a controller module (i.e., a brain) to
+handle how they process data, and a representation module (i.e., a genome) for
+how that organism is stored and mutatated.</p>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Charles Ofria, Clifford Bohm, Austin Ferguson, Acacia Ackles.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

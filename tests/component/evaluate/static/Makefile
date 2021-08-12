@@ -1,4 +1,4 @@
-TEST_NAMES= EvalNK
+TEST_NAMES= EvalPacking #EvalNK
 
 MABE_DIR= ../../../../source
 EMP_DIR= ../../../../source/third-party/empirical

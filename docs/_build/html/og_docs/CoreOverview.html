@@ -1,0 +1,275 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>An Overview of the MABE Core &mdash; MABE2  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> MABE2
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">First Steps</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../first_steps/000_write_gen_file.html">Writing the <code class="docutils literal notranslate"><span class="pre">.gen</span></code> File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../first_steps/00_installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../first_steps/01_quickstart.html">Quickstart</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Modules Overview</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../modules/00_module_overview.html">What is a Module?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules/01_module_types.html">Types of Modules</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Evaluators</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../evaluate/EvalNk.html">NK</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../evaluate/EvalRoyalRoad.html">Royal Road</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">MABE2</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>An Overview of the MABE Core</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/og_docs/CoreOverview.md.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="tex2jax_ignore mathjax_ignore section" id="an-overview-of-the-mabe-core">
+<h1>An Overview of the MABE Core<a class="headerlink" href="#an-overview-of-the-mabe-core" title="Permalink to this headline">¶</a></h1>
+<p>This file provides a high-level overview of the core files in MABE and how they all fit together.</p>
+<div class="section" id="the-mabe-object">
+<h2>The MABE object<a class="headerlink" href="#the-mabe-object" title="Permalink to this headline">¶</a></h2>
+<p>At the higest level a mabe run is managed by a MABE object, instances of which are typically
+referred to as “control” in other objects.</p>
+</div>
+<div class="section" id="internal-tools">
+<h2>Internal Tools<a class="headerlink" href="#internal-tools" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="general-organisms">
+<h3>General Organisms<a class="headerlink" href="#general-organisms" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="empty-organisms">
+<h3>“Empty” Organisms<a class="headerlink" href="#empty-organisms" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="populations">
+<h3>Populations<a class="headerlink" href="#populations" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="collections">
+<h3>Collections<a class="headerlink" href="#collections" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="traits">
+<h3>Traits<a class="headerlink" href="#traits" title="Permalink to this headline">¶</a></h3>
+</div>
+</div>
+<div class="section" id="modules">
+<h2>Modules<a class="headerlink" href="#modules" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="evaluation-modules">
+<h3>Evaluation Modules<a class="headerlink" href="#evaluation-modules" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="selection-modules">
+<h3>Selection Modules<a class="headerlink" href="#selection-modules" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="placement-modules">
+<h3>Placement Modules<a class="headerlink" href="#placement-modules" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="interface-modules">
+<h3>Interface Modules<a class="headerlink" href="#interface-modules" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="analysis-modules">
+<h3>Analysis Modules<a class="headerlink" href="#analysis-modules" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="other-schema-modules">
+<h3>Other Schema Modules<a class="headerlink" href="#other-schema-modules" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="organism-managers">
+<h3>Organism Managers<a class="headerlink" href="#organism-managers" title="Permalink to this headline">¶</a></h3>
+</div>
+</div>
+<div class="section" id="configuration-files">
+<h2>Configuration files<a class="headerlink" href="#configuration-files" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="organisms">
+<h2>Organisms<a class="headerlink" href="#organisms" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="id1">
+<h2>Traits<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Charles Ofria, Clifford Bohm, Austin Ferguson, Acacia Ackles.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

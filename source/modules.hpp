@@ -13,6 +13,9 @@
 #include "evaluate/static/EvalMatchBits.hpp"
 #include "evaluate/static/EvalNK.hpp"
 
+#include "evaluate/static/EvalRoyalRoad.hpp"
+#include "evaluate/static/EvalPacking.hpp"
+
 // Interface Modules
 #include "interface/CommandLine.hpp"
 #include "interface/FileOutput.hpp"
