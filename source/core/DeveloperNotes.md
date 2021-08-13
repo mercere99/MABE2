@@ -28,11 +28,11 @@ EmptyOrganism.hpp   - Specialty Organism type to represent empty cells.
 
 # Component Development
 
-When Building new components for MABE, new organism types should be derived from the Organism class (with an optional specialized OrganismManager) and new modules should be derived from Module (for regular modules).  If you want to add a new type in config that needs to be managed (as are organisms, brains, and genomes) this can be done with FactoryModule.
+When Building new components for MABE, new organism types should be derived from a mabe::OrganismTemplate and new modules should be derived from mabe::Module (for regular modules).  If you want to add a new type in config that needs to be managed (as are organisms, brains, and genomes) this can be done with FactoryModule.
 
 ## Adding Organisms
 
-An organism can be devleoped as a class unto itself OR it can make use of a specialized OrganismManager that stores shared inforation.  If an organism class doesn't have a specialized manager, it must override a few specialty "prototype" functions to specify the configuration parameters that it uses.
+A new specialty organism class must use OrganismsTemplate<ORG_T> as a base class, where ORG_T is the type of the new organism.  New organism classes must also override a few specialty functions to specify the configuration parameters that it uses.
 
 ## Adding Modules
 
