@@ -1,4 +1,4 @@
-EMP_DIR := ../../Empirical/include
+EMP_DIR := ../source/third-party/empirical/include
 MABE_DIR := ../source
 
 # Flags to use regardless of compiler
