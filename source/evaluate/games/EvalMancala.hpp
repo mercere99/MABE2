@@ -196,7 +196,9 @@ namespace mabe {
 
       control.Verbose(" - ", alive_collect.GetSize(), " organisms found.");
 
+      size_t org_count = 0;
       for (Organism & org : alive_collect) {
+        control.Verbose("...eval org #", org_count++);
         double & score = org.GetTrait<double>(score_trait);
         score = EvalGame(org, control.GetRandom());     // Start first.
         org.SetTrait(trace_trait, game_trace);          // Record the trace of the first game.
