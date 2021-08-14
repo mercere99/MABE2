@@ -269,6 +269,6 @@ namespace emp {
     return std::function<std::string(const CONTAIN_T &)>();
   }
 
-};
+}
 
 #endif
