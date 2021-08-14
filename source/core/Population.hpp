@@ -204,7 +204,8 @@ namespace mabe {
   public:
     // ------ DEBUG FUNCTIONS ------
     bool OK() const {
-      if (pop_id < 0) {
+      // We will usually have a handful of popoulations; assume error if we have more than a billion.
+      if (pop_id > 1000000000) {
         std::cout << "WARNING: Invalid Population ID (pop_id = " << pop_id << ")" << std::endl;
         return false;
       }
