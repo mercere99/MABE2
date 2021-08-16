@@ -39,14 +39,23 @@ TEST_CASE("ASTLeaf", "[config]"){
     entry_ptr_t ptr00 = &entry00;
     emp::Ptr<mabe::ASTNode_Leaf> leaf00_ptr = emp::NewPtr<mabe::ASTNode_Leaf>(ptr00);
 
+    int v01 = 1;
+    mabe::ConfigEntry_Linked<int> entry01("", v01, "variable01", nullptr);
+    entry_ptr_t ptr01 = &entry01;
+    emp::Ptr<mabe::ASTNode_Leaf> leaf01_ptr = emp::NewPtr<mabe::ASTNode_Leaf>(ptr01);
+
     // Test getter functions
     std::string str00 = leaf00_ptr->GetName();
     REQUIRE(str00.compare("name00") == 0);
-
     REQUIRE(&leaf00_ptr->GetEntry() == ptr00.Raw());
+    REQUIRE(leaf00_ptr->GetNumChildren() == 0);
+    emp::assert_clear();
+    leaf00_ptr->GetChild(0);
+    REQUIRE(emp::assert_last_fail);
 
     // Test boolean functions
     REQUIRE(leaf00_ptr->IsLeaf());
+    REQUIRE(leaf00_ptr->IsInternal() == false);
 
     // Test Process()
     REQUIRE(leaf00_ptr->Process() == ptr00);
@@ -56,9 +65,15 @@ TEST_CASE("ASTLeaf", "[config]"){
     leaf00_ptr->Write(ss, "");
     REQUIRE(ss.str().compare("name00") == 0);
 
+    std::stringstream ss01;
+    leaf01_ptr->Write(ss01, "");
+    REQUIRE(ss01.str().compare("1") == 0);
+
     // Test Destructor()
     leaf00_ptr.Delete();
     REQUIRE(emp::BasePtr<void>::Tracker().IsDeleted(leaf00_ptr.id));
+    leaf01_ptr.Delete();
+    REQUIRE(emp::BasePtr<void>::Tracker().IsDeleted(leaf01_ptr.id));
   }
 }
 
@@ -75,6 +90,7 @@ TEST_CASE("ASTNode_Block", "[config]"){
 
     // Test boolean functions
     REQUIRE(block00_ptr->IsInternal());
+    REQUIRE(block00_ptr->IsLeaf() == false);
 
     // Test adding children
     int v00 = 0;
@@ -142,14 +158,20 @@ TEST_CASE("ASTNode_Math1", "[config]"){
 
     // Test boolean functions
     REQUIRE(math100_ptr->IsInternal());
+    REQUIRE(math100_ptr->IsLeaf() == false);
+
+    // Test Process() before SetFun() is called
+    REQUIRE_THROWS(math100_ptr->Process());
 
     // Test setters
     math100_ptr->SetFun(abs_value);
 
     // Test Process() with one child
+    emp::assert_clear();
     entry_ptr_t result00 = math100_ptr->Process();
     REQUIRE(!emp::assert_last_fail);
     REQUIRE(result00->AsDouble() == 1.0);
+    REQUIRE(result00->IsTemporary() == true);
 
     // Test Write()
     std::stringstream ss;
@@ -199,6 +221,7 @@ TEST_CASE("ASTNode_Math2", "[config]"){
 
     // Test boolean functions
     REQUIRE(math200_ptr->IsInternal());
+    REQUIRE(math200_ptr->IsLeaf() == false);
 
     // Test adding children
     int v00 = 1;
@@ -222,6 +245,9 @@ TEST_CASE("ASTNode_Math2", "[config]"){
     REQUIRE(math200_ptr->GetChild(1)->IsLeaf());
     REQUIRE(math200_ptr->GetChild(1)->Process() == leaf01->Process());
 
+    // Test Process() before SetFun() is called
+    REQUIRE_THROWS(math200_ptr->Process());
+
     // Set function
     math200_ptr->SetFun(add_fun);
 
@@ -230,6 +256,7 @@ TEST_CASE("ASTNode_Math2", "[config]"){
     entry_ptr_t result00 = math200_ptr->Process();
     REQUIRE(!emp::assert_last_fail);
     REQUIRE(result00->AsDouble() == 3.0);
+    REQUIRE(result00->IsTemporary() == true);
 
     // Test Write()
     std::stringstream ss;
@@ -287,12 +314,13 @@ TEST_CASE("ASTNode_Assign", "[config]"){
 
     // Test boolean functions
     REQUIRE(assign00_ptr->IsInternal());
+    REQUIRE(assign00_ptr->IsLeaf() == false);
 
     // Test Process()
-    emp::assert_clear(); // do this other places too!
+    emp::assert_clear();
     entry_ptr_t result00 = assign00_ptr->Process();
     REQUIRE(!emp::assert_last_fail);
-    REQUIRE(result00->AsDouble() == 1.0);
+    REQUIRE(result00->AsDouble() == rhs->Process());
 
     // Add third child
     int v02 = 2;
@@ -319,6 +347,7 @@ TEST_CASE("ASTNode_Assign", "[config]"){
     REQUIRE(emp::BasePtr<void>::Tracker().IsDeleted(lhs.id));
     REQUIRE(emp::BasePtr<void>::Tracker().IsDeleted(rhs.id));
     REQUIRE(emp::BasePtr<void>::Tracker().IsDeleted(leaf02.id));
+
   }
 }
 
@@ -328,7 +357,6 @@ TEST_CASE("ASTNode_Call", "[config]"){
     bool function_called;
 
     std::function<double(const entry_vector_t&)> setup = [&children_processed, &function_called](const entry_vector_t& entries) {
-      std::cout << "in function" << std::endl;
       for (entry_ptr_t entry : entries) {
         children_processed++;
       }
@@ -368,11 +396,13 @@ TEST_CASE("ASTNode_Call", "[config]"){
 
     // Test boolean functions
     REQUIRE(call00_ptr->IsInternal());
+    REQUIRE(call00_ptr->IsLeaf() == false);
 
     // Test Process()
     entry_ptr_t result = call00_ptr->Process();
     REQUIRE(children_processed == args00.size());
     REQUIRE(function_called == true);
+    REQUIRE(result->AsDouble() == 0);
 
     // Test Write()
     std::stringstream ss;
@@ -416,7 +446,7 @@ TEST_CASE("ASTNode_Event", "[config]"){
     int children_processed = 0;
     std::string action_result;
 
-    std::function<void(node_ptr_t, const entry_vector_t &)> setup = [&children_processed, &action_result](node_ptr_t node, const entry_vector_t & vector) {
+    std::function<entry_ptr_t(node_ptr_t, const entry_vector_t &)> setup = [&children_processed, &action_result](node_ptr_t node, const entry_vector_t & vector) {
       std::stringstream ss;
       node->Write(ss, "");
       action_result = ss.str();
@@ -424,6 +454,7 @@ TEST_CASE("ASTNode_Event", "[config]"){
       for (emp::Ptr<mabe::ConfigEntry> child : vector) {
         children_processed++;
       }
+      return nullptr;
     };
 
     emp::Ptr<mabe::ASTNode_Event> event00_ptr = emp::NewPtr<mabe::ASTNode_Event>("event00", action00, args00, setup);
@@ -436,6 +467,7 @@ TEST_CASE("ASTNode_Event", "[config]"){
 
     // Test boolean functions
     REQUIRE(event00_ptr->IsInternal());
+    REQUIRE(event00_ptr->IsLeaf() == false);
 
     // Test Process()
     event00_ptr->Process();
@@ -452,5 +484,64 @@ TEST_CASE("ASTNode_Event", "[config]"){
     REQUIRE(emp::BasePtr<void>::Tracker().IsDeleted(leaf00.id));
     REQUIRE(emp::BasePtr<void>::Tracker().IsDeleted(leaf01.id));
     REQUIRE(emp::BasePtr<void>::Tracker().IsDeleted(action00.id));
+  }
+}
+TEST_CASE("ASTNode_Block Full Process", "[config]"){
+  {
+    // Create ASTNode_Block
+    emp::Ptr<mabe::ASTNode_Block> block00_ptr = emp::NewPtr<mabe::ASTNode_Block>();
+
+    // Create ASTNode_Call
+    int children_processed = 0;
+    bool function_called;
+
+    std::function<double(const entry_vector_t&)> setup = [&children_processed, &function_called](const entry_vector_t& entries) {
+      for (entry_ptr_t entry : entries) {
+        children_processed++;
+      }
+      function_called = true;
+      return 0;
+    };
+
+    // Create ConfigFunction
+    mabe::ConfigFunction entry_func("func00", "desc00", nullptr);
+    entry_func.SetFunction(setup);
+    node_ptr_t funcs00 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry_func);
+
+    // Create vector of arguments
+    node_vector_t args00;
+
+    int v00 = 2;
+    mabe::ConfigEntry_Linked<int> entry00("name00", v00, "variable00", nullptr);
+    node_ptr_t leaf00 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry00);
+    args00.push_back(leaf00);
+    int v01 = 3;
+    mabe::ConfigEntry_Linked<int> entry01("name01", v01, "variable01", nullptr);
+    node_ptr_t leaf01 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry01);
+    args00.push_back(leaf01);
+    int v02 = 4;
+    mabe::ConfigEntry_Linked<int> entry02("name02", v02, "variable02", nullptr);
+    node_ptr_t leaf02 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry02);
+    args00.push_back(leaf02);
+
+    // Create ASTNode_Call
+    emp::Ptr<mabe::ASTNode_Call> call00_ptr = emp::NewPtr<mabe::ASTNode_Call>(funcs00, args00);
+
+    // Add ASTNode_Call object as leaf
+    block00_ptr->AddChild(call00_ptr);
+
+    // Test Process() on ASTNode_Block, should process ASTNode_Call aswell
+    entry_ptr_t result00 = block00_ptr->Process();
+    REQUIRE(result00 == nullptr);
+
+    REQUIRE(children_processed == args00.size());
+    REQUIRE(function_called == true);
+
+    // Delete objects
+    block00_ptr.Delete();
+    REQUIRE(emp::BasePtr<void>::Tracker().IsDeleted(funcs00.id));
+    REQUIRE(emp::BasePtr<void>::Tracker().IsDeleted(leaf00.id));
+    REQUIRE(emp::BasePtr<void>::Tracker().IsDeleted(leaf01.id));
+    REQUIRE(emp::BasePtr<void>::Tracker().IsDeleted(leaf02.id));
   }
 }
