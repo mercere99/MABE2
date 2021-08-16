@@ -37,7 +37,10 @@ namespace mabe {
       LinkVar(reset_to, "reset_to", "Should we erase organisms at the destination?");
     }
 
-    void OnUpdate(size_t /* update */) override {
+    void OnUpdate(size_t ud) override {
+      control.Verbose("UD ", ud, ": Running MovePopulation::OnUpdate()");
+      control.Verbose(" - from_pop ID=", from_id, "; to_pop ID=", to_id, ".");
+
       Population & from_pop = control.GetPopulation(from_id);
       Population & to_pop = control.GetPopulation(to_id);
 
@@ -61,8 +64,11 @@ namespace mabe {
         if (it_from.IsOccupied()) control.MoveOrg(it_from, it_to);
       }
 
-      // Clear out the next generation
+      // Clear out the next generation (which should just have EmptyOrganisms in it now.)
       control.EmptyPop(from_pop, 0);
+
+      control.Verbose(" - Final pop ", from_id, " size is ", from_pop.GetNumOrgs(), ".");
+      control.Verbose(" - Final pop ", to_id, " size is ", to_pop.GetNumOrgs(), ".");
     }
   };
 

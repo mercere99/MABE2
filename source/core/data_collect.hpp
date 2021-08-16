@@ -27,6 +27,7 @@ namespace emp {
   template <typename DATA_T, typename CONTAIN_T, typename FUN_T>
   auto BuildCollectFun_Index(FUN_T get_fun, const size_t index) {
     return [get_fun,index](const CONTAIN_T & container) {
+      if (container.size() <= index) return "Nan"s;
       return emp::to_string( get_fun( container.At(index) ) );
     };
   }
@@ -88,7 +89,7 @@ namespace emp {
     return [get_fun](const CONTAIN_T & container) {
       DATA_T max{};
       if constexpr (std::is_arithmetic_v<DATA_T>) {
-        max = std::numeric_limits<DATA_T>::min();
+        max = std::numeric_limits<DATA_T>::lowest();
       }
       for (const auto & entry : container) {
         const DATA_T cur_val = get_fun(entry);

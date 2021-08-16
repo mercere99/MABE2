@@ -29,17 +29,14 @@ namespace mabe {
   class EmptyOrganismManager : public OrganismManager<EmptyOrganism> {
   public:
     EmptyOrganismManager(MABE & in_control, const std::string & in_name, const std::string & in_desc="")
-      : OrganismManager(in_control, in_name, in_desc) { ; }
+      : OrganismManager<EmptyOrganism>(in_control, in_name, in_desc) { ; }
     ~EmptyOrganismManager() { ; }
 
     std::string GetTypeName() const override { return "EmptyOrganismManager"; }
-    emp::TypeID GetOrgType() const override { return emp::GetTypeID<EmptyOrganism>(); }
+    emp::TypeID GetObjType() const override { return emp::GetTypeID<EmptyOrganism>(); }
 
-    emp::Ptr<Organism> CloneOrganism(const Organism &) override { emp_error("Cannot clone an EmptyOrganism."); return nullptr; }
-    emp::Ptr<Organism> MakeOrganism() override { return emp::NewPtr<EmptyOrganism>(*this); }
-    emp::Ptr<Organism> MakeOrganism(emp::Random &) override { emp_error("Cannot make a 'random' EmptyOrganism."); return nullptr; }
-    std::string OrgToString(const Organism &) const override { return "[empty]"; }
-    std::ostream & PrintOrganism(Organism &, std::ostream & os) const override { emp_error("Do not call functions on EmptyOrganism."); return os; }
+    emp::Ptr<Organism> Make() override { return emp::NewPtr<EmptyOrganism>(*this); }
+    emp::Ptr<Organism> Make(emp::Random &) override { emp_error("Cannot make a 'random' EmptyOrganism."); return nullptr; }
   };
 
 }

@@ -58,21 +58,32 @@ namespace mabe {
     struct ManagerData {
     };
 
+    [[deprecated("Use Organism::HasTrait() instead of Organism::HasVar()")]]
     bool HasVar(const std::string & name) const { return data_map.HasName(name); }
-    template <typename T> T & GetVar(const std::string & name) { return data_map.Get<T>(name); }
-    template <typename T> const T & GetVar(const std::string & name) const {
+    template <typename T>
+    [[deprecated("Use Organism::GetTrait() instead of Organism::GetVar()")]]
+    T & GetVar(const std::string & name) { return data_map.Get<T>(name); }
+    template <typename T>
+    [[deprecated("Use Organism::GetTrait() instead of Organism::GetVar()")]]
+    const T & GetVar(const std::string & name) const {
       return data_map.Get<T>(name);
     }
-    template <typename T> T & GetVar(size_t id) { return data_map.Get<T>(id); }
-    template <typename T> const T & GetVar(size_t id) const { return data_map.Get<T>(id); }
+    template <typename T>
+    [[deprecated("Use Organism::GetTrait() instead of Organism::GetVar()")]]
+    T & GetVar(size_t id) { return data_map.Get<T>(id); }
+    template <typename T>
+    [[deprecated("Use Organism::GetTrait() instead of Organism::GetVar()")]]
+    const T & GetVar(size_t id) const { return data_map.Get<T>(id); }
 
     template <typename T>
+    [[deprecated("Use Organism::SetTrait() instead of Organism::SetVar()")]]
     void SetVar(const std::string & name, const T & value) {
       if (data_map.HasName(name) == false) data_map.AddVar<T>(name, value);
       else data_map.Set<T>(name, value);
     }
 
     template <typename T>
+    [[deprecated("Use Organism::SetTrait() instead of Organism::SetVar()")]]
     void SetVar(size_t id, const T & value) {
       emp_assert(data_map.HasID(id), id);
       data_map.Set<T>(id, value);
@@ -126,7 +137,7 @@ namespace mabe {
     }
 
 
-    /// Test if this organism represents an empy cell.
+    /// Test if this organism represents an empty cell.
     virtual bool IsEmpty() const noexcept { return false; }
 
 
@@ -137,18 +148,20 @@ namespace mabe {
 
     /// Create an exact duplicate of this organism.
     /// @note We MUST be able to make a copy of organisms for MABE to function.  If this function
-    /// is not overridden, try to the equivilent function in the organism manager.
-    [[nodiscard]] virtual emp::Ptr<Organism> Clone() const { return manager.CloneOrganism(*this); }
+    /// is not overridden, the organism manager (which knows the derived type) will try to make a
+    /// clone using the copy constructor.
+    [[nodiscard]] virtual emp::Ptr<Organism> Clone() const { return manager.CloneObject(*this); }
 
     /// Modify this organism based on configured mutation parameters.
     /// @note For evolution to function, we need to be able to mutate offspring.
-    virtual size_t Mutate(emp::Random & random) { return manager.Mutate(*this, random); }
+    virtual size_t Mutate(emp::Random & random) = 0;
 
     /// Merge this organism's genome with that of another organism to produce an offspring.
     /// @note Required for basic sexual recombination to work.
     [[nodiscard]] virtual emp::Ptr<Organism>
-    Recombine(emp::Ptr<Organism> parent2, emp::Random & random) const {
-      return manager.Recombine(*this, parent2, random);
+    Recombine(emp::Ptr<Organism> /* parent2 */, emp::Random & /* random */) const {
+      emp_assert(false, "Recombine() must be overridden for it to work.");
+      return nullptr;
     }
 
     /// Merge this organism's genome with that of a variable number of other organisms to produce
@@ -156,8 +169,9 @@ namespace mabe {
     /// @note More flexible version of recombine (allowing many parents and/or many offspring),
     /// but also slower.
     [[nodiscard]] virtual emp::vector<emp::Ptr<Organism>>
-    Recombine(emp::vector<emp::Ptr<Organism>> other_parents, emp::Random & random) const {
-      return manager.Recombine(*this, other_parents, random);
+    Recombine(emp::vector<emp::Ptr<Organism>> /*other_parents*/, emp::Random & /*random*/) const {
+      emp_assert(false, "Recombine() must be overridden for it to work.");
+      return emp::vector<emp::Ptr<Organism>>();
     }
 
     /// Produce an asexual offspring WITH MUTATIONS.  By default, use Clone() and then Mutate().
@@ -188,13 +202,21 @@ namespace mabe {
     /// Convert this organism into a string of characters.
     /// @note Required if we are going to print organisms to screen or to file).  If this function
     /// is not overridden, try to the equivilent function in the organism manager.
-    virtual std::string ToString() const { return manager.OrgToString(*this); }
+    virtual std::string ToString() const { return "__unknown__"; }
+
+    /// By default print an organism by triggering it's ToString() function.
+    std::ostream & Print(std::ostream & os) const {
+      os << ToString();
+      return os;
+    }
 
     /// Completely randomize a new organism (typically for initialization)
-    virtual void Randomize(emp::Random & random) { manager.Randomize(*this, random); }
+    virtual void Randomize(emp::Random & /*random*/) {
+      emp_assert(false, "Randomize() must be overridden before it can be called.");
+    }
 
     /// Setup a new organism from scratch; by default just randomize.
-    virtual void Initialize(emp::Random & random) { manager.Randomize(*this, random); }
+    virtual void Initialize(emp::Random & random) { Randomize(random); }
 
     /// Run the organism to generate an output in the pre-configured data_map entries.
     virtual void GenerateOutput() { ; }
@@ -218,33 +240,6 @@ namespace mabe {
 
   };
 
-
-  // Pre-declare OrganismManager to allow for conversions.
-  template <typename ORG_T> class OrganismManager;
-
-
-  /// Below is a specialty Organism type that uses "curiously recursive templates" to fill out
-  /// more default functionality for when you know the derived organism type.  Specifically,
-  /// it should be used as the base class for any derived organism types.
-  template <typename ORG_T>
-  class OrganismTemplate : public Organism {
-  public:
-    OrganismTemplate(ModuleBase & _man) : Organism(_man) { ; }
-
-    using org_t = ORG_T;
-    using manager_t = OrganismManager<ORG_T>;
-
-    /// Get the manager for this type of organism.
-    manager_t & GetManager() {
-      return (manager_t &) Organism::GetManager();
-    }
-    const manager_t & GetManager() const {
-      return (const manager_t &) Organism::GetManager();
-    }
-
-    auto & SharedData() { return GetManager().data; }
-    const auto & SharedData() const { return GetManager().data; }
-  };
 
 }
 #endif

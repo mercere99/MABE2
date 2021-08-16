@@ -127,7 +127,9 @@ namespace mabe {
     template <typename VAR_T>
     ConfigEntry_Linked<VAR_T> & LinkVar(const std::string & name,
                                         VAR_T & var,
-                                        const std::string & desc) {
+                                        const std::string & desc,
+                                        bool is_builtin = false) {
+      if (is_builtin) return AddBuiltin<ConfigEntry_Linked<VAR_T>>(name, var, desc, this);
       return Add<ConfigEntry_Linked<VAR_T>>(name, var, desc, this);
     }
 
@@ -137,7 +139,9 @@ namespace mabe {
     ConfigEntry_Functions<VAR_T> & LinkFuns(const std::string & name,
                                             std::function<VAR_T()> get_fun,
                                             std::function<void(const VAR_T &)> set_fun,
-                                            const std::string & desc) {
+                                            const std::string & desc,
+                                            bool is_builtin = false) {
+      if (is_builtin) return AddBuiltin<ConfigEntry_Functions<VAR_T>>(name, get_fun, set_fun, desc, this);
       return Add<ConfigEntry_Functions<VAR_T>>(name, get_fun, set_fun, desc, this);
     }
 

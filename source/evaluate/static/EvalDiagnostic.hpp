@@ -38,7 +38,7 @@ namespace mabe {
   public:
     EvalDiagnostic(mabe::MABE & control,
                    const std::string & name="EvalDiagnostic",
-                   const std::string & desc="Evaluate bitstrings by counting ones (or zeros).",
+                   const std::string & desc="Evaluate value sets using a specified diagnostic.",
                    const std::string & _vtrait="vals",
                    const std::string & _strait="scores",
                    const std::string & _ttrait="total")
@@ -86,9 +86,9 @@ namespace mabe {
         org.GenerateOutput();
 
         // Get access to the data_map elements that we need.
-        const emp::vector<double> & vals = org.GetVar<emp::vector<double>>(vals_trait);
-        emp::vector<double> & scores = org.GetVar<emp::vector<double>>(scores_trait);
-        double & total_score = org.GetVar<double>(total_trait);
+        const emp::vector<double> & vals = org.GetTrait<emp::vector<double>>(vals_trait);
+        emp::vector<double> & scores = org.GetTrait<emp::vector<double>>(scores_trait);
+        double & total_score = org.GetTrait<double>(total_trait);
 
         // Initialize output values.
         scores.resize(vals.size());

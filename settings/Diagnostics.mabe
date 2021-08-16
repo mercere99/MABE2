@@ -56,7 +56,7 @@ FileOutput output {             // Output collected data into a specified file.
   filename = "output.csv";      // Name of file for output data.
   format = "fitness:max,fitness:mean,fitness:min,fitness,vals,scores";  // Column format to use in the file.
   target = "main_pop";          // Which population(s) should we print from?
-  output_updates = "0:1";       // Which updates should we output data?
+  output_updates = "0:10";      // Which updates should we output data?
 }
 
 GrowthPlacement place_next {    // Always appened births to the end of a population.
