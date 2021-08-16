@@ -1,10 +1,14 @@
-TEST_NAMES= ConfigEntry ConfigLexer ConfigAST ConfigEvents 
+TEST_NAMES= ConfigEntry ConfigLexer ConfigAST ConfigEvents ConfigFunction
 
 MABE_DIR= ../../../source/
 EMP_DIR= ../../../source/third-party/empirical
 COV_DIR=./coverage_source
 CATCH_DIR= $(EMP_DIR)/third-party/Catch/single_include/catch2
+<<<<<<< HEAD
 FLAGS= -std=c++17 -pthread -Wall -Wno-unused-function -Wno-unused-private-field -I$(EMP_DIR)/include/ -I$(CATCH_DIR) -I$(MABE_DIR) -g -DEMP_TRACK_MEM
+=======
+FLAGS= -std=c++17 -pthread -Wall -Wno-unused-function -Wno-unused-private-field -I$(EMP_DIR)/include/ -I$(CATCH_DIR) -I$(MABE_DIR)
+>>>>>>> 7484f0e4760db52349cbf01caef7d58fd0bc1acb
 
 default: test
 
@@ -39,4 +43,7 @@ clean:
 	rm -f *.gcov 
 	rm -f ./Coverage* 
 	rm -rf ./temp
+<<<<<<< HEAD
 
+=======
+>>>>>>> 7484f0e4760db52349cbf01caef7d58fd0bc1acb

@@ -39,3 +39,6 @@ examples/NK
 
 # Vim swap files
 *.swp
+
+# Mac files 
+*.DS_Store
