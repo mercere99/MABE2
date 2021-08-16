@@ -1,4 +1,4 @@
-TEST_NAMES= TraitInfo TraitManager 
+TEST_NAMES= ErrorManager TraitInfo TraitManager 
 
 MABE_DIR= ../../../source/
 EMP_DIR= ../../../source/third-party/empirical
