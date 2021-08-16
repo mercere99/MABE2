@@ -257,8 +257,6 @@ TEST_CASE("TraitManager_AddTrait", "[core]"){
   }
 } 
 
-
-
 TEST_CASE("TraitManager_Verify", "[core]") {
 
   //  [SETUP]

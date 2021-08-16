@@ -184,7 +184,7 @@ namespace mabe {
         std::stringstream error_msg;
         error_msg << "Multiple modules declaring trait '" << trait_name
                   << "' as private: " << emp::to_english_list(trait_ptr->GetPrivateNames()) << ".\n"
-                  << "[Suggestion: if traits are supposed to be distinct, prepend names with a\n"
+                  << "[Suggestion: if traits are supposed to be distinct, prepend names with a"
                   << " module-specific prefix.  Otherwise modules need to be edited to not have\n"
                   << " trait private.]";
         error_man.AddError(error_msg.str());
@@ -195,9 +195,9 @@ namespace mabe {
         error_man.AddError("Trait '", trait_name, "' is private in module '",
                 trait_ptr->GetPrivateNames()[0],
                 "'; should not be used by other modules.\n",
-                "[Suggestion: if traits are supposed to be distinct, prepend private name with a\n",
-                " module-specific prefix.  Otherwise module needs to be edited to not have\n",
-                " trait private.]");
+                "[Suggestion: if traits are supposed to be distinct, prepend private name with\n",
+                " a module-specific prefix.  Otherwise module needs to be edited to not\n",
+                " have trait private.]");
         return false;
       }
 
@@ -241,7 +241,7 @@ namespace mabe {
       // A REQUIRED trait must have another module write to it (i.e. OWNED, GENERATED or SHARED).
       if (trait_ptr->IsRequired() &&
               !trait_ptr->IsOwned() && !trait_ptr->IsShared() && !trait_ptr->IsGenerated()) {
-        error_man.AddError("Trait '", trait_name, "' marked REQUIRED by module(s) ",
+        error_man.AddError("Trait '", trait_name, "' marked REQUIRED by module(s) '",
                 emp::to_english_list(trait_ptr->GetRequiredNames()),
                 "'; must be written to by other modules.\n",
                 "[Suggestion: set another module to write to this trait (where it is either\n",
