@@ -23,8 +23,6 @@
 
 #include "emp/base/Ptr.hpp"
 
-
-
 using entry_ptr_t = emp::Ptr<mabe::ConfigEntry>;
 using entry_vector_t = emp::vector<entry_ptr_t>;
 
