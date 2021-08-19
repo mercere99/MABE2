@@ -6,6 +6,9 @@
  *  @file  MABE.cpp
  *  @brief Tests for the main MABE object 
  */
+
+#define TDEBUG 1
+
 #include <functional>
 // CATCH
 #define CATCH_CONFIG_MAIN
@@ -37,9 +40,8 @@ TEST_CASE("TraitManager_Locks", "[core]"){
     mabe::TraitManager<mabe::ModuleBase> trait_man(error_man);
 
     //  [BEGIN TESTS]
-    // Make sure GetLocked returns a boolean
-    REQUIRE(trait_man.GetLocked() <= 1); 
-    REQUIRE(trait_man.GetLocked() >= 0);
+    // Make sure GetLocked returns true by default 
+    REQUIRE(trait_man.GetLocked()); 
     
     // Manager should begin as locked 
     REQUIRE(trait_man.GetLocked()); 
