@@ -2,7 +2,7 @@ TEST_NAMES= ConfigEntry ConfigLexer ConfigAST ConfigEvents ConfigFunction
 
 MABE_DIR= ../../../source/
 EMP_DIR= ../../../source/third-party/empirical
-COV_DIR=./coverage_source
+COV_DIR=../
 CATCH_DIR= $(EMP_DIR)/third-party/Catch/single_include/catch2
 FLAGS= -std=c++17 -pthread -Wall -Wno-unused-function -Wno-unused-private-field -I$(EMP_DIR)/include/ -I$(CATCH_DIR) -I$(MABE_DIR) -g -DEMP_TRACK_MEM -DTDEBUG
 
@@ -25,9 +25,9 @@ cov-%: %.cpp ${EMP_DIR}/third-party/Catch/single_include/catch2/catch.hpp
 	./$@.out
 	llvm-profdata merge default.profraw -o default.profdata
 	llvm-cov show ./$@.out -instr-profile=default.profdata > coverage_$@.txt
-	python ../../third-party/force-cover/fix_coverage.py coverage_$@.txt
+	python ${EMP_DIR}/third-party/force-cover/fix_coverage.py coverage_$@.txt
 
-coverage: FLAGS := -std=c++17 -pthread -g -Wall -Wno-unused-function -I${COV_DIR} -I${EMP_DIR} -I${EMP_DIR}/third-party/cereal/include/ -DEMP_TRACK_MEM -Wnon-virtual-dtor -Wcast-align -Woverloaded-virtual -ftemplate-backtrace-limit=0 -fprofile-instr-generate -fcoverage-mapping -fno-inline -fno-elide-constructors -O0
+coverage: FLAGS := -std=c++17 -pthread -g -Wall -Wno-unused-function -I${CATCH_DIR} -I${MABE_DIR} -I${EMP_DIR}/include -I${EMP_DIR}/third-party/cereal/include/ -DEMP_TRACK_MEM -Wnon-virtual-dtor -Wcast-align -Woverloaded-virtual -ftemplate-backtrace-limit=0 -fprofile-instr-generate -fcoverage-mapping -fno-inline -fno-elide-constructors -O0
 coverage: test-prep $(addprefix cov-, $(TEST_NAMES))
 
 clean: 
