@@ -139,7 +139,7 @@ TEST_CASE("ASTEvents_Call", "[config]"){
     events00.AddEvent(ptr00, 3.0, 2.0, 4.0);
 
     // Test UpdateValue, new event should not be triggered
-    function_called == false;
+    function_called = false;
     events00.UpdateValue(2.0);
     REQUIRE(children_processed == 0);
     REQUIRE(function_called == false);
@@ -151,7 +151,7 @@ TEST_CASE("ASTEvents_Call", "[config]"){
     REQUIRE(function_called == true);
     REQUIRE(times_called == 3);
     // Test UpdateValue, new event should not be triggered
-    function_called == false;
+    function_called = false;
     events00.UpdateValue(4.0);
     REQUIRE(children_processed == 0);
     REQUIRE(function_called == false);
