@@ -32,7 +32,7 @@ TEST_CASE("TraitInfo_Basic", "[core]"){
     // Test the correct name is added to the ModuleNames vector
     REQUIRE(trait_i.GetModuleCount() == 0);
     REQUIRE(trait_i.GetModuleNames(mabe::TraitInfo::Access::REQUIRED).size() == 0); 
-    trait_i.AddAccess("mod_name", &nk_mod, mabe::TraitInfo::Access::REQUIRED); 
+    trait_i.AddAccess("mod_name", &nk_mod, mabe::TraitInfo::Access::REQUIRED, false); 
     REQUIRE(trait_i.GetModuleCount() == 1);
     REQUIRE(trait_i.GetModuleNames(mabe::TraitInfo::Access::REQUIRED).at(0) == "mod_name"); 
     REQUIRE(trait_i.GetModuleNames(mabe::TraitInfo::Access::REQUIRED).size() == 1);
@@ -112,21 +112,21 @@ TEST_CASE("TraitInfo_GetMethods", "[core]") {
     REQUIRE(trait_4.GetOptionalCount() == 0);
     
     // Add the Traits to the modules
-    trait_1.AddAccess("mod1_name", &nk1_mod, mabe::TraitInfo::Access::UNKNOWN); 
-    trait_1.AddAccess("mod2_name", &nk2_mod, mabe::TraitInfo::Access::PRIVATE); 
-    trait_1.AddAccess("mod3_name", &nk3_mod, mabe::TraitInfo::Access::OWNED); 
+    trait_1.AddAccess("mod1_name", &nk1_mod, mabe::TraitInfo::Access::UNKNOWN, false); 
+    trait_1.AddAccess("mod2_name", &nk2_mod, mabe::TraitInfo::Access::PRIVATE, false); 
+    trait_1.AddAccess("mod3_name", &nk3_mod, mabe::TraitInfo::Access::OWNED, false); 
 
-    trait_2.AddAccess("mod1_name", &nk1_mod, mabe::TraitInfo::Access::GENERATED);
-    trait_2.AddAccess("mod2_name", &nk2_mod, mabe::TraitInfo::Access::SHARED);
-    trait_2.AddAccess("mod3_name", &nk3_mod, mabe::TraitInfo::Access::REQUIRED); 
+    trait_2.AddAccess("mod1_name", &nk1_mod, mabe::TraitInfo::Access::GENERATED, false);
+    trait_2.AddAccess("mod2_name", &nk2_mod, mabe::TraitInfo::Access::SHARED, false);
+    trait_2.AddAccess("mod3_name", &nk3_mod, mabe::TraitInfo::Access::REQUIRED, false); 
 
-    trait_3.AddAccess("mod1_name", &nk1_mod, mabe::TraitInfo::Access::SHARED);
-    trait_3.AddAccess("mod2_name", &nk2_mod, mabe::TraitInfo::Access::PRIVATE);
-    trait_3.AddAccess("mod3_name", &nk3_mod, mabe::TraitInfo::Access::SHARED);
+    trait_3.AddAccess("mod1_name", &nk1_mod, mabe::TraitInfo::Access::SHARED, false);
+    trait_3.AddAccess("mod2_name", &nk2_mod, mabe::TraitInfo::Access::PRIVATE, false);
+    trait_3.AddAccess("mod3_name", &nk3_mod, mabe::TraitInfo::Access::SHARED, false);
 
-    trait_4.AddAccess("mod1_name", &nk1_mod, mabe::TraitInfo::Access::OPTIONAL);
-    trait_4.AddAccess("mod2_name", &nk2_mod, mabe::TraitInfo::Access::OPTIONAL);
-    trait_4.AddAccess("mod3_name", &nk3_mod, mabe::TraitInfo::Access::OWNED);
+    trait_4.AddAccess("mod1_name", &nk1_mod, mabe::TraitInfo::Access::OPTIONAL, false);
+    trait_4.AddAccess("mod2_name", &nk2_mod, mabe::TraitInfo::Access::OPTIONAL, false);
+    trait_4.AddAccess("mod3_name", &nk3_mod, mabe::TraitInfo::Access::OWNED, false);
 
     // Test to see if Get{ACCESS}Count has updated for each trait
     REQUIRE(trait_1.GetUnknownCount() == 1); 
@@ -220,13 +220,13 @@ TEST_CASE("TraitInfo_HasMethods", "[core]") {
     mabe::TypedTraitInfo<std::string> trait_7("trait_7");
 
     // Set up access
-    trait_1.AddAccess("mod_name", &nk1_mod, mabe::TraitInfo::Access::UNKNOWN); 
-    trait_2.AddAccess("mod_name", &nk2_mod, mabe::TraitInfo::Access::PRIVATE); 
-    trait_3.AddAccess("mod_name", &nk3_mod, mabe::TraitInfo::Access::OWNED); 
-    trait_4.AddAccess("mod_name", &nk4_mod, mabe::TraitInfo::Access::GENERATED);
-    trait_5.AddAccess("mod_name", &nk5_mod, mabe::TraitInfo::Access::SHARED);
-    trait_6.AddAccess("mod_name", &nk6_mod, mabe::TraitInfo::Access::REQUIRED);   
-    trait_7.AddAccess("mod_name", &nk7_mod, mabe::TraitInfo::Access::OPTIONAL); 
+    trait_1.AddAccess("mod_name", &nk1_mod, mabe::TraitInfo::Access::UNKNOWN, false); 
+    trait_2.AddAccess("mod_name", &nk2_mod, mabe::TraitInfo::Access::PRIVATE, false); 
+    trait_3.AddAccess("mod_name", &nk3_mod, mabe::TraitInfo::Access::OWNED, false); 
+    trait_4.AddAccess("mod_name", &nk4_mod, mabe::TraitInfo::Access::GENERATED, false);
+    trait_5.AddAccess("mod_name", &nk5_mod, mabe::TraitInfo::Access::SHARED, false);
+    trait_6.AddAccess("mod_name", &nk6_mod, mabe::TraitInfo::Access::REQUIRED, false);   
+    trait_7.AddAccess("mod_name", &nk7_mod, mabe::TraitInfo::Access::OPTIONAL, false); 
     
 
     // Test HasAccess returns correctly for both having and not having access to a trait
@@ -273,15 +273,15 @@ TEST_CASE ("TraitInfo_IsMethods", "[core]") {
     mabe::TypedTraitInfo<double> trait_7("trait_7");
     
     // Set up access
-    trait_1.AddAccess("mod_name", &nk_mod, mabe::TraitInfo::Access::PRIVATE); 
-    trait_2.AddAccess("mod_name", &nk_mod, mabe::TraitInfo::Access::OWNED); 
-    trait_3.AddAccess("mod_name", &nk_mod, mabe::TraitInfo::Access::GENERATED);
-    trait_4.AddAccess("mod_name", &nk_mod, mabe::TraitInfo::Access::SHARED);
-    trait_5.AddAccess("mod_name", &nk_mod, mabe::TraitInfo::Access::REQUIRED);   
-    trait_6.AddAccess("mod_name", &nk_mod, mabe::TraitInfo::Access::OPTIONAL); 
-    trait_7.AddAccess("mod_name", &nk_mod, mabe::TraitInfo::Access::GENERATED); 
-    trait_7.AddAccess("mod_name", &nk2_mod, mabe::TraitInfo::Access::GENERATED); 
-    trait_7.AddAccess("mod_name", &nk3_mod, mabe::TraitInfo::Access::PRIVATE); 
+    trait_1.AddAccess("mod_name", &nk_mod, mabe::TraitInfo::Access::PRIVATE, false); 
+    trait_2.AddAccess("mod_name", &nk_mod, mabe::TraitInfo::Access::OWNED, false); 
+    trait_3.AddAccess("mod_name", &nk_mod, mabe::TraitInfo::Access::GENERATED, false);
+    trait_4.AddAccess("mod_name", &nk_mod, mabe::TraitInfo::Access::SHARED, false);
+    trait_5.AddAccess("mod_name", &nk_mod, mabe::TraitInfo::Access::REQUIRED, false);   
+    trait_6.AddAccess("mod_name", &nk_mod, mabe::TraitInfo::Access::OPTIONAL, false); 
+    trait_7.AddAccess("mod_name", &nk_mod, mabe::TraitInfo::Access::GENERATED, false); 
+    trait_7.AddAccess("mod_name", &nk2_mod, mabe::TraitInfo::Access::GENERATED, false); 
+    trait_7.AddAccess("mod_name", &nk3_mod, mabe::TraitInfo::Access::PRIVATE, false); 
 
 
     // Check Is{ACESS} methods work
