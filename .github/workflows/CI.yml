@@ -57,9 +57,9 @@ jobs:
       - run: sudo update-alternatives --install /usr/bin/llvm-cov llvm-cov /usr/bin/llvm-cov-7 90
       # - run: git fetch origin master:refs/remotes/origin/master
       - run: make install-test-dependencies
-        working-directory: third-party/empirical
+        working-directory: source/third-party/empirical
       - run: export CXX=clang++-7 && make install-coverage-dependencies
-        working-directory: third-party/empirical
+        working-directory: source/third-party/empirical
       - run: export CXX=clang++-7 && make coverage
         working-directory: tests 
       #- run: curl -s https://codecov.io/bash | bash
