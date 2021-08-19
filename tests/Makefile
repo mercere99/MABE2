@@ -1,4 +1,4 @@
-DIR_NAMES= component # Add additional directories here 
+DIR_NAMES= component regression# Add additional directories here 
 
 default: test
 
