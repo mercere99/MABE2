@@ -7,8 +7,8 @@ THIS_DIR=`pwd`
 set -e # If any errors occur, propogate error and stop
 
 cd ${BUILD_DIR}
-#make clean
-#make debug
+make clean
+make debug
 cd ${THIS_DIR}
 
 for filename in ${MABE_FILES}
