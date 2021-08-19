@@ -4,7 +4,7 @@
  *  @date 2019-2021.
  *
  *  @file  ConfigLexer.cpp
- *  @brief Tests for ConfigLexer with various types and edge cases 
+ *  @brief Tests for ConfigLexer with various types and edge cases
  */
 
 // CATCH
@@ -16,7 +16,9 @@
 // Test ID tokens
 TEST_CASE("ConfigLexerID", "[config]"){
   {
+    // Create ConfigLexer object
     mabe::ConfigLexer config_lexer00;
+
     std::string s00 = "a";
     emp::Token token00 = config_lexer00.Process(s00);
     bool result00 = config_lexer00.IsID(token00);
@@ -37,6 +39,7 @@ TEST_CASE("ConfigLexerID", "[config]"){
 // Test Number tokens
 TEST_CASE("ConfigLexerNumber", "[config]"){
   {
+    // Create ConfigLexer object
     mabe::ConfigLexer config_lexer01;
 
     std::string s00 = "09";
@@ -44,7 +47,7 @@ TEST_CASE("ConfigLexerNumber", "[config]"){
     bool result00 = config_lexer01.IsNumber(token00);
     REQUIRE(result00 == true);
 
-    // Test failing, negative numbers not accepted
+    // Test failing!! negative numbers not accepted
     std::string s01 = "-1";
     emp::Token token01 = config_lexer01.Process(s01);
     bool result01 = config_lexer01.IsNumber(token01);
@@ -66,9 +69,9 @@ TEST_CASE("ConfigLexerNumber", "[config]"){
 // Test String tokens
 TEST_CASE("ConfigLexerString", "[config]"){
   {
+    // Create ConfigLexer object
     mabe::ConfigLexer config_lexer02;
 
-  
     std::string s00 = "\"\"";
     emp::Token token00 = config_lexer02.Process(s00);
     bool result00 = config_lexer02.IsString(token00);
@@ -96,10 +99,10 @@ TEST_CASE("ConfigLexerString", "[config]"){
   }
 }
 
-
 // Test Char tokens
 TEST_CASE("ConfigLexerChar", "[config]"){
   {
+    // Create ConfigLexer object
     mabe::ConfigLexer config_lexer03;
 
     std::string s00 = "'a'";
@@ -117,7 +120,7 @@ TEST_CASE("ConfigLexerChar", "[config]"){
     bool result02 = config_lexer03.IsChar(token02);
     REQUIRE(result02 == false);
 
-    // Test failing, 'testing' accepted as char
+    // Test failing!! 'testing' accepted as char
     std::string s03 = "'testing'";
     emp::Token token03 = config_lexer03.Process(s03);
     bool result03 = config_lexer03.IsChar(token03);
@@ -128,6 +131,7 @@ TEST_CASE("ConfigLexerChar", "[config]"){
 // Test Dot tokens
 TEST_CASE("ConfigLexerDots", "[config]"){
   {
+    // Create ConfigLexer object
     mabe::ConfigLexer config_lexer04;
 
     std::string s00 = ".";
@@ -135,22 +139,28 @@ TEST_CASE("ConfigLexerDots", "[config]"){
     bool result00 = config_lexer04.IsDots(token00);
     REQUIRE(result00 == true);
 
-    // Test failing, ._ accepted as dots
-    std::string s01 = "._";
+    std::string s01 = "...";
     emp::Token token01 = config_lexer04.Process(s01);
     bool result01 = config_lexer04.IsDots(token01);
-    REQUIRE(result01 == false);
+    REQUIRE(result01 == true);
 
-    std::string s02 = "a.";
+    // Test failing!! ._ accepted as dots
+    std::string s02 = "._";
     emp::Token token02 = config_lexer04.Process(s02);
     bool result02 = config_lexer04.IsDots(token02);
     REQUIRE(result02 == false);
+
+    std::string s03 = "a.";
+    emp::Token token03 = config_lexer04.Process(s03);
+    bool result03 = config_lexer04.IsDots(token03);
+    REQUIRE(result03 == false);
   }
 }
 
 // Test Symbol tokens
 TEST_CASE("ConfigLexerSymbol", "[config]"){
   {
+    // Create ConfigLexer object
     mabe::ConfigLexer config_lexer05;
 
     std::string s00 = ".";
