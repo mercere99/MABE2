@@ -305,6 +305,10 @@ TEST_CASE("ConfigEntry_Linker_Double", "[config]"){
     args.push_back(arg00);
     emp::Ptr<mabe::ConfigEntry> call_result = linked_entry_double.Call(args);
     REQUIRE(call_result->IsError() == true);
+    
+    // Delete pointers
+    arg00.Delete();
+    call_result.Delete();
   }
 }
 
@@ -408,6 +412,7 @@ TEST_CASE("ConfigEntry_Linked_Bool", "[config]"){
     REQUIRE(s03.compare(linked_entry_bool.GetName()) == 0);
     const std::string s04 = clone_ptr->GetDesc();
     REQUIRE(s04.compare(linked_entry_bool.GetDesc()) == 0);
+    clone_ptr.Delete();
 
     REQUIRE(clone_ptr->AsDouble() == linked_entry_bool.AsDouble());
 
@@ -440,6 +445,8 @@ TEST_CASE("ConfigEntry_Linked_Bool", "[config]"){
     args.push_back(arg00);
     emp::Ptr<mabe::ConfigEntry> call_result = linked_entry_bool.Call(args);
     REQUIRE(call_result->IsError() == true);
+    arg00.Delete();
+    call_result.Delete();
   }
 }
 

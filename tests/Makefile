@@ -1,11 +1,14 @@
-DIR_NAMES= component regression# Add additional directories here 
+.PHONY: regression unit test coverage
 
 default: test
 
-test-%:
-	cd $(@:test-%=%) && make test
+unit: $(addprefix test-, $(DIR_NAMES))
+	cd unit && make test
 
-test: $(addprefix test-, $(DIR_NAMES))
+test: unit regression 
+
+regression:
+	cd regression && make test
 
 cov-%:
 	cd $(@:cov-%=%) && make coverage
