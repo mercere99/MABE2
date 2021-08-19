@@ -3,6 +3,8 @@
 EMP_DIR=../source/third-party/empirical
 COV_DIR=./coverage_source
 
+mkdir ${COV_DIR} -p
+
 set -e # exit with error if any of this fails
 rm -rf ${COV_DIR} 
 cp -r ../source ${COV_DIR}
