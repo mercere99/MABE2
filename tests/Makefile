@@ -2,7 +2,7 @@
 
 default: test
 
-unit: $(addprefix test-, $(DIR_NAMES))
+unit: 
 	cd unit && make test
 
 test: unit regression 
@@ -13,7 +13,8 @@ regression:
 cov-%:
 	cd $(@:cov-%=%) && make coverage
 
-coverage: coverage_conversion $(addprefix cov-, $(DIR_NAMES))
+coverage: coverage_conversion
+	cd coverage_source && make coverage
 
 coverage_conversion:
 	./convert_for_tests.sh
