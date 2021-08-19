@@ -4,7 +4,7 @@
  *  @date 2019-2021.
  *
  *  @file  ErrorManager.cpp
- *  @brief Tests for error management with various types and edge cases 
+ *  @brief Tests for error management with various types and edge cases
  */
 
 #include <functional>
@@ -15,15 +15,6 @@
 // MABE
 #include "core/ErrorManager.hpp"
 
-// to test:
-
-// * We can create an ErrorManager simply by passing 1) an error callback function and 2) a warning callback function
-// * If manager is *not* active, we can send errors/warnings without them being immediately displayed.
-// * If the manager _is_ active, all errors/warnings that are sent to the manager are automatically displayed
-// * Do SetErrorCallback and SetWarningCallback actually work?
-// * Flush will print all _held_ errors/warnings (those in the queue that have not yet been displayed
-// * Activate / deactivate do what they are supposed to
-// Getter functions work as expected
 
 TEST_CASE("ErrorManagerBasic", "[core]"){
   {
@@ -49,7 +40,7 @@ TEST_CASE("ErrorManagerBasic", "[core]"){
     // Add errors and warnings to inactive manager, nothing thrown
     manager.AddError("Error00");
     manager.AddWarning("Warning00");
-    
+
     REQUIRE(has_error_been_thrown == 0);
     REQUIRE(has_warning_been_thrown == 0);
 
@@ -58,7 +49,7 @@ TEST_CASE("ErrorManagerBasic", "[core]"){
     REQUIRE(has_error_been_thrown == 1);
     REQUIRE(has_warning_been_thrown == 1);
 
-    // Add errors and warnings to active manager, thrown immediately 
+    // Add errors and warnings to active manager, thrown immediately
     has_error_been_thrown = false;
     has_warning_been_thrown = false;
     REQUIRE(has_error_been_thrown == false);
@@ -124,7 +115,6 @@ TEST_CASE("ErrorManagerBasic", "[core]"){
 
   }
 }
-
 
 TEST_CASE("ErrorManagerGetters", "[core]"){
   {
