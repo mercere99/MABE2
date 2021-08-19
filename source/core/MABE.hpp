@@ -81,7 +81,6 @@ namespace mabe {
     emp::DataMap org_data_map;
 
     emp::Random random;                ///< Master random number generator
-    int random_seed = 0;               ///< Random number seed used for this run.
     size_t cur_pop_id = (size_t) -1;   ///< Which population is currently active?
     size_t update = 0;                 ///< How many times has Update() been called?
 
@@ -203,7 +202,7 @@ namespace mabe {
         AddModule<EMPTY_MANAGER_T>("EmptyOrg", "Manager for all 'empty' organisms in any population.");
       empty_manager.SetBuiltIn();         // Don't write the empty manager to config.
 
-      empty_org = empty_manager.Make();
+      empty_org = empty_manager.template Make<Organism>();
     }
 
     /// Update MABE a single time step.
@@ -271,7 +270,7 @@ namespace mabe {
       emp_assert(org.GetDataMap().SameLayout(org_data_map));
       OrgPosition pos;
       for (size_t i = 0; i < copy_count; i++) {
-        emp::Ptr<Organism> inject_org = org.Clone();
+        emp::Ptr<Organism> inject_org = org.CloneOrganism();
         on_inject_ready_sig.Trigger(*inject_org, pop);
         pos = FindInjectPosition(*inject_org, pop);
         if (pos.IsValid()) {
@@ -309,7 +308,7 @@ namespace mabe {
       auto & org_manager = GetModule(type_name);    // Look up type of organism.
       OrgPosition pos;                              // Place to save injection position.
       for (size_t i = 0; i < copy_count; i++) {     // Loop through, injecting each instance.
-        auto org_ptr = org_manager.Make(random);    // ...Build an org of this type.
+        auto org_ptr = org_manager.Make<Organism>(random);  // ...Build an org of this type.
         pos = InjectInstance(org_ptr, pop);         // ...Inject it into the popultation.
       }
       return pos;                                   // Return last position injected.
@@ -332,7 +331,7 @@ namespace mabe {
     /// Inject a copy of the provided organism at a specified position.
     void InjectAt(const Organism & org, OrgPosition pos) {
       emp_assert(pos.IsValid());
-      emp::Ptr<Organism> inject_org = org.Clone();
+      emp::Ptr<Organism> inject_org = org.CloneOrganism();
       on_inject_ready_sig.Trigger(*inject_org, GetPopulation(pos.PopID()));
       AddOrgAt( inject_org, pos);
     }
@@ -350,7 +349,7 @@ namespace mabe {
       OrgPosition pos;                                      // Position of each offspring placed.
       emp::Ptr<Organism> new_org;
       for (size_t i = 0; i < birth_count; i++) {            // Loop through offspring, adding each
-        new_org = do_mutations ? org.MakeOffspring(random) : org.Clone();
+        new_org = do_mutations ? org.MakeOffspringOrganism(random) : org.CloneOrganism();
 
         // Alert modules that offspring is ready, then find its birth position.
         on_offspring_ready_sig.Trigger(*new_org, ppos, target_pop);
@@ -371,7 +370,7 @@ namespace mabe {
       emp_assert(target_pos.IsValid());    // Target positions must already be valid.
 
       before_repro_sig.Trigger(ppos);
-      emp::Ptr<Organism> new_org = do_mutations ? org.MakeOffspring(random) : org.Clone();
+      emp::Ptr<Organism> new_org = do_mutations ? org.MakeOffspringOrganism(random) : org.CloneOrganism();
       on_offspring_ready_sig.Trigger(*new_org, ppos, target_pos.Pop());
 
       AddOrgAt(new_org, target_pos, ppos);
@@ -870,9 +869,10 @@ namespace mabe {
                 config.GetRootScope().GetName());  // Scope should start at root level.
 
     // Setup main MABE variables.
-    cur_scope->LinkVar("random_seed",
-                        random_seed,
-                        "Seed for random number generator; use 0 to base on time.").SetMin(0);
+    cur_scope->LinkFuns<int>("random_seed",
+                             [this](){ return random.GetSeed(); },
+                             [this](int seed){ random.ResetSeed(seed); },
+                             "Seed for random number generator; use 0 to base on time.");
   }
 
 
