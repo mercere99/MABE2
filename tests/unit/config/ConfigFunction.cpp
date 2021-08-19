@@ -46,9 +46,9 @@ TEST_CASE("ConfigFunction_OneParameter", "[config]") {
         
         std::function<int(int i)> func1 = func01; 
         mabe::ConfigEntry_Linked<int> return_type("name", ret, "desc", nullptr); 
-        emp::Ptr<mabe::ConfigEntry> return_type_ptr = emp::NewPtr<mabe::ConfigEntry>(&return_type);
+        emp::Ptr<mabe::ConfigEntry> return_type_ptr = &return_type;
         mabe::ConfigEntry_Linked<int> param1("param1", param01, "desc", nullptr);
-        emp::Ptr<mabe::ConfigEntry> param1_ptr = emp::NewPtr<mabe::ConfigEntry_Linked<int>>(&param1); 
+        emp::Ptr<mabe::ConfigEntry> param1_ptr = &param1; 
         emp::vector<emp::Ptr<mabe::ConfigEntry>> args; 
         args.push_back(return_type_ptr); 
         args.push_back(param1_ptr); 
