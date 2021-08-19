@@ -117,7 +117,7 @@ namespace mabe {
           emp_assert(!empty_org.IsNull(), "Empty organisms must be set before they can be used!");
           orgs[i] = empty_org;
         } else {                              // Otherwise clone the organism.
-          orgs[i] = in_pop.orgs[i]->Clone();
+          orgs[i] = in_pop.orgs[i]->CloneOrganism();
         }
       }
       emp_assert(OK());
