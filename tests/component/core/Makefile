@@ -1,10 +1,10 @@
-TEST_NAMES= data_collect MABE
+TEST_NAMES= ErrorManager #data_collect MABE
 
 MABE_DIR= ../../../source/
 EMP_DIR= ../../../source/third-party/empirical
 COV_DIR=./coverage_source
 CATCH_DIR= $(EMP_DIR)/third-party/Catch/single_include/catch2
-FLAGS= -std=c++17 -pthread -Wall -Wno-unused-function -Wno-unused-private-field -I$(EMP_DIR)/include/ -I$(CATCH_DIR) -I$(MABE_DIR)
+FLAGS= -std=c++17 -pthread -Wall -Wno-unused-function -Wno-unused-private-field -I$(EMP_DIR)/include/ -I$(CATCH_DIR) -I$(MABE_DIR) -g -DEMP_TRACK_MEM
 
 default: test
 
@@ -30,13 +30,13 @@ cov-%: %.cpp ${EMP_DIR}/third-party/Catch/single_include/catch2/catch.hpp
 coverage: FLAGS := -std=c++17 -pthread -g -Wall -Wno-unused-function -I${COV_DIR} -I${EMP_DIR} -I${EMP_DIR}/third-party/cereal/include/ -DEMP_TRACK_MEM -Wnon-virtual-dtor -Wcast-align -Woverloaded-virtual -ftemplate-backtrace-limit=0 -fprofile-instr-generate -fcoverage-mapping -fno-inline -fno-elide-constructors -O0
 coverage: test-prep $(addprefix cov-, $(TEST_NAMES))
 
-clean: 
+clean:
 	rm -f *.out
 	rm -f *.o
 	rm -f *.gcda
 	rm -f *.gcno
 	rm -f *.info
-	rm -f *.gcov 
-	rm -f ./Coverage* 
+	rm -f *.gcov
+	rm -f ./Coverage*
 	rm -rf ./temp
 
