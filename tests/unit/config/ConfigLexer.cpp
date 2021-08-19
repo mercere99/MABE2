@@ -48,7 +48,7 @@ TEST_CASE("ConfigLexerNumber", "[config]"){
     std::string s01 = "-1";
     emp::Token token01 = config_lexer01.Process(s01);
     bool result01 = config_lexer01.IsNumber(token01);
-    REQUIRE(result01 == true);
+    REQUIRE_FALSE(result01);
 
     std::string s02 = "0.9";
     emp::Token token02 = config_lexer01.Process(s02);
@@ -67,7 +67,6 @@ TEST_CASE("ConfigLexerNumber", "[config]"){
 TEST_CASE("ConfigLexerString", "[config]"){
   {
     mabe::ConfigLexer config_lexer02;
-
   
     std::string s00 = "\"\"";
     emp::Token token00 = config_lexer02.Process(s00);
@@ -119,9 +118,9 @@ TEST_CASE("ConfigLexerChar", "[config]"){
 
     // Test failing, 'testing' accepted as char
     std::string s03 = "'testing'";
-    emp::Token token03 = config_lexer03.Process(s03);
-    bool result03 = config_lexer03.IsChar(token03);
-    REQUIRE(result03 == false);
+    emp::vector<emp::Token> token_vec03 = config_lexer03.Tokenize(s03);
+    REQUIRE(token_vec03.size() > 1);
+    REQUIRE_FALSE(config_lexer03.IsChar(token_vec03[0]));
   }
 }
 
@@ -134,17 +133,34 @@ TEST_CASE("ConfigLexerDots", "[config]"){
     emp::Token token00 = config_lexer04.Process(s00);
     bool result00 = config_lexer04.IsDots(token00);
     REQUIRE(result00 == true);
-
+    
     // Test failing, ._ accepted as dots
     std::string s01 = "._";
     emp::Token token01 = config_lexer04.Process(s01);
-    bool result01 = config_lexer04.IsDots(token01);
-    REQUIRE(result01 == false);
+    emp::vector<emp::Token> token_vec01 = config_lexer04.Tokenize(s01);
+    REQUIRE(token_vec01.size() > 1);
+    REQUIRE(config_lexer04.IsDots(token_vec01[0]));
 
     std::string s02 = "a.";
     emp::Token token02 = config_lexer04.Process(s02);
     bool result02 = config_lexer04.IsDots(token02);
     REQUIRE(result02 == false);
+
+    std::string s03 = "..";
+    emp::Token token03 = config_lexer04.Process(s03);
+    bool result03 = config_lexer04.IsDots(token03);
+    REQUIRE(result03 == true);
+    
+    std::string s04 = "a";
+    emp::Token token04 = config_lexer04.Process(s04);
+    bool result04 = config_lexer04.IsDots(token04);
+    REQUIRE(result04 == false);
+    
+    std::string s05 = ".a";
+    emp::Token token05 = config_lexer04.Process(s05);
+    emp::vector<emp::Token> token_vec05 = config_lexer04.Tokenize(s05);
+    REQUIRE(token_vec05.size() > 1);
+    REQUIRE(config_lexer04.IsDots(token_vec05[0]));
   }
 }
 
