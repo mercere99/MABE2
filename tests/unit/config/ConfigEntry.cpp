@@ -106,10 +106,10 @@ TEST_CASE("ConfigEntry_Linker_Int", "[config]"){
     REQUIRE(linked_entry_int.IsBuiltIn() == true);
     linked_entry_int.SetMin(1.0);
     linked_entry_int.SetValue(0.0);
-    REQUIRE_FALSE(linked_entry_int.AsDouble() < 1.0);
+    REQUIRE(linked_entry_int.AsDouble() < 2.0);
     linked_entry_int.SetMax(0.0);
     linked_entry_int.SetValue(1.0);
-    REQUIRE_FALSE(linked_entry_int.AsDouble() > 0.0);
+    REQUIRE(linked_entry_int.AsDouble() > 0.0);
 
     // Reset Min and Max
     linked_entry_int.SetMin(INT_MIN);
@@ -162,6 +162,10 @@ TEST_CASE("ConfigEntry_Linker_Int", "[config]"){
     args.push_back(arg00);
     emp::Ptr<mabe::ConfigEntry> call_result = linked_entry_int.Call(args);
     REQUIRE(call_result->IsError() == true);
+    
+    // Delete pointers
+    call_result.Delete();
+    clone_ptr.Delete();
   }
 }
 
@@ -251,10 +255,10 @@ TEST_CASE("ConfigEntry_Linker_Double", "[config]"){
     REQUIRE(linked_entry_double.IsBuiltIn() == true);
     linked_entry_double.SetMin(1.0);
     linked_entry_double.SetValue(0.0);
-    REQUIRE_FALSE(linked_entry_double.AsDouble() < 1.0);
+    REQUIRE(linked_entry_double.AsDouble() < 2.0);
     linked_entry_double.SetMax(0.0);
     linked_entry_double.SetValue(1.0);
-    REQUIRE_FALSE(linked_entry_double.AsDouble() > 0.0);
+    REQUIRE(linked_entry_double.AsDouble() > 0.0);
 
     // Reset Min and Max
     linked_entry_double.SetMin(INT_MIN);
@@ -307,8 +311,8 @@ TEST_CASE("ConfigEntry_Linker_Double", "[config]"){
     REQUIRE(call_result->IsError() == true);
     
     // Delete pointers
-    arg00.Delete();
     call_result.Delete();
+    clone_ptr.Delete();
   }
 }
 
@@ -412,7 +416,6 @@ TEST_CASE("ConfigEntry_Linked_Bool", "[config]"){
     REQUIRE(s03.compare(linked_entry_bool.GetName()) == 0);
     const std::string s04 = clone_ptr->GetDesc();
     REQUIRE(s04.compare(linked_entry_bool.GetDesc()) == 0);
-    clone_ptr.Delete();
 
     REQUIRE(clone_ptr->AsDouble() == linked_entry_bool.AsDouble());
 
@@ -439,14 +442,16 @@ TEST_CASE("ConfigEntry_Linked_Bool", "[config]"){
     REQUIRE(v == 1);
     REQUIRE(linked_entry_bool.AsDouble() == 1.0);
 
-    // Test Call(), should return COnfigEntry_Error pointer
+    // Test Call(), should return ConfigEntry_Error pointer
     emp::vector<emp::Ptr<mabe::ConfigEntry>> args;
     emp::Ptr arg00 = linked_entry_bool.As<emp::Ptr<mabe::ConfigEntry>>();
     args.push_back(arg00);
     emp::Ptr<mabe::ConfigEntry> call_result = linked_entry_bool.Call(args);
     REQUIRE(call_result->IsError() == true);
-    arg00.Delete();
+    
+    // Delete pointers
     call_result.Delete();
+    clone_ptr.Delete();
   }
 }
 
@@ -536,10 +541,10 @@ TEST_CASE("ConfigEntry_Linked<std::string>", "[config]"){
     REQUIRE(linked_entry_str.IsBuiltIn() == true);
     linked_entry_str.SetMin(1.0);
     linked_entry_str.SetValue(0.0);
-    REQUIRE_FALSE(linked_entry_str.AsDouble() < 1.0);
+    REQUIRE(linked_entry_str.AsDouble() < 2.0);
     linked_entry_str.SetMax(0.0);
     linked_entry_str.SetValue(1.0);
-    REQUIRE_FALSE(linked_entry_str.AsDouble() > 0.0);
+    REQUIRE(linked_entry_str.AsDouble() > 0.0);
 
     // Reset Min and Max
     linked_entry_str.SetMin(INT_MIN);
@@ -595,6 +600,10 @@ TEST_CASE("ConfigEntry_Linked<std::string>", "[config]"){
     args.push_back(arg00);
     emp::Ptr<mabe::ConfigEntry> call_result = linked_entry_str.Call(args);
     REQUIRE(call_result->IsError() == true);
+    
+    // Delete pointers
+    call_result.Delete();
+    clone_ptr.Delete();
   }
 }
 
@@ -724,10 +733,10 @@ TEST_CASE("ConfigEntry_Functions", "[config]"){
     REQUIRE(linker_functions.IsBuiltIn() == true);
     linker_functions.SetMin(1.0);
     linker_functions.SetValue(0.0);
-    REQUIRE_FALSE(linker_functions.AsDouble() < 1.0);
+    REQUIRE(linker_functions.AsDouble() < 2.0);
     linker_functions.SetMax(0.0);
     linker_functions.SetValue(1.0);
-    REQUIRE_FALSE(linker_functions.AsDouble() > 0.0);
+    REQUIRE(linker_functions.AsDouble() > 0.0);
 
     // Reset value to 0
     linker_functions.SetMin(INT_MIN);
@@ -788,9 +797,12 @@ TEST_CASE("ConfigEntry_Functions", "[config]"){
     args.push_back(arg00);
     emp::Ptr<mabe::ConfigEntry> call_result = linker_functions.Call(args);
     REQUIRE(call_result->IsError() == true);
+    
+    // Delete pointers
+    call_result.Delete();
+    clone_ptr.Delete();
   }
 }
-
 
 TEST_CASE("ConfigEntry_Var_Int", "[config]"){
   {
@@ -858,10 +870,10 @@ TEST_CASE("ConfigEntry_Var_Int", "[config]"){
     REQUIRE(type.compare("Value") == 0);
     var_entry_int.SetMin(1.0);
     var_entry_int.SetValue(0.0);
-    REQUIRE_FALSE(var_entry_int.AsDouble() < 1.0);
+    REQUIRE(var_entry_int.AsDouble() < 2.0);
     var_entry_int.SetMax(0.0);
     var_entry_int.SetValue(1.0);
-    REQUIRE_FALSE(var_entry_int.AsDouble() > 0.0);
+    REQUIRE(var_entry_int.AsDouble() > 0.0);
 
     // Reset Min and Max
     var_entry_int.SetMin(INT_MIN);
@@ -930,6 +942,10 @@ TEST_CASE("ConfigEntry_Var_Int", "[config]"){
     args.push_back(arg00);
     emp::Ptr<mabe::ConfigEntry> call_result = var_entry_int.Call(args);
     REQUIRE(call_result->IsError() == true);
+
+    // Delete pointers
+    call_result.Delete();
+    clone_ptr.Delete();
   }
 }
 
@@ -1013,10 +1029,10 @@ TEST_CASE("ConfigEntry_Var_Double", "[config]"){
     REQUIRE(var_entry_double.IsBuiltIn() == true);
     var_entry_double.SetMin(1.0);
     var_entry_double.SetValue(0.0);
-    REQUIRE_FALSE(var_entry_double.AsDouble() < 1.0);
+    REQUIRE(var_entry_double.AsDouble() < 2.0);
     var_entry_double.SetMax(0.0);
     var_entry_double.SetValue(1.0);
-    REQUIRE_FALSE(var_entry_double.AsDouble() > 0.0);
+    REQUIRE(var_entry_double.AsDouble() > 0.0);
 
     // Reset Min and Max
     var_entry_double.SetMin(INT_MIN);
@@ -1070,6 +1086,10 @@ TEST_CASE("ConfigEntry_Var_Double", "[config]"){
     args.push_back(arg00);
     emp::Ptr<mabe::ConfigEntry> call_result = var_entry_double.Call(args);
     REQUIRE(call_result->IsError() == true);
+    
+    // Delete pointers
+    call_result.Delete();
+    clone_ptr.Delete();
   }
 }
 
@@ -1207,6 +1227,10 @@ TEST_CASE("ConfigEntry_Var_Bool", "[config]"){
     args.push_back(arg00);
     emp::Ptr<mabe::ConfigEntry> call_result = var_entry_bool.Call(args);
     REQUIRE(call_result->IsError() == true);
+    
+    // Delete pointers
+    call_result.Delete();
+    clone_ptr.Delete();
   }
 }
 
@@ -1288,10 +1312,10 @@ TEST_CASE("ConfigEntry_Var<std::string>", "[config]"){
     REQUIRE(var_entry_str.IsBuiltIn() == true);
     var_entry_str.SetMin(1.0);
     var_entry_str.SetValue(0.0);
-    REQUIRE_FALSE(var_entry_str.AsDouble() < 1.0);
+    REQUIRE(var_entry_str.AsDouble() < 2.0);
     var_entry_str.SetMax(0.0);
     var_entry_str.SetValue(1.0);
-    REQUIRE_FALSE(var_entry_str.AsDouble() > 0.0);
+    REQUIRE(var_entry_str.AsDouble() > 0.0);
 
     // Reset Min and Max
     var_entry_str.SetMin(INT_MIN);
@@ -1346,6 +1370,10 @@ TEST_CASE("ConfigEntry_Var<std::string>", "[config]"){
     args.push_back(arg00);
     emp::Ptr<mabe::ConfigEntry> call_result = var_entry_str.Call(args);
     REQUIRE(call_result->IsError() == true);
+    
+    // Delete pointers
+    call_result.Delete();
+    clone_ptr.Delete();
   }
 }
 
@@ -1431,5 +1459,9 @@ TEST_CASE("ConfigEntry_Error", "[config]"){
     args.push_back(arg00);
     emp::Ptr<mabe::ConfigEntry> call_result = error00.Call(args);
     REQUIRE(call_result->IsError() == true);
+    
+    // Delete pointers
+    call_result.Delete();
+    clone_ptr.Delete();
   }
 }
