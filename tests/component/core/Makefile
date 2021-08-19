@@ -1,4 +1,4 @@
-TEST_NAMES= ErrorManager #data_collect MABE
+TEST_NAMES= ErrorManager data_collect MABE
 
 MABE_DIR= ../../../source/
 EMP_DIR= ../../../source/third-party/empirical
