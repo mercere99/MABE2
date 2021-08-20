@@ -17,41 +17,42 @@
 #include "config/ConfigEntry.hpp"
 #include "config/ConfigScope.hpp"
 
-#include "emp/base/Ptr.hpp"
-
 TEST_CASE("ConfigEntry_Linker_Int", "[config]"){
   {
-    // Create pointer to ConfigEntry object
+    // Create ConfigEntry object
     int v = 0;
-    //mabe::ConfigEntry_Linked<int> linked_entry_int("name00", v, "variable00", nullptr);
-    emp::Ptr<mabe::ConfigEntry_Linked<int>> linked_entry_int_ptr = emp::NewPtr<mabe::ConfigEntry_Linked<int>>("name00", v, "variable00", nullptr);
+    mabe::ConfigEntry_Linked<int> linked_entry_int("name00", v, "variable00", nullptr);
 
     // Test As() functions
-    REQUIRE(linked_entry_int_ptr->As<int>() == 0);
-    REQUIRE(linked_entry_int_ptr->As<double>() == 0.0);
-    REQUIRE(linked_entry_int_ptr->As<bool>() == false);
-    REQUIRE(linked_entry_int_ptr->AsDouble() == linked_entry_int_ptr->As<int>());
-    std::string s00 = linked_entry_int_ptr->AsString();
+    REQUIRE(linked_entry_int.As<int>() == 0);
+    REQUIRE(linked_entry_int.As<double>() == 0.0);
+    REQUIRE(linked_entry_int.As<bool>() == false);
+    REQUIRE(linked_entry_int.AsDouble() == linked_entry_int.As<int>());
+    std::string s00 = linked_entry_int.AsString();
     REQUIRE(s00.compare("0") == 0);
-    REQUIRE(s00.compare(linked_entry_int_ptr->As<std::string>()) == 0);
-    emp::Ptr<mabe::ConfigScope> scope_ptr = linked_entry_int_ptr->AsScopePtr();
+    REQUIRE(s00.compare(linked_entry_int.As<std::string>()) == 0);
+    emp::Ptr<mabe::ConfigScope> scope_ptr = linked_entry_int.AsScopePtr();
     REQUIRE(scope_ptr == nullptr);
-    emp::Ptr ptr00 = linked_entry_int_ptr->As<emp::Ptr<mabe::ConfigEntry>>();
-    REQUIRE(linked_entry_int_ptr->AsDouble() == ptr00->AsDouble());
-    mabe::ConfigEntry& ref00 = linked_entry_int_ptr->As<mabe::ConfigEntry&>();
-    //REQUIRE(&ref00 == &linked_entry_int);
+    emp::Ptr ptr00 = linked_entry_int.As<emp::Ptr<mabe::ConfigEntry>>();
+    REQUIRE(&linked_entry_int == ptr00.Raw());
+    mabe::ConfigEntry& ref00 = linked_entry_int.As<mabe::ConfigEntry&>();
+    REQUIRE(&ref00 == &linked_entry_int);
 
     emp::assert_clear();
-    mabe::ConfigScope& scope = linked_entry_int_ptr->As<mabe::ConfigScope&>();
+    mabe::ConfigScope& scope = linked_entry_int.As<mabe::ConfigScope&>();
     REQUIRE(emp::assert_last_fail);
 
+    // Test LookupEntry()
+    REQUIRE(linked_entry_int.LookupEntry("").Raw() == &linked_entry_int);
+    REQUIRE(linked_entry_int.LookupEntry("test").Raw() == nullptr);
+
     // Test Has()
-    REQUIRE(linked_entry_int_ptr->Has("") == true);
-    REQUIRE(linked_entry_int_ptr->Has("test") == false);
+    REQUIRE(linked_entry_int.Has("") == true);
+    REQUIRE(linked_entry_int.Has("test") == false);
 
     // Test Write()
     std::stringstream ss;
-    linked_entry_int_ptr->Write(ss, "");
+    linked_entry_int.Write(ss, "");
     std::string assignment = "name00 = 0;";
     std::string expected = assignment +std::string(32 - assignment.length(), ' ') + "// variable00" + '\n';
     REQUIRE(ss.str().compare(expected) == 0);
@@ -59,115 +60,111 @@ TEST_CASE("ConfigEntry_Linker_Int", "[config]"){
     // Test updating variable, ConfigEntry should change
     v = 1;
 
-    REQUIRE(linked_entry_int_ptr->AsDouble() == 1.0);
-    std::string s01 = linked_entry_int_ptr->AsString();
+    REQUIRE(linked_entry_int.AsDouble() == 1.0);
+    std::string s01 = linked_entry_int.AsString();
     REQUIRE(s01.compare("1") == 0);
 
     // Retest As<bool>()
-    REQUIRE(linked_entry_int_ptr->As<bool>() == true);
+    REQUIRE(linked_entry_int.As<bool>() == true);
     v = 2;
-    REQUIRE(linked_entry_int_ptr->As<bool>() == true);
+    REQUIRE(linked_entry_int.As<bool>() == true);
     v = -2;
-    REQUIRE(linked_entry_int_ptr->As<bool>() == true);
+    REQUIRE(linked_entry_int.As<bool>() == true);
     v = 1; // reset original variable and ConfigEntry
 
     // Test bool functions
-    REQUIRE(linked_entry_int_ptr->IsNumeric() == true);
-    REQUIRE(linked_entry_int_ptr->IsBool() == false);
-    REQUIRE(linked_entry_int_ptr->IsInt() == true);
-    REQUIRE(linked_entry_int_ptr->IsDouble() == false);
-    REQUIRE(linked_entry_int_ptr->IsString() == false);
-    REQUIRE(linked_entry_int_ptr->IsLocal() == false);
-    REQUIRE(linked_entry_int_ptr->IsTemporary() == false);
-    REQUIRE(linked_entry_int_ptr->IsBuiltIn() == false);
-    REQUIRE(linked_entry_int_ptr->IsFunction() == false);
-    REQUIRE(linked_entry_int_ptr->IsScope() == false);
-    REQUIRE(linked_entry_int_ptr->IsError() == false);
+    REQUIRE(linked_entry_int.IsNumeric() == true);
+    REQUIRE(linked_entry_int.IsBool() == false);
+    REQUIRE(linked_entry_int.IsInt() == true);
+    REQUIRE(linked_entry_int.IsDouble() == false);
+    REQUIRE(linked_entry_int.IsString() == false);
+    REQUIRE(linked_entry_int.IsLocal() == false);
+    REQUIRE(linked_entry_int.IsTemporary() == false);
+    REQUIRE(linked_entry_int.IsBuiltIn() == false);
+    REQUIRE(linked_entry_int.IsFunction() == false);
+    REQUIRE(linked_entry_int.IsScope() == false);
+    REQUIRE(linked_entry_int.IsError() == false);
 
     // Test getter functions
-    std::string name00 = linked_entry_int_ptr->GetName();
+    std::string name00 = linked_entry_int.GetName();
     REQUIRE(name00.compare("name00") == 0);
-    std::string desc00 = linked_entry_int_ptr->GetDesc();
+    std::string desc00 = linked_entry_int.GetDesc();
     REQUIRE(desc00.compare("variable00") == 0);
-    emp::Ptr<mabe::ConfigScope> ptr01 = linked_entry_int_ptr->GetScope();
+    emp::Ptr<mabe::ConfigScope> ptr01 = linked_entry_int.GetScope();
     REQUIRE(ptr01 == nullptr);
-    std::string type = linked_entry_int_ptr->GetTypename();
+    std::string type = linked_entry_int.GetTypename();
     REQUIRE(type.compare("Value") == 0);
 
     // Test setter functions
-    linked_entry_int_ptr->SetName("name01");
-    std::string name01 = linked_entry_int_ptr->GetName();
+    linked_entry_int.SetName("name01");
+    std::string name01 = linked_entry_int.GetName();
     REQUIRE(name01.compare("name01") == 0);
-    linked_entry_int_ptr->SetDesc("desc01");
-    std::string desc01 = linked_entry_int_ptr->GetDesc();
+    linked_entry_int.SetDesc("desc01");
+    std::string desc01 = linked_entry_int.GetDesc();
     REQUIRE(desc01.compare("desc01") == 0);
-    linked_entry_int_ptr->SetTemporary();
-    REQUIRE(linked_entry_int_ptr->IsTemporary() == true);
-    linked_entry_int_ptr->SetBuiltIn();
-    REQUIRE(linked_entry_int_ptr->IsBuiltIn() == true);
+    linked_entry_int.SetTemporary();
+    REQUIRE(linked_entry_int.IsTemporary() == true);
+    linked_entry_int.SetBuiltIn();
+    REQUIRE(linked_entry_int.IsBuiltIn() == true);
 
-    linked_entry_int_ptr->SetMin(1.0);
-    linked_entry_int_ptr->SetValue(0.0);
-    //REQUIRE_FALSE(linked_entry_int_ptr->AsDouble() < 1.0);
-    linked_entry_int_ptr->SetMax(0.0);
-    linked_entry_int_ptr->SetValue(1.0);
-    //REQUIRE_FALSE(linked_entry_int_ptr->AsDouble() > 0.0);
+    linked_entry_int.SetMin(1.0);
+    linked_entry_int.SetValue(0.0);
+    REQUIRE_FALSE(linked_entry_int.AsDouble() < 1.0);
+    linked_entry_int.SetMax(0.0);
+    linked_entry_int.SetValue(1.0);
+    REQUIRE_FALSE(linked_entry_int.AsDouble() > 0.0);
 
     // Reset Min and Max
-    linked_entry_int_ptr->SetMin(INT_MIN);
-    // linked_entry_int_ptr->SetMax(INT_MAX); // bug: SetMax() sets min, so not being reset right now
-    linked_entry_int_ptr->SetValue(0.0);
+    linked_entry_int.SetMin(INT_MIN);
+    // linked_entry_int.SetMax(INT_MAX); // bug: SetMax() sets min, so not being reset right now
+    linked_entry_int.SetValue(0.0);
 
     // Test setter functions, should update original variable
-    linked_entry_int_ptr->SetValue(2.0);
-    REQUIRE(linked_entry_int_ptr->AsDouble() == 2.0);
+    linked_entry_int.SetValue(2.0);
+    REQUIRE(linked_entry_int.AsDouble() == 2.0);
     REQUIRE(v == 2.0);
-    linked_entry_int_ptr->SetString("3");
-    std::string s02 = linked_entry_int_ptr->AsString();
+    linked_entry_int.SetString("3");
+    std::string s02 = linked_entry_int.AsString();
     REQUIRE(s02.compare("3") == 0);
     REQUIRE(v == 3);
 
     // Test Clone()
-    emp::Ptr<mabe::ConfigEntry> clone_ptr = linked_entry_int_ptr->Clone();
+    emp::Ptr<mabe::ConfigEntry> clone_ptr = linked_entry_int.Clone();
     const std::string s03 = clone_ptr->GetName();
-    REQUIRE(s03.compare(linked_entry_int_ptr->GetName()) == 0);
+    REQUIRE(s03.compare(linked_entry_int.GetName()) == 0);
     const std::string s04 = clone_ptr->GetDesc();
-    REQUIRE(s04.compare(linked_entry_int_ptr->GetDesc()) == 0);
+    REQUIRE(s04.compare(linked_entry_int.GetDesc()) == 0);
 
-    REQUIRE(clone_ptr->AsDouble() == linked_entry_int_ptr->AsDouble());
+    REQUIRE(clone_ptr->AsDouble() == linked_entry_int.AsDouble());
 
     // Test updating clone, should update original ConfigEntry and original variable
     clone_ptr->SetValue(4.0);
     REQUIRE(clone_ptr->AsDouble() == 4.0);
-    REQUIRE(linked_entry_int_ptr->AsDouble() == 4.0);
+    REQUIRE(linked_entry_int.AsDouble() == 4.0);
     REQUIRE(v == 4);
 
     // Test CopyValue()
     int n = 5;
     mabe::ConfigEntry_Linked<int> linked_entry_int_01("name01", n, "variable01", nullptr);
-    linked_entry_int_ptr->CopyValue(linked_entry_int_01);
-    REQUIRE(linked_entry_int_ptr->AsDouble() == 5.0);
+    linked_entry_int.CopyValue(linked_entry_int_01);
+    REQUIRE(linked_entry_int.AsDouble() == 5.0);
 
     // Test changing CopyValue(), should not change original ConfigEntry
     linked_entry_int_01.SetValue(6.0);
-    REQUIRE(linked_entry_int_ptr->AsDouble() == 5.0);
+    REQUIRE(linked_entry_int.AsDouble() == 5.0);
 
     // Test Copy Constructor, must point to same variable
-    emp::Ptr<mabe::ConfigEntry_Linked<int>> linked_entry_int_copy = linked_entry_int_ptr;
-    linked_entry_int_copy->SetValue(7.0);
+    mabe::ConfigEntry_Linked<int> linked_entry_int_copy = linked_entry_int;
+    linked_entry_int_copy.SetValue(7.0);
     REQUIRE(v == 7);
-    REQUIRE(linked_entry_int_ptr->AsDouble() == 7.0);
+    REQUIRE(linked_entry_int.AsDouble() == 7.0);
 
     // Test Call, should return ConfigEntry_Error pointer
     emp::vector<emp::Ptr<mabe::ConfigEntry>> args;
-    emp::Ptr arg00 = linked_entry_int_ptr->As<emp::Ptr<mabe::ConfigEntry>>();
+    emp::Ptr arg00 = linked_entry_int.As<emp::Ptr<mabe::ConfigEntry>>();
     args.push_back(arg00);
-    emp::Ptr<mabe::ConfigEntry> call_result = linked_entry_int_ptr->Call(args);
+    emp::Ptr<mabe::ConfigEntry> call_result = linked_entry_int.Call(args);
     REQUIRE(call_result->IsError() == true);
-
-    // Delete additional pointers
-    linked_entry_int_ptr.Delete();
-    REQUIRE(emp::BasePtr<void>::Tracker().IsDeleted(linked_entry_int_ptr.id));
   }
 }
 
@@ -175,36 +172,39 @@ TEST_CASE("ConfigEntry_Linker_Double", "[config]"){
   {
     // Create ConfigEntry object
     double v = 0.0;
-    emp::Ptr<mabe::ConfigEntry_Linked<double>> linked_entry_double_ptr = emp::NewPtr<mabe::ConfigEntry_Linked<double>>("name00", v, "variable00", nullptr);
+    mabe::ConfigEntry_Linked<double> linked_entry_double("name00", v, "variable00", nullptr);
 
     // Test As() functions
-    REQUIRE(linked_entry_double_ptr->As<int>() == 0);
-    REQUIRE(linked_entry_double_ptr->As<double>() == 0.0);
-    REQUIRE(linked_entry_double_ptr->As<bool>() == false);
-    REQUIRE(linked_entry_double_ptr->AsDouble() == linked_entry_double_ptr->As<int>());
-    REQUIRE(linked_entry_double_ptr->AsDouble() == 0.0);
-    std::string s00 = linked_entry_double_ptr->AsString();
+    REQUIRE(linked_entry_double.As<int>() == 0);
+    REQUIRE(linked_entry_double.As<double>() == 0.0);
+    REQUIRE(linked_entry_double.As<bool>() == false);
+    REQUIRE(linked_entry_double.AsDouble() == linked_entry_double.As<int>());
+    REQUIRE(linked_entry_double.AsDouble() == 0.0);
+    std::string s00 = linked_entry_double.AsString();
     REQUIRE(s00.compare("0") == 0);
-    REQUIRE(s00.compare(linked_entry_double_ptr->As<std::string>()) == 0);
-    emp::Ptr<mabe::ConfigScope> scope_ptr = linked_entry_double_ptr->AsScopePtr();
+    REQUIRE(s00.compare(linked_entry_double.As<std::string>()) == 0);
+    emp::Ptr<mabe::ConfigScope> scope_ptr = linked_entry_double.AsScopePtr();
     REQUIRE(scope_ptr == nullptr);
-    emp::Ptr ptr00 = linked_entry_double_ptr->As<emp::Ptr<mabe::ConfigEntry>>();
-    REQUIRE(linked_entry_double_ptr->AsDouble() == ptr00->AsDouble());
-    mabe::ConfigEntry& ref00 = linked_entry_double_ptr->As<mabe::ConfigEntry&>();
-
-    REQUIRE(&ref00 == &linked_entry_double_ptr.Raw());
+    emp::Ptr ptr00 = linked_entry_double.As<emp::Ptr<mabe::ConfigEntry>>();
+    REQUIRE(&linked_entry_double == ptr00.Raw());
+    mabe::ConfigEntry& ref00 = linked_entry_double.As<mabe::ConfigEntry&>();
+    REQUIRE(&ref00 == &linked_entry_double);
 
     emp::assert_clear();
-    mabe::ConfigScope& scope = linked_entry_double_ptr->As<mabe::ConfigScope&>();
+    mabe::ConfigScope& scope = linked_entry_double.As<mabe::ConfigScope&>();
     REQUIRE(emp::assert_last_fail);
 
+    // Test LookupEntry()
+    REQUIRE(linked_entry_double.LookupEntry("").Raw() == &linked_entry_double);
+    REQUIRE(linked_entry_double.LookupEntry("test").Raw() == nullptr);
+
     // Test Has()
-    REQUIRE(linked_entry_double_ptr->Has("") == true);
-    REQUIRE(linked_entry_double_ptr->Has("test") == false);
+    REQUIRE(linked_entry_double.Has("") == true);
+    REQUIRE(linked_entry_double.Has("test") == false);
 
     // Test Write()
     std::stringstream ss;
-    linked_entry_double_ptr->Write(ss, "");
+    linked_entry_double.Write(ss, "");
     std::string assignment = "name00 = 0;";
     std::string expected = assignment +std::string(32 - assignment.length(), ' ') + "// variable00" + '\n';
     REQUIRE(ss.str().compare(expected) == 0);
@@ -212,114 +212,107 @@ TEST_CASE("ConfigEntry_Linker_Double", "[config]"){
     // Test updating variable, ConfigEntry should change
     v = 1;
 
-    REQUIRE(linked_entry_double_ptr->AsDouble() == 1.0);
-    std::string s01 = linked_entry_double_ptr->AsString();
+    REQUIRE(linked_entry_double.AsDouble() == 1.0);
+    std::string s01 = linked_entry_double.AsString();
     REQUIRE(s01.compare("1") == 0);
 
     // Retest As<bool>()
-    REQUIRE(linked_entry_double_ptr->As<bool>() == true);
+    REQUIRE(linked_entry_double.As<bool>() == true);
     v = 2;
-    REQUIRE(linked_entry_double_ptr->As<bool>() == true);
+    REQUIRE(linked_entry_double.As<bool>() == true);
     v = -2;
-    REQUIRE(linked_entry_double_ptr->As<bool>() == true);
+    REQUIRE(linked_entry_double.As<bool>() == true);
     v = 1; // reset original variable and ConfigEntry
 
     // Test bool functions
-    REQUIRE(linked_entry_double_ptr->IsNumeric() == true);
-    REQUIRE(linked_entry_double_ptr->IsBool() == false);
-    REQUIRE(linked_entry_double_ptr->IsInt() == false);
-    REQUIRE(linked_entry_double_ptr->IsDouble() == true);
-    REQUIRE(linked_entry_double_ptr->IsString() == false);
-    REQUIRE(linked_entry_double_ptr->IsLocal() == false);
-    REQUIRE(linked_entry_double_ptr->IsTemporary() == false);
-    REQUIRE(linked_entry_double_ptr->IsBuiltIn() == false);
-    REQUIRE(linked_entry_double_ptr->IsFunction() == false);
-    REQUIRE(linked_entry_double_ptr->IsScope() == false);
-    REQUIRE(linked_entry_double_ptr->IsError() == false);
+    REQUIRE(linked_entry_double.IsNumeric() == true);
+    REQUIRE(linked_entry_double.IsBool() == false);
+    REQUIRE(linked_entry_double.IsInt() == false);
+    REQUIRE(linked_entry_double.IsDouble() == true);
+    REQUIRE(linked_entry_double.IsString() == false);
+    REQUIRE(linked_entry_double.IsLocal() == false);
+    REQUIRE(linked_entry_double.IsTemporary() == false);
+    REQUIRE(linked_entry_double.IsBuiltIn() == false);
+    REQUIRE(linked_entry_double.IsFunction() == false);
+    REQUIRE(linked_entry_double.IsScope() == false);
+    REQUIRE(linked_entry_double.IsError() == false);
 
     // Test getter functions
-    std::string name00 = linked_entry_double_ptr->GetName();
+    std::string name00 = linked_entry_double.GetName();
     REQUIRE(name00.compare("name00") == 0);
-    std::string desc00 = linked_entry_double_ptr->GetDesc();
+    std::string desc00 = linked_entry_double.GetDesc();
     REQUIRE(desc00.compare("variable00") == 0);
-    emp::Ptr<mabe::ConfigScope> ptr01 = linked_entry_double_ptr->GetScope();
+    emp::Ptr<mabe::ConfigScope> ptr01 = linked_entry_double.GetScope();
     REQUIRE(ptr01 == nullptr);
-    std::string type = linked_entry_double_ptr->GetTypename();
+    std::string type = linked_entry_double.GetTypename();
     REQUIRE(type.compare("Value") == 0);
 
-    // Test LookupEntry()
-    REQUIRE(linked_entry_double_ptr->LookupEntry("")->GetName() == linked_entry_double_ptr->GetName());
-    REQUIRE(linked_entry_double_ptr->LookupEntry("test").Raw() == nullptr);
-
     // Test setter functions
-    linked_entry_double_ptr->SetName("name01");
-    std::string name01 = linked_entry_double_ptr->GetName();
+    linked_entry_double.SetName("name01");
+    std::string name01 = linked_entry_double.GetName();
     REQUIRE(name01.compare("name01") == 0);
-    linked_entry_double_ptr->SetDesc("desc01");
-    std::string desc01 = linked_entry_double_ptr->GetDesc();
+    linked_entry_double.SetDesc("desc01");
+    std::string desc01 = linked_entry_double.GetDesc();
     REQUIRE(desc01.compare("desc01") == 0);
-    linked_entry_double_ptr->SetTemporary();
-    REQUIRE(linked_entry_double_ptr->IsTemporary() == true);
-    linked_entry_double_ptr->SetBuiltIn();
-    REQUIRE(linked_entry_double_ptr->IsBuiltIn() == true);
-    linked_entry_double_ptr->SetMin(1.0);
-    linked_entry_double_ptr->SetValue(0.0);
-    //REQUIRE_FALSE(linked_entry_double_ptr->AsDouble() < 1.0);
-    linked_entry_double_ptr->SetMax(0.0);
-    linked_entry_double_ptr->SetValue(1.0);
-    //REQUIRE_FALSE(linked_entry_double_ptr->AsDouble() > 0.0);
+    linked_entry_double.SetTemporary();
+    REQUIRE(linked_entry_double.IsTemporary() == true);
+    linked_entry_double.SetBuiltIn();
+    REQUIRE(linked_entry_double.IsBuiltIn() == true);
+    linked_entry_double.SetMin(1.0);
+    linked_entry_double.SetValue(0.0);
+    REQUIRE_FALSE(linked_entry_double.AsDouble() < 1.0);
+    linked_entry_double.SetMax(0.0);
+    linked_entry_double.SetValue(1.0);
+    REQUIRE_FALSE(linked_entry_double.AsDouble() > 0.0);
 
     // Reset Min and Max
-    linked_entry_double_ptr->SetMin(INT_MIN);
-    // linked_entry_double_ptr->SetMax(INT_MAX); // bug: SetMax() sets min, so not being reset right now
-    linked_entry_double_ptr->SetValue(0.0);
+    linked_entry_double.SetMin(INT_MIN);
+    // linked_entry_double.SetMax(INT_MAX); // bug: SetMax() sets min, so not being reset right now
+    linked_entry_double.SetValue(0.0);
 
     // Test setter functions, original variable should change
-    linked_entry_double_ptr->SetValue(2.0);
-    REQUIRE(linked_entry_double_ptr->AsDouble() == 2.0);
-    linked_entry_double_ptr->SetString("3");
-    std::string s02 = linked_entry_double_ptr->AsString();
+    linked_entry_double.SetValue(2.0);
+    REQUIRE(linked_entry_double.AsDouble() == 2.0);
+    linked_entry_double.SetString("3");
+    std::string s02 = linked_entry_double.AsString();
     REQUIRE(s02.compare("3") == 0);
 
     // Test Clone()
-    emp::Ptr<mabe::ConfigEntry> clone_ptr = linked_entry_double_ptr->Clone();
+    emp::Ptr<mabe::ConfigEntry> clone_ptr = linked_entry_double.Clone();
     const std::string s03 = clone_ptr->GetName();
-    REQUIRE(s03.compare(linked_entry_double_ptr->GetName()) == 0);
+    REQUIRE(s03.compare(linked_entry_double.GetName()) == 0);
     const std::string s04 = clone_ptr->GetDesc();
-    REQUIRE(s04.compare(linked_entry_double_ptr->GetDesc()) == 0);
-    REQUIRE(clone_ptr->AsDouble() == linked_entry_double_ptr->AsDouble());
+    REQUIRE(s04.compare(linked_entry_double.GetDesc()) == 0);
+    REQUIRE(clone_ptr->AsDouble() == linked_entry_double.AsDouble());
 
     // Test updating clone, should update original ConfigEntry and original variable
     clone_ptr->SetValue(4.0);
     REQUIRE(clone_ptr->AsDouble() == 4.0);
-    REQUIRE(linked_entry_double_ptr->AsDouble() == 4.0);
+    REQUIRE(linked_entry_double.AsDouble() == 4.0);
     REQUIRE(v == 4.0);
 
     // Test CopyValue()
     double n = 5.0;
     mabe::ConfigEntry_Linked<double> linked_entry_double_01("name01", n, "variable01", nullptr);
-    linked_entry_double_ptr->CopyValue(linked_entry_double_01);
-    REQUIRE(linked_entry_double_ptr->AsDouble() == 5.0);
+    linked_entry_double.CopyValue(linked_entry_double_01);
+    REQUIRE(linked_entry_double.AsDouble() == 5.0);
 
     // Test changing CopyValue(), should not change original ConfigEntry
     linked_entry_double_01.SetValue(6.0);
-    REQUIRE(linked_entry_double_ptr->AsDouble() == 5.0);
+    REQUIRE(linked_entry_double.AsDouble() == 5.0);
 
     // Test Copy Constructor, must point to same variable
-    emp::Ptr<mabe::ConfigEntry_Linked<double>> linked_entry_double_copy = linked_entry_double_ptr;
-    linked_entry_double_copy->SetValue(7.0);
+    mabe::ConfigEntry_Linked<double> linked_entry_double_copy = linked_entry_double;
+    linked_entry_double_copy.SetValue(7.0);
     REQUIRE(v == 7);
-    REQUIRE(linked_entry_double_ptr->AsDouble() == 7.0);
+    REQUIRE(linked_entry_double.AsDouble() == 7.0);
 
     // Test Call(), should return ConfigEntry_Error pointer
     emp::vector<emp::Ptr<mabe::ConfigEntry>> args;
-    emp::Ptr arg00 = linked_entry_double_ptr->As<emp::Ptr<mabe::ConfigEntry>>();
+    emp::Ptr arg00 = linked_entry_double.As<emp::Ptr<mabe::ConfigEntry>>();
     args.push_back(arg00);
-    emp::Ptr<mabe::ConfigEntry> call_result = linked_entry_double_ptr->Call(args);
+    emp::Ptr<mabe::ConfigEntry> call_result = linked_entry_double.Call(args);
     REQUIRE(call_result->IsError() == true);
-
-    // Test Destructor
-    linked_entry_double_ptr.Delete();
   }
 }
 
@@ -556,10 +549,10 @@ TEST_CASE("ConfigEntry_Linked<std::string>", "[config]"){
     REQUIRE(linked_entry_str.IsBuiltIn() == true);
     linked_entry_str.SetMin(1.0);
     linked_entry_str.SetValue(0.0);
-    //REQUIRE_FALSE(linked_entry_str.AsDouble() < 1.0);
+    REQUIRE_FALSE(linked_entry_str.AsDouble() < 1.0);
     linked_entry_str.SetMax(0.0);
     linked_entry_str.SetValue(1.0);
-    //REQUIRE_FALSE(linked_entry_str.AsDouble() > 0.0);
+    REQUIRE_FALSE(linked_entry_str.AsDouble() > 0.0);
 
     // Reset Min and Max
     linked_entry_str.SetMin(INT_MIN);
@@ -749,10 +742,10 @@ TEST_CASE("ConfigEntry_Functions", "[config]"){
     REQUIRE(linker_functions.IsBuiltIn() == true);
     linker_functions.SetMin(1.0);
     linker_functions.SetValue(0.0);
-    //REQUIRE_FALSE(linker_functions.AsDouble() < 1.0);
+    REQUIRE_FALSE(linker_functions.AsDouble() < 1.0);
     linker_functions.SetMax(0.0);
     linker_functions.SetValue(1.0);
-    //REQUIRE_FALSE(linker_functions.AsDouble() > 0.0);
+    REQUIRE_FALSE(linker_functions.AsDouble() > 0.0);
 
     // Reset value to 0
     linker_functions.SetMin(INT_MIN);
@@ -889,10 +882,10 @@ TEST_CASE("ConfigEntry_Var_Int", "[config]"){
     REQUIRE(type.compare("Value") == 0);
     var_entry_int.SetMin(1.0);
     var_entry_int.SetValue(0.0);
-    //REQUIRE_FALSE(var_entry_int.AsDouble() < 1.0);
+    REQUIRE_FALSE(var_entry_int.AsDouble() < 1.0);
     var_entry_int.SetMax(0.0);
     var_entry_int.SetValue(1.0);
-    //REQUIRE_FALSE(var_entry_int.AsDouble() > 0.0);
+    REQUIRE_FALSE(var_entry_int.AsDouble() > 0.0);
 
     // Reset Min and Max
     var_entry_int.SetMin(INT_MIN);
@@ -1050,10 +1043,10 @@ TEST_CASE("ConfigEntry_Var_Double", "[config]"){
     REQUIRE(var_entry_double.IsBuiltIn() == true);
     var_entry_double.SetMin(1.0);
     var_entry_double.SetValue(0.0);
-    //REQUIRE_FALSE(var_entry_double.AsDouble() < 1.0);
+    REQUIRE_FALSE(var_entry_double.AsDouble() < 1.0);
     var_entry_double.SetMax(0.0);
     var_entry_double.SetValue(1.0);
-    //REQUIRE_FALSE(var_entry_double.AsDouble() > 0.0);
+    REQUIRE_FALSE(var_entry_double.AsDouble() > 0.0);
 
     // Reset Min and Max
     var_entry_double.SetMin(INT_MIN);
@@ -1336,10 +1329,10 @@ TEST_CASE("ConfigEntry_Var<std::string>", "[config]"){
     REQUIRE(var_entry_str.IsBuiltIn() == true);
     var_entry_str.SetMin(1.0);
     var_entry_str.SetValue(0.0);
-    //REQUIRE_FALSE(var_entry_str.AsDouble() < 1.0);
+    REQUIRE_FALSE(var_entry_str.AsDouble() < 1.0);
     var_entry_str.SetMax(0.0);
     var_entry_str.SetValue(1.0);
-    //REQUIRE_FALSE(var_entry_str.AsDouble() > 0.0);
+    REQUIRE_FALSE(var_entry_str.AsDouble() > 0.0);
 
     // Reset Min and Max
     var_entry_str.SetMin(INT_MIN);
