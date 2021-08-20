@@ -16,7 +16,6 @@
 #include "catch.hpp"
 
 // MABE
-#include "config/ConfigEntry.hpp"
 #include "config/ConfigScope.hpp"
 #include "config/ConfigAST.hpp"
 #include "config/ConfigFunction.hpp"
@@ -32,13 +31,19 @@ using node_vector_t = emp::vector<node_ptr_t>;
 
 TEST_CASE("ASTLeaf", "[config]"){
   {
+    // Create ConifgEntry object
     int v = 0;
     mabe::ConfigEntry_Linked<int> entry00("name00", v, "variable00", nullptr);
     entry_ptr_t ptr00 = &entry00;
+
+    // Create ASTNode object
     emp::Ptr<mabe::ASTNode_Leaf> leaf00_ptr = emp::NewPtr<mabe::ASTNode_Leaf>(ptr00);
 
+    // Create ConfigEntry object with no name
     int v01 = 1;
     mabe::ConfigEntry_Linked<int> entry01("", v01, "variable01", nullptr);
+
+    // Create ASTNode object
     entry_ptr_t ptr01 = &entry01;
     emp::Ptr<mabe::ASTNode_Leaf> leaf01_ptr = emp::NewPtr<mabe::ASTNode_Leaf>(ptr01);
 
@@ -78,6 +83,7 @@ TEST_CASE("ASTLeaf", "[config]"){
 
 TEST_CASE("ASTNode_Block", "[config]"){
   {
+    // Create ASTNode object
     emp::Ptr<mabe::ASTNode_Block> block00_ptr = emp::NewPtr<mabe::ASTNode_Block>();
 
     // Test getter functions
@@ -91,9 +97,10 @@ TEST_CASE("ASTNode_Block", "[config]"){
     REQUIRE(block00_ptr->IsLeaf() == false);
 
     // Test adding children
+    // Create ConfigEntry object
     int v00 = 0;
     mabe::ConfigEntry_Linked<int> entry00("name00", v00, "variable00", nullptr);
-
+    // Create ASTNode object
     node_ptr_t leaf00 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry00);
     block00_ptr->AddChild(leaf00);
 
@@ -102,9 +109,10 @@ TEST_CASE("ASTNode_Block", "[config]"){
     REQUIRE(block00_ptr->GetChild(0)->Process() == leaf00->Process());
 
     // Test multiple children
+    // Create ConfigEntry object
     int v01 = 1;
     mabe::ConfigEntry_Linked entry01("name01", v01, "variable01", nullptr);
-
+    // Create ASTNode object
     node_ptr_t leaf01 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry01);
     block00_ptr->AddChild(leaf01);
 
@@ -127,6 +135,7 @@ TEST_CASE("ASTNode_Block", "[config]"){
   }
 }
 
+// Uniary math function
 double abs_value(double n) {
   if (n < 0) {
     n *= -1;
@@ -135,6 +144,7 @@ double abs_value(double n) {
 }
 TEST_CASE("ASTNode_Math1", "[config]"){
   {
+    // Create ASTNode object
     emp::Ptr<mabe::ASTNode_Math1> math100_ptr = emp::NewPtr<mabe::ASTNode_Math1>("math00");
 
     // Test getters
@@ -144,10 +154,11 @@ TEST_CASE("ASTNode_Math1", "[config]"){
     REQUIRE(math100_ptr->GetNumChildren() == 0);
 
     // Test adding children
+    // Create Config Entry object
     int v00 = -1;
     mabe::ConfigEntry_Linked<int> entry00("name00", v00, "variable00", nullptr);
-
-    emp::Ptr<mabe::ASTNode_Leaf> leaf00 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry00); // i don't think this is getting deleted but when i try i get seg faults
+    // Create ASTNode object
+    emp::Ptr<mabe::ASTNode_Leaf> leaf00 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry00);
     math100_ptr->AddChild(leaf00);
 
     REQUIRE(math100_ptr->GetNumChildren() == 1);
@@ -177,9 +188,10 @@ TEST_CASE("ASTNode_Math1", "[config]"){
     REQUIRE(ss.str().compare("math00name00") == 0);
 
     // Add multiple children
+    // Create ConfigEntry object
     int v01 = -2;
     mabe::ConfigEntry_Linked entry01("name01", v01, "variable01", nullptr);
-
+    // Create ASTNode object
     emp::Ptr<mabe::ASTNode_Leaf> leaf01 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry01);
     math100_ptr->AddChild(leaf01);
 
@@ -204,11 +216,13 @@ TEST_CASE("ASTNode_Math1", "[config]"){
   }
 }
 
+// Binary math function
 double add_fun(double n, double m) {
   return n + m;
 }
 TEST_CASE("ASTNode_Math2", "[config]"){
   {
+    // Create ASTNode object
     emp::Ptr<mabe::ASTNode_Math2> math200_ptr = emp::NewPtr<mabe::ASTNode_Math2>("math00");
 
     // Test getters
@@ -222,9 +236,10 @@ TEST_CASE("ASTNode_Math2", "[config]"){
     REQUIRE(math200_ptr->IsLeaf() == false);
 
     // Test adding children
+    // Create ConfigEntry object
     int v00 = 1;
     mabe::ConfigEntry_Linked<int> entry00("name00", v00, "variable00", nullptr);
-
+    // Create ASTNode object
     emp::Ptr<mabe::ASTNode_Leaf> leaf00 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry00);
     math200_ptr->AddChild(leaf00);
 
@@ -233,9 +248,10 @@ TEST_CASE("ASTNode_Math2", "[config]"){
     REQUIRE(math200_ptr->GetChild(0)->Process() == leaf00->Process());
 
     // Add second child
+    // Create ConfigEntry object
     int v01 = 2;
     mabe::ConfigEntry_Linked<int> entry01("name01", v01, "variable01", nullptr);
-
+    // Create ASTNode object
     emp::Ptr<mabe::ASTNode_Leaf> leaf01 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry01);
     math200_ptr->AddChild(leaf01);
 
@@ -262,9 +278,10 @@ TEST_CASE("ASTNode_Math2", "[config]"){
     REQUIRE(ss.str().compare("name00 math00 name01") == 0);
 
     // Add third child
+    // Create ConfigEntry object
     int v02 = 2;
     mabe::ConfigEntry_Linked<int> entry02("name02", v02, "variable02", nullptr);
-
+    // Create ASTNode object
     emp::Ptr<mabe::ASTNode_Leaf> leaf02 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry02);
     math200_ptr->AddChild(leaf02);
 
@@ -294,14 +311,16 @@ TEST_CASE("ASTNode_Math2", "[config]"){
 
 TEST_CASE("ASTNode_Assign", "[config]"){
   {
+    // Create ConfigEntry object
     std::string v00 = "variable";
     mabe::ConfigEntry_Linked<std::string> entry00("name00", v00, "variable00", nullptr);
     emp::Ptr<mabe::ASTNode_Leaf> lhs = emp::NewPtr<mabe::ASTNode_Leaf>(&entry00);
-
+    // Create ConfigEntry object
     int v01 = 1;
     mabe::ConfigEntry_Linked<int> entry01("name01", v01, "variable01", nullptr);
     emp::Ptr<mabe::ASTNode_Leaf> rhs = emp::NewPtr<mabe::ASTNode_Leaf>(&entry01);
 
+    // Create ASTNode object
     emp::Ptr<mabe::ASTNode_Assign> assign00_ptr = emp::NewPtr<mabe::ASTNode_Assign>(lhs, rhs);
 
     // Test getters
@@ -321,9 +340,10 @@ TEST_CASE("ASTNode_Assign", "[config]"){
     REQUIRE(result00->AsDouble() == rhs->Process());
 
     // Add third child
+    // Create ConfigEntry object
     int v02 = 2;
     mabe::ConfigEntry_Linked<int> entry02("name02", v02, "variable02", nullptr);
-
+    // Create ASTNode object
     emp::Ptr<mabe::ASTNode_Leaf> leaf02 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry02);
     assign00_ptr->AddChild(leaf02);
 
@@ -351,6 +371,7 @@ TEST_CASE("ASTNode_Assign", "[config]"){
 
 TEST_CASE("ASTNode_Call", "[config]"){
   {
+    // Create setup function
     int children_processed = 0;
     bool function_called;
 
@@ -362,14 +383,14 @@ TEST_CASE("ASTNode_Call", "[config]"){
       return 0;
     };
 
-    // Create ConfigFunction
+    // Create ConfigFunction object
     mabe::ConfigFunction entry_func("func00", "desc00", nullptr);
     entry_func.SetFunction(setup);
     node_ptr_t funcs00 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry_func);
 
     // Create vector of arguments
     node_vector_t args00;
-
+    // Create Config Entry objects
     int v00 = 2;
     mabe::ConfigEntry_Linked<int> entry00("name00", v00, "variable00", nullptr);
     node_ptr_t leaf00 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry00);
@@ -422,14 +443,14 @@ TEST_CASE("ASTNode_Call", "[config]"){
 
 TEST_CASE("ASTNode_Event", "[config]"){
   {
-    // Create action
+    // Create ConfigEntry object
     std::string v = "action00";
     mabe::ConfigEntry_Var<std::string> entry("action00", v, "desc00", nullptr);
     emp::Ptr<mabe::ASTNode_Leaf> action00 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry);
 
     // Create vector of arguments
     node_vector_t args00;
-
+    // Create ConfigEntry objects
     int v00 = 2;
     mabe::ConfigEntry_Linked<int> entry00("name00", v00, "variable00", nullptr);
     emp::Ptr<mabe::ASTNode_Leaf> leaf00 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry00);
@@ -440,7 +461,6 @@ TEST_CASE("ASTNode_Event", "[config]"){
     args00.push_back(leaf01);
 
     // Create setup function
-
     int children_processed = 0;
     std::string action_result;
 
@@ -455,6 +475,7 @@ TEST_CASE("ASTNode_Event", "[config]"){
       return nullptr;
     };
 
+    // Create ASTNode object
     emp::Ptr<mabe::ASTNode_Event> event00_ptr = emp::NewPtr<mabe::ASTNode_Event>("event00", action00, args00, setup);
 
     // Test getters
@@ -486,10 +507,10 @@ TEST_CASE("ASTNode_Event", "[config]"){
 }
 TEST_CASE("ASTNode_Block Full Process", "[config]"){
   {
-    // Create ASTNode_Block
+    // Create ASTNode object
     emp::Ptr<mabe::ASTNode_Block> block00_ptr = emp::NewPtr<mabe::ASTNode_Block>();
 
-    // Create ASTNode_Call
+    // Create setup function
     int children_processed = 0;
     bool function_called;
 
@@ -501,14 +522,14 @@ TEST_CASE("ASTNode_Block Full Process", "[config]"){
       return 0;
     };
 
-    // Create ConfigFunction
+    // Create ConfigFunction object
     mabe::ConfigFunction entry_func("func00", "desc00", nullptr);
     entry_func.SetFunction(setup);
     node_ptr_t funcs00 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry_func);
 
     // Create vector of arguments
     node_vector_t args00;
-
+    // Create ConfigEntry objects
     int v00 = 2;
     mabe::ConfigEntry_Linked<int> entry00("name00", v00, "variable00", nullptr);
     node_ptr_t leaf00 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry00);
