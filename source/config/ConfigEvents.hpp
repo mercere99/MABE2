@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019-2020.
+ *  @date 2019-2021.
  *
  *  @file  ConfigEvents.hpp
  *  @brief Manages events for configurations.
@@ -40,7 +40,7 @@ namespace mabe {
                 double _next, double _repeat, double _max)
         : id(_id), ast_action(_node), next(_next), repeat(_repeat), max(_max), active(next <= max)
       { ; }
-      ~TimedEvent() { /* Do not delete ast_action; it will be handed in the main AST tree. */ }
+      ~TimedEvent() { /* Do not delete ast_action; it will be handled in the main AST tree. */ }
 
       // Trigger a single event as having occurred; return true/false base on whether this event
       // should continue to be considered active.
@@ -49,8 +49,10 @@ namespace mabe {
         if (result_entry->IsTemporary()) result_entry.Delete();
         next += repeat;
 
+        if (max != -1.0 && next > max) repeat = 0.0;
+
         // Return "active" if we ARE repeating and the next time is stiil within range.
-        return (repeat != 0.0 && next <= max);
+        return (repeat != 0.0);
       }
 
       void Write(const std::string & command, std::ostream & os) const {
