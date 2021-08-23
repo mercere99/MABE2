@@ -1,4 +1,5 @@
-TEST_NAMES= ErrorManager ErrorManager_debug TraitInfo TraitManager 
+TEST_NAMES= Collection data_collect EmptyOrganism MABEBase MABE ManagerModule ModuleBase Module Organism OrganismManager OrgIterator Population SigListener TraitSet ErrorManager ErrorManager_debug TraitInfo TraitManager 
+# Missing files: Genome
 
 MABE_DIR= ../../../source/
 EMP_DIR= ../../../source/third-party/empirical
