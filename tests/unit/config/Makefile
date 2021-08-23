@@ -30,12 +30,12 @@ cov-%: %.cpp ${EMP_DIR}/third-party/Catch/single_include/catch2/catch.hpp
 coverage: FLAGS := -std=c++17 -pthread -g -Wall -Wno-unused-function -I${CATCH_DIR} -I${MABE_DIR} -I${EMP_DIR}/include -I${EMP_DIR}/third-party/cereal/include/ -DEMP_TRACK_MEM -Wnon-virtual-dtor -Wcast-align -Woverloaded-virtual -ftemplate-backtrace-limit=0 -fprofile-instr-generate -fcoverage-mapping -fno-inline -fno-elide-constructors -O0
 coverage: test-prep $(addprefix cov-, $(TEST_NAMES))
 
-clean: 
+clean:
 	rm -f *.out
 	rm -f *.o
 	rm -f *.gcda
 	rm -f *.gcno
 	rm -f *.info
-	rm -f *.gcov 
-	rm -f ./Coverage* 
+	rm -f *.gcov
+	rm -f ./Coverage*
 	rm -rf ./temp

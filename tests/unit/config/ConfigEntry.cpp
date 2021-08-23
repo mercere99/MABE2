@@ -19,6 +19,7 @@
 
 TEST_CASE("ConfigEntry_Linker_Int", "[config]"){
   {
+    // Create ConfigEntry object
     int v = 0;
     mabe::ConfigEntry_Linked<int> linked_entry_int("name00", v, "variable00", nullptr);
 
@@ -36,6 +37,7 @@ TEST_CASE("ConfigEntry_Linker_Int", "[config]"){
     REQUIRE(&linked_entry_int == ptr00.Raw());
     mabe::ConfigEntry& ref00 = linked_entry_int.As<mabe::ConfigEntry&>();
     REQUIRE(&ref00 == &linked_entry_int);
+
     emp::assert_clear();
     mabe::ConfigScope& scope = linked_entry_int.As<mabe::ConfigScope&>();
     REQUIRE(emp::assert_last_fail);
@@ -104,6 +106,7 @@ TEST_CASE("ConfigEntry_Linker_Int", "[config]"){
     REQUIRE(linked_entry_int.IsTemporary() == true);
     linked_entry_int.SetBuiltIn();
     REQUIRE(linked_entry_int.IsBuiltIn() == true);
+
     linked_entry_int.SetMin(1.0);
     linked_entry_int.SetValue(0.0);
     REQUIRE(linked_entry_int.AsDouble() < 2.0);
@@ -171,10 +174,15 @@ TEST_CASE("ConfigEntry_Linker_Int", "[config]"){
 
 TEST_CASE("ConfigEntry_Linker_Double", "[config]"){
   {
+    // Create ConfigEntry object
     double v = 0.0;
     mabe::ConfigEntry_Linked<double> linked_entry_double("name00", v, "variable00", nullptr);
 
     // Test As() functions
+    REQUIRE(linked_entry_double.As<int>() == 0);
+    REQUIRE(linked_entry_double.As<double>() == 0.0);
+    REQUIRE(linked_entry_double.As<bool>() == false);
+    REQUIRE(linked_entry_double.AsDouble() == linked_entry_double.As<int>());
     REQUIRE(linked_entry_double.AsDouble() == 0.0);
     std::string s00 = linked_entry_double.AsString();
     REQUIRE(s00.compare("0") == 0);
@@ -185,6 +193,7 @@ TEST_CASE("ConfigEntry_Linker_Double", "[config]"){
     REQUIRE(&linked_entry_double == ptr00.Raw());
     mabe::ConfigEntry& ref00 = linked_entry_double.As<mabe::ConfigEntry&>();
     REQUIRE(&ref00 == &linked_entry_double);
+
     emp::assert_clear();
     mabe::ConfigScope& scope = linked_entry_double.As<mabe::ConfigScope&>();
     REQUIRE(emp::assert_last_fail);
@@ -278,7 +287,6 @@ TEST_CASE("ConfigEntry_Linker_Double", "[config]"){
     REQUIRE(s03.compare(linked_entry_double.GetName()) == 0);
     const std::string s04 = clone_ptr->GetDesc();
     REQUIRE(s04.compare(linked_entry_double.GetDesc()) == 0);
-
     REQUIRE(clone_ptr->AsDouble() == linked_entry_double.AsDouble());
 
     // Test updating clone, should update original ConfigEntry and original variable
@@ -318,10 +326,15 @@ TEST_CASE("ConfigEntry_Linker_Double", "[config]"){
 
 TEST_CASE("ConfigEntry_Linked_Bool", "[config]"){
   {
+    // Create ConfigEntry object
     bool v = false;
     mabe::ConfigEntry_Linked<bool> linked_entry_bool("name00", v, "variable00", nullptr);
 
     // Test As() functions
+    REQUIRE(linked_entry_bool.As<int>() == 0);
+    REQUIRE(linked_entry_bool.As<double>() == 0.0);
+    REQUIRE(linked_entry_bool.As<bool>() == false);
+    REQUIRE(linked_entry_bool.AsDouble() == linked_entry_bool.As<int>());
     REQUIRE(linked_entry_bool.AsDouble() == 0.0);
     std::string s00 = linked_entry_bool.AsString();
     REQUIRE(s00.compare("0") == 0);
@@ -332,6 +345,7 @@ TEST_CASE("ConfigEntry_Linked_Bool", "[config]"){
     REQUIRE(&linked_entry_bool == ptr00.Raw());
     mabe::ConfigEntry& ref00 = linked_entry_bool.As<mabe::ConfigEntry&>();
     REQUIRE(&ref00 == &linked_entry_bool);
+
     emp::assert_clear();
     mabe::ConfigScope& scope = linked_entry_bool.As<mabe::ConfigScope&>();
     REQUIRE(emp::assert_last_fail);
@@ -457,10 +471,15 @@ TEST_CASE("ConfigEntry_Linked_Bool", "[config]"){
 
 TEST_CASE("ConfigEntry_Linked<std::string>", "[config]"){
   {
+    // Create ConfigEntry object
     std::string v = "0";
     mabe::ConfigEntry_Linked<std::string> linked_entry_str("name00", v, "variable00", nullptr);
 
     // Test As() functions
+    REQUIRE(linked_entry_str.As<int>() == 0);
+    REQUIRE(linked_entry_str.As<double>() == 0.0);
+    REQUIRE(linked_entry_str.As<bool>() == false);
+    REQUIRE(linked_entry_str.AsDouble() == linked_entry_str.As<int>());
     REQUIRE(linked_entry_str.AsDouble() == 0.0);
     std::string s00 = linked_entry_str.AsString();
     REQUIRE(s00.compare("0") == 0);
@@ -471,6 +490,7 @@ TEST_CASE("ConfigEntry_Linked<std::string>", "[config]"){
     REQUIRE(&linked_entry_str == ptr00.Raw());
     mabe::ConfigEntry& ref00 = linked_entry_str.As<mabe::ConfigEntry&>();
     REQUIRE(&ref00 == &linked_entry_str);
+
     emp::assert_clear();
     mabe::ConfigScope& scope = linked_entry_str.As<mabe::ConfigScope&>();
     REQUIRE(emp::assert_last_fail);
@@ -645,9 +665,14 @@ std::string string_setter(const std::string & in) {
 
 TEST_CASE("ConfigEntry_Functions", "[config]"){
   {
+    // Create ConfigEntry object
     mabe::ConfigEntry_Functions<int> linker_functions("name00", getter<int>, setter<int>, "desc00", nullptr);
 
     // Test As() functions
+    REQUIRE(linker_functions.As<int>() == 0);
+    REQUIRE(linker_functions.As<double>() == 0.0);
+    REQUIRE(linker_functions.As<bool>() == false);
+    REQUIRE(linker_functions.AsDouble() == linker_functions.As<int>());
     REQUIRE(linker_functions.AsDouble() == 0.0);
     std::string s00 = linker_functions.AsString();
     REQUIRE(s00.compare("0") == 0);
@@ -658,6 +683,7 @@ TEST_CASE("ConfigEntry_Functions", "[config]"){
     REQUIRE(&linker_functions == ptr00.Raw());
     mabe::ConfigEntry& ref00 = linker_functions.As<mabe::ConfigEntry&>();
     REQUIRE(&ref00 == &linker_functions);
+
     emp::assert_clear();
     mabe::ConfigScope& scope = linker_functions.As<mabe::ConfigScope&>();
     REQUIRE(emp::assert_last_fail);
@@ -713,7 +739,6 @@ TEST_CASE("ConfigEntry_Functions", "[config]"){
     REQUIRE(linker_functions_03.IsInt() == false);
     REQUIRE(linker_functions_03.IsDouble() == false);
     REQUIRE(linker_functions_03.IsString() == true);
-
 
     // Test getter functions
     std::string name00 = linker_functions.GetName();
@@ -806,10 +831,15 @@ TEST_CASE("ConfigEntry_Functions", "[config]"){
 
 TEST_CASE("ConfigEntry_Var_Int", "[config]"){
   {
+    // Create ConfigEntry object
     int v = 0;
     mabe::ConfigEntry_Var<int> var_entry_int("name00", v, "variable00", nullptr);
 
     // Test As() functions
+    REQUIRE(var_entry_int.As<int>() == 0);
+    REQUIRE(var_entry_int.As<double>() == 0.0);
+    REQUIRE(var_entry_int.As<bool>() == false);
+    REQUIRE(var_entry_int.AsDouble() == var_entry_int.As<int>());
     REQUIRE(var_entry_int.AsDouble() == 0.0);
     std::string s00 = var_entry_int.AsString();
     REQUIRE(s00.compare("0") == 0);
@@ -820,7 +850,8 @@ TEST_CASE("ConfigEntry_Var_Int", "[config]"){
     REQUIRE(&var_entry_int == ptr00.Raw());
     mabe::ConfigEntry& ref00 = var_entry_int.As<mabe::ConfigEntry&>();
     REQUIRE(&ref00 == &var_entry_int);
-    emp::assert_clear(); // reset assert
+
+    emp::assert_clear();
     mabe::ConfigScope& scope = var_entry_int.As<mabe::ConfigScope&>();
     REQUIRE(emp::assert_last_fail);
 
@@ -951,10 +982,15 @@ TEST_CASE("ConfigEntry_Var_Int", "[config]"){
 
 TEST_CASE("ConfigEntry_Var_Double", "[config]"){
   {
+    // Create ConfigEntry Object
     double v = 0.0;
     mabe::ConfigEntry_Var<double> var_entry_double("name00", v, "variable00", nullptr);
 
     // Test As() functions
+    REQUIRE(var_entry_double.As<int>() == 0);
+    REQUIRE(var_entry_double.As<double>() == 0.0);
+    REQUIRE(var_entry_double.As<bool>() == false);
+    REQUIRE(var_entry_double.AsDouble() == var_entry_double.As<int>());
     REQUIRE(var_entry_double.AsDouble() == 0.0);
     std::string s00 = var_entry_double.AsString();
     REQUIRE(s00.compare("0") == 0);
@@ -965,6 +1001,7 @@ TEST_CASE("ConfigEntry_Var_Double", "[config]"){
     REQUIRE(&var_entry_double == ptr00.Raw());
     mabe::ConfigEntry& ref00 = var_entry_double.As<mabe::ConfigEntry&>();
     REQUIRE(&ref00 == &var_entry_double);
+
     emp::assert_clear();
     mabe::ConfigScope& scope = var_entry_double.As<mabe::ConfigScope&>();
     REQUIRE(emp::assert_last_fail);
@@ -1098,7 +1135,11 @@ TEST_CASE("ConfigEntry_Var_Bool", "[config]"){
     bool v = false;
     mabe::ConfigEntry_Var<bool> var_entry_bool("name00", v, "variable00", nullptr);
 
-    // Test As() functions
+// Test As() functions
+    REQUIRE(var_entry_bool.As<int>() == 0);
+    REQUIRE(var_entry_bool.As<double>() == 0.0);
+    REQUIRE(var_entry_bool.As<bool>() == false);
+    REQUIRE(var_entry_bool.AsDouble() == var_entry_bool.As<int>());
     REQUIRE(var_entry_bool.AsDouble() == 0.0);
     std::string s00 = var_entry_bool.AsString();
     REQUIRE(s00.compare("0") == 0);
@@ -1109,6 +1150,7 @@ TEST_CASE("ConfigEntry_Var_Bool", "[config]"){
     REQUIRE(&var_entry_bool == ptr00.Raw());
     mabe::ConfigEntry& ref00 = var_entry_bool.As<mabe::ConfigEntry&>();
     REQUIRE(&ref00 == &var_entry_bool);
+
     emp::assert_clear();
     mabe::ConfigScope& scope = var_entry_bool.As<mabe::ConfigScope&>();
     REQUIRE(emp::assert_last_fail);
@@ -1236,10 +1278,15 @@ TEST_CASE("ConfigEntry_Var_Bool", "[config]"){
 
 TEST_CASE("ConfigEntry_Var<std::string>", "[config]"){
   {
+    // Create ConfigEntry Object
     std::string v = "0";
     mabe::ConfigEntry_Var<std::string> var_entry_str("name00", v, "variable00", nullptr);
 
     // Test As() functions
+    REQUIRE(var_entry_str.As<int>() == 0);
+    REQUIRE(var_entry_str.As<double>() == 0.0);
+    REQUIRE(var_entry_str.As<bool>() == false);
+    REQUIRE(var_entry_str.AsDouble() == var_entry_str.As<int>());
     REQUIRE(var_entry_str.AsDouble() == 0.0);
     std::string s00 = var_entry_str.AsString();
     REQUIRE(s00.compare("0") == 0);
@@ -1250,6 +1297,7 @@ TEST_CASE("ConfigEntry_Var<std::string>", "[config]"){
     REQUIRE(&var_entry_str == ptr00.Raw());
     mabe::ConfigEntry& ref00 = var_entry_str.As<mabe::ConfigEntry&>();
     REQUIRE(&ref00 == &var_entry_str);
+
     emp::assert_clear();
     mabe::ConfigScope& scope = var_entry_str.As<mabe::ConfigScope&>();
     REQUIRE(emp::assert_last_fail);
@@ -1379,19 +1427,25 @@ TEST_CASE("ConfigEntry_Var<std::string>", "[config]"){
 
 TEST_CASE("ConfigEntry_Error", "[config]"){
   {
+    // Create ConfigEntry Object
     mabe::ConfigEntry_Error error00;
 
     // Test As()
     emp::assert_clear();
-    error00.AsDouble();
-    REQUIRE(emp::assert_last_fail);
-    emp::assert_clear();
-    error00.AsString();
+    error00.As<int>();
     REQUIRE(emp::assert_last_fail);
     emp::assert_clear();
     error00.As<double>();
     REQUIRE(emp::assert_last_fail);
     emp::assert_clear();
+    error00.As<bool>();
+    REQUIRE(emp::assert_last_fail);
+    emp::assert_clear();
+    error00.AsDouble();
+    REQUIRE(emp::assert_last_fail);
+    emp::assert_clear();
+    error00.AsString();
+    REQUIRE(emp::assert_last_fail);emp::assert_clear();
     error00.As<std::string>();
     REQUIRE(emp::assert_last_fail);
     emp::Ptr<mabe::ConfigScope> scope_ptr = error00.AsScopePtr();
