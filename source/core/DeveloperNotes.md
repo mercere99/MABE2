@@ -47,18 +47,23 @@ From a design perspective, we should keep the number of module signals to a mini
 decide that an additional signal is required, carefully follow the checklist below to add it.
 If any step is missed, the results can end up being hard to debug.
 
-ModuleBase.h:
+ModuleBase.hpp:
 * Add a description of the new signal in the comments at the top of the file.
 * Add a SIG_* id for the signal in the SignalID enum
-* Declare a virtual member function to catch the signal in the SIGNALS section
+* Declare a virtual member function to catch the signal in the SIGNALS section.
+* Declare a virtal *_IsTriggered() to later test if we are currently reacting to signal.
 
-Module.h:
-* Overide the virtual member function for the signal (base method to catch the function)
+Module.hpp:
+* Override virtual function for signal (base method to mark function not used in module!)
+* Override virtual function *_IsTriggered() to refer back to main MABE module.
 
-MABE.h:
-* Setup a new SigListener in the member variables section of MABEBase
+MABEBase.hpp
+* Setup a new SigListener in the member variables section
 * Initialize the new SigListener in the initializer section of the MABEBase constructor.
-* Hook in a signal trigger in the appropriate place(s)
+
+MABE.hpp:
+* Add a *_IsTriggered() function to test if the associated signal was triggered by a given module.
+* Hook in a signal trigger in the appropriate place(s), as needed.
 
 
 # Next steps in Core MABE Development
