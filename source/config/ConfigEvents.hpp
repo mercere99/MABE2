@@ -39,7 +39,7 @@ namespace mabe {
       TimedEvent(size_t _id, emp::Ptr<ASTNode> _node,
                 double _next, double _repeat, double _max)
         : id(_id), ast_action(_node), next(_next), repeat(_repeat), max(_max), active(next <= max)
-      { ; }
+      { if(max == -1) active = true; }
       ~TimedEvent() { /* Do not delete ast_action; it will be handed in the main AST tree. */ }
 
       // Trigger a single event as having occurred; return true/false base on whether this event
