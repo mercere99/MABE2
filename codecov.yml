@@ -1,0 +1,2 @@
+fixes:
+  - "tests/coverage_source/::tests/unit/"  # move path
