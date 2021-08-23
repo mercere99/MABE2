@@ -87,7 +87,7 @@ namespace mabe {
     }
 
     void BeforeExit() override {
-      std::cout << "Exiting." << std::endl;
+      std::cout << "==> Exiting." << std::endl;
     }
 
     void OnError(const std::string & msg) override {

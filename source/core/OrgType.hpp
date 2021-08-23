@@ -135,4 +135,6 @@ namespace mabe {
     virtual void SetupModule() { ; }
   };
 
-};
+}
+
+#endif
