@@ -100,6 +100,45 @@ namespace emp {
   }
 
   template <typename DATA_T, typename CONTAIN_T, typename FUN_T>
+  auto BuildCollectFun_MinID(FUN_T get_fun) {
+    return [get_fun](const CONTAIN_T & container) {
+      DATA_T min{};
+      if constexpr (std::is_arithmetic_v<DATA_T>) {
+        min = std::numeric_limits<DATA_T>::max();
+      }
+      else if constexpr (std::is_same_v<std::string, DATA_T>) {
+        min = std::string('~',22);   // '~' is ascii char 126 (last printable one.)
+      }
+      size_t id = 0;
+      size_t min_id = 0;
+      for (const auto & entry : container) {
+        const DATA_T cur_val = get_fun(entry);
+        if (cur_val < min) { min = cur_val; min_id = id; }
+        ++id;
+      }
+      return emp::to_string(min_id);
+    };
+  }
+
+  template <typename DATA_T, typename CONTAIN_T, typename FUN_T>
+  auto BuildCollectFun_MaxID(FUN_T get_fun) {
+    return [get_fun](const CONTAIN_T & container) {
+      DATA_T max{};
+      if constexpr (std::is_arithmetic_v<DATA_T>) {
+        max = std::numeric_limits<DATA_T>::lowest();
+      }
+      size_t id = 0;
+      size_t max_id = 0;
+      for (const auto & entry : container) {
+        const DATA_T cur_val = get_fun(entry);
+        if (cur_val > max) { max = cur_val; max_id = id; }
+        ++id;
+      }
+      return emp::to_string(max_id);
+    };
+  }
+
+  template <typename DATA_T, typename CONTAIN_T, typename FUN_T>
   auto BuildCollectFun_Mean(FUN_T get_fun) {
     return [get_fun](const CONTAIN_T & container) {
       if constexpr (std::is_arithmetic_v<DATA_T>) {
@@ -234,6 +273,16 @@ namespace emp {
     // Return the highest trait value.
     else if (type == "max") {
       return emp::BuildCollectFun_Max<DATA_T, CONTAIN_T>(get_fun);
+    }
+
+    // Return the lowest trait value.
+    else if (type == "min_id") {
+      return emp::BuildCollectFun_MinID<DATA_T, CONTAIN_T>(get_fun);
+    }
+
+    // Return the highest trait value.
+    else if (type == "max_id") {
+      return emp::BuildCollectFun_MaxID<DATA_T, CONTAIN_T>(get_fun);
     }
 
     // Return the average trait value.
