@@ -20,6 +20,7 @@
 #include <string>
 
 #include "emp/tools/string_utils.hpp"
+#include "emp/datastructs/vector_utils.hpp"
 
 namespace emp {
 
@@ -115,18 +116,18 @@ namespace emp {
     };
   }
 
-  //template <typename DATA_T, typename CONTAIN_T, typename FUN_T>
-  //auto BuildCollectFun_Median(FUN_T get_fun) {
-  //  return [get_fun](const CONTAIN_T & container) {
-  //    emp::vector<DATA_T> values(container.size());
-  //    size_t count = 0;
-  //    for (const auto & entry : container) {
-  //      values[count++] = get_fun(entry);
-  //    }
-  //    emp::Sort(values);
-  //    return emp::to_string( values[count/2] );
-  //  };
-  //}
+  template <typename DATA_T, typename CONTAIN_T, typename FUN_T>
+  auto BuildCollectFun_Median(FUN_T get_fun) {
+    return [get_fun](const CONTAIN_T & container) {
+      emp::vector<DATA_T> values(container.size());
+      size_t count = 0;
+      for (const auto & entry : container) {
+        values[count++] = get_fun(entry);
+      }
+      emp::Sort(values);
+      return emp::to_string( values[count/2] );
+    };
+  }
 
   template <typename DATA_T, typename CONTAIN_T, typename FUN_T>
   auto BuildCollectFun_Variance(FUN_T get_fun) {
@@ -242,9 +243,9 @@ namespace emp {
     }
 
     // Return the middle-most trait value.
-    //else if (type == "median") {
-    //  return emp::BuildCollectFun_Median<DATA_T, CONTAIN_T>(get_fun);
-    //}
+    else if (type == "median") {
+      return emp::BuildCollectFun_Median<DATA_T, CONTAIN_T>(get_fun);
+    }
 
     // Return the standard deviation of all trait values.
     else if (type == "variance") {
