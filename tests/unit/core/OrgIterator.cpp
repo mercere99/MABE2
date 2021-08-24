@@ -12,6 +12,7 @@
 #include "catch.hpp"
 // MABE
 #include "core/OrgIterator.hpp"
+#include "core/Population.hpp"
 
 
 TEST_CASE("OrgIterator_Placeholder", "[core]"){ ; }

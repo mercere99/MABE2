@@ -12,6 +12,7 @@
 #include "catch.hpp"
 // MABE
 #include "core/SigListener.hpp"
+#include "core/Population.hpp"
 
 
 TEST_CASE("SigListener_Placeholder", "[core]"){ ; }
