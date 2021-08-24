@@ -112,17 +112,6 @@ namespace mabe {
 
     // ----------- Helper Functions -----------
 
-    /// Call when ready to end a run.
-    void Exit() {
-      // Let all modules know that exit is about to occur.
-      before_exit_sig.Trigger();
-
-      // @CAO: Other local cleanup in case destructor is not run due to early termination?
-
-      // Exit as soon as possible.
-      exit_now = true;
-    }
-
     /// Print information on how to run the software.
     void ShowHelp() {
       std::cout << "MABE v" << VERSION << "\n"
@@ -135,7 +124,7 @@ namespace mabe {
       }
       on_help_sig.Trigger();
       std::cout << "Note: Settings and files are applied in the order provided.\n";
-      Exit();
+      exit_now = true;
     }
 
     /// List all of the available modules included in the current compilation.
@@ -149,7 +138,11 @@ namespace mabe {
       for (auto & info : GetModuleInfo()) {
         std::cout << "  " << info.name << " : " << info.desc << "\n";
       }          
-      Exit();
+      exit_now = true;;
+    }
+
+    void TraceEval(Organism & org, std::ostream & os) {
+      trace_eval_sig.Trigger(org, os);
     }
 
     /// Process all of the arguments that were passed in on the command line.
@@ -214,7 +207,7 @@ namespace mabe {
       for (size_t ud = 0; ud < num_updates && !exit_now; ud++) {
         Update();
       }
-      Exit();
+      before_exit_sig.Trigger();
     }
 
     // -- World Structure --
@@ -577,6 +570,7 @@ namespace mabe {
     bool OnError_IsTriggered(mod_ptr_t mod) { return on_error_sig.cur_mod == mod; };
     bool OnWarning_IsTriggered(mod_ptr_t mod) { return on_warning_sig.cur_mod == mod; };
     bool BeforeExit_IsTriggered(mod_ptr_t mod) { return before_exit_sig.cur_mod == mod; };
+    bool TraceEval_IsTriggered(mod_ptr_t mod) { return trace_eval_sig.cur_mod == mod; };
     bool OnHelp_IsTriggered(mod_ptr_t mod) { return on_help_sig.cur_mod == mod; };
     bool DoPlaceBirth_IsTriggered(mod_ptr_t mod) { return do_place_birth_sig.cur_mod == mod; };
     bool DoPlaceInject_IsTriggered(mod_ptr_t mod) { return do_place_inject_sig.cur_mod == mod; };
@@ -613,7 +607,7 @@ namespace mabe {
     // Add other built-in functions to the config file.
 
     // 'exit' should terminate a run.
-    std::function<int()> exit_fun = [this](){ Exit(); return 0; };
+    std::function<int()> exit_fun = [this](){ exit_now = true; return 0; };
     config.AddFunction("exit", exit_fun, "Exit from this MABE run.");
 
 
@@ -635,14 +629,14 @@ namespace mabe {
     config.AddFunction("print", print_fun, "Print out the provided variable.");
 
     // 'output' will collect data and write it to a file.
-    files.SetIODefaultFile();  // String manager should use files.
+    files.SetOutputDefaultFile();  // Stream manager should default to files for output.
     std::function<int(const std::string &, const std::string &, const std::string &)> output_fun =
       [this](const std::string & filename, const std::string & collection, std::string format) {
-        emp::vector<trait_fun_t> funs;                       ///< Functions to call each update.
-        const bool file_exists = files.Has(filename);        ///< Determine if file is already setup.
-        std::iostream & file = files.GetIOStream(filename);  ///< File to write to.
-        auto fun_it = file_fun_cache.find(format);
+        emp::vector<trait_fun_t> funs;                          ///< Functions to call each update.
+        const bool file_exists = files.Has(filename);           ///< Is file is already setup?
+        std::ostream & file = files.GetOutputStream(filename);  ///< File to write to.
         emp::remove_whitespace(format);
+        auto fun_it = file_fun_cache.find(format);
 
         // If we need headers, set them up!
         if (!file_exists) {
@@ -673,6 +667,7 @@ namespace mabe {
           // Insert the new entry into the cache and update the iterator.
           fun_it = file_fun_cache.insert({format, funs}).first;
         }
+        else funs = fun_it->second;
 
         // And, finally, print the data!
         Collection target_collect = FromString(collection);
@@ -684,7 +679,8 @@ namespace mabe {
 
         return 0;
       };
-    config.AddFunction("output", output_fun, "Print out the provided variable.");
+    config.AddFunction("output", output_fun,
+      "Print out the provided trait-based data; args: filename, collection, format.");
 
     // Add in built-in event triggers; these are used to indicate when events should happen.
     config.AddEventType("start");   // Triggered at the beginning of a run.
@@ -713,7 +709,7 @@ namespace mabe {
     if (gen_filename != "") {
       std::cout << "Generating file '" << gen_filename << "'." << std::endl;
       config.Write(gen_filename);
-      Exit();
+      exit_now = true;
     }
 
     // If any of the inital flags triggered an 'exit_now', do so.
@@ -761,13 +757,13 @@ namespace mabe {
       [this](const emp::vector<std::string> & in) {
         if (in.size() != 1) {
           std::cout << "'--generate' must be followed by a single filename.\n";
-          Exit();
+          exit_now = true;
         } else {
           // MABE Config files should be generated FROM a *.gen file, typically creating a *.mabe
           // file.  If output file is *.gen assume an error. (for now; override should be allowed)
           if (in[0].size() > 4 && in[0].substr(in[0].size()-4) == ".gen") {
             error_man.AddError("Error: generated file ", in[0], " not allowed to be *.gen; typically should end in *.mabe.");
-            Exit();
+            exit_now = true;
           }
           else gen_filename = in[0];
         }
@@ -784,7 +780,7 @@ namespace mabe {
     arg_set.emplace_back("--version", "-v", "              ", "Version ID of MABE",
       [this](const emp::vector<std::string> &){
         std::cout << "MABE v" << VERSION << "\n";
-        Exit();
+        exit_now = true;
       });
     arg_set.emplace_back("--verbose", "-+", "              ", "Output extra setup info",
       [this](const emp::vector<std::string> &){ verbose = true; } );
