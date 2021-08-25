@@ -1,9 +1,10 @@
-random_seed = 0;                // Seed for random number generator; use 0 to base on time.
+random_seed = 1;                // Seed for random number generator; use 0 to base on time.
 Population main_pop;            // Collection of organisms
 Population next_pop;            // Collection of organisms
 Value pop_size = 200;           // Local value variable.
 CommandLine cl {                // Handle basic I/O on the command line.
-  target_pop = "main_pop";      // Which population should we print stats about?
+  target = "main_pop";          // Which population should we print stats about?
+  format = "score:max,score:mean";// Column format to use in the file.
 }
 FileOutput output {             // Output collected data into a specified file.
   filename = "output.csv";      // Name of file for output data.
@@ -28,6 +29,7 @@ SelectTournament select_t {     // Select the top fitness organisms from random 
   num_tournaments = pop_size;   // Number of tournaments to run
   fitness_trait = "score";      // Which trait provides the fitness value to use?
 }
+
 GrowthPlacement place_next {    // Always appened births to the end of a population.
   target = "main_pop,next_pop"; // Population(s) to manage.
 }
