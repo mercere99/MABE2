@@ -513,6 +513,26 @@ namespace mabe {
         trait_filter.erase(0,1); // Erase the '=' and we are left with the string to match.
       }
 
+      // // If the filter begins with a $, convert the rest to an ID and use it.
+      // else if (trait_filter[0] == '$') {
+      //   // Make sure proper parentheses are used after $.
+      //   if (trait_filter[1] != '(' || trait_filter.back() != ')') {
+      //     error_man.AddError("$ specifier must be followed by parens; '", trait_filter, "' invalid.");
+      //   }
+
+      //   // Determine the function to be converted.
+      //   std::string new_filter = emp::string_get_range(trait_filter, 2, trait_filter.size()-1);
+      //   std::string new_name = emp::string_pop(trait_filter,':');
+
+      //   // Build the function that will give us the ID we need.
+      //   auto in_fun = BuildTraitFunction(new_name, new_filter);
+
+      //   return [get_fun,index](const CONTAIN_T & container) {
+      //     if (container.size() <= index) return "Nan"s;
+      //     return emp::to_string( get_fun( container.At(index) ) );
+      //   };
+      // }
+
       // Otherwise pass along to the BuildCollectFun with the correct type...
       auto result = is_numeric
                   ? emp::BuildCollectFun<double,      Collection>(trait_filter, get_double_fun)
@@ -681,6 +701,13 @@ namespace mabe {
       };
     config.AddFunction("output", output_fun,
       "Print out the provided trait-based data; args: filename, collection, format.");
+
+    // @CAO Should have this work with a Poplation variable, not by name.
+    std::function<int(const std::string &)> pop_size_fun =
+      [this](const std::string & pop_name) {
+        return GetPopulation(GetPopID(pop_name)).GetSize();
+      };
+    config.AddFunction("size", pop_size_fun, "Return the size of the target population.");
 
     // Add in built-in event triggers; these are used to indicate when events should happen.
     config.AddEventType("start");   // Triggered at the beginning of a run.
