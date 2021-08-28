@@ -33,211 +33,187 @@ namespace emp {
 
   // Count up the number of distinct values.
   template <typename DATA_T, typename CONTAIN_T, typename FUN_T>
-  auto BuildCollectFun_Unique(FUN_T get_fun) {
-    return [get_fun](const CONTAIN_T & container) {
-      std::unordered_set<DATA_T> vals;
-      for (const auto & entry : container) {
-        vals.insert( get_fun(entry) );
-      }
-      return emp::to_string(vals.size());
-    };
+  auto CollectFun_Unique(const CONTAIN_T & container, FUN_T get_fun) {
+    std::unordered_set<DATA_T> vals;
+    for (const auto & entry : container) {
+      vals.insert( get_fun(entry) );
+    }
+    return emp::to_string(vals.size());
   }
 
 
   template <typename DATA_T, typename CONTAIN_T, typename FUN_T>
-  auto BuildCollectFun_Mode(FUN_T get_fun) {
-    return [get_fun](const CONTAIN_T & container) {
-      std::map<DATA_T, size_t> vals;
-      for (const auto & entry : container) {
-        vals[ get_fun(entry) ]++;
-      }
-      DATA_T mode_val;
-      size_t mode_count = 0;
+  auto CollectFun_Mode(const CONTAIN_T & container, FUN_T get_fun) {
+    std::map<DATA_T, size_t> vals;
+    for (const auto & entry : container) {
+      vals[ get_fun(entry) ]++;
+    }
+    DATA_T mode_val;
+    size_t mode_count = 0;
 
-      for (auto [cur_val, cur_count] : vals) {
-        if (cur_count > mode_count) {
-          mode_count = cur_count;
-          mode_val = cur_val;
-        }
+    for (auto [cur_val, cur_count] : vals) {
+      if (cur_count > mode_count) {
+        mode_count = cur_count;
+        mode_val = cur_val;
       }
-      return emp::to_string(mode_val);
-    };
+    }
+    return emp::to_string(mode_val);
   }
 
   template <typename DATA_T, typename CONTAIN_T, typename FUN_T>
-  auto BuildCollectFun_Min(FUN_T get_fun) {
-    return [get_fun](const CONTAIN_T & container) {
-      DATA_T min{};
-      if constexpr (std::is_arithmetic_v<DATA_T>) {
-        min = std::numeric_limits<DATA_T>::max();
-      }
-      else if constexpr (std::is_same_v<std::string, DATA_T>) {
-        min = std::string('~',22);   // '~' is ascii char 126 (last printable one.)
-      }
-      for (const auto & entry : container) {
-        const DATA_T cur_val = get_fun(entry);
-        if (cur_val < min) min = cur_val;
-      }
-      return emp::to_string(min);
-    };
+  auto CollectFun_Min(const CONTAIN_T & container, FUN_T get_fun) {
+    DATA_T min{};
+    if constexpr (std::is_arithmetic_v<DATA_T>) {
+      min = std::numeric_limits<DATA_T>::max();
+    }
+    else if constexpr (std::is_same_v<std::string, DATA_T>) {
+      min = std::string('~',22);   // '~' is ascii char 126 (last printable one.)
+    }
+    for (const auto & entry : container) {
+      const DATA_T cur_val = get_fun(entry);
+      if (cur_val < min) min = cur_val;
+    }
+    return emp::to_string(min);
   }
 
   template <typename DATA_T, typename CONTAIN_T, typename FUN_T>
-  auto BuildCollectFun_Max(FUN_T get_fun) {
-    return [get_fun](const CONTAIN_T & container) {
-      DATA_T max{};
-      if constexpr (std::is_arithmetic_v<DATA_T>) {
-        max = std::numeric_limits<DATA_T>::lowest();
-      }
-      for (const auto & entry : container) {
-        const DATA_T cur_val = get_fun(entry);
-        if (cur_val > max) max = cur_val;
-      }
-      return emp::to_string(max);
-    };
+  auto CollectFun_Max(const CONTAIN_T & container, FUN_T get_fun) {
+    DATA_T max{};
+    if constexpr (std::is_arithmetic_v<DATA_T>) {
+      max = std::numeric_limits<DATA_T>::lowest();
+    }
+    for (const auto & entry : container) {
+      const DATA_T cur_val = get_fun(entry);
+      if (cur_val > max) max = cur_val;
+    }
+    return emp::to_string(max);
   }
 
   template <typename DATA_T, typename CONTAIN_T, typename FUN_T>
-  auto BuildCollectFun_MinID(FUN_T get_fun) {
-    return [get_fun](const CONTAIN_T & container) {
-      DATA_T min{};
-      if constexpr (std::is_arithmetic_v<DATA_T>) {
-        min = std::numeric_limits<DATA_T>::max();
-      }
-      else if constexpr (std::is_same_v<std::string, DATA_T>) {
-        min = std::string('~',22);   // '~' is ascii char 126 (last printable one.)
-      }
-      size_t id = 0;
-      size_t min_id = 0;
-      for (const auto & entry : container) {
-        const DATA_T cur_val = get_fun(entry);
-        if (cur_val < min) { min = cur_val; min_id = id; }
-        ++id;
-      }
-      return emp::to_string(min_id);
-    };
+  auto CollectFun_MinID(const CONTAIN_T & container, FUN_T get_fun) {
+    DATA_T min{};
+    if constexpr (std::is_arithmetic_v<DATA_T>) {
+      min = std::numeric_limits<DATA_T>::max();
+    }
+    else if constexpr (std::is_same_v<std::string, DATA_T>) {
+      min = std::string('~',22);   // '~' is ascii char 126 (last printable one.)
+    }
+    size_t id = 0;
+    size_t min_id = 0;
+    for (const auto & entry : container) {
+      const DATA_T cur_val = get_fun(entry);
+      if (cur_val < min) { min = cur_val; min_id = id; }
+      ++id;
+    }
+    return emp::to_string(min_id);
   }
 
   template <typename DATA_T, typename CONTAIN_T, typename FUN_T>
-  auto BuildCollectFun_MaxID(FUN_T get_fun) {
-    return [get_fun](const CONTAIN_T & container) {
-      DATA_T max{};
-      if constexpr (std::is_arithmetic_v<DATA_T>) {
-        max = std::numeric_limits<DATA_T>::lowest();
-      }
-      size_t id = 0;
-      size_t max_id = 0;
-      for (const auto & entry : container) {
-        const DATA_T cur_val = get_fun(entry);
-        if (cur_val > max) { max = cur_val; max_id = id; }
-        ++id;
-      }
-      return emp::to_string(max_id);
-    };
+  auto CollectFun_MaxID(const CONTAIN_T & container, FUN_T get_fun) {
+    DATA_T max{};
+    if constexpr (std::is_arithmetic_v<DATA_T>) {
+      max = std::numeric_limits<DATA_T>::lowest();
+    }
+    size_t id = 0;
+    size_t max_id = 0;
+    for (const auto & entry : container) {
+      const DATA_T cur_val = get_fun(entry);
+      if (cur_val > max) { max = cur_val; max_id = id; }
+      ++id;
+    }
+    return emp::to_string(max_id);
   }
 
   template <typename DATA_T, typename CONTAIN_T, typename FUN_T>
-  auto BuildCollectFun_Mean(FUN_T get_fun) {
-    return [get_fun](const CONTAIN_T & container) {
-      if constexpr (std::is_arithmetic_v<DATA_T>) {
-        double total = 0.0;
-        size_t count = 0;
-        for (const auto & entry : container) {
-          total += (double) get_fun(entry);
-          count++;
-        }
-        return emp::to_string( total / count );
-      }
-      return std::string{"nan"};
-    };
-  }
-
-  template <typename DATA_T, typename CONTAIN_T, typename FUN_T>
-  auto BuildCollectFun_Median(FUN_T get_fun) {
-    return [get_fun](const CONTAIN_T & container) {
-      emp::vector<DATA_T> values(container.size());
+  auto CollectFun_Mean(const CONTAIN_T & container, FUN_T get_fun) {
+    if constexpr (std::is_arithmetic_v<DATA_T>) {
+      double total = 0.0;
       size_t count = 0;
       for (const auto & entry : container) {
-        values[count++] = get_fun(entry);
+        total += (double) get_fun(entry);
+        count++;
       }
-      emp::Sort(values);
-      return emp::to_string( values[count/2] );
-    };
+      return emp::to_string( total / count );
+    }
+    return std::string{"nan"};
   }
 
   template <typename DATA_T, typename CONTAIN_T, typename FUN_T>
-  auto BuildCollectFun_Variance(FUN_T get_fun) {
-    return [get_fun](const CONTAIN_T & container) {
-      if constexpr (std::is_arithmetic_v<DATA_T>) {
-        double total = 0.0;
-        const double N = (double) container.size();
-        for (const auto & entry : container) {
-          total += (double) get_fun(entry);
-        }
-        double mean = total / N;
-        double var_total = 0.0;
-        for (const auto & entry : container) {
-          double cur_val = mean - (double) get_fun(entry);
-          var_total += cur_val * cur_val;
-        }
-
-        return emp::to_string( var_total / (N-1) );
-      }
-      return std::string{"nan"};
-    };
+  auto CollectFun_Median(const CONTAIN_T & container, FUN_T get_fun) {
+    emp::vector<DATA_T> values(container.size());
+    size_t count = 0;
+    for (const auto & entry : container) {
+      values[count++] = get_fun(entry);
+    }
+    emp::Sort(values);
+    return emp::to_string( values[count/2] );
   }
 
   template <typename DATA_T, typename CONTAIN_T, typename FUN_T>
-  auto BuildCollectFun_StandardDeviation(FUN_T get_fun) {
-    return [get_fun](const CONTAIN_T & container) {
-      if constexpr (std::is_arithmetic_v<DATA_T>) {
-        double total = 0.0;
-        const double N = (double) container.size();
-        for (const auto & entry : container) {
-          total += (double) get_fun(entry);
-        }
-        double mean = total / N;
-        double var_total = 0.0;
-        for (const auto & entry : container) {
-          double cur_val = mean - (double) get_fun(entry);
-          var_total += cur_val * cur_val;
-        }
-
-        return emp::to_string( sqrt(var_total / (N-1)) );
-      }
-      return std::string{"nan"};
-    };
-  }
-
-  template <typename DATA_T, typename CONTAIN_T, typename FUN_T>
-  auto BuildCollectFun_Sum(FUN_T get_fun) {
-    return [get_fun](const CONTAIN_T & container) {
-      if constexpr (std::is_arithmetic_v<DATA_T>) {
-        double total = 0.0;
-        for (const auto & entry : container) {
-          total += (double) get_fun(entry);
-        }
-        return emp::to_string( total );
-      }
-      return std::string{"nan"};
-    };
-  }
-
-  template <typename DATA_T, typename CONTAIN_T, typename FUN_T>
-  auto BuildCollectFun_Entropy(FUN_T get_fun) {
-    return [get_fun](const CONTAIN_T & container) {
-      std::map<DATA_T, size_t> vals;
+  auto CollectFun_Variance(const CONTAIN_T & container, FUN_T get_fun) {
+    if constexpr (std::is_arithmetic_v<DATA_T>) {
+      double total = 0.0;
+      const double N = (double) container.size();
       for (const auto & entry : container) {
-        vals[ get_fun(entry) ]++;
+        total += (double) get_fun(entry);
       }
-      const size_t N = container.size();
-      double entropy = 0.0;
-      for (auto [entry, count] : vals) {
-        double p = ((double) count) / (double) N;
-        entropy -= p * log2(p);
+      double mean = total / N;
+      double var_total = 0.0;
+      for (const auto & entry : container) {
+        double cur_val = mean - (double) get_fun(entry);
+        var_total += cur_val * cur_val;
       }
-      return emp::to_string(entropy);
-    };
+
+      return emp::to_string( var_total / (N-1) );
+    }
+    return std::string{"nan"};
+  }
+
+  template <typename DATA_T, typename CONTAIN_T, typename FUN_T>
+  auto CollectFun_StandardDeviation(const CONTAIN_T & container, FUN_T get_fun) {
+    if constexpr (std::is_arithmetic_v<DATA_T>) {
+      double total = 0.0;
+      const double N = (double) container.size();
+      for (const auto & entry : container) {
+        total += (double) get_fun(entry);
+      }
+      double mean = total / N;
+      double var_total = 0.0;
+      for (const auto & entry : container) {
+        double cur_val = mean - (double) get_fun(entry);
+        var_total += cur_val * cur_val;
+      }
+
+      return emp::to_string( sqrt(var_total / (N-1)) );
+    }
+    return std::string{"nan"};
+  }
+
+  template <typename DATA_T, typename CONTAIN_T, typename FUN_T>
+  auto CollectFun_Sum(const CONTAIN_T & container, FUN_T get_fun) {
+    if constexpr (std::is_arithmetic_v<DATA_T>) {
+      double total = 0.0;
+      for (const auto & entry : container) {
+        total += (double) get_fun(entry);
+      }
+      return emp::to_string( total );
+    }
+    return std::string{"nan"};
+  }
+
+  template <typename DATA_T, typename CONTAIN_T, typename FUN_T>
+  auto CollectFun_Entropy(const CONTAIN_T & container, FUN_T get_fun) {
+    std::map<DATA_T, size_t> vals;
+    for (const auto & entry : container) {
+      vals[ get_fun(entry) ]++;
+    }
+    const size_t N = container.size();
+    double entropy = 0.0;
+    for (auto [entry, count] : vals) {
+      double p = ((double) count) / (double) N;
+      entropy -= p * log2(p);
+    }
+    return emp::to_string(entropy);
   }
 
   template <typename DATA_T, typename CONTAIN_T, typename FUN_T>
@@ -257,62 +233,86 @@ namespace emp {
 
     // Return the number of distinct values found in this trait.
     else if (type == "unique" || type == "richness") {
-      return emp::BuildCollectFun_Unique<DATA_T, CONTAIN_T>(get_fun);
+      return [get_fun](const CONTAIN_T & container) {
+        return emp::CollectFun_Unique<DATA_T, CONTAIN_T>(container, get_fun);
+      };
     }
 
     // Return the most common value found for this trait.
     else if (type == "mode" || type == "dom" || type == "dominant") {
-      return emp::BuildCollectFun_Mode<DATA_T, CONTAIN_T>(get_fun);
+      return [get_fun](const CONTAIN_T & container) {
+        return emp::CollectFun_Mode<DATA_T, CONTAIN_T>(container, get_fun);
+      };
     }
 
     // Return the lowest trait value.
     else if (type == "min") {
-      return emp::BuildCollectFun_Min<DATA_T, CONTAIN_T>(get_fun);
+      return [get_fun](const CONTAIN_T & container) {
+        return emp::CollectFun_Min<DATA_T, CONTAIN_T>(container, get_fun);
+      };
     }
 
     // Return the highest trait value.
     else if (type == "max") {
-      return emp::BuildCollectFun_Max<DATA_T, CONTAIN_T>(get_fun);
+      return [get_fun](const CONTAIN_T & container) {
+        return emp::CollectFun_Max<DATA_T, CONTAIN_T>(container, get_fun);
+      };
     }
 
     // Return the lowest trait value.
     else if (type == "min_id") {
-      return emp::BuildCollectFun_MinID<DATA_T, CONTAIN_T>(get_fun);
+      return [get_fun](const CONTAIN_T & container) {
+        return emp::CollectFun_MinID<DATA_T, CONTAIN_T>(container, get_fun);
+      };
     }
 
     // Return the highest trait value.
     else if (type == "max_id") {
-      return emp::BuildCollectFun_MaxID<DATA_T, CONTAIN_T>(get_fun);
+      return [get_fun](const CONTAIN_T & container) {
+        return emp::CollectFun_MaxID<DATA_T, CONTAIN_T>(container, get_fun);
+      };
     }
 
     // Return the average trait value.
     else if (type == "ave" || type == "mean") {
-      return emp::BuildCollectFun_Mean<DATA_T, CONTAIN_T>(get_fun);
+      return [get_fun](const CONTAIN_T & container) {
+        return emp::CollectFun_Mean<DATA_T, CONTAIN_T>(container, get_fun);
+      };
     }
 
     // Return the middle-most trait value.
     else if (type == "median") {
-      return emp::BuildCollectFun_Median<DATA_T, CONTAIN_T>(get_fun);
+      return [get_fun](const CONTAIN_T & container) {
+        return emp::CollectFun_Median<DATA_T, CONTAIN_T>(container, get_fun);
+      };
     }
 
     // Return the standard deviation of all trait values.
     else if (type == "variance") {
-      return emp::BuildCollectFun_Variance<DATA_T, CONTAIN_T>(get_fun);
+      return [get_fun](const CONTAIN_T & container) {
+        return emp::CollectFun_Variance<DATA_T, CONTAIN_T>(container, get_fun);
+      };
     }
 
     // Return the standard deviation of all trait values.
     else if (type == "stddev") {
-      return emp::BuildCollectFun_StandardDeviation<DATA_T, CONTAIN_T>(get_fun);
+      return [get_fun](const CONTAIN_T & container) {
+        return emp::CollectFun_StandardDeviation<DATA_T, CONTAIN_T>(container, get_fun);
+      };
     }
 
     // Return the total of all trait values.
     else if (type == "sum" || type=="total") {
-      return emp::BuildCollectFun_Sum<DATA_T, CONTAIN_T>(get_fun);
+      return [get_fun](const CONTAIN_T & container) {
+        return emp::CollectFun_Sum<DATA_T, CONTAIN_T>(container, get_fun);
+      };
     }
 
     // Return the entropy of values for this trait.
     else if (type == "entropy") {
-      return emp::BuildCollectFun_Entropy<DATA_T, CONTAIN_T>(get_fun);
+      return [get_fun](const CONTAIN_T & container) {
+        return emp::CollectFun_Entropy<DATA_T, CONTAIN_T>(container, get_fun);
+      };
     }
 
     return std::function<std::string(const CONTAIN_T &)>();
