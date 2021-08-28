@@ -23,13 +23,11 @@
 
 namespace emp {
 
-  // Count up the number of distinct values.
-  template <typename DATA_T, typename CONTAIN_T, typename FUN_T>
-  auto BuildCollectFun_Index(FUN_T get_fun, const size_t index) {
-    return [get_fun,index](const CONTAIN_T & container) {
-      if (container.size() <= index) return "Nan"s;
-      return emp::to_string( get_fun( container.At(index) ) );
-    };
+  // Return the value at a specified index.
+  template <typename CONTAIN_T, typename FUN_T>
+  std::string CollectFun_Index(const CONTAIN_T & container, FUN_T get_fun, const size_t index) {
+    if (container.size() <= index) return "Nan"s;
+    return emp::to_string( get_fun( container.At(index) ) );
   }
 
 
@@ -252,7 +250,9 @@ namespace emp {
     // Return the index if a simple number was provided.
     if (emp::is_digits(type)) {
       size_t index = emp::from_string<size_t>(type);
-      return emp::BuildCollectFun_Index<DATA_T, CONTAIN_T>(get_fun, index);
+      return [get_fun,index](const CONTAIN_T & container) {
+        return emp::CollectFun_Index<CONTAIN_T>(container, get_fun, index);
+      };
     }
 
     // Return the number of distinct values found in this trait.
