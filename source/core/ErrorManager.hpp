@@ -58,12 +58,10 @@ namespace mabe {
     template <typename... Ts>
     void AddError(Ts &&... args) {
       // If we are in debug mode, trigger the error immediately.
-      // turn this off so that we can test - TEMPORARY FIX
       #ifndef NDEBUG
         emp_error(args...);
       #endif
       // Otherwise store it to deal with it when requested.
-       
       errors.push_back( emp::to_string( std::forward<Ts>(args)... ));
 
       // If active, deal with it immediately.
