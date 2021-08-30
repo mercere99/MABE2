@@ -33,24 +33,24 @@ TEST_CASE("EvalPacking_Evaluate", "[Evaluate/static]"){
     // signature: Evaluate(bits, min_padding, package_size);
 
     // Package of ones is larger than what was expected 
-    REQUIRE(packing.Evaluate(bits, 2, 3) == 0);
-    REQUIRE(packing.Evaluate(bits4, 0, 20) == 0);
+    CHECK(packing.Evaluate(bits, 2, 3) == 0);
+    CHECK(packing.Evaluate(bits4, 0, 20) == 0);
     // Succesful package of ones 
-    REQUIRE(packing.Evaluate(bits1, 4, 4) == 1);
+    CHECK(packing.Evaluate(bits1, 4, 4) == 1);
     // Succesful package of ones, no padding required if starting at beginning 
-    REQUIRE(packing.Evaluate(bits2, 2, 4) == 2);
+    CHECK(packing.Evaluate(bits2, 2, 4) == 2);
     // Interior padding (of the right length) can be reused
-    REQUIRE(packing.Evaluate(bits3, 1, 3) == 2);
-    REQUIRE(packing.Evaluate(bits3, 2, 3) == 0);
+    CHECK(packing.Evaluate(bits3, 1, 3) == 2);
+    CHECK(packing.Evaluate(bits3, 2, 3) == 0);
     // Works even with padding == 0
-    REQUIRE(packing.Evaluate(bits4, 0, 3) == 3);
+    CHECK(packing.Evaluate(bits4, 0, 3) == 3);
     // Code runs even with 0-length packages
-    REQUIRE(packing.Evaluate(bits4, 3, 0) == 0);
+    CHECK(packing.Evaluate(bits4, 3, 0) == 0);
     // Ensure extra padding is acceptable
-    REQUIRE(packing.Evaluate(bits1, 3, 4) == 1);
-    REQUIRE(packing.Evaluate(bits1, 2, 4) == 1);
-    REQUIRE(packing.Evaluate(bits1, 1, 4) == 1);
+    CHECK(packing.Evaluate(bits1, 3, 4) == 1);
+    CHECK(packing.Evaluate(bits1, 2, 4) == 1);
+    CHECK(packing.Evaluate(bits1, 1, 4) == 1);
     // Succesful package of ones, no padding required if package ends at end of bitstring 
-    REQUIRE(packing.Evaluate(bits6, 3, 2) == 1);
+    CHECK(packing.Evaluate(bits6, 3, 2) == 1);
   }
 }

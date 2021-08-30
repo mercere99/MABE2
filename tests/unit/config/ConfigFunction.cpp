@@ -24,14 +24,14 @@ TEST_CASE("ConfigFunction_NoParameters", "[config]"){
 
     // Create a config function and check it's set up 
     mabe::ConfigFunction config_func1("func1 name", "simple int function", nullptr);
-    REQUIRE(config_func1.GetName() == "func1 name"); 
-    REQUIRE(config_func1.GetDesc() == "simple int function"); 
-    REQUIRE(config_func1.GetScope() == nullptr); 
+    CHECK(config_func1.GetName() == "func1 name"); 
+    CHECK(config_func1.GetDesc() == "simple int function"); 
+    CHECK(config_func1.GetScope() == nullptr); 
 
     // Try and SetFunction (no params) with no parameters passed in
     config_func1.SetFunction(func1);  
-    REQUIRE(config_func1.IsFunction());
-    REQUIRE(config_func1.Call(args1));  */
+    CHECK(config_func1.IsFunction());
+    CHECK(config_func1.Call(args1));  */
   }
 }
 
@@ -55,14 +55,14 @@ TEST_CASE("ConfigFunction_OneParameter", "[config]") {
 
         // Create a ConfigFunction and check setup
         mabe::ConfigFunction config_func1("func1 name", "what it does", nullptr); 
-        REQUIRE(config_func1.GetName() == "func1 name"); 
-        REQUIRE(config_func1.GetDesc() == "what it does"); 
-        REQUIRE(config_func1.GetScope() == nullptr); 
+        CHECK(config_func1.GetName() == "func1 name"); 
+        CHECK(config_func1.GetDesc() == "what it does"); 
+        CHECK(config_func1.GetScope() == nullptr); 
 
         // Set the function we made
         config_func1.SetFunction(func1);
-        REQUIRE(config_func1.IsFunction()); 
-        //REQUIRE(config_func1.Call(args) == 7); 
+        CHECK(config_func1.IsFunction()); 
+        //CHECK(config_func1.Call(args) == 7); 
 
     }
 }
