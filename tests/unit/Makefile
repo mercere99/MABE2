@@ -1,4 +1,4 @@
-DIR_NAMES= config core evaluate analyze interface placement
+DIR_NAMES= config core evaluate analyze interface placement schema
 
 default: test
 
