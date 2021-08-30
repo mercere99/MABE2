@@ -3,8 +3,8 @@
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
  *  @date 2019-2021.
  *
- *  @file EvalNK.cpp 
- *  @brief Placeholder test file for EvalNK.hpp 
+ *  @file EvalDiagnostic.cpp 
+ *  @brief Placeholder test file for EvalDiagnostic.hpp 
  */
 
 // CATCH
@@ -13,10 +13,10 @@
 // Empirical tools
 #include "emp/base/vector.hpp"
 // MABE
-#include "evaluate/static/EvalNK.hpp"
+#include "evaluate/static/EvalDiagnostic.hpp"
 
 
-TEST_CASE("EvalNK_Placeholder", "[evaluate/static]"){
+TEST_CASE("EvalDiagnostic_Placeholder", "[evaluate/static]"){
   {
   }
 }

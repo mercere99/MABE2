@@ -1,4 +1,4 @@
-TEST_NAMES= EvalCountBits EvalDiagnostic EvalMatchBits EvalNK EvalPacking EvalRoyalRoad
+TEST_NAMES= EvalMancala
 
 MABE_DIR= ../../../../source
 EMP_DIR= ../../../../source/third-party/empirical

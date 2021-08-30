@@ -1,4 +1,4 @@
-DIR_NAMES= static
+DIR_NAMES= games static  
 
 default: test
 
