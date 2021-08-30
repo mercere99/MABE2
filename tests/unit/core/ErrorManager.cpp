@@ -83,6 +83,8 @@ TEST_CASE("ErrorManager_Getters", "[core]"){
 
     REQUIRE(manager01.GetErrors().empty());
     REQUIRE(manager01.GetNumErrors() == 0);
+    REQUIRE(manager01.GetWarnings().empty());
+    REQUIRE(manager01.GetNumWarnings() == 0);
   }
 }
 
@@ -145,13 +147,12 @@ TEST_CASE("ErrorManager_Active", "[core]"){
     REQUIRE(manager.GetWarnings().size() == 2);
     REQUIRE(manager.GetWarnings()[1] == "Warning02");
 
-    // Clear will clear all errors but _not_ warnings (bug?)
+    // Clear will clear all errors and warnings 
     manager.Clear();
     REQUIRE(manager.GetNumErrors() == 0);
     REQUIRE(manager.GetErrors().empty());
-    REQUIRE(manager.GetNumWarnings() == 2);
-    REQUIRE(manager.GetWarnings().size() == 2);
-    REQUIRE(manager.GetWarnings()[1] == "Warning02");
+    REQUIRE(manager.GetNumWarnings() == 0);
+    REQUIRE(manager.GetWarnings().empty());
 
     // Update error and warning callback functions
     has_error_been_thrown = false;
@@ -190,7 +191,7 @@ TEST_CASE("ErrorManager_Active", "[core]"){
     REQUIRE(error_callback_count == 1);
     REQUIRE(warning_callback_count == 1);
     REQUIRE(manager.GetNumErrors() == 1);
-    REQUIRE(manager.GetNumWarnings() == 3); // Fix if Clear() is bugged
+    REQUIRE(manager.GetNumWarnings() == 1);
 
     has_error_been_thrown = false;
     has_warning_been_thrown = false;
@@ -211,7 +212,7 @@ TEST_CASE("ErrorManager_Active", "[core]"){
     REQUIRE(error_callback_count == 0);
     REQUIRE(warning_callback_count == 0);
     REQUIRE(manager.GetNumErrors() == 2);
-    REQUIRE(manager.GetNumWarnings() == 4); // Fix if Clear() is bugged
+    REQUIRE(manager.GetNumWarnings() == 2);
 
     // Flush should call the callback for errors/warnings that *have not been already seen*
     manager.Flush();
@@ -220,7 +221,7 @@ TEST_CASE("ErrorManager_Active", "[core]"){
     REQUIRE(error_callback_count == 1);
     REQUIRE(warning_callback_count == 1);
     REQUIRE(manager.GetNumErrors() == 2);
-    REQUIRE(manager.GetNumWarnings() == 4); // Fix if Clear() is bugged
+    REQUIRE(manager.GetNumWarnings() == 2);
 
     // If we're in debug mode, AddError() should instantly call emp_error
 #undef NDEBUG
@@ -302,7 +303,7 @@ TEST_CASE("ErrorManager_Inactive", "[core]"){
     REQUIRE_FALSE(has_error_been_thrown);
     REQUIRE_FALSE(has_warning_been_thrown);
     
-    // Clear() should clear all errors, but *not* warnings (bug?)
+    // Clear() should clear all errors and warnings
     manager.Deactivate();
     manager.AddError("Error01");
     manager.AddWarning("Warning01");
@@ -314,6 +315,6 @@ TEST_CASE("ErrorManager_Inactive", "[core]"){
     REQUIRE_FALSE(has_error_been_thrown);
     REQUIRE_FALSE(has_warning_been_thrown);
     REQUIRE(manager.GetNumErrors() == 0);
-    REQUIRE(manager.GetNumWarnings() == 3);
+    REQUIRE(manager.GetNumWarnings() == 0);
   }
 }

@@ -108,6 +108,7 @@ namespace mabe {
     void Clear() {
       errors.resize(0);
       next_error = 0;
+      warnings.resize(0);
       next_warning = 0;
     }
 
