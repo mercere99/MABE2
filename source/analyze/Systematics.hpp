@@ -30,15 +30,15 @@
 #include <unordered_set>
 #include <map>
 
-#include "../base/Ptr.hpp"
-#include "../control/Signal.hpp"
-#include "../data/DataManager.hpp"
-#include "../data/DataNode.hpp"
-#include "../datastructs/map_utils.h"
-#include "../datastructs/set_utils.h"
-#include "../math/info_theory.h"
-#include "../math/stats.h"
-#include "../tools/string_utils.h"
+#include "emp/base/Ptr.hpp"
+#include "emp/control/Signal.hpp"
+#include "emp/data/DataManager.hpp"
+#include "emp/data/DataNode.hpp"
+#include "emp/datastructs/map_utils.hpp"
+#include "emp/datastructs/set_utils.hpp"
+#include "emp/math/info_theory.hpp"
+#include "emp/math/stats.hpp"
+#include "emp/tools/string_utils.hpp"
 
 namespace emp {
 
