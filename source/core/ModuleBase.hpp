@@ -56,6 +56,8 @@
  *       : Run immediately before MABE is about to exit.
  *     OnHelp()
  *       : Run when the --help option is called at startup.
+ *     TraceEval(Organism & org, ostream & out_stream)
+ *       : Print a trace of the evaluation of an organism.
  *     ...
  * 
  *    - Various Do* functions run in modules until one of them returns a valid answer.
@@ -142,6 +144,7 @@ namespace mabe {
       SIG_OnWarning,
       SIG_BeforeExit,
       SIG_OnHelp,
+      SIG_TraceEval,
       SIG_DoPlaceBirth,
       SIG_DoPlaceInject,
       SIG_DoFindNeighbor,
@@ -256,6 +259,7 @@ namespace mabe {
     virtual void OnWarning(const std::string &) = 0;
     virtual void BeforeExit() = 0;
     virtual void OnHelp() = 0;
+    virtual void TraceEval(Organism &, std::ostream &) = 0;
 
     virtual OrgPosition DoPlaceBirth(Organism &, OrgPosition, Population &) = 0;
     virtual OrgPosition DoPlaceInject(Organism &, Population &) = 0;
@@ -282,6 +286,7 @@ namespace mabe {
     virtual bool OnWarning_IsTriggered() = 0;
     virtual bool BeforeExit_IsTriggered() = 0;
     virtual bool OnHelp_IsTriggered() = 0;
+    virtual bool TraceEval_IsTriggered() = 0;
 
     virtual bool DoPlaceBirth_IsTriggered() = 0;
     virtual bool DoPlaceInject_IsTriggered() = 0;
