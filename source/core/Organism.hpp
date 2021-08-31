@@ -29,14 +29,14 @@
 
 #include "emp/base/assert.hpp"
 #include "emp/base/vector.hpp"
+#include "emp/data/AnnotatedType.hpp"
 #include "emp/tools/string_utils.hpp"
 
-#include "AnnotatedType.hpp"
 #include "OrgType.hpp"
 
 namespace mabe {
 
-  class Organism : public OrgType, public AnnotatedType {
+  class Organism : public OrgType, public emp::AnnotatedType {
   public:
     Organism(ModuleBase & _man) : OrgType(_man) { ; }
     virtual ~Organism() {}
