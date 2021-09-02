@@ -1,4 +1,4 @@
-random_seed = 0;                // Seed for random number generator; use 0 to base on time.
+random_seed = 1000              // Seed for random number generator; use 0 to base on time.
 Population main_pop;            // Collection of organisms
 Population next_pop;            // Collection of organisms
 

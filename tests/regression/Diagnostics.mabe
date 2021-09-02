@@ -1,4 +1,4 @@
-random_seed = 0;                // Seed for random number generator; use 0 to base on time.
+random_seed = 2000;             // Seed for random number generator; use 0 to base on time.
 Value pop_size = 512;
 Value num_gens = 100;
 
