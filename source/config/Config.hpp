@@ -90,14 +90,16 @@ namespace mabe {
       std::function<ConfigType & (const std::string &)> init_fun;
     };
 
-  protected:
-    std::string filename;             ///< Source for for code to generate.
-    ConfigLexer lexer;                ///< Lexer to process input code.
-    emp::vector<emp::Token> tokens;   ///< Tokenized version of input file.
-    ASTNode_Block ast_root;           ///< Abstract syntax tree version of input file.
-    bool debug = false;               ///< Should we print full debug information?
+    using pos_t = emp::TokenStream::Iterator;
 
-    ConfigScope root_scope;           ///< All variables from the root level.
+  protected:
+    std::string filename;       ///< Source for for code to generate.
+    ConfigLexer lexer;          ///< Lexer to process input code.
+    emp::TokenStream tokens;    ///< Tokenized version of input file.
+    ASTNode_Block ast_root;     ///< Abstract syntax tree version of input file.
+    bool debug = false;         ///< Should we print full debug information?
+
+    ConfigScope root_scope;     ///< All variables from the root level.
 
     /// A map of names to event groups.
     std::map<std::string, ConfigEvents> events_map;
@@ -109,38 +111,38 @@ namespace mabe {
     std::unordered_map<std::string, size_t> precedence_map;
 
     // -- Helper functions --
-    bool HasToken(int pos) const { return (pos >= 0) && (pos < (int) tokens.size()); }
-    bool IsID(int pos) const { return HasToken(pos) && lexer.IsID(tokens[pos]); }
-    bool IsNumber(int pos) const { return HasToken(pos) && lexer.IsNumber(tokens[pos]); }
-    bool IsChar(int pos) const { return HasToken(pos) && lexer.IsChar(tokens[pos]); }
-    bool IsString(int pos) const { return HasToken(pos) && lexer.IsString(tokens[pos]); }
-    bool IsDots(int pos) const { return HasToken(pos) && lexer.IsDots(tokens[pos]); }
+    bool IsID(pos_t pos) const { return pos.IsValid() && lexer.IsID(*pos); }
+    bool IsNumber(pos_t pos) const { return pos.IsValid() && lexer.IsNumber(*pos); }
+    bool IsChar(pos_t pos) const { return pos.IsValid() && lexer.IsChar(*pos); }
+    bool IsString(pos_t pos) const { return pos.IsValid() && lexer.IsString(*pos); }
+    bool IsDots(pos_t pos) const { return pos.IsValid() && lexer.IsDots(*pos); }
 
-    bool IsType(int pos) const { return HasToken(pos) && emp::Has(type_map, tokens[pos].lexeme); }
+    bool IsType(pos_t pos) const { return pos.IsValid() && emp::Has(type_map, pos->lexeme); }
 
-    char AsChar(int pos) const {
-      return (HasToken(pos) && lexer.IsSymbol(tokens[pos])) ? tokens[pos].lexeme[0] : 0;
+    char AsChar(pos_t pos) const {
+      return (pos.IsValid() && lexer.IsSymbol(*pos)) ? pos->lexeme[0] : 0;
     }
-    const std::string & AsLexeme(int pos) const {
-      return HasToken(pos) ? tokens[pos].lexeme : emp::empty_string();
+    const std::string & AsLexeme(pos_t pos) const {
+      return pos.IsValid() ? pos->lexeme : emp::empty_string();
     }
-    size_t GetSize(int pos) const { return HasToken(pos) ? tokens[pos].lexeme.size() : 0; }
+    size_t GetSize(pos_t pos) const { return pos.IsValid() ? pos->lexeme.size() : 0; }
 
-    std::string ConcatLexemes(size_t start_pos, size_t end_pos) const {
+    std::string ConcatLexemes(pos_t start_pos, pos_t end_pos) const {
       emp_assert(start_pos <= end_pos);
-      emp_assert(end_pos <= tokens.size());
-      std::stringstream ss;    
-      for (size_t i = start_pos; i < end_pos; i++) {
-        if (i > start_pos) ss << " ";  // No space with labels.
-        ss << tokens[i].lexeme;
-        if (tokens[i].lexeme == ";") ss << " "; // Extra space after semi-colons for now...
+      emp_assert(start_pos.IsValid() && end_pos.IsValid());
+      std::stringstream ss;
+      while (start_pos < end_pos) {
+        ss << start_pos->lexeme;
+        if (start_pos != end_pos) ss << " ";     // spaces between tokens.
+        if (start_pos->lexeme == ";") ss << " "; // extra space after semi-colons for now...
+        ++start_pos;
       }
       return ss.str();
     }
 
     template <typename... Ts>
-    void Error(int pos, Ts... args) const {
-      std::cout << "Error (line " << tokens[pos].line_id << "): " << emp::to_string(std::forward<Ts>(args)...) << "\nAborting." << std::endl;
+    void Error(pos_t pos, Ts... args) const {
+      std::cout << "Error (line " << pos->line_id << "): " << emp::to_string(std::forward<Ts>(args)...) << "\nAborting." << std::endl;
       exit(1);
     }
 
@@ -150,40 +152,40 @@ namespace mabe {
     }
 
     template <typename... Ts>
-    void Require(bool result, int pos, Ts... args) const {
+    void Require(bool result, pos_t pos, Ts... args) const {
       if (!result) { Error(pos, std::forward<Ts>(args)...); }
     }
     template <typename... Ts>
-    void RequireID(int pos, Ts... args) const {
+    void RequireID(pos_t pos, Ts... args) const {
       if (!IsID(pos)) { Error(pos, std::forward<Ts>(args)...); }
     }
     template <typename... Ts>
-    void RequireNumber(int pos, Ts... args) const {
+    void RequireNumber(pos_t pos, Ts... args) const {
       if (!IsNumber(pos)) { Error(pos, std::forward<Ts>(args)...); }
     }
     template <typename... Ts>
-    void RequireString(int pos, Ts... args) const {
+    void RequireString(pos_t pos, Ts... args) const {
       if (!IsString(pos)) { Error(pos, std::forward<Ts>(args)...); }
     }
     template <typename... Ts>
-    void RequireChar(char req_char, int pos, Ts... args) const {
+    void RequireChar(char req_char, pos_t pos, Ts... args) const {
       if (AsChar(pos) != req_char) { Error(pos, std::forward<Ts>(args)...); }
     }
     template <typename... Ts>
-    void RequireLexeme(const std::string & req_str, int pos, Ts... args) const {
+    void RequireLexeme(const std::string & req_str, pos_t pos, Ts... args) const {
       if (AsLexeme(pos) != req_str) { Error(pos, std::forward<Ts>(args)...); }
     }
 
     /// Load a variable name from the provided scope.
     /// If create_ok is true, create any variables that we don't find.  Otherwise continue the
     /// search for them in successively outer (lower) scopes.
-    [[nodiscard]] emp::Ptr<ASTNode_Leaf> ParseVar(size_t & pos,
-                                                   ConfigScope & cur_scope,
-                                                   bool create_ok=false,
-                                                   bool scan_scopes=true);
+    [[nodiscard]] emp::Ptr<ASTNode_Leaf> ParseVar(pos_t & pos,
+                                                  ConfigScope & cur_scope,
+                                                  bool create_ok=false,
+                                                  bool scan_scopes=true);
 
     /// Load a value from the provided scope, which can come from a variable or a literal.
-    [[nodiscard]] emp::Ptr<ASTNode> ParseValue(size_t & pos, ConfigScope & cur_scope);
+    [[nodiscard]] emp::Ptr<ASTNode> ParseValue(pos_t & pos, ConfigScope & cur_scope);
 
     /// Calculate the result of the provided operation on two computed entries.
     [[nodiscard]] emp::Ptr<ASTNode> ProcessOperation(const std::string & symbol,
@@ -191,23 +193,23 @@ namespace mabe {
                                        emp::Ptr<ASTNode> value2);
 
     /// Calculate a full expression found in a token sequence, using the provided scope.
-    [[nodiscard]] emp::Ptr<ASTNode> ParseExpression(size_t & pos, ConfigScope & cur_scope, size_t prec_limit=1000);
+    [[nodiscard]] emp::Ptr<ASTNode> ParseExpression(pos_t & pos, ConfigScope & cur_scope, size_t prec_limit=1000);
 
     /// Parse the declaration of a variable and return the newly created ConfigEntry
-    ConfigEntry & ParseDeclaration(size_t & pos, ConfigScope & scope);
+    ConfigEntry & ParseDeclaration(pos_t & pos, ConfigScope & scope);
 
     /// Parse an event description.
-    emp::Ptr<ASTNode> ParseEvent(size_t & pos, ConfigScope & scope);
+    emp::Ptr<ASTNode> ParseEvent(pos_t & pos, ConfigScope & scope);
 
     /// Parse the next input in the specified Struct.  A statement can be a variable declaration,
     /// an expression, or an event.
-    [[nodiscard]] emp::Ptr<ASTNode> ParseStatement(size_t & pos, ConfigScope & scope);
+    [[nodiscard]] emp::Ptr<ASTNode> ParseStatement(pos_t & pos, ConfigScope & scope);
 
     /// Keep parsing statments until there aren't any more or we leave this scope. 
-    [[nodiscard]] emp::Ptr<ASTNode_Block> ParseStatementList(size_t & pos, ConfigScope & scope) {
-      Debug("Running ParseStatementList(", pos, ":('", AsLexeme(pos), "'),", scope.GetName(), ")");
+    [[nodiscard]] emp::Ptr<ASTNode_Block> ParseStatementList(pos_t & pos, ConfigScope & scope) {
+      Debug("Running ParseStatementList(", pos.GetIndex(), ":('", AsLexeme(pos), "'),", scope.GetName(), ")");
       auto cur_block = emp::NewPtr<ASTNode_Block>();
-      while (pos < tokens.size() && AsChar(pos) != '}') {
+      while (pos.IsValid() && AsChar(pos) != '}') {
         // Parse each statement in the file.
         emp::Ptr<ASTNode> statement_node = ParseStatement(pos, scope);
 
@@ -326,7 +328,7 @@ namespace mabe {
       std::ifstream file(filename);           // Load the provided file.
       tokens = lexer.Tokenize(file);          // Convert to more-usable tokens.
       file.close();                           // Close the file (now that it's converted)
-      size_t pos = 0;                         // Start at the beginning of the file.
+      pos_t pos = tokens.begin();             // Start at the beginning of the file.
 
       // Parse and run the program, starting from the outer scope.
       auto cur_block = ParseStatementList(pos, root_scope);
@@ -345,7 +347,7 @@ namespace mabe {
     void LoadStatements(const emp::vector<std::string> & statements) {
       Debug("Running LoadStatements()");
       tokens = lexer.Tokenize(statements);    // Convert to more-usable tokens.
-      size_t pos = 0;                         // Start at the beginning of the file.
+      pos_t pos = tokens.begin();             // Start at the beginning of the file.
 
       // Parse and run the program, starting from the outer scope.
       auto cur_block = ParseStatementList(pos, root_scope);
@@ -353,6 +355,11 @@ namespace mabe {
 
       // Store this AST onto the full set we're working with.
       ast_root.AddChild(cur_block);
+    }
+
+    // Load the provided statement, run it, convert the result to a string, and return just that string.
+    std::string Eval(const std::string & statement) {
+      return statement + "@CAO IMPLEMENT!!!!";
     }
 
 
@@ -378,11 +385,11 @@ namespace mabe {
 
 
   // Load a variable name from the provided scope.
-  emp::Ptr<ASTNode_Leaf> Config::ParseVar(size_t & pos,
-                                           ConfigScope & cur_scope,
-                                           bool create_ok, bool scan_scopes)
+  emp::Ptr<ASTNode_Leaf> Config::ParseVar(pos_t & pos,
+                                          ConfigScope & cur_scope,
+                                          bool create_ok, bool scan_scopes)
   {
-    Debug("Running ParseVar(", pos, ":('", AsLexeme(pos), "'),", cur_scope.GetName(), ",", create_ok, ")");
+    Debug("Running ParseVar(", pos.GetIndex(), ":('", AsLexeme(pos), "'),", cur_scope.GetName(), ",", create_ok, ")");
 
     // First, check for leading dots.
     if (IsDots(pos)) {
@@ -393,7 +400,7 @@ namespace mabe {
         scope_ptr = scope_ptr->GetScope();
         if (scope_ptr.IsNull()) Error(pos, "Too many dots; goes beyond global scope.");
       }
-      pos++;
+      ++pos;
 
       // Recursively call in the found scope if needed; given leading dot, do not scan scopes.
       if (scope_ptr.Raw() != &cur_scope) return ParseVar(pos, *scope_ptr, create_ok, false);
@@ -433,8 +440,8 @@ namespace mabe {
   }
 
   // Load a value from the provided scope, which can come from a variable or a literal.
-  emp::Ptr<ASTNode> Config::ParseValue(size_t & pos, ConfigScope & cur_scope) {
-    Debug("Running ParseValue(", pos, ":('", AsLexeme(pos), "'),", cur_scope.GetName(), ")");
+  emp::Ptr<ASTNode> Config::ParseValue(pos_t & pos, ConfigScope & cur_scope) {
+    Debug("Running ParseValue(", pos.GetIndex(), ":('", AsLexeme(pos), "'),", cur_scope.GetName(), ")");
 
     // Anything that begins with an identifier or dots must represent a variable.  Refer!
     if (IsID(pos) || IsDots(pos)) return ParseVar(pos, cur_scope, false, true);
@@ -475,8 +482,8 @@ namespace mabe {
 
   // Process a single provided operation on two ConfigEntry objects.
   emp::Ptr<ASTNode> Config::ProcessOperation(const std::string & symbol,
-                                                 emp::Ptr<ASTNode> in_node1,
-                                                 emp::Ptr<ASTNode> in_node2)
+                                             emp::Ptr<ASTNode> in_node1,
+                                             emp::Ptr<ASTNode> in_node2)
   {
     emp_assert(!in_node1.IsNull());
     emp_assert(!in_node2.IsNull());
@@ -518,8 +525,8 @@ namespace mabe {
                                       
 
   // Calculate an expression in the provided scope.
-  emp::Ptr<ASTNode> Config::ParseExpression(size_t & pos, ConfigScope & scope, size_t prec_limit) {
-    Debug("Running ParseExpression(", pos, ":('", AsLexeme(pos), "'),", scope.GetName(), ")");
+  emp::Ptr<ASTNode> Config::ParseExpression(pos_t & pos, ConfigScope & scope, size_t prec_limit) {
+    Debug("Running ParseExpression(", pos.GetIndex(), ":('", AsLexeme(pos), "'),", scope.GetName(), ")");
 
     // @CAO Should test for unary operators at the beginning of an expression.
 
@@ -527,7 +534,7 @@ namespace mabe {
     emp::Ptr<ASTNode> cur_node = ParseValue(pos, scope);
     std::string symbol = AsLexeme(pos);
     while ( emp::Has(precedence_map, symbol) && precedence_map[symbol] < prec_limit ) {
-      pos++;
+      ++pos;
       // Do we have a function call?
       if (symbol == "(") {
         // Collect arguments.
@@ -536,7 +543,7 @@ namespace mabe {
           emp::Ptr<ASTNode> next_arg = ParseExpression(pos, scope);
           args.push_back(next_arg);       // Save this argument.
           if (AsChar(pos) != ',') break;  // If we don't have a comma, no more args!
-          pos++;                          // Move on to the next argument.
+          ++pos;                          // Move on to the next argument.
         }
         RequireChar(')', pos++, "Expected a ')' to end function call.");
         cur_node = emp::NewPtr<ASTNode_Call>(cur_node, args);
@@ -557,7 +564,7 @@ namespace mabe {
   }
 
   // Parse an the declaration of a variable.
-  ConfigEntry & Config::ParseDeclaration(size_t & pos, ConfigScope & scope) {
+  ConfigEntry & Config::ParseDeclaration(pos_t & pos, ConfigScope & scope) {
     std::string type_name = AsLexeme(pos++);
     RequireID(pos, "Type name '", type_name, "' must be followed by variable to declare.");
     std::string var_name = AsLexeme(pos++);
@@ -585,7 +592,7 @@ namespace mabe {
   }
 
   // Parse an event description.
-  emp::Ptr<ASTNode> Config::ParseEvent(size_t & pos, ConfigScope & scope) {
+  emp::Ptr<ASTNode> Config::ParseEvent(pos_t & pos, ConfigScope & scope) {
     RequireChar('@', pos++, "All event declarations must being with an '@'.");
     RequireID(pos, "Events must start by specifying event name.");
     const std::string & event_name = AsLexeme(pos++);
@@ -614,8 +621,8 @@ namespace mabe {
   }
 
   // Process the next input in the specified Struct.
-  emp::Ptr<ASTNode> Config::ParseStatement(size_t & pos, ConfigScope & scope) {
-    Debug("Running ParseStatement(", pos, ":('", AsLexeme(pos), "'),", scope.GetName(), ")");
+  emp::Ptr<ASTNode> Config::ParseStatement(pos_t & pos, ConfigScope & scope) {
+    Debug("Running ParseStatement(", pos.GetIndex(), ":('", AsLexeme(pos), "'),", scope.GetName(), ")");
 
     // Allow a statement with an empty line.
     if (AsChar(pos) == ';') { pos++; return nullptr; }
@@ -653,7 +660,7 @@ namespace mabe {
       }
 
       // Otherwise rewind so that variable can be used to start an expression.
-      pos--;
+      --pos;
     }
 
 
