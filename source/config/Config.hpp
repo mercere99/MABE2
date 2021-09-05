@@ -95,10 +95,10 @@ namespace mabe {
   protected:
     std::string filename;       ///< Source for for code to generate.
     ConfigLexer lexer;          ///< Lexer to process input code.
+    ConfigScope root_scope;     ///< All variables from the root level.
     ASTNode_Block ast_root;     ///< Abstract syntax tree version of input file.
     bool debug = false;         ///< Should we print full debug information?
 
-    ConfigScope root_scope;     ///< All variables from the root level.
 
     /// A map of names to event groups.
     std::map<std::string, ConfigEvents> events_map;
@@ -207,7 +207,7 @@ namespace mabe {
     /// Keep parsing statments until there aren't any more or we leave this scope. 
     [[nodiscard]] emp::Ptr<ASTNode_Block> ParseStatementList(pos_t & pos, ConfigScope & scope) {
       Debug("Running ParseStatementList(", pos.GetIndex(), ":('", AsLexeme(pos), "'),", scope.GetName(), ")");
-      auto cur_block = emp::NewPtr<ASTNode_Block>();
+      auto cur_block = emp::NewPtr<ASTNode_Block>(scope);
       while (pos.IsValid() && AsChar(pos) != '}') {
         // Parse each statement in the file.
         emp::Ptr<ASTNode> statement_node = ParseStatement(pos, scope);
@@ -222,6 +222,7 @@ namespace mabe {
     Config(std::string in_filename="")
       : filename(in_filename)
       , root_scope("MABE", "Outer-most, global scope.", nullptr)
+      , ast_root(root_scope)
     {
       if (filename != "") Load(filename);
 
@@ -357,8 +358,16 @@ namespace mabe {
     }
 
     // Load the provided statement, run it, convert the result to a string, and return just that string.
-    std::string Eval(const std::string & statement) {
-      return statement + "@CAO IMPLEMENT!!!!";
+    std::string Eval(const std::string & statement, emp::Ptr<ConfigScope> scope=nullptr) {
+      Debug("Running Eval()");
+      if (!scope) scope = &root_scope;                      // Default scope to root level.
+      emp::TokenStream tokens = lexer.Tokenize(statement);  // Convert to tokens.
+      pos_t pos = tokens.begin();                           // Start are beginning of stream.
+      auto cur_block = ParseStatementList(pos, root_scope); // Convert tokens to AST
+      auto result_ptr = cur_block->Process();               // Process AST to get result entry.
+      std::string result = result_ptr->AsString();          // Convert result to output string.
+      result_ptr.Delete();                                  // Delete the result entry.
+      return result;                                        // Return the result string.
     }
 
 
