@@ -95,7 +95,6 @@ namespace mabe {
   protected:
     std::string filename;       ///< Source for for code to generate.
     ConfigLexer lexer;          ///< Lexer to process input code.
-    emp::TokenStream tokens;    ///< Tokenized version of input file.
     ASTNode_Block ast_root;     ///< Abstract syntax tree version of input file.
     bool debug = false;         ///< Should we print full debug information?
 
@@ -326,7 +325,7 @@ namespace mabe {
     void Load(const std::string & filename) {
       Debug("Running Load(", filename, ")");
       std::ifstream file(filename);           // Load the provided file.
-      tokens = lexer.Tokenize(file);          // Convert to more-usable tokens.
+      emp::TokenStream tokens = lexer.Tokenize(file);          // Convert to more-usable tokens.
       file.close();                           // Close the file (now that it's converted)
       pos_t pos = tokens.begin();             // Start at the beginning of the file.
 
@@ -346,8 +345,8 @@ namespace mabe {
     // Load a single, specified configuration file.
     void LoadStatements(const emp::vector<std::string> & statements) {
       Debug("Running LoadStatements()");
-      tokens = lexer.Tokenize(statements);    // Convert to more-usable tokens.
-      pos_t pos = tokens.begin();             // Start at the beginning of the file.
+      emp::TokenStream tokens = lexer.Tokenize(statements);    // Convert to tokens.
+      pos_t pos = tokens.begin();
 
       // Parse and run the program, starting from the outer scope.
       auto cur_block = ParseStatementList(pos, root_scope);
