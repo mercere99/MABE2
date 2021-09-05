@@ -16,6 +16,7 @@
 #include "emp/base/vector.hpp"
 
 #include "ConfigEntry.hpp"
+#include "ConfigScope.hpp"
 
 namespace mabe {
 
@@ -115,7 +116,12 @@ namespace mabe {
   };
 
   class ASTNode_Block : public ASTNode_Internal {
+  protected:
+    emp::Ptr<ConfigScope> scope_ptr;
+
   public:
+    ASTNode_Block(ConfigScope & in_scope) : scope_ptr(&in_scope) { }
+
     entry_ptr_t Process() override {
       for (auto node : children) {
         entry_ptr_t out = node->Process();
