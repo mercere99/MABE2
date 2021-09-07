@@ -720,6 +720,11 @@ namespace mabe {
     // If any of the inital flags triggered an 'exit_now', do so.
     if (exit_now) return false;
 
+    
+    // Set the random seed to the value specified in the config file (it defaults to time)
+    if(random_seed != 0) random.ResetSeed(random_seed);
+
+
     // Allow traits to be linked.
     trait_man.Unlock();
 
