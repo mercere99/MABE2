@@ -1,0 +1,10 @@
+Latest commit at time of last regeneration:
+commit bdaa272d7bbdb18738457e9378aad03c4abc84e6
+Author: Austin Ferguson <ferguson.austin.j@gmail.com>
+Date:   Tue Sep 7 10:36:04 2021 -0400
+
+    Hook up random seed in MABE.hpp
+ 
+ 
+Time of last regeneration:
+Tue 07 Sep 2021 02:51:32 PM EDT

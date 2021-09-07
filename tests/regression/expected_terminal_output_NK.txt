@@ -1,0 +1,209 @@
+EMP_TRACK_MEM: Pointer tracking is active!
+Loading file(s): 'NK.mabe'
+random_seed = 1000
+Update:1  main_pop:1000  next_pop:0
+Max fitness = 58.132
+Update:2  main_pop:1000  next_pop:0
+Max fitness = 59.9972
+Update:3  main_pop:1000  next_pop:0
+Max fitness = 61.2745
+Update:4  main_pop:1000  next_pop:0
+Max fitness = 61.4537
+Update:5  main_pop:1000  next_pop:0
+Max fitness = 64.0169
+Update:6  main_pop:1000  next_pop:0
+Max fitness = 64.3654
+Update:7  main_pop:1000  next_pop:0
+Max fitness = 64.7913
+Update:8  main_pop:1000  next_pop:0
+Max fitness = 65.8107
+Update:9  main_pop:1000  next_pop:0
+Max fitness = 67.1924
+Update:10  main_pop:1000  next_pop:0
+Max fitness = 67.6798
+Update:11  main_pop:1000  next_pop:0
+Max fitness = 68.4832
+Update:12  main_pop:1000  next_pop:0
+Max fitness = 69.3031
+Update:13  main_pop:1000  next_pop:0
+Max fitness = 70.0583
+Update:14  main_pop:1000  next_pop:0
+Max fitness = 70.166
+Update:15  main_pop:1000  next_pop:0
+Max fitness = 70.8387
+Update:16  main_pop:1000  next_pop:0
+Max fitness = 71.3017
+Update:17  main_pop:1000  next_pop:0
+Max fitness = 71.3017
+Update:18  main_pop:1000  next_pop:0
+Max fitness = 71.694
+Update:19  main_pop:1000  next_pop:0
+Max fitness = 72.0821
+Update:20  main_pop:1000  next_pop:0
+Max fitness = 72.3776
+Update:21  main_pop:1000  next_pop:0
+Max fitness = 72.3776
+Update:22  main_pop:1000  next_pop:0
+Max fitness = 72.9079
+Update:23  main_pop:1000  next_pop:0
+Max fitness = 72.9815
+Update:24  main_pop:1000  next_pop:0
+Max fitness = 73.1508
+Update:25  main_pop:1000  next_pop:0
+Max fitness = 73.2369
+Update:26  main_pop:1000  next_pop:0
+Max fitness = 73.3105
+Update:27  main_pop:1000  next_pop:0
+Max fitness = 73.5546
+Update:28  main_pop:1000  next_pop:0
+Max fitness = 73.6912
+Update:29  main_pop:1000  next_pop:0
+Max fitness = 73.8328
+Update:30  main_pop:1000  next_pop:0
+Max fitness = 73.8328
+Update:31  main_pop:1000  next_pop:0
+Max fitness = 73.9437
+Update:32  main_pop:1000  next_pop:0
+Max fitness = 73.9437
+Update:33  main_pop:1000  next_pop:0
+Max fitness = 74.095
+Update:34  main_pop:1000  next_pop:0
+Max fitness = 74.1818
+Update:35  main_pop:1000  next_pop:0
+Max fitness = 74.1818
+Update:36  main_pop:1000  next_pop:0
+Max fitness = 74.3707
+Update:37  main_pop:1000  next_pop:0
+Max fitness = 74.3707
+Update:38  main_pop:1000  next_pop:0
+Max fitness = 74.3707
+Update:39  main_pop:1000  next_pop:0
+Max fitness = 74.4285
+Update:40  main_pop:1000  next_pop:0
+Max fitness = 74.4285
+Update:41  main_pop:1000  next_pop:0
+Max fitness = 74.4285
+Update:42  main_pop:1000  next_pop:0
+Max fitness = 74.4285
+Update:43  main_pop:1000  next_pop:0
+Max fitness = 74.4285
+Update:44  main_pop:1000  next_pop:0
+Max fitness = 74.4285
+Update:45  main_pop:1000  next_pop:0
+Max fitness = 74.4285
+Update:46  main_pop:1000  next_pop:0
+Max fitness = 74.4285
+Update:47  main_pop:1000  next_pop:0
+Max fitness = 74.4285
+Update:48  main_pop:1000  next_pop:0
+Max fitness = 74.4285
+Update:49  main_pop:1000  next_pop:0
+Max fitness = 74.4285
+Update:50  main_pop:1000  next_pop:0
+Max fitness = 74.4285
+Update:51  main_pop:1000  next_pop:0
+Max fitness = 74.5764
+Update:52  main_pop:1000  next_pop:0
+Max fitness = 74.5764
+Update:53  main_pop:1000  next_pop:0
+Max fitness = 74.5764
+Update:54  main_pop:1000  next_pop:0
+Max fitness = 74.5764
+Update:55  main_pop:1000  next_pop:0
+Max fitness = 74.5764
+Update:56  main_pop:1000  next_pop:0
+Max fitness = 74.7339
+Update:57  main_pop:1000  next_pop:0
+Max fitness = 74.7339
+Update:58  main_pop:1000  next_pop:0
+Max fitness = 75.2863
+Update:59  main_pop:1000  next_pop:0
+Max fitness = 75.2863
+Update:60  main_pop:1000  next_pop:0
+Max fitness = 75.2863
+Update:61  main_pop:1000  next_pop:0
+Max fitness = 75.2863
+Update:62  main_pop:1000  next_pop:0
+Max fitness = 75.3952
+Update:63  main_pop:1000  next_pop:0
+Max fitness = 75.3952
+Update:64  main_pop:1000  next_pop:0
+Max fitness = 75.3952
+Update:65  main_pop:1000  next_pop:0
+Max fitness = 75.3952
+Update:66  main_pop:1000  next_pop:0
+Max fitness = 75.3952
+Update:67  main_pop:1000  next_pop:0
+Max fitness = 75.3952
+Update:68  main_pop:1000  next_pop:0
+Max fitness = 75.3952
+Update:69  main_pop:1000  next_pop:0
+Max fitness = 75.3952
+Update:70  main_pop:1000  next_pop:0
+Max fitness = 75.3952
+Update:71  main_pop:1000  next_pop:0
+Max fitness = 75.3952
+Update:72  main_pop:1000  next_pop:0
+Max fitness = 75.3952
+Update:73  main_pop:1000  next_pop:0
+Max fitness = 75.3952
+Update:74  main_pop:1000  next_pop:0
+Max fitness = 75.3952
+Update:75  main_pop:1000  next_pop:0
+Max fitness = 75.564
+Update:76  main_pop:1000  next_pop:0
+Max fitness = 75.564
+Update:77  main_pop:1000  next_pop:0
+Max fitness = 75.564
+Update:78  main_pop:1000  next_pop:0
+Max fitness = 75.7317
+Update:79  main_pop:1000  next_pop:0
+Max fitness = 75.7317
+Update:80  main_pop:1000  next_pop:0
+Max fitness = 75.7317
+Update:81  main_pop:1000  next_pop:0
+Max fitness = 75.7317
+Update:82  main_pop:1000  next_pop:0
+Max fitness = 75.7317
+Update:83  main_pop:1000  next_pop:0
+Max fitness = 75.7317
+Update:84  main_pop:1000  next_pop:0
+Max fitness = 75.7317
+Update:85  main_pop:1000  next_pop:0
+Max fitness = 75.7317
+Update:86  main_pop:1000  next_pop:0
+Max fitness = 75.7317
+Update:87  main_pop:1000  next_pop:0
+Max fitness = 75.7317
+Update:88  main_pop:1000  next_pop:0
+Max fitness = 75.7317
+Update:89  main_pop:1000  next_pop:0
+Max fitness = 75.7317
+Update:90  main_pop:1000  next_pop:0
+Max fitness = 75.7317
+Update:91  main_pop:1000  next_pop:0
+Max fitness = 75.7317
+Update:92  main_pop:1000  next_pop:0
+Max fitness = 75.7317
+Update:93  main_pop:1000  next_pop:0
+Max fitness = 75.7317
+Update:94  main_pop:1000  next_pop:0
+Max fitness = 75.7317
+Update:95  main_pop:1000  next_pop:0
+Max fitness = 75.7317
+Update:96  main_pop:1000  next_pop:0
+Max fitness = 75.7317
+Update:97  main_pop:1000  next_pop:0
+Max fitness = 75.7317
+Update:98  main_pop:1000  next_pop:0
+Max fitness = 75.7317
+Update:99  main_pop:1000  next_pop:0
+Max fitness = 75.7317
+Update:100  main_pop:1000  next_pop:0
+Max fitness = 75.7317
+Exiting.  Population main_pop has 1000 organisms.  First org:
+0111010101000001100111011111001101010010011100001010011111110101011010011001100101000111011110101011
+Exiting.  Population main_pop has 1000 organisms.  First org:
+0111010101000001100111011111001101010010011100001010011111110101011010011001100101000111011110101011
+EMP_TRACK_MEM: No memory leaks found!
+ 10705343 pointers found; all have been cleaned up fully.

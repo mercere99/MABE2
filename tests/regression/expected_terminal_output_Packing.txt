@@ -1,0 +1,209 @@
+EMP_TRACK_MEM: Pointer tracking is active!
+Loading file(s): 'Packing.mabe'
+random_seed = 4000
+Update:1  main_pop:1000  next_pop:0
+Max fitness = 2
+Update:2  main_pop:1000  next_pop:0
+Max fitness = 2
+Update:3  main_pop:1000  next_pop:0
+Max fitness = 2
+Update:4  main_pop:1000  next_pop:0
+Max fitness = 3
+Update:5  main_pop:1000  next_pop:0
+Max fitness = 3
+Update:6  main_pop:1000  next_pop:0
+Max fitness = 3
+Update:7  main_pop:1000  next_pop:0
+Max fitness = 3
+Update:8  main_pop:1000  next_pop:0
+Max fitness = 3
+Update:9  main_pop:1000  next_pop:0
+Max fitness = 4
+Update:10  main_pop:1000  next_pop:0
+Max fitness = 4
+Update:11  main_pop:1000  next_pop:0
+Max fitness = 5
+Update:12  main_pop:1000  next_pop:0
+Max fitness = 5
+Update:13  main_pop:1000  next_pop:0
+Max fitness = 5
+Update:14  main_pop:1000  next_pop:0
+Max fitness = 5
+Update:15  main_pop:1000  next_pop:0
+Max fitness = 5
+Update:16  main_pop:1000  next_pop:0
+Max fitness = 5
+Update:17  main_pop:1000  next_pop:0
+Max fitness = 5
+Update:18  main_pop:1000  next_pop:0
+Max fitness = 5
+Update:19  main_pop:1000  next_pop:0
+Max fitness = 5
+Update:20  main_pop:1000  next_pop:0
+Max fitness = 5
+Update:21  main_pop:1000  next_pop:0
+Max fitness = 5
+Update:22  main_pop:1000  next_pop:0
+Max fitness = 5
+Update:23  main_pop:1000  next_pop:0
+Max fitness = 5
+Update:24  main_pop:1000  next_pop:0
+Max fitness = 5
+Update:25  main_pop:1000  next_pop:0
+Max fitness = 6
+Update:26  main_pop:1000  next_pop:0
+Max fitness = 6
+Update:27  main_pop:1000  next_pop:0
+Max fitness = 6
+Update:28  main_pop:1000  next_pop:0
+Max fitness = 6
+Update:29  main_pop:1000  next_pop:0
+Max fitness = 6
+Update:30  main_pop:1000  next_pop:0
+Max fitness = 6
+Update:31  main_pop:1000  next_pop:0
+Max fitness = 6
+Update:32  main_pop:1000  next_pop:0
+Max fitness = 6
+Update:33  main_pop:1000  next_pop:0
+Max fitness = 7
+Update:34  main_pop:1000  next_pop:0
+Max fitness = 7
+Update:35  main_pop:1000  next_pop:0
+Max fitness = 7
+Update:36  main_pop:1000  next_pop:0
+Max fitness = 7
+Update:37  main_pop:1000  next_pop:0
+Max fitness = 7
+Update:38  main_pop:1000  next_pop:0
+Max fitness = 7
+Update:39  main_pop:1000  next_pop:0
+Max fitness = 7
+Update:40  main_pop:1000  next_pop:0
+Max fitness = 7
+Update:41  main_pop:1000  next_pop:0
+Max fitness = 7
+Update:42  main_pop:1000  next_pop:0
+Max fitness = 7
+Update:43  main_pop:1000  next_pop:0
+Max fitness = 7
+Update:44  main_pop:1000  next_pop:0
+Max fitness = 7
+Update:45  main_pop:1000  next_pop:0
+Max fitness = 7
+Update:46  main_pop:1000  next_pop:0
+Max fitness = 7
+Update:47  main_pop:1000  next_pop:0
+Max fitness = 7
+Update:48  main_pop:1000  next_pop:0
+Max fitness = 7
+Update:49  main_pop:1000  next_pop:0
+Max fitness = 7
+Update:50  main_pop:1000  next_pop:0
+Max fitness = 7
+Update:51  main_pop:1000  next_pop:0
+Max fitness = 7
+Update:52  main_pop:1000  next_pop:0
+Max fitness = 7
+Update:53  main_pop:1000  next_pop:0
+Max fitness = 7
+Update:54  main_pop:1000  next_pop:0
+Max fitness = 7
+Update:55  main_pop:1000  next_pop:0
+Max fitness = 7
+Update:56  main_pop:1000  next_pop:0
+Max fitness = 7
+Update:57  main_pop:1000  next_pop:0
+Max fitness = 8
+Update:58  main_pop:1000  next_pop:0
+Max fitness = 7
+Update:59  main_pop:1000  next_pop:0
+Max fitness = 8
+Update:60  main_pop:1000  next_pop:0
+Max fitness = 8
+Update:61  main_pop:1000  next_pop:0
+Max fitness = 8
+Update:62  main_pop:1000  next_pop:0
+Max fitness = 8
+Update:63  main_pop:1000  next_pop:0
+Max fitness = 8
+Update:64  main_pop:1000  next_pop:0
+Max fitness = 8
+Update:65  main_pop:1000  next_pop:0
+Max fitness = 8
+Update:66  main_pop:1000  next_pop:0
+Max fitness = 8
+Update:67  main_pop:1000  next_pop:0
+Max fitness = 8
+Update:68  main_pop:1000  next_pop:0
+Max fitness = 8
+Update:69  main_pop:1000  next_pop:0
+Max fitness = 8
+Update:70  main_pop:1000  next_pop:0
+Max fitness = 8
+Update:71  main_pop:1000  next_pop:0
+Max fitness = 8
+Update:72  main_pop:1000  next_pop:0
+Max fitness = 8
+Update:73  main_pop:1000  next_pop:0
+Max fitness = 8
+Update:74  main_pop:1000  next_pop:0
+Max fitness = 8
+Update:75  main_pop:1000  next_pop:0
+Max fitness = 8
+Update:76  main_pop:1000  next_pop:0
+Max fitness = 8
+Update:77  main_pop:1000  next_pop:0
+Max fitness = 8
+Update:78  main_pop:1000  next_pop:0
+Max fitness = 8
+Update:79  main_pop:1000  next_pop:0
+Max fitness = 8
+Update:80  main_pop:1000  next_pop:0
+Max fitness = 8
+Update:81  main_pop:1000  next_pop:0
+Max fitness = 8
+Update:82  main_pop:1000  next_pop:0
+Max fitness = 8
+Update:83  main_pop:1000  next_pop:0
+Max fitness = 8
+Update:84  main_pop:1000  next_pop:0
+Max fitness = 8
+Update:85  main_pop:1000  next_pop:0
+Max fitness = 8
+Update:86  main_pop:1000  next_pop:0
+Max fitness = 8
+Update:87  main_pop:1000  next_pop:0
+Max fitness = 8
+Update:88  main_pop:1000  next_pop:0
+Max fitness = 8
+Update:89  main_pop:1000  next_pop:0
+Max fitness = 8
+Update:90  main_pop:1000  next_pop:0
+Max fitness = 8
+Update:91  main_pop:1000  next_pop:0
+Max fitness = 8
+Update:92  main_pop:1000  next_pop:0
+Max fitness = 8
+Update:93  main_pop:1000  next_pop:0
+Max fitness = 8
+Update:94  main_pop:1000  next_pop:0
+Max fitness = 8
+Update:95  main_pop:1000  next_pop:0
+Max fitness = 8
+Update:96  main_pop:1000  next_pop:0
+Max fitness = 8
+Update:97  main_pop:1000  next_pop:0
+Max fitness = 8
+Update:98  main_pop:1000  next_pop:0
+Max fitness = 8
+Update:99  main_pop:1000  next_pop:0
+Max fitness = 8
+Update:100  main_pop:1000  next_pop:0
+Max fitness = 8
+Exiting.  Population main_pop has 1000 organisms.  First org:
+1111111100101001000111111110010111111001111111100100001111111100001111111100011111111000111111110010
+Exiting.  Population main_pop has 1000 organisms.  First org:
+1111111100101001000111111110010111111001111111100100001111111100001111111100011111111000111111110010
+EMP_TRACK_MEM: No memory leaks found!
+ 404748 pointers found; all have been cleaned up fully.
