@@ -28,8 +28,8 @@ namespace emp {
   template <typename DATA_T, typename CONTAIN_T, typename FUN_T>
   auto BuildCollectFun_Index(FUN_T get_fun, const size_t index) {
     return [get_fun,index](const CONTAIN_T & container) {
-      if (container.size() <= index) return "Nan";
-      return emp::to_string( get_fun( container.At(index) ) ).c_str();
+      if (container.size() <= index) return std::string("Nan");
+      return emp::to_string( get_fun( container.At(index) ) );
     };
   }
 
