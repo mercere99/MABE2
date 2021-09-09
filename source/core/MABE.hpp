@@ -520,14 +520,14 @@ namespace mabe {
       //     error_man.AddError("$ specifier must be followed by parens; '", trait_filter, "' invalid.");
       //   }
 
-      //   // Determine the function to be converted.
+      //   // Determine the variable to use.
       //   std::string new_filter = emp::string_get_range(trait_filter, 2, trait_filter.size()-1);
       //   std::string new_name = emp::string_pop(trait_filter,':');
 
       //   // Build the function that will give us the ID we need.
       //   auto in_fun = BuildTraitFunction(new_name, new_filter);
 
-      //   return [get_fun,index](const CONTAIN_T & container) {
+      //   return [get_fun,index](const CONTAINER_T & container) {
       //     if (container.size() <= index) return "Nan"s;
       //     return emp::to_string( get_fun( container.At(index) ) );
       //   };
@@ -702,12 +702,28 @@ namespace mabe {
     config.AddFunction("output", output_fun,
       "Print out the provided trait-based data; args: filename, collection, format.");
 
-    // @CAO Should have this work with a Poplation variable, not by name.
+    // @CAO Should have this work with a Population or Collection variable, not by name.
     std::function<int(const std::string &)> pop_size_fun =
-      [this](const std::string & pop_name) {
-        return GetPopulation(GetPopID(pop_name)).GetSize();
+      [this](const std::string & target) {
+        return FromString(target).GetSize();
       };
     config.AddFunction("size", pop_size_fun, "Return the size of the target population.");
+
+    // std::function<double(const std::string &)> trait_mean_fun =
+    //   [this](const std::string & target, const std::string & trait) {
+    //     if constexpr (std::is_arithmetic_v<DATA_T>) {
+    //       double total = 0.0;
+    //       size_t count = 0;
+    //       for (const auto & entry : container) {
+    //         total += (double) get_fun(entry);
+    //         count++;
+    //       }
+    //       return emp::to_string( total / count );
+    //     }
+    //     return 0.0; // @CAO: or Nan?
+    //   };
+    // config.AddFunction("trait_mean", trait_mean_fun, "Return the size of the target population.");
+
 
     // Add in built-in event triggers; these are used to indicate when events should happen.
     config.AddEventType("start");   // Triggered at the beginning of a run.
