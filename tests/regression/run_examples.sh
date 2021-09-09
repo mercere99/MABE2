@@ -26,6 +26,7 @@ do
   if ! test ${TERMINAL_ERROR_CODE} -eq 0;
   then
     echo "Error! File generated different terminal output!"
+    head terminal_output.txt -n 200
     exit 1
   fi
 
