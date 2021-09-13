@@ -547,6 +547,55 @@ namespace mabe {
       return result;
     }
 
+    // Handler for printing trait data
+    void OutputTraitData(std::ostream & os,
+                         Collection target_collect,
+                         std::string format,
+                         bool print_headers=false)
+    {
+      emp::vector<trait_fun_t> funs;                          ///< Functions to call each update.
+      emp::remove_whitespace(format);
+      auto fun_it = file_fun_cache.find(format);
+
+      // If we need headers, set them up!
+      if (print_headers) {
+        // Identify the contents of each column.
+        emp::vector<std::string> cols = emp::slice(format, ',');
+
+        // Print the headers into the file.
+        os << "#update";
+        for (size_t i = 0; i < cols.size(); i++) {
+          os << ", " << cols[i];
+        }
+        os << '\n';
+      }
+
+      // If the functions don't exist yet, set them up!
+      if (fun_it == file_fun_cache.end()) {
+        // Identify the contents of each column.
+        emp::vector<std::string> cols = emp::slice(format, ',');
+
+        // Setup a function to collect data associated with each column.
+        funs.resize(cols.size());
+        for (size_t i = 0; i < cols.size(); i++) {
+          std::string trait_filter = cols[i];
+          std::string trait_name = emp::string_pop(trait_filter,':');
+          funs[i] = BuildTraitFunction(trait_name, trait_filter);
+        }
+
+        // Insert the new entry into the cache and update the iterator.
+        fun_it = file_fun_cache.insert({format, funs}).first;
+      }
+      else funs = fun_it->second;
+
+      // And, finally, print the data!
+      os << GetUpdate();
+      for (auto & fun : funs) {
+        os << ", " << fun(target_collect);
+      }
+      os << std::endl;
+    }
+
     // --- Manage configuration scope ---
 
     /// Access to the current configuration scope.
@@ -626,6 +675,15 @@ namespace mabe {
 
     // Add other built-in functions to the config file.
 
+    // 'eval' dynamically evaluates the contents of a string.
+    std::function<int(const std::string &)> eval_fun =
+      [this](const std::string & expression) {
+        config.Eval(expression);
+        return 0;
+      };
+    config.AddFunction("eval", eval_fun, "Dynamically evaluate the string passed in.");
+
+
     // 'exit' should terminate a run.
     std::function<int()> exit_fun = [this](){ exit_now = true; return 0; };
     config.AddFunction("exit", exit_fun, "Exit from this MABE run.");
@@ -640,6 +698,20 @@ namespace mabe {
     config.AddFunction("inject", inject_fun,
       "Inject organisms into a population (args: org_name, pop_name, org_count).");
 
+
+    // 'output' will collect data and write it to a file.
+    files.SetOutputDefaultFile();  // Stream manager should default to files for output.
+    std::function<int(const std::string &, const std::string &, const std::string &)> output_fun =
+      [this](const std::string & filename, const std::string & collection, std::string format) {
+        const bool file_exists = files.Has(filename);           ///< Is file is already setup?
+        std::ostream & file = files.GetOutputStream(filename);  ///< File to write to.
+        OutputTraitData(file, FromString(collection), format, !file_exists);
+        return 0;
+      };
+    config.AddFunction("output", output_fun,
+      "Print out the provided trait-based data; args: filename, collection, format.");
+
+
     // 'print' is a simple debugging command to output the value of a variable.
     std::function<int(const emp::vector<emp::Ptr<ConfigEntry>> &)> print_fun =
       [](const emp::vector<emp::Ptr<ConfigEntry>> & args) {
@@ -648,59 +720,6 @@ namespace mabe {
       };
     config.AddFunction("print", print_fun, "Print out the provided variable.");
 
-    // 'output' will collect data and write it to a file.
-    files.SetOutputDefaultFile();  // Stream manager should default to files for output.
-    std::function<int(const std::string &, const std::string &, const std::string &)> output_fun =
-      [this](const std::string & filename, const std::string & collection, std::string format) {
-        emp::vector<trait_fun_t> funs;                          ///< Functions to call each update.
-        const bool file_exists = files.Has(filename);           ///< Is file is already setup?
-        std::ostream & file = files.GetOutputStream(filename);  ///< File to write to.
-        emp::remove_whitespace(format);
-        auto fun_it = file_fun_cache.find(format);
-
-        // If we need headers, set them up!
-        if (!file_exists) {
-          // Identify the contents of each column.
-          emp::vector<std::string> cols = emp::slice(format, ',');
-
-          // Print the headers into the file.
-          file << "#update";
-          for (size_t i = 0; i < cols.size(); i++) {
-            file << ", " << cols[i];
-          }
-          file << '\n';
-        }
-
-        // If there functions don't exist yet, set them up!
-        if (fun_it == file_fun_cache.end()) {
-          // Identify the contents of each column.
-          emp::vector<std::string> cols = emp::slice(format, ',');
-
-          // Setup a function to collect data associated with each column.
-          funs.resize(cols.size());
-          for (size_t i = 0; i < cols.size(); i++) {
-            std::string trait_filter = cols[i];
-            std::string trait_name = emp::string_pop(trait_filter,':');
-            funs[i] = BuildTraitFunction(trait_name, trait_filter);
-          }
-
-          // Insert the new entry into the cache and update the iterator.
-          fun_it = file_fun_cache.insert({format, funs}).first;
-        }
-        else funs = fun_it->second;
-
-        // And, finally, print the data!
-        Collection target_collect = FromString(collection);
-        file << GetUpdate();
-        for (auto & fun : funs) {
-          file << ", " << fun(target_collect);
-        }
-        file << std::endl;
-
-        return 0;
-      };
-    config.AddFunction("output", output_fun,
-      "Print out the provided trait-based data; args: filename, collection, format.");
 
     // @CAO Should have this work with a Population or Collection variable, not by name.
     std::function<int(const std::string &)> pop_size_fun =
@@ -708,6 +727,7 @@ namespace mabe {
         return FromString(target).GetSize();
       };
     config.AddFunction("size", pop_size_fun, "Return the size of the target population.");
+
 
     // std::function<double(const std::string &)> trait_mean_fun =
     //   [this](const std::string & target, const std::string & trait) {
