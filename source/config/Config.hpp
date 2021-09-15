@@ -357,17 +357,20 @@ namespace mabe {
       ast_root.AddChild(cur_block);
     }
 
-    // Load the provided statement, run it, convert the result to a string, and return just that string.
-    std::string Eval(const std::string & statement, emp::Ptr<ConfigScope> scope=nullptr) {
+    // Load the provided statement and run it.
+    void Eval(const std::string & statement, emp::Ptr<ConfigScope> scope=nullptr) {
       Debug("Running Eval()");
+      std::cout << "EVAL on: " << statement << std::endl;
       if (!scope) scope = &root_scope;                      // Default scope to root level.
       emp::TokenStream tokens = lexer.Tokenize(statement);  // Convert to tokens.
       pos_t pos = tokens.begin();                           // Start are beginning of stream.
       auto cur_block = ParseStatementList(pos, root_scope); // Convert tokens to AST
-      auto result_ptr = cur_block->Process();               // Process AST to get result entry.
-      std::string result = result_ptr->AsString();          // Convert result to output string.
-      result_ptr.Delete();                                  // Delete the result entry.
-      return result;                                        // Return the result string.
+//    auto result_ptr = cur_block->Process();               // Process AST to get result entry.
+//    std::string result = result_ptr->AsString();          // Convert result to output string.
+//    result_ptr.Delete();                                  // Delete the result entry.
+//    return result;                                        // Return the result string.
+      cur_block->Process();                                 // Process AST to get result entry.
+      cur_block.Delete();                                   // Delete the AST.
     }
 
 
@@ -424,8 +427,7 @@ namespace mabe {
 
     // If we can't find this variable, either build it or throw an error.
     if (cur_entry.IsNull()) {
-      Error(pos, "'", var_name,
-	    "' does not exist as a parameter, variable, or type.");
+      Error(pos, "'", var_name, "' does not exist as a parameter, variable, or type.");
     }
 
     // If this variable just provided a scope, keep going.
