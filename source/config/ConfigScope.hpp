@@ -6,6 +6,10 @@
  *  @file  ConfigScope.hpp
  *  @brief Manages a full scope with many conig entries (or sub-scopes).
  *  @note Status: ALPHA
+ * 
+ *  DEVELOPER NOTES:
+ *  - Need to fix Add() function to give a user-level error, rather than an assert on duplication.
+ * 
  */
 
 #ifndef MABE_CONFIG_SCOPE_H
@@ -33,6 +37,8 @@ namespace mabe {
     T & Add(const std::string & name, ARGS &&... args) {
       auto new_ptr = emp::NewPtr<T>(name, std::forward<ARGS>(args)...);
       entry_list.push_back(new_ptr);
+      emp_assert(!emp::Has(entry_map, name), "Do not redeclare functions or variables!",
+                 name);
       entry_map[name] = new_ptr;
       return *new_ptr;
     }
@@ -41,6 +47,8 @@ namespace mabe {
     T & AddBuiltin(const std::string & name, ARGS &&... args) {
       auto new_ptr = emp::NewPtr<T>(name, std::forward<ARGS>(args)...);
       builtin_list.push_back(new_ptr);
+      emp_assert(!emp::Has(entry_map, name), "Do not redeclare built-in functions or variables!",
+                 name);
       entry_map[name] = new_ptr;
       return *new_ptr;
     }
