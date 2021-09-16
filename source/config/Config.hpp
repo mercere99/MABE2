@@ -358,19 +358,20 @@ namespace mabe {
     }
 
     // Load the provided statement and run it.
-    void Eval(const std::string & statement, emp::Ptr<ConfigScope> scope=nullptr) {
+    std::string Eval(const std::string & statement, emp::Ptr<ConfigScope> scope=nullptr) {
       Debug("Running Eval()");
-      std::cout << "EVAL on: " << statement << std::endl;
       if (!scope) scope = &root_scope;                      // Default scope to root level.
       emp::TokenStream tokens = lexer.Tokenize(statement);  // Convert to tokens.
       pos_t pos = tokens.begin();                           // Start are beginning of stream.
       auto cur_block = ParseStatementList(pos, root_scope); // Convert tokens to AST
-//    auto result_ptr = cur_block->Process();               // Process AST to get result entry.
-//    std::string result = result_ptr->AsString();          // Convert result to output string.
-//    result_ptr.Delete();                                  // Delete the result entry.
-//    return result;                                        // Return the result string.
-      cur_block->Process();                                 // Process AST to get result entry.
+      auto result_ptr = cur_block->Process();               // Process AST to get result entry.
+      std::string result = "";                              // Default result to an empty string.
+      if (result_ptr) {
+        result = result_ptr->AsString();                    // Convert result to output string.
+        result_ptr.Delete();                                // Delete the result entry.
+      }
       cur_block.Delete();                                   // Delete the AST.
+      return result;                                        // Return the result string.
     }
 
 
