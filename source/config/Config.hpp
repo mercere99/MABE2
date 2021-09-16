@@ -141,7 +141,9 @@ namespace mabe {
 
     template <typename... Ts>
     void Error(pos_t pos, Ts... args) const {
-      std::cout << "Error (line " << pos->line_id << "): " << emp::to_string(std::forward<Ts>(args)...) << "\nAborting." << std::endl;
+      std::string line_info = pos.AtEnd() ? "end of input" : emp::to_string("line ", pos->line_id);
+      std::cout << "Error (" << line_info << " in '" << pos.GetTokenStream().GetName() << "'): "
+                << emp::to_string(std::forward<Ts>(args)...) << "\nAborting." << std::endl;
       exit(1);
     }
 
@@ -326,7 +328,7 @@ namespace mabe {
     void Load(const std::string & filename) {
       Debug("Running Load(", filename, ")");
       std::ifstream file(filename);           // Load the provided file.
-      emp::TokenStream tokens = lexer.Tokenize(file);          // Convert to more-usable tokens.
+      emp::TokenStream tokens = lexer.Tokenize(file, filename);          // Convert to more-usable tokens.
       file.close();                           // Close the file (now that it's converted)
       pos_t pos = tokens.begin();             // Start at the beginning of the file.
 
@@ -344,9 +346,11 @@ namespace mabe {
     }
 
     // Load a single, specified configuration file.
-    void LoadStatements(const emp::vector<std::string> & statements) {
+    // @param statements List is statements to be parsed.
+    // @param name Name of statement group (for error messages)
+    void LoadStatements(const emp::vector<std::string> & statements, const std::string & name) {
       Debug("Running LoadStatements()");
-      emp::TokenStream tokens = lexer.Tokenize(statements);    // Convert to tokens.
+      emp::TokenStream tokens = lexer.Tokenize(statements, name);    // Convert to tokens.
       pos_t pos = tokens.begin();
 
       // Parse and run the program, starting from the outer scope.
@@ -361,7 +365,7 @@ namespace mabe {
     std::string Eval(const std::string & statement, emp::Ptr<ConfigScope> scope=nullptr) {
       Debug("Running Eval()");
       if (!scope) scope = &root_scope;                      // Default scope to root level.
-      emp::TokenStream tokens = lexer.Tokenize(statement);  // Convert to tokens.
+      emp::TokenStream tokens = lexer.Tokenize(statement, "eval command");  // Convert to tokens.
       pos_t pos = tokens.begin();                           // Start are beginning of stream.
       auto cur_block = ParseStatementList(pos, root_scope); // Convert tokens to AST
       auto result_ptr = cur_block->Process();               // Process AST to get result entry.
