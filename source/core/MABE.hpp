@@ -676,11 +676,11 @@ namespace mabe {
     // Add other built-in functions to the config file.
 
     // 'eval' dynamically evaluates the contents of a string.
-    std::function<int(const std::string &)> eval_fun =
-      [this](const std::string & expression) {
-        config.Eval(expression);
-        return 0;
-      };
+    // std::function<int(const std::string &)> eval_fun =
+    //   [this](const std::string & expression) { config.Eval(expression); return 0; };
+    // config.AddFunction("eval", eval_fun, "Dynamically evaluate the string passed in.");
+    std::function<std::string(const std::string &)> eval_fun =
+      [this](const std::string & expression) { return config.Eval(expression); };
     config.AddFunction("eval", eval_fun, "Dynamically evaluate the string passed in.");
 
 
@@ -718,16 +718,13 @@ namespace mabe {
         for (auto entry_ptr : args) std::cout << entry_ptr->AsString();
         return 0;
       };
-    config.AddFunction("print", print_fun, "Print out the provided variable.");
+    config.AddFunction("print", print_fun, "Print out the provided variables.");
 
 
-    // @CAO Should have this work with a Population or Collection variable, not by name.
+    // @CAO Should be a method on a Population or Collection, not called by name.
     std::function<int(const std::string &)> pop_size_fun =
-      [this](const std::string & target) {
-        return FromString(target).GetSize();
-      };
+      [this](const std::string & target) { return FromString(target).GetSize(); };
     config.AddFunction("size", pop_size_fun, "Return the size of the target population.");
-
 
     // std::function<double(const std::string &)> trait_mean_fun =
     //   [this](const std::string & target, const std::string & trait) {
@@ -765,7 +762,7 @@ namespace mabe {
 
     if (config_settings.size()) {
       std::cout << "Loading command-line settings." << std::endl;
-      config.LoadStatements(config_settings);      
+      config.LoadStatements(config_settings, "command-line settings");      
     }
 
     // If we are writing a file, do so and then exit.
