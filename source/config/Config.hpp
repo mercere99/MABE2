@@ -365,14 +365,15 @@ namespace mabe {
     std::string Eval(const std::string & statement, emp::Ptr<ConfigScope> scope=nullptr) {
       Debug("Running Eval()");
       if (!scope) scope = &root_scope;                      // Default scope to root level.
-      emp::TokenStream tokens = lexer.Tokenize(statement, "eval command");  // Convert to tokens.
+      auto tokens = lexer.Tokenize(statement, "eval command"); // Convert to a TokenStream.
+      tokens.push_back(lexer.ToToken(";"));                 // Ensure a semi-colon at end.
       pos_t pos = tokens.begin();                           // Start are beginning of stream.
-      auto cur_block = ParseStatementList(pos, root_scope); // Convert tokens to AST
+      auto cur_block = ParseStatement(pos, root_scope);     // Convert tokens to AST
       auto result_ptr = cur_block->Process();               // Process AST to get result entry.
       std::string result = "";                              // Default result to an empty string.
       if (result_ptr) {
         result = result_ptr->AsString();                    // Convert result to output string.
-        result_ptr.Delete();                                // Delete the result entry.
+        if (result_ptr->IsTemporary()) result_ptr.Delete(); // Delete the result entry if done.
       }
       cur_block.Delete();                                   // Delete the AST.
       return result;                                        // Return the result string.
