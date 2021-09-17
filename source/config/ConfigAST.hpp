@@ -49,6 +49,12 @@ namespace mabe {
 
     virtual const std::string & GetName() const = 0;
 
+    virtual bool IsNumeric() const { return false; } // Can node be reprsented as a number?
+    virtual bool IsString() const { return false; }  // Can node be reprsented as a string?
+    virtual bool HasValue() const { return false; }  // Does node have any value (vs internal block)
+    virtual bool HasNumericReturn() const { return false; } // Is node function with numeric return?
+    virtual bool HasStringReturn() const { return false; }  // Is node function with string return?
+
     virtual bool IsLeaf() const { return false; }
     virtual bool IsInternal() const { return false; }
 
@@ -100,6 +106,12 @@ namespace mabe {
 
     const std::string & GetName() const override { return entry_ptr->GetName(); }
     ConfigEntry & GetEntry() { return *entry_ptr; }
+
+    bool IsNumeric() const override { return entry_ptr->IsNumeric(); }
+    bool IsString() const override { return entry_ptr->IsString(); }
+    bool HasValue() const override { return true; }
+    bool HasNumericReturn() const override { return entry_ptr->HasNumericReturn(); }
+    bool HasStringReturn() const override { return entry_ptr->HasStringReturn(); }
 
     bool IsLeaf() const override { return true; }
 
@@ -153,6 +165,9 @@ namespace mabe {
   public:
     ASTNode_Math1(const std::string & name) : ASTNode_Internal(name) { }
 
+    bool IsNumeric() const override { return true; }
+    bool HasValue() const override { return true; }
+
     void SetFun(std::function< double(double) > _fun) { fun = _fun; }
 
     entry_ptr_t Process() override {
@@ -176,6 +191,9 @@ namespace mabe {
     std::function< double(double, double) > fun;
   public:
     ASTNode_Math2(const std::string & name) : ASTNode_Internal(name) { }
+
+    bool IsNumeric() const override { return true; }
+    bool HasValue() const override { return true; }
 
     void SetFun(std::function< double(double, double) > _fun) { fun = _fun; }
 
@@ -203,6 +221,12 @@ namespace mabe {
       AddChild(rhs);
     }
 
+    bool IsNumeric() const override { return children[0]->IsNumeric(); }
+    bool IsString() const override { return children[0]->IsString(); }
+    bool HasValue() const override { return true; }
+    bool HasNumericReturn() const override { return children[0]->HasNumericReturn(); }
+    bool HasStringReturn() const override { return children[0]->HasStringReturn(); }
+
     entry_ptr_t Process() override {
       emp_assert(children.size() == 2);
       entry_ptr_t lhs = children[0]->Process();  // Determine the left-hand-side value.
@@ -226,6 +250,12 @@ namespace mabe {
       AddChild(fun);
       for (auto arg : args) AddChild(arg);
     }
+
+    bool IsNumeric() const override { return children[0]->HasNumericReturn(); }
+    bool IsString() const override { return children[0]->HasStringReturn(); }
+    bool HasValue() const override { return true; }
+    // @CAO Technically, one function can return another, so we should check
+    // HasNumericReturn() and HasStringReturn() on return values... but hard to implement.
 
     entry_ptr_t Process() override {
       emp_assert(children.size() >= 1);
