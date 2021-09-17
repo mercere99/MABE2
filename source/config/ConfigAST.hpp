@@ -184,27 +184,32 @@ namespace mabe {
     }
   };
 
-  /// Binary mathematical operations.
-  class ASTNode_Math2 : public ASTNode_Internal {
+  /// Binary operations.
+  template <typename RETURN_T, typename ARG1_T, typename ARG2_T>
+  class ASTNode_Op2 : public ASTNode_Internal {
   protected:
-    // A binary operator takes in two doubles and returns a third.
-    std::function< double(double, double) > fun;
+    std::function< RETURN_T(ARG1_T, ARG2_T) > fun;
   public:
-    ASTNode_Math2(const std::string & name) : ASTNode_Internal(name) { }
+    ASTNode_Op2(const std::string & name) : ASTNode_Internal(name) { }
 
-    bool IsNumeric() const override { return true; }
+    bool IsNumeric() const override { return std::is_same<RETURN_T, double>(); }
+    bool IsString() const override { return std::is_same<RETURN_T, std::string>(); }
     bool HasValue() const override { return true; }
 
-    void SetFun(std::function< double(double, double) > _fun) { fun = _fun; }
+    void SetFun(std::function< RETURN_T(ARG1_T, ARG2_T) > _fun) { fun = _fun; }
 
     entry_ptr_t Process() override {
       emp_assert(children.size() == 2);
       entry_ptr_t in1 = children[0]->Process();               // Process 1st child to input entry
       entry_ptr_t in2 = children[1]->Process();               // Process 2nd child to input entry
-      double out_val = fun(in1->AsDouble(), in2->AsDouble()); // Run function; get ouput
+      auto out_val = fun(in1->As<ARG1_T>(), in2->As<ARG2_T>()); // Run function; get ouput
       if (in1->IsTemporary()) in1.Delete();                   // If we are done with in1; delete!
       if (in2->IsTemporary()) in2.Delete();                   // If we are done with in2; delete!
-      return MakeTempDouble(out_val);
+      if constexpr (std::is_same<RETURN_T, double>()) {
+        return MakeTempDouble(out_val);
+      } else {
+        return MakeTempString(out_val);
+      }
     }
 
     void Write(std::ostream & os, const std::string & offset) const override { 
@@ -213,6 +218,9 @@ namespace mabe {
       children[1]->Write(os, offset);
     }
   };
+
+  using ASTNode_Math2 = ASTNode_Op2<double,double,double>;
+
 
   class ASTNode_Assign : public ASTNode_Internal {
   public:
