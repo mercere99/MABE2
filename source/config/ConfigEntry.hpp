@@ -111,6 +111,12 @@ namespace mabe {
 
     virtual double AsDouble() const { emp_assert(false); return 0.0; }
     virtual std::string AsString() const { emp_assert(false); return ""; }
+    template <typename T>
+    T As() const {
+      if constexpr (std::is_same<T,double>()) return AsDouble();
+      else return AsString();
+    }
+
     virtual ConfigEntry & SetValue(double in) { (void) in; emp_assert(false, in); return *this; }
     virtual ConfigEntry & SetString(const std::string & in) { (void) in; emp_assert(false, in); return *this; }
 
