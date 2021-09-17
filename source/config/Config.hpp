@@ -505,37 +505,82 @@ namespace mabe {
 
     // If this operation is assignment, do so!
     if (symbol == "=") return emp::NewPtr<ASTNode_Assign>(in_node1, in_node2);
+    
+    // If the first argument is numeric, assume we are using a math operator.
+    if (in_node1->IsNumeric()) {
 
-    // If both values are numeric, act on the math operator.
-// if (in_node1->IsNumeric() && in_node2->IsNumeric()) {
-//   double val1 = in_node1->AsDouble();
-//   double val2 = in_node2->AsDouble();
-// }
+      // Determine the output value and put it in a temporary node.
+      std::function<double(double,double)> fun;
+      if (symbol == "+") fun = [](double val1, double val2){ return val1 + val2; };
+      else if (symbol == "-") fun = [](double val1, double val2){ return val1 - val2; };
+      else if (symbol == "*") fun = [](double val1, double val2){ return val1 * val2; };
+      else if (symbol == "/") fun = [](double val1, double val2){ return val1 / val2; };
+      else if (symbol == "%") fun = [](double val1, double val2){ return ((size_t) val1) % ((size_t) val2); };
+      else if (symbol == "==") fun = [](double val1, double val2){ return val1 == val2; };
+      else if (symbol == "!=") fun = [](double val1, double val2){ return val1 != val2; };
+      else if (symbol == "<")  fun = [](double val1, double val2){ return val1 < val2; };
+      else if (symbol == "<=") fun = [](double val1, double val2){ return val1 <= val2; };
+      else if (symbol == ">")  fun = [](double val1, double val2){ return val1 > val2; };
+      else if (symbol == ">=") fun = [](double val1, double val2){ return val1 >= val2; };
 
-    // Determine the output value and put it in a temporary node.
-    std::function<double(double,double)> fun;
-    if (symbol == "+") fun = [](double val1, double val2){ return val1 + val2; };
-    else if (symbol == "-") fun = [](double val1, double val2){ return val1 - val2; };
-    else if (symbol == "*") fun = [](double val1, double val2){ return val1 * val2; };
-    else if (symbol == "/") fun = [](double val1, double val2){ return val1 / val2; };
-    else if (symbol == "%") fun = [](double val1, double val2){ return ((size_t) val1) % ((size_t) val2); };
-    else if (symbol == "==") fun = [](double val1, double val2){ return val1 == val2; };
-    else if (symbol == "!=") fun = [](double val1, double val2){ return val1 != val2; };
-    else if (symbol == "<")  fun = [](double val1, double val2){ return val1 < val2; };
-    else if (symbol == "<=") fun = [](double val1, double val2){ return val1 <= val2; };
-    else if (symbol == ">")  fun = [](double val1, double val2){ return val1 > val2; };
-    else if (symbol == ">=") fun = [](double val1, double val2){ return val1 >= val2; };
+      // @CAO: Need to still handle these last two differently for short-circuiting.
+      else if (symbol == "&&") fun = [](double val1, double val2){ return val1 && val2; };
+      else if (symbol == "||") fun = [](double val1, double val2){ return val1 || val2; };
 
-    // @CAO: Need to still handle these last two differently for short-circuiting.
-    else if (symbol == "&&") fun = [](double val1, double val2){ return val1 && val2; };
-    else if (symbol == "||") fun = [](double val1, double val2){ return val1 || val2; };
+      emp::Ptr<ASTNode_Math2> out_value = emp::NewPtr<ASTNode_Math2>(symbol);
+      out_value->SetFun(fun);
+      out_value->AddChild(in_node1);
+      out_value->AddChild(in_node2);
 
-    emp::Ptr<ASTNode_Math2> out_value = emp::NewPtr<ASTNode_Math2>(symbol);
-    out_value->SetFun(fun);
-    out_value->AddChild(in_node1);
-    out_value->AddChild(in_node2);
+      return out_value;
+    }
 
-    return out_value;
+    // Otherwise assume that we are dealing with strings.
+    if (symbol == "+") {
+      std::function<std::string(std::string,std::string)> fun;
+      fun = [](std::string val1, std::string val2){ return val1 + val2; };
+
+      auto out_value = emp::NewPtr<ASTNode_Op2<std::string,std::string,std::string>>(symbol);
+      out_value->SetFun(fun);
+      out_value->AddChild(in_node1);
+      out_value->AddChild(in_node2);
+
+      return out_value;
+    }
+    else if (symbol == "*") {
+      std::function<std::string(std::string,double)> fun;
+      fun = [](std::string val1, double val2) {
+        std::string out_string;
+        out_string.reserve(val1.size() * (size_t) val2);
+        for (size_t i = 0; i < (size_t) val2; i++) out_string += val1;
+        return out_string;
+      };
+
+      auto out_value = emp::NewPtr<ASTNode_Op2<std::string,std::string,double>>(symbol);
+      out_value->SetFun(fun);
+      out_value->AddChild(in_node1);
+      out_value->AddChild(in_node2);
+
+      return out_value;
+    }
+    else {
+      std::function<double(std::string,std::string)> fun;
+      if (symbol == "==") fun = [](std::string val1, std::string val2){ return val1 == val2; };
+      else if (symbol == "!=") fun = [](std::string val1, std::string val2){ return val1 != val2; };
+      else if (symbol == "<")  fun = [](std::string val1, std::string val2){ return val1 < val2; };
+      else if (symbol == "<=") fun = [](std::string val1, std::string val2){ return val1 <= val2; };
+      else if (symbol == ">")  fun = [](std::string val1, std::string val2){ return val1 > val2; };
+      else if (symbol == ">=") fun = [](std::string val1, std::string val2){ return val1 >= val2; };
+
+      auto out_value = emp::NewPtr<ASTNode_Op2<double,std::string,std::string>>(symbol);
+      out_value->SetFun(fun);
+      out_value->AddChild(in_node1);
+      out_value->AddChild(in_node2);
+
+      return out_value;
+    }
+
+    return nullptr;
   }
                                       
 
