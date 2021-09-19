@@ -280,7 +280,7 @@ namespace mabe {
       return collect.ToString();
     }
 
-    Collection FromString(const std::string & load_str);
+    Collection ToCollection(const std::string & load_str);
 
     Collection GetAlivePopulation(size_t id) {
       Collection col(GetPopulation(id));
@@ -584,7 +584,7 @@ namespace mabe {
       [this](const std::string & filename, const std::string & collection, std::string format) {
         const bool file_exists = files.Has(filename);           ///< Is file is already setup?
         std::ostream & file = files.GetOutputStream(filename);  ///< File to write to.
-        OutputTraitData(file, FromString(collection), format, !file_exists);
+        OutputTraitData(file, ToCollection(collection), format, !file_exists);
         return 0;
       };
     config.AddFunction("output", output_fun,
@@ -602,7 +602,7 @@ namespace mabe {
 
     // @CAO Should be a method on a Population or Collection, not called by name.
     std::function<int(const std::string &)> pop_size_fun =
-      [this](const std::string & target) { return FromString(target).GetSize(); };
+      [this](const std::string & target) { return ToCollection(target).GetSize(); };
     config.AddFunction("size", pop_size_fun, "Return the size of the target population.");
 
     // std::function<double(const std::string &)> trait_mean_fun =
@@ -858,7 +858,7 @@ namespace mabe {
 
   // --- Collection Management ---
 
-  Collection MABE::FromString(const std::string & load_str) {
+  Collection MABE::ToCollection(const std::string & load_str) {
     Collection out;
     auto slices = emp::view_slices(load_str, ',');
     for (auto name : slices) {
