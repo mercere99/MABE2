@@ -137,6 +137,8 @@ namespace mabe {
     /// Link signals to the modules that implment responses to those signals.
     void UpdateSignals();
 
+    /// Find any instances of ${X} and eval the X.
+    std::string Preprocess(const std::string & in_string);
 
   public:
     MABE(int argc, char* argv[]);  ///< MABE command-line constructor.
@@ -524,6 +526,32 @@ namespace mabe {
     rescan_signals = false;
   }
 
+  /// Find any instances of ${X} and eval the X.
+  std::string MABE::Preprocess(const std::string & in_string) {
+    std::string out_string = in_string;
+
+    // Seek out instances of "${" to indicate the start of pre-processing.
+    for (size_t i = 0; i < out_string.size(); ++i) {
+      if (out_string[i] != '$') continue;   // Replacement tag must start with a '$'.
+      if (out_string.size() <= i+2) break;  // Not enough room for a replacement tag.
+      if (out_string[i+1] == '$') {         // Compress two $$ into on $
+        out_string.erase(i,1);
+        continue;
+      }
+      if (out_string[i+1] != '{') continue; // Eval must be surrounded by braces.
+
+      // If we made it this far, we have a starting match!
+      size_t end_pos = emp::find_paren_match(out_string, i+1, '{', '}', false);
+      if (end_pos == i+1) return out_string;  // No end brace found!  @CAO -- exception here?
+      const std::string replacement_text =
+        config.Eval(emp::view_string_range(out_string, i+2, end_pos-1));
+      out_string.replace(i, end_pos-i, replacement_text);
+
+      i += replacement_text.size(); // Continue from the end point...
+    }
+
+    return out_string;
+  }
 
   // ---------------- PUBLIC MEMBER FUNCTIONS -----------------
 
