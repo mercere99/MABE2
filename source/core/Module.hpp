@@ -75,7 +75,7 @@ namespace mabe {
 
       std::function<void(std::string)> set_fun =
         [this,&var](const std::string & load_str){
-          var = control.FromString(load_str);
+          var = control.ToCollection(load_str);
         };
 
       return GetScope().LinkFuns<std::string>(name, get_fun, set_fun, desc);
