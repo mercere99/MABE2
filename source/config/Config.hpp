@@ -362,7 +362,7 @@ namespace mabe {
     }
 
     // Load the provided statement and run it.
-    std::string Eval(const std::string & statement, emp::Ptr<ConfigScope> scope=nullptr) {
+    std::string Eval(std::string_view statement, emp::Ptr<ConfigScope> scope=nullptr) {
       Debug("Running Eval()");
       if (!scope) scope = &root_scope;                      // Default scope to root level.
       auto tokens = lexer.Tokenize(statement, "eval command"); // Convert to a TokenStream.
