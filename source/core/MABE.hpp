@@ -544,8 +544,8 @@ namespace mabe {
       size_t end_pos = emp::find_paren_match(out_string, i+1, '{', '}', false);
       if (end_pos == i+1) return out_string;  // No end brace found!  @CAO -- exception here?
       const std::string replacement_text =
-        config.Eval(emp::view_string_range(out_string, i+2, end_pos-1));
-      out_string.replace(i, end_pos-i, replacement_text);
+        config.Eval(emp::view_string_range(out_string, i+2, end_pos));
+      out_string.replace(i, end_pos-i+1, replacement_text);
 
       i += replacement_text.size(); // Continue from the end point...
     }
@@ -626,6 +626,10 @@ namespace mabe {
         return 0;
       };
     config.AddFunction("print", print_fun, "Print out the provided variables.");
+
+    std::function<std::string(const std::string &)> preprocess_fun =
+      [this](const std::string & str) { return Preprocess(str); };
+    config.AddFunction("PP", preprocess_fun, "Preprocess a string (replacing any ${...} with result.)");
 
 
     // @CAO Should be a method on a Population or Collection, not called by name.
