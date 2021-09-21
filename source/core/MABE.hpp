@@ -602,12 +602,6 @@ namespace mabe {
 
     // Add other built-in functions to the config file.
 
-    // 'EVAL' dynamically evaluates the contents of a string.
-    std::function<std::string(const std::string &)> eval_fun =
-      [this](const std::string & expression) { return config.Eval(expression); };
-    config.AddFunction("EVAL", eval_fun, "Dynamically evaluate the string passed in.");
-
-
     // 'EXIT' terminates a run gracefully.
     std::function<int()> exit_fun = [this](){ exit_now = true; return 0; };
     config.AddFunction("EXIT", exit_fun, "Exit from this MABE run.");
@@ -622,14 +616,6 @@ namespace mabe {
     config.AddFunction("INJECT", inject_fun,
       "Inject organisms into a population (args: org_name, pop_name, org_count).");
 
-
-    // 'PRINT' is a simple debugging command to output the value of a variable.
-    std::function<int(const emp::vector<emp::Ptr<ConfigEntry>> &)> print_fun =
-      [](const emp::vector<emp::Ptr<ConfigEntry>> & args) {
-        for (auto entry_ptr : args) std::cout << entry_ptr->AsString();
-        return 0;
-      };
-    config.AddFunction("PRINT", print_fun, "Print out the provided variables.");
 
     std::function<std::string(const std::string &)> preprocess_fun =
       [this](const std::string & str) { return Preprocess(str); };
