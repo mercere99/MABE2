@@ -46,7 +46,7 @@ namespace mabe {
       // should continue to be considered active.
       bool Trigger() {
         auto result_entry = ast_action->Process();
-        if (result_entry->IsTemporary()) result_entry.Delete();
+        if (result_entry && result_entry->IsTemporary()) result_entry.Delete();
         next += repeat;
 
         if (max != -1.0 && next > max) repeat = 0.0;
