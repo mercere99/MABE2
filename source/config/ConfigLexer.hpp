@@ -39,7 +39,7 @@ namespace mabe {
 
       /// Symbol tokens should have least priority.  They include any solitary character not listed
       /// above, or pre-specified multi-character groups.
-      token_symbol = AddToken("Symbol", ".|\"::\"|\"==\"|\"!=\"|\"<=\"|\">=\"|\"->\"|\"&&\"|\"||\"|\"<<\"|\">>\"|\"++\"|\"--\"");
+      token_symbol = AddToken("Symbol", ".|\"::\"|\"==\"|\"!=\"|\"<=\"|\">=\"|\"->\"|\"&&\"|\"||\"|\"<<\"|\">>\"|\"++\"|\"--\"|\"**\"");
     }
 
     bool IsID(const emp::Token token) const noexcept { return token.token_id == token_identifier; }
