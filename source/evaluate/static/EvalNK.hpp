@@ -69,14 +69,14 @@ namespace mabe {
       mabe::Collection alive_collect( target_collect.GetAlive() );
       for (Organism & org : alive_collect) {
         org.GenerateOutput();
-        const auto & bits = org.GetVar<emp::BitVector>(bits_trait);
+        const auto & bits = org.GetTrait<emp::BitVector>(bits_trait);
         if (bits.size() != N) {
           AddError("Org returns ", bits.size(), " bits, but ",
                    N, " bits needed for NK landscape.",
                    "\nOrg: ", org.ToString());
         }
         double fitness = landscape.GetFitness(bits);
-        org.SetVar<double>(fitness_trait, fitness);
+        org.SetTrait<double>(fitness_trait, fitness);
 
         if (fitness > max_fitness || !max_org) {
           max_fitness = fitness;

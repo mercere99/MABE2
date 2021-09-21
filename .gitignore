@@ -1,6 +1,8 @@
 # Auto-generated files
 *~
+*.dSYM
 .vscode
+.DS_Store
 
 # Prerequisites
 *.d
@@ -36,3 +38,7 @@
 *.app
 
 examples/NK
+build/*.csv
+build/*.gen
+build/*.mabe
+build/MABE

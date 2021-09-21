@@ -96,6 +96,8 @@ namespace mabe {
       emp_assert(pop_ptr.template DynamicCast<Population>());
       return pop_ptr.template Cast<const Population>();
     }
+    emp::Ptr<const Population> ConstPopPtr() const noexcept { return PopPtr(); }
+
     Population & Pop() noexcept {
       emp_assert(PopPtr() != nullptr);
       return *PopPtr();
@@ -203,7 +205,7 @@ namespace mabe {
 
     /// Return a reference to the organism pointed to by this iterator; may advance iterator.
     ORG_T & operator*() {
-      emp_assert(IsValid());    // Make sure we're not outside of the vector.
+      emp_assert(IsValid(), pop_ptr, pos, PopSize());  // Make sure we're not outside of the vector.
       return *(OrgPtr());
     }
 

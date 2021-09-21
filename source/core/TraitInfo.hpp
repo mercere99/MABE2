@@ -134,11 +134,13 @@ namespace mabe {
       std::string mod_name = "";
       mod_ptr_t mod_ptr = nullptr;
       Access access = Access::UNKNOWN;
+      bool is_manager = false;
     };
     emp::vector<ModuleInfo> access_info;
 
     // Specific access categories
-    emp::array<size_t, NUM_ACCESS> access_counts = { 0, 0, 0, 0, 0 };
+    emp::array<size_t, NUM_ACCESS> access_counts = { 0, 0, 0, 0, 0, 0, 0 };
+    emp::array<size_t, NUM_ACCESS> manager_access_counts = { 0, 0, 0, 0, 0, 0, 0 };
 
     // Helper functions
     int GetInfoID(const std::string & mod_name) const {
@@ -236,9 +238,10 @@ namespace mabe {
     TraitInfo & SetDesc(const std::string & in_desc) { desc = in_desc; return *this; }
  
     // Add a module that can access this trait.
-    TraitInfo & AddAccess(const std::string & in_name, mod_ptr_t in_mod, Access access) {
-      access_info.push_back(ModuleInfo{ in_name, in_mod, access });
+    TraitInfo & AddAccess(const std::string & in_name, mod_ptr_t in_mod, Access access, bool is_manager) {
+      access_info.push_back(ModuleInfo{ in_name, in_mod, access, is_manager });
       access_counts[access]++;
+      if (is_manager) manager_access_counts[access]++;
       return *this;
     }
 

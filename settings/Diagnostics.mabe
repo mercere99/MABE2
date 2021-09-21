@@ -6,7 +6,8 @@ Population main_pop;
 Population next_pop;
 
 CommandLine cl {                // Handle basic I/O on the command line.
-  target_pop = "main_pop";      // Which population should we print stats about?
+  target = "main_pop";          // Which population should we print stats about?
+  format = "fitness:max,fitness:mean,fitness:min,fitness,vals,scores";  // Column format.
 } 
 
 EvalDiagnostic eval {           // Evaluate set of values with a specified diagnostic problem.
@@ -56,7 +57,7 @@ FileOutput output {             // Output collected data into a specified file.
   filename = "output.csv";      // Name of file for output data.
   format = "fitness:max,fitness:mean,fitness:min,fitness,vals,scores";  // Column format to use in the file.
   target = "main_pop";          // Which population(s) should we print from?
-  output_updates = "0:1";       // Which updates should we output data?
+  output_updates = "0:10";      // Which updates should we output data?
 }
 
 GrowthPlacement place_next {    // Always appened births to the end of a population.
@@ -93,6 +94,6 @@ ValsOrg vals_org {              // Organism consisting of a series of N floating
   total_name = "total";         // Name of variable to contain total of all values.
 }
 
-@start(0) print("random_seed = ", random_seed, "\n");
-@start(0) inject("vals_org", "main_pop", pop_size);
+@start() print("random_seed = ", random_seed, "\n");
+@start() inject("vals_org", "main_pop", pop_size);
 @update(num_gens) exit();

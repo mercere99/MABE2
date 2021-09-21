@@ -9,6 +9,8 @@
  * 
  * 
  *  Development Notes:
+ *  - Currently we are not using Format; this would be useful if we want to type-check inputs more
+ *    carefully.
  *  - When a ConfigEntry is used for a temporary value, it doesn't acutally need name or desc;
  *    we can probably remove these pretty easily to save on memory if needed.
  */
@@ -94,10 +96,13 @@ namespace mabe {
     virtual bool IsDouble() const { return false; }    ///< Is entry a floting point value?
     virtual bool IsString() const { return false; }    ///< Is entry a string?
 
-    virtual bool IsLocal() const { return false; }     ///< Was this entry defined in config file?
-    virtual bool IsFunction() const { return false; }  ///< Is this entry a function?
-    virtual bool IsScope() const { return false; }     ///< Is this entry a full scope?
-    virtual bool IsError() const { return false; }     ///< Does this entry flag an error?
+    virtual bool IsLocal() const { return false; }     ///< Was entry defined in config file?
+    virtual bool IsFunction() const { return false; }  ///< Is entry a function?
+    virtual bool IsScope() const { return false; }     ///< Is entry a full scope?
+    virtual bool IsError() const { return false; }     ///< Does entry flag an error?
+
+    virtual bool HasNumericReturn() const { return false; } ///< Is entry a function that returns a number?
+    virtual bool HasStringReturn() const { return false; }  ///< Is entry a function that returns a string?
 
     ConfigEntry & SetName(const std::string & in) { name = in; return *this; }
     ConfigEntry & SetDesc(const std::string & in) { desc = in; return *this; }
@@ -106,6 +111,12 @@ namespace mabe {
 
     virtual double AsDouble() const { emp_assert(false); return 0.0; }
     virtual std::string AsString() const { emp_assert(false); return ""; }
+    template <typename T>
+    T As() const {
+      if constexpr (std::is_same<T,double>()) return AsDouble();
+      else return AsString();
+    }
+
     virtual ConfigEntry & SetValue(double in) { (void) in; emp_assert(false, in); return *this; }
     virtual ConfigEntry & SetString(const std::string & in) { (void) in; emp_assert(false, in); return *this; }
 
@@ -214,7 +225,7 @@ namespace mabe {
     bool CopyValue(const ConfigEntry & in) override { var = in.AsDouble(); return true; }
   };
 
-  /// Specializatin for ConfigEntry linked to a string variable.
+  /// Specialization for ConfigEntry linked to a string variable.
   template <>
   class ConfigEntry_Linked<std::string> : public ConfigEntry {
   private:

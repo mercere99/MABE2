@@ -176,6 +176,7 @@ namespace mabe {
 
     // Format:  BeforeUpdate(size_t update_ending)
     // Trigger: Update is ending; new one is about to start
+    // Args:    Update ID that is just finishing.
     void BeforeUpdate(size_t) override {
       has_signal[SIG_BeforeUpdate] = false;
       control.RescanSignals();
@@ -183,6 +184,7 @@ namespace mabe {
 
     // Format:  OnUpdate(size_t new_update)
     // Trigger: New update has just started.
+    // Args:    Update ID just starting.
     void OnUpdate(size_t) override {
       has_signal[SIG_OnUpdate] = false;
       control.RescanSignals();
@@ -190,6 +192,7 @@ namespace mabe {
 
     // Format:  BeforeRepro(OrgPosition parent_pos) 
     // Trigger: Parent is about to reproduce.
+    // Args:    Position of organism about to reproduce.
     void BeforeRepro(OrgPosition) override {
       has_signal[SIG_BeforeRepro] = false;
       control.RescanSignals();
@@ -197,6 +200,7 @@ namespace mabe {
 
     // Format:  OnOffspringReady(Organism & offspring, OrgPosition parent_pos, Population & target_pop)
     // Trigger: Offspring is ready to be placed.
+    // Args:    Offspring to be born, position of parent, population to place offspring in.
     void OnOffspringReady(Organism &, OrgPosition, Population &) override {
       has_signal[SIG_OnOffspringReady] = false;
       control.RescanSignals();
@@ -204,6 +208,7 @@ namespace mabe {
 
     // Format:  OnInjectReady(Organism & inject_org, Population & target_pop)
     // Trigger: Organism to be injected is ready to be placed.
+    // Args:    Organism to be injected, population to inject into.
     void OnInjectReady(Organism &, Population &) override {
       has_signal[SIG_OnInjectReady] = false;
       control.RescanSignals();
@@ -227,6 +232,7 @@ namespace mabe {
 
     // Format:  BeforeMutate(Organism & org)
     // Trigger: Mutate is about to run on an organism.
+    // Args:    Organism about to mutate.
     void BeforeMutate(Organism &) override {
       has_signal[SIG_BeforeMutate] = false;
       control.RescanSignals();
@@ -234,6 +240,7 @@ namespace mabe {
 
     // Format:  OnMutate(Organism & org)
     // Trigger: Organism has had its genome changed due to mutation.
+    // Args:    Organism that just mutated.
     void OnMutate(Organism &) override {
       has_signal[SIG_OnMutate] = false;
       control.RescanSignals();
@@ -241,6 +248,7 @@ namespace mabe {
 
     // Format:  BeforeDeath(OrgPosition remove_pos)
     // Trigger: Organism is about to die.
+    // Args:    Position of organism about to die.
     void BeforeDeath(OrgPosition) override {
       has_signal[SIG_BeforeDeath] = false;
       control.RescanSignals();
@@ -248,6 +256,7 @@ namespace mabe {
 
     // Format:  BeforeSwap(OrgPosition pos1, OrgPosition pos2)
     // Trigger: Two organisms' positions in the population are about to move.
+    // Args:    Positions of organisms about to be swapped.
     void BeforeSwap(OrgPosition, OrgPosition) override {
       has_signal[SIG_BeforeSwap] = false;
       control.RescanSignals();
@@ -255,6 +264,7 @@ namespace mabe {
 
     // Format:  OnSwap(OrgPosition pos1, OrgPosition pos2)
     // Trigger: Two organisms' positions in the population have just swapped.
+    // Args:    Positions of organisms just swapped.
     void OnSwap(OrgPosition, OrgPosition) override {
       has_signal[SIG_OnSwap] = false;
       control.RescanSignals();
@@ -262,6 +272,7 @@ namespace mabe {
 
     // Format:  BeforePopResize(Population & pop, size_t new_size)
     // Trigger: Full population is about to be resized.
+    // Args:    Population about to be resized, the size it will become.
     void BeforePopResize(Population &, size_t) override {
       has_signal[SIG_BeforePopResize] = false;
       control.RescanSignals();
@@ -269,6 +280,7 @@ namespace mabe {
 
     // Format:  OnPopResize(Population & pop, size_t old_size)
     // Trigger: Full population has just been resized.
+    // Args:    Population just resized, previous size it was.
     void OnPopResize(Population &, size_t) override {
       has_signal[SIG_OnPopResize] = false;
       control.RescanSignals();
@@ -276,6 +288,7 @@ namespace mabe {
 
     // Format:  OnError(const std::string & msg)
     // Trigger: An error has occurred and the user should be notified.
+    // Args:    Message associated with this error.
     void OnError(const std::string &) override {
       has_signal[SIG_OnError] = false;
       control.RescanSignals();
@@ -283,6 +296,7 @@ namespace mabe {
 
     // Format:  OnWarning(const std::string & msg)
     // Trigger: A atypical condition has occurred and the user should be notified.
+    // Args:    Message associated with this warning.
     void OnWarning(const std::string &) override {
       has_signal[SIG_OnWarning] = false;
       control.RescanSignals();
@@ -299,6 +313,14 @@ namespace mabe {
     // Trigger: Run when the --help option is called at startup.
     void OnHelp() override {
       has_signal[SIG_OnHelp] = false;
+      control.RescanSignals();
+    }
+
+    // Format:  TraceEval(Organism & trace_org, std::ostream & out_stream)
+    // Trigger: Request to print a trace of the evaluation of an organism.
+    // Args:    Organism to be traces, stream to print trace to.
+    void TraceEval(Organism &, std::ostream &) override {
+      has_signal[SIG_TraceEval] = false;
       control.RescanSignals();
     }
 
@@ -365,6 +387,7 @@ namespace mabe {
     bool OnWarning_IsTriggered() override { return control.OnWarning_IsTriggered(this); };
     bool BeforeExit_IsTriggered() override { return control.BeforeExit_IsTriggered(this); };
     bool OnHelp_IsTriggered() override { return control.OnHelp_IsTriggered(this); };
+    bool TraceEval_IsTriggered() override { return control.TraceEval_IsTriggered(this); };
     bool DoPlaceBirth_IsTriggered() override { return control.DoPlaceBirth_IsTriggered(this); };
     bool DoPlaceInject_IsTriggered() override { return control.DoPlaceInject_IsTriggered(this); };
     bool DoFindNeighbor_IsTriggered() override { return control.DoFindNeighbor_IsTriggered(this); };

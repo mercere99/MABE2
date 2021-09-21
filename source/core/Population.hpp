@@ -117,7 +117,7 @@ namespace mabe {
           emp_assert(!empty_org.IsNull(), "Empty organisms must be set before they can be used!");
           orgs[i] = empty_org;
         } else {                              // Otherwise clone the organism.
-          orgs[i] = in_pop.orgs[i]->Clone();
+          orgs[i] = in_pop.orgs[i]->CloneOrganism();
         }
       }
       emp_assert(OK());
@@ -204,7 +204,8 @@ namespace mabe {
   public:
     // ------ DEBUG FUNCTIONS ------
     bool OK() const {
-      if (pop_id < 0) {
+      // We will usually have a handful of popoulations; assume error if we have more than a billion.
+      if (pop_id > 1000000000) {
         std::cout << "WARNING: Invalid Population ID (pop_id = " << pop_id << ")" << std::endl;
         return false;
       }

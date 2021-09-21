@@ -1,14 +1,17 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019-2021.
+ *  @date 2021.
  *
- *  @file  EvalCountBits.hpp
- *  @brief MABE Evaluation module for counting the number of ones (or zeros) in an output.
+ *  @file  EvalRoyalRoad.hpp
+ *  @brief MABE Evaluation module for evaluating the royal road problem.
+ * 
+ *  In royal road, the number of 1s from the beginning of a bitstring are counted, but only
+ *  in groups of B (brick size).
  */
 
-#ifndef MABE_EVAL_COUNT_BITS_H
-#define MABE_EVAL_COUNT_BITS_H
+#ifndef MABE_EVAL_ROYAL_ROAD_H
+#define MABE_EVAL_ROYAL_ROAD_H
 
 #include "../../core/MABE.hpp"
 #include "../../core/Module.hpp"
@@ -17,67 +20,66 @@
 
 namespace mabe {
 
-  class EvalCountBits : public Module {
+  class EvalRoyalRoad : public Module {
   private:
     Collection target_collect;
 
     std::string bits_trait;
     std::string fitness_trait;
-    bool count_type;   // =0 for counts zeros, or =1 for count ones.
+
+    size_t brick_size = 8;
+    double extra_bit_cost = 0.5;
 
   public:
-    EvalCountBits(mabe::MABE & control,
-                  const std::string & name="EvalCountBits",
-                  const std::string & desc="Evaluate bitstrings by counting ones (or zeros).",
-                  const std::string & _btrait="bits",
-                  const std::string & _ftrait="fitness",
-                  bool _ctype=1)
+    EvalRoyalRoad(mabe::MABE & control,
+                  const std::string & name="EvalRoyalRoad",
+                  const std::string & desc="Evaluate bitstrings by counting ones (or zeros).")
       : Module(control, name, desc)
       , target_collect(control.GetPopulation(0))
-      , bits_trait(_btrait)
-      , fitness_trait(_ftrait)
-      , count_type(_ctype)
+      , bits_trait("bits")
+      , fitness_trait("fitness")
     {
       SetEvaluateMod(true);
     }
-    ~EvalCountBits() { }
+    ~EvalRoyalRoad() { }
 
     void SetupConfig() override {
       LinkCollection(target_collect, "target", "Which population(s) should we evaluate?");
       LinkVar(bits_trait, "bits_trait", "Which trait stores the bit sequence to evaluate?");
-      LinkVar(fitness_trait, "fitness_trait", "Which trait should we store NK fitness in?");
-      LinkVar(count_type, "count_type", "Which type of bit should we count? (0 or 1)");
+      LinkVar(fitness_trait, "fitness_trait", "Which trait should we store Royal Road fitness in?");
+      LinkVar(brick_size, "brick_size", "Number of ones to have a whole brick in the road.");
+      LinkVar(extra_bit_cost, "extra_bit_cost", "Penalty per-bit for extra-long roads.");
     }
 
     void SetupModule() override {
       AddRequiredTrait<emp::BitVector>(bits_trait);
-      AddOwnedTrait<double>(fitness_trait, "All-ones fitness value", 0.0);
+      AddOwnedTrait<double>(fitness_trait, "Royal Road fitness value", 0.0);
     }
 
     void OnUpdate(size_t /* update */) override {
-      emp_assert(control.GetNumPopulations() >= 1);
-
       // Loop through the population and evaluate each organism.
       double max_fitness = 0.0;
-      emp::Ptr<Organism> max_org = nullptr;
-      mabe::Collection alive_collect( target_collect.GetAlive() );
+      mabe::Collection alive_collect = target_collect.GetAlive();
       for (Organism & org : alive_collect) {        
         // Make sure this organism has its bit sequence ready for us to access.
         org.GenerateOutput();
 
         // Count the number of ones in the bit sequence.
         const emp::BitVector & bits = org.GetTrait<emp::BitVector>(bits_trait);
-        double fitness = (double) bits.CountOnes();
+        int road_length = 0.0;
+        for (size_t i = 0; i < bits.size(); i++) {
+          if (bits[i] == 0) break;
+          road_length++;
+        }
 
-        // If we were supposed to count zeros, subtract ones count from total number of bits.
-        if (count_type == 0) fitness = bits.size() - fitness;
+        const int overage = road_length % brick_size;
 
         // Store the count on the organism in the fitness trait.
+        double fitness = road_length - overage * (extra_bit_cost + 1.0);
         org.SetTrait<double>(fitness_trait, fitness);
 
-        if (fitness > max_fitness || !max_org) {
+        if (fitness > max_fitness) {
           max_fitness = fitness;
-          max_org = &org;
         }
       }
 
@@ -85,7 +87,7 @@ namespace mabe {
     }
   };
 
-  MABE_REGISTER_MODULE(EvalCountBits, "Evaluate bitstrings by counting ones (or zeros).");
+  MABE_REGISTER_MODULE(EvalRoyalRoad, "Evaluate bitstrings by counting ones (or zeros).");
 }
 
 #endif

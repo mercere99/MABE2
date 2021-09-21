@@ -26,6 +26,7 @@
 #include "emp/config/command_line.hpp"
 #include "emp/control/Signal.hpp"
 #include "emp/data/DataMap.hpp"
+#include "emp/io/StreamManager.hpp"
 #include "emp/math/Random.hpp"
 #include "emp/datastructs/vector_utils.hpp"
 
@@ -57,10 +58,15 @@ namespace mabe {
 
     // --- Variables to handle configuration, initialization, and error reporting ---
 
-    bool verbose = false;              ///< Should we output extra information during setup?
-    bool show_help = false;            ///< Should we show "help" before exiting?
-    bool exit_now = false;             ///< Do we need to immediately clean up and exit the run?
-    ErrorManager error_man;            ///< Object to manage warnings and errors.
+    bool verbose = false;        ///< Should we output extra information during setup?
+    bool show_help = false;      ///< Should we show "help" before exiting?
+    bool exit_now = false;       ///< Do we need to immediately clean up and exit the run?
+    ErrorManager error_man;      ///< Object to manage warnings and errors.
+    emp::StreamManager files;    ///< Track all of the file streams used in MABE.
+
+    // Setup a cache for functions used to collect data for files.
+    using trait_fun_t = std::function<std::string(const Collection &)>;
+    std::unordered_map<std::string, emp::vector<trait_fun_t>> file_fun_cache;
 
     /// Populations used; generated in the configuration file.
     emp::vector< emp::Ptr<Population> > pops;
@@ -75,7 +81,6 @@ namespace mabe {
     emp::DataMap org_data_map;
 
     emp::Random random;                ///< Master random number generator
-    int random_seed = 0;               ///< Random number seed used for this run.
     size_t cur_pop_id = (size_t) -1;   ///< Which population is currently active?
     size_t update = 0;                 ///< How many times has Update() been called?
 
@@ -107,17 +112,6 @@ namespace mabe {
 
     // ----------- Helper Functions -----------
 
-    /// Call when ready to end a run.
-    void Exit() {
-      // Let all modules know that exit is about to occur.
-      before_exit_sig.Trigger();
-
-      // @CAO: Other local cleanup in case destructor is not run due to early termination?
-
-      // Exit as soon as possible.
-      exit_now = true;
-    }
-
     /// Print information on how to run the software.
     void ShowHelp() {
       std::cout << "MABE v" << VERSION << "\n"
@@ -130,7 +124,7 @@ namespace mabe {
       }
       on_help_sig.Trigger();
       std::cout << "Note: Settings and files are applied in the order provided.\n";
-      Exit();
+      exit_now = true;
     }
 
     /// List all of the available modules included in the current compilation.
@@ -144,7 +138,11 @@ namespace mabe {
       for (auto & info : GetModuleInfo()) {
         std::cout << "  " << info.name << " : " << info.desc << "\n";
       }          
-      Exit();
+      exit_now = true;;
+    }
+
+    void TraceEval(Organism & org, std::ostream & os) {
+      trace_eval_sig.Trigger(org, os);
     }
 
     /// Process all of the arguments that were passed in on the command line.
@@ -162,16 +160,6 @@ namespace mabe {
     void UpdateSignals();
 
 
-    // -- Helper functions for debugging and extra output --
-
-    /// Output args if (and only if) we are in verbose mode.
-    template <typename... Ts>
-    void verbose_out(Ts &&... args) {
-      if (verbose) {
-        std::cout << emp::to_string(std::forward<Ts>(args)...) << std::endl;
-      }
-    }
-
   public:
     MABE(int argc, char* argv[]);  ///< MABE command-line constructor.
     MABE(const MABE &) = delete;
@@ -185,7 +173,16 @@ namespace mabe {
     // --- Basic accessors ---
     emp::Random & GetRandom() { return random; }
     size_t GetUpdate() const noexcept { return update; }
+    bool GetVerbose() const { return verbose; }
     mabe::ErrorManager & GetErrorManager() { return error_man; }
+
+    /// Output args if (and only if) we are in verbose mode.
+    template <typename... Ts>
+    void Verbose(Ts &&... args) {
+      if (verbose) {
+        std::cout << emp::to_string(std::forward<Ts>(args)...) << std::endl;
+      }
+    }
 
     // --- Tools to setup runs ---
     bool Setup();
@@ -198,7 +195,7 @@ namespace mabe {
         AddModule<EMPTY_MANAGER_T>("EmptyOrg", "Manager for all 'empty' organisms in any population.");
       empty_manager.SetBuiltIn();         // Don't write the empty manager to config.
 
-      empty_org = empty_manager.MakeOrganism();
+      empty_org = empty_manager.template Make<Organism>();
     }
 
     /// Update MABE a single time step.
@@ -210,7 +207,7 @@ namespace mabe {
       for (size_t ud = 0; ud < num_updates && !exit_now; ud++) {
         Update();
       }
-      Exit();
+      before_exit_sig.Trigger();
     }
 
     // -- World Structure --
@@ -266,7 +263,7 @@ namespace mabe {
       emp_assert(org.GetDataMap().SameLayout(org_data_map));
       OrgPosition pos;
       for (size_t i = 0; i < copy_count; i++) {
-        emp::Ptr<Organism> inject_org = org.Clone();
+        emp::Ptr<Organism> inject_org = org.CloneOrganism();
         on_inject_ready_sig.Trigger(*inject_org, pop);
         pos = FindInjectPosition(*inject_org, pop);
         if (pos.IsValid()) {
@@ -298,13 +295,16 @@ namespace mabe {
     /// MABE controller will create instances of it.)  Returns the position of the last
     /// organism placed.
     OrgPosition Inject(const std::string & type_name, Population & pop, size_t copy_count=1) {
-      auto & org_manager = GetModule(type_name);          // Look up type of organism.
-      OrgPosition pos;                                    // Place to save injection position.
-      for (size_t i = 0; i < copy_count; i++) {           // Loop through, injecting each instance.
-        auto org_ptr = org_manager.MakeOrganism(random);  // ...Build an org of this type.
-        pos = InjectInstance(org_ptr, pop);               // ...Inject it into the popultation.
+      Verbose("Injecting ", copy_count, " orgs of type '", type_name,
+              "' into population ", pop.GetID());
+
+      auto & org_manager = GetModule(type_name);    // Look up type of organism.
+      OrgPosition pos;                              // Place to save injection position.
+      for (size_t i = 0; i < copy_count; i++) {     // Loop through, injecting each instance.
+        auto org_ptr = org_manager.Make<Organism>(random);  // ...Build an org of this type.
+        pos = InjectInstance(org_ptr, pop);         // ...Inject it into the popultation.
       }
-      return pos;                                         // Return last position injected.
+      return pos;                                   // Return last position injected.
     }
 
     /// Add an organism of a specified type and population (provide names of both and they
@@ -324,7 +324,7 @@ namespace mabe {
     /// Inject a copy of the provided organism at a specified position.
     void InjectAt(const Organism & org, OrgPosition pos) {
       emp_assert(pos.IsValid());
-      emp::Ptr<Organism> inject_org = org.Clone();
+      emp::Ptr<Organism> inject_org = org.CloneOrganism();
       on_inject_ready_sig.Trigger(*inject_org, GetPopulation(pos.PopID()));
       AddOrgAt( inject_org, pos);
     }
@@ -342,7 +342,7 @@ namespace mabe {
       OrgPosition pos;                                      // Position of each offspring placed.
       emp::Ptr<Organism> new_org;
       for (size_t i = 0; i < birth_count; i++) {            // Loop through offspring, adding each
-        new_org = do_mutations ? org.MakeOffspring(random) : org.Clone();
+        new_org = do_mutations ? org.MakeOffspringOrganism(random) : org.CloneOrganism();
 
         // Alert modules that offspring is ready, then find its birth position.
         on_offspring_ready_sig.Trigger(*new_org, ppos, target_pop);
@@ -363,7 +363,7 @@ namespace mabe {
       emp_assert(target_pos.IsValid());    // Target positions must already be valid.
 
       before_repro_sig.Trigger(ppos);
-      emp::Ptr<Organism> new_org = do_mutations ? org.MakeOffspring(random) : org.Clone();
+      emp::Ptr<Organism> new_org = do_mutations ? org.MakeOffspringOrganism(random) : org.CloneOrganism();
       on_offspring_ready_sig.Trigger(*new_org, ppos, target_pos.Pop());
 
       AddOrgAt(new_org, target_pos, ppos);
@@ -489,7 +489,6 @@ namespace mabe {
     ///   entopy      : Return the Shannon entropy of this value.
     ///   :trait      : Return the mutual information with another provided trait.
 
-    using trait_fun_t = std::function<std::string(const Collection &)>;
     trait_fun_t BuildTraitFunction(const std::string & trait_name,
                                    std::string trait_filter) {
       // The trait input has two components:
@@ -514,6 +513,26 @@ namespace mabe {
         trait_filter.erase(0,1); // Erase the '=' and we are left with the string to match.
       }
 
+      // // If the filter begins with a $, convert the rest to an ID and use it.
+      // else if (trait_filter[0] == '$') {
+      //   // Make sure proper parentheses are used after $.
+      //   if (trait_filter[1] != '(' || trait_filter.back() != ')') {
+      //     error_man.AddError("$ specifier must be followed by parens; '", trait_filter, "' invalid.");
+      //   }
+
+      //   // Determine the variable to use.
+      //   std::string new_filter = emp::string_get_range(trait_filter, 2, trait_filter.size()-1);
+      //   std::string new_name = emp::string_pop(trait_filter,':');
+
+      //   // Build the function that will give us the ID we need.
+      //   auto in_fun = BuildTraitFunction(new_name, new_filter);
+
+      //   return [get_fun,index](const CONTAINER_T & container) {
+      //     if (container.size() <= index) return "Nan"s;
+      //     return emp::to_string( get_fun( container.At(index) ) );
+      //   };
+      // }
+
       // Otherwise pass along to the BuildCollectFun with the correct type...
       auto result = is_numeric
                   ? emp::BuildCollectFun<double,      Collection>(trait_filter, get_double_fun)
@@ -526,6 +545,55 @@ namespace mabe {
       }
 
       return result;
+    }
+
+    // Handler for printing trait data
+    void OutputTraitData(std::ostream & os,
+                         Collection target_collect,
+                         std::string format,
+                         bool print_headers=false)
+    {
+      emp::vector<trait_fun_t> funs;                          ///< Functions to call each update.
+      emp::remove_whitespace(format);
+      auto fun_it = file_fun_cache.find(format);
+
+      // If we need headers, set them up!
+      if (print_headers) {
+        // Identify the contents of each column.
+        emp::vector<std::string> cols = emp::slice(format, ',');
+
+        // Print the headers into the file.
+        os << "#update";
+        for (size_t i = 0; i < cols.size(); i++) {
+          os << ", " << cols[i];
+        }
+        os << '\n';
+      }
+
+      // If the functions don't exist yet, set them up!
+      if (fun_it == file_fun_cache.end()) {
+        // Identify the contents of each column.
+        emp::vector<std::string> cols = emp::slice(format, ',');
+
+        // Setup a function to collect data associated with each column.
+        funs.resize(cols.size());
+        for (size_t i = 0; i < cols.size(); i++) {
+          std::string trait_filter = cols[i];
+          std::string trait_name = emp::string_pop(trait_filter,':');
+          funs[i] = BuildTraitFunction(trait_name, trait_filter);
+        }
+
+        // Insert the new entry into the cache and update the iterator.
+        fun_it = file_fun_cache.insert({format, funs}).first;
+      }
+      else funs = fun_it->second;
+
+      // And, finally, print the data!
+      os << GetUpdate();
+      for (auto & fun : funs) {
+        os << ", " << fun(target_collect);
+      }
+      os << std::endl;
     }
 
     // --- Manage configuration scope ---
@@ -571,6 +639,7 @@ namespace mabe {
     bool OnError_IsTriggered(mod_ptr_t mod) { return on_error_sig.cur_mod == mod; };
     bool OnWarning_IsTriggered(mod_ptr_t mod) { return on_warning_sig.cur_mod == mod; };
     bool BeforeExit_IsTriggered(mod_ptr_t mod) { return before_exit_sig.cur_mod == mod; };
+    bool TraceEval_IsTriggered(mod_ptr_t mod) { return trace_eval_sig.cur_mod == mod; };
     bool OnHelp_IsTriggered(mod_ptr_t mod) { return on_help_sig.cur_mod == mod; };
     bool DoPlaceBirth_IsTriggered(mod_ptr_t mod) { return do_place_birth_sig.cur_mod == mod; };
     bool DoPlaceInject_IsTriggered(mod_ptr_t mod) { return do_place_inject_sig.cur_mod == mod; };
@@ -606,8 +675,17 @@ namespace mabe {
 
     // Add other built-in functions to the config file.
 
+    // 'eval' dynamically evaluates the contents of a string.
+    // std::function<int(const std::string &)> eval_fun =
+    //   [this](const std::string & expression) { config.Eval(expression); return 0; };
+    // config.AddFunction("eval", eval_fun, "Dynamically evaluate the string passed in.");
+    std::function<std::string(const std::string &)> eval_fun =
+      [this](const std::string & expression) { return config.Eval(expression); };
+    config.AddFunction("eval", eval_fun, "Dynamically evaluate the string passed in.");
+
+
     // 'exit' should terminate a run.
-    std::function<int()> exit_fun = [this](){ Exit(); return 0; };
+    std::function<int()> exit_fun = [this](){ exit_now = true; return 0; };
     config.AddFunction("exit", exit_fun, "Exit from this MABE run.");
 
 
@@ -620,13 +698,49 @@ namespace mabe {
     config.AddFunction("inject", inject_fun,
       "Inject organisms into a population (args: org_name, pop_name, org_count).");
 
+
+    // 'output' will collect data and write it to a file.
+    files.SetOutputDefaultFile();  // Stream manager should default to files for output.
+    std::function<int(const std::string &, const std::string &, const std::string &)> output_fun =
+      [this](const std::string & filename, const std::string & collection, std::string format) {
+        const bool file_exists = files.Has(filename);           ///< Is file is already setup?
+        std::ostream & file = files.GetOutputStream(filename);  ///< File to write to.
+        OutputTraitData(file, FromString(collection), format, !file_exists);
+        return 0;
+      };
+    config.AddFunction("output", output_fun,
+      "Print out the provided trait-based data; args: filename, collection, format.");
+
+
     // 'print' is a simple debugging command to output the value of a variable.
     std::function<int(const emp::vector<emp::Ptr<ConfigEntry>> &)> print_fun =
       [](const emp::vector<emp::Ptr<ConfigEntry>> & args) {
         for (auto entry_ptr : args) std::cout << entry_ptr->AsString();
         return 0;
       };
-    config.AddFunction("print", print_fun, "Print out the provided variable.");
+    config.AddFunction("print", print_fun, "Print out the provided variables.");
+
+
+    // @CAO Should be a method on a Population or Collection, not called by name.
+    std::function<int(const std::string &)> pop_size_fun =
+      [this](const std::string & target) { return FromString(target).GetSize(); };
+    config.AddFunction("size", pop_size_fun, "Return the size of the target population.");
+
+    // std::function<double(const std::string &)> trait_mean_fun =
+    //   [this](const std::string & target, const std::string & trait) {
+    //     if constexpr (std::is_arithmetic_v<DATA_T>) {
+    //       double total = 0.0;
+    //       size_t count = 0;
+    //       for (const auto & entry : container) {
+    //         total += (double) get_fun(entry);
+    //         count++;
+    //       }
+    //       return emp::to_string( total / count );
+    //     }
+    //     return 0.0; // @CAO: or Nan?
+    //   };
+    // config.AddFunction("trait_mean", trait_mean_fun, "Return the size of the target population.");
+
 
     // Add in built-in event triggers; these are used to indicate when events should happen.
     config.AddEventType("start");   // Triggered at the beginning of a run.
@@ -648,14 +762,14 @@ namespace mabe {
 
     if (config_settings.size()) {
       std::cout << "Loading command-line settings." << std::endl;
-      config.LoadStatements(config_settings);      
+      config.LoadStatements(config_settings, "command-line settings");      
     }
 
     // If we are writing a file, do so and then exit.
     if (gen_filename != "") {
       std::cout << "Generating file '" << gen_filename << "'." << std::endl;
       config.Write(gen_filename);
-      Exit();
+      exit_now = true;
     }
 
     // If any of the inital flags triggered an 'exit_now', do so.
@@ -703,13 +817,13 @@ namespace mabe {
       [this](const emp::vector<std::string> & in) {
         if (in.size() != 1) {
           std::cout << "'--generate' must be followed by a single filename.\n";
-          Exit();
+          exit_now = true;
         } else {
           // MABE Config files should be generated FROM a *.gen file, typically creating a *.mabe
           // file.  If output file is *.gen assume an error. (for now; override should be allowed)
           if (in[0].size() > 4 && in[0].substr(in[0].size()-4) == ".gen") {
             error_man.AddError("Error: generated file ", in[0], " not allowed to be *.gen; typically should end in *.mabe.");
-            Exit();
+            exit_now = true;
           }
           else gen_filename = in[0];
         }
@@ -726,7 +840,7 @@ namespace mabe {
     arg_set.emplace_back("--version", "-v", "              ", "Version ID of MABE",
       [this](const emp::vector<std::string> &){
         std::cout << "MABE v" << VERSION << "\n";
-        Exit();
+        exit_now = true;
       });
     arg_set.emplace_back("--verbose", "-+", "              ", "Output extra setup info",
       [this](const emp::vector<std::string> &){ verbose = true; } );
@@ -772,7 +886,7 @@ namespace mabe {
   /// As part of the main Setup(), load in all of the organism traits that modules need to
   /// read or write and make sure that there aren't any conflicts.
   void MABE::Setup_Traits() {
-    verbose_out("Analyzing configuration of ", trait_man.GetSize(), " traits.");
+    Verbose("Analyzing configuration of ", trait_man.GetSize(), " traits.");
 
     trait_man.Verify(verbose);            // Make sure modules are accessing traits consistently
     trait_man.RegisterAll(org_data_map);  // Load in all of the traits to the DataMap
@@ -811,9 +925,10 @@ namespace mabe {
                 config.GetRootScope().GetName());  // Scope should start at root level.
 
     // Setup main MABE variables.
-    cur_scope->LinkVar("random_seed",
-                        random_seed,
-                        "Seed for random number generator; use 0 to base on time.").SetMin(0);
+    cur_scope->LinkFuns<int>("random_seed",
+                             [this](){ return random.GetSeed(); },
+                             [this](int seed){ random.ResetSeed(seed); },
+                             "Seed for random number generator; use 0 to base on time.");
   }
 
 

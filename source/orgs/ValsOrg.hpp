@@ -37,7 +37,7 @@ namespace mabe {
 
     void CalculateTotal() {
       for (double x : vals) total += x;
-      SetVar<double>(SharedData().total_name, total);
+      SetTrait<double>(SharedData().total_name, total);
     }
 
   public:
@@ -95,7 +95,7 @@ namespace mabe {
         mut_pos = mut_sites.FindOne(mut_pos+1);  // Move on to the next site to mutate.
       }
 
-      SetVar<double>(SharedData().total_name, total);  // Store total in data map.
+      SetTrait<double>(SharedData().total_name, total);  // Store total in data map.
       return num_muts;
     }
 
@@ -105,7 +105,7 @@ namespace mabe {
         x = random.GetDouble(SharedData().min_value, SharedData().max_value);
         total += x;
       }
-      SetVar<double>(SharedData().total_name, total);  // Store total in data map.
+      SetTrait<double>(SharedData().total_name, total);  // Store total in data map.
     }
 
     void Initialize(emp::Random & random) override {
@@ -116,8 +116,8 @@ namespace mabe {
 
     /// Put the values in the correct output positions.
     void GenerateOutput() override {
-      SetVar<emp::vector<double>>(SharedData().output_name, vals);
-      SetVar<double>(SharedData().total_name, total);
+      SetTrait<emp::vector<double>>(SharedData().output_name, vals);
+      SetTrait<double>(SharedData().total_name, total);
     }
 
     /// Setup this organism type to be able to load from config.

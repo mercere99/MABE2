@@ -63,9 +63,9 @@ namespace mabe {
     // OnSwap(OrgPosition pos1, OrgPosition pos2)
     SigListener<ModuleBase,void,OrgPosition,OrgPosition> on_swap_sig;
     // BeforePopResize(Population & pop, size_t new_size)
-    SigListener<ModuleBase,void,Population &, size_t> before_pop_resize_sig;
+    SigListener<ModuleBase,void,Population &,size_t> before_pop_resize_sig;
     // OnPopResize(Population & pop, size_t old_size)
-    SigListener<ModuleBase,void,Population &, size_t> on_pop_resize_sig;
+    SigListener<ModuleBase,void,Population &,size_t> on_pop_resize_sig;
     // OnError(const std::string & msg)
     SigListener<ModuleBase,void,const std::string &> on_error_sig;
     // OnWarning(const std::string & msg)
@@ -74,6 +74,8 @@ namespace mabe {
     SigListener<ModuleBase,void> before_exit_sig;
     // OnHelp()
     SigListener<ModuleBase,void> on_help_sig;
+    // TraceEval()
+    SigListener<ModuleBase,void,Organism &,std::ostream&> trace_eval_sig;
 
     // OrgPosition DoPlaceBirth(Organism & offspring, OrgPosition parent_position, Population & target_pop);
     SigListener<ModuleBase, OrgPosition, Organism &, OrgPosition, Population &> do_place_birth_sig;
@@ -106,6 +108,7 @@ namespace mabe {
     , on_warning_sig("on_warning", ModuleBase::SIG_OnWarning, &ModuleBase::OnWarning, sig_ptrs)
     , before_exit_sig("before_exit", ModuleBase::SIG_BeforeExit, &ModuleBase::BeforeExit, sig_ptrs)
     , on_help_sig("on_help", ModuleBase::SIG_OnHelp, &ModuleBase::OnHelp, sig_ptrs)
+    , trace_eval_sig("trace_eval", ModuleBase::SIG_TraceEval, &ModuleBase::TraceEval, sig_ptrs)
     , do_place_birth_sig("do_place_birth", ModuleBase::SIG_DoPlaceBirth, &ModuleBase::DoPlaceBirth, sig_ptrs)
     , do_place_inject_sig("do_place_inject", ModuleBase::SIG_DoPlaceInject, &ModuleBase::DoPlaceInject, sig_ptrs)
     , do_find_neighbor_sig("do_find_neighbor", ModuleBase::SIG_DoFindNeighbor, &ModuleBase::DoFindNeighbor, sig_ptrs)

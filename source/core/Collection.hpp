@@ -10,8 +10,13 @@
  *  to represent and manipulate groups of organisms (by their position).  Organisms can be
  *  added individully or as whole populations.
  * 
- *  Internally, a Collection is represented by a map with keys of Population pointers and
- *  values of a BitVector indicating the positions in those populations that are included.
+ *  Internally, a Collection is represented by a map; keys are pointers to the included Populations
+ *  and values are a PopInfo class (a flag for "do we included the whole population" and a
+ *  BitVector indicating the positions that are included if not the whole population).
+ * 
+ *  A CollectionIterator will track the current population being iterated through, and the position
+ *  currently indicated.  When an iterator reached the end, it's population pointer is set to 
+ *  nullptr.
  */
 
 #ifndef MABE_COLLECTION_H
@@ -169,6 +174,8 @@ namespace mabe {
       }
     };
 
+    // Link each populaiton in the collection (by its pointer) to info about which organisms
+    // are included.
     using pos_map_t = std::map<pop_ptr_t, PopInfo>;
     pos_map_t pos_map;
 
@@ -184,6 +191,40 @@ namespace mabe {
     }
     auto GetInfoIT(const_pop_ptr_t pop_ptr) const {
       return pos_map.find(pop_ptr.ConstCast<mabe::Population>());
+    }
+
+    // Take an iterator that may be in an illegal state and restore it to a legal state.
+    // Return whether it was originally valid.
+    template <typename T>
+    bool MakeValid(T & it) {
+      const_pop_ptr_t cur_pop = it.PopPtr();  // Collect the current population pointer.
+      if (cur_pop == nullptr) return true;    // This is an "end" iterator.
+
+      auto info_it = GetInfoIT(cur_pop);      // Look up this population's info.
+
+      // If we have an invalid population, jump to end and signal that it was invalid.
+      if (info_it != pos_map.end()) {
+        it.Set(nullptr, 0);
+        return false;
+      }
+
+      // We now know we have a valid population.  Check if we are at a valid position.
+      if (info_it->second.pos_set.Has(it.Pos())) return true;
+
+      // Must move to a valid position, either in this population, another populaton, or end.
+      // Find the position of the next organism from this population
+      size_t next_pos = info_it->second.GetNextPos(it.Pos());
+
+      // If this position is good, set it!
+      if (next_pos < cur_pop->GetSize()) { it.SetPos(next_pos); return false; }
+
+      // Otherwise advance to the first position in the next non-empty population OR end iterator.
+      while (++info_it != pos_map.end() && info_it->second.GetSize(info_it->first) == 0);
+
+      if (info_it == pos_map.end()) it.Set(nullptr, 0);           // No more populations!
+      else it.Set(info_it->first, info_it->second.GetFirstPos()); // First position in next pop.
+
+      return false;
     }
 
   public:
@@ -205,7 +246,7 @@ namespace mabe {
     using iterator_t = CollectionIterator;
     using const_iterator_t = ConstCollectionIterator;
 
-    /// Calculation the total number of positions represented in this collection.
+    /// Calculate the total number of positions represented in this collection.
     size_t GetSize() const noexcept override {
       size_t count = 0;
       for (auto [pop_ptr, pop_info] : pos_map) {
@@ -292,7 +333,11 @@ namespace mabe {
     void IncPosition(T & it) const {
       const_pop_ptr_t cur_pop = it.PopPtr();
       auto info_it = GetInfoIT(cur_pop);
-      emp_assert(info_it != pos_map.end());
+
+      // Make sure that the current population was found!  This check will fail if either
+      // we are already at the end OR it is pointed to a populaiton not in the collection.
+      emp_assert(info_it != pos_map.end(),
+                 "Invalid start position before collection iterator is incremented");
 
       // Find the position of the next organism from this population
       size_t next_pos = info_it->second.GetNextPos(it.Pos());
@@ -302,11 +347,13 @@ namespace mabe {
 
       // Otherwise advance to the next population,
       else {
-        ++info_it;
+        // Advance population pointer; If we are at a population and it is empty, keep advancing!
+        while (++info_it != pos_map.end() && info_it->second.GetSize(info_it->first) == 0);
         if (info_it == pos_map.end()) it.Set(nullptr, 0);           // No more populations!
         else it.Set(info_it->first, info_it->second.GetFirstPos());
       }
     }
+
     template <typename T>
     void DecPosition(T & /* it */) const {
       emp_error("DecPosition() not yet implemented for CollectionIterator.");
@@ -474,7 +521,9 @@ namespace mabe {
   CollectionIterator_Interface<DERIVED_T, ORG_T, COLLECTION_T>
     ::CollectionIterator_Interface(emp::Ptr<COLLECTION_T> _col, size_t _pos)
     : base_t(_col->GetFirstPop(), _pos), collection_ptr(_col)
-  {      
+  {
+    // Make sure that this iterator is actually valid.  If not, move to next position.
+    if (base_t::IsValid() == false) IncPosition();
   }
 
   /// Constructor where you can optionally supply population pointer and position.
