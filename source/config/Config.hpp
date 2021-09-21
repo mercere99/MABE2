@@ -245,6 +245,96 @@ namespace mabe {
       precedence_map["&&"] = cur_prec++;
       precedence_map["||"] = cur_prec++;
       precedence_map["="] = cur_prec++;
+
+      // Setup default functions.
+
+      // 'EVAL' dynamically evaluates the contents of a string.
+      std::function<std::string(const std::string &)> eval_fun =
+        [this](const std::string & expression) { return Eval(expression); };
+      AddFunction("EVAL", eval_fun, "Dynamically evaluate the string passed in.");
+
+      // 'PRINT' is a simple debugging command to output the value of a variable.
+      std::function<int(const emp::vector<emp::Ptr<ConfigEntry>> &)> print_fun =
+        [](const emp::vector<emp::Ptr<ConfigEntry>> & args) {
+          for (auto entry_ptr : args) std::cout << entry_ptr->AsString();
+          return 0;
+        };
+      AddFunction("PRINT", print_fun, "Print out the provided variables.");
+
+      // Default 1-input math functions
+      std::function<double(double)> math1_fun = [](double x){ return std::abs(x); };
+      AddFunction("ABS", math1_fun, "Absolute Value" );
+      math1_fun = [](double x){ return emp::Pow(emp::E, x); };
+      AddFunction("EXP", math1_fun, "Exponentiation" );
+      math1_fun = [](double x){ return std::log(x); };
+      AddFunction("LOG2", math1_fun, "Log base-2" );
+      math1_fun = [](double x){ return std::log10(x); };
+      AddFunction("LOG10", math1_fun, "Log base-10" );
+
+      math1_fun = [](double x){ return std::sqrt(x); };
+      AddFunction("SQRT", math1_fun, "Square Root" );
+      math1_fun = [](double x){ return std::cbrt(x); };
+      AddFunction("CBRT", math1_fun, "Cube Root" );
+
+      math1_fun = [](double x){ return std::sin(x); };
+      AddFunction("SIN", math1_fun, "Sine" );
+      math1_fun = [](double x){ return std::cos(x); };
+      AddFunction("COS", math1_fun, "Cosine" );
+      math1_fun = [](double x){ return std::tan(x); };
+      AddFunction("TAN", math1_fun, "Tangent" );
+      math1_fun = [](double x){ return std::asin(x); };
+      AddFunction("ASIN", math1_fun, "Arc Sine" );
+      math1_fun = [](double x){ return std::acos(x); };
+      AddFunction("ACOS", math1_fun, "Arc Cosine" );
+      math1_fun = [](double x){ return std::atan(x); };
+      AddFunction("ATAN", math1_fun, "Arc Tangent" );
+      math1_fun = [](double x){ return std::sinh(x); };
+      AddFunction("SINH", math1_fun, "Hyperbolic Sine" );
+      math1_fun = [](double x){ return std::cosh(x); };
+      AddFunction("COSH", math1_fun, "Hyperbolic Cosine" );
+      math1_fun = [](double x){ return std::tanh(x); };
+      AddFunction("TANH", math1_fun, "Hyperbolic Tangent" );
+      math1_fun = [](double x){ return std::asinh(x); };
+      AddFunction("ASINH", math1_fun, "Hyperbolic Arc Sine" );
+      math1_fun = [](double x){ return std::acosh(x); };
+      AddFunction("ACOSH", math1_fun, "Hyperbolic Arc Cosine" );
+      math1_fun = [](double x){ return std::atanh(x); };
+      AddFunction("ATANH", math1_fun, "Hyperbolic Arc Tangent" );
+
+      math1_fun = [](double x){ return std::ceil(x); };
+      AddFunction("CEIL", math1_fun, "Round UP" );
+      math1_fun = [](double x){ return std::floor(x); };
+      AddFunction("FLOOR", math1_fun, "Round DOWN" );
+      math1_fun = [](double x){ return std::round(x); };
+      AddFunction("ROUND", math1_fun, "Round to nearest" );
+
+      math1_fun = [](double x){ return std::isinf(x); };
+      AddFunction("ISINF", math1_fun, "Test if Infinite" );
+      math1_fun = [](double x){ return std::isnan(x); };
+      AddFunction("ISNAN", math1_fun, "Test if Not-a-number" );
+
+      // Default 2-input math functions
+      std::function<double(double,double)> math2_fun = [](double x, double y){ return std::hypot(x,y); };
+      AddFunction("HYPOT", math2_fun, "Given sides, find hypotenuse" );
+      math2_fun = [](double x, double y){ return emp::Pow(x,y); };
+      AddFunction("LOG", math2_fun, "Take log of arg1 with base arg2" );
+      math2_fun = [](double x, double y){ return (x<y) ? x : y; };
+      AddFunction("MIN", math2_fun, "Return lesser value" );
+      math2_fun = [](double x, double y){ return (x>y) ? x : y; };
+      AddFunction("MAX", math2_fun, "Return greater value" );
+      math2_fun = [](double x, double y){ return emp::Pow(x,y); };
+      AddFunction("POW", math2_fun, "Take arg1 to the arg2 power" );
+
+      // Default 3-input math functions
+      std::function<double(double,double,double)> math3_fun =
+        [](double x, double y, double z){ return (x!=0.0) ? y : z; };
+      AddFunction("IF", math3_fun, "If arg1 is true, return arg2, else arg3" );
+      math3_fun = [](double x, double y, double z){ return (x<y) ? y : (x>z) ? z : x; };
+      AddFunction("CLAMP", math3_fun, "Return arg1, forced into range [arg2,arg3]" );
+      math3_fun = [](double x, double y, double z){ return (z-y)*x+y; };
+      AddFunction("TO_SCALE", math3_fun, "Scale arg1 to arg2-arg3 as unit distance" );
+      math3_fun = [](double x, double y, double z){ return (x-y) / (z-y); };
+      AddFunction("FROM_SCALE", math3_fun, "Scale arg1 from arg2-arg3 as unit distance" );
     }
 
     // Prevent copy or move since we are using lambdas that capture 'this'
