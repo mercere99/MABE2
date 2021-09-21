@@ -27,9 +27,10 @@
 #include "emp/control/Signal.hpp"
 #include "emp/data/DataMap.hpp"
 #include "emp/data/DataMapParser.hpp"
+#include "emp/datastructs/vector_utils.hpp"
 #include "emp/io/StreamManager.hpp"
 #include "emp/math/Random.hpp"
-#include "emp/datastructs/vector_utils.hpp"
+#include "emp/tools/string_utils.hpp"
 
 #include "../config/Config.hpp"
 
@@ -637,7 +638,26 @@ namespace mabe {
       [this](const std::string & target) { return ToCollection(target).GetSize(); };
     config.AddFunction("size", pop_size_fun, "Return the size of the target population.");
 
-    // std::function<double(const std::string &)> trait_mean_fun =
+
+    // --- TRAIT-BASED FUNCTIONS ---
+
+    std::function<std::string(const std::string &, std::string)> trait_string_fun =
+      [this](const std::string & target, std::string trait_filter) {
+        std::string trait_name = emp::string_pop(trait_filter,':');
+        auto fun = BuildTraitFunction(trait_name, trait_filter);
+        return fun( ToCollection(target) );
+      };
+    config.AddFunction("trait_string", trait_string_fun, "Collect information about a specified trait.");
+
+    std::function<double(const std::string &, std::string)> trait_value_fun =
+      [this](const std::string & target, std::string trait_filter) {
+        std::string trait_name = emp::string_pop(trait_filter,':');
+        auto fun = BuildTraitFunction(trait_name, trait_filter);
+        return emp::from_string<double>(fun( ToCollection(target) ));
+      };
+    config.AddFunction("trait_value", trait_value_fun, "Collect information about a specified trait.");
+
+    // std::function<double(const std::string &, const std::string &)> trait_mean_fun =
     //   [this](const std::string & target, const std::string & trait) {
     //     if constexpr (std::is_arithmetic_v<DATA_T>) {
     //       double total = 0.0;
@@ -928,7 +948,7 @@ namespace mabe {
   ///   :trait      : Return the mutual information with another provided trait.
 
   MABE::trait_fun_t MABE::BuildTraitFunction(const std::string & trait_name,
-                                       std::string trait_filter) {
+                                             std::string trait_filter) {
     // The trait input has two components:
     // (1) the trait NAME and
     // (2) (optionally) how to calculate the trait SUMMARY, such as min, max, ave, etc.
@@ -973,7 +993,6 @@ namespace mabe {
   {
     emp::vector<trait_fun_t> funs;                          ///< Functions to call each update.
     emp::remove_whitespace(format);
-    auto fun_it = file_fun_cache.find(format);
 
     // If we need headers, set them up!
     if (print_headers) {
@@ -988,7 +1007,11 @@ namespace mabe {
       os << '\n';
     }
 
-    // If the functions don't exist yet, set them up!
+    // Pre-process the format to deal with config variables that need translating.
+    format = Preprocess(format);
+
+    // Check the cache for the functions to run; if they don't exist yet, set them up!
+    auto fun_it = file_fun_cache.find(format);
     if (fun_it == file_fun_cache.end()) {
       // Identify the contents of each column.
       emp::vector<std::string> cols = emp::slice(format, ',');
