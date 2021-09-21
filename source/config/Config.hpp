@@ -238,6 +238,7 @@ namespace mabe {
       // Setup operator precedence.
       size_t cur_prec = 0;
       precedence_map["("] = cur_prec++;
+      precedence_map["**"] = cur_prec++;
       precedence_map["*"] = precedence_map["/"] = precedence_map["%"] = cur_prec++;
       precedence_map["+"] = precedence_map["-"] = cur_prec++;
       precedence_map["<"] = precedence_map["<="] = precedence_map[">"] = precedence_map[">="] = cur_prec++;
@@ -604,9 +605,10 @@ namespace mabe {
       std::function<double(double,double)> fun;
       if (symbol == "+") fun = [](double val1, double val2){ return val1 + val2; };
       else if (symbol == "-") fun = [](double val1, double val2){ return val1 - val2; };
+      else if (symbol == "**") fun = [](double val1, double val2){ return emp::Pow(val1, val2); };
       else if (symbol == "*") fun = [](double val1, double val2){ return val1 * val2; };
       else if (symbol == "/") fun = [](double val1, double val2){ return val1 / val2; };
-      else if (symbol == "%") fun = [](double val1, double val2){ return ((size_t) val1) % ((size_t) val2); };
+      else if (symbol == "%") fun = [](double val1, double val2){ return emp::Mod(val1, val2); };
       else if (symbol == "==") fun = [](double val1, double val2){ return val1 == val2; };
       else if (symbol == "!=") fun = [](double val1, double val2){ return val1 != val2; };
       else if (symbol == "<")  fun = [](double val1, double val2){ return val1 < val2; };
