@@ -141,6 +141,9 @@ namespace mabe {
     /// Find any instances of ${X} and eval the X.
     std::string Preprocess(const std::string & in_string);
 
+    /// Setup a function as deprecated so we can phase it out.
+    void Deprecate(const std::string & old_name, const std::string & new_name);
+
   public:
     MABE(int argc, char* argv[]);  ///< MABE command-line constructor.
     MABE(const MABE &) = delete;
@@ -554,6 +557,17 @@ namespace mabe {
     return out_string;
   }
 
+  void MABE::Deprecate(const std::string & old_name, const std::string & new_name) {
+    std::function<int(const emp::vector<emp::Ptr<ConfigEntry>> &)> dep_fun =
+      [this,old_name,new_name](const emp::vector<emp::Ptr<ConfigEntry>> &){
+        std::cerr << "Function '" << old_name << "' deprecated; use '" << new_name << "'\n";
+        exit_now = true;
+        return 0;      
+      };
+
+    config.AddFunction(old_name, dep_fun, std::string("Deprecated.  Use: ") + new_name);
+  }
+
   // ---------------- PUBLIC MEMBER FUNCTIONS -----------------
 
 
@@ -581,52 +595,41 @@ namespace mabe {
     }
 
 
+    // ------ DEPRECATED FUNCTION NAMES ------
+    Deprecate("exit", "EXIT");
+    Deprecate("inject", "INJECT");
+    Deprecate("print", "PRINT");
+
     // Add other built-in functions to the config file.
 
-    // 'eval' dynamically evaluates the contents of a string.
-    // std::function<int(const std::string &)> eval_fun =
-    //   [this](const std::string & expression) { config.Eval(expression); return 0; };
-    // config.AddFunction("eval", eval_fun, "Dynamically evaluate the string passed in.");
+    // 'EVAL' dynamically evaluates the contents of a string.
     std::function<std::string(const std::string &)> eval_fun =
       [this](const std::string & expression) { return config.Eval(expression); };
-    config.AddFunction("eval", eval_fun, "Dynamically evaluate the string passed in.");
+    config.AddFunction("EVAL", eval_fun, "Dynamically evaluate the string passed in.");
 
 
-    // 'exit' should terminate a run.
+    // 'EXIT' terminates a run gracefully.
     std::function<int()> exit_fun = [this](){ exit_now = true; return 0; };
-    config.AddFunction("exit", exit_fun, "Exit from this MABE run.");
+    config.AddFunction("EXIT", exit_fun, "Exit from this MABE run.");
 
 
-    // 'inject' allows a user to add an organism to a population.
+    // 'INJECT' allows a user to add an organism to a population.
     std::function<int(const std::string &, const std::string &, size_t)> inject_fun =
       [this](const std::string & org_type_name, const std::string & pop_name, size_t count) {
         Inject(org_type_name, pop_name, count);
         return 0;
       };
-    config.AddFunction("inject", inject_fun,
+    config.AddFunction("INJECT", inject_fun,
       "Inject organisms into a population (args: org_name, pop_name, org_count).");
 
 
-    // 'output' will collect data and write it to a file.
-    files.SetOutputDefaultFile();  // Stream manager should default to files for output.
-    std::function<int(const std::string &, const std::string &, const std::string &)> output_fun =
-      [this](const std::string & filename, const std::string & collection, std::string format) {
-        const bool file_exists = files.Has(filename);           ///< Is file is already setup?
-        std::ostream & file = files.GetOutputStream(filename);  ///< File to write to.
-        OutputTraitData(file, ToCollection(collection), format, !file_exists);
-        return 0;
-      };
-    config.AddFunction("output", output_fun,
-      "Print out the provided trait-based data; args: filename, collection, format.");
-
-
-    // 'print' is a simple debugging command to output the value of a variable.
+    // 'PRINT' is a simple debugging command to output the value of a variable.
     std::function<int(const emp::vector<emp::Ptr<ConfigEntry>> &)> print_fun =
       [](const emp::vector<emp::Ptr<ConfigEntry>> & args) {
         for (auto entry_ptr : args) std::cout << entry_ptr->AsString();
         return 0;
       };
-    config.AddFunction("print", print_fun, "Print out the provided variables.");
+    config.AddFunction("PRINT", print_fun, "Print out the provided variables.");
 
     std::function<std::string(const std::string &)> preprocess_fun =
       [this](const std::string & str) { return Preprocess(str); };
@@ -636,7 +639,20 @@ namespace mabe {
     // @CAO Should be a method on a Population or Collection, not called by name.
     std::function<int(const std::string &)> pop_size_fun =
       [this](const std::string & target) { return ToCollection(target).GetSize(); };
-    config.AddFunction("size", pop_size_fun, "Return the size of the target population.");
+    config.AddFunction("SIZE", pop_size_fun, "Return the size of the target population.");
+
+
+    // 'WRITE' will collect data and write it to a file.
+    files.SetOutputDefaultFile();  // Stream manager should default to files for output.
+    std::function<int(const std::string &, const std::string &, const std::string &)> write_fun =
+      [this](const std::string & filename, const std::string & collection, std::string format) {
+        const bool file_exists = files.Has(filename);           ///< Is file is already setup?
+        std::ostream & file = files.GetOutputStream(filename);  ///< File to write to.
+        OutputTraitData(file, ToCollection(collection), format, !file_exists);
+        return 0;
+      };
+    config.AddFunction("WRITE", write_fun,
+      "Write the provided trait-based data to file; args: filename, collection, format.");
 
 
     // --- TRAIT-BASED FUNCTIONS ---
@@ -647,7 +663,7 @@ namespace mabe {
         auto fun = BuildTraitFunction(trait_name, trait_filter);
         return fun( ToCollection(target) );
       };
-    config.AddFunction("trait_string", trait_string_fun, "Collect information about a specified trait.");
+    config.AddFunction("TRAIT_STRING", trait_string_fun, "Collect information about a specified trait.");
 
     std::function<double(const std::string &, std::string)> trait_value_fun =
       [this](const std::string & target, std::string trait_filter) {
@@ -655,7 +671,7 @@ namespace mabe {
         auto fun = BuildTraitFunction(trait_name, trait_filter);
         return emp::from_string<double>(fun( ToCollection(target) ));
       };
-    config.AddFunction("trait_value", trait_value_fun, "Collect information about a specified trait.");
+    config.AddFunction("TRAIT_VALUE", trait_value_fun, "Collect information about a specified trait.");
 
     // std::function<double(const std::string &, const std::string &)> trait_mean_fun =
     //   [this](const std::string & target, const std::string & trait) {
