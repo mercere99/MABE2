@@ -27,7 +27,7 @@ do
   then
     echo "Error! File generated different terminal output!"
     head terminal_output.txt -n 200
-    #exit 1
+    exit 1
   fi
 
   cmp output.csv ${THIS_DIR}/expected_csv_output_${NAME}.csv
@@ -36,7 +36,7 @@ do
   then
     echo "Error! File generated different values for output.csv"
     head output.csv -n 50
-    #exit 2
+    exit 2
   fi
   # Reset back to original directory
   cd ${THIS_DIR} 
