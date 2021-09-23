@@ -632,14 +632,26 @@ namespace mabe {
     files.SetOutputDefaultFile();  // Stream manager should default to files for output.
     std::function<int(const std::string &, const std::string &, const std::string &)> write_fun =
       [this](const std::string & filename, const std::string & collection, std::string format) {
-        const bool file_exists = files.Has(filename);           ///< Is file is already setup?
-        std::ostream & file = files.GetOutputStream(filename);  ///< File to write to.
+        const bool file_exists = files.Has(filename);           // Is file is already setup?
+        std::ostream & file = files.GetOutputStream(filename);  // File to write to.
         OutputTraitData(file, ToCollection(collection), format, !file_exists);
         return 0;
       };
     config.AddFunction("WRITE", write_fun,
       "Write the provided trait-based data to file; args: filename, collection, format.");
 
+
+    // --- ORGANISM-BASED FUNCTIONS ---
+
+    std::function<int(const std::string &, const std::string &, double)> trace_eval_fun =
+      [this](const std:string & filename, const std::string & target, double id) {
+        Collection c = ToCollection(target);               // Collection with organisms
+        Organism & org = c.At((size_t) id);                // Specific organism to analyze.
+        ostream & file = files.GetOutputStream(filename);  // File to write to.
+        TraceEval(org, file);
+        return 0;
+      };
+    config.AddFunction("TRACE_EVAL", trace_eval_fun, "Return the size of the target population.");
 
     // --- TRAIT-BASED FUNCTIONS ---
 
