@@ -110,12 +110,18 @@ namespace mabe {
       return (size_t) (move - 'A');
     }
 
-
+    /// A uniform function specification that takes a game state and returns a move to make.
     using mancala_ai_t = std::function< size_t(emp::Mancala & game) >;
 
-    // Setup the fitness function for a whole game.
-    double EvalGame(const mancala_ai_t & player0, const mancala_ai_t & player1,
-                    bool cur_player=0, bool verbose=false) {
+    /// Evaluate a game between two functions that each take the game state as input and return
+    /// their next move as output.
+    /// @param player0 The function to be evaluated
+    /// @param player1 The function to test against
+    /// @param cur_player Which player should make the first move?  (default=0, the organism)
+    /// @param verbose Should we print out extra output? (default=false)
+    /// @param os Output stream for any extra ouput. (default=cout)
+    double EvalGame(const mancala_ai_t & player0, const mancala_ai_t & player1, bool cur_player=0,
+                    bool verbose=false, std::ostream & os=std::cout) {
       emp::Mancala game(cur_player==0);
       size_t round = 0, errors = 0;
       game_trace.resize(0);
@@ -125,14 +131,14 @@ namespace mabe {
         size_t best_move = play_fun(game);
 
         if (verbose) {
-          std::cout << "round = " << round++ << "   errors = " << errors << std::endl;
-          game.Print();
+          os << "round = " << round++ << "   errors = " << errors << std::endl;
+          game.Print(os);
           char move_sym = (char) ('A' + best_move);
-          std::cout << "Move = " << move_sym;
+          os << "Move = " << move_sym;
           if (game.GetCurSide()[best_move] == 0) {
-            std::cout << " (illegal!)";
+            os << " (illegal!)";
           }
-          std::cout << std::endl << std::endl;
+          os << std::endl << std::endl;
         }
 
         // If the chosen move is illegal, shift through other options.
@@ -149,7 +155,7 @@ namespace mabe {
       }
 
       if (verbose) {
-        std::cout << "Final scores -- A: " << game.ScoreA()
+        os << "Final scores -- A: " << game.ScoreA()
                   << "   B: " << game.ScoreB()
                   << std::endl;
       }
@@ -157,31 +163,52 @@ namespace mabe {
       return ((double) game.ScoreA()) - ((double) game.ScoreB()) - ((double) errors * 10.0);
     }
 
+    /// Convert an organism into a uniform function that can be plugged into Mancala.
     mancala_ai_t ToOrgFun(mabe::Organism & org) {
       return [this,&org](emp::Mancala & game){ return EvalMove(game, org); };
     }
 
-    // Wrapper for two Organisms competing
-    double EvalGame(mabe::Organism & org0, mabe::Organism & org1, bool cur_player=0, bool verbose=false) {
-      return EvalGame(ToOrgFun(org0), ToOrgFun(org1), cur_player, verbose);
+    /// Evaluate a game: Organism vs. Organism.
+    /// @param org0 The organism to be evaluated
+    /// @param org1 The organism to test against
+    /// @param start_player Which player should make the first move?  (default=0, the organism)
+    /// @param verbose Should we print out extra output? (default=false)
+    /// @param os Output stream for any extra ouput. (default=cout)
+    double EvalGame(mabe::Organism & org0, mabe::Organism & org1, bool start_player=0,
+                    bool verbose=false, std::ostream & os=std::cout) {
+      return EvalGame(ToOrgFun(org0), ToOrgFun(org1), start_player, verbose, os);
     }
 
-    // Wrapper for organism vs. random opponent.
-    double EvalGame(mabe::Organism & org, emp::Random & random, bool cur_player=0, bool verbose=false) {
+    /// Evaluate a game: Organism vs. random opponent.
+    /// @param org The organism to be evaluated
+    /// @param random The random number generator to use for opponent moves.
+    /// @param start_player Which player should make the first move?  (default=0, the organism)
+    /// @param verbose Should we print out extra output? (default=false)
+    /// @param os Output stream for any extra ouput. (default=cout)
+    double EvalGame(mabe::Organism & org, emp::Random & random, bool start_player=0,
+                    bool verbose=false, std::ostream & os=std::cout) {
       mancala_ai_t rand_fun = [&random](emp::Mancala & game) {
         size_t move_id = random.GetUInt(6);
         while (!game.IsMoveValid(move_id)) move_id = random.GetUInt(6);
         return move_id;
       };
-      return EvalGame(ToOrgFun(org), rand_fun, cur_player, verbose);
+      return EvalGame(ToOrgFun(org), rand_fun, start_player, verbose, os);
     }
 
-    // Wrapper for organism vs. human
-    double EvalGame(mabe::Organism & org, bool cur_player=0) {
-      mancala_ai_t human_fun = [this](emp::Mancala & game){ return EvalMove(game, std::cout, std::cin); };
-      return EvalGame(ToOrgFun(org), human_fun, cur_player, true);
+    /// Evaluate a game: Organism vs. human opponent.
+    /// @param org The organism to be evaluated
+    /// @param start_player Which player should make the first move?  (default=0, the organism)
+    double EvalGame(mabe::Organism & org, bool start_player=0) {
+      mancala_ai_t human_fun = [this](emp::Mancala & game){
+        return EvalMove(game, std::cout, std::cin);
+      };
+      return EvalGame(ToOrgFun(org), human_fun, start_player, true);
     }
 
+    /// Trace the evaluation of an organism, sending output to a specified stream.
+    void TraceEval(Organism & org, std::ostream & os) override {
+      double score = EvalGame(org, control.GetRandom(), 0, true, os);
+    }
 
     void OnUpdate(size_t ud) override {
       control.Verbose("UD ", ud, ": Running EvalMancala::OnUpdate()");
