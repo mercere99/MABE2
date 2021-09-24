@@ -120,9 +120,8 @@ namespace mabe {
     /// List all of the available modules included in the current compilation.
     void ShowModules();
 
-    void TraceEval(Organism & org, std::ostream & os) {
-      trace_eval_sig.Trigger(org, os);
-    }
+    /// Ask evaluation modules to trace the execution of the provided organism.
+    void TraceEval(Organism & org, std::ostream & os) { trace_eval_sig.Trigger(org, os); }
 
     /// Process all of the arguments that were passed in on the command line.
     void ProcessArgs();
@@ -644,10 +643,10 @@ namespace mabe {
     // --- ORGANISM-BASED FUNCTIONS ---
 
     std::function<int(const std::string &, const std::string &, double)> trace_eval_fun =
-      [this](const std:string & filename, const std::string & target, double id) {
-        Collection c = ToCollection(target);               // Collection with organisms
-        Organism & org = c.At((size_t) id);                // Specific organism to analyze.
-        ostream & file = files.GetOutputStream(filename);  // File to write to.
+      [this](const std::string & filename, const std::string & target, double id) {
+        Collection c = ToCollection(target);                   // Collection with organisms
+        Organism & org = c.At((size_t) id);                    // Specific organism to analyze.
+        std::ostream & file = files.GetOutputStream(filename); // File to write to.
         TraceEval(org, file);
         return 0;
       };
