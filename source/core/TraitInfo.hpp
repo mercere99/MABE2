@@ -83,7 +83,7 @@ namespace mabe {
       NUM_ACCESS   ///< How many access methods are there?
     };
 
-    /// How should this trait be initialized in a newly-born organism?
+    /// How should this trait be initialized (via inheretence) in a newly-born organism?
     /// * Injected organisms always use the default value.
     /// * Modules can moitor signals to make other changes at any time.
     enum class Init {
@@ -91,7 +91,8 @@ namespace mabe {
       FIRST,     ///< Trait is inhereted (from first parent if more than one)
       AVERAGE,   ///< Trait becomes average of all parents on birth.
       MINIMUM,   ///< Trait becomes lowest of all parents on birth.
-      MAXIMUM    ///< Trait becomes highest of all parents on birth.
+      MAXIMUM,   ///< Trait becomes highest of all parents on birth.
+      RANDOM     ///< Choose a random parent and use its value.
     };
 
     /// Which information should we store in the trait as we go?
