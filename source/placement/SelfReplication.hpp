@@ -12,14 +12,14 @@
 
 #include "../core/MABE.hpp"
 #include "../core/Module.hpp"
-#include "emp/hardware/AvidaGP.hpp"
+#include "../orgs/GenericAvidaOrg.hpp"
 
 namespace mabe {
 
   class SelfReplication : public Module {
   private:
     int pop_id = 0;
-    std::function<void(emp::AvidaGP&)> func;
+    std::function<void(GenericAvidaOrg&)> func;
 
   public:
     SelfReplication(mabe::MABE & control,
@@ -41,12 +41,12 @@ namespace mabe {
     void SetupModule() override {
       static size_t counter = 0;
       //static std::function<void(emp::AvidaGP&)> test_func = [&counter](emp::AvidaGP& org){
-      func = [&counter](emp::AvidaGP& org){
+      func = [&counter](GenericAvidaOrg& org){
         std::cout << "Counter: " << ++counter << std::endl;
       }; 
       std::cout << "Population id:" << pop_id << std::endl;
       ActionMap& action_map = control.GetActionMap(pop_id);
-      action_map.AddFunc<void,emp::AvidaGP&>("Counter", func);
+      action_map.AddFunc<void,GenericAvidaOrg&>("Counter", func);
     }
 
   };

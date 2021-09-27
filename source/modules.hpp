@@ -34,5 +34,6 @@
 
 // Organism Types
 #include "orgs/AvidaGPOrg.hpp"
+#include "orgs/GenericAvidaOrg.hpp"
 #include "orgs/BitsOrg.hpp"
 #include "orgs/ValsOrg.hpp"
