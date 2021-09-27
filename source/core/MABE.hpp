@@ -40,6 +40,7 @@
 #include "Population.hpp"
 #include "SigListener.hpp"
 #include "TraitManager.hpp"
+#include "ActionMap.hpp"
 
 namespace mabe {
 
@@ -70,6 +71,8 @@ namespace mabe {
 
     /// Populations used; generated in the configuration file.
     emp::vector< emp::Ptr<Population> > pops;
+
+    emp::vector<ActionMap> action_maps;
 
     /// Organism pointer to use for all empty cells.
     emp::Ptr<Organism> empty_org = nullptr;
@@ -231,6 +234,8 @@ namespace mabe {
     }
     const Population & GetPopulation(size_t id) const { return *pops[id]; }
     Population & GetPopulation(size_t id) { return *pops[id]; }
+    const ActionMap & GetActionMap(size_t id) const { return action_maps[id]; }
+    ActionMap & GetActionMap(size_t id) { return action_maps[id]; }
 
     /// New populaitons must be given a name and an optional size.
     Population & AddPopulation(const std::string & name, size_t pop_size=0) {
@@ -238,6 +243,7 @@ namespace mabe {
       emp::Ptr<Population> new_pop =
         emp::NewPtr<Population>(name, cur_pop_id, pop_size, empty_org); // Create new population.
       pops.push_back(new_pop);                                          // Record new population.
+      action_maps.emplace_back();
       return *new_pop;                                                  // Return new population.
     }
 
