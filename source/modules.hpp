@@ -7,6 +7,9 @@
  *  @brief A full set of all standard modules available in MABE.
  */
 
+// Analyze Modules
+#include "analyze/SystematicModules.hpp"
+
 // Evaluation Modules
 #include "evaluate/games/EvalMancala.hpp"
 #include "evaluate/static/EvalCountBits.hpp"
