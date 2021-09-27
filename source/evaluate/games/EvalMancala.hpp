@@ -21,12 +21,12 @@ namespace mabe {
   private:
     Collection target_collect;                  ///< Which organisms should we evaluate?
 
-    std::string input_trait = "input";          ///< Name of trait to put input values.
-    std::string output_trait = "output";        ///< Name of trait to find output values.
-    std::string score_trait = "score";          ///< Trait to indicate game results.
-    std::string trace_trait = "mancala_moves";  ///< Where should game traces be stored?
-
-    emp::vector<size_t> game_trace;             ///< Series of moves made in most recent game.
+    std::string input_trait = "input";          ///< Trait to put input values.
+    std::string output_trait = "output";        ///< Trait to find output values.
+    std::string scoreA_trait = "scoreA";        ///< Trait for this player's game results.
+    std::string scoreB_trait = "scoreB";        ///< Trait for other player's game results.
+    std::string error_trait = "num_errors";     ///< Trait counting illegal moves attempted.
+    std::string fitness_trait = "fitness";      ///< Trait for combined fitness.
 
     /// What type of opponent should we use?
     enum Opponent {
@@ -53,8 +53,10 @@ namespace mabe {
       LinkCollection(target_collect, "target", "Which population(s) should we evaluate?");
       LinkVar(input_trait, "input_trait", "Into which trait should input values be placed?");
       LinkVar(output_trait, "output_trait", "Out of which trait should output values be read?");
-      LinkVar(score_trait, "score_trait", "Which trait should we store success rating?");
-      LinkVar(trace_trait, "trace_trait", "Which trait should we track the game moves?");
+      LinkVar(scoreA_trait, "scoreA_trait", "Trait to save score for this player.");
+      LinkVar(scoreB_trait, "scoreB_trait", "Trait to save score for opponent.");
+      LinkVar(error_trait, "error_trait", "Trait to count number of illegal moves attempted.");
+      LinkVar(fitness_trait, "fitness_trait", "Trait with combined success rating.");
       LinkMenu(opponent_type, "opponent_type", "Which type of opponent should organisms face?",
                RANDOM_MOVES, "random", "Always choose a random, legal move.",
                AI, "ai", "Human supplied (but not very good) AI",
@@ -65,8 +67,10 @@ namespace mabe {
     void SetupModule() override {
       AddOwnedTrait<emp::vector<double>>(input_trait, "Input values (curret board state)", emp::vector<double>({0.0}));
       AddRequiredTrait<emp::vector<double>>(output_trait); // Output values (move to make)
-      AddOwnedTrait<double>(score_trait, "Play success", 0.0);
-      AddOwnedTrait<emp::vector<size_t>>(trace_trait, "Series of game moves", emp::vector<size_t>());
+      AddOwnedTrait<double>(scoreA_trait, "Score for this player", 0.0);
+      AddOwnedTrait<double>(scoreB_trait, "Score for opponent", 0.0);
+      AddOwnedTrait<double>(error_trait, "Number of illegal moves attempted", 0.0);
+      AddOwnedTrait<double>(fitness_trait, "Combined success rating", 0.0);
     }
 
 
@@ -113,6 +117,17 @@ namespace mabe {
     /// A uniform function specification that takes a game state and returns a move to make.
     using mancala_ai_t = std::function< size_t(emp::Mancala & game) >;
 
+    /// Information about the results of a match.
+    struct Results {
+      size_t scoreA = 0;
+      size_t scoreB = 0;
+      size_t num_errors = 0;
+
+      double CalcFitness() const {
+        return ((double) scoreA) - ((double) scoreB) - ((double) num_errors * 10.0);
+      }
+    };
+
     /// Evaluate a game between two functions that each take the game state as input and return
     /// their next move as output.
     /// @param player0 The function to be evaluated
@@ -120,11 +135,10 @@ namespace mabe {
     /// @param cur_player Which player should make the first move?  (default=0, the organism)
     /// @param verbose Should we print out extra output? (default=false)
     /// @param os Output stream for any extra ouput. (default=cout)
-    double EvalGame(const mancala_ai_t & player0, const mancala_ai_t & player1, bool cur_player=0,
+    Results EvalGame(const mancala_ai_t & player0, const mancala_ai_t & player1, bool cur_player=0,
                     bool verbose=false, std::ostream & os=std::cout) {
       emp::Mancala game(cur_player==0);
       size_t round = 0, errors = 0;
-      game_trace.resize(0);
       while (game.IsDone() == false) {
         // Determine the current player and their move.
         auto & play_fun = (cur_player == 0) ? player0 : player1;
@@ -147,8 +161,6 @@ namespace mabe {
           if (++best_move > 5) best_move = 0;
         }
 
-        game_trace.push_back(best_move);  // Record the move being done.
-
         // Do the move and determine who goes next.
         bool go_again = game.DoMove(cur_player, best_move);
         if (!go_again) cur_player = !cur_player;
@@ -160,7 +172,7 @@ namespace mabe {
                   << std::endl;
       }
 
-      return ((double) game.ScoreA()) - ((double) game.ScoreB()) - ((double) errors * 10.0);
+      return Results{ game.ScoreA(), game.ScoreB(), errors };
     }
 
     /// Convert an organism into a uniform function that can be plugged into Mancala.
@@ -174,7 +186,7 @@ namespace mabe {
     /// @param start_player Which player should make the first move?  (default=0, the organism)
     /// @param verbose Should we print out extra output? (default=false)
     /// @param os Output stream for any extra ouput. (default=cout)
-    double EvalGame(mabe::Organism & org0, mabe::Organism & org1, bool start_player=0,
+    Results EvalGame(mabe::Organism & org0, mabe::Organism & org1, bool start_player=0,
                     bool verbose=false, std::ostream & os=std::cout) {
       return EvalGame(ToOrgFun(org0), ToOrgFun(org1), start_player, verbose, os);
     }
@@ -185,7 +197,7 @@ namespace mabe {
     /// @param start_player Which player should make the first move?  (default=0, the organism)
     /// @param verbose Should we print out extra output? (default=false)
     /// @param os Output stream for any extra ouput. (default=cout)
-    double EvalGame(mabe::Organism & org, emp::Random & random, bool start_player=0,
+    Results EvalGame(mabe::Organism & org, emp::Random & random, bool start_player=0,
                     bool verbose=false, std::ostream & os=std::cout) {
       mancala_ai_t rand_fun = [&random](emp::Mancala & game) {
         size_t move_id = random.GetUInt(6);
@@ -198,7 +210,7 @@ namespace mabe {
     /// Evaluate a game: Organism vs. human opponent.
     /// @param org The organism to be evaluated
     /// @param start_player Which player should make the first move?  (default=0, the organism)
-    double EvalGame(mabe::Organism & org, bool start_player=0) {
+    Results EvalGame(mabe::Organism & org, bool start_player=0) {
       mancala_ai_t human_fun = [this](emp::Mancala & game){
         return EvalMove(game, std::cout, std::cin);
       };
@@ -207,7 +219,7 @@ namespace mabe {
 
     /// Trace the evaluation of an organism, sending output to a specified stream.
     void TraceEval(Organism & org, std::ostream & os) override {
-      double score = EvalGame(org, control.GetRandom(), 0, true, os);
+      EvalGame(org, control.GetRandom(), 0, true, os);
     }
 
     void OnUpdate(size_t ud) override {
@@ -216,7 +228,7 @@ namespace mabe {
       emp_assert(control.GetNumPopulations() >= 1);
 
       // Determine the type of competitions to perform.
-      // @CAO: For the moment, just doing a random opponent!!
+      // ==> @CAO: For the moment, just doing a random opponent!!
 
       // Loop through the living organisms in the target collection to evaluate each.
       mabe::Collection alive_collect( target_collect.GetAlive() );
@@ -226,10 +238,21 @@ namespace mabe {
       size_t org_count = 0;
       for (Organism & org : alive_collect) {
         control.Verbose("...eval org #", org_count++);
-        double & score = org.GetTrait<double>(score_trait);
-        score = EvalGame(org, control.GetRandom());     // Start first.
-        org.SetTrait(trace_trait, game_trace);          // Record the trace of the first game.
-        score += EvalGame(org, control.GetRandom(), 1); // Start second.
+        double & scoreA = org.GetTrait<double>(scoreA_trait);
+        double & scoreB = org.GetTrait<double>(scoreB_trait);
+        double & num_errors = org.GetTrait<double>(error_trait);
+        double & fitness = org.GetTrait<double>(fitness_trait);
+        Results results = EvalGame(org, control.GetRandom());  // Start first.
+        scoreA = results.scoreA;
+        scoreB = results.scoreB;
+        num_errors = results.num_errors;
+        fitness = results.CalcFitness();
+
+        results = EvalGame(org, control.GetRandom(), 1);  // Start second.
+        scoreA += results.scoreA;
+        scoreB += results.scoreB;
+        num_errors += results.num_errors;
+        fitness += results.CalcFitness();
       }
     }
   };
