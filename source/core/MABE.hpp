@@ -66,8 +66,11 @@ namespace mabe {
     ErrorManager error_man;      ///< Object to manage warnings and errors.
     emp::StreamManager files;    ///< Track all of the file streams used in MABE.
 
-    // Setup a cache for functions used to collect data for files.
+    // Setup helper types.
+    using trait_equation_t = std::function<double(emp::DataMap &)>;
     using trait_summary_t = std::function<std::string(const Collection &)>;
+
+    // Setup a cache for functions used to collect data for files.
     std::unordered_map<std::string, emp::vector<trait_summary_t>> file_fun_cache;
 
     /// Populations used; generated in the configuration file.
@@ -81,6 +84,8 @@ namespace mabe {
     /// Trait information to be stored on each organism.  Tracks the name, type, and current
     /// value of all traits that modules associate with organisms.
     emp::DataMap org_data_map;
+
+    emp::DataMapParser dm_parser;      ///< Parser to process functions on a data map.
 
     emp::Random random;                ///< Master random number generator
     size_t cur_pop_id = (size_t) -1;   ///< Which population is currently active?
@@ -324,12 +329,25 @@ namespace mabe {
     // --- Deal with Organism TRAITS ---
     TraitManager<ModuleBase> & GetTraitManager() { return trait_man; }
 
+    /// Build a function to scan a single data map and run the provided equation on the
+    /// enties in there, returning the result.
+
+    trait_equation_t BuildTraitEquation(const std::string & equation) {
+      return dm_parser.BuildMathFunction(org_data_map, equation);
+    }
+
+    /// Scan a provided equation and return the names of all traits used in that equation.
+
+    const std::set<std::string> & GetEquationTraits(const std::string & equation) {
+      dm_parser.BuildMathFunction(org_data_map, equation);
+      return dm_parser.GetNamesUsed();
+    }
+
     /// Build a function to scan a collection of organisms, reading the value for the given
     /// trait_name from each, aggregating those values based on the trait_filter and returning
     /// the result as a string.
 
-    trait_summary_t BuildTraitSummaryFunction(const std::string & trait_name,
-                                              std::string trait_filter);
+    trait_summary_t BuildTraitSummary(const std::string & trait_name, std::string trait_filter);
 
     // Handler for printing trait data
     void OutputTraitData(std::ostream & os,
@@ -657,7 +675,7 @@ namespace mabe {
     std::function<std::string(const std::string &, std::string)> trait_string_fun =
       [this](const std::string & target, std::string trait_filter) {
         std::string trait_name = emp::string_pop(trait_filter,':');
-        auto fun = BuildTraitSummaryFunction(trait_name, trait_filter);
+        auto fun = BuildTraitSummary(trait_name, trait_filter);
         return fun( ToCollection(target) );
       };
     config.AddFunction("TRAIT_STRING", trait_string_fun, "Collect information about a specified trait.");
@@ -665,7 +683,7 @@ namespace mabe {
     std::function<double(const std::string &, std::string)> trait_value_fun =
       [this](const std::string & target, std::string trait_filter) {
         std::string trait_name = emp::string_pop(trait_filter,':');
-        auto fun = BuildTraitSummaryFunction(trait_name, trait_filter);
+        auto fun = BuildTraitSummary(trait_name, trait_filter);
         return emp::from_string<double>(fun( ToCollection(target) ));
       };
     config.AddFunction("TRAIT_VALUE", trait_value_fun, "Collect information about a specified trait.");
@@ -960,7 +978,7 @@ namespace mabe {
   ///   entropy     : Return the Shannon entropy of this value.
   ///   :trait      : Return the mutual information with another provided trait.
 
-  MABE::trait_summary_t MABE::BuildTraitSummaryFunction(
+  MABE::trait_summary_t MABE::BuildTraitSummary(
     const std::string & trait_name,
     std::string trait_filter
   ) {
@@ -1036,7 +1054,7 @@ namespace mabe {
       for (size_t i = 0; i < cols.size(); i++) {
         std::string trait_filter = cols[i];
         std::string trait_name = emp::string_pop(trait_filter,':');
-        trait_functions[i] = BuildTraitSummaryFunction(trait_name, trait_filter);
+        trait_functions[i] = BuildTraitSummary(trait_name, trait_filter);
       }
 
       // Insert the new entry into the cache and update the iterator.
