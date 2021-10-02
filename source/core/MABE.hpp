@@ -67,8 +67,8 @@ namespace mabe {
     emp::StreamManager files;    ///< Track all of the file streams used in MABE.
 
     // Setup a cache for functions used to collect data for files.
-    using trait_fun_t = std::function<std::string(const Collection &)>;
-    std::unordered_map<std::string, emp::vector<trait_fun_t>> file_fun_cache;
+    using trait_summary_t = std::function<std::string(const Collection &)>;
+    std::unordered_map<std::string, emp::vector<trait_summary_t>> file_fun_cache;
 
     /// Populations used; generated in the configuration file.
     emp::vector< emp::Ptr<Population> > pops;
@@ -108,7 +108,7 @@ namespace mabe {
     emp::vector<std::string> config_filenames; ///< Names of configuration files to load.
     emp::vector<std::string> config_settings;  ///< Additional config commands to run.
     std::string gen_filename;                  ///< Name of output file to generate.
-    Config config;                             ///< Configutation information for this run.
+    Config config;                             ///< Configuration information for this run.
     emp::Ptr<ConfigScope> cur_scope;           ///< Which config scope are we currently using?
 
 
@@ -134,7 +134,7 @@ namespace mabe {
     /// Load organism traits that modules need to read or write and test for conflicts.
     void Setup_Traits();
 
-    /// Link signals to the modules that implment responses to those signals.
+    /// Link signals to the modules that implement responses to those signals.
     void UpdateSignals();
 
     /// Find any instances of ${X} and eval the X.
@@ -198,7 +198,7 @@ namespace mabe {
     const Population & GetPopulation(size_t id) const { return *pops[id]; }
     Population & GetPopulation(size_t id) { return *pops[id]; }
 
-    /// New populaitons must be given a name and an optional size.
+    /// New populations must be given a name and an optional size.
     Population & AddPopulation(const std::string & name, size_t pop_size=0);
 
     /// If GetPopulation() is called without an ID, return the current population or create one.
@@ -328,8 +328,8 @@ namespace mabe {
     /// trait_name from each, aggregating those values based on the trait_filter and returning
     /// the result as a string.
 
-    trait_fun_t BuildTraitFunction(const std::string & trait_name,
-                                   std::string trait_filter);
+    trait_summary_t BuildTraitSummaryFunction(const std::string & trait_name,
+                                              std::string trait_filter);
 
     // Handler for printing trait data
     void OutputTraitData(std::ostream & os,
@@ -509,7 +509,7 @@ namespace mabe {
     }
   }
 
-  /// Link signals to the modules that implment responses to those signals.
+  /// Link signals to the modules that implement responses to those signals.
   void MABE::UpdateSignals() {
     // Clear all module vectors.
     for (auto modv : sig_ptrs) modv->resize(0);
@@ -657,7 +657,7 @@ namespace mabe {
     std::function<std::string(const std::string &, std::string)> trait_string_fun =
       [this](const std::string & target, std::string trait_filter) {
         std::string trait_name = emp::string_pop(trait_filter,':');
-        auto fun = BuildTraitFunction(trait_name, trait_filter);
+        auto fun = BuildTraitSummaryFunction(trait_name, trait_filter);
         return fun( ToCollection(target) );
       };
     config.AddFunction("TRAIT_STRING", trait_string_fun, "Collect information about a specified trait.");
@@ -665,7 +665,7 @@ namespace mabe {
     std::function<double(const std::string &, std::string)> trait_value_fun =
       [this](const std::string & target, std::string trait_filter) {
         std::string trait_name = emp::string_pop(trait_filter,':');
-        auto fun = BuildTraitFunction(trait_name, trait_filter);
+        auto fun = BuildTraitSummaryFunction(trait_name, trait_filter);
         return emp::from_string<double>(fun( ToCollection(target) ));
       };
     config.AddFunction("TRAIT_VALUE", trait_value_fun, "Collect information about a specified trait.");
@@ -775,7 +775,7 @@ namespace mabe {
     before_exit_sig.Trigger();
   }
 
-  /// New populaitons must be given a name and an optional size.
+  /// New populations must be given a name and an optional size.
   Population & MABE::AddPopulation(const std::string & name, size_t pop_size) {
     cur_pop_id = (int) pops.size();                                   // Set new pop to "current"
     emp::Ptr<Population> new_pop =
@@ -838,7 +838,7 @@ namespace mabe {
     OrgPosition pos;                              // Place to save injection position.
     for (size_t i = 0; i < copy_count; i++) {     // Loop through, injecting each instance.
       auto org_ptr = org_manager.Make<Organism>(random);  // ...Build an org of this type.
-      pos = InjectInstance(org_ptr, pop);         // ...Inject it into the popultation.
+      pos = InjectInstance(org_ptr, pop);         // ...Inject it into the population.
     }
     return pos;                                   // Return last position injected.
   }
@@ -949,7 +949,7 @@ namespace mabe {
   ///                  [OP] can be ==, !=, <, >, <=, or >=
   ///                  [TRAIT] can be any other trait name
   ///   unique      : Return the number of distinct value for this trait (alias="richness").
-  ///   mode        : Return the most common value in this colection (aliases="dom","dominant").
+  ///   mode        : Return the most common value in this collection (aliases="dom","dominant").
   ///   min         : Return the smallest value of this trait present.
   ///   max         : Return the largest value of this trait present.
   ///   ave         : Return the average value of this trait (alias="mean").
@@ -957,11 +957,13 @@ namespace mabe {
   ///   variance    : Return the variance of this trait.
   ///   stddev      : Return the standard deviation of this trait.
   ///   sum         : Return the summation of all values of this trait (alias="total")
-  ///   entopy      : Return the Shannon entropy of this value.
+  ///   entropy     : Return the Shannon entropy of this value.
   ///   :trait      : Return the mutual information with another provided trait.
 
-  MABE::trait_fun_t MABE::BuildTraitFunction(const std::string & trait_name,
-                                             std::string trait_filter) {
+  MABE::trait_summary_t MABE::BuildTraitSummaryFunction(
+    const std::string & trait_name,
+    std::string trait_filter
+  ) {
     // The trait input has two components:
     // (1) the trait NAME and
     // (2) (optionally) how to calculate the trait SUMMARY, such as min, max, ave, etc.
@@ -1004,7 +1006,7 @@ namespace mabe {
                              std::string format,
                              bool print_headers)
   {
-    emp::vector<trait_fun_t> funs;                          ///< Functions to call each update.
+    emp::vector<trait_summary_t> trait_functions;  ///< Summary functions to call each update.
     emp::remove_whitespace(format);
 
     // If we need headers, set them up!
@@ -1030,21 +1032,21 @@ namespace mabe {
       emp::vector<std::string> cols = emp::slice(format, ',');
 
       // Setup a function to collect data associated with each column.
-      funs.resize(cols.size());
+      trait_functions.resize(cols.size());
       for (size_t i = 0; i < cols.size(); i++) {
         std::string trait_filter = cols[i];
         std::string trait_name = emp::string_pop(trait_filter,':');
-        funs[i] = BuildTraitFunction(trait_name, trait_filter);
+        trait_functions[i] = BuildTraitSummaryFunction(trait_name, trait_filter);
       }
 
       // Insert the new entry into the cache and update the iterator.
-      fun_it = file_fun_cache.insert({format, funs}).first;
+      fun_it = file_fun_cache.insert({format, trait_functions}).first;
     }
-    else funs = fun_it->second;
+    else trait_functions = fun_it->second;
 
     // And, finally, print the data!
     os << GetUpdate();
-    for (auto & fun : funs) {
+    for (auto & fun : trait_functions) {
       os << ", " << fun(target_collect);
     }
     os << std::endl;
