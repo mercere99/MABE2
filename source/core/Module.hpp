@@ -167,10 +167,18 @@ namespace mabe {
       return AddTrait<T,ALT_Ts...>(TraitInfo::Access::REQUIRED, name);
     }
 
+    /// Add all of the traits that that this module needs to be able to READ, in order to
+    /// computer the provided equation.  Another module must WRITE these traits and provide the
+    /// descriptions.
+    void AddRequiredEquation(const std::string & equation) {
+      const std::set<std::string> & traits = control.GetEquationTraits(equation);
+      for (const std::string & name : traits) AddRequiredTrait<double,int,size_t>(name);
+    }
+
 
     // ---== Signal Handling ==---
 
-    // Functions to be called based on signals.  Note that the existance of an overridden version
+    // Functions to be called based on signals.  Note that the existence of an overridden version
     // of each function is tracked by an associated bool value that we default to true until the
     // base version of the function is called indicating that it has NOT been overridden.
 
