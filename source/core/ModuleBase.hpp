@@ -123,6 +123,9 @@ namespace mabe {
     /// Other variables that we want to hook on to this Module externally.
     emp::DataMap data_map;
 
+    using value_fun_t = std::function<double(emp::DataMap &)>;
+    using string_fun_t = std::function<std::string(emp::DataMap &)>;
+
   public:
     // Setup each signal with a unique ID number
     enum SignalID {
