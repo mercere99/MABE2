@@ -339,8 +339,7 @@ namespace mabe {
     /// Scan a provided equation and return the names of all traits used in that equation.
 
     const std::set<std::string> & GetEquationTraits(const std::string & equation) {
-      dm_parser.BuildMathFunction(org_data_map, equation);
-      return dm_parser.GetNamesUsed();
+      return dm_parser.GetNamesUsed(equation);
     }
 
     /// Build a function to scan a collection of organisms, reading the value for the given
