@@ -36,7 +36,7 @@ namespace mabe {
       for (size_t i = 0; i < cols.size(); i++) {
         std::string trait_filter = cols[i];
         std::string trait_name = emp::string_pop(trait_filter,':');
-        funs[i] = control.BuildTraitFunction(trait_name, trait_filter);
+        funs[i] = control.BuildTraitSummary(trait_name, trait_filter);
       }
 
       init = true;
