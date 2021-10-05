@@ -153,7 +153,7 @@ namespace mabe {
     iterator_t IteratorAt(size_t pos) { return iterator_t(this, pos); }
     const_iterator_t ConstIteratorAt(size_t pos) const { return const_iterator_t(this, pos); }
 
-    /// Required SetupConfig function; for now population don't have any config optons.
+    /// Required SetupConfig function; for now population don't have any config options.
     void SetupConfig() override { }
 
   private:  // ---== To be used by friend class MABEBase only! ==---
@@ -204,7 +204,7 @@ namespace mabe {
   public:
     // ------ DEBUG FUNCTIONS ------
     bool OK() const {
-      // We will usually have a handful of popoulations; assume error if we have more than a billion.
+      // We will usually have a handful of populations; assume error if we have more than a billion.
       if (pop_id > 1000000000) {
         std::cout << "WARNING: Invalid Population ID (pop_id = " << pop_id << ")" << std::endl;
         return false;
@@ -229,7 +229,7 @@ namespace mabe {
         if (!orgs[pos]->IsEmpty()) org_count++;
       }
 
-      // Make sure we counted the correct number of organims in the population.
+      // Make sure we counted the correct number of organisms in the population.
       if (num_orgs != org_count) {
           std::cout << "ERROR: Population " << pop_id << " has num_orgs = " << num_orgs
                     << ", but audit counts " << org_count << " orgs." << std::endl;

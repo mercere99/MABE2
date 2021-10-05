@@ -129,7 +129,9 @@ namespace mabe {
     TraitInfo & AddTrait(TraitInfo::Access access,
                          const std::string & name,
                          const std::string & desc="",
-                         const T & default_val=T()) {
+                         const T & default_val=T()
+    ) {
+      emp_assert(name != "", name);
       return control.GetTraitManager().AddTrait<T,ALT_Ts...>(this, access, name, desc, default_val);
     }
 
@@ -231,7 +233,7 @@ namespace mabe {
     }
 
     // Format:  OnPlacement(OrgPosition placement_pos)
-    // Trigger: New organism has been placed in the poulation.
+    // Trigger: New organism has been placed in the population.
     // Args:    Position new organism was placed.
     void OnPlacement(OrgPosition) override {
       has_signal[SIG_OnPlacement] = false;
@@ -335,7 +337,7 @@ namespace mabe {
 
     // Functions to be called based on actions that need to happen.  Each of these returns a
     // viable result or an invalid object if need to pass on to the next module.  Modules will
-    // be querried in order until one of them returns a valid result.
+    // be queried in order until one of them returns a valid result.
 
     // Function: Place a new organism about to be born.
     // Args: Organism that will be placed, position of parent, population to place.

@@ -33,7 +33,7 @@
  *     BeforePlacement(Organism & org, OrgPosition target_pos, OrgPosition parent_pos)
  *       : Placement location has been identified (For birth or inject)
  *     OnPlacement(OrgPosition placement_pos)
- *       : New organism has been placed in the poulation.
+ *       : New organism has been placed in the population.
  *     BeforeMutate(Organism & org)
  *       : Mutate is about to run on an organism.
  *     OnMutate(Organism & org)

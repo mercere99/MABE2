@@ -6,7 +6,7 @@
  *  @file  data_collect.hpp
  *  @brief Functions to collect data from containers.
  *
- *  A collection of mechanisms to agregate data from arbitrary objects in arbitrary containers.
+ *  A collection of mechanisms to aggregate data from arbitrary objects in arbitrary containers.
  * 
  *  Each build function must know the data type it is working with (DATA_T), the type of container
  *  it should expect (CONTAIN_T), and be provided a function that will take a container element and
