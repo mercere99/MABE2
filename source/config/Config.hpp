@@ -8,25 +8,26 @@
  *  @note Status: ALPHA
  * 
  *  Example usage:
- *   a = 7;              // a is a variable with the value 7
- *   b = "balloons";     // b is a variable equal to the literal string "balloons"
- *   c = a + 10;         // '+' will add values; c is a variable equal to 17.
- *   d = "99 " + b;      // '+' will append strings; d is a variable equal to "99 balloons"
- *   // e = "abc" + 123; // ERROR - cannot add strings and values!
- *   f = {               // f is a structure/scope/dictionary
- *     g = 1;
- *     h = "two";
- *     i = {
- *       j = 3;
+ *   Value a = 7;              // a is a variable with the value 7
+ *   String b = "balloons";    // b is a variable equal to the literal string "balloons"
+ *   Value c = a + 10;         // '+' will add values; c is a variable equal to 17.
+ *   String d = "99 " + b;     // '+' will append strings; d is a variable equal to "99 balloons"
+ *   // String e = "abc" + 12; // ERROR - cannot add strings and values!
+ *   String  = "01" * a;       // e is now "01010101010101"
+ *   Struct f = {              // f is a structure/scope/dictionary
+ *     Value g = 1.7;          // Values are floating point.
+ *     String h = "two";
+ *     Struct i = {            // Structure-within-structures are allowed.
+ *       Value j = 3;
  *     }
- *     a = "shadow!";    // A variable can be redeclared in other scopes, shadowing the original.
- *                       //  Note: the LHS assumes current scope; on RHS will search outer scopes.
- *     j = "spooky!";    // A NEW variable since we are out of the namespace of the other j.
- *     j = .a;           // Change j to "shadow"; an initial . indicates current namespace.
- *     b = i.j;          // Namespaces can be stepped through with dots.
- *     c = ..a;          // A variable name beginning with a ".." indicates parent namespace.
- *     c = @f.i.j;       // A variable name beginning with an @ must have its full path specified.
- *   }                   // f has been initialized with seven variables in its scope.
+ *     String a = "shadow!";   // Variables can be redeclared in other scopes; shadows original.
+ *     String j = "spooky!";   // A NEW variable since we are now out of Struct i.
+ *     j = .a;                 // Change j to "shadow!"; initial . indicates current namespace.
+ *     b = i.j;                // Namespaces can be stepped through with dots.
+ *     c = ..a;                // A variable name beginning with a ".." indicates parent namespace.
+ *   }                         // f has been initialized with six variables in its scope.
+ *
+ *   --- The functionality below does not yet work and may change when implemented ---
  *   f["new"] = 22;      // You can always add new fields to structures.
  *   // d["bad"] = 4;    // ERROR - You cannot add fields to non-structures.
  *   k = [ 1 , 2 , 3];   // k is a vector of values (vectors must have all types the same!)
@@ -44,7 +45,7 @@
  *   //       :type (returns a string indicating type!)
  * 
  * 
- *  In practice:
+ *  In practice, most settings will be pre-defined in typed scopes:
  *   MarkovBrain Sheep = {
  *     outputs = 10;
  *     node_weights = 0.75;
@@ -206,7 +207,7 @@ namespace mabe {
     /// an expression, or an event.
     [[nodiscard]] emp::Ptr<ASTNode> ParseStatement(pos_t & pos, ConfigScope & scope);
 
-    /// Keep parsing statments until there aren't any more or we leave this scope. 
+    /// Keep parsing statements until there aren't any more or we leave this scope. 
     [[nodiscard]] emp::Ptr<ASTNode_Block> ParseStatementList(pos_t & pos, ConfigScope & scope) {
       Debug("Running ParseStatementList(", pos.GetIndex(), ":('", AsLexeme(pos), "'),", scope.GetName(), ")");
       auto cur_block = emp::NewPtr<ASTNode_Block>(scope);
@@ -395,7 +396,7 @@ namespace mabe {
       return type_id;
     }
 
-    /// Retrieve a uniqe type ID by providing the type name.
+    /// Retrieve a unique type ID by providing the type name.
     size_t GetTypeID(const std::string & type_name) {
       emp_assert(emp::Has(type_map, type_name));
       return type_map[type_name].type_id;
@@ -483,8 +484,8 @@ namespace mabe {
       if (filename == "" || filename == "_") return Write();
 
       // Otherwise generate an output file.
-      std::ofstream ofile(filename);
-      return Write(ofile);
+      std::ofstream out_file(filename);
+      return Write(out_file);
     }
   };
 
