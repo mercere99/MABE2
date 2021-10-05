@@ -86,9 +86,14 @@ namespace mabe {
   class Config {
   public:
     struct TypeInfo {
-      size_t type_id;
+      size_t index;
       std::string desc;
-      std::function<ConfigType & (const std::string &)> init_fun;
+
+      using init_fun_t = std::function<ConfigType & (const std::string &)>;
+      init_fun_t init_fun;
+
+      TypeInfo(size_t in_id, const std::string & in_desc, init_fun_t in_init)
+       : index(in_id), desc(in_desc), init_fun(in_init) { }
     };
 
     using pos_t = emp::TokenStream::Iterator;
@@ -105,7 +110,7 @@ namespace mabe {
     std::map<std::string, ConfigEvents> events_map;
 
     /// A map of all types available in the script.
-    std::unordered_map<std::string, TypeInfo> type_map;
+    std::unordered_map<std::string, emp::Ptr<TypeInfo>> type_map;
 
     /// A list of precedence levels for symbols.
     std::unordered_map<std::string, size_t> precedence_map;
@@ -230,11 +235,11 @@ namespace mabe {
       if (filename != "") Load(filename);
 
       // Initialize the type map.
-      type_map["INVALID"] = TypeInfo{ (size_t) BaseType::INVALID, "Error, Invalid type!", nullptr };
-      type_map["Void"] = TypeInfo{ (size_t) BaseType::VOID, "Non-type variable; no value", nullptr };
-      type_map["Value"] = TypeInfo{ (size_t) BaseType::VALUE, "Numeric variable", nullptr };
-      type_map["String"] = TypeInfo{ (size_t) BaseType::STRING, "String variable", nullptr };
-      type_map["Struct"] = TypeInfo{ (size_t) BaseType::STRUCT, "User-made structure", nullptr };
+      type_map["INVALID"] = emp::NewPtr<TypeInfo>( (size_t) BaseType::INVALID, "Error, Invalid type!", nullptr );
+      type_map["Void"] = emp::NewPtr<TypeInfo>( (size_t) BaseType::VOID, "Non-type variable; no value", nullptr );
+      type_map["Value"] = emp::NewPtr<TypeInfo>( (size_t) BaseType::VALUE, "Numeric variable", nullptr );
+      type_map["String"] = emp::NewPtr<TypeInfo>( (size_t) BaseType::STRING, "String variable", nullptr );
+      type_map["Struct"] = emp::NewPtr<TypeInfo>( (size_t) BaseType::STRUCT, "User-made structure", nullptr );
 
       // Setup operator precedence.
       size_t cur_prec = 0;
@@ -345,7 +350,10 @@ namespace mabe {
     Config & operator=(const Config &) = delete;
     Config & operator=(Config &&) = delete;
 
-    ~Config() { }
+    ~Config() {
+      // Clean up type information.
+      for (auto [name, ptr] : type_map) ptr.Delete();
+    }
 
     /// Create a new type of event that can be used in the scripting language.
     ConfigEvents & AddEventType(const std::string & name) {
@@ -385,21 +393,21 @@ namespace mabe {
     /// To add a type, provide the type name (that can be referred to in a script) and a function
     /// that should be called (with the variable name) when an instance of that type is created.
     /// The function must return a reference to the newly created instance.
-    size_t AddType(const std::string & type_name, const std::string & desc,
-                   std::function<ConfigType & (const std::string &)> init_fun)
-    {
+    size_t AddType(
+      const std::string & type_name,
+      const std::string & desc,
+      std::function<ConfigType & (const std::string &)> init_fun
+    ) {
       emp_assert(!emp::Has(type_map, type_name));
-      size_t type_id = type_map.size();
-      type_map[type_name].type_id = type_id;
-      type_map[type_name].desc = desc;
-      type_map[type_name].init_fun = init_fun;
-      return type_id;
+      size_t index = type_map.size();
+      type_map[type_name] = emp::NewPtr<TypeInfo>( index, desc, init_fun );
+      return index;
     }
 
     /// Retrieve a unique type ID by providing the type name.
-    size_t GetTypeID(const std::string & type_name) {
+    size_t GetIndex(const std::string & type_name) {
       emp_assert(emp::Has(type_map, type_name));
-      return type_map[type_name].type_id;
+      return type_map[type_name]->index;
     }
 
     /// To add a built-in function (at the root level) provide it with a name and description.
@@ -735,8 +743,8 @@ namespace mabe {
 
     // Otherwise we have a module to add; treat it as a struct.
     Debug("Building var '", var_name, "' of type '", type_name, "'");
-    ConfigScope & new_scope = scope.AddScope(var_name, type_map[type_name].desc, type_name);
-    ConfigType & new_obj = type_map[type_name].init_fun(var_name);
+    ConfigScope & new_scope = scope.AddScope(var_name, type_map[type_name]->desc, type_name);
+    ConfigType & new_obj = type_map[type_name]->init_fun(var_name);
     new_obj.SetupScope(new_scope);
     new_obj.LinkVar(new_obj._active, "_active", "Should we activate this module? (0=off, 1=on)", true);
     new_obj.LinkVar(new_obj._desc,   "_desc",   "Special description for those object.", true);
