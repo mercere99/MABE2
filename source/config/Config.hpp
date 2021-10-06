@@ -85,15 +85,61 @@ namespace mabe {
 
   class Config {
   public:
+    // TypeInfo tracks a particular type to be used in the configuration langauge.
     struct TypeInfo {
       size_t index;
       std::string desc;
+      emp::TypeID type_id;
 
       using init_fun_t = std::function<ConfigType & (const std::string &)>;
       init_fun_t init_fun;
 
+      using entry_ptr_t = emp::Ptr<ConfigEntry>;
+      using member_fun_t = std::function<entry_ptr_t(const emp::vector<entry_ptr_t> &)>;
+      emp::map<std::string, member_fun_t> member_funs;
+
+      // Constructor to allow a simple new configuration type
+      TypeInfo(size_t in_id, const std::string & in_desc)
+       : index(in_id), desc(in_desc) { }
+
+      // Constructor to allow a new configuration type whose objects require initialization.
       TypeInfo(size_t in_id, const std::string & in_desc, init_fun_t in_init)
-       : index(in_id), desc(in_desc), init_fun(in_init) { }
+       : index(in_id), desc(in_desc), init_fun(in_init)
+      {
+      }
+
+      // Link this TypeInfo object to a real C++ type.
+      template <typename OBJECT_T>
+      void LinkType() {
+        static_assert(std::is_base_of<ConfigType, OBJECT_T>(),
+                      "Only ConfigType objects can be used as a custom config type.");
+        type_id = emp::GetTypeID<OBJECT_T>();
+      }
+
+      // Add a member function that can be called on objects of this type.
+      template <typename RETURN_T, typename OBJECT_T, typename... PARAM_Ts>
+      void AddMemberFunction(
+        const std::string & name,
+        std::function<RETURN_T(OBJECT_T &, PARAM_Ts...)> fun
+      ) {
+        // ----- Make sure function is legal -----
+        // Is return type legal?
+        static_assert(std::is_arithmetic<RETURN_T>() || std::is_same<RETURN_T, std::string>(),
+                      "Config member functions must of a string or arithmetic return type");
+
+        // Is the first parameter the correct type?
+        emp_assert( type_id.IsType<OBJECT_T>(),
+                    "First parameter must match config type of member function being created!",
+                    type_id, emp::GetTypeID<OBJECT_T>() );
+
+        // Are remaining parameters legal?
+        constexpr bool params_ok =
+         ((std::is_arithmetic<PARAM_Ts>() || std::is_same<PARAM_Ts, std::string>()) && ...);
+        static_assert(params_ok, "Parameters 2+ in a member function must be string or arithmetic.");
+
+        // ----- Transform this function into one that TypeInfo can make use of ----
+        // @CAO CONTINUE HERE!
+      }
     };
 
     using pos_t = emp::TokenStream::Iterator;
@@ -235,11 +281,11 @@ namespace mabe {
       if (filename != "") Load(filename);
 
       // Initialize the type map.
-      type_map["INVALID"] = emp::NewPtr<TypeInfo>( (size_t) BaseType::INVALID, "Error, Invalid type!", nullptr );
-      type_map["Void"] = emp::NewPtr<TypeInfo>( (size_t) BaseType::VOID, "Non-type variable; no value", nullptr );
-      type_map["Value"] = emp::NewPtr<TypeInfo>( (size_t) BaseType::VALUE, "Numeric variable", nullptr );
-      type_map["String"] = emp::NewPtr<TypeInfo>( (size_t) BaseType::STRING, "String variable", nullptr );
-      type_map["Struct"] = emp::NewPtr<TypeInfo>( (size_t) BaseType::STRUCT, "User-made structure", nullptr );
+      type_map["INVALID"] = emp::NewPtr<TypeInfo>( (size_t) BaseType::INVALID, "Error, Invalid type!" );
+      type_map["Void"] = emp::NewPtr<TypeInfo>( (size_t) BaseType::VOID, "Non-type variable; no value" );
+      type_map["Value"] = emp::NewPtr<TypeInfo>( (size_t) BaseType::VALUE, "Numeric variable" );
+      type_map["String"] = emp::NewPtr<TypeInfo>( (size_t) BaseType::STRING, "String variable" );
+      type_map["Struct"] = emp::NewPtr<TypeInfo>( (size_t) BaseType::STRUCT, "User-made structure" );
 
       // Setup operator precedence.
       size_t cur_prec = 0;
