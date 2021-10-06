@@ -1,9 +1,9 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019-2020.
+ *  @date 2019-2021.
  *
- *  @file  ConfigFunction.hpp
+ *  @file  ConfigEntry_Function.hpp
  *  @brief Manages individual functions for config.
  *  @note Status: ALPHA
  */
@@ -22,9 +22,9 @@
 
 namespace mabe {
 
-  class ConfigFunction : public ConfigEntry {
+  class ConfigEntry_Function : public ConfigEntry {
   private:
-    using this_t = ConfigFunction;
+    using this_t = ConfigEntry_Function;
     using entry_ptr_t = emp::Ptr<ConfigEntry>;
     using entry_vector_t = emp::vector<entry_ptr_t>;
     using fun_t = std::function< entry_ptr_t( const emp::vector<entry_ptr_t> & ) >;
@@ -34,19 +34,19 @@ namespace mabe {
     // size_t arg_count;
 
   public:
-    ConfigFunction(const std::string & _name,
+    ConfigEntry_Function(const std::string & _name,
                    const std::string & _desc,
-                   emp::Ptr<ConfigScope> _scope)
+                   emp::Ptr<ConfigEntry_Scope> _scope)
       : ConfigEntry(_name, _desc, _scope) { ; }
 
     template <typename RETURN_T, typename... ARGS>
-    ConfigFunction(const std::string & _name,
+    ConfigEntry_Function(const std::string & _name,
                    std::function<RETURN_T(ARGS...)> _fun,
                    const std::string & _desc,
-                   emp::Ptr<ConfigScope> _scope)
+                   emp::Ptr<ConfigEntry_Scope> _scope)
       : ConfigEntry(_name, _desc, _scope) { SetFunction(_fun); }
 
-    ConfigFunction(const ConfigFunction &) = default;
+    ConfigEntry_Function(const ConfigEntry_Function &) = default;
 
     emp::Ptr<ConfigEntry> Clone() const override { return emp::NewPtr<this_t>(*this); }
 
