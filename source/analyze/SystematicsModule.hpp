@@ -19,7 +19,7 @@ public:
                const std::string & name="AnalyzeSystematics",
                const std::string & desc="Module to track the population's phylogeny.",
                bool _storeout = 0)
-      : Module(control, name, desc), store_outside(_storeout), sys([](Organism& org){return 1;})
+      : Module(control, name, desc), store_outside(_storeout), sys([](Organism& /*org*/){return 1;})
     {
       SetAnalyzeMod(true);    ///< Mark this module as an analyze module.
     }
@@ -36,30 +36,29 @@ public:
       
     void OnUpdate(size_t /*update*/) override {
       sys.Update();
-      // Systematic manager should check whether it's population is synchronous
     }
 
     void BeforeDeath(OrgPosition pos) override {
-      sys.RemoveOrg({pos.Pos(), pos.PopID()});
+      sys.RemoveOrg({pos.Pos(), (size_t)pos.PopID()});
     }
 
     void BeforePlacement(Organism& org, OrgPosition pos, OrgPosition ppos) override {
       if (ppos.IsValid()) {
-        sys.AddOrg(org, {pos.Pos(), pos.PopID()}, {ppos.Pos(), ppos.PopID()});
+        sys.AddOrg(org, {pos.Pos(), (size_t)pos.PopID()}, {ppos.Pos(), (size_t)ppos.PopID()});
       } else {
         // We're injecting so no parent
         // Double-check that this is happening because pop is null,
         // not because parent position is illegal
         // emp_assert(ppos.PopPtr().IsNull() && "Illegal parent position");
-        sys.AddOrg(org, {pos.Pos(), pos.PopID()}, nullptr);
+        sys.AddOrg(org, {pos.Pos(), (size_t)pos.PopID()}, nullptr);
       }
     }
 
     void OnSwap(OrgPosition pos1, OrgPosition pos2) override {
-      sys.SwapPositions({pos1.Pos(), pos1.PopID()}, {pos2.Pos(), pos2.PopID()});
+      sys.SwapPositions({pos1.Pos(), (size_t)pos1.PopID()}, {pos2.Pos(), (size_t)pos2.PopID()});
     }
 };
 
     MABE_REGISTER_MODULE(AnalyzeSystematics, "Module to track the population's phylogeny.");
-};
+}
 #endif
