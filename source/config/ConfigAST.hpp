@@ -16,7 +16,7 @@
 #include "emp/base/vector.hpp"
 
 #include "ConfigEntry.hpp"
-#include "ConfigScope.hpp"
+#include "ConfigEntry_Scope.hpp"
 
 namespace mabe {
 
@@ -62,7 +62,7 @@ namespace mabe {
     virtual node_ptr_t GetChild(size_t /* id */) { emp_assert(false); return nullptr; }
     node_ptr_t GetParent() { return parent; }
     void SetParent(node_ptr_t in_parent) { parent = in_parent; }
-    virtual emp::Ptr<ConfigScope> GetScope() { return parent ? parent->GetScope() : nullptr; }
+    virtual emp::Ptr<ConfigEntry_Scope> GetScope() { return parent ? parent->GetScope() : nullptr; }
 
     virtual entry_ptr_t Process() = 0;
 
@@ -134,12 +134,12 @@ namespace mabe {
 
   class ASTNode_Block : public ASTNode_Internal {
   protected:
-    emp::Ptr<ConfigScope> scope_ptr;
+    emp::Ptr<ConfigEntry_Scope> scope_ptr;
 
   public:
-    ASTNode_Block(ConfigScope & in_scope) : scope_ptr(&in_scope) { }
+    ASTNode_Block(ConfigEntry_Scope & in_scope) : scope_ptr(&in_scope) { }
 
-    emp::Ptr<ConfigScope> GetScope()  override { return scope_ptr; }
+    emp::Ptr<ConfigEntry_Scope> GetScope()  override { return scope_ptr; }
 
     entry_ptr_t Process() override {
       for (auto node : children) {
