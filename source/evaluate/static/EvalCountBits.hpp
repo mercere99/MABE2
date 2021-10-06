@@ -66,14 +66,14 @@ namespace mabe {
         org.GenerateOutput();
 
         // Count the number of ones in the bit sequence.
-        const emp::BitVector & bits = org.GetVar<emp::BitVector>(bits_trait);
+        const emp::BitVector & bits = org.GetTrait<emp::BitVector>(bits_trait);
         double fitness = (double) bits.CountOnes();
 
         // If we were supposed to count zeros, subtract ones count from total number of bits.
         if (count_type == 0) fitness = bits.size() - fitness;
 
         // Store the count on the organism in the fitness trait.
-        org.SetVar<double>(fitness_trait, fitness);
+        org.SetTrait<double>(fitness_trait, fitness);
 
         if (fitness > max_fitness || !max_org) {
           max_fitness = fitness;

@@ -2,21 +2,18 @@ random_seed = 0;                // Seed for random number generator; use 0 to ba
 Population main_pop;            // Collection of organisms
 Population next_pop;            // Collection of organisms
 
-Value pop_size = 1000;
+Value pop_size = 200;           // Population size to use (need to be hooked in)
 
 CommandLine cl;
 FileOutput output;
 
-EvalDiagnostic eval;
-SelectElite select_e;
+EvalMancala eval;
 SelectTournament select_t;
-SelectLexicase select_l;
 
 GrowthPlacement place_next;
 MovePopulation sync_gen;
-ValsOrg vals_org;
+AvidaGPOrg gp_org;
 
 @start() print("random_seed = ", random_seed, "\n");
-@start() inject("vals_org", "main_pop", pop_size);
-@update(500) select_t.tournament_size = 4;
+@start() inject("gp_org", "main_pop", pop_size);
 @update(1000) exit();

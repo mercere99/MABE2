@@ -29,6 +29,8 @@ namespace mabe {
     using entry_vector_t = emp::vector<entry_ptr_t>;
     using fun_t = std::function< entry_ptr_t( const emp::vector<entry_ptr_t> & ) >;
     fun_t fun;
+    bool numeric_return = false;
+    bool string_return = false;
     // size_t arg_count;
 
   public:
@@ -49,10 +51,15 @@ namespace mabe {
     emp::Ptr<ConfigEntry> Clone() const override { return emp::NewPtr<this_t>(*this); }
 
     bool IsFunction() const override { return true; }
+    bool HasNumericReturn() const override { return numeric_return; }
+    bool HasStringReturn() const override { return string_return; }
 
     /// Setup a function that takes NO arguments.
     template <typename RETURN_T>
     void SetFunction( std::function<RETURN_T()> in_fun ) {
+      numeric_return = std::is_scalar_v<RETURN_T>;
+      string_return = std::is_same<std::string, RETURN_T>();
+
       // Convert the function call to using entry pointers.
       fun = [in_fun, name=name, desc=desc](const emp::vector<entry_ptr_t> & args) -> emp::Ptr<ConfigEntry> {        
         // If arguments are passed in, we need to raise an error.

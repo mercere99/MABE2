@@ -1,0 +1,19 @@
+Population main_pop;
+Population next_pop;
+
+Value pop_size = 200;
+
+CommandLine cl;
+Mutate mut;
+EvalRoyalRoad eval_rr;
+FileOutput output;
+SelectElite select_elite;
+SelectTournament select_tourny;
+GrowthPlacement place_next;
+MovePopulation sync_gen;
+
+BitsOrg bits_org;
+
+@start() print("random_seed = ", random_seed, "\n");
+@start() inject("bits_org", "main_pop", pop_size);
+@update(1000) exit();

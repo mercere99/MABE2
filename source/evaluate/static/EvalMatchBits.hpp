@@ -66,7 +66,7 @@ namespace mabe {
       for (size_t pos = 0; pos < pop1.GetSize(); pos++) {
         // If the first population is empty, still check for organism in the second to score.
         if (pop1.IsEmpty(pos)) {
-          if (pop2.IsOccupied(pos)) pop2[pos].SetVar<double>(fitness_trait, 0.0);
+          if (pop2.IsOccupied(pos)) pop2[pos].SetTrait<double>(fitness_trait, 0.0);
           continue;  // Skip over empty cell in first population.
         }
 
@@ -83,8 +83,8 @@ namespace mabe {
           org2.GenerateOutput();
 
           // Count the number of matches in the bit sequences.
-          const emp::BitVector & bits1 = org.GetVar<emp::BitVector>(bits_trait);
-          const emp::BitVector & bits2 = org2.GetVar<emp::BitVector>(bits_trait);
+          const emp::BitVector & bits1 = org.GetTrait<emp::BitVector>(bits_trait);
+          const emp::BitVector & bits2 = org2.GetTrait<emp::BitVector>(bits_trait);
 
           if (count_matches) {
             fitness = (double) (bits1 ^ bits2).CountZeros();
@@ -96,18 +96,18 @@ namespace mabe {
           if (fitness > best_match) best_match = fitness;
 
           // Store the count on the second organism in the fitness trait.
-          org2.SetVar<double>(fitness_trait, fitness);
+          org2.SetTrait<double>(fitness_trait, fitness);
 
         }
 
         // Store the count on the organism in the fitness trait.
-        org.SetVar<double>(fitness_trait, fitness);
+        org.SetTrait<double>(fitness_trait, fitness);
 
       }
 
       // If pop2 is bigger, make sure to mark any extra organisms as having a zero match fitness.
       for (size_t pos = pop1.GetSize(); pos < pop2.GetSize(); pos++) {
-        if (pop2.IsOccupied(pos)) pop2[pos].SetVar<double>(fitness_trait, 0.0);
+        if (pop2.IsOccupied(pos)) pop2[pos].SetTrait<double>(fitness_trait, 0.0);
       }
 
     }

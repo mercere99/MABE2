@@ -55,15 +55,13 @@ namespace mabe {
       emp::valsort_map<OrgPosition, double> id_fit_map;
       Collection select_col = control.GetAlivePopulation(select_pop_id);
       for (auto it = select_col.begin(); it != select_col.end(); it++) {
-        id_fit_map.Set(it.AsPosition(), it->GetVar<double>(trait));
-        //std::cout << "Measuring fit " << it->GetVar<double>(trait) << std::endl;
+        id_fit_map.Set(it.AsPosition(), it->GetTrait<double>(trait));
       }
 
       // Loop through the IDs in fitness order (from highest), replicating each
       size_t num_reps = 0;
       Population & birth_pop = control.GetPopulation(birth_pop_id);
       for (auto it = id_fit_map.crvbegin(); it != id_fit_map.crvend() && num_reps++ < top_count; it++) {
-        //std::cout << "Replicating fit " << it->first->GetVar<double>(trait) << std::endl;
         control.Replicate(it->first, birth_pop, copy_count);
       }
     }

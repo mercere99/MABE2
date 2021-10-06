@@ -6,6 +6,10 @@
  *  @file  ConfigScope.hpp
  *  @brief Manages a full scope with many conig entries (or sub-scopes).
  *  @note Status: ALPHA
+ * 
+ *  DEVELOPER NOTES:
+ *  - Need to fix Add() function to give a user-level error, rather than an assert on duplication.
+ * 
  */
 
 #ifndef MABE_CONFIG_SCOPE_H
@@ -33,6 +37,8 @@ namespace mabe {
     T & Add(const std::string & name, ARGS &&... args) {
       auto new_ptr = emp::NewPtr<T>(name, std::forward<ARGS>(args)...);
       entry_list.push_back(new_ptr);
+      emp_assert(!emp::Has(entry_map, name), "Do not redeclare functions or variables!",
+                 name);
       entry_map[name] = new_ptr;
       return *new_ptr;
     }
@@ -41,6 +47,8 @@ namespace mabe {
     T & AddBuiltin(const std::string & name, ARGS &&... args) {
       auto new_ptr = emp::NewPtr<T>(name, std::forward<ARGS>(args)...);
       builtin_list.push_back(new_ptr);
+      emp_assert(!emp::Has(entry_map, name), "Do not redeclare built-in functions or variables!",
+                 name);
       entry_map[name] = new_ptr;
       return *new_ptr;
     }
@@ -127,7 +135,9 @@ namespace mabe {
     template <typename VAR_T>
     ConfigEntry_Linked<VAR_T> & LinkVar(const std::string & name,
                                         VAR_T & var,
-                                        const std::string & desc) {
+                                        const std::string & desc,
+                                        bool is_builtin = false) {
+      if (is_builtin) return AddBuiltin<ConfigEntry_Linked<VAR_T>>(name, var, desc, this);
       return Add<ConfigEntry_Linked<VAR_T>>(name, var, desc, this);
     }
 
@@ -137,7 +147,9 @@ namespace mabe {
     ConfigEntry_Functions<VAR_T> & LinkFuns(const std::string & name,
                                             std::function<VAR_T()> get_fun,
                                             std::function<void(const VAR_T &)> set_fun,
-                                            const std::string & desc) {
+                                            const std::string & desc,
+                                            bool is_builtin = false) {
+      if (is_builtin) return AddBuiltin<ConfigEntry_Functions<VAR_T>>(name, get_fun, set_fun, desc, this);
       return Add<ConfigEntry_Functions<VAR_T>>(name, get_fun, set_fun, desc, this);
     }
 
