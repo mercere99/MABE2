@@ -34,17 +34,29 @@ public:
       //AddPrivateTrait<bool>(store_outside, "Store all taxa", 0);
     }
       
-    void OnUpdate(size_t update) override{
+    void OnUpdate(size_t /*update*/) override {
       sys.Update();
       // Systematic manager should check whether it's population is synchronous
     }
-    void BeforeDeath(OrgPosition pos){
-      sys.RemoveOrg({0,0});
-      // Change RemoveOrg to be and org position
+
+    void BeforeDeath(OrgPosition pos) override {
+      sys.RemoveOrg({pos.Pos(), pos.PopID()});
     }
-    void BeforePlacement(Organism& org, OrgPosition pos, OrgPosition ppos){
-      //sys.AddOrg(org, pos, ppos);}
-            sys.AddOrg(org);
+
+    void BeforePlacement(Organism& org, OrgPosition pos, OrgPosition ppos) override {
+      if (ppos.IsValid()) {
+        sys.AddOrg(org, {pos.Pos(), pos.PopID()}, {ppos.Pos(), ppos.PopID()});
+      } else {
+        // We're injecting so no parent
+        // Double-check that this is happening because pop is null,
+        // not because parent position is illegal
+        // emp_assert(ppos.PopPtr().IsNull() && "Illegal parent position");
+        sys.AddOrg(org, {pos.Pos(), pos.PopID()}, nullptr);
+      }
+    }
+
+    void OnSwap(OrgPosition pos1, OrgPosition pos2) override {
+      sys.SwapPositions({pos1.Pos(), pos1.PopID()}, {pos2.Pos(), pos2.PopID()});
     }
 };
 
