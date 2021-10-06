@@ -7,6 +7,9 @@
  *  @brief Manages a single configuration entry (e.g., variables + base for scopes and functions).
  *  @note Status: ALPHA
  * 
+ *  The symbol table for the configuration language is managed as a collection of
+ *  configuration entries.  These include specializations for ConfigEntry_Function and
+ *  ConfigEntry_Scope, both defined in their own files and derived from ConfigEntry.
  * 
  *  Development Notes:
  *  - Currently we are not using Format; this would be useful if we want to type-check inputs more
@@ -30,13 +33,13 @@
 
 namespace mabe {
 
-  class ConfigScope;
+  class ConfigEntry_Scope;
 
   class ConfigEntry {
   protected:
-    std::string name;             ///< Unique name for this entry; empty name implied temporary.
-    std::string desc;             ///< Description to put in comments for this entry.
-    emp::Ptr<ConfigScope> scope;  ///< Which scope was this variable defined in?
+    std::string name;                  ///< Unique name for entry; empty name implies temporary.
+    std::string desc;                  ///< Description to put in comments for this entry.
+    emp::Ptr<ConfigEntry_Scope> scope; ///< Which scope was this variable defined in?
 
     bool is_temporary = false;    ///< Is this ConfigEntry temporary and should be deleted?
     bool is_builtin = false;      ///< Built-in entries should not be written to config files.
@@ -76,14 +79,14 @@ namespace mabe {
   public:
     ConfigEntry(const std::string & _name,
                 const std::string & _desc,
-                emp::Ptr<ConfigScope> _scope)
+                emp::Ptr<ConfigEntry_Scope> _scope)
       : name(_name), desc(_desc), scope(_scope) { }
     ConfigEntry(const ConfigEntry &) = default;
     virtual ~ConfigEntry() { }
 
     const std::string & GetName() const noexcept { return name; }
     const std::string & GetDesc() const noexcept { return desc; }
-    emp::Ptr<ConfigScope> GetScope() { return scope; }
+    emp::Ptr<ConfigEntry_Scope> GetScope() { return scope; }
     bool IsTemporary() const noexcept { return is_temporary; }
     bool IsBuiltIn() const noexcept { return is_builtin; }
     Format GetFormat() const noexcept { return format; }
@@ -120,8 +123,8 @@ namespace mabe {
     virtual ConfigEntry & SetValue(double in) { (void) in; emp_assert(false, in); return *this; }
     virtual ConfigEntry & SetString(const std::string & in) { (void) in; emp_assert(false, in); return *this; }
 
-    virtual emp::Ptr<ConfigScope> AsScopePtr() { return nullptr; }
-    ConfigScope & AsScope() {
+    virtual emp::Ptr<ConfigEntry_Scope> AsScopePtr() { return nullptr; }
+    ConfigEntry_Scope & AsScope() {
       emp_assert(AsScopePtr());
       return *(AsScopePtr());
     }
@@ -133,7 +136,7 @@ namespace mabe {
       if constexpr (std::is_same<base_T, emp::Ptr<ConfigEntry>>()) { return this; }
       else if constexpr (std::is_same<base_T, ConfigEntry &>()) { return *this; }
       else if constexpr (std::is_same<base_T, std::string>()) { return AsString(); }
-      else if constexpr (std::is_same<base_T, ConfigScope&>()) { return AsScope(); }
+      else if constexpr (std::is_same<base_T, ConfigEntry_Scope&>()) { return AsScope(); }
       else if constexpr (std::is_arithmetic<base_T>()) { return (T) AsDouble(); }
       else {
         // Oh oh... we don't know this type...
@@ -303,8 +306,10 @@ namespace mabe {
     using this_t = ConfigEntry_Var<T>;
 
     template <typename... ARGS>
-    ConfigEntry_Var(const std::string & in_name, T default_val,
-                    const std::string & in_desc="", emp::Ptr<ConfigScope> in_scope=nullptr)
+    ConfigEntry_Var(const std::string & in_name,
+                    T default_val,
+                    const std::string & in_desc="",
+                    emp::Ptr<ConfigEntry_Scope> in_scope=nullptr)
       : ConfigEntry(in_name, in_desc, in_scope), value(default_val) { ; }
     ConfigEntry_Var(const ConfigEntry_Var<T> &) = default;
 
