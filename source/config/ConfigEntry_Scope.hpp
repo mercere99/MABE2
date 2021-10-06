@@ -3,7 +3,7 @@
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
  *  @date 2019-2021.
  *
- *  @file  ConfigScope.hpp
+ *  @file  ConfigEntry_Scope.hpp
  *  @brief Manages a full scope with many conig entries (or sub-scopes).
  *  @note Status: ALPHA
  * 
@@ -18,12 +18,12 @@
 #include "emp/base/map.hpp"
 
 #include "ConfigEntry.hpp"
-#include "ConfigFunction.hpp"
+#include "ConfigEntry_Function.hpp"
 
 namespace mabe {
 
   // Set of multiple config entries.
-  class ConfigScope : public ConfigEntry {
+  class ConfigEntry_Scope : public ConfigEntry {
   protected:
     using entry_ptr_t = emp::Ptr<ConfigEntry>;
     emp::vector< entry_ptr_t > entry_list;            ///< Entries in order.
@@ -53,12 +53,12 @@ namespace mabe {
       return *new_ptr;
     }
   public:
-    ConfigScope(const std::string & _name,
+    ConfigEntry_Scope(const std::string & _name,
                 const std::string & _desc,
-                emp::Ptr<ConfigScope> _scope,
+                emp::Ptr<ConfigEntry_Scope> _scope,
                 const std::string & _type="")
       : ConfigEntry(_name, _desc, _scope), type(_type) { }
-    ConfigScope(const ConfigScope & in) : ConfigEntry(in) {
+    ConfigEntry_Scope(const ConfigEntry_Scope & in) : ConfigEntry(in) {
       // Copy all defined variables/scopes/functions
       for (const auto & x : in.entry_list) {
         auto new_ptr = x->Clone();
@@ -72,9 +72,9 @@ namespace mabe {
         entry_map[x->GetName()] = new_ptr;
       }
     }
-    ConfigScope(ConfigScope &&) = default;
+    ConfigEntry_Scope(ConfigEntry_Scope &&) = default;
 
-    ~ConfigScope() {
+    ~ConfigEntry_Scope() {
       // Clear up all entries and built-ins.
       for (auto & x : entry_list) { x.Delete(); }
       for (auto & x : builtin_list) { x.Delete(); }
@@ -86,7 +86,7 @@ namespace mabe {
     bool IsLocal() const override { return true; }  // @CAO, for now assuming all scopes are local!
 
     /// Set this entry to be a correctly-types scope pointer.
-    emp::Ptr<ConfigScope> AsScopePtr() override { return this; }
+    emp::Ptr<ConfigEntry_Scope> AsScopePtr() override { return this; }
 
     /// Get an entry out of this scope; 
     entry_ptr_t GetEntry(std::string in_name) {
@@ -164,24 +164,24 @@ namespace mabe {
     }
 
     /// Add a new scope inside of this one.
-    ConfigScope & AddScope(const std::string & name, const std::string & desc, const std::string & type="") {
-      return Add<ConfigScope>(name, desc, this, type);
+    ConfigEntry_Scope & AddScope(const std::string & name, const std::string & desc, const std::string & type="") {
+      return Add<ConfigEntry_Scope>(name, desc, this, type);
     }
 
     /// Add a new user-defined function.
     template <typename RETURN_T, typename... ARGS>
-    ConfigFunction & AddFunction(const std::string & name,
+    ConfigEntry_Function & AddFunction(const std::string & name,
                               std::function<RETURN_T(ARGS...)> fun,
                               const std::string & desc) {
-      return Add<ConfigFunction>(name, fun, desc, this);
+      return Add<ConfigEntry_Function>(name, fun, desc, this);
     }
 
     /// Add a new function that is a standard part of the scripting language.
     template <typename RETURN_T, typename... ARGS>
-    ConfigFunction & AddBuiltinFunction(const std::string & name,
+    ConfigEntry_Function & AddBuiltinFunction(const std::string & name,
                                         std::function<RETURN_T(ARGS...)> fun,
                                         const std::string & desc) {
-      return AddBuiltin<ConfigFunction>(name, fun, desc, this);
+      return AddBuiltin<ConfigEntry_Function>(name, fun, desc, this);
     }
 
     /// Write out all of the parameters contained in this scope to the provided stream.
@@ -225,7 +225,7 @@ namespace mabe {
     }
 
     /// Make a copy of this scope and all of the entries inside it.
-    entry_ptr_t Clone() const override { return emp::NewPtr<ConfigScope>(*this); }
+    entry_ptr_t Clone() const override { return emp::NewPtr<ConfigEntry_Scope>(*this); }
   };
 
 }
