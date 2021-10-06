@@ -114,7 +114,7 @@ namespace mabe {
     emp::vector<std::string> config_settings;  ///< Additional config commands to run.
     std::string gen_filename;                  ///< Name of output file to generate.
     Config config;                             ///< Configuration information for this run.
-    emp::Ptr<ConfigScope> cur_scope;           ///< Which config scope are we currently using?
+    emp::Ptr<ConfigEntry_Scope> cur_scope;     ///< Which config scope are we currently using?
 
 
     // ----------- Helper Functions -----------
@@ -357,19 +357,19 @@ namespace mabe {
     // --- Manage configuration scope ---
 
     /// Access to the current configuration scope.
-    ConfigScope & GetCurScope() { return *cur_scope; }
+    ConfigEntry_Scope & GetCurScope() { return *cur_scope; }
 
     /// Add a new scope under the current one.
-    ConfigScope & AddScope(const std::string & name, const std::string & desc) {
+    ConfigEntry_Scope & AddScope(const std::string & name, const std::string & desc) {
       cur_scope = &(cur_scope->AddScope(name, desc));
       return *cur_scope;
     }
 
     /// Move up one level of scope.
-    ConfigScope & LeaveScope() { return *(cur_scope = cur_scope->GetScope()); }
+    ConfigEntry_Scope & LeaveScope() { return *(cur_scope = cur_scope->GetScope()); }
 
     /// Return to the root scope.
-    ConfigScope & ResetScope() { return *(cur_scope = &(config.GetRootScope())); }
+    ConfigEntry_Scope & ResetScope() { return *(cur_scope = &(config.GetRootScope())); }
 
     /// Setup the configuration options for MABE, including for each module.
     void SetupConfig();
