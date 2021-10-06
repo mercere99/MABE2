@@ -76,9 +76,9 @@
 
 #include "ConfigAST.hpp"
 #include "ConfigEvents.hpp"
-#include "ConfigFunction.hpp"
+#include "ConfigEntry_Function.hpp"
 #include "ConfigLexer.hpp"
-#include "ConfigScope.hpp"
+#include "ConfigEntry_Scope.hpp"
 #include "ConfigType.hpp"
 
 namespace mabe {
@@ -138,18 +138,40 @@ namespace mabe {
         static_assert(params_ok, "Parameters 2+ in a member function must be string or arithmetic.");
 
         // ----- Transform this function into one that TypeInfo can make use of ----
-        // @CAO CONTINUE HERE!
+        member_fun_t member_fun =
+          [name,fun](ConfigType & obj, const emp::vector<entry_ptr_t> & args) {
+            // Make sure we can convert the obj into the correct type.
+            emp::Ptr<OBJECT_T> typed_ptr = dynamic_cast<OBJECT_T*>(&obj);
+
+            // Make sure we have the correct number of arguments.
+            if (args.size() != sizeof...(PARAM_Ts)) {
+              std::cerr << "Error in call to function '" << name
+                << "'; expected " << sizeof...(PARAM_Ts)
+                << " arguments, but received " << args.size() << "."
+                << std::endl;
+            }
+            //@CAO should collect file position information for the above error.
+
+            // Call the provided function and return the result.
+            int arg_id = 0;
+            RETURN_T result = fun( *typed_ptr, args[arg_id++]->As<PARAM_Ts>()... );
+
+            return result;
+          };
+
+        // Add this member function to the library we are building.
+        member_funs[name] = member_fun;
       }
     };
 
     using pos_t = emp::TokenStream::Iterator;
 
   protected:
-    std::string filename;       ///< Source for for code to generate.
-    ConfigLexer lexer;          ///< Lexer to process input code.
-    ConfigScope root_scope;     ///< All variables from the root level.
-    ASTNode_Block ast_root;     ///< Abstract syntax tree version of input file.
-    bool debug = false;         ///< Should we print full debug information?
+    std::string filename;         ///< Source for for code to generate.
+    ConfigLexer lexer;            ///< Lexer to process input code.
+    ConfigEntry_Scope root_scope; ///< All variables from the root level.
+    ASTNode_Block ast_root;       ///< Abstract syntax tree version of input file.
+    bool debug = false;           ///< Should we print full debug information?
 
 
     /// A map of names to event groups.
@@ -233,12 +255,12 @@ namespace mabe {
     /// If create_ok is true, create any variables that we don't find.  Otherwise continue the
     /// search for them in successively outer (lower) scopes.
     [[nodiscard]] emp::Ptr<ASTNode_Leaf> ParseVar(pos_t & pos,
-                                                  ConfigScope & cur_scope,
+                                                  ConfigEntry_Scope & cur_scope,
                                                   bool create_ok=false,
                                                   bool scan_scopes=true);
 
     /// Load a value from the provided scope, which can come from a variable or a literal.
-    [[nodiscard]] emp::Ptr<ASTNode> ParseValue(pos_t & pos, ConfigScope & cur_scope);
+    [[nodiscard]] emp::Ptr<ASTNode> ParseValue(pos_t & pos, ConfigEntry_Scope & cur_scope);
 
     /// Calculate the result of the provided operation on two computed entries.
     [[nodiscard]] emp::Ptr<ASTNode> ProcessOperation(const std::string & symbol,
@@ -246,20 +268,21 @@ namespace mabe {
                                        emp::Ptr<ASTNode> value2);
 
     /// Calculate a full expression found in a token sequence, using the provided scope.
-    [[nodiscard]] emp::Ptr<ASTNode> ParseExpression(pos_t & pos, ConfigScope & cur_scope, size_t prec_limit=1000);
+    [[nodiscard]] emp::Ptr<ASTNode>
+      ParseExpression(pos_t & pos, ConfigEntry_Scope & cur_scope, size_t prec_limit=1000);
 
     /// Parse the declaration of a variable and return the newly created ConfigEntry
-    ConfigEntry & ParseDeclaration(pos_t & pos, ConfigScope & scope);
+    ConfigEntry & ParseDeclaration(pos_t & pos, ConfigEntry_Scope & scope);
 
     /// Parse an event description.
-    emp::Ptr<ASTNode> ParseEvent(pos_t & pos, ConfigScope & scope);
+    emp::Ptr<ASTNode> ParseEvent(pos_t & pos, ConfigEntry_Scope & scope);
 
     /// Parse the next input in the specified Struct.  A statement can be a variable declaration,
     /// an expression, or an event.
-    [[nodiscard]] emp::Ptr<ASTNode> ParseStatement(pos_t & pos, ConfigScope & scope);
+    [[nodiscard]] emp::Ptr<ASTNode> ParseStatement(pos_t & pos, ConfigEntry_Scope & scope);
 
     /// Keep parsing statements until there aren't any more or we leave this scope. 
-    [[nodiscard]] emp::Ptr<ASTNode_Block> ParseStatementList(pos_t & pos, ConfigScope & scope) {
+    [[nodiscard]] emp::Ptr<ASTNode_Block> ParseStatementList(pos_t & pos, ConfigEntry_Scope & scope) {
       Debug("Running ParseStatementList(", pos.GetIndex(), ":('", AsLexeme(pos), "'),", scope.GetName(), ")");
       auto cur_block = emp::NewPtr<ASTNode_Block>(scope);
       while (pos.IsValid() && AsChar(pos) != '}') {
@@ -467,8 +490,8 @@ namespace mabe {
       root_scope.AddBuiltinFunction<RETURN_T, ARGS...>(name, fun, desc);
     }
 
-    ConfigScope & GetRootScope() { return root_scope; }
-    const ConfigScope & GetRootScope() const { return root_scope; }
+    ConfigEntry_Scope & GetRootScope() { return root_scope; }
+    const ConfigEntry_Scope & GetRootScope() const { return root_scope; }
 
     // Load a single, specified configuration file.
     void Load(const std::string & filename) {
@@ -508,7 +531,7 @@ namespace mabe {
     }
 
     // Load the provided statement and run it.
-    std::string Eval(std::string_view statement, emp::Ptr<ConfigScope> scope=nullptr) {
+    std::string Eval(std::string_view statement, emp::Ptr<ConfigEntry_Scope> scope=nullptr) {
       Debug("Running Eval()");
       if (!scope) scope = &root_scope;                      // Default scope to root level.
       auto tokens = lexer.Tokenize(statement, "eval command"); // Convert to a TokenStream.
@@ -549,7 +572,7 @@ namespace mabe {
 
   // Load a variable name from the provided scope.
   emp::Ptr<ASTNode_Leaf> Config::ParseVar(pos_t & pos,
-                                          ConfigScope & cur_scope,
+                                          ConfigEntry_Scope & cur_scope,
                                           bool create_ok, bool scan_scopes)
   {
     Debug("Running ParseVar(", pos.GetIndex(), ":('", AsLexeme(pos), "'),", cur_scope.GetName(), ",", create_ok, ")");
@@ -558,7 +581,7 @@ namespace mabe {
     if (IsDots(pos)) {
       scan_scopes = false;             // One or more initial dots specify scope; don't scan!
       size_t num_dots = GetSize(pos);  // Extra dots shift scope.
-      emp::Ptr<ConfigScope> scope_ptr = &cur_scope;
+      emp::Ptr<ConfigEntry_Scope> scope_ptr = &cur_scope;
       while (num_dots-- > 1) {
         scope_ptr = scope_ptr->GetScope();
         if (scope_ptr.IsNull()) Error(pos, "Too many dots; goes beyond global scope.");
@@ -602,7 +625,7 @@ namespace mabe {
   }
 
   // Load a value from the provided scope, which can come from a variable or a literal.
-  emp::Ptr<ASTNode> Config::ParseValue(pos_t & pos, ConfigScope & cur_scope) {
+  emp::Ptr<ASTNode> Config::ParseValue(pos_t & pos, ConfigEntry_Scope & cur_scope) {
     Debug("Running ParseValue(", pos.GetIndex(), ":('", AsLexeme(pos), "'),", cur_scope.GetName(), ")");
 
     // Anything that begins with an identifier or dots must represent a variable.  Refer!
@@ -733,7 +756,11 @@ namespace mabe {
                                       
 
   // Calculate an expression in the provided scope.
-  emp::Ptr<ASTNode> Config::ParseExpression(pos_t & pos, ConfigScope & scope, size_t prec_limit) {
+  emp::Ptr<ASTNode> Config::ParseExpression(
+    pos_t & pos,
+    ConfigEntry_Scope & scope,
+    size_t prec_limit
+  ) {
     Debug("Running ParseExpression(", pos.GetIndex(), ":('", AsLexeme(pos), "'),", scope.GetName(), ")");
 
     // @CAO Should test for unary operators at the beginning of an expression.
@@ -754,6 +781,9 @@ namespace mabe {
           ++pos;                          // Move on to the next argument.
         }
         RequireChar(')', pos++, "Expected a ')' to end function call.");
+
+        // cur_node should have evaluated itself to a function; a Call node will link that
+        // function with its arguments, run it, and return the result.
         cur_node = emp::NewPtr<ASTNode_Call>(cur_node, args);
       }
 
@@ -772,7 +802,7 @@ namespace mabe {
   }
 
   // Parse an the declaration of a variable.
-  ConfigEntry & Config::ParseDeclaration(pos_t & pos, ConfigScope & scope) {
+  ConfigEntry & Config::ParseDeclaration(pos_t & pos, ConfigEntry_Scope & scope) {
     std::string type_name = AsLexeme(pos++);
     RequireID(pos, "Type name '", type_name, "' must be followed by variable to declare.");
     std::string var_name = AsLexeme(pos++);
@@ -789,7 +819,7 @@ namespace mabe {
 
     // Otherwise we have a module to add; treat it as a struct.
     Debug("Building var '", var_name, "' of type '", type_name, "'");
-    ConfigScope & new_scope = scope.AddScope(var_name, type_map[type_name]->desc, type_name);
+    ConfigEntry_Scope & new_scope = scope.AddScope(var_name, type_map[type_name]->desc, type_name);
     ConfigType & new_obj = type_map[type_name]->init_fun(var_name);
     new_obj.SetupScope(new_scope);
     new_obj.LinkVar(new_obj._active, "_active", "Should we activate this module? (0=off, 1=on)", true);
@@ -800,7 +830,7 @@ namespace mabe {
   }
 
   // Parse an event description.
-  emp::Ptr<ASTNode> Config::ParseEvent(pos_t & pos, ConfigScope & scope) {
+  emp::Ptr<ASTNode> Config::ParseEvent(pos_t & pos, ConfigEntry_Scope & scope) {
     RequireChar('@', pos++, "All event declarations must being with an '@'.");
     RequireID(pos, "Events must start by specifying event name.");
     const std::string & event_name = AsLexeme(pos++);
@@ -829,7 +859,7 @@ namespace mabe {
   }
 
   // Process the next input in the specified Struct.
-  emp::Ptr<ASTNode> Config::ParseStatement(pos_t & pos, ConfigScope & scope) {
+  emp::Ptr<ASTNode> Config::ParseStatement(pos_t & pos, ConfigEntry_Scope & scope) {
     Debug("Running ParseStatement(", pos.GetIndex(), ":('", AsLexeme(pos), "'),", scope.GetName(), ")");
 
     // Allow a statement with an empty line.
