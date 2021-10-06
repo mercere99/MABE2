@@ -11,15 +11,31 @@ namespace mabe {
 
 class AnalyzeSystematics : public Module {
 private:
+
+    // Systematics manager
     bool store_outside;
-    emp::Systematics <Organism, int> sys;
+    bool store_ancestors;
+    std::string taxon_info;
+    emp::Systematics <Organism, std::string> sys;
+
+    // Output
+    int snapshot_start;
+    int snapshot_frequency;
+    int snapshot_end;
 
 public:
     AnalyzeSystematics(mabe::MABE & control,
                const std::string & name="AnalyzeSystematics",
                const std::string & desc="Module to track the population's phylogeny.",
-               bool _storeout = 0)
-      : Module(control, name, desc), store_outside(_storeout), sys([](Organism& /*org*/){return 1;})
+               bool _storeout = 0, bool _storeanc = 1, const std::string & _taxon_info = "taxon_info")
+      : Module(control, name, desc), 
+      store_outside(_storeout), 
+      store_ancestors(_storeanc),
+      taxon_info(_taxon_info),
+      sys([this](Organism& org){return org.GetTraitAsString(org.GetTraitID(taxon_info));}, true, _storeanc, _storeout, true),
+      snapshot_start(-1),
+      snapshot_frequency(1),
+      snapshot_end(-1)
     {
       SetAnalyzeMod(true);    ///< Mark this module as an analyze module.
     }
@@ -27,15 +43,23 @@ public:
 
     void SetupConfig() override {
       LinkVar(store_outside, "store_outside", "Store all taxa that ever existed.(1 = TRUE)" );
+      LinkVar(store_ancestors, "store_ancestors", "Store all ancestors of extant taxa.(1 = TRUE)" );
+      LinkVar(taxon_info, "taxon_info", "Which trait should we identify unique taxa based on");
+      LinkRange(snapshot_start, snapshot_frequency, snapshot_end, "snapshot_updates", "Which updates should we output a snapshot of the phylogeny?");
     }
 
     void SetupModule() override {
       // Setup the traits.
-      //AddPrivateTrait<bool>(store_outside, "Store all taxa", 0);
+      // TODO: Ideally it would be great if we didn't have to list all possible allowed types here
+      AddRequiredTrait<std::string, emp::BitVector, int, double, emp::vector<int>>(taxon_info);
     }
       
-    void OnUpdate(size_t /*update*/) override {
+    void OnUpdate(size_t update) override {
       sys.Update();
+
+      if (update >= snapshot_start && update <= snapshot_end && (update - snapshot_start) % snapshot_frequency == 0) {
+        sys.Snapshot("phylogeny_" + emp::to_string(update) + ".csv");
+      }
     }
 
     void BeforeDeath(OrgPosition pos) override {
