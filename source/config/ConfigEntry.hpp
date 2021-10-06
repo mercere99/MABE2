@@ -14,7 +14,7 @@
  *  Development Notes:
  *  - Currently we are not using Format; this would be useful if we want to type-check inputs more
  *    carefully.
- *  - When a ConfigEntry is used for a temporary value, it doesn't acutally need name or desc;
+ *  - When a ConfigEntry is used for a temporary value, it doesn't actually need name or desc;
  *    we can probably remove these pretty easily to save on memory if needed.
  */
 

@@ -4,7 +4,7 @@
  *  @date 2019-2021.
  *
  *  @file  ConfigAST.hpp
- *  @brief Manages Abstract Sytax Tree nodes for Config.
+ *  @brief Manages Abstract Syntax Tree nodes for Config.
  *  @note Status: ALPHA
  */
 
@@ -49,8 +49,8 @@ namespace mabe {
 
     virtual const std::string & GetName() const = 0;
 
-    virtual bool IsNumeric() const { return false; } // Can node be reprsented as a number?
-    virtual bool IsString() const { return false; }  // Can node be reprsented as a string?
+    virtual bool IsNumeric() const { return false; } // Can node be represented as a number?
+    virtual bool IsString() const { return false; }  // Can node be represented as a string?
     virtual bool HasValue() const { return false; }  // Does node have any value (vs internal block)
     virtual bool HasNumericReturn() const { return false; } // Is node function with numeric return?
     virtual bool HasStringReturn() const { return false; }  // Is node function with string return?

@@ -39,7 +39,7 @@ namespace mabe {
     // ---==  Configuration Management ==---
 
     /// Link a variable to a configuration entry - the value will default to the
-    /// variabels crrent value, but be updated when configs are loaded.
+    /// variables current value, but be updated when configs are loaded.
     template <typename VAR_T>
     ConfigEntry_Linked<VAR_T> & LinkVar(VAR_T & var,
                                         const std::string & name,

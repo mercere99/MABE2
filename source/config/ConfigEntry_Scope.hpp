@@ -4,7 +4,7 @@
  *  @date 2019-2021.
  *
  *  @file  ConfigEntry_Scope.hpp
- *  @brief Manages a full scope with many conig entries (or sub-scopes).
+ *  @brief Manages a full scope with many config entries (or sub-scopes).
  *  @note Status: ALPHA
  * 
  *  DEVELOPER NOTES:

@@ -30,7 +30,7 @@ namespace mabe {
     // Structure to track the timings for a single event.
     struct TimedEvent {
       size_t id = 0;                 // A unique ID for this event.
-      emp::Ptr<ASTNode> ast_action;  // Parse tree to exectute when triggered.
+      emp::Ptr<ASTNode> ast_action;  // Parse tree to execute when triggered.
       double next = 0.0;             // When should we start triggering this event.
       double repeat = 0.0;           // How often should it repeat (0.0 for no repeat)
       double max = -1.0;             // Maximum value that this value can reach (neg for no max)
@@ -51,7 +51,7 @@ namespace mabe {
 
         if (max != -1.0 && next > max) repeat = 0.0;
 
-        // Return "active" if we ARE repeating and the next time is stiil within range.
+        // Return "active" if we ARE repeating and the next time is still within range.
         return (repeat != 0.0);
       }
 

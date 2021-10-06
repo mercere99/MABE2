@@ -4,7 +4,7 @@
  *  @date 2019-2020.
  *
  *  @file  ConfigLexer.hpp
- *  @brief A Lexer that tokenizes MABE config files.
+ *  @brief A Lexer used to tokenize MABE config files.
  **/
 
 #ifndef MABE_CONFIG_LEXER_H
