@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019-2020.
+ *  @date 2019-2021.
  *
  *  @file  ConfigType.hpp
  *  @brief Setup types for use in scripting.
@@ -14,7 +14,7 @@
 #include "emp/base/assert.hpp"
 
 #include "ConfigEntry.hpp"
-#include "ConfigScope.hpp"
+#include "ConfigEntry_Scope.hpp"
 
 namespace mabe {
 
@@ -29,7 +29,7 @@ namespace mabe {
   // Base class for types that we want to be used for scripting.
   class ConfigType {
   private:
-    emp::Ptr<ConfigScope> cur_scope;
+    emp::Ptr<ConfigEntry_Scope> cur_scope;
   
   public:
     // Some special, internal variables associated with each object.
@@ -111,12 +111,12 @@ namespace mabe {
     }
 
   public:
-    virtual void SetupScope(ConfigScope & scope) { cur_scope = &scope; }
+    virtual void SetupScope(ConfigEntry_Scope & scope) { cur_scope = &scope; }
     virtual void SetupConfig() = 0;
     virtual ~ConfigType() { }
 
-    ConfigScope & GetScope() { emp_assert(!cur_scope.IsNull()); return *cur_scope; }
-    const ConfigScope & GetScope() const { emp_assert(!cur_scope.IsNull()); return *cur_scope; }
+    ConfigEntry_Scope & GetScope() { emp_assert(!cur_scope.IsNull()); return *cur_scope; }
+    const ConfigEntry_Scope & GetScope() const { emp_assert(!cur_scope.IsNull()); return *cur_scope; }
   };
 }
 
