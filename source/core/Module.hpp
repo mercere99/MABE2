@@ -51,9 +51,11 @@ namespace mabe {
     // (Other ways of linking variable to config file are in ConfigType.h)
 
     /// Link a single population to a parameter by name.
-    ConfigEntry_Functions<std::string> & LinkPop(int & var,
-                                                 const std::string & name,
-                                                 const std::string & desc) {
+    ConfigEntry_LinkedFunctions<std::string> & LinkPop(
+      int & var,
+      const std::string & name,
+      const std::string & desc
+    ) {
       std::function<std::string()> get_fun =
         [this,&var](){ return control.GetPopulation(var).GetName(); };
 
@@ -67,9 +69,11 @@ namespace mabe {
     }
 
     /// Link one or more populations (or portions of a population) to a parameter.
-    ConfigEntry_Functions<std::string> & LinkCollection(mabe::Collection & var,
-                                                        const std::string & name,
-                                                        const std::string & desc) {
+    ConfigEntry_LinkedFunctions<std::string> & LinkCollection(
+      mabe::Collection & var,
+      const std::string & name,
+      const std::string & desc
+    ) {
       std::function<std::string()> get_fun =
         [this,&var](){ return control.ToString(var); };
 
@@ -82,9 +86,11 @@ namespace mabe {
     }
 
     /// Link another module to this one, by name (track using int ID)
-    ConfigEntry_Functions<std::string> & LinkModule(int & var,
-                                                    const std::string & name,
-                                                    const std::string & desc) {
+    ConfigEntry_LinkedFunctions<std::string> & LinkModule(
+      int & var,
+      const std::string & name,
+      const std::string & desc
+    ) {
       std::function<std::string()> get_fun =
         [this,&var](){ return control.GetModule(var).GetName(); };
 
@@ -98,11 +104,13 @@ namespace mabe {
     }
 
     /// Link a range of values with a start, stop, and step.
-    ConfigEntry_Functions<std::string> & LinkRange(int & start_var,
-                                                   int & step_var,
-                                                   int & stop_var,
-                                                   const std::string & name,
-                                                   const std::string & desc) {
+    ConfigEntry_LinkedFunctions<std::string> & LinkRange(
+      int & start_var,
+      int & step_var,
+      int & stop_var,
+      const std::string & name,
+      const std::string & desc
+    ) {
       std::function<std::string()> get_fun =
         [&start_var,&step_var,&stop_var]() {
           // If stop_var is -1, don't bother printing it (i.e. NO stop)

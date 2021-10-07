@@ -27,7 +27,7 @@ namespace mabe {
     using this_t = ConfigEntry_Function;
     using entry_ptr_t = emp::Ptr<ConfigEntry>;
     using entry_vector_t = emp::vector<entry_ptr_t>;
-    using fun_t = std::function< entry_ptr_t( const emp::vector<entry_ptr_t> & ) >;
+    using fun_t = std::function< entry_ptr_t( const entry_vector_t & ) >;
     fun_t fun;
     bool numeric_return = false;
     bool string_return = false;

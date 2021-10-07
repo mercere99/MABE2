@@ -51,7 +51,7 @@ namespace mabe {
     /// Link a configuration entry to a pair of functions - it automatically calls the set
     /// function when configs are loaded, and the get function when current value is needed.
     template <typename VAR_T>
-    ConfigEntry_Functions<VAR_T> & LinkFuns(std::function<VAR_T()> get_fun,
+    ConfigEntry_LinkedFunctions<VAR_T> & LinkFuns(std::function<VAR_T()> get_fun,
                                             std::function<void(const VAR_T &)> set_fun,
                                             const std::string & name,
                                             const std::string & desc,
@@ -74,7 +74,7 @@ namespace mabe {
     /// Each option should include three arguments:
     /// The return value, the option name, and the option description.
     template <typename VAR_T, typename... Ts>
-    ConfigEntry_Functions<std::string> & LinkMenu(VAR_T & var,
+    ConfigEntry_LinkedFunctions<std::string> & LinkMenu(VAR_T & var,
                                                   const std::string & name,
                                                   const std::string & desc,
                                                   const Ts &... entries) {

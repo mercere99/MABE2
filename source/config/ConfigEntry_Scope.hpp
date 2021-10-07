@@ -144,13 +144,15 @@ namespace mabe {
     /// Link a configuration entry to a pair of functions - it sets the new default and
     /// automatically calls the set function when configs are loaded.
     template <typename VAR_T>
-    ConfigEntry_Functions<VAR_T> & LinkFuns(const std::string & name,
+    ConfigEntry_LinkedFunctions<VAR_T> & LinkFuns(const std::string & name,
                                             std::function<VAR_T()> get_fun,
                                             std::function<void(const VAR_T &)> set_fun,
                                             const std::string & desc,
                                             bool is_builtin = false) {
-      if (is_builtin) return AddBuiltin<ConfigEntry_Functions<VAR_T>>(name, get_fun, set_fun, desc, this);
-      return Add<ConfigEntry_Functions<VAR_T>>(name, get_fun, set_fun, desc, this);
+      if (is_builtin) {
+        return AddBuiltin<ConfigEntry_LinkedFunctions<VAR_T>>(name, get_fun, set_fun, desc, this);
+      }
+      return Add<ConfigEntry_LinkedFunctions<VAR_T>>(name, get_fun, set_fun, desc, this);
     }
 
     /// Add a new variable of type String.
