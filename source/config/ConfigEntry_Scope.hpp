@@ -5,7 +5,7 @@
  *
  *  @file  ConfigEntry_Scope.hpp
  *  @brief Manages a full scope with many config entries (or sub-scopes).
- *  @note Status: ALPHA
+ *  @note Status: BETA
  * 
  *  DEVELOPER NOTES:
  *  - Need to fix Add() function to give a user-level error, rather than an assert on duplication.

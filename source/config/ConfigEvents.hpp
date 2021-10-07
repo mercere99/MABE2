@@ -5,7 +5,7 @@
  *
  *  @file  ConfigEvents.hpp
  *  @brief Manages events for configurations.
- *  @note Status: ALPHA
+ *  @note Status: BETA
  * 
  *  DEVELOPER NOTES:
  *  - We could use a more dynamic function to determine when an event should be triggered next,

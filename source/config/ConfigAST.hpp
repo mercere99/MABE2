@@ -5,7 +5,7 @@
  *
  *  @file  ConfigAST.hpp
  *  @brief Manages Abstract Syntax Tree nodes for Config.
- *  @note Status: ALPHA
+ *  @note Status: BETA
  */
 
 #ifndef MABE_CONFIG_AST_H

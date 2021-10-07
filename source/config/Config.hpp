@@ -5,7 +5,7 @@
  *
  *  @file  Config.hpp
  *  @brief Manages all configuration of MABE runs (full parser implementation here)
- *  @note Status: ALPHA
+ *  @note Status: BETA
  * 
  *  Example usage:
  *   Value a = 7;              // a is a variable with the value 7

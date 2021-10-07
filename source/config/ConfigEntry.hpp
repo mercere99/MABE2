@@ -5,7 +5,7 @@
  *
  *  @file  ConfigEntry.hpp
  *  @brief Manages a single configuration entry (e.g., variables + base for scopes and functions).
- *  @note Status: ALPHA
+ *  @note Status: BETA
  * 
  *  The symbol table for the configuration language is managed as a collection of
  *  configuration entries.  These include specializations for ConfigEntry_Function and
