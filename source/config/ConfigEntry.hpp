@@ -255,17 +255,18 @@ namespace mabe {
     bool CopyValue(const ConfigEntry & in) override { var = in.AsString(); return true; }
   };
 
-  /// ConfigEntry can be linked to a pair of (Get and Set) functions.
+  /// ConfigEntry can be linked to a pair of (Get and Set) functions
+  /// rather than as direct variable.
   template <typename T>
-  class ConfigEntry_Functions : public ConfigEntry {
+  class ConfigEntry_LinkedFunctions : public ConfigEntry {
   private:
     std::function<T()> get_fun;
     std::function<void(const T &)> set_fun;
   public:
-    using this_t = ConfigEntry_Functions<T>;
+    using this_t = ConfigEntry_LinkedFunctions<T>;
 
     template <typename... ARGS>
-    ConfigEntry_Functions(const std::string & in_name,
+    ConfigEntry_LinkedFunctions(const std::string & in_name,
                        std::function<T()> in_get,
                        std::function<void(const T &)> in_set,
                        ARGS &&... args)
@@ -273,7 +274,7 @@ namespace mabe {
       , get_fun(in_get)
       , set_fun(in_set)
     { ; }
-    ConfigEntry_Functions(const this_t &) = default;
+    ConfigEntry_LinkedFunctions(const this_t &) = default;
 
     std::string GetTypename() const override { return "[[Function]]"; }
 
