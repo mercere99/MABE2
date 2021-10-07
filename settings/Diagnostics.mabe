@@ -39,7 +39,7 @@ SelectTournament select_t {     // Select the top fitness organisms from random 
   birth_pop = "next_pop";       // Which population should births go into?
   tournament_size = 7;          // Number of orgs in each tournament
   num_tournaments = pop_size;   // Number of tournaments to run
-  fitness_trait = "fitness";    // Which trait provides the fitness value to use?
+  fitness_fun = "fitness";    // Which trait provides the fitness value to use?
 }
 SelectLexicase select_l {       // Shuffle traits each time an organism is chose for replication.
   _active = 1;                  // Should we activate this module? (0=off, 1=on)
@@ -94,6 +94,6 @@ ValsOrg vals_org {              // Organism consisting of a series of N floating
   total_name = "total";         // Name of variable to contain total of all values.
 }
 
-@start() print("random_seed = ", random_seed, "\n");
-@start() inject("vals_org", "main_pop", pop_size);
-@update(num_gens) exit();
+@start() PRINT("random_seed = ", random_seed, "\n");
+@start() INJECT("vals_org", "main_pop", pop_size);
+@update(num_gens) EXIT();
