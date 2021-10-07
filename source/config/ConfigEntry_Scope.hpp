@@ -19,6 +19,7 @@
 
 #include "ConfigEntry.hpp"
 #include "ConfigEntry_Function.hpp"
+#include "ConfigEntry_Linked.hpp"
 
 namespace mabe {
 
