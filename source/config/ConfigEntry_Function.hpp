@@ -5,7 +5,7 @@
  *
  *  @file  ConfigEntry_Function.hpp
  *  @brief Manages individual functions for config.
- *  @note Status: ALPHA
+ *  @note Status: BETA
  */
 
 #ifndef MABE_CONFIG_FUNCTION_H
@@ -61,7 +61,7 @@ namespace mabe {
       string_return = std::is_same<std::string, RETURN_T>();
 
       // Convert the function call to using entry pointers.
-      fun = [in_fun, name=name, desc=desc](const emp::vector<entry_ptr_t> & args) -> emp::Ptr<ConfigEntry> {        
+      fun = [in_fun, name=name, desc=desc](const emp::vector<entry_ptr_t> & args) -> entry_ptr_t {        
         // If arguments are passed in, we need to raise an error.
         if (args.size()) {
           return emp::NewPtr<ConfigEntry_Error>(
@@ -69,17 +69,17 @@ namespace mabe {
           );
         }
 
-        emp::Ptr<ConfigEntry> out_entry =
+        entry_ptr_t out_entry =
           emp::NewPtr<ConfigEntry_Var<RETURN_T>>("return value", in_fun(), desc, nullptr);
         out_entry->SetTemporary();
         return out_entry;
       };
     }
 
-    /// Helper function to convert ASTs into the proper arguments.
+    /// Helper function to convert ASTs into the proper function arguments.
     template <typename RETURN_T, typename... ARGS, auto... INDICES>
     void SetFunction_impl( std::function<RETURN_T(ARGS...)> in_fun, emp::ValPack<INDICES...> ) {
-      fun = [in_fun, name=name, desc=desc](const entry_vector_t & args) -> emp::Ptr<ConfigEntry> {        
+      fun = [in_fun, name=name, desc=desc](const entry_vector_t & args) -> entry_ptr_t {        
         // The call needs to have the correct number of arguments or else it throws an error.
         constexpr int NUM_ARGS = sizeof...(ARGS);
         if (args.size() != NUM_ARGS) {
@@ -89,7 +89,7 @@ namespace mabe {
         }
 
         RETURN_T result = in_fun((args[INDICES]->template As< std::decay_t<ARGS> >())...);
-        emp::Ptr<ConfigEntry> out_entry =
+        entry_ptr_t out_entry =
           emp::NewPtr<ConfigEntry_Var<RETURN_T>>("return value", result, desc, nullptr);
         out_entry->SetTemporary();
         return out_entry;
@@ -99,13 +99,13 @@ namespace mabe {
     /// Setup a function that takes AT LEAST ONE argument.
     template <typename RETURN_T, typename ARG1, typename... ARGS>
     void SetFunction( std::function<RETURN_T(ARG1, ARGS...)> in_fun ) {
-      /// If we have only one argument and it is a `const emp::vector<emp::Ptr<ConfigEntry>> &`,
+      /// If we have only one argument and it is a `const emp::vector<entry_ptr_t> &`,
       /// assume that the function will handle any conversions itself.
       if constexpr (std::is_same<ARG1, const entry_vector_t &>() &&
                     sizeof...(ARGS) == 0) {
-        fun = [in_fun, name=name, desc=desc](const entry_vector_t & args) -> emp::Ptr<ConfigEntry> {        
+        fun = [in_fun, name=name, desc=desc](const entry_vector_t & args) -> entry_ptr_t {        
           RETURN_T result = in_fun(args);
-          emp::Ptr<ConfigEntry> out_entry =
+          entry_ptr_t out_entry =
             emp::NewPtr<ConfigEntry_Var<RETURN_T>>("return value", result, desc, nullptr);
           out_entry->SetTemporary();
           return out_entry;
@@ -115,22 +115,6 @@ namespace mabe {
       /// Convert the function call to using entry pointers.
       else {
         SetFunction_impl( in_fun, emp::ValPackCount<sizeof...(ARGS)+1>() );
-        // fun = [in_fun, name=name, desc=desc](const entry_vector_t & args) -> emp::Ptr<ConfigEntry> {        
-        //   // The call needs to have the correct number of arguments or else it throws an error.
-        //   constexpr int NUM_ARGS = sizeof...(ARGS) + 1;
-        //   if (args.size() != NUM_ARGS) {
-        //     return emp::NewPtr<ConfigEntry_Error>(
-        //       "Function '", name, "' called with ", args.size(), " args, but ", NUM_ARGS, " expected."
-        //     );            
-        //   }
-
-        //   size_t i = 1;
-        //   RETURN_T result = in_fun(args[0]->As<ARG1>(), args[i++]->As<ARGS>()...);
-        //   emp::Ptr<ConfigEntry> out_entry =
-        //     emp::NewPtr<ConfigEntry_Var<RETURN_T>>("return value", result, desc, nullptr);
-        //   out_entry->SetTemporary();
-        //   return out_entry;
-        // };
       }
     }
 
