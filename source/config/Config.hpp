@@ -5,28 +5,29 @@
  *
  *  @file  Config.hpp
  *  @brief Manages all configuration of MABE runs (full parser implementation here)
- *  @note Status: ALPHA
+ *  @note Status: BETA
  * 
  *  Example usage:
- *   a = 7;              // a is a variable with the value 7
- *   b = "balloons";     // b is a variable equal to the literal string "balloons"
- *   c = a + 10;         // '+' will add values; c is a variable equal to 17.
- *   d = "99 " + b;      // '+' will append strings; d is a variable equal to "99 balloons"
- *   // e = "abc" + 123; // ERROR - cannot add strings and values!
- *   f = {               // f is a structure/scope/dictionary
- *     g = 1;
- *     h = "two";
- *     i = {
- *       j = 3;
+ *   Value a = 7;              // a is a variable with the value 7
+ *   String b = "balloons";    // b is a variable equal to the literal string "balloons"
+ *   Value c = a + 10;         // '+' will add values; c is a variable equal to 17.
+ *   String d = "99 " + b;     // '+' will append strings; d is a variable equal to "99 balloons"
+ *   // String e = "abc" + 12; // ERROR - cannot add strings and values!
+ *   String  = "01" * a;       // e is now "01010101010101"
+ *   Struct f = {              // f is a structure/scope/dictionary
+ *     Value g = 1.7;          // Values are floating point.
+ *     String h = "two";
+ *     Struct i = {            // Structure-within-structures are allowed.
+ *       Value j = 3;
  *     }
- *     a = "shadow!";    // A variable can be redeclared in other scopes, shadowing the original.
- *                       //  Note: the LHS assumes current scope; on RHS will search outer scopes.
- *     j = "spooky!";    // A NEW variable since we are out of the namespace of the other j.
- *     j = .a;           // Change j to "shadow"; an initial . indicates current namespace.
- *     b = i.j;          // Namespaces can be stepped through with dots.
- *     c = ..a;          // A variable name beginning with a ".." indicates parent namespace.
- *     c = @f.i.j;       // A variable name beginning with an @ must have its full path specified.
- *   }                   // f has been initialized with seven variables in its scope.
+ *     String a = "shadow!";   // Variables can be redeclared in other scopes; shadows original.
+ *     String j = "spooky!";   // A NEW variable since we are now out of Struct i.
+ *     j = .a;                 // Change j to "shadow!"; initial . indicates current namespace.
+ *     b = i.j;                // Namespaces can be stepped through with dots.
+ *     c = ..a;                // A variable name beginning with a ".." indicates parent namespace.
+ *   }                         // f has been initialized with six variables in its scope.
+ *
+ *   --- The functionality below does not yet work and may change when implemented ---
  *   f["new"] = 22;      // You can always add new fields to structures.
  *   // d["bad"] = 4;    // ERROR - You cannot add fields to non-structures.
  *   k = [ 1 , 2 , 3];   // k is a vector of values (vectors must have all types the same!)
@@ -44,7 +45,7 @@
  *   //       :type (returns a string indicating type!)
  * 
  * 
- *  In practice:
+ *  In practice, most settings will be pre-defined in typed scopes:
  *   MarkovBrain Sheep = {
  *     outputs = 10;
  *     node_weights = 0.75;
@@ -75,36 +76,109 @@
 
 #include "ConfigAST.hpp"
 #include "ConfigEvents.hpp"
-#include "ConfigFunction.hpp"
+#include "ConfigEntry_Function.hpp"
 #include "ConfigLexer.hpp"
-#include "ConfigScope.hpp"
+#include "ConfigEntry_Scope.hpp"
 #include "ConfigType.hpp"
 
 namespace mabe {
 
   class Config {
   public:
+    // TypeInfo tracks a particular type to be used in the configuration langauge.
     struct TypeInfo {
-      size_t type_id;
+      size_t index;
       std::string desc;
-      std::function<ConfigType & (const std::string &)> init_fun;
+      emp::TypeID type_id;
+
+      using init_fun_t = std::function<ConfigType & (const std::string &)>;
+      init_fun_t init_fun;
+
+      using entry_ptr_t = emp::Ptr<ConfigEntry>;
+      using member_fun_t = std::function<entry_ptr_t(const emp::vector<entry_ptr_t> &)>;
+      emp::map<std::string, member_fun_t> member_funs;
+
+      // Constructor to allow a simple new configuration type
+      TypeInfo(size_t in_id, const std::string & in_desc)
+       : index(in_id), desc(in_desc) { }
+
+      // Constructor to allow a new configuration type whose objects require initialization.
+      TypeInfo(size_t in_id, const std::string & in_desc, init_fun_t in_init)
+       : index(in_id), desc(in_desc), init_fun(in_init)
+      {
+      }
+
+      // Link this TypeInfo object to a real C++ type.
+      template <typename OBJECT_T>
+      void LinkType() {
+        static_assert(std::is_base_of<ConfigType, OBJECT_T>(),
+                      "Only ConfigType objects can be used as a custom config type.");
+        type_id = emp::GetTypeID<OBJECT_T>();
+      }
+
+      // Add a member function that can be called on objects of this type.
+      template <typename RETURN_T, typename OBJECT_T, typename... PARAM_Ts>
+      void AddMemberFunction(
+        const std::string & name,
+        std::function<RETURN_T(OBJECT_T &, PARAM_Ts...)> fun
+      ) {
+        // ----- Make sure function is legal -----
+        // Is return type legal?
+        static_assert(std::is_arithmetic<RETURN_T>() || std::is_same<RETURN_T, std::string>(),
+                      "Config member functions must of a string or arithmetic return type");
+
+        // Is the first parameter the correct type?
+        emp_assert( type_id.IsType<OBJECT_T>(),
+                    "First parameter must match config type of member function being created!",
+                    type_id, emp::GetTypeID<OBJECT_T>() );
+
+        // Are remaining parameters legal?
+        constexpr bool params_ok =
+         ((std::is_arithmetic<PARAM_Ts>() || std::is_same<PARAM_Ts, std::string>()) && ...);
+        static_assert(params_ok, "Parameters 2+ in a member function must be string or arithmetic.");
+
+        // ----- Transform this function into one that TypeInfo can make use of ----
+        member_fun_t member_fun =
+          [name,fun](ConfigType & obj, const emp::vector<entry_ptr_t> & args) {
+            // Make sure we can convert the obj into the correct type.
+            emp::Ptr<OBJECT_T> typed_ptr = dynamic_cast<OBJECT_T*>(&obj);
+
+            // Make sure we have the correct number of arguments.
+            if (args.size() != sizeof...(PARAM_Ts)) {
+              std::cerr << "Error in call to function '" << name
+                << "'; expected " << sizeof...(PARAM_Ts)
+                << " arguments, but received " << args.size() << "."
+                << std::endl;
+            }
+            //@CAO should collect file position information for the above error.
+
+            // Call the provided function and return the result.
+            int arg_id = 0;
+            RETURN_T result = fun( *typed_ptr, args[arg_id++]->As<PARAM_Ts>()... );
+
+            return result;
+          };
+
+        // Add this member function to the library we are building.
+        member_funs[name] = member_fun;
+      }
     };
 
     using pos_t = emp::TokenStream::Iterator;
 
   protected:
-    std::string filename;       ///< Source for for code to generate.
-    ConfigLexer lexer;          ///< Lexer to process input code.
-    ConfigScope root_scope;     ///< All variables from the root level.
-    ASTNode_Block ast_root;     ///< Abstract syntax tree version of input file.
-    bool debug = false;         ///< Should we print full debug information?
+    std::string filename;         ///< Source for for code to generate.
+    ConfigLexer lexer;            ///< Lexer to process input code.
+    ConfigEntry_Scope root_scope; ///< All variables from the root level.
+    ASTNode_Block ast_root;       ///< Abstract syntax tree version of input file.
+    bool debug = false;           ///< Should we print full debug information?
 
 
     /// A map of names to event groups.
     std::map<std::string, ConfigEvents> events_map;
 
     /// A map of all types available in the script.
-    std::unordered_map<std::string, TypeInfo> type_map;
+    std::unordered_map<std::string, emp::Ptr<TypeInfo>> type_map;
 
     /// A list of precedence levels for symbols.
     std::unordered_map<std::string, size_t> precedence_map;
@@ -181,12 +255,12 @@ namespace mabe {
     /// If create_ok is true, create any variables that we don't find.  Otherwise continue the
     /// search for them in successively outer (lower) scopes.
     [[nodiscard]] emp::Ptr<ASTNode_Leaf> ParseVar(pos_t & pos,
-                                                  ConfigScope & cur_scope,
+                                                  ConfigEntry_Scope & cur_scope,
                                                   bool create_ok=false,
                                                   bool scan_scopes=true);
 
     /// Load a value from the provided scope, which can come from a variable or a literal.
-    [[nodiscard]] emp::Ptr<ASTNode> ParseValue(pos_t & pos, ConfigScope & cur_scope);
+    [[nodiscard]] emp::Ptr<ASTNode> ParseValue(pos_t & pos, ConfigEntry_Scope & cur_scope);
 
     /// Calculate the result of the provided operation on two computed entries.
     [[nodiscard]] emp::Ptr<ASTNode> ProcessOperation(const std::string & symbol,
@@ -194,20 +268,21 @@ namespace mabe {
                                        emp::Ptr<ASTNode> value2);
 
     /// Calculate a full expression found in a token sequence, using the provided scope.
-    [[nodiscard]] emp::Ptr<ASTNode> ParseExpression(pos_t & pos, ConfigScope & cur_scope, size_t prec_limit=1000);
+    [[nodiscard]] emp::Ptr<ASTNode>
+      ParseExpression(pos_t & pos, ConfigEntry_Scope & cur_scope, size_t prec_limit=1000);
 
     /// Parse the declaration of a variable and return the newly created ConfigEntry
-    ConfigEntry & ParseDeclaration(pos_t & pos, ConfigScope & scope);
+    ConfigEntry & ParseDeclaration(pos_t & pos, ConfigEntry_Scope & scope);
 
     /// Parse an event description.
-    emp::Ptr<ASTNode> ParseEvent(pos_t & pos, ConfigScope & scope);
+    emp::Ptr<ASTNode> ParseEvent(pos_t & pos, ConfigEntry_Scope & scope);
 
     /// Parse the next input in the specified Struct.  A statement can be a variable declaration,
     /// an expression, or an event.
-    [[nodiscard]] emp::Ptr<ASTNode> ParseStatement(pos_t & pos, ConfigScope & scope);
+    [[nodiscard]] emp::Ptr<ASTNode> ParseStatement(pos_t & pos, ConfigEntry_Scope & scope);
 
-    /// Keep parsing statments until there aren't any more or we leave this scope. 
-    [[nodiscard]] emp::Ptr<ASTNode_Block> ParseStatementList(pos_t & pos, ConfigScope & scope) {
+    /// Keep parsing statements until there aren't any more or we leave this scope. 
+    [[nodiscard]] emp::Ptr<ASTNode_Block> ParseStatementList(pos_t & pos, ConfigEntry_Scope & scope) {
       Debug("Running ParseStatementList(", pos.GetIndex(), ":('", AsLexeme(pos), "'),", scope.GetName(), ")");
       auto cur_block = emp::NewPtr<ASTNode_Block>(scope);
       while (pos.IsValid() && AsChar(pos) != '}') {
@@ -229,15 +304,16 @@ namespace mabe {
       if (filename != "") Load(filename);
 
       // Initialize the type map.
-      type_map["INVALID"] = TypeInfo{ (size_t) BaseType::INVALID, "Error, Invalid type!", nullptr };
-      type_map["Void"] = TypeInfo{ (size_t) BaseType::VOID, "Non-type variable; no value", nullptr };
-      type_map["Value"] = TypeInfo{ (size_t) BaseType::VALUE, "Numeric variable", nullptr };
-      type_map["String"] = TypeInfo{ (size_t) BaseType::STRING, "String variable", nullptr };
-      type_map["Struct"] = TypeInfo{ (size_t) BaseType::STRUCT, "User-made structure", nullptr };
+      type_map["INVALID"] = emp::NewPtr<TypeInfo>( (size_t) BaseType::INVALID, "Error, Invalid type!" );
+      type_map["Void"] = emp::NewPtr<TypeInfo>( (size_t) BaseType::VOID, "Non-type variable; no value" );
+      type_map["Value"] = emp::NewPtr<TypeInfo>( (size_t) BaseType::VALUE, "Numeric variable" );
+      type_map["String"] = emp::NewPtr<TypeInfo>( (size_t) BaseType::STRING, "String variable" );
+      type_map["Struct"] = emp::NewPtr<TypeInfo>( (size_t) BaseType::STRUCT, "User-made structure" );
 
       // Setup operator precedence.
       size_t cur_prec = 0;
       precedence_map["("] = cur_prec++;
+      precedence_map["**"] = cur_prec++;
       precedence_map["*"] = precedence_map["/"] = precedence_map["%"] = cur_prec++;
       precedence_map["+"] = precedence_map["-"] = cur_prec++;
       precedence_map["<"] = precedence_map["<="] = precedence_map[">"] = precedence_map[">="] = cur_prec++;
@@ -245,6 +321,96 @@ namespace mabe {
       precedence_map["&&"] = cur_prec++;
       precedence_map["||"] = cur_prec++;
       precedence_map["="] = cur_prec++;
+
+      // Setup default functions.
+
+      // 'EVAL' dynamically evaluates the contents of a string.
+      std::function<std::string(const std::string &)> eval_fun =
+        [this](const std::string & expression) { return Eval(expression); };
+      AddFunction("EVAL", eval_fun, "Dynamically evaluate the string passed in.");
+
+      // 'PRINT' is a simple debugging command to output the value of a variable.
+      std::function<int(const emp::vector<emp::Ptr<ConfigEntry>> &)> print_fun =
+        [](const emp::vector<emp::Ptr<ConfigEntry>> & args) {
+          for (auto entry_ptr : args) std::cout << entry_ptr->AsString();
+          return 0;
+        };
+      AddFunction("PRINT", print_fun, "Print out the provided variables.");
+
+      // Default 1-input math functions
+      std::function<double(double)> math1_fun = [](double x){ return std::abs(x); };
+      AddFunction("ABS", math1_fun, "Absolute Value" );
+      math1_fun = [](double x){ return emp::Pow(emp::E, x); };
+      AddFunction("EXP", math1_fun, "Exponentiation" );
+      math1_fun = [](double x){ return std::log(x); };
+      AddFunction("LOG2", math1_fun, "Log base-2" );
+      math1_fun = [](double x){ return std::log10(x); };
+      AddFunction("LOG10", math1_fun, "Log base-10" );
+
+      math1_fun = [](double x){ return std::sqrt(x); };
+      AddFunction("SQRT", math1_fun, "Square Root" );
+      math1_fun = [](double x){ return std::cbrt(x); };
+      AddFunction("CBRT", math1_fun, "Cube Root" );
+
+      math1_fun = [](double x){ return std::sin(x); };
+      AddFunction("SIN", math1_fun, "Sine" );
+      math1_fun = [](double x){ return std::cos(x); };
+      AddFunction("COS", math1_fun, "Cosine" );
+      math1_fun = [](double x){ return std::tan(x); };
+      AddFunction("TAN", math1_fun, "Tangent" );
+      math1_fun = [](double x){ return std::asin(x); };
+      AddFunction("ASIN", math1_fun, "Arc Sine" );
+      math1_fun = [](double x){ return std::acos(x); };
+      AddFunction("ACOS", math1_fun, "Arc Cosine" );
+      math1_fun = [](double x){ return std::atan(x); };
+      AddFunction("ATAN", math1_fun, "Arc Tangent" );
+      math1_fun = [](double x){ return std::sinh(x); };
+      AddFunction("SINH", math1_fun, "Hyperbolic Sine" );
+      math1_fun = [](double x){ return std::cosh(x); };
+      AddFunction("COSH", math1_fun, "Hyperbolic Cosine" );
+      math1_fun = [](double x){ return std::tanh(x); };
+      AddFunction("TANH", math1_fun, "Hyperbolic Tangent" );
+      math1_fun = [](double x){ return std::asinh(x); };
+      AddFunction("ASINH", math1_fun, "Hyperbolic Arc Sine" );
+      math1_fun = [](double x){ return std::acosh(x); };
+      AddFunction("ACOSH", math1_fun, "Hyperbolic Arc Cosine" );
+      math1_fun = [](double x){ return std::atanh(x); };
+      AddFunction("ATANH", math1_fun, "Hyperbolic Arc Tangent" );
+
+      math1_fun = [](double x){ return std::ceil(x); };
+      AddFunction("CEIL", math1_fun, "Round UP" );
+      math1_fun = [](double x){ return std::floor(x); };
+      AddFunction("FLOOR", math1_fun, "Round DOWN" );
+      math1_fun = [](double x){ return std::round(x); };
+      AddFunction("ROUND", math1_fun, "Round to nearest" );
+
+      math1_fun = [](double x){ return std::isinf(x); };
+      AddFunction("ISINF", math1_fun, "Test if Infinite" );
+      math1_fun = [](double x){ return std::isnan(x); };
+      AddFunction("ISNAN", math1_fun, "Test if Not-a-number" );
+
+      // Default 2-input math functions
+      std::function<double(double,double)> math2_fun = [](double x, double y){ return std::hypot(x,y); };
+      AddFunction("HYPOT", math2_fun, "Given sides, find hypotenuse" );
+      math2_fun = [](double x, double y){ return emp::Pow(x,y); };
+      AddFunction("LOG", math2_fun, "Take log of arg1 with base arg2" );
+      math2_fun = [](double x, double y){ return (x<y) ? x : y; };
+      AddFunction("MIN", math2_fun, "Return lesser value" );
+      math2_fun = [](double x, double y){ return (x>y) ? x : y; };
+      AddFunction("MAX", math2_fun, "Return greater value" );
+      math2_fun = [](double x, double y){ return emp::Pow(x,y); };
+      AddFunction("POW", math2_fun, "Take arg1 to the arg2 power" );
+
+      // Default 3-input math functions
+      std::function<double(double,double,double)> math3_fun =
+        [](double x, double y, double z){ return (x!=0.0) ? y : z; };
+      AddFunction("IF", math3_fun, "If arg1 is true, return arg2, else arg3" );
+      math3_fun = [](double x, double y, double z){ return (x<y) ? y : (x>z) ? z : x; };
+      AddFunction("CLAMP", math3_fun, "Return arg1, forced into range [arg2,arg3]" );
+      math3_fun = [](double x, double y, double z){ return (z-y)*x+y; };
+      AddFunction("TO_SCALE", math3_fun, "Scale arg1 to arg2-arg3 as unit distance" );
+      math3_fun = [](double x, double y, double z){ return (x-y) / (z-y); };
+      AddFunction("FROM_SCALE", math3_fun, "Scale arg1 from arg2-arg3 as unit distance" );
     }
 
     // Prevent copy or move since we are using lambdas that capture 'this'
@@ -253,7 +419,10 @@ namespace mabe {
     Config & operator=(const Config &) = delete;
     Config & operator=(Config &&) = delete;
 
-    ~Config() { }
+    ~Config() {
+      // Clean up type information.
+      for (auto [name, ptr] : type_map) ptr.Delete();
+    }
 
     /// Create a new type of event that can be used in the scripting language.
     ConfigEvents & AddEventType(const std::string & name) {
@@ -293,21 +462,21 @@ namespace mabe {
     /// To add a type, provide the type name (that can be referred to in a script) and a function
     /// that should be called (with the variable name) when an instance of that type is created.
     /// The function must return a reference to the newly created instance.
-    size_t AddType(const std::string & type_name, const std::string & desc,
-                   std::function<ConfigType & (const std::string &)> init_fun)
-    {
+    size_t AddType(
+      const std::string & type_name,
+      const std::string & desc,
+      std::function<ConfigType & (const std::string &)> init_fun
+    ) {
       emp_assert(!emp::Has(type_map, type_name));
-      size_t type_id = type_map.size();
-      type_map[type_name].type_id = type_id;
-      type_map[type_name].desc = desc;
-      type_map[type_name].init_fun = init_fun;
-      return type_id;
+      size_t index = type_map.size();
+      type_map[type_name] = emp::NewPtr<TypeInfo>( index, desc, init_fun );
+      return index;
     }
 
-    /// Retrieve a uniqe type ID by providing the type name.
-    size_t GetTypeID(const std::string & type_name) {
+    /// Retrieve a unique type ID by providing the type name.
+    size_t GetIndex(const std::string & type_name) {
       emp_assert(emp::Has(type_map, type_name));
-      return type_map[type_name].type_id;
+      return type_map[type_name]->index;
     }
 
     /// To add a built-in function (at the root level) provide it with a name and description.
@@ -321,8 +490,8 @@ namespace mabe {
       root_scope.AddBuiltinFunction<RETURN_T, ARGS...>(name, fun, desc);
     }
 
-    ConfigScope & GetRootScope() { return root_scope; }
-    const ConfigScope & GetRootScope() const { return root_scope; }
+    ConfigEntry_Scope & GetRootScope() { return root_scope; }
+    const ConfigEntry_Scope & GetRootScope() const { return root_scope; }
 
     // Load a single, specified configuration file.
     void Load(const std::string & filename) {
@@ -362,7 +531,7 @@ namespace mabe {
     }
 
     // Load the provided statement and run it.
-    std::string Eval(const std::string & statement, emp::Ptr<ConfigScope> scope=nullptr) {
+    std::string Eval(std::string_view statement, emp::Ptr<ConfigEntry_Scope> scope=nullptr) {
       Debug("Running Eval()");
       if (!scope) scope = &root_scope;                      // Default scope to root level.
       auto tokens = lexer.Tokenize(statement, "eval command"); // Convert to a TokenStream.
@@ -392,8 +561,8 @@ namespace mabe {
       if (filename == "" || filename == "_") return Write();
 
       // Otherwise generate an output file.
-      std::ofstream ofile(filename);
-      return Write(ofile);
+      std::ofstream out_file(filename);
+      return Write(out_file);
     }
   };
 
@@ -403,7 +572,7 @@ namespace mabe {
 
   // Load a variable name from the provided scope.
   emp::Ptr<ASTNode_Leaf> Config::ParseVar(pos_t & pos,
-                                          ConfigScope & cur_scope,
+                                          ConfigEntry_Scope & cur_scope,
                                           bool create_ok, bool scan_scopes)
   {
     Debug("Running ParseVar(", pos.GetIndex(), ":('", AsLexeme(pos), "'),", cur_scope.GetName(), ",", create_ok, ")");
@@ -412,7 +581,7 @@ namespace mabe {
     if (IsDots(pos)) {
       scan_scopes = false;             // One or more initial dots specify scope; don't scan!
       size_t num_dots = GetSize(pos);  // Extra dots shift scope.
-      emp::Ptr<ConfigScope> scope_ptr = &cur_scope;
+      emp::Ptr<ConfigEntry_Scope> scope_ptr = &cur_scope;
       while (num_dots-- > 1) {
         scope_ptr = scope_ptr->GetScope();
         if (scope_ptr.IsNull()) Error(pos, "Too many dots; goes beyond global scope.");
@@ -456,7 +625,7 @@ namespace mabe {
   }
 
   // Load a value from the provided scope, which can come from a variable or a literal.
-  emp::Ptr<ASTNode> Config::ParseValue(pos_t & pos, ConfigScope & cur_scope) {
+  emp::Ptr<ASTNode> Config::ParseValue(pos_t & pos, ConfigEntry_Scope & cur_scope) {
     Debug("Running ParseValue(", pos.GetIndex(), ":('", AsLexeme(pos), "'),", cur_scope.GetName(), ")");
 
     // Anything that begins with an identifier or dots must represent a variable.  Refer!
@@ -514,9 +683,10 @@ namespace mabe {
       std::function<double(double,double)> fun;
       if (symbol == "+") fun = [](double val1, double val2){ return val1 + val2; };
       else if (symbol == "-") fun = [](double val1, double val2){ return val1 - val2; };
+      else if (symbol == "**") fun = [](double val1, double val2){ return emp::Pow(val1, val2); };
       else if (symbol == "*") fun = [](double val1, double val2){ return val1 * val2; };
       else if (symbol == "/") fun = [](double val1, double val2){ return val1 / val2; };
-      else if (symbol == "%") fun = [](double val1, double val2){ return ((size_t) val1) % ((size_t) val2); };
+      else if (symbol == "%") fun = [](double val1, double val2){ return emp::Mod(val1, val2); };
       else if (symbol == "==") fun = [](double val1, double val2){ return val1 == val2; };
       else if (symbol == "!=") fun = [](double val1, double val2){ return val1 != val2; };
       else if (symbol == "<")  fun = [](double val1, double val2){ return val1 < val2; };
@@ -586,7 +756,11 @@ namespace mabe {
                                       
 
   // Calculate an expression in the provided scope.
-  emp::Ptr<ASTNode> Config::ParseExpression(pos_t & pos, ConfigScope & scope, size_t prec_limit) {
+  emp::Ptr<ASTNode> Config::ParseExpression(
+    pos_t & pos,
+    ConfigEntry_Scope & scope,
+    size_t prec_limit
+  ) {
     Debug("Running ParseExpression(", pos.GetIndex(), ":('", AsLexeme(pos), "'),", scope.GetName(), ")");
 
     // @CAO Should test for unary operators at the beginning of an expression.
@@ -607,6 +781,9 @@ namespace mabe {
           ++pos;                          // Move on to the next argument.
         }
         RequireChar(')', pos++, "Expected a ')' to end function call.");
+
+        // cur_node should have evaluated itself to a function; a Call node will link that
+        // function with its arguments, run it, and return the result.
         cur_node = emp::NewPtr<ASTNode_Call>(cur_node, args);
       }
 
@@ -625,7 +802,7 @@ namespace mabe {
   }
 
   // Parse an the declaration of a variable.
-  ConfigEntry & Config::ParseDeclaration(pos_t & pos, ConfigScope & scope) {
+  ConfigEntry & Config::ParseDeclaration(pos_t & pos, ConfigEntry_Scope & scope) {
     std::string type_name = AsLexeme(pos++);
     RequireID(pos, "Type name '", type_name, "' must be followed by variable to declare.");
     std::string var_name = AsLexeme(pos++);
@@ -642,8 +819,8 @@ namespace mabe {
 
     // Otherwise we have a module to add; treat it as a struct.
     Debug("Building var '", var_name, "' of type '", type_name, "'");
-    ConfigScope & new_scope = scope.AddScope(var_name, type_map[type_name].desc, type_name);
-    ConfigType & new_obj = type_map[type_name].init_fun(var_name);
+    ConfigEntry_Scope & new_scope = scope.AddScope(var_name, type_map[type_name]->desc, type_name);
+    ConfigType & new_obj = type_map[type_name]->init_fun(var_name);
     new_obj.SetupScope(new_scope);
     new_obj.LinkVar(new_obj._active, "_active", "Should we activate this module? (0=off, 1=on)", true);
     new_obj.LinkVar(new_obj._desc,   "_desc",   "Special description for those object.", true);
@@ -653,7 +830,7 @@ namespace mabe {
   }
 
   // Parse an event description.
-  emp::Ptr<ASTNode> Config::ParseEvent(pos_t & pos, ConfigScope & scope) {
+  emp::Ptr<ASTNode> Config::ParseEvent(pos_t & pos, ConfigEntry_Scope & scope) {
     RequireChar('@', pos++, "All event declarations must being with an '@'.");
     RequireID(pos, "Events must start by specifying event name.");
     const std::string & event_name = AsLexeme(pos++);
@@ -682,7 +859,7 @@ namespace mabe {
   }
 
   // Process the next input in the specified Struct.
-  emp::Ptr<ASTNode> Config::ParseStatement(pos_t & pos, ConfigScope & scope) {
+  emp::Ptr<ASTNode> Config::ParseStatement(pos_t & pos, ConfigEntry_Scope & scope) {
     Debug("Running ParseStatement(", pos.GetIndex(), ":('", AsLexeme(pos), "'),", scope.GetName(), ")");
 
     // Allow a statement with an empty line.

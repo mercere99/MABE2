@@ -33,7 +33,7 @@
  *     BeforePlacement(Organism & org, OrgPosition target_pos, OrgPosition parent_pos)
  *       : Placement location has been identified (For birth or inject)
  *     OnPlacement(OrgPosition placement_pos)
- *       : New organism has been placed in the poulation.
+ *       : New organism has been placed in the population.
  *     BeforeMutate(Organism & org)
  *       : Mutate is about to run on an organism.
  *     OnMutate(Organism & org)
@@ -122,6 +122,9 @@ namespace mabe {
 
     /// Other variables that we want to hook on to this Module externally.
     emp::DataMap data_map;
+
+    using value_fun_t = std::function<double(emp::DataMap &)>;
+    using string_fun_t = std::function<std::string(emp::DataMap &)>;
 
   public:
     // Setup each signal with a unique ID number

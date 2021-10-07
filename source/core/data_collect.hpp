@@ -6,7 +6,7 @@
  *  @file  data_collect.hpp
  *  @brief Functions to collect data from containers.
  *
- *  A collection of mechanisms to agregate data from arbitrary objects in arbitrary containers.
+ *  A collection of mechanisms to aggregate data from arbitrary objects in arbitrary containers.
  * 
  *  Each build function must know the data type it is working with (DATA_T), the type of container
  *  it should expect (CONTAIN_T), and be provided a function that will take a container element and
@@ -220,98 +220,98 @@ namespace emp {
 
   template <typename DATA_T, typename CONTAIN_T, typename FUN_T>
   std::function<std::string(const CONTAIN_T &)>
-  BuildCollectFun(std::string type, FUN_T get_fun) {
+  BuildCollectFun(std::string action, FUN_T get_fun) {
     // ### DEFAULT
     // If no trait function is specified, assume that we should use the first index.
-    if (type == "") type = "0";
+    if (action == "") action = "0";
 
     // Return the index if a simple number was provided.
-    if (emp::is_digits(type)) {
-      size_t index = emp::from_string<size_t>(type);
+    if (emp::is_digits(action)) {
+      size_t index = emp::from_string<size_t>(action);
       return [get_fun,index](const CONTAIN_T & container) {
         return DataCollect::Index<CONTAIN_T>(container, get_fun, index);
       };
     }
 
     // Return the number of distinct values found in this trait.
-    else if (type == "unique" || type == "richness") {
+    else if (action == "unique" || action == "richness") {
       return [get_fun](const CONTAIN_T & container) {
         return DataCollect::Unique<DATA_T, CONTAIN_T>(container, get_fun);
       };
     }
 
     // Return the most common value found for this trait.
-    else if (type == "mode" || type == "dom" || type == "dominant") {
+    else if (action == "mode" || action == "dom" || action == "dominant") {
       return [get_fun](const CONTAIN_T & container) {
         return DataCollect::Mode<DATA_T, CONTAIN_T>(container, get_fun);
       };
     }
 
     // Return the lowest trait value.
-    else if (type == "min") {
+    else if (action == "min") {
       return [get_fun](const CONTAIN_T & container) {
         return DataCollect::Min<DATA_T, CONTAIN_T>(container, get_fun);
       };
     }
 
     // Return the highest trait value.
-    else if (type == "max") {
+    else if (action == "max") {
       return [get_fun](const CONTAIN_T & container) {
         return DataCollect::Max<DATA_T, CONTAIN_T>(container, get_fun);
       };
     }
 
     // Return the lowest trait value.
-    else if (type == "min_id") {
+    else if (action == "min_id") {
       return [get_fun](const CONTAIN_T & container) {
         return DataCollect::MinID<DATA_T, CONTAIN_T>(container, get_fun);
       };
     }
 
     // Return the highest trait value.
-    else if (type == "max_id") {
+    else if (action == "max_id") {
       return [get_fun](const CONTAIN_T & container) {
         return DataCollect::MaxID<DATA_T, CONTAIN_T>(container, get_fun);
       };
     }
 
     // Return the average trait value.
-    else if (type == "ave" || type == "mean") {
+    else if (action == "ave" || action == "mean") {
       return [get_fun](const CONTAIN_T & container) {
         return DataCollect::Mean<DATA_T, CONTAIN_T>(container, get_fun);
       };
     }
 
     // Return the middle-most trait value.
-    else if (type == "median") {
+    else if (action == "median") {
       return [get_fun](const CONTAIN_T & container) {
         return DataCollect::Median<DATA_T, CONTAIN_T>(container, get_fun);
       };
     }
 
     // Return the standard deviation of all trait values.
-    else if (type == "variance") {
+    else if (action == "variance") {
       return [get_fun](const CONTAIN_T & container) {
         return DataCollect::Variance<DATA_T, CONTAIN_T>(container, get_fun);
       };
     }
 
     // Return the standard deviation of all trait values.
-    else if (type == "stddev") {
+    else if (action == "stddev") {
       return [get_fun](const CONTAIN_T & container) {
         return DataCollect::StandardDeviation<DATA_T, CONTAIN_T>(container, get_fun);
       };
     }
 
     // Return the total of all trait values.
-    else if (type == "sum" || type=="total") {
+    else if (action == "sum" || action == "total") {
       return [get_fun](const CONTAIN_T & container) {
         return DataCollect::Sum<DATA_T, CONTAIN_T>(container, get_fun);
       };
     }
 
     // Return the entropy of values for this trait.
-    else if (type == "entropy") {
+    else if (action == "entropy") {
       return [get_fun](const CONTAIN_T & container) {
         return DataCollect::Entropy<DATA_T, CONTAIN_T>(container, get_fun);
       };

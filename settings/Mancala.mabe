@@ -4,11 +4,11 @@ Population next_pop;            // Collection of organisms
 Value pop_size = 200;           // Local value variable.
 CommandLine cl {                // Handle basic I/O on the command line.
   target = "main_pop";          // Which population should we print stats about?
-  format = "score:max,score:mean";// Column format to use in the file.
+  format = "fitness:max,fitness:mean"; // Column format to use in the file.
 }
 FileOutput output {             // Output collected data into a specified file.
   filename = "output.csv";      // Name of file for output data.
-  format = "score:max,score:mean";// Column format to use in the file.
+  format = "fitness:max,fitness:mean"; // Column format to use in the file.
   target = "main_pop";          // Which population(s) should we print from?
   output_updates = "0:1";       // Which updates should we output data?
 }
@@ -16,7 +16,10 @@ EvalMancala eval {              // Evaluate organisms on their ability to play M
   target = "main_pop";          // Which population(s) should we evaluate?
   input_trait = "input";        // Into which trait should input values be placed?
   output_trait = "output";      // Out of which trait should output values be read?
-  score_trait = "score";        // Which trait should we store success rating?
+  scoreA_trait = "scoreA";      // Trait to save score for this player.
+  scoreB_trait = "scoreB";      // Trait to save score for opponent.
+  error_trait = "num_errors";   // Trait to count number of illegal moves attempted.
+  fitness_trait = "fitness";    // Trait with combined success rating.
   opponent_type = "random";     // Which type of opponent should organisms face?
                                 //  random: Always choose a random, legal move.
                                 //  ai: Human supplied (but not very good) AI
@@ -27,13 +30,13 @@ SelectTournament select_t {     // Select the top fitness organisms from random 
   birth_pop = "next_pop";       // Which population should births go into?
   tournament_size = 7;          // Number of orgs in each tournament
   num_tournaments = pop_size;   // Number of tournaments to run
-  fitness_trait = "score";      // Which trait provides the fitness value to use?
+  fitness_trait = "fitness";    // Which trait provides the fitness value to use?
 }
 
-GrowthPlacement place_next {    // Always appened births to the end of a population.
+GrowthPlacement place_next {    // Always append births to the end of a population.
   target = "main_pop,next_pop"; // Population(s) to manage.
 }
-MovePopulation sync_gen {       // Move organisms from one populaiton to another.
+MovePopulation sync_gen {       // Move organisms from one population to another.
   from_pop = "next_pop";        // Population to move organisms from.
   to_pop = "main_pop";          // Population to move organisms into.
   reset_to = 1;                 // Should we erase organisms at the destination?
@@ -47,6 +50,7 @@ AvidaGPOrg avida_org {          // Organism consisting of Avida instructions.
   output_name = "output";       // Where to write outputs
 }
 
-@start(0) print("random_seed = ", random_seed, "\n");
-@start(0) inject("avida_org", "main_pop", pop_size);
-@update(1000) exit();
+@start(0) PRINT("random_seed = ", random_seed, "\n");
+@start(0) INJECT("avida_org", "main_pop", pop_size);
+@update(1000) EXIT();
+@update(10,10) TRACE_EVAL("output.dat", "main_pop", 0);

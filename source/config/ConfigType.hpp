@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019-2020.
+ *  @date 2019-2021.
  *
  *  @file  ConfigType.hpp
  *  @brief Setup types for use in scripting.
@@ -14,7 +14,7 @@
 #include "emp/base/assert.hpp"
 
 #include "ConfigEntry.hpp"
-#include "ConfigScope.hpp"
+#include "ConfigEntry_Scope.hpp"
 
 namespace mabe {
 
@@ -29,7 +29,7 @@ namespace mabe {
   // Base class for types that we want to be used for scripting.
   class ConfigType {
   private:
-    emp::Ptr<ConfigScope> cur_scope;
+    emp::Ptr<ConfigEntry_Scope> cur_scope;
   
   public:
     // Some special, internal variables associated with each object.
@@ -39,7 +39,7 @@ namespace mabe {
     // ---==  Configuration Management ==---
 
     /// Link a variable to a configuration entry - the value will default to the
-    /// variabels crrent value, but be updated when configs are loaded.
+    /// variables current value, but be updated when configs are loaded.
     template <typename VAR_T>
     ConfigEntry_Linked<VAR_T> & LinkVar(VAR_T & var,
                                         const std::string & name,
@@ -51,7 +51,7 @@ namespace mabe {
     /// Link a configuration entry to a pair of functions - it automatically calls the set
     /// function when configs are loaded, and the get function when current value is needed.
     template <typename VAR_T>
-    ConfigEntry_Functions<VAR_T> & LinkFuns(std::function<VAR_T()> get_fun,
+    ConfigEntry_LinkedFunctions<VAR_T> & LinkFuns(std::function<VAR_T()> get_fun,
                                             std::function<void(const VAR_T &)> set_fun,
                                             const std::string & name,
                                             const std::string & desc,
@@ -74,7 +74,7 @@ namespace mabe {
     /// Each option should include three arguments:
     /// The return value, the option name, and the option description.
     template <typename VAR_T, typename... Ts>
-    ConfigEntry_Functions<std::string> & LinkMenu(VAR_T & var,
+    ConfigEntry_LinkedFunctions<std::string> & LinkMenu(VAR_T & var,
                                                   const std::string & name,
                                                   const std::string & desc,
                                                   const Ts &... entries) {
@@ -111,12 +111,12 @@ namespace mabe {
     }
 
   public:
-    virtual void SetupScope(ConfigScope & scope) { cur_scope = &scope; }
+    virtual void SetupScope(ConfigEntry_Scope & scope) { cur_scope = &scope; }
     virtual void SetupConfig() = 0;
     virtual ~ConfigType() { }
 
-    ConfigScope & GetScope() { emp_assert(!cur_scope.IsNull()); return *cur_scope; }
-    const ConfigScope & GetScope() const { emp_assert(!cur_scope.IsNull()); return *cur_scope; }
+    ConfigEntry_Scope & GetScope() { emp_assert(!cur_scope.IsNull()); return *cur_scope; }
+    const ConfigEntry_Scope & GetScope() const { emp_assert(!cur_scope.IsNull()); return *cur_scope; }
   };
 }
 

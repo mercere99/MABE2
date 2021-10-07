@@ -132,7 +132,7 @@ namespace mabe {
     }
 
     /// All permanent deletion of organisms from a population should come through here.
-    /// If the relavant position is already empty, nothing happens.
+    /// If the relevant position is already empty, nothing happens.
     /// @param[in] pos is the position to perform the deletion.
     void ClearOrgAt(OrgPosition pos) {
       emp_assert(pos.IsValid());

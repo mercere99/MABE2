@@ -51,9 +51,11 @@ namespace mabe {
     // (Other ways of linking variable to config file are in ConfigType.h)
 
     /// Link a single population to a parameter by name.
-    ConfigEntry_Functions<std::string> & LinkPop(int & var,
-                                                 const std::string & name,
-                                                 const std::string & desc) {
+    ConfigEntry_LinkedFunctions<std::string> & LinkPop(
+      int & var,
+      const std::string & name,
+      const std::string & desc
+    ) {
       std::function<std::string()> get_fun =
         [this,&var](){ return control.GetPopulation(var).GetName(); };
 
@@ -67,24 +69,28 @@ namespace mabe {
     }
 
     /// Link one or more populations (or portions of a population) to a parameter.
-    ConfigEntry_Functions<std::string> & LinkCollection(mabe::Collection & var,
-                                                        const std::string & name,
-                                                        const std::string & desc) {
+    ConfigEntry_LinkedFunctions<std::string> & LinkCollection(
+      mabe::Collection & var,
+      const std::string & name,
+      const std::string & desc
+    ) {
       std::function<std::string()> get_fun =
         [this,&var](){ return control.ToString(var); };
 
       std::function<void(std::string)> set_fun =
         [this,&var](const std::string & load_str){
-          var = control.FromString(load_str);
+          var = control.ToCollection(load_str);
         };
 
       return GetScope().LinkFuns<std::string>(name, get_fun, set_fun, desc);
     }
 
     /// Link another module to this one, by name (track using int ID)
-    ConfigEntry_Functions<std::string> & LinkModule(int & var,
-                                                    const std::string & name,
-                                                    const std::string & desc) {
+    ConfigEntry_LinkedFunctions<std::string> & LinkModule(
+      int & var,
+      const std::string & name,
+      const std::string & desc
+    ) {
       std::function<std::string()> get_fun =
         [this,&var](){ return control.GetModule(var).GetName(); };
 
@@ -98,11 +104,13 @@ namespace mabe {
     }
 
     /// Link a range of values with a start, stop, and step.
-    ConfigEntry_Functions<std::string> & LinkRange(int & start_var,
-                                                   int & step_var,
-                                                   int & stop_var,
-                                                   const std::string & name,
-                                                   const std::string & desc) {
+    ConfigEntry_LinkedFunctions<std::string> & LinkRange(
+      int & start_var,
+      int & step_var,
+      int & stop_var,
+      const std::string & name,
+      const std::string & desc
+    ) {
       std::function<std::string()> get_fun =
         [&start_var,&step_var,&stop_var]() {
           // If stop_var is -1, don't bother printing it (i.e. NO stop)
@@ -129,7 +137,9 @@ namespace mabe {
     TraitInfo & AddTrait(TraitInfo::Access access,
                          const std::string & name,
                          const std::string & desc="",
-                         const T & default_val=T()) {
+                         const T & default_val=T()
+    ) {
+      emp_assert(name != "", name);
       return control.GetTraitManager().AddTrait<T,ALT_Ts...>(this, access, name, desc, default_val);
     }
 
@@ -167,10 +177,18 @@ namespace mabe {
       return AddTrait<T,ALT_Ts...>(TraitInfo::Access::REQUIRED, name);
     }
 
+    /// Add all of the traits that that this module needs to be able to READ, in order to
+    /// computer the provided equation.  Another module must WRITE these traits and provide the
+    /// descriptions.
+    void AddRequiredEquation(const std::string & equation) {
+      const std::set<std::string> & traits = control.GetEquationTraits(equation);
+      for (const std::string & name : traits) AddRequiredTrait<double,int,size_t>(name);
+    }
+
 
     // ---== Signal Handling ==---
 
-    // Functions to be called based on signals.  Note that the existance of an overridden version
+    // Functions to be called based on signals.  Note that the existence of an overridden version
     // of each function is tracked by an associated bool value that we default to true until the
     // base version of the function is called indicating that it has NOT been overridden.
 
@@ -223,7 +241,7 @@ namespace mabe {
     }
 
     // Format:  OnPlacement(OrgPosition placement_pos)
-    // Trigger: New organism has been placed in the poulation.
+    // Trigger: New organism has been placed in the population.
     // Args:    Position new organism was placed.
     void OnPlacement(OrgPosition) override {
       has_signal[SIG_OnPlacement] = false;
@@ -327,7 +345,7 @@ namespace mabe {
 
     // Functions to be called based on actions that need to happen.  Each of these returns a
     // viable result or an invalid object if need to pass on to the next module.  Modules will
-    // be querried in order until one of them returns a valid result.
+    // be queried in order until one of them returns a valid result.
 
     // Function: Place a new organism about to be born.
     // Args: Organism that will be placed, position of parent, population to place.

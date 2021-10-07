@@ -4,8 +4,8 @@
  *  @date 2019-2021.
  *
  *  @file  ConfigAST.hpp
- *  @brief Manages Abstract Sytax Tree nodes for Config.
- *  @note Status: ALPHA
+ *  @brief Manages Abstract Syntax Tree nodes for Config.
+ *  @note Status: BETA
  */
 
 #ifndef MABE_CONFIG_AST_H
@@ -16,7 +16,7 @@
 #include "emp/base/vector.hpp"
 
 #include "ConfigEntry.hpp"
-#include "ConfigScope.hpp"
+#include "ConfigEntry_Scope.hpp"
 
 namespace mabe {
 
@@ -49,8 +49,8 @@ namespace mabe {
 
     virtual const std::string & GetName() const = 0;
 
-    virtual bool IsNumeric() const { return false; } // Can node be reprsented as a number?
-    virtual bool IsString() const { return false; }  // Can node be reprsented as a string?
+    virtual bool IsNumeric() const { return false; } // Can node be represented as a number?
+    virtual bool IsString() const { return false; }  // Can node be represented as a string?
     virtual bool HasValue() const { return false; }  // Does node have any value (vs internal block)
     virtual bool HasNumericReturn() const { return false; } // Is node function with numeric return?
     virtual bool HasStringReturn() const { return false; }  // Is node function with string return?
@@ -62,7 +62,7 @@ namespace mabe {
     virtual node_ptr_t GetChild(size_t /* id */) { emp_assert(false); return nullptr; }
     node_ptr_t GetParent() { return parent; }
     void SetParent(node_ptr_t in_parent) { parent = in_parent; }
-    virtual emp::Ptr<ConfigScope> GetScope() { return parent ? parent->GetScope() : nullptr; }
+    virtual emp::Ptr<ConfigEntry_Scope> GetScope() { return parent ? parent->GetScope() : nullptr; }
 
     virtual entry_ptr_t Process() = 0;
 
@@ -134,12 +134,12 @@ namespace mabe {
 
   class ASTNode_Block : public ASTNode_Internal {
   protected:
-    emp::Ptr<ConfigScope> scope_ptr;
+    emp::Ptr<ConfigEntry_Scope> scope_ptr;
 
   public:
-    ASTNode_Block(ConfigScope & in_scope) : scope_ptr(&in_scope) { }
+    ASTNode_Block(ConfigEntry_Scope & in_scope) : scope_ptr(&in_scope) { }
 
-    emp::Ptr<ConfigScope> GetScope()  override { return scope_ptr; }
+    emp::Ptr<ConfigEntry_Scope> GetScope()  override { return scope_ptr; }
 
     entry_ptr_t Process() override {
       for (auto node : children) {

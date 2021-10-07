@@ -5,13 +5,17 @@
  *
  *  @file  ConfigEntry.hpp
  *  @brief Manages a single configuration entry (e.g., variables + base for scopes and functions).
- *  @note Status: ALPHA
+ *  @note Status: BETA
  * 
+ *  The symbol table for the configuration language is managed as a collection of
+ *  configuration entries.  These include specializations for ConfigEntry_Linked (for linked
+ *  variables), ConfigEntry_Function and ConfigEntry_Scope, all defined in their own files
+ *  and derived from ConfigEntry.
  * 
  *  Development Notes:
  *  - Currently we are not using Format; this would be useful if we want to type-check inputs more
  *    carefully.
- *  - When a ConfigEntry is used for a temporary value, it doesn't acutally need name or desc;
+ *  - When a ConfigEntry is used for a temporary value, it doesn't actually need name or desc;
  *    we can probably remove these pretty easily to save on memory if needed.
  */
 
@@ -30,13 +34,13 @@
 
 namespace mabe {
 
-  class ConfigScope;
+  class ConfigEntry_Scope;
 
   class ConfigEntry {
   protected:
-    std::string name;             ///< Unique name for this entry; empty name implied temporary.
-    std::string desc;             ///< Description to put in comments for this entry.
-    emp::Ptr<ConfigScope> scope;  ///< Which scope was this variable defined in?
+    std::string name;                  ///< Unique name for entry; empty name implies temporary.
+    std::string desc;                  ///< Description to put in comments for this entry.
+    emp::Ptr<ConfigEntry_Scope> scope; ///< Which scope was this variable defined in?
 
     bool is_temporary = false;    ///< Is this ConfigEntry temporary and should be deleted?
     bool is_builtin = false;      ///< Built-in entries should not be written to config files.
@@ -76,14 +80,14 @@ namespace mabe {
   public:
     ConfigEntry(const std::string & _name,
                 const std::string & _desc,
-                emp::Ptr<ConfigScope> _scope)
+                emp::Ptr<ConfigEntry_Scope> _scope)
       : name(_name), desc(_desc), scope(_scope) { }
     ConfigEntry(const ConfigEntry &) = default;
     virtual ~ConfigEntry() { }
 
     const std::string & GetName() const noexcept { return name; }
     const std::string & GetDesc() const noexcept { return desc; }
-    emp::Ptr<ConfigScope> GetScope() { return scope; }
+    emp::Ptr<ConfigEntry_Scope> GetScope() { return scope; }
     bool IsTemporary() const noexcept { return is_temporary; }
     bool IsBuiltIn() const noexcept { return is_builtin; }
     Format GetFormat() const noexcept { return format; }
@@ -120,8 +124,8 @@ namespace mabe {
     virtual ConfigEntry & SetValue(double in) { (void) in; emp_assert(false, in); return *this; }
     virtual ConfigEntry & SetString(const std::string & in) { (void) in; emp_assert(false, in); return *this; }
 
-    virtual emp::Ptr<ConfigScope> AsScopePtr() { return nullptr; }
-    ConfigScope & AsScope() {
+    virtual emp::Ptr<ConfigEntry_Scope> AsScopePtr() { return nullptr; }
+    ConfigEntry_Scope & AsScope() {
       emp_assert(AsScopePtr());
       return *(AsScopePtr());
     }
@@ -133,7 +137,7 @@ namespace mabe {
       if constexpr (std::is_same<base_T, emp::Ptr<ConfigEntry>>()) { return this; }
       else if constexpr (std::is_same<base_T, ConfigEntry &>()) { return *this; }
       else if constexpr (std::is_same<base_T, std::string>()) { return AsString(); }
-      else if constexpr (std::is_same<base_T, ConfigScope&>()) { return AsScope(); }
+      else if constexpr (std::is_same<base_T, ConfigEntry_Scope&>()) { return AsScope(); }
       else if constexpr (std::is_arithmetic<base_T>()) { return (T) AsDouble(); }
       else {
         // Oh oh... we don't know this type...
@@ -189,112 +193,7 @@ namespace mabe {
     }
   };
 
-  /// ConfigEntry can be linked directly to a real variable.
-  template <typename T>
-  class ConfigEntry_Linked : public ConfigEntry {
-  private:
-    T & var;
-  public:
-    using this_t = ConfigEntry_Linked<T>;
-
-    template <typename... ARGS>
-    ConfigEntry_Linked(const std::string & in_name, T & in_var, ARGS &&... args)
-      : ConfigEntry(in_name, std::forward<ARGS>(args)...), var(in_var) { ; }
-    ConfigEntry_Linked(const this_t &) = default;
-
-    std::string GetTypename() const override {
-      if constexpr (std::is_scalar_v<T>) return "Value";
-      else return "Unknown";
-    }
-
-    emp::Ptr<ConfigEntry> Clone() const override { return emp::NewPtr<this_t>(*this); }
-
-    double AsDouble() const override { return (double) var; }
-    std::string AsString() const override { return emp::to_string(var); }
-    ConfigEntry & SetValue(double in) override { var = (T) in; return *this; }
-    ConfigEntry & SetString(const std::string & in) override {
-      var = emp::from_string<T>(in);
-      return *this;
-    }
-
-    bool IsNumeric() const override { return std::is_scalar_v<T>; }
-    bool IsBool() const override { return std::is_same<bool, T>(); }
-    bool IsInt() const override { return std::is_same<int, T>(); }
-    bool IsDouble() const override { return std::is_same<double, T>(); }
-
-    bool CopyValue(const ConfigEntry & in) override { var = in.AsDouble(); return true; }
-  };
-
-  /// Specialization for ConfigEntry linked to a string variable.
-  template <>
-  class ConfigEntry_Linked<std::string> : public ConfigEntry {
-  private:
-    std::string & var;
-  public:
-    using this_t = ConfigEntry_Linked<std::string>;
-
-    template <typename... ARGS>
-    ConfigEntry_Linked(const std::string & in_name, std::string & in_var, ARGS &&... args)
-      : ConfigEntry(in_name, std::forward<ARGS>(args)...), var(in_var) { ; }
-    ConfigEntry_Linked(const this_t &) = default;
-
-    std::string GetTypename() const override { return "String"; }
-
-    emp::Ptr<ConfigEntry> Clone() const override { return emp::NewPtr<this_t>(*this); }
-
-    double AsDouble() const override { return emp::from_string<double>(var); }
-    std::string AsString() const override { return var; }
-    ConfigEntry & SetValue(double in) override { var = emp::to_string(in); return *this; }
-    ConfigEntry & SetString(const std::string & in) override { var = in; return *this; }
-
-    bool IsString() const override { return true; }
-
-    bool CopyValue(const ConfigEntry & in) override { var = in.AsString(); return true; }
-  };
-
-  /// ConfigEntry can be linked to a pair of (Get and Set) functions.
-  template <typename T>
-  class ConfigEntry_Functions : public ConfigEntry {
-  private:
-    std::function<T()> get_fun;
-    std::function<void(const T &)> set_fun;
-  public:
-    using this_t = ConfigEntry_Functions<T>;
-
-    template <typename... ARGS>
-    ConfigEntry_Functions(const std::string & in_name,
-                       std::function<T()> in_get,
-                       std::function<void(const T &)> in_set,
-                       ARGS &&... args)
-      : ConfigEntry(in_name, std::forward<ARGS>(args)...)
-      , get_fun(in_get)
-      , set_fun(in_set)
-    { ; }
-    ConfigEntry_Functions(const this_t &) = default;
-
-    std::string GetTypename() const override { return "[[Function]]"; }
-
-    emp::Ptr<ConfigEntry> Clone() const override { return emp::NewPtr<this_t>(*this); }
-
-    double AsDouble() const override { return emp::ToDouble( get_fun() ); }
-    std::string AsString() const override { return emp::to_string( get_fun() ); }
-    ConfigEntry & SetValue(double in) override { set_fun(emp::FromDouble<T>(in)); return *this; }
-    ConfigEntry & SetString(const std::string & in) override {
-      set_fun( emp::from_string<T>(in) );
-      return *this;
-    }
-
-    bool IsNumeric() const override { return std::is_scalar_v<T>; }
-    bool IsBool() const override { return std::is_same<bool, T>(); }
-    bool IsInt() const override { return std::is_same<int, T>(); }
-    bool IsDouble() const override { return std::is_same<double, T>(); }
-    bool IsString() const override { return std::is_same<std::string, T>(); }
-
-    bool CopyValue(const ConfigEntry & in) override { SetString( in.AsString() ); return true; }
-  };
-
-
-  /// A generic version of a config entry for a maintained variable.
+  /// A generic version of a config entry for an internally maintained variable.
   template <typename T>
   class ConfigEntry_Var : public ConfigEntry {
   private:
@@ -303,8 +202,10 @@ namespace mabe {
     using this_t = ConfigEntry_Var<T>;
 
     template <typename... ARGS>
-    ConfigEntry_Var(const std::string & in_name, T default_val,
-                    const std::string & in_desc="", emp::Ptr<ConfigScope> in_scope=nullptr)
+    ConfigEntry_Var(const std::string & in_name,
+                    T default_val,
+                    const std::string & in_desc="",
+                    emp::Ptr<ConfigEntry_Scope> in_scope=nullptr)
       : ConfigEntry(in_name, in_desc, in_scope), value(default_val) { ; }
     ConfigEntry_Var(const ConfigEntry_Var<T> &) = default;
 

@@ -8,7 +8,7 @@
  *
  *  While organisms must be managed by Population objects, collections are an easy way
  *  to represent and manipulate groups of organisms (by their position).  Organisms can be
- *  added individully or as whole populations.
+ *  added individually or as whole populations.
  * 
  *  Internally, a Collection is represented by a map; keys are pointers to the included Populations
  *  and values are a PopInfo class (a flag for "do we included the whole population" and a
@@ -174,7 +174,7 @@ namespace mabe {
       }
     };
 
-    // Link each populaiton in the collection (by its pointer) to info about which organisms
+    // Link each population in the collection (by its pointer) to info about which organisms
     // are included.
     using pos_map_t = std::map<pop_ptr_t, PopInfo>;
     pos_map_t pos_map;
@@ -211,7 +211,7 @@ namespace mabe {
       // We now know we have a valid population.  Check if we are at a valid position.
       if (info_it->second.pos_set.Has(it.Pos())) return true;
 
-      // Must move to a valid position, either in this population, another populaton, or end.
+      // Must move to a valid position, either in this population, another population, or end.
       // Find the position of the next organism from this population
       size_t next_pos = info_it->second.GetNextPos(it.Pos());
 
@@ -335,7 +335,7 @@ namespace mabe {
       auto info_it = GetInfoIT(cur_pop);
 
       // Make sure that the current population was found!  This check will fail if either
-      // we are already at the end OR it is pointed to a populaiton not in the collection.
+      // we are already at the end OR it is pointed to a population not in the collection.
       emp_assert(info_it != pos_map.end(),
                  "Invalid start position before collection iterator is incremented");
 
@@ -454,7 +454,7 @@ namespace mabe {
       return Insert(collection2);
     }
 
-    /// Reduce to the intersection with another colleciton.
+    /// Reduce to the intersection with another collection.
     Collection & operator &= (const Collection & in_collection) {
       auto cur_it = pos_map.begin();
       auto in_it = in_collection.pos_map.begin();
@@ -487,7 +487,7 @@ namespace mabe {
   };
 
   // -------------------------------------------------------
-  //  Implementations of CollectionItertor member functions
+  //  Implementations of CollectionIterator member functions
   // -------------------------------------------------------
   
   template <typename DERIVED_T, typename ORG_T, typename COLLECTION_T>
