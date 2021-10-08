@@ -6,7 +6,7 @@ Value pop_size = 1000;
 Value num_gens = 100;
 
 CommandLine cl {                // Handle basic I/O on the command line.
-  target_pop = "main_pop";      // Which population should we print stats about?
+  target = "main_pop";      // Which population should we print stats about?
 }
 EvalNK eval_nk {                // Evaluate bitstrings on an NK fitness lanscape.
   target = "main_pop";          // Which population should we evaluate?
@@ -39,7 +39,7 @@ SelectTournament select_t {     // Select the top fitness organisms from random 
   tournament_size = 7;          // Number of orgs in each tournament
 
   num_tournaments = pop_size - select_e.total_count;  // Number of tournaments to run
-  fitness_trait = "fitness";    // Which trait provides the fitness value to use?
+  fitness_fun = "fitness";    // Which trait provides the fitness value to use?
 }
 
 GrowthPlacement place_next {    // Always appened births to the end of a population.
@@ -58,7 +58,7 @@ BitsOrg bits_org {              // Organism consisting of a series of N bits.
   mut_prob = 0.01;		// Probability of each bit mutating on reproduction.
 }
 
-@start() print("random_seed = ", random_seed, "\n");
-@start() inject("bits_org", "main_pop", pop_size);
+@start() PRINT("random_seed = ", random_seed, "\n");
+@start() INJECT("bits_org", "main_pop", pop_size);
 @update(500) select_t.tournament_size = 4;
-@update(num_gens) exit();
+@update(num_gens) EXIT();

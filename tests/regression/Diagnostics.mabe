@@ -6,7 +6,7 @@ Population main_pop;
 Population next_pop;
 
 CommandLine cl {                // Handle basic I/O on the command line.
-  target_pop = "main_pop";      // Which population should we print stats about?
+  target = "main_pop";      // Which population should we print stats about?
 } 
 
 EvalDiagnostic eval {           // Evaluate set of values with a specified diagnostic problem.
@@ -38,7 +38,7 @@ SelectTournament select_t {     // Select the top fitness organisms from random 
   birth_pop = "next_pop";       // Which population should births go into?
   tournament_size = 7;          // Number of orgs in each tournament
   num_tournaments = pop_size;   // Number of tournaments to run
-  fitness_trait = "fitness";    // Which trait provides the fitness value to use?
+  fitness_fun = "fitness";    // Which trait provides the fitness value to use?
 }
 SelectLexicase select_l {       // Shuffle traits each time an organism is chose for replication.
   _active = 1;                  // Should we activate this module? (0=off, 1=on)
@@ -93,6 +93,6 @@ ValsOrg vals_org {              // Organism consisting of a series of N floating
   total_name = "total";         // Name of variable to contain total of all values.
 }
 
-@start(0) print("random_seed = ", random_seed, "\n");
-@start(0) inject("vals_org", "main_pop", pop_size);
-@update(num_gens) exit();
+@start(0) PRINT("random_seed = ", random_seed, "\n");
+@start(0) INJECT("vals_org", "main_pop", pop_size);
+@update(num_gens) EXIT();

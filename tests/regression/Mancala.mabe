@@ -4,7 +4,7 @@ Population next_pop;            // Collection of organisms
 Value pop_size = 200;           // Local value variable.
 Value num_gens = 10;
 CommandLine cl {                // Handle basic I/O on the command line.
-  target_pop = "main_pop";      // Which population should we print stats about?
+  target = "main_pop";      // Which population should we print stats about?
 }
 FileOutput output {             // Output collected data into a specified file.
   filename = "output.csv";      // Name of file for output data.
@@ -16,7 +16,7 @@ EvalMancala eval {              // Evaluate organisms on their ability to play M
   target = "main_pop";          // Which population(s) should we evaluate?
   input_trait = "input";        // Into which trait should input values be placed?
   output_trait = "output";      // Out of which trait should output values be read?
-  score_trait = "score";        // Which trait should we store success rating?
+  scoreA_trait = "score";        // Which trait should we store success rating?
   opponent_type = "random";     // Which type of opponent should organisms face?
                                 //  random: Always choose a random, legal move.
                                 //  ai: Human supplied (but not very good) AI
@@ -27,7 +27,7 @@ SelectTournament select_t {     // Select the top fitness organisms from random 
   birth_pop = "next_pop";       // Which population should births go into?
   tournament_size = 7;          // Number of orgs in each tournament
   num_tournaments = pop_size;   // Number of tournaments to run
-  fitness_trait = "score";      // Which trait provides the fitness value to use?
+  fitness_fun = "score";      // Which trait provides the fitness value to use?
 }
 GrowthPlacement place_next {    // Always appened births to the end of a population.
   target = "main_pop,next_pop"; // Population(s) to manage.
@@ -46,6 +46,6 @@ AvidaGPOrg avida_org {          // Organism consisting of Avida instructions.
   output_name = "output";       // Where to write outputs
 }
 
-@start(0) print("random_seed = ", random_seed, "\n");
-@start(0) inject("avida_org", "main_pop", pop_size);
-@update(num_gens) exit();
+@start(0) PRINT("random_seed = ", random_seed, "\n");
+@start(0) INJECT("avida_org", "main_pop", pop_size);
+@update(num_gens) EXIT();
