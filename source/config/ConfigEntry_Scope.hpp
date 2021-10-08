@@ -16,6 +16,7 @@
 #define MABE_CONFIG_SCOPE_H
 
 #include "emp/base/map.hpp"
+#include "emp/datastructs/map_utils.hpp"
 
 #include "ConfigEntry.hpp"
 #include "ConfigEntry_Function.hpp"

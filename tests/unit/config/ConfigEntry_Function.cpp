@@ -3,8 +3,8 @@
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
  *  @date 2019-2021.
  *
- *  @file  ConfigFunction.cpp
- *  @brief Tests for ConfigFunction with various types and edge cases 
+ *  @file  ConfigEntry_Function.cpp
+ *  @brief Tests for ConfigEntry_Function with various types and edge cases 
  */
 
 #include <functional>
@@ -12,10 +12,10 @@
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
 // MABE
-#include "config/ConfigFunction.hpp"
+#include "config/ConfigEntry_Function.hpp"
 
 
-TEST_CASE("ConfigFunction_NoParameters", "[config]"){
+TEST_CASE("ConfigEntry_Function_NoParameters", "[config]"){
   {
     // Cannot create a function with return type void -- bug???
     /* // Create a test function with no arguments
@@ -23,7 +23,7 @@ TEST_CASE("ConfigFunction_NoParameters", "[config]"){
     emp::vector<emp::Ptr<mabe::ConfigEntry>> args1{nullptr, nullptr};
 
     // Create a config function and check it's set up 
-    mabe::ConfigFunction config_func1("func1 name", "simple int function", nullptr);
+    mabe::ConfigEntry_Function config_func1("func1 name", "simple int function", nullptr);
     CHECK(config_func1.GetName() == "func1 name"); 
     CHECK(config_func1.GetDesc() == "simple int function"); 
     CHECK(config_func1.GetScope() == nullptr); 
@@ -37,7 +37,7 @@ TEST_CASE("ConfigFunction_NoParameters", "[config]"){
 
 int func01(int i) {int z = i; return z; }; 
 
-TEST_CASE("ConfigFunction_OneParameter", "[config]") {
+TEST_CASE("ConfigEntry_Function_OneParameter", "[config]") {
     {
         // Create a function that returns an int
         int param01 = 6; 
@@ -53,8 +53,8 @@ TEST_CASE("ConfigFunction_OneParameter", "[config]") {
         args.push_back(return_type_ptr); 
         args.push_back(param1_ptr); 
 
-        // Create a ConfigFunction and check setup
-        mabe::ConfigFunction config_func1("func1 name", "what it does", nullptr); 
+        // Create a ConfigEntry_Function and check setup
+        mabe::ConfigEntry_Function config_func1("func1 name", "what it does", nullptr); 
         CHECK(config_func1.GetName() == "func1 name"); 
         CHECK(config_func1.GetDesc() == "what it does"); 
         CHECK(config_func1.GetScope() == nullptr); 

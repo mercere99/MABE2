@@ -1,4 +1,4 @@
-TEST_NAMES= ConfigEntry ConfigLexer ConfigAST ConfigEvents ConfigFunction Config ConfigScope ConfigType 
+TEST_NAMES= ConfigEntry ConfigEntry_Linked ConfigEntry_Function ConfigEntry_Scope ConfigLexer ConfigAST ConfigEvents Config ConfigType 
 
 MABE_DIR= ../../../source/
 EMP_DIR= ../../../source/third-party/empirical

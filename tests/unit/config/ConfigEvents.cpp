@@ -17,7 +17,7 @@
 
 // MABE
 #include "config/ConfigEvents.hpp"
-#include "config/ConfigFunction.hpp"
+#include "config/ConfigEntry_Function.hpp"
 
 using entry_ptr_t = emp::Ptr<mabe::ConfigEntry>;
 using entry_vector_t = emp::vector<entry_ptr_t>;
@@ -96,8 +96,8 @@ TEST_CASE("ASTEvents_Call", "[config]"){
       return 0;
     };
 
-    // Create ConfigFunction
-    mabe::ConfigFunction entry_func("func00", "desc00", nullptr);
+    // Create ConfigEntry_Function
+    mabe::ConfigEntry_Function entry_func("func00", "desc00", nullptr);
     entry_func.SetFunction(setup);
     node_ptr_t funcs00 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry_func);
 

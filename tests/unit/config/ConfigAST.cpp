@@ -16,9 +16,9 @@
 #include "catch.hpp"
 
 // MABE
-#include "config/ConfigScope.hpp"
+#include "config/ConfigEntry_Scope.hpp"
 #include "config/ConfigAST.hpp"
-#include "config/ConfigFunction.hpp"
+#include "config/ConfigEntry_Function.hpp"
 
 #include "emp/base/Ptr.hpp"
 
@@ -383,8 +383,8 @@ TEST_CASE("ASTNode_Call", "[config]"){
       return 0;
     };
 
-    // Create ConfigFunction object
-    mabe::ConfigFunction entry_func("func00", "desc00", nullptr);
+    // Create ConfigEntry_Function object
+    mabe::ConfigEntry_Function entry_func("func00", "desc00", nullptr);
     entry_func.SetFunction(setup);
     node_ptr_t funcs00 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry_func);
 
@@ -522,8 +522,8 @@ TEST_CASE("ASTNode_Block Full Process", "[config]"){
       return 0;
     };
 
-    // Create ConfigFunction object
-    mabe::ConfigFunction entry_func("func00", "desc00", nullptr);
+    // Create ConfigEntry_Function object
+    mabe::ConfigEntry_Function entry_func("func00", "desc00", nullptr);
     entry_func.SetFunction(setup);
     node_ptr_t funcs00 = emp::NewPtr<mabe::ASTNode_Leaf>(&entry_func);
 

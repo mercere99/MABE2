@@ -3,7 +3,7 @@
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
  *  @date 2019-2021.
  *
- *  @file  ConfigScope.cpp
+ *  @file  ConfigEntry_Scope.cpp
  *  @brief TODO. Currently this is a placeholder so codecov will see the untested source code
  */
 
@@ -11,7 +11,7 @@
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
 // MABE
-#include "config/ConfigScope.hpp"
+#include "config/ConfigEntry_Scope.hpp"
 
 
-TEST_CASE("ConfigScope_Placeholder", "[config]"){ ; }
+TEST_CASE("ConfigEntry_Scope_Placeholder", "[config]"){ ; }
