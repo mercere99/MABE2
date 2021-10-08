@@ -25,10 +25,9 @@ namespace mabe {
     std::function<void(VirtualCPUOrg&, const VirtualCPUOrg::inst_t&)> func_dec;
     std::function<void(VirtualCPUOrg&, const VirtualCPUOrg::inst_t&)> func_add;
     std::function<void(VirtualCPUOrg&, const VirtualCPUOrg::inst_t&)> func_sub;
-    std::function<void(VirtualCPUOrg&, const VirtualCPUOrg::inst_t&)> func_mult;
-    std::function<void(VirtualCPUOrg&, const VirtualCPUOrg::inst_t&)> func_div;
-    std::function<void(VirtualCPUOrg&, const VirtualCPUOrg::inst_t&)> func_mod;
-    std::function<void(VirtualCPUOrg&, const VirtualCPUOrg::inst_t&)> func_not;
+    std::function<void(VirtualCPUOrg&, const VirtualCPUOrg::inst_t&)> func_nand;
+    std::function<void(VirtualCPUOrg&, const VirtualCPUOrg::inst_t&)> func_shift_l;
+    std::function<void(VirtualCPUOrg&, const VirtualCPUOrg::inst_t&)> func_shift_r;
 
   public:
     VirtualCPU_Inst_Math(mabe::MABE & control,
@@ -50,6 +49,42 @@ namespace mabe {
         ++hw.regs[idx];
       };
       action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>("Inc", func_inc);
+      // Decrement 
+      func_dec = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
+        size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
+        --hw.regs[idx];
+      };
+      action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>("Dec", func_dec);
+      // Shift Right 
+      func_shift_r = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
+        size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
+        hw.regs[idx] >>= 1;
+      };
+      action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>("ShiftR", func_shift_r);
+      // Shift Left 
+      func_shift_l = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
+        size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
+        hw.regs[idx] <<= 1;
+      };
+      action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>("ShiftL", func_shift_l);
+      // Add 
+      func_add = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
+        size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
+        hw.regs[idx] = hw.regs[1] + hw.regs[2];
+      };
+      action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>("Add", func_add);
+      // Sub 
+      func_sub = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
+        size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
+        hw.regs[idx] = hw.regs[1] - hw.regs[2];
+      };
+      action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>("Sub", func_sub);
+      // NAND 
+      func_nand = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
+        size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
+        hw.regs[idx] = ~(hw.regs[1] & hw.regs[2]);
+      };
+      action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>("Nand", func_nand);
     }
 
     void SetupModule() override {
