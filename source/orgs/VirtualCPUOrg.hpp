@@ -182,7 +182,7 @@ namespace mabe {
       ActionMap& action_map = GetManager().GetControl().GetActionMap(0);
       std::unordered_map<std::string, mabe::Action>& typed_action_map =
         action_map.GetFuncs<void, VirtualCPUOrg&, const inst_t&>();
-      std::cout << "Found " << action_map.size() << " external functions!" << std::endl;
+      std::cout << "Found " << typed_action_map.size() << " external functions!" << std::endl;
 
       for(auto it = typed_action_map.begin(); it != typed_action_map.end(); it++){
         std::cout << " " << it->first;
