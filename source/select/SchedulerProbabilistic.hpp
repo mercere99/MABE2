@@ -50,7 +50,7 @@ namespace mabe {
     // TODO: Check to see if organism can get updates in the update they are born, and see if above todo 
     //          will do the right thing
     /// Ration out updates to members of the population
-    void OnUpdate(size_t update) override {
+    void OnUpdate(size_t /*update*/) override {
       // Grab the variables we'll use over and over
       emp::Random & random = control.GetRandom();
       Population & pop = control.GetPopulation(pop_id);
@@ -68,11 +68,7 @@ namespace mabe {
           selected_idx = weight_map.Index(random.GetDouble() * total_weight);
         else
           selected_idx = random.GetUInt(pop.GetSize()); 
-        // If ProcessStep returns true, org needs to replicate (will be reworked soon!)
-        if(pop[selected_idx].ProcessStep()){
-          control.Replicate(OrgPosition(pop, selected_idx), pop, 1, true); 
-          weight_map.Adjust(selected_idx, pop[selected_idx].GetVar<double>(trait));
-        }
+        pop[selected_idx].ProcessStep();
       }
       std::cout << "Total weight: " << total_weight << std::endl;
     }
@@ -84,7 +80,7 @@ namespace mabe {
         weight_map.ResizeClear(N);
       }
       size_t org_idx = placement_pos.Pos();
-      weight_map.Adjust(org_idx, placement_pos.Pop()[org_idx].GetVar<double>(trait));
+      weight_map.Adjust(org_idx, placement_pos.Pop()[org_idx].GetTrait<double>(trait));
     }
   };
 
