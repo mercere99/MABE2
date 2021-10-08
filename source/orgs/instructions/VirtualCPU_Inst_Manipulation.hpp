@@ -59,7 +59,7 @@ namespace mabe {
       };
       action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>("Push", func_push);
       // Swap stack 
-      func_swap_stack = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
+      func_swap_stack = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){
         hw.StackSwap();
       };
       action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>("SwapStk", 
