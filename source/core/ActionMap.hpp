@@ -14,9 +14,9 @@
 
 
 #include <functional>
+#include <unordered_map>
 #include "emp/base/assert.hpp"
 #include "emp/base/vector.hpp"
-#include "emp/base/unordered_map.hpp"
 #include "emp/hardware/AvidaGP.hpp"
 #include "emp/functional/AnyFunction.hpp"
 #include "emp/meta/TypePack.hpp"
@@ -29,7 +29,7 @@ namespace mabe {
     emp::AnyFunction function;
     Action(const std::string& s, emp::AnyFunction f) : name(s), function(f) { ; }
   };
-  class ActionMap : public emp::unordered_map<emp::TypeID, emp::vector<mabe::Action>>{
+  class ActionMap : public std::unordered_map<emp::TypeID, emp::vector<mabe::Action>>{
   public:
     ActionMap() { ; }
 
@@ -78,7 +78,7 @@ namespace mabe {
   };
 
   //TODO: Switch to std unordered map
-  class ActionMap : public emp::unordered_map<emp::TypeID, emp::unordered_map<std::string, Action>>{
+  class ActionMap : public std::unordered_map<emp::TypeID, std::unordered_map<std::string, Action>>{
   public:
     ActionMap() { ; }
 
@@ -92,32 +92,24 @@ namespace mabe {
       emp::TypeID func_type = emp::GetTypeID<RETURN(PARAMS...)>();
       //emp::AnyFunction any_func(in_func);
       if(this->find(func_type) == this->end()){
-        this->insert({ func_type, emp::unordered_map<std::string, Action>() });
+        this->insert({ func_type, std::unordered_map<std::string, Action>() });
       }
-      emp::unordered_map<std::string, Action>& action_map = this->at(func_type);
+      std::unordered_map<std::string, Action>& action_map = this->at(func_type);
       if(action_map.find(name) == action_map.end()){
         action_map.insert( {name, Action(name)} );
       }
       Action& action = action_map.at(name);
 
       emp::vector<emp::AnyFunction>& action_vec = action.function_vec;
-      size_t next_idx = action_vec.size();
       action_vec.emplace_back(in_func);
-      //action_vec[next_idx].Set(in_func);
 
       if(num_args > action.num_args) action.num_args = num_args;
 
       std::cout << "Stored: " << func_type.GetName() << std::endl;
-      //std::cout << "State of action vec after store:" << std::endl;
-      //std::cout << "[";
-      //for(Action& a : this->at(func_type)){
-      //  std::cout << " " << a.name;
-      //}
-      //std::cout << " ]" << std::endl;;
     }
 
     template <typename RETURN, typename... PARAMS>
-    emp::unordered_map<std::string, mabe::Action>&  GetFuncs(){
+    std::unordered_map<std::string, mabe::Action>&  GetFuncs(){
       emp::TypeID func_type = emp::GetTypeID<RETURN(PARAMS...)>();
       emp_assert(this->find(func_type) != this->end(), "No actions with that function signature!");
       std::cout << "Fetching: " << func_type.GetName() << std::endl;

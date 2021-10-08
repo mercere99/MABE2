@@ -70,7 +70,7 @@ namespace mabe {
     virtual void Write(std::ostream & /* os */=std::cout,
                        const std::string & /* offset */="") const { }
 
-    virtual void WriteASTFile(emp::File& file, size_t & cur_id){ }
+    virtual void WriteASTFile(emp::File& /*file*/, size_t & /*cur_id*/){ }
 
     size_t GetASTTreeID() const { return ast_tree_id; }
   };

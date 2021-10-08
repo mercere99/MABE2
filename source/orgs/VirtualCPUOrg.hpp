@@ -177,7 +177,7 @@ namespace mabe {
     void LoadExternalInstructions(){
       inst_lib_t& inst_lib = GetInstLib();
       ActionMap& action_map = GetManager().GetControl().GetActionMap(0);
-      emp::unordered_map<std::string, mabe::Action>& typed_action_map =
+      std::unordered_map<std::string, mabe::Action>& typed_action_map =
         action_map.GetFuncs<void, VirtualCPUOrg&, const inst_t&>();
       std::cout << "Found " << action_map.size() << " external functions!" << std::endl;
 
@@ -216,6 +216,10 @@ namespace mabe {
       */
     }
 
+    bool ProcessStep() override { 
+      Process(1);
+      return true; 
+    }
   };
 
   MABE_REGISTER_ORG_TYPE(VirtualCPUOrg, "Organism consisting of Avida instructions.");
