@@ -324,7 +324,6 @@ namespace mabe {
       control.RescanSignals();
     }
 
-
     // Functions to be called based on actions that need to happen.  Each of these returns a
     // viable result or an invalid object if need to pass on to the next module.  Modules will
     // be querried in order until one of them returns a valid result.

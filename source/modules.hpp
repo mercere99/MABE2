@@ -21,12 +21,12 @@
 
 // Placement Modules
 #include "placement/GrowthPlacement.hpp"
-//#include "placement/SelfReplication.hpp"
 
 // Selection Modules
 #include "select/SelectElite.hpp"
 #include "select/SelectTournament.hpp"
 #include "select/SelectLexicase.hpp"
+#include "select/SchedulerProbabilistic.hpp"
 
 // Other schema
 #include "schema/MovePopulation.hpp"

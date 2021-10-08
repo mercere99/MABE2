@@ -37,6 +37,9 @@
 *.out
 *.app
 
+# Files open in vim
+*.swp
+
 examples/NK
 build/*.csv
 build/*.gen

@@ -25,6 +25,7 @@
 #include "emp/base/vector.hpp"
 #include "emp/config/command_line.hpp"
 #include "emp/control/Signal.hpp"
+#include "emp/control/SignalControl.hpp"
 #include "emp/data/DataMap.hpp"
 #include "emp/io/StreamManager.hpp"
 #include "emp/math/Random.hpp"
@@ -109,6 +110,7 @@ namespace mabe {
     emp::vector<std::string> config_filenames; ///< Names of configuration files to load.
     emp::vector<std::string> config_settings;  ///< Additional config commands to run.
     std::string gen_filename;                  ///< Name of output file to generate.
+    std::string ast_dot_filename;              ///< Name of output file containting AST as a DOT file
     Config config;                             ///< Configutation information for this run.
     emp::Ptr<ConfigScope> cur_scope;           ///< Which config scope are we currently using?
 
@@ -777,6 +779,13 @@ namespace mabe {
       config.Write(gen_filename);
       exit_now = true;
     }
+    /*
+    if(ast_dot_filename != ""){
+      std::cout << "Writing AST to file '" << ast_dot_filename << "'." << std::endl;
+      config.WriteASTFile(ast_dot_filename);
+      Exit();
+    }
+    */
 
     // If any of the inital flags triggered an 'exit_now', do so.
     if (exit_now) return false;
@@ -834,6 +843,21 @@ namespace mabe {
           else gen_filename = in[0];
         }
       });
+    /*
+    arg_set.emplace_back("--ast-viz", "-a", "[filename]    ", "Generate a DOT file to visualize the AST",
+      [this](const emp::vector<std::string> & in) {
+        if (in.size() != 1) {
+          std::cout << "'--ast-viz' must be followed by a single filename.\n";
+          Exit();
+        } else {
+          if (in[0].size() < 4  || in[0].substr(in[0].size()-4) != ".dot") {
+            AddError("Error: generated file ", in[0], " expected to have extension .dot");
+            Exit();
+          }
+          else ast_dot_filename = in[0];
+        }
+      });
+      */
     arg_set.emplace_back("--help", "-h", "              ", "Help; print command-line options for MABE",
       [this](const emp::vector<std::string> &){ show_help = true; } );
     arg_set.emplace_back("--modules", "-m", "              ", "Module list",

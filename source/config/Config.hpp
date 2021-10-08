@@ -72,6 +72,7 @@
 #include "emp/base/map.hpp"
 #include "emp/meta/TypeID.hpp"
 #include "emp/tools/string_utils.hpp"
+#include "emp/io/File.hpp"
 
 #include "ConfigAST.hpp"
 #include "ConfigEvents.hpp"
@@ -394,6 +395,16 @@ namespace mabe {
       // Otherwise generate an output file.
       std::ofstream ofile(filename);
       return Write(ofile);
+    }
+
+    /// Generate a DOT file that contains the AST as a digraph
+    void WriteASTFile(const std::string & filename){
+      emp::File dot_file;
+      size_t cur_id = 0;
+      dot_file.Append("digraph AST{");
+      ast_root.WriteASTFile(dot_file, cur_id);
+      dot_file.Append("}");
+      dot_file.Write(filename);
     }
   };
 
