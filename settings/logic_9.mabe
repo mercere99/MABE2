@@ -2,20 +2,18 @@ random_seed = 1;                // Seed for random number generator; use 0 to ba
 Population main_pop;            // Collection of organisms
 Population next_pop;            // Collection of organisms
 Value pop_size = 200;           // Local value variable.
-Value max_gens = 10;
+Value max_gens = 10;            // Local value variable.
 CommandLine cl {                // Handle basic I/O on the command line.
-  //format = "score:max,score:mean";// Column format to use in the file.
-  format = "";// Column format to use in the file.
+  format = "";                  // Column format to use in the file.
   target = "main_pop";          // Which population(s) should we print from?
 }
-//FileOutput output_mod {         // Output collected data into a specified file.
-//  filename = "output.csv";      // Name of file for output data.
-//  format = "score:max,score:mean";// Column format to use in the file.
-//  target = "main_pop";          // Which population(s) should we print from?
-//  output_updates = "0:1";       // Which updates should we output data?
-//}
 GrowthPlacement place_next {    // Always appened births to the end of a population.
-  target = "main_pop"; // Population(s) to manage.
+  target = "main_pop";          // Population(s) to manage.
+}
+SchedulerProbabilistic scheduler { // Rations out updates to organisms based on a specified attribute, using a method akin to roulette wheel selection.
+  pop = "main_pop";             // Which population should we select parents from?
+  avg_updates = 30;             // How many updates should organism receive on average?
+  trait = "merit";              // Which trait provides the fitness value to use?
 }
 VirtualCPU_Inst_Math inst_lib_math { // Math instructions for VirtualCPUOrg
   target_pop = "main_pop";      // Population(s) to manage.
@@ -36,4 +34,4 @@ VirtualCPUOrg avida_org {       // Organism consisting of Avida instructions.
 
 @start(0) print("random_seed = ", random_seed, "\n");
 @start(0) inject("avida_org", "main_pop", pop_size);
-@update(max_gens) exit();
+@update(10) exit();

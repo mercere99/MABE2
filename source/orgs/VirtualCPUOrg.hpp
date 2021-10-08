@@ -47,6 +47,7 @@ namespace mabe {
       size_t eval_time = 500;              ///< How long should the CPU be given on each evaluate?
       std::string input_name = "input";    ///< Name of trait that should be used load input values
       std::string output_name = "output";  ///< Name of trait that should be used store output values
+      std::string merit_name = "merit";    ///< Name of trait that stores an organism's fitness 
 
       // Internal use
       emp::Binomial mut_dist;            ///< Distribution of number of mutations to occur.
@@ -134,6 +135,8 @@ namespace mabe {
       GetManager().AddSharedTrait(SharedData().output_name,
                                   "Value map output from organism.",
                                   emp::vector<data_t>());
+      GetManager().AddSharedTrait<double>(SharedData().merit_name,
+                                  "Value representing fitness of organism", 0);
       SetupInstLib();
     }
 
