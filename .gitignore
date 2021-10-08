@@ -42,3 +42,6 @@ build/*.csv
 build/*.gen
 build/*.mabe
 build/MABE
+
+# Vim files
+*.swp
