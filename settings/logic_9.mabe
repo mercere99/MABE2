@@ -32,6 +32,9 @@ VirtualCPU_Inst_Flow inst_lib_flow { // Flow control instructions for VirtualCPU
 VirtualCPU_Inst_Manipulation inst_lib_manip { // Flow control instructions for VirtualCPUOrg
   target_pop = "main_pop";      // Population(s) to manage.
 }
+VirtualCPU_Inst_Replication inst_lib_repl { // Flow control instructions for VirtualCPUOrg
+  target_pop = "main_pop";      // Population(s) to manage.
+}
 VirtualCPUOrg avida_org {       // Organism consisting of Avida instructions.
   mut_prob = 0.01;              // Probability of each instruction mutating on reproduction.
   N = 50;                       // Initial number of instructions in genome

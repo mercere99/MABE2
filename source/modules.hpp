@@ -43,3 +43,4 @@
 #include "orgs/instructions/VirtualCPU_Inst_Input.hpp"
 #include "orgs/instructions/VirtualCPU_Inst_Flow.hpp"
 #include "orgs/instructions/VirtualCPU_Inst_Manipulation.hpp"
+#include "orgs/instructions/VirtualCPU_Inst_Replication.hpp"
