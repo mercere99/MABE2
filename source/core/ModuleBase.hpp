@@ -33,7 +33,7 @@
  *     BeforePlacement(Organism & org, OrgPosition target_pos, OrgPosition parent_pos)
  *       : Placement location has been identified (For birth or inject)
  *     OnPlacement(OrgPosition placement_pos)
- *       : New organism has been placed in the poulation.
+ *       : New organism has been placed in the population.
  *     BeforeMutate(Organism & org)
  *       : Mutate is about to run on an organism.
  *     OnMutate(Organism & org)
@@ -56,6 +56,8 @@
  *       : Run immediately before MABE is about to exit.
  *     OnHelp()
  *       : Run when the --help option is called at startup.
+ *     TraceEval(Organism & org, ostream & out_stream)
+ *       : Print a trace of the evaluation of an organism.
  *     ...
  * 
  *    - Various Do* functions run in modules until one of them returns a valid answer.
@@ -87,6 +89,7 @@
 namespace mabe {
 
   class MABE;
+  class OrgType;
   class Organism;
   class OrgPosition;
   class Population;
@@ -120,6 +123,9 @@ namespace mabe {
     /// Other variables that we want to hook on to this Module externally.
     emp::DataMap data_map;
 
+    using value_fun_t = std::function<double(emp::DataMap &)>;
+    using string_fun_t = std::function<std::string(emp::DataMap &)>;
+
   public:
     // Setup each signal with a unique ID number
     enum SignalID {
@@ -141,6 +147,7 @@ namespace mabe {
       SIG_OnWarning,
       SIG_BeforeExit,
       SIG_OnHelp,
+      SIG_TraceEval,
       SIG_DoPlaceBirth,
       SIG_DoPlaceInject,
       SIG_DoFindNeighbor,
@@ -158,6 +165,25 @@ namespace mabe {
     template <typename... Ts>
     void AddError(Ts &&... args) {
       error_man->AddError(std::forward<Ts>(args)...);
+    }
+
+
+    // Core implementation for ManagerModule functionality.
+    virtual emp::Ptr<OrgType> CloneObject_impl(const OrgType &) {
+      emp_assert(false, "CloneObject_impl() must be overridden for ManagerModule.");
+      return nullptr;
+    }
+    virtual emp::Ptr<OrgType> CloneObject_impl(const OrgType &, emp::Random &) {
+      emp_assert(false, "CloneObject_impl() must be overridden for ManagerModule.");
+      return nullptr;
+    }
+    virtual emp::Ptr<OrgType> Make_impl() {
+      emp_assert(false, "Make_impl() must be overridden for ManagerModule.");
+      return nullptr;
+    }
+    virtual emp::Ptr<OrgType> Make_impl(emp::Random &) {
+      emp_assert(false, "Make_impl() must be overridden for ManagerModule.");
+      return nullptr;
     }
 
   public:
@@ -236,6 +262,7 @@ namespace mabe {
     virtual void OnWarning(const std::string &) = 0;
     virtual void BeforeExit() = 0;
     virtual void OnHelp() = 0;
+    virtual void TraceEval(Organism &, std::ostream &) = 0;
 
     virtual OrgPosition DoPlaceBirth(Organism &, OrgPosition, Population &) = 0;
     virtual OrgPosition DoPlaceInject(Organism &, Population &) = 0;
@@ -262,6 +289,7 @@ namespace mabe {
     virtual bool OnWarning_IsTriggered() = 0;
     virtual bool BeforeExit_IsTriggered() = 0;
     virtual bool OnHelp_IsTriggered() = 0;
+    virtual bool TraceEval_IsTriggered() = 0;
 
     virtual bool DoPlaceBirth_IsTriggered() = 0;
     virtual bool DoPlaceInject_IsTriggered() = 0;
@@ -272,21 +300,21 @@ namespace mabe {
       emp_assert(false, "GetObjType() must be overridden for ManagerModule.");
       return emp::TypeID();
     }
-    virtual emp::Ptr<Organism> CloneObject(const Organism &) {
-      emp_assert(false, "CloneObject() must be overridden for ManagerModule.");
-      return nullptr;
+    template <typename OBJ_T>
+    emp::Ptr<OBJ_T> CloneObject(const OBJ_T & in_obj) {
+      return CloneObject_impl(in_obj).template DynamicCast<OBJ_T>();
     }
-    virtual emp::Ptr<Organism> CloneObject(const Organism &, emp::Random &) {
-      emp_assert(false, "CloneObject() must be overridden for ManagerModule.");
-      return nullptr;
+    template <typename OBJ_T>
+    emp::Ptr<OBJ_T> CloneObject(const OBJ_T & in_obj, emp::Random & random) {
+      return CloneObject_impl(in_obj, random).template DynamicCast<OBJ_T>();
     }
-    virtual emp::Ptr<Organism> Make() {
-      emp_assert(false, "Make() must be overridden for ManagerModule.");
-      return nullptr;
+    template <typename OBJ_T>
+    emp::Ptr<OBJ_T> Make() {
+      return Make_impl().template DynamicCast<OBJ_T>();
     }
-    virtual emp::Ptr<Organism> Make(emp::Random &) {
-      emp_assert(false, "Make() must be overridden for ManagerModule.");
-      return nullptr;
+    template <typename OBJ_T>
+    emp::Ptr<OBJ_T> Make(emp::Random & random) {
+      return Make_impl(random).template DynamicCast<OBJ_T>();
     }
 
     virtual void SetupConfig() { }

@@ -4,8 +4,8 @@
  *  @date 2019-2021.
  *
  *  @file  ConfigAST.hpp
- *  @brief Manages Abstract Sytax Tree nodes for Config.
- *  @note Status: ALPHA
+ *  @brief Manages Abstract Syntax Tree nodes for Config.
+ *  @note Status: BETA
  */
 
 #ifndef MABE_CONFIG_AST_H
@@ -16,6 +16,7 @@
 #include "emp/base/vector.hpp"
 
 #include "ConfigEntry.hpp"
+#include "ConfigEntry_Scope.hpp"
 
 namespace mabe {
 
@@ -27,6 +28,8 @@ namespace mabe {
 
     using node_ptr_t = emp::Ptr<ASTNode>;
     using node_vector_t = emp::vector<node_ptr_t>;
+
+    node_ptr_t parent = nullptr;
 
     // Helper functions.
     emp::Ptr<ConfigEntry_DoubleVar> MakeTempDouble(double val) {
@@ -46,11 +49,20 @@ namespace mabe {
 
     virtual const std::string & GetName() const = 0;
 
+    virtual bool IsNumeric() const { return false; } // Can node be represented as a number?
+    virtual bool IsString() const { return false; }  // Can node be represented as a string?
+    virtual bool HasValue() const { return false; }  // Does node have any value (vs internal block)
+    virtual bool HasNumericReturn() const { return false; } // Is node function with numeric return?
+    virtual bool HasStringReturn() const { return false; }  // Is node function with string return?
+
     virtual bool IsLeaf() const { return false; }
     virtual bool IsInternal() const { return false; }
 
     virtual size_t GetNumChildren() const { return 0; }
     virtual node_ptr_t GetChild(size_t /* id */) { emp_assert(false); return nullptr; }
+    node_ptr_t GetParent() { return parent; }
+    void SetParent(node_ptr_t in_parent) { parent = in_parent; }
+    virtual emp::Ptr<ConfigEntry_Scope> GetScope() { return parent ? parent->GetScope() : nullptr; }
 
     virtual entry_ptr_t Process() = 0;
 
@@ -95,6 +107,12 @@ namespace mabe {
     const std::string & GetName() const override { return entry_ptr->GetName(); }
     ConfigEntry & GetEntry() { return *entry_ptr; }
 
+    bool IsNumeric() const override { return entry_ptr->IsNumeric(); }
+    bool IsString() const override { return entry_ptr->IsString(); }
+    bool HasValue() const override { return true; }
+    bool HasNumericReturn() const override { return entry_ptr->HasNumericReturn(); }
+    bool HasStringReturn() const override { return entry_ptr->HasStringReturn(); }
+
     bool IsLeaf() const override { return true; }
 
     entry_ptr_t Process() override { return entry_ptr; };
@@ -115,7 +133,14 @@ namespace mabe {
   };
 
   class ASTNode_Block : public ASTNode_Internal {
+  protected:
+    emp::Ptr<ConfigEntry_Scope> scope_ptr;
+
   public:
+    ASTNode_Block(ConfigEntry_Scope & in_scope) : scope_ptr(&in_scope) { }
+
+    emp::Ptr<ConfigEntry_Scope> GetScope()  override { return scope_ptr; }
+
     entry_ptr_t Process() override {
       for (auto node : children) {
         entry_ptr_t out = node->Process();
@@ -140,6 +165,9 @@ namespace mabe {
   public:
     ASTNode_Math1(const std::string & name) : ASTNode_Internal(name) { }
 
+    bool IsNumeric() const override { return true; }
+    bool HasValue() const override { return true; }
+
     void SetFun(std::function< double(double) > _fun) { fun = _fun; }
 
     entry_ptr_t Process() override {
@@ -156,24 +184,32 @@ namespace mabe {
     }
   };
 
-  /// Binary mathematical operations.
-  class ASTNode_Math2 : public ASTNode_Internal {
+  /// Binary operations.
+  template <typename RETURN_T, typename ARG1_T, typename ARG2_T>
+  class ASTNode_Op2 : public ASTNode_Internal {
   protected:
-    // A binary operator takes in two doubles and returns a third.
-    std::function< double(double, double) > fun;
+    std::function< RETURN_T(ARG1_T, ARG2_T) > fun;
   public:
-    ASTNode_Math2(const std::string & name) : ASTNode_Internal(name) { }
+    ASTNode_Op2(const std::string & name) : ASTNode_Internal(name) { }
 
-    void SetFun(std::function< double(double, double) > _fun) { fun = _fun; }
+    bool IsNumeric() const override { return std::is_same<RETURN_T, double>(); }
+    bool IsString() const override { return std::is_same<RETURN_T, std::string>(); }
+    bool HasValue() const override { return true; }
+
+    void SetFun(std::function< RETURN_T(ARG1_T, ARG2_T) > _fun) { fun = _fun; }
 
     entry_ptr_t Process() override {
       emp_assert(children.size() == 2);
       entry_ptr_t in1 = children[0]->Process();               // Process 1st child to input entry
       entry_ptr_t in2 = children[1]->Process();               // Process 2nd child to input entry
-      double out_val = fun(in1->AsDouble(), in2->AsDouble()); // Run function; get ouput
+      auto out_val = fun(in1->As<ARG1_T>(), in2->As<ARG2_T>()); // Run function; get ouput
       if (in1->IsTemporary()) in1.Delete();                   // If we are done with in1; delete!
       if (in2->IsTemporary()) in2.Delete();                   // If we are done with in2; delete!
-      return MakeTempDouble(out_val);
+      if constexpr (std::is_same<RETURN_T, double>()) {
+        return MakeTempDouble(out_val);
+      } else {
+        return MakeTempString(out_val);
+      }
     }
 
     void Write(std::ostream & os, const std::string & offset) const override { 
@@ -183,12 +219,21 @@ namespace mabe {
     }
   };
 
+  using ASTNode_Math2 = ASTNode_Op2<double,double,double>;
+
+
   class ASTNode_Assign : public ASTNode_Internal {
   public:
     ASTNode_Assign(node_ptr_t lhs, node_ptr_t rhs) {
       AddChild(lhs);
       AddChild(rhs);
     }
+
+    bool IsNumeric() const override { return children[0]->IsNumeric(); }
+    bool IsString() const override { return children[0]->IsString(); }
+    bool HasValue() const override { return true; }
+    bool HasNumericReturn() const override { return children[0]->HasNumericReturn(); }
+    bool HasStringReturn() const override { return children[0]->HasStringReturn(); }
 
     entry_ptr_t Process() override {
       emp_assert(children.size() == 2);
@@ -213,6 +258,12 @@ namespace mabe {
       AddChild(fun);
       for (auto arg : args) AddChild(arg);
     }
+
+    bool IsNumeric() const override { return children[0]->HasNumericReturn(); }
+    bool IsString() const override { return children[0]->HasStringReturn(); }
+    bool HasValue() const override { return true; }
+    // @CAO Technically, one function can return another, so we should check
+    // HasNumericReturn() and HasStringReturn() on return values... but hard to implement.
 
     entry_ptr_t Process() override {
       emp_assert(children.size() >= 1);

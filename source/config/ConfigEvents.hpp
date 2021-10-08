@@ -1,11 +1,11 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019-2020.
+ *  @date 2019-2021.
  *
  *  @file  ConfigEvents.hpp
  *  @brief Manages events for configurations.
- *  @note Status: ALPHA
+ *  @note Status: BETA
  * 
  *  DEVELOPER NOTES:
  *  - We could use a more dynamic function to determine when an event should be triggered next,
@@ -30,7 +30,7 @@ namespace mabe {
     // Structure to track the timings for a single event.
     struct TimedEvent {
       size_t id = 0;                 // A unique ID for this event.
-      emp::Ptr<ASTNode> ast_action;  // Parse tree to exectute when triggered.
+      emp::Ptr<ASTNode> ast_action;  // Parse tree to execute when triggered.
       double next = 0.0;             // When should we start triggering this event.
       double repeat = 0.0;           // How often should it repeat (0.0 for no repeat)
       double max = -1.0;             // Maximum value that this value can reach (neg for no max)
@@ -46,11 +46,13 @@ namespace mabe {
       // should continue to be considered active.
       bool Trigger() {
         auto result_entry = ast_action->Process();
-        if (result_entry->IsTemporary()) result_entry.Delete();
+        if (result_entry && result_entry->IsTemporary()) result_entry.Delete();
         next += repeat;
 
-        // Return "active" if we ARE repeating and the next time is stiil within range.
-        return (repeat != 0.0 && next <= max);
+        if (max != -1.0 && next > max) repeat = 0.0;
+
+        // Return "active" if we ARE repeating and the next time is still within range.
+        return (repeat != 0.0);
       }
 
       void Write(const std::string & command, std::ostream & os) const {

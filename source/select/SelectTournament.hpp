@@ -18,35 +18,35 @@ namespace mabe {
   /// Add elite selection with the current population.
   class SelectTournament : public Module {
   private:
-    std::string trait;       ///< Which trait should we select on?
-    size_t tourny_size;      ///< How big should each tournament be?
-    size_t num_tournies;     ///< How many tournaments should we run?
-    int select_pop_id = 0;   ///< Which population are we selecting from?
-    int birth_pop_id = 1;    ///< Which population should births go into?
+    std::string fit_equation;     ///< Trait function that we should select on
+    size_t tourny_size;      ///< Number of organisms in each tournament
+    size_t num_tournies;     ///< Number of tournaments to run
+    int select_pop_id = 0;   ///< Population that we are selecting from
+    int birth_pop_id = 1;    ///< Population that births should go into
 
   public:
     SelectTournament(mabe::MABE & control,
                      const std::string & name="SelectTournament",
                      const std::string & desc="Module to select the top fitness organisms from random subgroups for replication.",
-                     const std::string & in_trait="fitness",
+                     const std::string & in_fit="fitness",
                      size_t t_size=7, size_t num_t=1)
       : Module(control, name, desc)
-      , trait(in_trait), tourny_size(t_size), num_tournies(num_t)
+      , fit_equation(in_fit), tourny_size(t_size), num_tournies(num_t)
     {
       SetSelectMod(true);              ///< Mark this module as a selection module.
     }
     ~SelectTournament() { }
 
     void SetupConfig() override {
-      LinkPop(select_pop_id, "select_pop", "Which population should we select parents from?");
-      LinkPop(birth_pop_id, "birth_pop", "Which population should births go into?");
+      LinkPop(select_pop_id, "select_pop", "Population from which to select parents");
+      LinkPop(birth_pop_id, "birth_pop", "Population into which offspring should be placed");
       LinkVar(tourny_size, "tournament_size", "Number of orgs in each tournament");
       LinkVar(num_tournies, "num_tournaments", "Number of tournaments to run");
-      LinkVar(trait, "fitness_trait", "Which trait provides the fitness value to use?");
+      LinkVar(fit_equation, "fitness_fun", "Trait equation that produces fitness value to use");
     }
 
     void SetupModule() override {
-      AddRequiredTrait<double>(trait); ///< The fitness trait must be set by another module.
+      AddRequiredEquation(fit_equation); ///< The fitness traits must be set by another module.
     }
 
     void OnUpdate(size_t ud) override {
@@ -62,6 +62,9 @@ namespace mabe {
         return;
       }
 
+      // Setup the fitness function
+      auto fit_fun = control.BuildTraitEquation(fit_equation);
+
       // @CAO if we have a sparse Population, we probably want to take that into account.
 
       // Loop through each round of tournament selection.
@@ -69,20 +72,20 @@ namespace mabe {
         // Find a random organism in the population and call it "best"
         size_t best_id = random.GetUInt(N);
         while (select_pop[best_id].IsEmpty()) best_id = random.GetUInt(N);
-        double best_fit = select_pop[best_id].GetTrait<double>(trait);
+        double best_fit = fit_fun(select_pop[best_id].GetDataMap());
 
         // Loop through other organisms for the rest of the tournament size, and pick best.
         for (size_t test=1; test < tourny_size; test++) {
           size_t test_id = random.GetUInt(N);
           while (select_pop[test_id].IsEmpty()) test_id = random.GetUInt(N);
-          double test_fit = select_pop[test_id].GetTrait<double>(trait);          
+          double test_fit = fit_fun(select_pop[test_id].GetDataMap());          
           if (test_fit > best_fit) {
             best_id = test_id;
             best_fit = test_fit;
           }
         }
 
-        // Replicat the organism that did best in this tournament.
+        // Replicate the organism that did best in this tournament.
         control.Replicate(select_pop.IteratorAt(best_id), birth_pop, 1);
       }
 

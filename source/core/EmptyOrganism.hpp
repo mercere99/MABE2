@@ -19,7 +19,7 @@ namespace mabe {
   class EmptyOrganism : public Organism {
   public:
     EmptyOrganism(OrganismManager<EmptyOrganism> & _manager) : Organism(_manager) { ; }
-    emp::Ptr<Organism> Clone() const override { emp_error("Do not clone EmptyOrganism"); return nullptr; }
+    emp::Ptr<OrgType> Clone() const override { emp_error("Do not clone EmptyOrganism"); return nullptr; }
     std::string ToString() const override { return "[empty]"; }
     size_t Mutate(emp::Random &) override { emp_error("EmptyOrganism cannot Mutate()"); return -1; }
     void Randomize(emp::Random &) override { emp_error("EmptyOrganism cannot Randomize()"); }
@@ -35,8 +35,8 @@ namespace mabe {
     std::string GetTypeName() const override { return "EmptyOrganismManager"; }
     emp::TypeID GetObjType() const override { return emp::GetTypeID<EmptyOrganism>(); }
 
-    emp::Ptr<Organism> Make() override { return emp::NewPtr<EmptyOrganism>(*this); }
-    emp::Ptr<Organism> Make(emp::Random &) override { emp_error("Cannot make a 'random' EmptyOrganism."); return nullptr; }
+    emp::Ptr<OrgType> Make_impl() override { return emp::NewPtr<EmptyOrganism>(*this); }
+    emp::Ptr<OrgType> Make_impl(emp::Random &) override { emp_error("Cannot make a 'random' EmptyOrganism."); return nullptr; }
   };
 
 }

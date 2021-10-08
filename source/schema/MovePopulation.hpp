@@ -24,9 +24,8 @@ namespace mabe {
   public:
     MovePopulation(mabe::MABE & control,
            const std::string & name="MovePopulation",
-           const std::string & desc="Module to move organisms to a new population",
-           int _from_id=0, int _to_id=1, bool _reset_to=true)
-      : Module(control, name, desc), from_id(_from_id), to_id(_to_id), reset_to(_reset_to)
+           const std::string & desc="Module to move organisms to a new population")
+      : Module(control, name, desc)
     {
       SetManageMod(true);         ///< Mark this module as a population  module.
     }

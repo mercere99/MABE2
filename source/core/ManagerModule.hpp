@@ -4,7 +4,7 @@
  *  @date 2021.
  *
  *  @file  ManagerModule.hpp
- *  @brief Base module to manage a selection of objects that share a common configiguration.
+ *  @brief Base module to manage a selection of objects that share a common configuration.
  */
 
 #ifndef MABE_MANAGER_MODULE_H
@@ -47,7 +47,7 @@ namespace mabe {
 
 
   /// @param MANAGED_T the type of object type being managed.
-  /// @param BASE_T the base type being mnagaed.
+  /// @param BASE_T the base type being managed.
   template <typename MANAGED_T, typename BASE_T>
   class ManagerModule : public Module {
     /// Allow managed products to access private shared data in their own manager only.
@@ -79,19 +79,19 @@ namespace mabe {
     emp::TypeID GetObjType() const override { return emp::GetTypeID<managed_t>(); }
 
     /// Create a clone of the provided object; default to using copy constructor.
-    emp::Ptr<BASE_T> CloneObject(const BASE_T & obj) override {
+    emp::Ptr<OrgType> CloneObject_impl(const OrgType & obj) override {
       return emp::NewPtr<managed_t>( (const managed_t &) obj );
     }
 
     /// Create a random object from scratch.  Default to using the obj_prototype object.
-    emp::Ptr<BASE_T> Make() override {
+    emp::Ptr<OrgType> Make_impl() override {
       auto obj_ptr = obj_prototype->Clone();
       return obj_ptr;
     }
 
     /// Create a random object from scratch.  Default to using the obj_prototype object
     /// and then randomize if a random number generator is provided.
-    emp::Ptr<BASE_T> Make(emp::Random & random) override {
+    emp::Ptr<OrgType> Make_impl(emp::Random & random) override {
       auto obj_ptr = obj_prototype->Clone();
       obj_ptr->Initialize(random);
       return obj_ptr;

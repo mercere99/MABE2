@@ -51,9 +51,11 @@ namespace mabe {
     // (Other ways of linking variable to config file are in ConfigType.h)
 
     /// Link a single population to a parameter by name.
-    ConfigEntry_Functions<std::string> & LinkPop(int & var,
-                                                 const std::string & name,
-                                                 const std::string & desc) {
+    ConfigEntry_LinkedFunctions<std::string> & LinkPop(
+      int & var,
+      const std::string & name,
+      const std::string & desc
+    ) {
       std::function<std::string()> get_fun =
         [this,&var](){ return control.GetPopulation(var).GetName(); };
 
@@ -67,24 +69,28 @@ namespace mabe {
     }
 
     /// Link one or more populations (or portions of a population) to a parameter.
-    ConfigEntry_Functions<std::string> & LinkCollection(mabe::Collection & var,
-                                                        const std::string & name,
-                                                        const std::string & desc) {
+    ConfigEntry_LinkedFunctions<std::string> & LinkCollection(
+      mabe::Collection & var,
+      const std::string & name,
+      const std::string & desc
+    ) {
       std::function<std::string()> get_fun =
         [this,&var](){ return control.ToString(var); };
 
       std::function<void(std::string)> set_fun =
         [this,&var](const std::string & load_str){
-          var = control.FromString(load_str);
+          var = control.ToCollection(load_str);
         };
 
       return GetScope().LinkFuns<std::string>(name, get_fun, set_fun, desc);
     }
 
     /// Link another module to this one, by name (track using int ID)
-    ConfigEntry_Functions<std::string> & LinkModule(int & var,
-                                                    const std::string & name,
-                                                    const std::string & desc) {
+    ConfigEntry_LinkedFunctions<std::string> & LinkModule(
+      int & var,
+      const std::string & name,
+      const std::string & desc
+    ) {
       std::function<std::string()> get_fun =
         [this,&var](){ return control.GetModule(var).GetName(); };
 
@@ -98,11 +104,13 @@ namespace mabe {
     }
 
     /// Link a range of values with a start, stop, and step.
-    ConfigEntry_Functions<std::string> & LinkRange(int & start_var,
-                                                   int & step_var,
-                                                   int & stop_var,
-                                                   const std::string & name,
-                                                   const std::string & desc) {
+    ConfigEntry_LinkedFunctions<std::string> & LinkRange(
+      int & start_var,
+      int & step_var,
+      int & stop_var,
+      const std::string & name,
+      const std::string & desc
+    ) {
       std::function<std::string()> get_fun =
         [&start_var,&step_var,&stop_var]() {
           // If stop_var is -1, don't bother printing it (i.e. NO stop)
@@ -129,7 +137,9 @@ namespace mabe {
     TraitInfo & AddTrait(TraitInfo::Access access,
                          const std::string & name,
                          const std::string & desc="",
-                         const T & default_val=T()) {
+                         const T & default_val=T()
+    ) {
+      emp_assert(name != "", name);
       return control.GetTraitManager().AddTrait<T,ALT_Ts...>(this, access, name, desc, default_val);
     }
 
@@ -167,15 +177,24 @@ namespace mabe {
       return AddTrait<T,ALT_Ts...>(TraitInfo::Access::REQUIRED, name);
     }
 
+    /// Add all of the traits that that this module needs to be able to READ, in order to
+    /// computer the provided equation.  Another module must WRITE these traits and provide the
+    /// descriptions.
+    void AddRequiredEquation(const std::string & equation) {
+      const std::set<std::string> & traits = control.GetEquationTraits(equation);
+      for (const std::string & name : traits) AddRequiredTrait<double,int,size_t>(name);
+    }
+
 
     // ---== Signal Handling ==---
 
-    // Functions to be called based on signals.  Note that the existance of an overridden version
+    // Functions to be called based on signals.  Note that the existence of an overridden version
     // of each function is tracked by an associated bool value that we default to true until the
     // base version of the function is called indicating that it has NOT been overridden.
 
     // Format:  BeforeUpdate(size_t update_ending)
     // Trigger: Update is ending; new one is about to start
+    // Args:    Update ID that is just finishing.
     void BeforeUpdate(size_t) override {
       has_signal[SIG_BeforeUpdate] = false;
       control.RescanSignals();
@@ -183,6 +202,7 @@ namespace mabe {
 
     // Format:  OnUpdate(size_t new_update)
     // Trigger: New update has just started.
+    // Args:    Update ID just starting.
     void OnUpdate(size_t) override {
       has_signal[SIG_OnUpdate] = false;
       control.RescanSignals();
@@ -190,6 +210,7 @@ namespace mabe {
 
     // Format:  BeforeRepro(OrgPosition parent_pos) 
     // Trigger: Parent is about to reproduce.
+    // Args:    Position of organism about to reproduce.
     void BeforeRepro(OrgPosition) override {
       has_signal[SIG_BeforeRepro] = false;
       control.RescanSignals();
@@ -197,6 +218,7 @@ namespace mabe {
 
     // Format:  OnOffspringReady(Organism & offspring, OrgPosition parent_pos, Population & target_pop)
     // Trigger: Offspring is ready to be placed.
+    // Args:    Offspring to be born, position of parent, population to place offspring in.
     void OnOffspringReady(Organism &, OrgPosition, Population &) override {
       has_signal[SIG_OnOffspringReady] = false;
       control.RescanSignals();
@@ -204,6 +226,7 @@ namespace mabe {
 
     // Format:  OnInjectReady(Organism & inject_org, Population & target_pop)
     // Trigger: Organism to be injected is ready to be placed.
+    // Args:    Organism to be injected, population to inject into.
     void OnInjectReady(Organism &, Population &) override {
       has_signal[SIG_OnInjectReady] = false;
       control.RescanSignals();
@@ -218,7 +241,7 @@ namespace mabe {
     }
 
     // Format:  OnPlacement(OrgPosition placement_pos)
-    // Trigger: New organism has been placed in the poulation.
+    // Trigger: New organism has been placed in the population.
     // Args:    Position new organism was placed.
     void OnPlacement(OrgPosition) override {
       has_signal[SIG_OnPlacement] = false;
@@ -227,6 +250,7 @@ namespace mabe {
 
     // Format:  BeforeMutate(Organism & org)
     // Trigger: Mutate is about to run on an organism.
+    // Args:    Organism about to mutate.
     void BeforeMutate(Organism &) override {
       has_signal[SIG_BeforeMutate] = false;
       control.RescanSignals();
@@ -234,6 +258,7 @@ namespace mabe {
 
     // Format:  OnMutate(Organism & org)
     // Trigger: Organism has had its genome changed due to mutation.
+    // Args:    Organism that just mutated.
     void OnMutate(Organism &) override {
       has_signal[SIG_OnMutate] = false;
       control.RescanSignals();
@@ -241,6 +266,7 @@ namespace mabe {
 
     // Format:  BeforeDeath(OrgPosition remove_pos)
     // Trigger: Organism is about to die.
+    // Args:    Position of organism about to die.
     void BeforeDeath(OrgPosition) override {
       has_signal[SIG_BeforeDeath] = false;
       control.RescanSignals();
@@ -248,6 +274,7 @@ namespace mabe {
 
     // Format:  BeforeSwap(OrgPosition pos1, OrgPosition pos2)
     // Trigger: Two organisms' positions in the population are about to move.
+    // Args:    Positions of organisms about to be swapped.
     void BeforeSwap(OrgPosition, OrgPosition) override {
       has_signal[SIG_BeforeSwap] = false;
       control.RescanSignals();
@@ -255,6 +282,7 @@ namespace mabe {
 
     // Format:  OnSwap(OrgPosition pos1, OrgPosition pos2)
     // Trigger: Two organisms' positions in the population have just swapped.
+    // Args:    Positions of organisms just swapped.
     void OnSwap(OrgPosition, OrgPosition) override {
       has_signal[SIG_OnSwap] = false;
       control.RescanSignals();
@@ -262,6 +290,7 @@ namespace mabe {
 
     // Format:  BeforePopResize(Population & pop, size_t new_size)
     // Trigger: Full population is about to be resized.
+    // Args:    Population about to be resized, the size it will become.
     void BeforePopResize(Population &, size_t) override {
       has_signal[SIG_BeforePopResize] = false;
       control.RescanSignals();
@@ -269,6 +298,7 @@ namespace mabe {
 
     // Format:  OnPopResize(Population & pop, size_t old_size)
     // Trigger: Full population has just been resized.
+    // Args:    Population just resized, previous size it was.
     void OnPopResize(Population &, size_t) override {
       has_signal[SIG_OnPopResize] = false;
       control.RescanSignals();
@@ -276,6 +306,7 @@ namespace mabe {
 
     // Format:  OnError(const std::string & msg)
     // Trigger: An error has occurred and the user should be notified.
+    // Args:    Message associated with this error.
     void OnError(const std::string &) override {
       has_signal[SIG_OnError] = false;
       control.RescanSignals();
@@ -283,6 +314,7 @@ namespace mabe {
 
     // Format:  OnWarning(const std::string & msg)
     // Trigger: A atypical condition has occurred and the user should be notified.
+    // Args:    Message associated with this warning.
     void OnWarning(const std::string &) override {
       has_signal[SIG_OnWarning] = false;
       control.RescanSignals();
@@ -302,10 +334,18 @@ namespace mabe {
       control.RescanSignals();
     }
 
+    // Format:  TraceEval(Organism & trace_org, std::ostream & out_stream)
+    // Trigger: Request to print a trace of the evaluation of an organism.
+    // Args:    Organism to be traces, stream to print trace to.
+    void TraceEval(Organism &, std::ostream &) override {
+      has_signal[SIG_TraceEval] = false;
+      control.RescanSignals();
+    }
+
 
     // Functions to be called based on actions that need to happen.  Each of these returns a
     // viable result or an invalid object if need to pass on to the next module.  Modules will
-    // be querried in order until one of them returns a valid result.
+    // be queried in order until one of them returns a valid result.
 
     // Function: Place a new organism about to be born.
     // Args: Organism that will be placed, position of parent, population to place.
@@ -365,6 +405,7 @@ namespace mabe {
     bool OnWarning_IsTriggered() override { return control.OnWarning_IsTriggered(this); };
     bool BeforeExit_IsTriggered() override { return control.BeforeExit_IsTriggered(this); };
     bool OnHelp_IsTriggered() override { return control.OnHelp_IsTriggered(this); };
+    bool TraceEval_IsTriggered() override { return control.TraceEval_IsTriggered(this); };
     bool DoPlaceBirth_IsTriggered() override { return control.DoPlaceBirth_IsTriggered(this); };
     bool DoPlaceInject_IsTriggered() override { return control.DoPlaceInject_IsTriggered(this); };
     bool DoFindNeighbor_IsTriggered() override { return control.DoFindNeighbor_IsTriggered(this); };
