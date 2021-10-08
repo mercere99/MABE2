@@ -21,7 +21,7 @@
 
 // Placement Modules
 #include "placement/GrowthPlacement.hpp"
-#include "placement/SelfReplication.hpp"
+//#include "placement/SelfReplication.hpp"
 
 // Selection Modules
 #include "select/SelectElite.hpp"
@@ -33,7 +33,10 @@
 #include "schema/Mutate.hpp"
 
 // Organism Types
-#include "orgs/AvidaGPOrg.hpp"
-#include "orgs/GenericAvidaOrg.hpp"
+//#include "orgs/AvidaGPOrg.hpp"
+//#include "orgs/GenericAvidaOrg.hpp"
 #include "orgs/BitsOrg.hpp"
 #include "orgs/ValsOrg.hpp"
+#include "orgs/VirtualCPUOrg.hpp"
+#include "orgs/instructions/VirtualCPU_Inst_Math.hpp"
+#include "orgs/instructions/VirtualCPU_Inst_Input.hpp"
