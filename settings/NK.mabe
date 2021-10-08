@@ -1,4 +1,4 @@
-random_seed = -654631897;       // Seed for random number generator; use 0 to base on time.
+random_seed = 1285969064;      // Seed for random number generator; use 0 to base on time.
 Population main_pop;            // Collection of organisms
 Population next_pop;            // Collection of organisms
 Value pop_size = 200;           // Local value variable.
@@ -43,6 +43,10 @@ MovePopulation sync_gen {       // Move organisms from one populaiton to another
 }
 AnalyzeSystematics sys {        // Module to track the population's phylogeny.
   store_outside = 0;            // Store all taxa that ever existed.(1 = TRUE)
+  store_ancestors = 1;          // Store all ancestors of extant taxa.(1 = TRUE)
+  taxon_info = "bits";    // Which trait should we identify unique taxa based on
+  snapshot_updates = "-1:1";    // Which updates should we output a snapshot of the phylogeny?
+  data_updates = "0:1";       // Which updates should we output a data from the phylogeny?
 }
 BitsOrg bits_org {              // Organism consisting of a series of N bits.
   N = 100;                      // Number of bits in organism

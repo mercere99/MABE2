@@ -5,6 +5,7 @@
 #include "../core/Module.hpp"
 #include "../core/TraitSet.hpp"
 #include "emp/Evolve/Systematics.hpp"
+#include "emp/data/DataFile.hpp"
 
 
 namespace mabe {
@@ -22,6 +23,10 @@ private:
     int snapshot_start;
     int snapshot_frequency;
     int snapshot_end;
+    int data_start;
+    int data_frequency;
+    int data_end;
+    emp::DataFile data; 
 
 public:
     AnalyzeSystematics(mabe::MABE & control,
@@ -35,7 +40,11 @@ public:
       sys([this](Organism& org){return org.GetTraitAsString(org.GetTraitID(taxon_info));}, true, _storeanc, _storeout, true),
       snapshot_start(-1),
       snapshot_frequency(1),
-      snapshot_end(-1)
+      snapshot_end(-1),
+      data_start(-1),
+      data_frequency(-1),
+      data_end(-1),
+      data("phylogenetic_data.csv")
     {
       SetAnalyzeMod(true);    ///< Mark this module as an analyze module.
     }
@@ -46,12 +55,20 @@ public:
       LinkVar(store_ancestors, "store_ancestors", "Store all ancestors of extant taxa.(1 = TRUE)" );
       LinkVar(taxon_info, "taxon_info", "Which trait should we identify unique taxa based on");
       LinkRange(snapshot_start, snapshot_frequency, snapshot_end, "snapshot_updates", "Which updates should we output a snapshot of the phylogeny?");
+      LinkRange(data_start, data_frequency, data_end, "data_updates", "Which updates should we output a data from the phylogeny?");
+
     }
 
     void SetupModule() override {
       // Setup the traits.
       // TODO: Ideally it would be great if we didn't have to list all possible allowed types here
       AddRequiredTrait<std::string, emp::BitVector, int, double, emp::vector<int>>(taxon_info);
+      sys.AddPhylogeneticDiversityDataNode();
+      std::function<size_t ()> updatefun = [this](){return control.GetUpdate();};
+      data.AddFun(updatefun,"Generation", "The current generation");
+      data.AddCurrent(*sys.GetDataNode("phylogenetic_diversity"), "phylogenetic_diversity","The current phylogenetic diversity.", true, true);
+      data.PrintHeaderKeys();
+      data.SetTimingRange(data_start, data_frequency, data_end);    
     }
       
     void OnUpdate(size_t update) override {
@@ -60,6 +77,9 @@ public:
       if (update >= snapshot_start && update <= snapshot_end && (update - snapshot_start) % snapshot_frequency == 0) {
         sys.Snapshot("phylogeny_" + emp::to_string(update) + ".csv");
       }
+      data.Update(update);
+      //if (update >= data_start && update <= data_end && (update - data_start) % data_frequency == 0) {
+        //sys.data("phylogeny_" + emp::to_string(update) + ".csv");
     }
 
     void BeforeDeath(OrgPosition pos) override {
