@@ -34,11 +34,6 @@ namespace mabe {
     // size_t arg_count;
 
   public:
-    ConfigEntry_Function(const std::string & _name,
-                   const std::string & _desc,
-                   emp::Ptr<ConfigEntry_Scope> _scope)
-      : ConfigEntry(_name, _desc, _scope) { ; }
-
     template <typename RETURN_T, typename... ARGS>
     ConfigEntry_Function(const std::string & _name,
                    std::function<RETURN_T(ARGS...)> _fun,
@@ -60,8 +55,8 @@ namespace mabe {
       numeric_return = std::is_scalar_v<RETURN_T>;
       string_return = std::is_same<std::string, RETURN_T>();
 
-      // Convert the function call to using entry pointers.
-      fun = [in_fun, name=name, desc=desc](const emp::vector<entry_ptr_t> & args) -> entry_ptr_t {        
+      // Convert the function call to return an entry pointer and save it.
+      fun = [in_fun, name=name, desc=desc](const entry_vector_t & args) -> entry_ptr_t {        
         // If arguments are passed in, we need to raise an error.
         if (args.size()) {
           return emp::NewPtr<ConfigEntry_Error>(
@@ -69,10 +64,7 @@ namespace mabe {
           );
         }
 
-        entry_ptr_t out_entry =
-          emp::NewPtr<ConfigEntry_Var<RETURN_T>>("return value", in_fun(), desc, nullptr);
-        out_entry->SetTemporary();
-        return out_entry;
+        return MakeTempEntry(in_fun());
       };
     }
 
@@ -87,12 +79,8 @@ namespace mabe {
             "Function '", name, "' called with ", args.size(), " args, but ", NUM_ARGS, " expected."
           );            
         }
-
-        RETURN_T result = in_fun((args[INDICES]->template As< std::decay_t<ARGS> >())...);
-        entry_ptr_t out_entry =
-          emp::NewPtr<ConfigEntry_Var<RETURN_T>>("return value", result, desc, nullptr);
-        out_entry->SetTemporary();
-        return out_entry;
+        
+        return MakeTempEntry( in_fun((args[INDICES]->template As< std::decay_t<ARGS> >())...) );
       };
     }
 
@@ -101,14 +89,9 @@ namespace mabe {
     void SetFunction( std::function<RETURN_T(ARG1, ARGS...)> in_fun ) {
       /// If we have only one argument and it is a `const emp::vector<entry_ptr_t> &`,
       /// assume that the function will handle any conversions itself.
-      if constexpr (std::is_same<ARG1, const entry_vector_t &>() &&
-                    sizeof...(ARGS) == 0) {
+      if constexpr (sizeof...(ARGS) == 0 && std::is_same<ARG1, const entry_vector_t &>()) {
         fun = [in_fun, name=name, desc=desc](const entry_vector_t & args) -> entry_ptr_t {        
-          RETURN_T result = in_fun(args);
-          entry_ptr_t out_entry =
-            emp::NewPtr<ConfigEntry_Var<RETURN_T>>("return value", result, desc, nullptr);
-          out_entry->SetTemporary();
-          return out_entry;
+          return MakeTempEntry(in_fun(args));
         };
       }
 
