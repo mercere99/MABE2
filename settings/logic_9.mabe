@@ -15,6 +15,9 @@ SchedulerProbabilistic scheduler { // Rations out updates to organisms based on 
   avg_updates = 30;             // How many updates should organism receive on average?
   trait = "merit";              // Which trait provides the fitness value to use?
 }
+VirtualCPU_Inst_Nop inst_lib_nop { // Nop instructions for VirtualCPUOrg
+  target_pop = "main_pop";      // Population(s) to manage.
+}
 VirtualCPU_Inst_Math inst_lib_math { // Math instructions for VirtualCPUOrg
   target_pop = "main_pop";      // Population(s) to manage.
 }
