@@ -28,7 +28,8 @@
  *   }                         // f has been initialized with six variables in its scope.
  *
  *   --- The functionality below does not yet work and may change when implemented ---
- *   f["new"] = 22;      // You can always add new fields to structures.
+ *   f["g"] = 2.5;       // You can also access elements though indexing.
+ *   f["new"] = 22;      // You can always add new fields to structures via indexing.
  *   // d["bad"] = 4;    // ERROR - You cannot add fields to non-structures.
  *   k = [ 1 , 2 , 3];   // k is a vector of values (vectors must have all types the same!)
  *   l = k[1];           // Vectors can be indexed into.
@@ -97,6 +98,9 @@ namespace mabe {
       using entry_ptr_t = emp::Ptr<ConfigEntry>;
       using member_fun_t = std::function<entry_ptr_t(const emp::vector<entry_ptr_t> &)>;
       emp::map<std::string, member_fun_t> member_funs;
+
+      emp::vector< entry_ptr_t > member_list;           ///< Member functions for this type
+      emp::map< std::string, entry_ptr_t > entry_map;   ///< Lookup table for member functions.
 
       // Constructor to allow a simple new configuration type
       TypeInfo(size_t in_id, const std::string & in_desc)
@@ -612,13 +616,13 @@ namespace mabe {
     return emp::NewPtr<ASTNode_Leaf>(cur_entry);
   }
 
-  emp::Ptr<ASTNode_Leaf> MakeTempDouble(double val) {
+  emp::Ptr<ASTNode_Leaf> MakeTempLeaf(double val) {
     auto out_ptr = emp::NewPtr<ConfigEntry_DoubleVar>("", val, "Temporary double", nullptr);
     out_ptr->SetTemporary();
     return emp::NewPtr<ASTNode_Leaf>(out_ptr);
   }
 
-  emp::Ptr<ASTNode_Leaf> MakeTempString(const std::string & val) {
+  emp::Ptr<ASTNode_Leaf> MakeTempLeaf(const std::string & val) {
     auto out_ptr = emp::NewPtr<ConfigEntry_StringVar>("", val, "Temporary string", nullptr);
     out_ptr->SetTemporary();
     return emp::NewPtr<ASTNode_Leaf>(out_ptr);
@@ -635,21 +639,21 @@ namespace mabe {
     if (IsNumber(pos)) {
       Debug("...value is a number: ", AsLexeme(pos));
       double value = emp::from_string<double>(AsLexeme(pos++)); // Calculate value.
-      return MakeTempDouble(value);                             // Return temporary ConfigEntry.
+      return MakeTempLeaf(value);                             // Return temporary ConfigEntry.
     }
 
     // A literal char should be converted to its ASCII value.
     if (IsChar(pos)) {
       Debug("...value is a char: ", AsLexeme(pos));
       char lit_char = emp::from_literal_char(AsLexeme(pos++));  // Convert the literal char.
-      return MakeTempDouble((double) lit_char);                 // Return temporary ConfigEntry.
+      return MakeTempLeaf((double) lit_char);                 // Return temporary ConfigEntry.
     }
 
     // A literal string should be converted to a regular string and used.
     if (IsString(pos)) {
       Debug("...value is a string: ", AsLexeme(pos));
       std::string str = emp::from_literal_string(AsLexeme(pos++)); // Convert the literal string.
-      return MakeTempString(str);                         // Return temporary ConfigEntry.
+      return MakeTempLeaf(str);                         // Return temporary ConfigEntry.
     }
 
     // If we have an open parenthesis, process everything inside into a single value...
