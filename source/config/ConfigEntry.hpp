@@ -191,6 +191,7 @@ namespace mabe {
 
       return *this;
     }
+
   };
 
   /// A generic version of a config entry for an internally maintained variable.
@@ -287,6 +288,19 @@ namespace mabe {
 
   emp::Ptr<ConfigEntry> ConfigEntry::Call( emp::vector<emp::Ptr<ConfigEntry>> /* args */ ) {
     return emp::NewPtr<ConfigEntry_Error>("Cannot call a function on non-function '", name, "'.");
+  }
+
+
+  ////////////////////////////////////////////////////
+  //  Helper functions ==
+
+  // Use ConfigEntry::MakeTempEntry(value) to quickly make a temporary entry with a given value.
+  // Note: Caller will be responsible for deleting the created entry!
+  template <typename VALUE_T>
+  emp::Ptr<ConfigEntry_Var<VALUE_T>> MakeTempEntry(VALUE_T value) {
+    auto out_entry = emp::NewPtr<ConfigEntry_Var<VALUE_T>>("__Temp", value, "", nullptr);
+    out_entry->SetTemporary();
+    return out_entry;
   }
 
 }
