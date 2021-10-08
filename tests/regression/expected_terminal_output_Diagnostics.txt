@@ -1,109 +1,106 @@
 EMP_TRACK_MEM: Pointer tracking is active!
 Loading file(s): 'Diagnostics.mabe'
 random_seed = 2000
-Update:1  main_pop:512  next_pop:0
-Update:2  main_pop:512  next_pop:0
-Update:3  main_pop:512  next_pop:0
-Update:4  main_pop:512  next_pop:0
-Update:5  main_pop:512  next_pop:0
-Update:6  main_pop:512  next_pop:0
-Update:7  main_pop:512  next_pop:0
-Update:8  main_pop:512  next_pop:0
-Update:9  main_pop:512  next_pop:0
-Update:10  main_pop:512  next_pop:0
-Update:11  main_pop:512  next_pop:0
-Update:12  main_pop:512  next_pop:0
-Update:13  main_pop:512  next_pop:0
-Update:14  main_pop:512  next_pop:0
-Update:15  main_pop:512  next_pop:0
-Update:16  main_pop:512  next_pop:0
-Update:17  main_pop:512  next_pop:0
-Update:18  main_pop:512  next_pop:0
-Update:19  main_pop:512  next_pop:0
-Update:20  main_pop:512  next_pop:0
-Update:21  main_pop:512  next_pop:0
-Update:22  main_pop:512  next_pop:0
-Update:23  main_pop:512  next_pop:0
-Update:24  main_pop:512  next_pop:0
-Update:25  main_pop:512  next_pop:0
-Update:26  main_pop:512  next_pop:0
-Update:27  main_pop:512  next_pop:0
-Update:28  main_pop:512  next_pop:0
-Update:29  main_pop:512  next_pop:0
-Update:30  main_pop:512  next_pop:0
-Update:31  main_pop:512  next_pop:0
-Update:32  main_pop:512  next_pop:0
-Update:33  main_pop:512  next_pop:0
-Update:34  main_pop:512  next_pop:0
-Update:35  main_pop:512  next_pop:0
-Update:36  main_pop:512  next_pop:0
-Update:37  main_pop:512  next_pop:0
-Update:38  main_pop:512  next_pop:0
-Update:39  main_pop:512  next_pop:0
-Update:40  main_pop:512  next_pop:0
-Update:41  main_pop:512  next_pop:0
-Update:42  main_pop:512  next_pop:0
-Update:43  main_pop:512  next_pop:0
-Update:44  main_pop:512  next_pop:0
-Update:45  main_pop:512  next_pop:0
-Update:46  main_pop:512  next_pop:0
-Update:47  main_pop:512  next_pop:0
-Update:48  main_pop:512  next_pop:0
-Update:49  main_pop:512  next_pop:0
-Update:50  main_pop:512  next_pop:0
-Update:51  main_pop:512  next_pop:0
-Update:52  main_pop:512  next_pop:0
-Update:53  main_pop:512  next_pop:0
-Update:54  main_pop:512  next_pop:0
-Update:55  main_pop:512  next_pop:0
-Update:56  main_pop:512  next_pop:0
-Update:57  main_pop:512  next_pop:0
-Update:58  main_pop:512  next_pop:0
-Update:59  main_pop:512  next_pop:0
-Update:60  main_pop:512  next_pop:0
-Update:61  main_pop:512  next_pop:0
-Update:62  main_pop:512  next_pop:0
-Update:63  main_pop:512  next_pop:0
-Update:64  main_pop:512  next_pop:0
-Update:65  main_pop:512  next_pop:0
-Update:66  main_pop:512  next_pop:0
-Update:67  main_pop:512  next_pop:0
-Update:68  main_pop:512  next_pop:0
-Update:69  main_pop:512  next_pop:0
-Update:70  main_pop:512  next_pop:0
-Update:71  main_pop:512  next_pop:0
-Update:72  main_pop:512  next_pop:0
-Update:73  main_pop:512  next_pop:0
-Update:74  main_pop:512  next_pop:0
-Update:75  main_pop:512  next_pop:0
-Update:76  main_pop:512  next_pop:0
-Update:77  main_pop:512  next_pop:0
-Update:78  main_pop:512  next_pop:0
-Update:79  main_pop:512  next_pop:0
-Update:80  main_pop:512  next_pop:0
-Update:81  main_pop:512  next_pop:0
-Update:82  main_pop:512  next_pop:0
-Update:83  main_pop:512  next_pop:0
-Update:84  main_pop:512  next_pop:0
-Update:85  main_pop:512  next_pop:0
-Update:86  main_pop:512  next_pop:0
-Update:87  main_pop:512  next_pop:0
-Update:88  main_pop:512  next_pop:0
-Update:89  main_pop:512  next_pop:0
-Update:90  main_pop:512  next_pop:0
-Update:91  main_pop:512  next_pop:0
-Update:92  main_pop:512  next_pop:0
-Update:93  main_pop:512  next_pop:0
-Update:94  main_pop:512  next_pop:0
-Update:95  main_pop:512  next_pop:0
-Update:96  main_pop:512  next_pop:0
-Update:97  main_pop:512  next_pop:0
-Update:98  main_pop:512  next_pop:0
-Update:99  main_pop:512  next_pop:0
-Update:100  main_pop:512  next_pop:0
-Exiting.  Population main_pop has 512 organisms.  First org:
-[ 62.2679 74.7009 33.9613 76.9557 74.5811 73.6757 94.8196 88.3477 60.2523 58.2492 22.0075 87.4549 46.6062 24.5379 57.6261 37.2151 34.4311 27.1759 54.1982 15.5974 39.9054 39.8743 97.2826 56.0037 74.3387 40.4918 27.8111 68.2788 68.1226 79.8802 77.3329 86.0757 87.8535 99.2922 88.87 50.926 64.553 77.5236 79.4031 26.0559 58.4927 10.9552 77.8361 5.19566 77.8162 7.71376 50.0968 89.2609 17.9535 54.4896 58.6455 28.3984 50.8232 70.6528 60.3454 15.0601 33.8616 31.5513 31.2256 92.7796 94.4932 85.5492 77.1051 14.3046 52.7311 74.5129 18.0297 93.0127 16.4264 9.66631 82.8386 89.5608 51.8273 80.0584 49.3617 78.0551 92.4984 26.1916 77.292 9.80779 54.5225 52.2849 75.145 99.9147 77.3032 45.2531 3.08679 97.7912 55.6567 22.735 0.202828 43.0477 99.3983 22.4702 20.1187 23.3004 3.44802 11.3782 82.1542 3.65367 ]:(TOTAL=5423.88)
-Exiting.  Population main_pop has 512 organisms.  First org:
-[ 62.2679 74.7009 33.9613 76.9557 74.5811 73.6757 94.8196 88.3477 60.2523 58.2492 22.0075 87.4549 46.6062 24.5379 57.6261 37.2151 34.4311 27.1759 54.1982 15.5974 39.9054 39.8743 97.2826 56.0037 74.3387 40.4918 27.8111 68.2788 68.1226 79.8802 77.3329 86.0757 87.8535 99.2922 88.87 50.926 64.553 77.5236 79.4031 26.0559 58.4927 10.9552 77.8361 5.19566 77.8162 7.71376 50.0968 89.2609 17.9535 54.4896 58.6455 28.3984 50.8232 70.6528 60.3454 15.0601 33.8616 31.5513 31.2256 92.7796 94.4932 85.5492 77.1051 14.3046 52.7311 74.5129 18.0297 93.0127 16.4264 9.66631 82.8386 89.5608 51.8273 80.0584 49.3617 78.0551 92.4984 26.1916 77.292 9.80779 54.5225 52.2849 75.145 99.9147 77.3032 45.2531 3.08679 97.7912 55.6567 22.735 0.202828 43.0477 99.3983 22.4702 20.1187 23.3004 3.44802 11.3782 82.1542 3.65367 ]:(TOTAL=5423.88)
+Update:0
+Update:1  main_pop:512  next_pop:0, fitness:max=419.489, fitness:mean=174.873
+Update:2  main_pop:512  next_pop:0, fitness:max=419.489, fitness:mean=180.885
+Update:3  main_pop:512  next_pop:0, fitness:max=419.489, fitness:mean=178.48
+Update:4  main_pop:512  next_pop:0, fitness:max=419.489, fitness:mean=175.37
+Update:5  main_pop:512  next_pop:0, fitness:max=419.489, fitness:mean=179.523
+Update:6  main_pop:512  next_pop:0, fitness:max=419.489, fitness:mean=180.337
+Update:7  main_pop:512  next_pop:0, fitness:max=419.489, fitness:mean=173.579
+Update:8  main_pop:512  next_pop:0, fitness:max=421.211, fitness:mean=180.132
+Update:9  main_pop:512  next_pop:0, fitness:max=423.161, fitness:mean=175.976
+Update:10  main_pop:512  next_pop:0, fitness:max=423.161, fitness:mean=177.392
+Update:11  main_pop:512  next_pop:0, fitness:max=423.161, fitness:mean=178.259
+Update:12  main_pop:512  next_pop:0, fitness:max=423.161, fitness:mean=180.923
+Update:13  main_pop:512  next_pop:0, fitness:max=423.161, fitness:mean=181.57
+Update:14  main_pop:512  next_pop:0, fitness:max=423.161, fitness:mean=178.333
+Update:15  main_pop:512  next_pop:0, fitness:max=423.23, fitness:mean=178.886
+Update:16  main_pop:512  next_pop:0, fitness:max=423.23, fitness:mean=176.596
+Update:17  main_pop:512  next_pop:0, fitness:max=423.701, fitness:mean=180.157
+Update:18  main_pop:512  next_pop:0, fitness:max=423.701, fitness:mean=173.848
+Update:19  main_pop:512  next_pop:0, fitness:max=423.458, fitness:mean=183.349
+Update:20  main_pop:512  next_pop:0, fitness:max=423.458, fitness:mean=183.126
+Update:21  main_pop:512  next_pop:0, fitness:max=423.458, fitness:mean=188.142
+Update:22  main_pop:512  next_pop:0, fitness:max=423.458, fitness:mean=179.859
+Update:23  main_pop:512  next_pop:0, fitness:max=423.458, fitness:mean=184.539
+Update:24  main_pop:512  next_pop:0, fitness:max=423.458, fitness:mean=182.855
+Update:25  main_pop:512  next_pop:0, fitness:max=423.458, fitness:mean=185.491
+Update:26  main_pop:512  next_pop:0, fitness:max=423.458, fitness:mean=190.905
+Update:27  main_pop:512  next_pop:0, fitness:max=423.458, fitness:mean=187.039
+Update:28  main_pop:512  next_pop:0, fitness:max=423.458, fitness:mean=185.274
+Update:29  main_pop:512  next_pop:0, fitness:max=423.458, fitness:mean=185.766
+Update:30  main_pop:512  next_pop:0, fitness:max=423.458, fitness:mean=187.946
+Update:31  main_pop:512  next_pop:0, fitness:max=423.458, fitness:mean=184.878
+Update:32  main_pop:512  next_pop:0, fitness:max=423.458, fitness:mean=187.134
+Update:33  main_pop:512  next_pop:0, fitness:max=423.458, fitness:mean=190.422
+Update:34  main_pop:512  next_pop:0, fitness:max=423.458, fitness:mean=185.571
+Update:35  main_pop:512  next_pop:0, fitness:max=423.521, fitness:mean=185.998
+Update:36  main_pop:512  next_pop:0, fitness:max=423.521, fitness:mean=192.934
+Update:37  main_pop:512  next_pop:0, fitness:max=423.521, fitness:mean=193.543
+Update:38  main_pop:512  next_pop:0, fitness:max=424.633, fitness:mean=194.547
+Update:39  main_pop:512  next_pop:0, fitness:max=424.633, fitness:mean=195.153
+Update:40  main_pop:512  next_pop:0, fitness:max=426.3, fitness:mean=189.448
+Update:41  main_pop:512  next_pop:0, fitness:max=426.3, fitness:mean=193.151
+Update:42  main_pop:512  next_pop:0, fitness:max=426.3, fitness:mean=189.401
+Update:43  main_pop:512  next_pop:0, fitness:max=426.3, fitness:mean=189.705
+Update:44  main_pop:512  next_pop:0, fitness:max=426.3, fitness:mean=189.285
+Update:45  main_pop:512  next_pop:0, fitness:max=426.3, fitness:mean=195.896
+Update:46  main_pop:512  next_pop:0, fitness:max=426.3, fitness:mean=190.539
+Update:47  main_pop:512  next_pop:0, fitness:max=427.907, fitness:mean=195.019
+Update:48  main_pop:512  next_pop:0, fitness:max=427.907, fitness:mean=188.361
+Update:49  main_pop:512  next_pop:0, fitness:max=427.972, fitness:mean=192.582
+Update:50  main_pop:512  next_pop:0, fitness:max=427.972, fitness:mean=190.965
+Update:51  main_pop:512  next_pop:0, fitness:max=427.972, fitness:mean=202.343
+Update:52  main_pop:512  next_pop:0, fitness:max=427.972, fitness:mean=191.128
+Update:53  main_pop:512  next_pop:0, fitness:max=427.972, fitness:mean=195.795
+Update:54  main_pop:512  next_pop:0, fitness:max=427.972, fitness:mean=195.449
+Update:55  main_pop:512  next_pop:0, fitness:max=427.972, fitness:mean=198.197
+Update:56  main_pop:512  next_pop:0, fitness:max=427.972, fitness:mean=197.176
+Update:57  main_pop:512  next_pop:0, fitness:max=427.972, fitness:mean=199.809
+Update:58  main_pop:512  next_pop:0, fitness:max=427.972, fitness:mean=197.5
+Update:59  main_pop:512  next_pop:0, fitness:max=427.972, fitness:mean=185.701
+Update:60  main_pop:512  next_pop:0, fitness:max=427.972, fitness:mean=203.474
+Update:61  main_pop:512  next_pop:0, fitness:max=427.972, fitness:mean=194.851
+Update:62  main_pop:512  next_pop:0, fitness:max=428.408, fitness:mean=198.307
+Update:63  main_pop:512  next_pop:0, fitness:max=428.408, fitness:mean=196.3
+Update:64  main_pop:512  next_pop:0, fitness:max=428.408, fitness:mean=195.71
+Update:65  main_pop:512  next_pop:0, fitness:max=428.408, fitness:mean=197.965
+Update:66  main_pop:512  next_pop:0, fitness:max=428.408, fitness:mean=194.939
+Update:67  main_pop:512  next_pop:0, fitness:max=428.408, fitness:mean=198.833
+Update:68  main_pop:512  next_pop:0, fitness:max=428.408, fitness:mean=191.627
+Update:69  main_pop:512  next_pop:0, fitness:max=428.408, fitness:mean=192.622
+Update:70  main_pop:512  next_pop:0, fitness:max=428.408, fitness:mean=190.036
+Update:71  main_pop:512  next_pop:0, fitness:max=428.408, fitness:mean=190.704
+Update:72  main_pop:512  next_pop:0, fitness:max=428.408, fitness:mean=191.268
+Update:73  main_pop:512  next_pop:0, fitness:max=428.408, fitness:mean=196.085
+Update:74  main_pop:512  next_pop:0, fitness:max=428.408, fitness:mean=192.187
+Update:75  main_pop:512  next_pop:0, fitness:max=428.408, fitness:mean=191.073
+Update:76  main_pop:512  next_pop:0, fitness:max=429.593, fitness:mean=191.204
+Update:77  main_pop:512  next_pop:0, fitness:max=429.593, fitness:mean=192.655
+Update:78  main_pop:512  next_pop:0, fitness:max=432.244, fitness:mean=196.406
+Update:79  main_pop:512  next_pop:0, fitness:max=432.244, fitness:mean=194.632
+Update:80  main_pop:512  next_pop:0, fitness:max=432.244, fitness:mean=197.895
+Update:81  main_pop:512  next_pop:0, fitness:max=432.244, fitness:mean=196.022
+Update:82  main_pop:512  next_pop:0, fitness:max=432.244, fitness:mean=196.637
+Update:83  main_pop:512  next_pop:0, fitness:max=432.244, fitness:mean=198.273
+Update:84  main_pop:512  next_pop:0, fitness:max=432.244, fitness:mean=196.378
+Update:85  main_pop:512  next_pop:0, fitness:max=432.244, fitness:mean=203.81
+Update:86  main_pop:512  next_pop:0, fitness:max=432.244, fitness:mean=197.059
+Update:87  main_pop:512  next_pop:0, fitness:max=432.244, fitness:mean=199.841
+Update:88  main_pop:512  next_pop:0, fitness:max=432.244, fitness:mean=198.993
+Update:89  main_pop:512  next_pop:0, fitness:max=432.244, fitness:mean=199.269
+Update:90  main_pop:512  next_pop:0, fitness:max=432.244, fitness:mean=197.511
+Update:91  main_pop:512  next_pop:0, fitness:max=432.244, fitness:mean=195.986
+Update:92  main_pop:512  next_pop:0, fitness:max=503.584, fitness:mean=196.653
+Update:93  main_pop:512  next_pop:0, fitness:max=503.584, fitness:mean=202.617
+Update:94  main_pop:512  next_pop:0, fitness:max=503.584, fitness:mean=198.729
+Update:95  main_pop:512  next_pop:0, fitness:max=504.047, fitness:mean=202.045
+Update:96  main_pop:512  next_pop:0, fitness:max=504.047, fitness:mean=202.551
+Update:97  main_pop:512  next_pop:0, fitness:max=504.047, fitness:mean=200.994
+Update:98  main_pop:512  next_pop:0, fitness:max=504.047, fitness:mean=202.419
+Update:99  main_pop:512  next_pop:0, fitness:max=504.352, fitness:mean=193.901
+==> Exiting.
 EMP_TRACK_MEM: No memory leaks found!
- 104771 pointers found; all have been cleaned up fully.
+ 105038 pointers found; all have been cleaned up fully.

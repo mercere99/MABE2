@@ -1,21 +1,16 @@
 EMP_TRACK_MEM: Pointer tracking is active!
 Loading file(s): 'Mancala.mabe'
 random_seed = 3000
-Update:1  main_pop:200  next_pop:0
-Update:2  main_pop:200  next_pop:0
-Update:3  main_pop:200  next_pop:0
-Update:4  main_pop:200  next_pop:0
-Update:5  main_pop:200  next_pop:0
-Update:6  main_pop:200  next_pop:0
-Update:7  main_pop:200  next_pop:0
-Update:8  main_pop:200  next_pop:0
-Update:9  main_pop:200  next_pop:0
-Update:10  main_pop:200  next_pop:0
-Exiting.  Population main_pop has 200 organisms.  First org:
-d[6565]g[7008]l[987]p[2]c[4]k[68661]o[36]a[2]s[68]p[3]r[695]b[7]b[4]a[5]t[689]a[9]a[2]s[65]i[67673]x[82]f[66865]s[65]r[18]o[06]n[670]b[8]g[56667]j[676765]d[6866]c[69]x[73]o[470]l[68966]n[86]c[67]t[683]c[65]h[46570]d[52]d[267]e[7567]k[6515]p[5]t[6870]m[665]i[439]b[4]j[36767]l[5365]x[682]
-
-Exiting.  Population main_pop has 200 organisms.  First org:
-d[6565]g[7008]l[987]p[2]c[4]k[68661]o[36]a[2]s[68]p[3]r[695]b[7]b[4]a[5]t[689]a[9]a[2]s[65]i[67673]x[82]f[66865]s[65]r[18]o[06]n[670]b[8]g[56667]j[676765]d[6866]c[69]x[73]o[470]l[68966]n[86]c[67]t[683]c[65]h[46570]d[52]d[267]e[7567]k[6515]p[5]t[6870]m[665]i[439]b[4]j[36767]l[5365]x[682]
-
+Update:0
+Update:1  main_pop:200  next_pop:0, fitness:max=-48, fitness:mean=-425.07
+Update:2  main_pop:200  next_pop:0, fitness:max=-68, fitness:mean=-450.57
+Update:3  main_pop:200  next_pop:0, fitness:max=-112, fitness:mean=-385.46
+Update:4  main_pop:200  next_pop:0, fitness:max=-126, fitness:mean=-486.87
+Update:5  main_pop:200  next_pop:0, fitness:max=-96, fitness:mean=-432.44
+Update:6  main_pop:200  next_pop:0, fitness:max=-80, fitness:mean=-476.14
+Update:7  main_pop:200  next_pop:0, fitness:max=-66, fitness:mean=-472.15
+Update:8  main_pop:200  next_pop:0, fitness:max=-148, fitness:mean=-489.89
+Update:9  main_pop:200  next_pop:0, fitness:max=-300, fitness:mean=-561.13
+==> Exiting.
 EMP_TRACK_MEM: No memory leaks found!
- 4835 pointers found; all have been cleaned up fully.
+ 5024 pointers found; all have been cleaned up fully.
