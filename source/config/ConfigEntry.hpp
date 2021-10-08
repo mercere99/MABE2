@@ -89,7 +89,7 @@ namespace mabe {
     const std::string & GetDesc() const noexcept { return desc; }
     emp::Ptr<ConfigEntry_Scope> GetScope() { return scope; }
     bool IsTemporary() const noexcept { return is_temporary; }
-    bool IsBuiltIn() const noexcept { return is_builtin; }
+    bool IsBuiltin() const noexcept { return is_builtin; }
     Format GetFormat() const noexcept { return format; }
 
     virtual std::string GetTypename() const { return "Unknown"; }
@@ -111,7 +111,7 @@ namespace mabe {
     ConfigEntry & SetName(const std::string & in) { name = in; return *this; }
     ConfigEntry & SetDesc(const std::string & in) { desc = in; return *this; }
     ConfigEntry & SetTemporary(bool in=true) { is_temporary = in; return *this; }
-    ConfigEntry & SetBuiltIn(bool in=true) { is_builtin = in; return *this; }
+    ConfigEntry & SetBuiltin(bool in=true) { is_builtin = in; return *this; }
 
     virtual double AsDouble() const { emp_assert(false); return 0.0; }
     virtual std::string AsString() const { emp_assert(false); return ""; }
@@ -174,7 +174,7 @@ namespace mabe {
                                       size_t comment_offset=32) const
     {
       // If this is a built-in entry, don't print it.
-      if (IsBuiltIn()) return *this;
+      if (IsBuiltin()) return *this;
 
       // Setup this entry.
       std::string cur_line = prefix;
