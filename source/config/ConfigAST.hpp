@@ -31,18 +31,6 @@ namespace mabe {
 
     node_ptr_t parent = nullptr;
 
-    // Helper functions.
-    emp::Ptr<ConfigEntry_DoubleVar> MakeTempDouble(double val) {
-      auto out_ptr = emp::NewPtr<ConfigEntry_DoubleVar>("temp", val, "Temporary double", nullptr);
-      out_ptr->SetTemporary();
-      return out_ptr;    
-    }
-
-    emp::Ptr<ConfigEntry_StringVar> MakeTempString(const std::string & val) {
-      auto out_ptr = emp::NewPtr<ConfigEntry_StringVar>("temp", val, "Temporary string", nullptr);
-      out_ptr->SetTemporary();
-      return out_ptr;    
-    }
   public:
     ASTNode() { ; }
     virtual ~ASTNode() { ; }
@@ -175,7 +163,7 @@ namespace mabe {
       entry_ptr_t input_entry = children[0]->Process();     // Process child to get input entry
       double output_value = fun(input_entry->AsDouble());   // Run the function to get ouput value
       if (input_entry->IsTemporary()) input_entry.Delete(); // If we are done with input; delete!
-      return MakeTempDouble(output_value);
+      return MakeTempEntry(output_value);
     }
 
     void Write(std::ostream & os, const std::string & offset) const override { 
@@ -205,11 +193,7 @@ namespace mabe {
       auto out_val = fun(in1->As<ARG1_T>(), in2->As<ARG2_T>()); // Run function; get ouput
       if (in1->IsTemporary()) in1.Delete();                   // If we are done with in1; delete!
       if (in2->IsTemporary()) in2.Delete();                   // If we are done with in2; delete!
-      if constexpr (std::is_same<RETURN_T, double>()) {
-        return MakeTempDouble(out_val);
-      } else {
-        return MakeTempString(out_val);
-      }
+      return MakeTempEntry(out_val);
     }
 
     void Write(std::ostream & os, const std::string & offset) const override { 
