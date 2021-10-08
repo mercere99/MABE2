@@ -8,7 +8,7 @@
  */
 
 // Analyze Modules
-#include "analyze/SystematicModules.hpp"
+#include "analyze/SystematicsModule.hpp"
 
 // Evaluation Modules
 #include "evaluate/games/EvalMancala.hpp"
