@@ -120,11 +120,9 @@ TEST_CASE("ConfigLexerChar", "[config]"){
     bool result02 = config_lexer03.IsChar(token02);
     CHECK(result02 == false);
 
-    // Test failing!! 'testing' accepted as char
-    std::string s03 = "'testing'";
-    emp::vector<emp::Token> token_vec03 = config_lexer03.Tokenize(s03);
-    CHECK(token_vec03.size() > 1);
-    CHECK_FALSE(config_lexer03.IsChar(token_vec03[0]));
+    emp::TokenStream token_stream = config_lexer03.Tokenize("testing", "name");
+    CHECK(token_stream.size() == 1);
+    CHECK_FALSE(config_lexer03.IsChar(token_stream.Get(0)));
   }
 }
 
@@ -142,9 +140,9 @@ TEST_CASE("ConfigLexerDots", "[config]"){
     // Test more than just first symbol to ensure ._ is not just dots 
     std::string s01 = "._";
     emp::Token token01 = config_lexer04.Process(s01);
-    emp::vector<emp::Token> token_vec01 = config_lexer04.Tokenize(s01);
-    CHECK(token_vec01.size() > 1);
-    CHECK(config_lexer04.IsDots(token_vec01[0]));
+    emp::TokenStream token_stream01 = config_lexer04.Tokenize(s01, "name");
+    CHECK(token_stream01.size() > 1);
+    CHECK(config_lexer04.IsDots(token_stream01.Get(0)));
 
     std::string s02 = "...";
     emp::Token token02 = config_lexer04.Process(s02);
@@ -163,9 +161,9 @@ TEST_CASE("ConfigLexerDots", "[config]"){
     
     std::string s05 = ".a";
     emp::Token token05 = config_lexer04.Process(s05);
-    emp::vector<emp::Token> token_vec05 = config_lexer04.Tokenize(s05);
-    CHECK(token_vec05.size() > 1);
-    CHECK(config_lexer04.IsDots(token_vec05[0]));
+    emp::TokenStream token_stream05 = config_lexer04.Tokenize(s05, "name");
+    CHECK(token_stream05.size() > 1);
+    CHECK(config_lexer04.IsDots(token_stream05.Get(0)));
    
     std::string s06 = "a.";
     emp::Token token06 = config_lexer04.Process(s06);

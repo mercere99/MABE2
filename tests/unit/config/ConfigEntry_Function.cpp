@@ -13,6 +13,7 @@
 #include "catch.hpp"
 // MABE
 #include "config/ConfigEntry_Function.hpp"
+#include "config/ConfigEntry_Linked.hpp"
 
 
 TEST_CASE("ConfigEntry_Function_NoParameters", "[config]"){

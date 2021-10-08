@@ -84,7 +84,8 @@ TEST_CASE("ASTLeaf", "[config]"){
 TEST_CASE("ASTNode_Block", "[config]"){
   {
     // Create ASTNode object
-    emp::Ptr<mabe::ASTNode_Block> block00_ptr = emp::NewPtr<mabe::ASTNode_Block>();
+    mabe::ConfigEntry_Scope fake_scope("fake_scope", "Fake scope for testing", nullptr);
+    emp::Ptr<mabe::ASTNode_Block> block00_ptr = emp::NewPtr<mabe::ASTNode_Block>(fake_scope);
 
     // Test getter functions
     std::string str00 = block00_ptr->GetName();
@@ -372,7 +373,7 @@ TEST_CASE("ASTNode_Assign", "[config]"){
 TEST_CASE("ASTNode_Call", "[config]"){
   {
     // Create setup function
-    int children_processed = 0;
+    size_t children_processed = 0;
     bool function_called;
 
     std::function<double(const entry_vector_t&)> setup = [&children_processed, &function_called](const entry_vector_t& entries) {
@@ -461,7 +462,7 @@ TEST_CASE("ASTNode_Event", "[config]"){
     args00.push_back(leaf01);
 
     // Create setup function
-    int children_processed = 0;
+    size_t children_processed = 0;
     std::string action_result;
 
     std::function<entry_ptr_t(node_ptr_t, const entry_vector_t &)> setup = [&children_processed, &action_result](node_ptr_t node, const entry_vector_t & vector) {
@@ -507,11 +508,12 @@ TEST_CASE("ASTNode_Event", "[config]"){
 }
 TEST_CASE("ASTNode_Block Full Process", "[config]"){
   {
+    mabe::ConfigEntry_Scope fake_scope("fake_scope", "Fake scope for testing", nullptr);
     // Create ASTNode object
-    emp::Ptr<mabe::ASTNode_Block> block00_ptr = emp::NewPtr<mabe::ASTNode_Block>();
+    emp::Ptr<mabe::ASTNode_Block> block00_ptr = emp::NewPtr<mabe::ASTNode_Block>(fake_scope);
 
     // Create setup function
-    int children_processed = 0;
+    size_t children_processed = 0;
     bool function_called;
 
     std::function<double(const entry_vector_t&)> setup = [&children_processed, &function_called](const entry_vector_t& entries) {

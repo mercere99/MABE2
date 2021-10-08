@@ -83,7 +83,7 @@ TEST_CASE("ASTEvents_Leaf", "[config]"){
 TEST_CASE("ASTEvents_Call", "[config]"){
   {
     // Create function
-    int children_processed = 0;
+    size_t children_processed = 0;
     bool function_called;
     int times_called = 0;
 
