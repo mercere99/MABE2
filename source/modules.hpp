@@ -21,6 +21,7 @@
 
 // Placement Modules
 #include "placement/GrowthPlacement.hpp"
+#include "placement/AnnotatePlacement.hpp"
 
 // Selection Modules
 #include "select/SelectElite.hpp"

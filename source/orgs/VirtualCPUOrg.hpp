@@ -84,6 +84,28 @@ namespace mabe {
 
     void Initialize(emp::Random & random) override {
       if (SharedData().init_random) Randomize(random);
+      else{
+        PushInst("HAlloc");
+        PushInst("HSearch");
+        PushInst("NopC");
+        PushInst("NopA");
+        PushInst("MovHead");
+        PushInst("NopC");
+        PushInst("NopC");
+        PushInst("NopC");
+        PushInst("NopC");
+        PushInst("NopC");
+        PushInst("NopC");
+        PushInst("HSearch");
+        PushInst("HCopy");
+        PushInst("IfLabel");
+        PushInst("NopC");
+        PushInst("NopA");
+        PushInst("HDivide");
+        PushInst("MovHead");
+        PushInst("NopA");
+        PushInst("NopB");
+      }
     }
 
     /// Put the output values in the correct output position.
@@ -196,6 +218,7 @@ namespace mabe {
             action.name,
             //func,
             [&action](VirtualCPUOrg& org, const inst_t& inst){
+              //std::cout << action.name << std::endl;
               for(size_t func_idx = 0; func_idx < action.function_vec.size(); ++func_idx){
                 action.function_vec[func_idx].Call<void, VirtualCPUOrg&, const inst_t&>(org, inst);
               }
@@ -204,19 +227,6 @@ namespace mabe {
             "test");
         std::cout << "Added instruction: " << action.name << std::endl;
       }
-      /*
-      for(size_t action_idx = 0; action_idx < action_vec.size(); ++action_idx){
-        emp::AnyFunction& func = action_vec[action_idx].function;
-        inst_lib.AddInst(
-            action_vec[action_idx].name,
-            [&func](VirtualCPUOrg& org, const inst_t& inst){
-              func.Call<void, VirtualCPUOrg&>(org);
-            },
-            0, 
-            "test");
-        std::cout << "Added instruction: " << action_vec[action_idx].name << std::endl;
-      }
-      */
     }
 
     bool ProcessStep() override { 

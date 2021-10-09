@@ -21,6 +21,7 @@ namespace mabe {
   private:
     Collection target_collect;
     int pop_id = 0;
+    std::string org_pos_trait = "org_pos";
     std::function<void(VirtualCPUOrg&, const VirtualCPUOrg::inst_t&)> func_h_alloc;
     std::function<void(VirtualCPUOrg&, const VirtualCPUOrg::inst_t&)> func_h_divide;
     std::function<void(VirtualCPUOrg&, const VirtualCPUOrg::inst_t&)> func_h_copy;
@@ -35,7 +36,8 @@ namespace mabe {
     ~VirtualCPU_Inst_Replication() { }
 
     void SetupConfig() override {
-       LinkPop(pop_id, "target_pop", "Population(s) to manage.");
+      LinkPop(pop_id, "target_pop", "Population(s) to manage.");
+      LinkVar(org_pos_trait, "pos_trait", "Name of trait that holds organism's position");
     }
 
     void SetupFuncs(){
@@ -47,8 +49,10 @@ namespace mabe {
       };
       action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>("HAlloc", func_h_alloc);
       // Head divide 
-      func_h_divide = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){
+      func_h_divide = [this](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){
         if(hw.read_head >= hw.genome.size()){
+          OrgPosition& org_pos = hw.GetTrait<OrgPosition>(org_pos_trait);
+          control.Replicate(org_pos, *org_pos.PopPtr());
           hw.genome_working.resize(hw.read_head);
           hw.ResetHardware();
           hw.inst_ptr = hw.genome.size() - 1;
@@ -87,6 +91,7 @@ namespace mabe {
     }
 
     void SetupModule() override {
+      AddRequiredTrait<OrgPosition>(org_pos_trait);
       SetupFuncs();
     }
   };
