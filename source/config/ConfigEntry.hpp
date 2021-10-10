@@ -28,6 +28,7 @@
 #include "emp/base/Ptr.hpp"
 #include "emp/base/vector.hpp"
 #include "emp/math/Range.hpp"
+#include "emp/meta/meta.hpp"
 #include "emp/meta/TypeID.hpp"
 #include "emp/tools/string_utils.hpp"
 #include "emp/tools/value_utils.hpp"
@@ -118,7 +119,8 @@ namespace mabe {
     template <typename T>
     T As() const {
       if constexpr (std::is_same<T,double>()) return AsDouble();
-      else return AsString();
+      else if constexpr (std::is_same<T,std::string>()) return AsString();
+      else static_assert(emp::dependent_false<T>(), "Invalid conversion for ConfigEntry::As()");
     }
 
     virtual ConfigEntry & SetValue(double in) { (void) in; emp_assert(false, in); return *this; }
