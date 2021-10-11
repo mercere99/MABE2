@@ -1,13 +1,16 @@
 random_seed = 1;                // Seed for random number generator; use 0 to base on time.
 Population main_pop;            // Collection of organisms
 Population next_pop;            // Collection of organisms
-Value pop_size = 20;           // Local value variable.
+Value pop_size = 3600;          // Local value variable.
 Value max_gens = 10;            // Local value variable.
 CommandLine cl {                // Handle basic I/O on the command line.
   format = "";                  // Column format to use in the file.
   target = "main_pop";          // Which population(s) should we print from?
 }
-GrowthPlacement place_next {    // Always appened births to the end of a population.
+//GrowthPlacement place_next {    // Always appened births to the end of a population.
+//  target = "main_pop";          // Population(s) to manage.
+//}
+RandomReplacement place_random { // Always appened births to the end of a population.
   target = "main_pop";          // Population(s) to manage.
 }
 AnnotatePlacement pos_annotater { // Store org's position as trait on placement.
@@ -49,6 +52,7 @@ VirtualCPUOrg avida_org {       // Organism consisting of Avida instructions.
   output_name = "output";       // Name of variable to output results.
 }
 
+@start(0) print("\n\nStarting run\n");
 @start(0) print("random_seed = ", random_seed, "\n");
 @start(0) inject("avida_org", "main_pop", pop_size);
-@update(max_gens) exit();
+@update(10) exit();
