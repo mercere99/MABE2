@@ -189,7 +189,7 @@ namespace mabe {
       if (IsLocal()) cur_line += emp::to_string(GetTypename(), " ");
       cur_line += name;
 
-      bool has_body = emp::AnyOf(symbol_table, [](entry_ptr_t ptr){ return !ptr->IsBuiltin(); }; );
+      bool has_body = emp::AnyOf(symbol_table, [](entry_ptr_t ptr){ return !ptr->IsBuiltin(); });
       
       // Only open this scope if there are contents.
       cur_line += has_body ? " { " : ";";
