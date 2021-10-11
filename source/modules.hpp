@@ -24,8 +24,9 @@
 
 // Selection Modules
 #include "select/SelectElite.hpp"
-#include "select/SelectTournament.hpp"
 #include "select/SelectLexicase.hpp"
+#include "select/SelectRoulette.hpp"
+#include "select/SelectTournament.hpp"
 
 // Other schema
 #include "schema/MovePopulation.hpp"
