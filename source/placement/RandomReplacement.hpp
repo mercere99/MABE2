@@ -44,12 +44,17 @@ namespace mabe {
       // For now, nothing here.
     }
 
-    OrgPosition DoPlaceBirth(Organism & /* org */, OrgPosition /* ppos */,
+    OrgPosition DoPlaceBirth(Organism & /* org */, OrgPosition  ppos,
                              Population & target_pop) override
     {
       // If the current position is monitored, return a random place in the population.
-      if (target_collect.HasPopulation(target_pop)) 
-        return OrgPosition(target_pop, control.GetRandom().GetUInt(target_pop.GetSize()));
+      if (target_collect.HasPopulation(target_pop)) {
+        OrgPosition new_pos = 
+            OrgPosition(target_pop, control.GetRandom().GetUInt(target_pop.GetSize()));
+        while(new_pos == ppos)
+          new_pos = OrgPosition(target_pop, control.GetRandom().GetUInt(target_pop.GetSize()));
+        return new_pos;
+      }
 
       // Otherwise, don't find a legal place!
       return OrgPosition();      
