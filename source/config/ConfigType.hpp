@@ -13,29 +13,24 @@
 
 #include "emp/base/assert.hpp"
 
-#include "ConfigEntry.hpp"
+#include "ConfigTypeBase.hpp"
 #include "ConfigEntry_Scope.hpp"
+#include "ConfigTypeInfo.hpp"
 
 namespace mabe {
 
-  enum class BaseType {
-    INVALID = 0, 
-    VOID,
-    VALUE,
-    STRING,
-    STRUCT
-  };
-
   // Base class for types that we want to be used for scripting.
-  class ConfigType {
-  private:
-    emp::Ptr<ConfigEntry_Scope> cur_scope;
-  
-  public:
-    // Some special, internal variables associated with each object.
-    bool _active=true;       ///< Should this object be used in the current run?
-    std::string _desc="";    ///< Special description for this object.
-    
+  class ConfigType : public ConfigTypeBase {
+  public:    
+    void SetupScope(ConfigEntry_Scope & scope) {
+      cur_scope = &scope;
+
+      // Setup standard internal variables for this scope.
+      LinkVar(_active, "_active", "Should we activate this module? (0=off, 1=on)", true);
+      LinkVar(_desc,   "_desc",   "Special description for those object.", true);
+    }
+
+
     // ---==  Configuration Management ==---
 
     /// Link a variable to a configuration entry - the value will default to the
@@ -109,14 +104,6 @@ namespace mabe {
 
       return GetScope().LinkFuns<std::string>(name, get_fun, set_fun, new_desc.str());
     }
-
-  public:
-    virtual void SetupScope(ConfigEntry_Scope & scope) { cur_scope = &scope; }
-    virtual void SetupConfig() = 0;
-    virtual ~ConfigType() { }
-
-    ConfigEntry_Scope & GetScope() { emp_assert(!cur_scope.IsNull()); return *cur_scope; }
-    const ConfigEntry_Scope & GetScope() const { emp_assert(!cur_scope.IsNull()); return *cur_scope; }
   };
 }
 
