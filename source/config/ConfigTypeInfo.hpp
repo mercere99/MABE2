@@ -18,11 +18,15 @@
 #include "emp/meta/TypeID.hpp"
 #include "emp/tools/string_utils.hpp"
 
+class ConfigEntry;
+
 namespace mabe {
 
   // ConfigTypeInfo tracks a particular type to be used in the configuration langauge.
-  struct ConfigTypeInfo {
+  class ConfigTypeInfo {
+  private:
     size_t index;
+    std::string type_name;
     std::string desc;
     emp::TypeID type_id;
 
@@ -36,15 +40,23 @@ namespace mabe {
     emp::vector< entry_ptr_t > member_list;           ///< Member functions for this type
     emp::map< std::string, entry_ptr_t > entry_map;   ///< Lookup table for member functions.
 
+  public:
     // Constructor to allow a simple new configuration type
-    ConfigTypeInfo(size_t in_id, const std::string & in_desc)
-      : index(in_id), desc(in_desc) { }
+    ConfigTypeInfo(size_t in_id, const std::string & in_name, const std::string & in_desc)
+      : index(in_id), type_name(in_name), desc(in_desc) { }
 
     // Constructor to allow a new configuration type whose objects require initialization.
-    ConfigTypeInfo(size_t in_id, const std::string & in_desc, init_fun_t in_init)
-      : index(in_id), desc(in_desc), init_fun(in_init)
+    ConfigTypeInfo(size_t in_id, const std::string & in_name, const std::string & in_desc, init_fun_t in_init)
+      : index(in_id), type_name(in_name), desc(in_desc), init_fun(in_init)
     {
     }
+
+    size_t GetIndex() const { return index; }
+    const std::string & GetTypeName() const { return type_name; }
+    const std::string & GetDesc() const { return desc; }
+    emp::TypeID GetType() const { return type_id; }
+
+    ConfigType & MakeObj(const std::string & name) const { return init_fun(name); }
 
     // Link this ConfigTypeInfo object to a real C++ type.
     template <typename OBJECT_T>
