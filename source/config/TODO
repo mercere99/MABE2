@@ -1,3 +1,29 @@
+Type System
+Symbol Tables
+Parser
+
+LEVEL MAP:
+
+ConfigEntry          - []
+ConfigLexer          - []
+ConfigTypeInfo       - [] Basic information for a user-defined type.
+ConfigTypeBase       - []
+
+ConfigEntry_Function - [ConfigEntry]
+ConfigEntry_Linked   - [ConfigEntry]
+
+ConfigEntry_Scope    - [ConfigEntry, ConfigEntry_Function, ConfigEntry_Linked, ConfigTypeBase]
+
+ConfigAST            - [ConfigEntry_Scope, ConfigEntry]
+ConfigType           - [ConfigEntry_Scope]
+
+ConfigEvents         - [ConfigAST]
+
+Config               - Main parser
+
+
+TODO:
+
 * Config as a whole should move from MABE to Empirical
 
 * We need a consistent and functional error system.
@@ -16,26 +42,21 @@ parameter types.
 
 * Functions should be able to be defined inside of a config script.
 
-* We need a symbol to turn off a whole statement.
-The parser should keep going until the end of the statement, but then ignore everything
-it said to do.  This will allow us to more easily turn on and off whole objects that we
-want to sometimes build.  e.g.: !Population pop_special;
-
 * Arrays (possibly including generators that act like open-ended arrays).
 
-* Literal arrays/generators.  5:10 should be 5,15,25,35,... while 6:1:9 should be 6,7,8,9
+* Literal arrays/generators.
+5:10 should be 5,15,25,35,... while 6:1:9 should be 6,7,8,9
+(More sophisticate schemes are also out there, and we could match them...)
 
-* Built-in types for scopes, probably beginning with an underscope.
+* Built-in types for scopes, probably beginning with an underscore.
 We now have _active, which if set to false will deactivate an object.  We have _desc 
 added to handle custom descriptions for object (different from the class description),
-but it's not hooked in.  We would also want things like my_array._size as the number of
-elements in the array.  my_scope._var_names will be an array of all variable names in the
-current scope.  
+but it's not hooked in.
 
-* Need a stand-alone config interpretor along with a full test suite to make sure it's
+* Need a stand-alone config interpreter along with a full test suite to make sure it's
 working properly.
 
-* Should be able to make new types (not just new objects) inside the interpretor.
+* Should be able to make new types (not just new instances) inside the interpreter.
 
 * Should be able to adjust default values for existing types.  This will allow for config
 files to be included in that just setup defaults, but don't actually build any new object.
