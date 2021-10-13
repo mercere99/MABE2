@@ -117,15 +117,6 @@ namespace mabe {
 
     virtual double AsDouble() const { emp_assert(false); return 0.0; }
     virtual std::string AsString() const { emp_assert(false); return ""; }
-    template <typename T>
-    auto As() const {
-      if constexpr (std::is_same<T,double>()) return AsDouble();
-      else if constexpr (std::is_same<T,std::string>()) return AsString();
-      else if constexpr (std::is_base_of<ConfigType, T>()) {
-
-      }
-      else static_assert(emp::dependent_false<T>(), "Invalid conversion for const ConfigEntry::As()");
-    }
 
     virtual ConfigEntry & SetValue(double in) { (void) in; emp_assert(false, in); return *this; }
     virtual ConfigEntry & SetString(const std::string & in) { (void) in; emp_assert(false, in); return *this; }
@@ -136,36 +127,50 @@ namespace mabe {
       return *(AsScopePtr());
     }
 
+    virtual emp::Ptr<ConfigType> GetObjectPtr() { return nullptr; }
+    virtual emp::Ptr<const ConfigType> GetObjectPtr() const { return nullptr; }
+
     /// A generic As() function that will call the appropriate converter.
     template <typename T>
     decltype(auto) As() {
       // If a const type is requested, non-const can be converted, so work with that.
-      using decay_T = std::decay_t<T>;
+      using test_T = std::remove_cv_t<T>;
+      constexpr bool is_nonconst_ref = !std::is_const_v<T> && std::is_reference_v<T>;
 
       // If we have a numeric or string request, run the appropriate conversion.
-      if constexpr (std::is_arithmetic<decay_T>()) { return (T) AsDouble(); }
-      else if constexpr (std::is_same<decay_T, std::string>()) { return AsString(); }
+      if constexpr (std::is_arithmetic<test_T>() && !is_nonconst_ref) {
+        return static_cast<T>(AsDouble());
+      }
+      else if constexpr (std::is_same<test_T, std::string>() ||
+                         std::is_same<T, const std::string &>()) {
+        return AsString();
+      }
 
       // If we want either a pointer or reference to the current object, return it.
-      else if constexpr (std::is_same<decay_T, emp::Ptr<ConfigEntry>>()) { return this; }
-      else if constexpr (std::is_same<decay_T, ConfigEntry &>()) { return *this; }
+      else if constexpr (std::is_same<test_T, emp::Ptr<ConfigEntry>>()) { return this; }
+      else if constexpr (std::is_same<test_T, ConfigEntry &>()) { return *this; }
 
       // If we want a dervied ConfigEntry type, convert and return it.
-      else if constexpr (std::is_base_of<ConfigEntry, decay_T>()) {
-        emp::Ptr<decay_T> out_ptr = dynamic_cast<decay_T*>(this);
-        emp_assert(out_ptr);
+      else if constexpr (std::is_base_of<ConfigEntry, test_T>()) {
+        emp::Ptr<test_T> out_ptr = dynamic_cast<test_T*>(this);
+        emp_assert(out_ptr); // @CAO: Should provide a user error.
         return *out_ptr;
       }
 
       // If we want a user-defined type, it must be deriv4ed from ConfigType.
       else if constexpr (std::is_base_of<ConfigType, T>()) {
-
+        emp::Ptr<ConfigType> obj_ptr = GetObjectPtr();
+        emp_assert(obj_ptr);   // @CAO: Should provide a user error.
+        emp::Ptr<test_T> out_ptr = dynamic_cast<test_T*>(obj_ptr);
+        emp_assert(out_ptr);   // @CAO: Should provide a user error.
+        return *out_ptr;
       }
 
       // Oh no! We don't know this type...
       else {
         static_assert(emp::dependent_false<T>(), "Invalid conversion for ConfigEntry::As()");
-        return decay_T();
+        // emp_error(emp::GetTypeID<T>());  // Run time error to print type info.
+        return test_T();
       }
     }
 
@@ -287,8 +292,8 @@ namespace mabe {
   };
   using ConfigEntry_StringVar = ConfigEntry_Var<std::string>;
 
-  /// A ConfigEntry to transmit an error.  The description provides the error and the IsError() flag
-  /// is set to true.
+  /// A ConfigEntry to transmit an error due to invalid parsing.
+  /// The description provides the error and the IsError() flag is set to true.
   class ConfigEntry_Error : public ConfigEntry {
   private:
     using this_t = ConfigEntry_Error;
