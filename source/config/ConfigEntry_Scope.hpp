@@ -20,8 +20,11 @@
 #include "ConfigEntry.hpp"
 #include "ConfigEntry_Function.hpp"
 #include "ConfigEntry_Linked.hpp"
+#include "ConfigTypeBase.hpp"
 
 namespace mabe {
+
+  class ConfigType;
 
   // Set of multiple config entries.
   class ConfigEntry_Scope : public ConfigEntry {
@@ -30,8 +33,8 @@ namespace mabe {
     using const_entry_ptr_t = emp::Ptr<const ConfigEntry>;
     emp::map< std::string, entry_ptr_t > symbol_table;   ///< Map of names to entries.
 
-    ///< If this scope represents a structure, identify the type (otherwise type is "")
-    const std::string type;
+    ///< If this scope represents a structure, point to it; otherwise set to null.
+    emp::Ptr<ConfigType> obj_ptr = nullptr;
 
     template <typename T, typename... ARGS>
     T & Add(const std::string & name, ARGS &&... args) {
@@ -53,8 +56,8 @@ namespace mabe {
     ConfigEntry_Scope(const std::string & _name,
                 const std::string & _desc,
                 emp::Ptr<ConfigEntry_Scope> _scope,
-                const std::string & _type="")
-      : ConfigEntry(_name, _desc, _scope), type(_type) { }
+                emp::Ptr<ConfigType> _obj=nullptr)
+      : ConfigEntry(_name, _desc, _scope), obj_ptr(_obj) { }
 
     ConfigEntry_Scope(const ConfigEntry_Scope & in) : ConfigEntry(in) {
       // Copy all defined variables/scopes/functions
@@ -67,7 +70,8 @@ namespace mabe {
       for (auto [name, ptr] : symbol_table) { ptr.Delete(); }
     }
 
-    std::string GetTypename() const override { return type; }
+    emp::Ptr<ConfigType> GetObjectPtr()  override { return obj_ptr; }  
+    emp::Ptr<const ConfigType> GetObjectPtr() const override { return obj_ptr; }  
 
     bool IsScope() const override { return true; }
     bool IsLocal() const override { return true; }  // @CAO, for now assuming all scopes are local!
@@ -144,8 +148,12 @@ namespace mabe {
     }
 
     /// Add an internal scope inside of this one.
-    ConfigEntry_Scope & AddScope(const std::string & name, const std::string & desc, const std::string & type="") {
-      return Add<ConfigEntry_Scope>(name, desc, this, type);
+    ConfigEntry_Scope & AddScope(
+      const std::string & name,
+      const std::string & desc,
+      emp::Ptr<ConfigType> obj_ptr=nullptr
+    ) {
+      return Add<ConfigEntry_Scope>(name, desc, this, obj_ptr);
     }
 
     /// Add a new user-defined function.
