@@ -227,11 +227,11 @@ namespace mabe {
       if (filename != "") Load(filename);
 
       // Initialize the type map.
-      type_map["INVALID"] = emp::NewPtr<ConfigTypeInfo>( (size_t) BaseType::INVALID, "Error, Invalid type!" );
-      type_map["Void"] = emp::NewPtr<ConfigTypeInfo>( (size_t) BaseType::VOID, "Non-type variable; no value" );
-      type_map["Value"] = emp::NewPtr<ConfigTypeInfo>( (size_t) BaseType::VALUE, "Numeric variable" );
-      type_map["String"] = emp::NewPtr<ConfigTypeInfo>( (size_t) BaseType::STRING, "String variable" );
-      type_map["Struct"] = emp::NewPtr<ConfigTypeInfo>( (size_t) BaseType::STRUCT, "User-made structure" );
+      type_map["INVALID"] = emp::NewPtr<ConfigTypeInfo>( (size_t) BaseType::INVALID, "/*ERROR*/", "Error, Invalid type!" );
+      type_map["Void"] = emp::NewPtr<ConfigTypeInfo>( (size_t) BaseType::VOID, "Void", "Non-type variable; no value" );
+      type_map["Value"] = emp::NewPtr<ConfigTypeInfo>( (size_t) BaseType::VALUE, "Value", "Numeric variable" );
+      type_map["String"] = emp::NewPtr<ConfigTypeInfo>( (size_t) BaseType::STRING, "String", "String variable" );
+      type_map["Struct"] = emp::NewPtr<ConfigTypeInfo>( (size_t) BaseType::STRUCT, "Struct", "User-made structure" );
 
       // Setup operator precedence.
       size_t cur_prec = 0;
@@ -392,7 +392,7 @@ namespace mabe {
     ) {
       emp_assert(!emp::Has(type_map, type_name), type_name, "Type already exists!");
       size_t index = type_map.size();
-      type_map[type_name] = emp::NewPtr<ConfigTypeInfo>( index, desc, init_fun );
+      type_map[type_name] = emp::NewPtr<ConfigTypeInfo>( index, type_name, desc, init_fun );
       return index;
     }
 
@@ -734,13 +734,21 @@ namespace mabe {
       return scope.AddScope(var_name, "Local struct");
     }
 
-    // Otherwise we have a module to add; treat it as a struct.
+    // Otherwise we have an object of a custom type to add.
     Debug("Building var '", var_name, "' of type '", type_name, "'");
-    ConfigEntry_Scope & new_scope = scope.AddScope(var_name, type_map[type_name]->desc, type_name);
-    ConfigType & new_obj = type_map[type_name]->init_fun(var_name);
+
+    // Retrieve the information about the requested type.
+    ConfigTypeInfo & type_info = *type_map[type_name]; 
+
+    // Use the ConfigTypeInfo associated with the provided type name to build an instance.
+    ConfigType & new_obj = type_info.MakeObj(var_name);
+    new_obj.SetTypeInfo(type_info);
+
+    // Setup a scope for this new type, linking the object to it.
+    ConfigEntry_Scope & new_scope = scope.AddScope(var_name, type_map[type_name]->GetDesc(), &new_obj);
+
+    // Let the new object know about its scope.
     new_obj.SetupScope(new_scope);
-    new_obj.LinkVar(new_obj._active, "_active", "Should we activate this module? (0=off, 1=on)", true);
-    new_obj.LinkVar(new_obj._desc,   "_desc",   "Special description for those object.", true);
     new_obj.SetupConfig();
 
     return new_scope;
