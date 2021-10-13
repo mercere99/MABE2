@@ -134,34 +134,34 @@ namespace mabe {
     template <typename T>
     decltype(auto) As() {
       // If a const type is requested, non-const can be converted, so work with that.
-      using test_T = std::remove_cv_t<T>;
+      using decay_T = std::decay_t<T>;
       constexpr bool is_nonconst_ref = !std::is_const_v<T> && std::is_reference_v<T>;
 
       // If we have a numeric or string request, run the appropriate conversion.
-      if constexpr (std::is_arithmetic<test_T>() && !is_nonconst_ref) {
+      if constexpr (std::is_arithmetic<decay_T>() && !is_nonconst_ref) {
         return static_cast<T>(AsDouble());
       }
-      else if constexpr (std::is_same<test_T, std::string>() ||
+      else if constexpr (std::is_same<T, std::string>() ||
                          std::is_same<T, const std::string &>()) {
         return AsString();
       }
 
       // If we want either a pointer or reference to the current object, return it.
-      else if constexpr (std::is_same<test_T, emp::Ptr<ConfigEntry>>()) { return this; }
-      else if constexpr (std::is_same<test_T, ConfigEntry &>()) { return *this; }
+      else if constexpr (std::is_same<decay_T, emp::Ptr<ConfigEntry>>()) { return this; }
+      else if constexpr (std::is_same<decay_T, ConfigEntry>()) { return *this; }
 
       // If we want a dervied ConfigEntry type, convert and return it.
-      else if constexpr (std::is_base_of<ConfigEntry, test_T>()) {
-        emp::Ptr<test_T> out_ptr = dynamic_cast<test_T*>(this);
+      else if constexpr (std::is_base_of<ConfigEntry, decay_T>()) {
+        emp::Ptr<decay_T> out_ptr = dynamic_cast<decay_T*>(this);
         emp_assert(out_ptr); // @CAO: Should provide a user error.
         return *out_ptr;
       }
 
       // If we want a user-defined type, it must be deriv4ed from ConfigType.
-      else if constexpr (std::is_base_of<ConfigType, T>()) {
+      else if constexpr (std::is_base_of<ConfigType, decay_T>()) {
         emp::Ptr<ConfigType> obj_ptr = GetObjectPtr();
         emp_assert(obj_ptr);   // @CAO: Should provide a user error.
-        emp::Ptr<test_T> out_ptr = dynamic_cast<test_T*>(obj_ptr);
+        emp::Ptr<decay_T> out_ptr = obj_ptr.DynamicCast<decay_T>();
         emp_assert(out_ptr);   // @CAO: Should provide a user error.
         return *out_ptr;
       }
@@ -169,8 +169,9 @@ namespace mabe {
       // Oh no! We don't know this type...
       else {
         static_assert(emp::dependent_false<T>(), "Invalid conversion for ConfigEntry::As()");
-        // emp_error(emp::GetTypeID<T>());  // Run time error to print type info.
-        return test_T();
+        emp_error(emp::GetTypeID<T>());  // Print more info when above line is commented out.
+        auto out = emp::NewPtr<std::remove_reference_t<decay_T>>();
+        return (T) *out;
       }
     }
 
