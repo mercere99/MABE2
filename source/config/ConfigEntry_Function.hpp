@@ -80,7 +80,7 @@ namespace mabe {
           );            
         }
         
-        return MakeTempEntry( in_fun((args[INDICES]->template As< std::decay_t<ARGS> >())...) );
+        return MakeTempEntry( in_fun((args[INDICES]->template As<ARGS>())...) );
       };
     }
 
