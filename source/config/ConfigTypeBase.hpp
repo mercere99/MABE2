@@ -38,13 +38,13 @@ namespace mabe {
   public:
     virtual ~ConfigTypeBase() { }
 
-    virtual void SetupConfig() = 0;
+    // Optional function to override to add configuration options associated with an object.
+    virtual void SetupConfig() { };
 
     ConfigEntry_Scope & GetScope() { emp_assert(!cur_scope.IsNull()); return *cur_scope; }
     const ConfigEntry_Scope & GetScope() const { emp_assert(!cur_scope.IsNull()); return *cur_scope; }
 
-    ConfigTypeInfo & GetTypeInfo() { return *type_info_ptr; }
-    void SetTypeInfo( ConfigTypeInfo & _info ) { type_info_ptr = &_info; }
+    const ConfigTypeInfo & GetTypeInfo() const { return *type_info_ptr; }
   };
 
 }
