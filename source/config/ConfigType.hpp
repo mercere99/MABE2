@@ -21,13 +21,29 @@ namespace mabe {
 
   // Base class for types that we want to be used for scripting.
   class ConfigType : public ConfigTypeBase {
-  public:    
-    void SetupScope(ConfigEntry_Scope & scope) {
-      cur_scope = &scope;
+  public:
+    // Setup a new ConfigType object; provide it with its scope and type information.    
+    void Setup(ConfigEntry_Scope & _scope, ConfigTypeInfo & _info) {
+      cur_scope = &_scope;
+      type_info_ptr = &_info;
 
-      // Setup standard internal variables for this scope.
+      // Link standard internal variables for this scope.
       LinkVar(_active, "_active", "Should we activate this module? (0=off, 1=on)", true);
       LinkVar(_desc,   "_desc",   "Special description for those object.", true);
+
+      // Link specialized variable for the derived type.
+      SetupConfig();
+
+      // Load in any member function for this object into the scope.
+      using entry_ptr_t = emp::Ptr<ConfigEntry>;
+      using member_fun_t = std::function<entry_ptr_t(const emp::vector<entry_ptr_t> &)>;
+      const auto & member_map = type_info_ptr->GetMemberFunctions();
+      for (const MemberFunInfo & member_info : member_map) {
+        member_fun_t linked_fun = [this, &member_info](const emp::vector<entry_ptr_t> & args){
+          return member_info.fun(*this, args);
+        };
+        cur_scope->AddFunction(member_info.name, linked_fun, member_info.desc).SetBuiltin();
+      }
     }
 
 
