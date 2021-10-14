@@ -57,6 +57,8 @@ namespace mabe {
     emp::Range<double> range;  ///< Min and max values allowed for this config entry (if numerical).
     bool integer_only=false;   ///< Should we only allow integer values?
 
+    using entry_ptr_t = emp::Ptr<ConfigEntry>;
+
     // Helper functions.
 
     /// Write out the provided description at the comment_offset.  The start_pos is where the
@@ -157,7 +159,7 @@ namespace mabe {
         return *out_ptr;
       }
 
-      // If we want a user-defined type, it must be deriv4ed from ConfigType.
+      // If we want a user-defined type, it must be derived from ConfigType.
       else if constexpr (std::is_base_of<ConfigType, decay_T>()) {
         emp::Ptr<ConfigType> obj_ptr = GetObjectPtr();
         emp_assert(obj_ptr);   // @CAO: Should provide a user error.
@@ -182,8 +184,7 @@ namespace mabe {
     virtual bool CopyValue(const ConfigEntry & ) { return false; }
 
     /// If this entry is a scope, we should be able to lookup other entries inside it.
-    virtual emp::Ptr<ConfigEntry>
-    LookupEntry(const std::string & in_name, bool /* scan_scopes */=true) {
+    virtual entry_ptr_t LookupEntry(const std::string & in_name, bool /* scan_scopes */=true) {
       return (in_name == "") ? this : nullptr;
     }
     virtual emp::Ptr<const ConfigEntry>
@@ -193,10 +194,10 @@ namespace mabe {
     virtual bool Has(const std::string & in_name) const { return (bool) LookupEntry(in_name); }
 
     /// If this entry is a function, we should be able to call it.
-    virtual emp::Ptr<ConfigEntry> Call( emp::vector<emp::Ptr<ConfigEntry>> args );
+    virtual entry_ptr_t Call(const emp::vector<entry_ptr_t> & args);
 
     /// Allocate a duplicate of this class.
-    virtual emp::Ptr<ConfigEntry> Clone() const = 0;
+    virtual entry_ptr_t Clone() const = 0;
 
     virtual const ConfigEntry & Write(std::ostream & os=std::cout, const std::string & prefix="",
                                       size_t comment_offset=32) const
@@ -228,6 +229,8 @@ namespace mabe {
   private:
     T value = 0;
   public:
+    static_assert(std::is_arithmetic<T>(), "ConfigEntry_Var must use std::string or arithmetic values.");
+
     using this_t = ConfigEntry_Var<T>;
 
     template <typename... ARGS>
@@ -243,7 +246,7 @@ namespace mabe {
       else return "Unknown";
     }
 
-    emp::Ptr<ConfigEntry> Clone() const override { return emp::NewPtr<this_t>(*this); }
+    entry_ptr_t Clone() const override { return emp::NewPtr<this_t>(*this); }
 
     double AsDouble() const override { return (double) value; }
     std::string AsString() const override { return emp::to_string(value); }
@@ -279,7 +282,7 @@ namespace mabe {
 
     std::string GetTypename() const override { return "String"; }
 
-    emp::Ptr<ConfigEntry> Clone() const override { return emp::NewPtr<this_t>(*this); }
+    entry_ptr_t Clone() const override { return emp::NewPtr<this_t>(*this); }
 
     double AsDouble() const override { return emp::from_string<double>(value); }
     std::string AsString() const override { return value; }
@@ -307,14 +310,14 @@ namespace mabe {
 
     bool IsError() const override { return true; }
 
-    emp::Ptr<ConfigEntry> Clone() const override { return emp::NewPtr<this_t>(*this); }
+    entry_ptr_t Clone() const override { return emp::NewPtr<this_t>(*this); }
   };
 
 
   ////////////////////////////////////////////////////
   //  Function definitions...
 
-  emp::Ptr<ConfigEntry> ConfigEntry::Call( emp::vector<emp::Ptr<ConfigEntry>> /* args */ ) {
+  emp::Ptr<ConfigEntry> ConfigEntry::Call( const emp::vector<entry_ptr_t> & /* args */ ) {
     return emp::NewPtr<ConfigEntry_Error>("Cannot call a function on non-function '", name, "'.");
   }
 
