@@ -385,7 +385,7 @@ namespace mabe {
     /// To add a type, provide the type name (that can be referred to in a script) and a function
     /// that should be called (with the variable name) when an instance of that type is created.
     /// The function must return a reference to the newly created instance.
-    size_t AddType(
+    ConfigTypeInfo & AddType(
       const std::string & type_name,
       const std::string & desc,
       std::function<ConfigType & (const std::string &)> init_fun
@@ -393,7 +393,7 @@ namespace mabe {
       emp_assert(!emp::Has(type_map, type_name), type_name, "Type already exists!");
       size_t index = type_map.size();
       type_map[type_name] = emp::NewPtr<ConfigTypeInfo>( index, type_name, desc, init_fun );
-      return index;
+      return *type_map[type_name];
     }
 
     /// To add a built-in function (at the root level) provide it with a name and description.
@@ -517,7 +517,7 @@ namespace mabe {
     // Lookup this variable.
     emp::Ptr<ConfigEntry> cur_entry = cur_scope.LookupEntry(var_name, scan_scopes);
 
-    // If we can't find this variable, either build it or throw an error.
+    // If we can't find this variable, throw an error.
     if (cur_entry.IsNull()) {
       Error(pos, "'", var_name, "' does not exist as a parameter, variable, or type.");
     }
@@ -742,14 +742,12 @@ namespace mabe {
 
     // Use the ConfigTypeInfo associated with the provided type name to build an instance.
     ConfigType & new_obj = type_info.MakeObj(var_name);
-    new_obj.SetTypeInfo(type_info);
 
     // Setup a scope for this new type, linking the object to it.
     ConfigEntry_Scope & new_scope = scope.AddScope(var_name, type_map[type_name]->GetDesc(), &new_obj);
 
     // Let the new object know about its scope.
-    new_obj.SetupScope(new_scope);
-    new_obj.SetupConfig();
+    new_obj.Setup(new_scope, type_info);
 
     return new_scope;
   }
