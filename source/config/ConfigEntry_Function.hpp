@@ -91,7 +91,23 @@ namespace mabe {
       /// assume that the function will handle any conversions itself.
       if constexpr (sizeof...(ARGS) == 0 && std::is_same<ARG1, const entry_vector_t &>()) {
         fun = [in_fun, name=name, desc=desc](const entry_vector_t & args) -> entry_ptr_t {        
-          return MakeTempEntry(in_fun(args));
+          // If this function already returns a ConfigEntry pointer, pass it along.
+          if constexpr (std::is_same<RETURN_T, emp::Ptr<mabe::ConfigEntry>>()) {
+            return in_fun(args);
+          }
+
+          // If this function returns a basic type, wrap it in a temp entry.
+          else if constexpr (std::is_same<RETURN_T, std::string>() ||
+                              std::is_arithmetic<RETURN_T>()) {
+            return MakeTempEntry(in_fun(args));
+          }
+
+          // For now these are the only legal return type; raise error otherwise!
+          else {
+            emp::ShowType<RETURN_T>{};
+            static_assert(emp::dependent_false<RETURN_T>(),
+                          "Invalid return value in ConfigEntry_Function::SetFunction()");
+          }
         };
       }
 
@@ -101,7 +117,7 @@ namespace mabe {
       }
     }
 
-    entry_ptr_t Call( emp::vector<entry_ptr_t> args ) override { return fun(args); }
+    entry_ptr_t Call( const emp::vector<entry_ptr_t> & args ) override { return fun(args); }
 
   };
 
