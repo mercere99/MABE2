@@ -14,7 +14,6 @@
 #include <fstream>
 
 #include "emp/base/assert.hpp"
-#include "emp/base/map.hpp"
 #include "emp/meta/TypeID.hpp"
 #include "emp/tools/string_utils.hpp"
 
@@ -22,23 +21,30 @@ class ConfigEntry;
 
 namespace mabe {
 
+  // Information about a member function.
+  struct MemberFunInfo {
+    using entry_ptr_t = emp::Ptr<ConfigEntry>;
+    using fun_t = std::function<entry_ptr_t(ConfigType &, const emp::vector<entry_ptr_t> &)>;
+
+    std::string name;
+    std::string desc;
+    fun_t fun;
+  };
+
   // ConfigTypeInfo tracks a particular type to be used in the configuration langauge.
   class ConfigTypeInfo {
   private:
+    using entry_ptr_t = emp::Ptr<ConfigEntry>;
+    using init_fun_t = std::function<ConfigType & (const std::string &)>;
+
     size_t index;
     std::string type_name;
     std::string desc;
     emp::TypeID type_id;
 
-    using init_fun_t = std::function<ConfigType & (const std::string &)>;
     init_fun_t init_fun;
 
-    using entry_ptr_t = emp::Ptr<ConfigEntry>;
-    using member_fun_t = std::function<entry_ptr_t(const emp::vector<entry_ptr_t> &)>;
-    emp::map<std::string, member_fun_t> member_funs;
-
-    emp::vector< entry_ptr_t > member_list;           ///< Member functions for this type
-    emp::map< std::string, entry_ptr_t > entry_map;   ///< Lookup table for member functions.
+    emp::vector< MemberFunInfo > member_funs;
 
   public:
     // Constructor to allow a simple new configuration type
@@ -55,6 +61,7 @@ namespace mabe {
     const std::string & GetTypeName() const { return type_name; }
     const std::string & GetDesc() const { return desc; }
     emp::TypeID GetType() const { return type_id; }
+    const emp::vector<MemberFunInfo> & GetMemberFunctions() const { return member_funs; }
 
     ConfigType & MakeObj(const std::string & name) const { return init_fun(name); }
 
@@ -70,28 +77,31 @@ namespace mabe {
     template <typename RETURN_T, typename OBJECT_T, typename... PARAM_Ts>
     void AddMemberFunction(
       const std::string & name,
-      std::function<RETURN_T(OBJECT_T &, PARAM_Ts...)> fun
+      std::function<RETURN_T(OBJECT_T &, PARAM_Ts...)> fun,
+      const std::string & desc
     ) {
       // ----- Make sure function is legal -----
       // Is return type legal?
-      static_assert(std::is_arithmetic<RETURN_T>() || std::is_same<RETURN_T, std::string>(),
-                    "Config member functions must of a string or arithmetic return type");
+      static_assert(std::is_arithmetic<RETURN_T>() ||
+                    std::is_same<RETURN_T, std::string>() ||
+                    std::is_same<RETURN_T, emp::Ptr<mabe::ConfigEntry>>(),
+                    "Config member function return types must be string, arithmetic, or Ptr<ConfigEntry>");
 
       // Is the first parameter the correct type?
+      static_assert(std::is_base_of<ConfigType, typename std::decay<RETURN_T>::type>(),
+                    "Member functions must take a reference to the associated ConfigType");
       emp_assert( type_id.IsType<OBJECT_T>(),
                   "First parameter must match config type of member function being created!",
                   type_id, emp::GetTypeID<OBJECT_T>() );
 
-      // Are remaining parameters legal?
-      constexpr bool params_ok =
-        ((std::is_arithmetic<PARAM_Ts>() || std::is_same<PARAM_Ts, std::string>()) && ...);
-      static_assert(params_ok, "Parameters 2+ in a member function must be string or arithmetic.");
-
       // ----- Transform this function into one that ConfigTypeInfo can make use of ----
-      member_fun_t member_fun =
-        [name,fun](ConfigType & obj, const emp::vector<entry_ptr_t> & args) {
+      MemberFunInfo::fun_t member_fun =
+        [name,fun](ConfigType & obj, const emp::vector<entry_ptr_t> & args) -> RETURN_T {
           // Make sure we can convert the obj into the correct type.
           emp::Ptr<OBJECT_T> typed_ptr = dynamic_cast<OBJECT_T*>(&obj);
+
+          emp_assert(typed_ptr, "Internal Error: member function called on wrong object type!",
+                     name);
 
           // Make sure we have the correct number of arguments.
           if (args.size() != sizeof...(PARAM_Ts)) {
@@ -100,17 +110,15 @@ namespace mabe {
               << " arguments, but received " << args.size() << "."
               << std::endl;
           }
-          //@CAO should collect file position information for the above error.
+          //@CAO should collect file position information for the above errors.
 
           // Call the provided function and return the result.
           int arg_id = 0;
-          RETURN_T result = fun( *typed_ptr, args[arg_id++]->As<PARAM_Ts>()... );
-
-          return result;
+          return fun( *typed_ptr, args[arg_id++]->As<PARAM_Ts>()... );
         };
 
       // Add this member function to the library we are building.
-      member_funs[name] = member_fun;
+      member_funs.emplace_back(name, desc, member_fun);
     }
   };
 
