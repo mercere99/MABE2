@@ -36,6 +36,9 @@ CFLAGS := $(CFLAGS_native_opt)
 debug: CFLAGS := $(CFLAGS_native_debug)
 debug: all
 
+profile: CFLAGS := $(CFLAGS_native_opt) -pg
+profile: all
+
 noblock: CFLAGS := $(CFLAGS_native_noblock)
 noblock: all
 
