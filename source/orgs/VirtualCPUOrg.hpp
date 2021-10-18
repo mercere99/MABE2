@@ -48,6 +48,8 @@ namespace mabe {
       std::string input_name = "input";    ///< Name of trait that should be used load input values
       std::string output_name = "output";  ///< Name of trait that should be used store output values
       std::string merit_name = "merit";    ///< Name of trait that stores an organism's fitness 
+      std::string genome_name = "genome";    ///< Name of trait that stores an organism's fitness 
+      std::string child_merit_name = "child_merit"; 
 
       // Internal use
       emp::Binomial mut_dist;            ///< Distribution of number of mutations to occur.
@@ -55,7 +57,9 @@ namespace mabe {
     };
 
     size_t Mutate(emp::Random & random) override {
-      const size_t num_muts = SharedData().mut_dist.PickRandom(random);
+      emp::Binomial mut_dist(SharedData().mut_prob, genome.size());
+      //const size_t num_muts = SharedData().mut_dist.PickRandom(random);
+      const size_t num_muts = mut_dist.PickRandom(random);
 
       if (num_muts == 0) return 0;
       if (num_muts == 1) {
@@ -65,14 +69,14 @@ namespace mabe {
       }
 
       // Only remaining option is num_muts > 1.
-      auto & mut_sites = SharedData().mut_sites;
-      mut_sites.Clear();
+      emp::BitVector mut_sites(genome.size());
       for (size_t i = 0; i < num_muts; i++) {
         const size_t pos = random.GetUInt(GetSize());
         if (mut_sites[pos]) { --i; continue; }  // Duplicate position; try again.
         RandomizeInst(pos, random);
       }
 
+      Organism::SetTrait<std::string>(SharedData().genome_name, GetString());
       return num_muts;
     }
 
@@ -80,32 +84,56 @@ namespace mabe {
       for (size_t pos = 0; pos < GetSize(); pos++) {
         RandomizeInst(pos, random);
       }
+      Organism::SetTrait<std::string>(SharedData().genome_name, GetString());
     }
 
     void Initialize(emp::Random & random) override {
       if (SharedData().init_random) Randomize(random);
       else{
-        PushInst("HAlloc");
-        PushInst("HSearch");
-        PushInst("NopC");
-        PushInst("NopA");
-        PushInst("MovHead");
-        PushInst("NopC");
-        PushInst("NopC");
-        PushInst("NopC");
-        PushInst("NopC");
-        PushInst("NopC");
-        PushInst("NopC");
-        PushInst("HSearch");
-        PushInst("HCopy");
-        PushInst("IfLabel");
-        PushInst("NopC");
-        PushInst("NopA");
-        PushInst("HDivide");
-        PushInst("MovHead");
-        PushInst("NopA");
-        PushInst("NopB");
+        PushInst("HAlloc");  // 0  
+        PushInst("HSearch"); // 1
+        PushInst("NopC");    // 2
+        PushInst("NopA");    // 3
+        PushInst("MovHead"); // 4
+        for(size_t i = 0; i < (50 - 14); i++) PushInst("NopC");   
+        PushInst("HSearch"); // 41
+        PushInst("HCopy");   // 42
+        PushInst("IfLabel"); // 43
+        PushInst("NopC");    // 44
+        PushInst("NopA");    // 45
+        PushInst("HDivide"); // 46
+        PushInst("MovHead"); // 47
+        PushInst("NopA");    // 48
+        PushInst("NopB");    // 49
+        // NOT
+        //PushInst("IO");
+        //PushInst("NopB");
+        //PushInst("Push");
+        //PushInst("NopB");
+        //PushInst("Pop");
+        //PushInst("NopC");
+        //PushInst("Nand");
+        //PushInst("NopA");
+        //PushInst("IO");
+        //PushInst("NopA");
       }
+      Organism::SetTrait<std::string>(SharedData().genome_name, GetString());
+    }
+    
+    emp::Ptr<Organism> MakeOffspringOrganism(emp::Random & random) const {
+      emp::Ptr<Organism> offspring = CloneOrganism();
+      offspring->Mutate(random);
+      offspring->SetTrait(SharedData().merit_name, GetTrait<double>(SharedData().child_merit_name)); 
+      return offspring;
+    }
+    
+    virtual emp::Ptr<Organism> CloneOrganism() const {
+      auto offspring = OrgType::Clone().DynamicCast<VirtualCPUOrg>();
+      offspring->genome = GetTrait<genome_t>("offspring_genome");
+      offspring->genome_working = offspring->genome;
+      offspring->ResetHardware();
+      offspring->Organism::SetTrait<std::string>(SharedData().genome_name, offspring->GetString());
+      return offspring;
     }
 
     /// Put the output values in the correct output position.
@@ -142,12 +170,14 @@ namespace mabe {
                       "Name of variable to load inputs from.");
       GetManager().LinkVar(SharedData().output_name, "output_name",
                       "Name of variable to output results.");
+      GetManager().LinkVar(SharedData().genome_name, "genome_name",
+                      "Where to store the genome?.");
     }
 
     /// Setup this organism type with the traits it need to track.
     void SetupModule() override {
       // Setup the mutation distribution.
-      SharedData().mut_dist.Setup(SharedData().mut_prob, GetSize());
+      SharedData().mut_dist.Setup(SharedData().mut_prob, 20);
 
       // Setup the default vector to indicate mutation positions.
       SharedData().mut_sites.Resize(GetSize());
@@ -159,6 +189,11 @@ namespace mabe {
                                   emp::vector<data_t>());
       GetManager().AddSharedTrait<double>(SharedData().merit_name,
                                   "Value representing fitness of organism", 0);
+      GetManager().AddSharedTrait<double>(SharedData().child_merit_name,
+                                  "Fitness passed on to children", 0);
+      GetManager().AddOwnedTrait<std::string>(SharedData().genome_name, "Organism's genome", "[None]");
+      GetManager().AddSharedTrait<genome_t>("offspring_genome", "Latest genome copied", { } );
+      GetManager().AddSharedTrait<genome_t>("passed_genome", "Genome as passed from parent", { } );
       SetupInstLib();
     }
 
@@ -224,12 +259,20 @@ namespace mabe {
               }
             },
             action.num_args, 
-            "test");
+            "test", 
+            action.data.Get<int>("inst_id"));
         std::cout << "Added instruction: " << action.name << std::endl;
       }
     }
 
     bool ProcessStep() override { 
+      //std::cout << GetString() << std::endl;
+      //std::cout 
+      //    << GetTrait<OrgPosition>("org_pos").Pos() 
+      //    << " -> " 
+      //    << inst_ptr 
+      //    << " (" << GetInstLib().GetName(genome_working[inst_ptr].idx) << ")"
+      //    << std::endl; 
       Process(1);
       return true; 
     }
