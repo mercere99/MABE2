@@ -20,6 +20,7 @@
 #include "emp/hardware/AvidaGP.hpp"
 #include "emp/functional/AnyFunction.hpp"
 #include "emp/meta/TypePack.hpp"
+#include "emp/data/DataMap.hpp"
 
 namespace mabe {
 
@@ -65,16 +66,19 @@ namespace mabe {
     std::string name;
     emp::vector<emp::AnyFunction> function_vec;
     size_t num_args;
+    emp::DataMap data;
     Action(const std::string& _name, emp::AnyFunction _func, size_t _num_args = 0) :
         name(_name),
         function_vec(),
-        num_args(_num_args){
+        num_args(_num_args), 
+        data(){
       function_vec.push_back(_func);
     }
     Action(const std::string& _name) :
         name(_name),
         function_vec(),
-        num_args(0){ ; }
+        num_args(0), 
+        data(){ ; }
   };
 
   //TODO: Switch to std unordered map
@@ -85,7 +89,7 @@ namespace mabe {
 
 
     template <typename RETURN, typename... PARAMS>
-    void AddFunc(
+    Action& AddFunc(
         const std::string& name,
         const std::function<RETURN(PARAMS...)>& in_func,
         size_t num_args = 0){
@@ -104,15 +108,13 @@ namespace mabe {
       action_vec.emplace_back(in_func);
 
       if(num_args > action.num_args) action.num_args = num_args;
-
-      std::cout << "Stored: " << func_type.GetName() << std::endl;
+      return action;
     }
 
     template <typename RETURN, typename... PARAMS>
     std::unordered_map<std::string, mabe::Action>&  GetFuncs(){
       emp::TypeID func_type = emp::GetTypeID<RETURN(PARAMS...)>();
       emp_assert(this->find(func_type) != this->end(), "No actions with that function signature!");
-      std::cout << "Fetching: " << func_type.GetName() << std::endl;
       return this->at(func_type);
     }
   };
