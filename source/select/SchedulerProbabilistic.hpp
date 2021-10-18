@@ -13,6 +13,7 @@
 #include "../core/MABE.hpp"
 #include "../core/Module.hpp"
 #include "emp/datastructs/IndexMap.hpp"
+
 namespace mabe {
 
   /// Rations out updates to organisms based on a specified attribute, used a method akin to roulette wheel selection  
@@ -60,6 +61,7 @@ namespace mabe {
         control.GetErrorManager().AddError("Trying to schedule an empty population.");
         return;
       }
+      if(weight_map.GetSize() == 0) weight_map.Resize(N, 1);
       size_t selected_idx;
       double total_weight = weight_map.GetWeight();
       // Dole out updates
@@ -74,13 +76,13 @@ namespace mabe {
     }
  
     void OnPlacement(OrgPosition placement_pos){
-      if(weight_map.GetSize() == 0){
-        Population & pop = control.GetPopulation(pop_id);
-        const size_t N = pop.GetSize();
-        weight_map.ResizeClear(N);
+      Population & pop = placement_pos.Pop();
+      const size_t N = pop.GetSize();
+      if(weight_map.GetSize() < N){
+        weight_map.Resize(N, 1);
       }
       size_t org_idx = placement_pos.Pos();
-      weight_map.Adjust(org_idx, placement_pos.Pop()[org_idx].GetTrait<double>(trait));
+      weight_map.Adjust(org_idx, 1 + 16 * placement_pos.Pop()[org_idx].GetTrait<double>(trait));
     }
   };
 
