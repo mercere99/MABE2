@@ -45,7 +45,7 @@ namespace mabe {
     virtual bool IsEmpty() const noexcept { return false; }
 
     /// Specialty version of Clone to return an Organism type.
-    [[nodiscard]] emp::Ptr<Organism> CloneOrganism() const {
+    [[nodiscard]] virtual emp::Ptr<Organism> CloneOrganism() const {
       return OrgType::Clone().DynamicCast<Organism>();
     }
 
@@ -61,13 +61,13 @@ namespace mabe {
     }
 
     /// Produce an asexual offspring WITH MUTATIONS.  By default, use Clone() and then Mutate().
-    [[nodiscard]] emp::Ptr<Organism> MakeOffspringOrganism(emp::Random & random) const {
+    [[nodiscard]] virtual emp::Ptr<Organism> MakeOffspringOrganism(emp::Random & random) const {
       return OrgType::MakeOffspring(random).DynamicCast<Organism>();
     }
 
     /// Produce an sexual (two parent) offspring WITH MUTATIONS.  By default, use Recombine() and
     /// then Mutate().
-    [[nodiscard]] emp::Ptr<Organism>
+    [[nodiscard]] virtual emp::Ptr<Organism>
     MakeOffspringOrganism(emp::Ptr<Organism> parent2, emp::Random & random) const {
       return OrgType::MakeOffspring(parent2, random).DynamicCast<Organism>();
     }
@@ -75,7 +75,7 @@ namespace mabe {
     // @CAO: Need to clean this one up to use Organism...
     /// Produce one or more offspring from multiple parents WITH MUTATIONS.  By default, use
     /// Recombine() and then Mutate().
-    [[nodiscard]] emp::vector<emp::Ptr<OrgType>> 
+    [[nodiscard]] virtual emp::vector<emp::Ptr<OrgType>> 
     MakeOffspringOrganisms(emp::vector<emp::Ptr<OrgType>> other_parents, emp::Random & random) const {
       return OrgType::MakeOffspring(other_parents, random);
     }
