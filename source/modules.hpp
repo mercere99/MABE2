@@ -14,6 +14,8 @@
 #include "evaluate/static/EvalMatchBits.hpp"
 #include "evaluate/static/EvalNK.hpp"
 #include "evaluate/static/EvalRoyalRoad.hpp"
+#include "evaluate/callable/EvalTaskNot.hpp"
+#include "evaluate/callable/EvalTaskNand.hpp"
 
 // Interface Modules
 #include "interface/CommandLine.hpp"
@@ -23,6 +25,7 @@
 #include "placement/GrowthPlacement.hpp"
 #include "placement/AnnotatePlacement.hpp"
 #include "placement/RandomReplacement.hpp"
+#include "placement/MaxSizePlacement.hpp"
 
 // Selection Modules
 #include "select/SelectElite.hpp"
@@ -42,7 +45,7 @@
 #include "orgs/VirtualCPUOrg.hpp"
 #include "orgs/instructions/VirtualCPU_Inst_Nop.hpp"
 #include "orgs/instructions/VirtualCPU_Inst_Math.hpp"
-#include "orgs/instructions/VirtualCPU_Inst_Input.hpp"
+#include "orgs/instructions/VirtualCPU_Inst_IO.hpp"
 #include "orgs/instructions/VirtualCPU_Inst_Flow.hpp"
 #include "orgs/instructions/VirtualCPU_Inst_Manipulation.hpp"
 #include "orgs/instructions/VirtualCPU_Inst_Replication.hpp"
