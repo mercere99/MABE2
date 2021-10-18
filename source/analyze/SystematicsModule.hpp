@@ -64,6 +64,8 @@ public:
       // TODO: Ideally it would be great if we didn't have to list all possible allowed types here
       AddRequiredTrait<std::string, emp::BitVector, int, double, emp::vector<int>>(taxon_info);
       sys.AddPhylogeneticDiversityDataNode();
+      sys.AddPairwiseDistanceDataNode();
+      sys.AddEvolutionaryDistinctivenessDataNode();
       std::function<size_t ()> updatefun = [this](){return control.GetUpdate();};
       data.AddFun(updatefun,"Generation", "The current generation");
       data.AddCurrent(*sys.GetDataNode("phylogenetic_diversity"), "phylogenetic_diversity","The current phylogenetic diversity.", true, true);
