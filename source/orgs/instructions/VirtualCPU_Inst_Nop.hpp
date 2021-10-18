@@ -39,12 +39,27 @@ namespace mabe {
 
     void SetupFuncs(){
       ActionMap& action_map = control.GetActionMap(pop_id);
-      func_nop_a = [](VirtualCPUOrg& /*hw*/, const VirtualCPUOrg::inst_t& /*inst*/){ ; };
-      action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>("NopA", func_nop_a);
-      func_nop_b = [](VirtualCPUOrg& /*hw*/, const VirtualCPUOrg::inst_t& /*inst*/){ ; };
-      action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>("NopB", func_nop_b);
-      func_nop_c = [](VirtualCPUOrg& /*hw*/, const VirtualCPUOrg::inst_t& /*inst*/){ ; };
-      action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>("NopC", func_nop_c);
+      // Nop A
+      {
+        func_nop_a = [](VirtualCPUOrg& /*hw*/, const VirtualCPUOrg::inst_t& /*inst*/){ ; };
+        Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
+            "NopA", func_nop_a);
+        action.data.AddVar<int>("inst_id", 0);
+      }
+      // Nop B
+      {
+        func_nop_b = [](VirtualCPUOrg& /*hw*/, const VirtualCPUOrg::inst_t& /*inst*/){ ; };
+        Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
+            "NopB", func_nop_b);
+        action.data.AddVar<int>("inst_id", 1);
+      }
+      // Nop C
+      {
+        func_nop_c = [](VirtualCPUOrg& /*hw*/, const VirtualCPUOrg::inst_t& /*inst*/){ ; };
+        Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
+            "NopC", func_nop_c);
+        action.data.AddVar<int>("inst_id", 2);
+      }
     }
 
     void SetupModule() override {

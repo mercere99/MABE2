@@ -44,47 +44,75 @@ namespace mabe {
     void SetupFuncs(){
       ActionMap& action_map = control.GetActionMap(pop_id);
       // Increment
-      func_inc = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
-        size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
-        ++hw.regs[idx];
-      };
-      action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>("Inc", func_inc);
+      {
+        func_inc = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
+          size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
+          ++hw.regs[idx];
+        };
+        Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
+            "Inc", func_inc);
+          action.data.AddVar<int>("inst_id", 12);
+      }
       // Decrement 
-      func_dec = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
-        size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
-        --hw.regs[idx];
-      };
-      action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>("Dec", func_dec);
+      {
+        func_dec = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
+          size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
+          --hw.regs[idx];
+        };
+        Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
+            "Dec", func_dec);
+        action.data.AddVar<int>("inst_id", 13);
+      }
       // Shift Right 
-      func_shift_r = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
-        size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
-        hw.regs[idx] >>= 1;
-      };
-      action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>("ShiftR", func_shift_r);
+      {
+        func_shift_r = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
+          size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
+          hw.regs[idx] >>= 1;
+        };
+        Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
+            "ShiftR", func_shift_r);
+        action.data.AddVar<int>("inst_id", 10);
+      }
       // Shift Left 
-      func_shift_l = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
-        size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
-        hw.regs[idx] <<= 1;
-      };
-      action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>("ShiftL", func_shift_l);
+      {
+        func_shift_l = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
+          size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
+          hw.regs[idx] <<= 1;
+        };
+        Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
+            "ShiftL", func_shift_l);
+        action.data.AddVar<int>("inst_id", 11);
+      }
       // Add 
-      func_add = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
-        size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
-        hw.regs[idx] = hw.regs[1] + hw.regs[2];
-      };
-      action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>("Add", func_add);
+      {
+        func_add = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
+          size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
+          hw.regs[idx] = hw.regs[1] + hw.regs[2];
+        };
+        Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
+            "Add", func_add);
+        action.data.AddVar<int>("inst_id", 18);
+      }
       // Sub 
-      func_sub = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
-        size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
-        hw.regs[idx] = hw.regs[1] - hw.regs[2];
-      };
-      action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>("Sub", func_sub);
+      {
+        func_sub = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
+          size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
+          hw.regs[idx] = hw.regs[1] - hw.regs[2];
+        };
+        Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
+            "Sub", func_sub);
+        action.data.AddVar<int>("inst_id", 19);
+      }
       // NAND 
-      func_nand = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
-        size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
-        hw.regs[idx] = ~(hw.regs[1] & hw.regs[2]);
-      };
-      action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>("Nand", func_nand);
+      {
+        func_nand = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
+          size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
+          hw.regs[idx] = ~(hw.regs[1] & hw.regs[2]);
+        };
+        Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
+            "Nand", func_nand);
+        action.data.AddVar<int>("inst_id", 20);
+      }
     }
 
     void SetupModule() override {

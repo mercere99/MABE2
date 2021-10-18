@@ -47,86 +47,109 @@ namespace mabe {
     void SetupFuncs(){
       ActionMap& action_map = control.GetActionMap(pop_id);
       // Pop 
-      func_pop = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
-        size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
-        hw.StackPop(idx);
-      };
-      action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>("Pop", func_pop);
+      {
+        func_pop = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
+          size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
+          hw.StackPop(idx);
+        };
+        Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
+            "Pop", func_pop);
+        action.data.AddVar<int>("inst_id", 15);
+      }
       // Push 
-      func_push = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
-        size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
-        hw.StackPush(idx);
-      };
-      action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>("Push", func_push);
+      {
+        func_push = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
+          size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
+          hw.StackPush(idx);
+        };
+        Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
+            "Push", func_push);
+        action.data.AddVar<int>("inst_id", 14);
+      }
       // Swap stack 
-      func_swap_stack = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){
-        hw.StackSwap();
-      };
-      action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>("SwapStk", 
-          func_swap_stack);
+      { 
+        func_swap_stack = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){
+          hw.StackSwap();
+        };
+        Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
+            "SwapStk", func_swap_stack);
+        action.data.AddVar<int>("inst_id", 16);
+      }
       // Swap 
-      func_swap = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
-        size_t idx_1 = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
-        size_t idx_2 = hw.GetComplementIdx(idx_1);
-        data_t tmp = hw.regs[idx_1];
-        hw.regs[idx_1] = hw.regs[idx_2];
-        hw.regs[idx_2] = tmp;
-      };
-      action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>("Swap", func_swap);
+      {
+        func_swap = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
+          size_t idx_1 = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
+          size_t idx_2 = hw.GetComplementIdx(idx_1);
+          data_t tmp = hw.regs[idx_1];
+          hw.regs[idx_1] = hw.regs[idx_2];
+          hw.regs[idx_2] = tmp;
+        };
+        Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
+            "Swap", func_swap);
+        action.data.AddVar<int>("inst_id", 17);
+      }
       // Move head 
-      func_mov_head = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
-        if(inst.nop_vec.empty())
-          hw.inst_ptr = hw.flow_head - 1;
-        else{
-          if(inst.nop_vec[0] == 0)
-            hw.inst_ptr = hw.flow_head - 1;
-          else if(inst.nop_vec[0] == 1)
-            hw.read_head = hw.flow_head;
-          else if(inst.nop_vec[0] == 2)
-            hw.write_head = hw.flow_head;
-        }
-      };
-      action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>("MovHead", 
-          func_mov_head);
+      {
+        func_mov_head = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
+          if(!inst.nop_vec.empty()){
+            if(inst.nop_vec[0] == 0)
+              hw.SetIP(hw.flow_head - 1);
+            else if(inst.nop_vec[0] == 1)
+              hw.SetRH(hw.flow_head);
+            else if(inst.nop_vec[0] == 2)
+              hw.SetWH(hw.flow_head);
+          }
+          else hw.SetIP(hw.flow_head);
+        };
+        Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
+            "MovHead", func_mov_head);
+        action.data.AddVar<int>("inst_id", 6);
+      }
       // Jump head 
-      func_jmp_head = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
-        size_t& head = hw.inst_ptr;
-        if(!inst.nop_vec.empty()){
-          if(inst.nop_vec[0] == 0)
-            head = hw.inst_ptr;
-          else if(inst.nop_vec[0] == 1)
-            head = hw.read_head;
-          else if(inst.nop_vec[0] == 2)
-            head = hw.write_head;
-        }
-        head += hw.regs[2];
-        while(head >= hw.genome_working.size())
-          head -= hw.genome_working.size();
-      };
-      action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>("JumpHead", 
-          func_jmp_head);
+      {
+        func_jmp_head = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
+          if(!inst.nop_vec.empty()){
+            if(inst.nop_vec[0] == 0)
+              hw.AdvanceIP(hw.regs[2]);
+            else if(inst.nop_vec[0] == 1)
+              hw.AdvanceRH(hw.regs[2]);
+            else if(inst.nop_vec[0] == 2)
+              hw.AdvanceWH(hw.regs[2]);
+          }
+          else hw.AdvanceIP(hw.regs[2]);
+        };
+        Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
+            "JumpHead", func_jmp_head);
+        action.data.AddVar<int>("inst_id", 7);
+      }
       // Get head  
-      func_get_head = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
-        if(inst.nop_vec.empty())
-          hw.regs[2] = hw.inst_ptr;
-        else{
-          if(inst.nop_vec[0] == 0)
+      {
+        func_get_head = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
+          if(inst.nop_vec.empty())
             hw.regs[2] = hw.inst_ptr;
-          else if(inst.nop_vec[0] == 1)
-            hw.regs[2] = hw.read_head;
-          else if(inst.nop_vec[0] == 2)
-            hw.regs[2] = hw.write_head;
-        }
-      };
-      action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>("GetHead", 
-          func_get_head);
+          else{
+            if(inst.nop_vec[0] == 0)
+              hw.regs[2] = hw.inst_ptr;
+            else if(inst.nop_vec[0] == 1)
+              hw.regs[2] = hw.read_head;
+            else if(inst.nop_vec[0] == 2)
+              hw.regs[2] = hw.write_head;
+          }
+        };
+        Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
+            "GetHead", func_get_head);
+        action.data.AddVar<int>("inst_id", 8);
+      }
       // Set flow  
-      func_set_flow = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
-        size_t idx = inst.nop_vec.empty() ? 2 : inst.nop_vec[0];
-        hw.flow_head = hw.regs[idx];
-      };
-      action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>("SetFlow", 
-          func_set_flow);
+      {
+        func_set_flow = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
+          size_t idx = inst.nop_vec.empty() ? 2 : inst.nop_vec[0];
+          hw.SetFH(hw.regs[idx]);
+        };
+        Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
+            "SetFlow", func_set_flow);
+        action.data.AddVar<int>("inst_id", 9);
+      }
     }
 
     void SetupModule() override {
