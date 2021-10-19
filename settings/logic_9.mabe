@@ -1,15 +1,16 @@
-random_seed = 1;                // Seed for random number generator; use 0 to base on time.
+random_seed = 0;                // Seed for random number generator; use 0 to base on time.
 Population main_pop;            // Collection of organisms
 Population next_pop;            // Collection of organisms
 Value pop_size = 3600;          // Local value variable.
-Value max_gens = 1000;            // Local value variable.
+Value max_gens = 1000;          // Local value variable.
 CommandLine cl {                // Handle basic I/O on the command line.
   format = "merit:mean, merit:max, child_merit:max";// Column format to use in the file.
   target = "main_pop";          // Which population(s) should we print from?
 }
 FileOutput output_file {        // Output collected data into a specified file.
   filename = "output.csv";      // Name of file for output data.
-  format = "merit:max,merit:mean,merit:0,genome:0,genome:1";// Column format to use in the file.
+  // Column format to use in the file.
+  format = "merit:max,merit:mean,merit:0,genome:0,not_performed:0,nand_performed:0";
   target = "main_pop";          // Which population(s) should we print from?
   output_updates = "0:1";       // Which updates should we output data?
 }
@@ -25,6 +26,8 @@ SchedulerProbabilistic scheduler { // Rations out updates to organisms based on 
   pop = "main_pop";             // Which population should we select parents from?
   avg_updates = 30;             // How many updates should organism receive on average?
   trait = "merit";              // Which trait provides the fitness value to use?
+  base_value = 1;               // What value should the scheduler use for organisms that have performed no tasks?
+  merit_scale_factor = 16;      // How should the scheduler scale merit?
 }
 VirtualCPU_Inst_Nop inst_lib_nop { // Nop instructions for VirtualCPUOrg
   target_pop = "main_pop";      // Population(s) to manage.
@@ -48,25 +51,28 @@ VirtualCPU_Inst_Replication inst_lib_repl { // Replication instructions for Virt
   target_pop = "main_pop";      // Population(s) to manage.
   pos_trait = "org_pos";        // Name of trait that holds organism's position
 }
-EvalTaskNot task_not {          // Manual evaluation of organism for NOT operation
+EvalTaskNot task_not {          // Organism-triggered evaluation of NOT operation
   inputs_trait = "input";       // Which trait contains the organism's inputs?
   outputs_trait = "output";     // Which trait contains the organism's outputs?
-  fitness_trait = "child_merit";      // Which trait should we increase if NOT was executed?
+  fitness_trait = "child_merit";// Which trait should we increase if NOT was executed?
+  performed_trait = "not_performed";// Which trait track if NOT was executed?
 }
-EvalTaskNand task_nand {        // Manual evaluation of organism for NAND operation
+EvalTaskNand task_nand {        // Organism-triggered evaluation of the NAND operation
   inputs_trait = "input";       // Which trait contains the organism's inputs?
   outputs_trait = "output";     // Which trait contains the organism's outputs?
-  fitness_trait = "child_merit";      // Which trait should we increase if NAND was executed?
+  fitness_trait = "child_merit";// Which trait should we increase if NAND was executed?
+  performed_trait = "nand_performed";// Which trait should track if NAND was executed?
 }
 VirtualCPUOrg avida_org {       // Organism consisting of Avida instructions.
-  mut_prob = 0.01;             // Probability of each instruction mutating on reproduction.
+  mut_prob = 0.01;              // Probability of each instruction mutating on reproduction.
   N = 0;                        // Initial number of instructions in genome
   init_random = 0;              // Should we randomize ancestor?  (0 = "blank" default)
   eval_time = 200;              // How many CPU cycles should we give organisms to run?
   input_name = "input";         // Name of variable to load inputs from.
   output_name = "old_output";   // Name of variable to output results.
   genome_name = "genome";       // Where to store the genome?.
- //merit_name = "merit";
+  merit_name = "merit";         // Name of variable corresponding to the organism's task performance.
+  child_merit_name = "child_merit";// Name of variable corresponding to the organism's task performance that will be used to calculate CPU cylces given to offspring.
 }
 
 @start(0) print("\n\nStarting run\n");
