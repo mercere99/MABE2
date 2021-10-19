@@ -77,6 +77,7 @@ namespace mabe {
       }
 
       Organism::SetTrait<std::string>(SharedData().genome_name, GetString());
+      CurateNops();
       return num_muts;
     }
 
@@ -118,12 +119,14 @@ namespace mabe {
         //PushInst("NopA");
       }
       Organism::SetTrait<std::string>(SharedData().genome_name, GetString());
+      CurateNops();
     }
     
     emp::Ptr<Organism> MakeOffspringOrganism(emp::Random & random) const {
       emp::Ptr<Organism> offspring = CloneOrganism();
       offspring->Mutate(random);
       offspring->SetTrait(SharedData().merit_name, GetTrait<double>(SharedData().child_merit_name)); 
+      offspring.DynamicCast<VirtualCPUOrg>()->CurateNops();
       return offspring;
     }
     
@@ -267,12 +270,14 @@ namespace mabe {
 
     bool ProcessStep() override { 
       //std::cout << GetString() << std::endl;
-      //std::cout 
-      //    << GetTrait<OrgPosition>("org_pos").Pos() 
-      //    << " -> " 
-      //    << inst_ptr 
-      //    << " (" << GetInstLib().GetName(genome_working[inst_ptr].idx) << ")"
-      //    << std::endl; 
+      //if(GetTrait<OrgPosition>("org_pos").Pos() == 1){
+      //  std::cout 
+      //      << GetTrait<OrgPosition>("org_pos").Pos() 
+      //      << " -> " 
+      //      << inst_ptr 
+      //      << " (" << GetInstLib().GetName(genome_working[inst_ptr].idx) << ")"
+      //      << std::endl; 
+      //}
       Process(1);
       return true; 
     }
