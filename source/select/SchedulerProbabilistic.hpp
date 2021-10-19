@@ -23,6 +23,8 @@ namespace mabe {
     double avg_updates;      ///< How many updates should organisms receive on average?
     int pop_id = 0;   ///< Which population are we selecting from?
     emp::IndexMap weight_map;
+    double base_value = 1;
+    double merit_scale_factor = 1;
   public:
     SchedulerProbabilistic(mabe::MABE & control,
                      const std::string & name="SchedulerProbabilistic",
@@ -40,16 +42,15 @@ namespace mabe {
       LinkPop(pop_id, "pop", "Which population should we select parents from?");
       LinkVar(avg_updates, "avg_updates", "How many updates should organism receive on average?");
       LinkVar(trait, "trait", "Which trait provides the fitness value to use?");
+      LinkVar(base_value, "base_value", "What value should the scheduler use for organisms"
+          " that have performed no tasks?");
+      LinkVar(merit_scale_factor, "merit_scale_factor", "How should the scheduler scale merit?");
     }
 
     void SetupModule() override {
       AddRequiredTrait<double>(trait); ///< The fitness trait must be set by another module.
     }
 
-    // TODO: Currently, the weight map is dropped and recreated every update. Switch to only updating 
-    //          an organism's weight when it changes
-    // TODO: Check to see if organism can get updates in the update they are born, and see if above todo 
-    //          will do the right thing
     /// Ration out updates to members of the population
     void OnUpdate(size_t /*update*/) override {
       // Grab the variables we'll use over and over
@@ -82,7 +83,8 @@ namespace mabe {
         weight_map.Resize(N, 1);
       }
       size_t org_idx = placement_pos.Pos();
-      weight_map.Adjust(org_idx, 1 + 16 * placement_pos.Pop()[org_idx].GetTrait<double>(trait));
+      weight_map.Adjust(org_idx, 
+          base_value + merit_scale_factor * placement_pos.Pop()[org_idx].GetTrait<double>(trait));
     }
   };
 

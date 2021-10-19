@@ -22,7 +22,9 @@ namespace mabe {
   private:
     std::string inputs_trait = "input";   ///< Name of trait for organism's inputs  (required)
     std::string outputs_trait = "output"; ///< Name of trait for organism's outputs (required)
-    std::string fitness_trait = "merit";  ///< Name of trait for organism's fitness (owned)
+    std::string fitness_trait = "merit";  ///< Name of trait for organism's fitness (required)
+    // Name of trait that tracks if task was performed (owned)
+    std::string performed_trait = "nand_performed";  
     Collection target_collect;
     int pop_id = 0;
     std::function<void(VirtualCPUOrg&, const VirtualCPUOrg::inst_t&)> func_task_nand;
@@ -39,14 +41,15 @@ namespace mabe {
     void SetupConfig() override {
       LinkVar(inputs_trait,  "inputs_trait", "Which trait contains the organism's inputs?");
       LinkVar(outputs_trait, "outputs_trait", "Which trait contains the organism's outputs?");
-      LinkVar(fitness_trait, "fitness_trait", "Which trait should we increase if NAND was executed?");
+      LinkVar(fitness_trait, "fitness_trait","Which trait should we increase if NAND was executed?");
+      LinkVar(performed_trait, "performed_trait", "Which trait should track if NAND was executed?");
     }
     
     void SetupFunc(){
       ActionMap& action_map = control.GetActionMap(pop_id);
 
       func_task_nand = [this](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){
-        bool& nand_performed = hw.GetTrait<bool>("nand_performed");
+        bool& nand_performed = hw.GetTrait<bool>(performed_trait);
         if(!nand_performed){
           emp::vector<data_t>& input_vec = hw.GetTrait<emp::vector<data_t>>(inputs_trait);
           emp::vector<data_t>& output_vec = hw.GetTrait<emp::vector<data_t>>(outputs_trait);
@@ -75,12 +78,12 @@ namespace mabe {
       AddRequiredTrait<emp::vector<data_t>>(inputs_trait);
       AddRequiredTrait<emp::vector<data_t>>(outputs_trait);
       AddRequiredTrait<double>(fitness_trait);
-      AddOwnedTrait<bool>("nand_performed", "Was NAND performed?", false);
+      AddOwnedTrait<bool>(performed_trait, "Was NAND performed?", false);
       SetupFunc();
     }
   };
 
-  MABE_REGISTER_MODULE(EvalTaskNand, "Manual evaluation of organism for NAND operation");
+  MABE_REGISTER_MODULE(EvalTaskNand, "Organism-triggered evaluation of the NAND operation");
 
 }
 
