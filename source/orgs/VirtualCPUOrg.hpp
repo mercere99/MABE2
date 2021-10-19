@@ -75,9 +75,6 @@ namespace mabe {
         if (mut_sites[pos]) { --i; continue; }  // Duplicate position; try again.
         RandomizeInst(pos, random);
       }
-
-      Organism::SetTrait<std::string>(SharedData().genome_name, GetString());
-      CurateNops();
       return num_muts;
     }
 
@@ -127,6 +124,8 @@ namespace mabe {
       offspring->Mutate(random);
       offspring->SetTrait(SharedData().merit_name, GetTrait<double>(SharedData().child_merit_name)); 
       offspring.DynamicCast<VirtualCPUOrg>()->CurateNops();
+      offspring.DynamicCast<VirtualCPUOrg>()->Organism::SetTrait<std::string>(
+          SharedData().genome_name, offspring.DynamicCast<VirtualCPUOrg>()->GetString());
       return offspring;
     }
     
@@ -175,6 +174,11 @@ namespace mabe {
                       "Name of variable to output results.");
       GetManager().LinkVar(SharedData().genome_name, "genome_name",
                       "Where to store the genome?.");
+      GetManager().LinkVar(SharedData().merit_name, "merit_name",
+                      "Name of variable corresponding to the organism's task performance.");
+      GetManager().LinkVar(SharedData().child_merit_name, "child_merit_name",
+                      "Name of variable corresponding to the organism's task performance that"
+                      " will be used to calculate CPU cylces given to offspring.");
     }
 
     /// Setup this organism type with the traits it need to track.
