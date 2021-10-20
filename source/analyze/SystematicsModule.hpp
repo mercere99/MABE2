@@ -23,9 +23,11 @@ private:
     int snapshot_start;
     int snapshot_frequency;
     int snapshot_end;
+    std::string snapshot_file_root_name;
     int data_start;
     int data_frequency;
     int data_end;
+    std::string data_file_name;
     emp::DataFile data; 
 
 public:
@@ -41,10 +43,12 @@ public:
       snapshot_start(-1),
       snapshot_frequency(1),
       snapshot_end(-1),
+      snapshot_file_root_name("phylogeny"),
       data_start(-1),
       data_frequency(-1),
       data_end(-1),
-      data("phylogenetic_data.csv")
+      data_file_name("phylogenetic_data.csv"),
+      data(data_file_name)
     {
       SetAnalyzeMod(true);    ///< Mark this module as an analyze module.
     }
@@ -54,6 +58,8 @@ public:
       LinkVar(store_outside, "store_outside", "Store all taxa that ever existed.(1 = TRUE)" );
       LinkVar(store_ancestors, "store_ancestors", "Store all ancestors of extant taxa.(1 = TRUE)" );
       LinkVar(taxon_info, "taxon_info", "Which trait should we identify unique taxa based on");
+      LinkVar(data_file_name, "data_file_name", "Filename for systematics data file.");
+      LinkVar(snapshot_file_root_name, "snapshot_file_root_name", "Filename for snapshot files (will have update number and .csv appended to end)")
       LinkRange(snapshot_start, snapshot_frequency, snapshot_end, "snapshot_updates", "Which updates should we output a snapshot of the phylogeny?");
       LinkRange(data_start, data_frequency, data_end, "data_updates", "Which updates should we output a data from the phylogeny?");
 
@@ -71,6 +77,9 @@ public:
       data.AddCurrent(*sys.GetDataNode("phylogenetic_diversity"), "phylogenetic_diversity","The current phylogenetic diversity.", true, true);
       data.PrintHeaderKeys();
       data.SetTimingRange(data_start, data_frequency, data_end);    
+
+      std::function<std::string(const emp::Taxon<std::string> &)> snapshot_fun = [](const emp::Taxon<std::string> & taxon){return taxon.GetInfo();};
+      sys.AddSnapshotFun(snapshot_fun, "taxon_info", "The string representation of the information that is used to delineate what counts as a different taxon.");
     }
       
     void OnUpdate(size_t update) override {
