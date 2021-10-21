@@ -60,13 +60,12 @@ namespace mabe {
       return OrgType::Recombine(other_parents, random);
     }
 
-    /// Produce an asexual offspring WITH MUTATIONS.  By default, use Clone() and then Mutate().
+    /// Produce an asexual offspring WITH MUTATIONS.
     [[nodiscard]] emp::Ptr<Organism> MakeOffspringOrganism(emp::Random & random) const {
       return OrgType::MakeOffspring(random).DynamicCast<Organism>();
     }
 
-    /// Produce an sexual (two parent) offspring WITH MUTATIONS.  By default, use Recombine() and
-    /// then Mutate().
+    /// Produce an sexual (two parent) offspring WITH MUTATIONS.
     [[nodiscard]] emp::Ptr<Organism>
     MakeOffspringOrganism(emp::Ptr<Organism> parent2, emp::Random & random) const {
       return OrgType::MakeOffspring(parent2, random).DynamicCast<Organism>();
