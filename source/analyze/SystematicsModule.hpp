@@ -48,7 +48,7 @@ public:
       data_frequency(-1),
       data_end(-1),
       data_file_name("phylogenetic_data.csv"),
-      data(data_file_name)
+      data("")
     {
       SetAnalyzeMod(true);    ///< Mark this module as an analyze module.
     }
@@ -59,7 +59,7 @@ public:
       LinkVar(store_ancestors, "store_ancestors", "Store all ancestors of extant taxa.(1 = TRUE)" );
       LinkVar(taxon_info, "taxon_info", "Which trait should we identify unique taxa based on");
       LinkVar(data_file_name, "data_file_name", "Filename for systematics data file.");
-      LinkVar(snapshot_file_root_name, "snapshot_file_root_name", "Filename for snapshot files (will have update number and .csv appended to end)")
+      LinkVar(snapshot_file_root_name, "snapshot_file_root_name", "Filename for snapshot files (will have update number and .csv appended to end)");
       LinkRange(snapshot_start, snapshot_frequency, snapshot_end, "snapshot_updates", "Which updates should we output a snapshot of the phylogeny?");
       LinkRange(data_start, data_frequency, data_end, "data_updates", "Which updates should we output a data from the phylogeny?");
 
@@ -69,6 +69,9 @@ public:
       // Setup the traits.
       // TODO: Ideally it would be great if we didn't have to list all possible allowed types here
       AddRequiredTrait<std::string, emp::BitVector, int, double, emp::vector<int>>(taxon_info);
+     
+      // Setup the data file
+      data = emp::DataFile(data_file_name);
       sys.AddPhylogeneticDiversityDataNode();
       sys.AddPairwiseDistanceDataNode();
       sys.AddEvolutionaryDistinctivenessDataNode();
@@ -78,6 +81,7 @@ public:
       data.PrintHeaderKeys();
       data.SetTimingRange(data_start, data_frequency, data_end);    
 
+      // Setup the snapshot file
       std::function<std::string(const emp::Taxon<std::string> &)> snapshot_fun = [](const emp::Taxon<std::string> & taxon){return taxon.GetInfo();};
       sys.AddSnapshotFun(snapshot_fun, "taxon_info", "The string representation of the information that is used to delineate what counts as a different taxon.");
     }
@@ -86,7 +90,7 @@ public:
       sys.Update();
 
       if (update >= snapshot_start && update <= snapshot_end && (update - snapshot_start) % snapshot_frequency == 0) {
-        sys.Snapshot("phylogeny_" + emp::to_string(update) + ".csv");
+        sys.Snapshot(snapshot_file_root_name + "_" + emp::to_string(update) + ".csv");
       }
       data.Update(update);
       //if (update >= data_start && update <= data_end && (update - data_start) % data_frequency == 0) {
