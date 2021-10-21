@@ -39,7 +39,7 @@ public:
       store_outside(_storeout), 
       store_ancestors(_storeanc),
       taxon_info(_taxon_info),
-      sys([this](Organism& org){return org.GetTraitAsString(org.GetTraitID(taxon_info));}, true, _storeanc, _storeout, true),
+      sys([this](Organism& org){org.GenerateOutput(); return org.GetTraitAsString(org.GetTraitID(taxon_info));}, true, _storeanc, _storeout, true),
       snapshot_start(-1),
       snapshot_frequency(1),
       snapshot_end(-1),
