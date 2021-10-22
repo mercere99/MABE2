@@ -6,20 +6,22 @@ LEVEL MAP:
 
 ConfigEntry          - []
 ConfigLexer          - []
-ConfigTypeInfo       - [] Basic information for a user-defined type.
 ConfigTypeBase       - []
 
+ConfigTools          - [ConfigEntry]
+
+ConfigTypeInfo       - [ConfigEntry,ConfigTools] Basic information for a user-defined type.
 ConfigEntry_Function - [ConfigEntry]
 ConfigEntry_Linked   - [ConfigEntry]
 
-ConfigEntry_Scope    - [ConfigEntry, ConfigEntry_Function, ConfigEntry_Linked, ConfigTypeBase]
+ConfigEntry_Scope    - [ConfigEntry,ConfigEntry_Function,ConfigEntry_Linked,ConfigTypeBase]
 
-ConfigAST            - [ConfigEntry_Scope, ConfigEntry]
-ConfigType           - [ConfigEntry_Scope]
+ConfigAST            - [ConfigEntry_Scope,ConfigEntry,ConfigTools]
+ConfigType           - [ConfigEntry_Scope,ConfigTypeInfo]
 
 ConfigEvents         - [ConfigAST]
 
-Config               - Main parser
+Config               - [ALL] Main parser
 
 
 TODO:
