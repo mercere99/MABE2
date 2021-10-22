@@ -16,6 +16,13 @@
 #include "evaluate/static/EvalRoyalRoad.hpp"
 #include "evaluate/callable/EvalTaskNot.hpp"
 #include "evaluate/callable/EvalTaskNand.hpp"
+#include "evaluate/callable/EvalTaskAnd.hpp"
+#include "evaluate/callable/EvalTaskOr.hpp"
+#include "evaluate/callable/EvalTaskAndnot.hpp"
+#include "evaluate/callable/EvalTaskOrnot.hpp"
+#include "evaluate/callable/EvalTaskNor.hpp"
+#include "evaluate/callable/EvalTaskXor.hpp"
+#include "evaluate/callable/EvalTaskEqu.hpp"
 
 // Interface Modules
 #include "interface/CommandLine.hpp"
