@@ -17,7 +17,8 @@
 #include "emp/meta/TypeID.hpp"
 #include "emp/tools/string_utils.hpp"
 
-class ConfigEntry;
+#include "ConfigEntry.hpp"
+#include "ConfigTools.hpp"
 
 namespace mabe {
 
@@ -29,6 +30,9 @@ namespace mabe {
     std::string name;
     std::string desc;
     fun_t fun;
+
+    MemberFunInfo(const std::string & in_name, const std::string & in_desc, fun_t in_fun)
+      : name(in_name), desc(in_desc), fun(in_fun) {}
   };
 
   // ConfigTypeInfo tracks a particular type to be used in the configuration langauge.
@@ -74,48 +78,14 @@ namespace mabe {
     }
 
     // Add a member function that can be called on objects of this type.
-    template <typename RETURN_T, typename OBJECT_T, typename... PARAM_Ts>
+    template <typename FUN_T>
     void AddMemberFunction(
       const std::string & name,
-      std::function<RETURN_T(OBJECT_T &, PARAM_Ts...)> fun,
+      FUN_T fun,
       const std::string & desc
     ) {
-      // ----- Make sure function is legal -----
-      // Is return type legal?
-      static_assert(std::is_arithmetic<RETURN_T>() ||
-                    std::is_same<RETURN_T, std::string>() ||
-                    std::is_same<RETURN_T, emp::Ptr<mabe::ConfigEntry>>(),
-                    "Config member function return types must be string, arithmetic, or Ptr<ConfigEntry>");
-
-      // Is the first parameter the correct type?
-      static_assert(std::is_base_of<ConfigType, typename std::decay<RETURN_T>::type>(),
-                    "Member functions must take a reference to the associated ConfigType");
-      emp_assert( type_id.IsType<OBJECT_T>(),
-                  "First parameter must match config type of member function being created!",
-                  type_id, emp::GetTypeID<OBJECT_T>() );
-
       // ----- Transform this function into one that ConfigTypeInfo can make use of ----
-      MemberFunInfo::fun_t member_fun =
-        [name,fun](ConfigType & obj, const emp::vector<entry_ptr_t> & args) -> RETURN_T {
-          // Make sure we can convert the obj into the correct type.
-          emp::Ptr<OBJECT_T> typed_ptr = dynamic_cast<OBJECT_T*>(&obj);
-
-          emp_assert(typed_ptr, "Internal Error: member function called on wrong object type!",
-                     name);
-
-          // Make sure we have the correct number of arguments.
-          if (args.size() != sizeof...(PARAM_Ts)) {
-            std::cerr << "Error in call to function '" << name
-              << "'; expected " << sizeof...(PARAM_Ts)
-              << " arguments, but received " << args.size() << "."
-              << std::endl;
-          }
-          //@CAO should collect file position information for the above errors.
-
-          // Call the provided function and return the result.
-          int arg_id = 0;
-          return fun( *typed_ptr, args[arg_id++]->As<PARAM_Ts>()... );
-        };
+      MemberFunInfo::fun_t member_fun = ConfigTools::WrapMemberFunction(type_id, name, fun);
 
       // Add this member function to the library we are building.
       member_funs.emplace_back(name, desc, member_fun);
