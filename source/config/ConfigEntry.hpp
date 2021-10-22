@@ -196,6 +196,14 @@ namespace mabe {
     /// If this entry is a function, we should be able to call it.
     virtual entry_ptr_t Call(const emp::vector<entry_ptr_t> & args);
 
+    // --- Implicit conversion operators ---
+    operator double() const { return AsDouble(); }
+    operator int() const { return static_cast<int>(AsDouble()); }
+    operator size_t() const { return static_cast<size_t>(AsDouble()); }
+    operator std::string() const { return AsString(); }
+    operator emp::Ptr<ConfigEntry>() { return this; }
+    operator ConfigType&() { return *GetObjectPtr(); }
+
     /// Allocate a duplicate of this class.
     virtual entry_ptr_t Clone() const = 0;
 
@@ -319,19 +327,6 @@ namespace mabe {
 
   emp::Ptr<ConfigEntry> ConfigEntry::Call( const emp::vector<entry_ptr_t> & /* args */ ) {
     return emp::NewPtr<ConfigEntry_Error>("Cannot call a function on non-function '", name, "'.");
-  }
-
-
-  ////////////////////////////////////////////////////
-  //  Helper functions ==
-
-  // Use ConfigEntry::MakeTempEntry(value) to quickly make a temporary entry with a given value.
-  // Note: Caller will be responsible for deleting the created entry!
-  template <typename VALUE_T>
-  emp::Ptr<ConfigEntry_Var<VALUE_T>> MakeTempEntry(VALUE_T value) {
-    auto out_entry = emp::NewPtr<ConfigEntry_Var<VALUE_T>>("__Temp", value, "", nullptr);
-    out_entry->SetTemporary();
-    return out_entry;
   }
 
 }
