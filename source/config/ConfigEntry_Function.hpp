@@ -19,6 +19,7 @@
 #include "emp/meta/ValPack.hpp"
 
 #include "ConfigEntry.hpp"
+#include "ConfigTools.hpp"
 
 namespace mabe {
 
@@ -64,7 +65,7 @@ namespace mabe {
           );
         }
 
-        return MakeTempEntry(in_fun());
+        return ConfigTools::MakeTempEntry(in_fun());
       };
     }
 
@@ -80,7 +81,7 @@ namespace mabe {
           );            
         }
         
-        return MakeTempEntry( in_fun((args[INDICES]->template As<ARGS>())...) );
+        return ConfigTools::MakeTempEntry( in_fun((args[INDICES]->template As<ARGS>())...) );
       };
     }
 
@@ -99,7 +100,7 @@ namespace mabe {
           // If this function returns a basic type, wrap it in a temp entry.
           else if constexpr (std::is_same<RETURN_T, std::string>() ||
                               std::is_arithmetic<RETURN_T>()) {
-            return MakeTempEntry(in_fun(args));
+            return ConfigTools::MakeTempEntry(in_fun(args));
           }
 
           // For now these are the only legal return type; raise error otherwise!
