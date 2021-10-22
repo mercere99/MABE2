@@ -97,9 +97,11 @@ namespace ConfigTools {
     }
 
     template <typename FUN_T>
-    static auto ConvertMemberFun(FUN_T fun) {        
+    static auto ConvertMemberFun(const std::string & name, FUN_T fun) {  
+      constexpr size_t NUM_PARAMS = sizeof...(PARAM_Ts);
+
       // If this function is already the correct type, just pass it along.
-      if constexpr (sizeof...(PARAM_Ts) == 1) {
+      if constexpr (NUM_PARAMS == 1) {
         using arg1_t = typename emp::FunInfo<FUN_T>::template arg_t<1>;
         if (std::is_reference_v<PARAM1_T> &&
             std::is_base_of_v<ConfigType, std::remove_reference_t<PARAM1_T>> &&
@@ -110,30 +112,55 @@ namespace ConfigTools {
 
       // Otherwise convert types as needed.
       else {
-       return [fun=fun](ConfigType & obj, const entry_vector_t & args) {
+       return [name=name,fun=fun](ConfigType & obj, const entry_vector_t & args) {
           emp_assert(args.size() == sizeof...(PARAM_Ts), "Wrong argument count!",
                      args.size(), sizeof...(PARAM_Ts));
           emp::Ptr<ConfigType> obj_ptr(&obj);
-          auto out_ptr = obj_ptr.DynamicCast<PARAM1_T>();
-          emp_assert(out_ptr, "Internal error: member function call on wrong object type!");
-          size_t i = 0;
-          return ConvertReturn( fun(*out_ptr, args[i++]->As<PARAM_Ts>()...) );
+          auto typed_ptr = obj_ptr.DynamicCast<std::remove_reference_t<PARAM1_T>>();
+          emp_assert(typed_ptr, "Internal error: member function call on wrong object type!");
+
+          // Make sure we have the correct number of arguments.
+          if (args.size() != NUM_PARAMS) {
+            std::cerr << "Error in call to function '" << name
+              << "'; expected " << NUM_PARAMS
+              << " arguments, but received " << args.size() << "."
+              << std::endl;
+          }
+          //@CAO should collect file position information for the above errors.
+
+          size_t arg_id = 0;
+          return ConvertReturn( fun(*typed_ptr, args[arg_id++]->As<PARAM_Ts>()...) );
         };
       }
     }
 
   };
 
-  // Wrap a provided function to make sure it takes a vector of Ptr<ConfigEntry> and returns a
+  // Wrap a provided function to make it take a vector of Ptr<ConfigEntry> and return a
   // single Ptr<ConfigEntry> representing the result.
   template <typename FUN_T>
   static auto WrapFunction(FUN_T fun) {
     return WrapFunction_impl<typename emp::FunInfo<FUN_T>::fun_t>::ConvertFun(fun);
   }
 
+  // Wrap a provided MEMBER function to make it take a reference to the object it is a member of
+  // and a vector of Ptr<ConfigEntry> and return a single Ptr<ConfigEntry> representing the result.
   template <typename FUN_T>
-  static auto WrapMemberFunction(FUN_T fun) {
-    return WrapFunction_impl<typename emp::FunInfo<FUN_T>::fun_t>::ConvertMemberFun(fun);
+  static auto WrapMemberFunction(emp::TypeID class_type, const std::string & name, FUN_T fun) {
+    // Do some checks that will produce reasonable errors.
+    using info_t = emp::FunInfo<FUN_T>;
+    static_assert(info_t::num_args >= 1, "Member function add must always begin with an object reference.");
+    using object_t = typename info_t::template arg_t<0>;
+    using base_object_t = typename std::remove_cv_t< std::remove_reference_t<object_t> >;
+
+    // Is the first parameter the correct type?
+    static_assert(std::is_base_of<ConfigType, base_object_t>(),
+                  "Member functions must take a reference to the associated ConfigType");
+    emp_assert( class_type.IsType<base_object_t>(),
+                "First parameter must match class type of member function being created!",
+                emp::GetTypeID<object_t>(), class_type );
+
+    return WrapFunction_impl<typename emp::FunInfo<FUN_T>::fun_t>::ConvertMemberFun(name, fun);
   }
 
 }
