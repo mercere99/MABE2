@@ -27,37 +27,33 @@ namespace mabe {
   private:
     using this_t = ConfigEntry_Function;
     using entry_ptr_t = emp::Ptr<ConfigEntry>;
-    using entry_vector_t = emp::vector<entry_ptr_t>;
-    using fun_t = std::function< entry_ptr_t( const entry_vector_t & ) >;
+    using fun_t = std::function< entry_ptr_t( const emp::vector<entry_ptr_t> & ) >;
     fun_t fun;
     bool numeric_return = false;
     bool string_return = false;
     // size_t arg_count;
 
   public:
-    template <typename RETURN_T, typename... ARGS>
+    template <typename FUN_T>
     ConfigEntry_Function(const std::string & _name,
-                   std::function<RETURN_T(ARGS...)> _fun,
-                   const std::string & _desc,
-                   emp::Ptr<ConfigEntry_Scope> _scope)
-      : ConfigEntry(_name, _desc, _scope) { SetFunction(_fun); }
+                         FUN_T _fun,
+                         const std::string & _desc,
+                         emp::Ptr<ConfigEntry_Scope> _scope)
+      : ConfigEntry(_name, _desc, _scope), fun(ConfigTools::WrapFunction(_name, _fun))
+    {
+      using return_t = typename emp::FunInfo<FUN_T>::return_t;
+      numeric_return = std::is_scalar_v<return_t>;
+      string_return = std::is_same<std::string, return_t>();
+    }
 
     ConfigEntry_Function(const ConfigEntry_Function &) = default;
-
     emp::Ptr<ConfigEntry> Clone() const override { return emp::NewPtr<this_t>(*this); }
 
     bool IsFunction() const override { return true; }
     bool HasNumericReturn() const override { return numeric_return; }
     bool HasStringReturn() const override { return string_return; }
 
-    /// Setup a function that takes AT LEAST ONE argument.
-    template <typename FUN>
-    void SetFunction( FUN in_fun ) {
-      fun = ConfigTools::WrapFunction(name, in_fun);
-    }
-
     entry_ptr_t Call( const emp::vector<entry_ptr_t> & args ) override { return fun(args); }
-
   };
 
 }
