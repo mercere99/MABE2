@@ -50,72 +50,10 @@ namespace mabe {
     bool HasNumericReturn() const override { return numeric_return; }
     bool HasStringReturn() const override { return string_return; }
 
-    /// Setup a function that takes NO arguments.
-    template <typename RETURN_T>
-    void SetFunction( std::function<RETURN_T()> in_fun ) {
-      numeric_return = std::is_scalar_v<RETURN_T>;
-      string_return = std::is_same<std::string, RETURN_T>();
-
-      // Convert the function call to return an entry pointer and save it.
-      fun = [in_fun, name=name, desc=desc](const entry_vector_t & args) -> entry_ptr_t {        
-        // If arguments are passed in, we need to raise an error.
-        if (args.size()) {
-          return emp::NewPtr<ConfigEntry_Error>(
-            "Function '", name, "' called with ", args.size(), " args, but ZERO expected."
-          );
-        }
-
-        return ConfigTools::MakeTempEntry(in_fun());
-      };
-    }
-
-    /// Helper function to convert ASTs into the proper function arguments.
-    template <typename RETURN_T, typename... ARGS, auto... INDICES>
-    void SetFunction_impl( std::function<RETURN_T(ARGS...)> in_fun, emp::ValPack<INDICES...> ) {
-      fun = [in_fun, name=name, desc=desc](const entry_vector_t & args) -> entry_ptr_t {        
-        // The call needs to have the correct number of arguments or else it throws an error.
-        constexpr int NUM_ARGS = sizeof...(ARGS);
-        if (args.size() != NUM_ARGS) {
-          return emp::NewPtr<ConfigEntry_Error>(
-            "Function '", name, "' called with ", args.size(), " args, but ", NUM_ARGS, " expected."
-          );            
-        }
-        
-        return ConfigTools::MakeTempEntry( in_fun((args[INDICES]->template As<ARGS>())...) );
-      };
-    }
-
     /// Setup a function that takes AT LEAST ONE argument.
-    template <typename RETURN_T, typename ARG1, typename... ARGS>
-    void SetFunction( std::function<RETURN_T(ARG1, ARGS...)> in_fun ) {
-      /// If we have only one argument and it is a `const emp::vector<entry_ptr_t> &`,
-      /// assume that the function will handle any conversions itself.
-      if constexpr (sizeof...(ARGS) == 0 && std::is_same<ARG1, const entry_vector_t &>()) {
-        fun = [in_fun, name=name, desc=desc](const entry_vector_t & args) -> entry_ptr_t {        
-          // If this function already returns a ConfigEntry pointer, pass it along.
-          if constexpr (std::is_same<RETURN_T, emp::Ptr<mabe::ConfigEntry>>()) {
-            return in_fun(args);
-          }
-
-          // If this function returns a basic type, wrap it in a temp entry.
-          else if constexpr (std::is_same<RETURN_T, std::string>() ||
-                              std::is_arithmetic<RETURN_T>()) {
-            return ConfigTools::MakeTempEntry(in_fun(args));
-          }
-
-          // For now these are the only legal return type; raise error otherwise!
-          else {
-            emp::ShowType<RETURN_T>{};
-            static_assert(emp::dependent_false<RETURN_T>(),
-                          "Invalid return value in ConfigEntry_Function::SetFunction()");
-          }
-        };
-      }
-
-      /// Convert the function call to using entry pointers.
-      else {
-        SetFunction_impl( in_fun, emp::ValPackCount<sizeof...(ARGS)+1>() );
-      }
+    template <typename FUN>
+    void SetFunction( FUN in_fun ) {
+      fun = ConfigTools::WrapFunction(name, in_fun);
     }
 
     entry_ptr_t Call( const emp::vector<entry_ptr_t> & args ) override { return fun(args); }
