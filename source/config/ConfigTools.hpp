@@ -105,7 +105,7 @@ namespace ConfigTools {
           //@CAO should collect file position information for the above errors.
 
           return ConvertReturn( fun(args[0]->As<PARAM1_T>(),
-                                args[INDEX_VALS]->template As<PARAM_Ts>()...) );
+                                args[INDEX_VALS+1]->template As<PARAM_Ts>()...) );
         }
       };      
     }
