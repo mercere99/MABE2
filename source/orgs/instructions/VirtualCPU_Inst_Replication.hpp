@@ -51,7 +51,7 @@ namespace mabe {
           //std::cout << " RH: " << hw.read_head;
           //std::cout << " WH: " << hw.write_head;
           //std::cout << std::endl;
-          hw.genome_working.resize(hw.genome.size() * 2);
+          hw.genome_working.resize(hw.genome.size() * 2, hw.genome_working[0]);
           hw.regs[0] = hw.genome.size();
         };
         Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
@@ -61,24 +61,17 @@ namespace mabe {
       // Head divide 
       {
         func_h_divide = [this](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){
-          if(hw.read_head >= hw.genome.size()){
+          if(hw.read_head >= hw.genome.size() && hw.copied_inst_id_vec.size() >= hw.genome_working.size() / 2){
             OrgPosition& org_pos = hw.GetTrait<OrgPosition>(org_pos_trait);
             VirtualCPUOrg::genome_t& offspring_genome = hw.GetTrait<VirtualCPUOrg::genome_t>(
                 "offspring_genome");
-            //std::cout << "\n\n";
-            //std::cout << "Replicating!" << std::endl;
-            //std::cout << "Working genome: " << hw.GetString() << std::endl;
-            //std::cout << "IP: " << hw.inst_ptr;
-            //std::cout << " RH: " << hw.read_head;
-            //std::cout << " WH: " << hw.write_head;
-            //std::cout << std::endl;
-            //std::cout << "\n\n";
             offspring_genome = hw.genome_working;
-            offspring_genome.resize(hw.genome_working.size() - hw.read_head); 
+            offspring_genome.resize(0);
+            offspring_genome.resize(hw.genome_working.size() - hw.read_head, hw.genome_working[0]); 
+            //std::cout << hw.read_head << " " << hw.genome_working.size() << std::endl;
             std::copy(
                 hw.genome_working.begin() + hw.read_head, 
                 hw.genome_working.end(),
-                //hw.genome_working.begin() + hw.genome_working.size() - 1, 
                 offspring_genome.begin());
             hw.genome_working.resize(hw.read_head);
             hw.ResetHardware();
