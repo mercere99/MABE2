@@ -324,6 +324,7 @@ namespace mabe {
     std::string name;
     std::string desc;
     std::function<ConfigType & (MABE &, const std::string &)> init_fun;
+    emp::TypeID type_id;
     bool operator<(const ModuleInfo & in) const { return name < in.name; }
   };
 
