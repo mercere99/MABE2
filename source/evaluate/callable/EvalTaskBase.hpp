@@ -131,6 +131,12 @@ namespace mabe {
       AddOwnedTrait<bool>(performed_trait, "Was the task performed?", false);
       SetupFunc();
     }
+
+    void OnPlacement(OrgPosition placement_pos) override{
+      Population & pop = placement_pos.Pop();
+      size_t org_idx = placement_pos.Pos();
+      pop[org_idx].SetTrait<bool>(performed_trait, false);
+    }
   };
 
 }
