@@ -1,22 +1,22 @@
-random_seed = 0;                // Seed for random number generator; use 0 to base on time.
+random_seed = 0;       // Seed for random number generator; use 0 to base on time.
 Population main_pop;            // Collection of organisms
 Population next_pop;            // Collection of organisms
 Value pop_size = 3600;          // Local value variable.
-Value max_gens = 1000;          // Local value variable.
+Value max_gens = 10000;          // Local value variable.
+Value do_multiply = 1;          // Local value variable.
 CommandLine cl {                // Handle basic I/O on the command line.
-  format = "merit:mean, merit:max, child_merit:max";// Column format to use in the file.
+  format = "merit:mean, merit:max, child_merit:mean, child_merit:max,not_performed:mean";// Column format to use in the file.
   target = "main_pop";          // Which population(s) should we print from?
 }
 FileOutput output_file {        // Output collected data into a specified file.
   filename = "output.csv";      // Name of file for output data.
-  // Column format to use in the file.
-  format = "merit:max,merit:mean,merit:0,genome:0,not_performed:0,nand_performed:0";
+  format = "merit:max,merit:mean,merit:0,child_merit:max,child_merit:mean,genome:0,genome:1,not_performed:max,nand_performed:max,and_performed:max,or_performed:max,andnot_performed:max,ornot_performed:max,nor_performed:max,xor_performed:max,equ_performed:max";// Column format to use in the file.
   target = "main_pop";          // Which population(s) should we print from?
   output_updates = "0:1";       // Which updates should we output data?
 }
 MaxSizePlacement place_max_size { // Grow population to a given size then maintain
   target = "main_pop";          // Population(s) to manage.
-  max_pop_size = pop_size;          // Maximum size of the population.
+  max_pop_size = 3600;          // Maximum size of the population.
 }
 AnnotatePlacement pos_annotater { // Store org's position as trait on placement.
   target = "main_pop";          // Population(s) to manage.
@@ -27,7 +27,7 @@ SchedulerProbabilistic scheduler { // Rations out updates to organisms based on 
   avg_updates = 30;             // How many updates should organism receive on average?
   trait = "merit";              // Which trait provides the fitness value to use?
   base_value = 1;               // What value should the scheduler use for organisms that have performed no tasks?
-  merit_scale_factor = 16;      // How should the scheduler scale merit?
+  merit_scale_factor = 1;       // How should the scheduler scale merit?
 }
 VirtualCPU_Inst_Nop inst_lib_nop { // Nop instructions for VirtualCPUOrg
   target_pop = "main_pop";      // Population(s) to manage.
@@ -54,14 +54,74 @@ VirtualCPU_Inst_Replication inst_lib_repl { // Replication instructions for Virt
 EvalTaskNot task_not {          // Organism-triggered evaluation of NOT operation
   inputs_trait = "input";       // Which trait contains the organism's inputs?
   outputs_trait = "output";     // Which trait contains the organism's outputs?
-  fitness_trait = "child_merit";// Which trait should we increase if NOT was executed?
-  performed_trait = "not_performed";// Which trait track if NOT was executed?
+  fitness_trait = "child_merit";// Which trait should we increase if BASE was executed?
+  performed_trait = "not_performed";// Which trait should track if BASE was executed?
+  reward_value = 2;             // How large is the reward for performing this task?
+  is_multiplicative = do_multiply;        // Should reward be multiplied (true) or added(false) to current score?
 }
-EvalTaskNand task_nand {        // Organism-triggered evaluation of the NAND operation
+EvalTaskNand task_nand {        // Organism-triggered evaluation of NAND operation
   inputs_trait = "input";       // Which trait contains the organism's inputs?
   outputs_trait = "output";     // Which trait contains the organism's outputs?
-  fitness_trait = "child_merit";// Which trait should we increase if NAND was executed?
-  performed_trait = "nand_performed";// Which trait should track if NAND was executed?
+  fitness_trait = "child_merit";// Which trait should we increase if BASE was executed?
+  performed_trait = "nand_performed";// Which trait should track if BASE was executed?
+  reward_value = 2;             // How large is the reward for performing this task?
+  is_multiplicative = do_multiply;        // Should reward be multiplied (true) or added(false) to current score?
+}
+EvalTaskAnd task_and {          // Organism-triggered evaluation of AND operation
+  inputs_trait = "input";       // Which trait contains the organism's inputs?
+  outputs_trait = "output";     // Which trait contains the organism's outputs?
+  fitness_trait = "child_merit";// Which trait should we increase if BASE was executed?
+  performed_trait = "and_performed";// Which trait should track if BASE was executed?
+  reward_value = 4;             // How large is the reward for performing this task?
+  is_multiplicative = do_multiply;        // Should reward be multiplied (true) or added(false) to current score?
+}
+EvalTaskOrnot task_ornot {      // Organism-triggered evaluation of ORNOT operation
+  inputs_trait = "input";       // Which trait contains the organism's inputs?
+  outputs_trait = "output";     // Which trait contains the organism's outputs?
+  fitness_trait = "child_merit";// Which trait should we increase if BASE was executed?
+  performed_trait = "ornot_performed";// Which trait should track if BASE was executed?
+  reward_value = 4;             // How large is the reward for performing this task?
+  is_multiplicative = do_multiply;        // Should reward be multiplied (true) or added(false) to current score?
+}
+EvalTaskAndnot task_andnot {    // Organism-triggered evaluation of ANDNOT operation
+  inputs_trait = "input";       // Which trait contains the organism's inputs?
+  outputs_trait = "output";     // Which trait contains the organism's outputs?
+  fitness_trait = "child_merit";// Which trait should we increase if BASE was executed?
+  performed_trait = "andnot_performed";// Which trait should track if BASE was executed?
+  reward_value = 8;             // How large is the reward for performing this task?
+  is_multiplicative = do_multiply;        // Should reward be multiplied (true) or added(false) to current score?
+}
+EvalTaskOr task_or {            // Organism-triggered evaluation of OR operation
+  inputs_trait = "input";       // Which trait contains the organism's inputs?
+  outputs_trait = "output";     // Which trait contains the organism's outputs?
+  fitness_trait = "child_merit";// Which trait should we increase if BASE was executed?
+  performed_trait = "or_performed";// Which trait should track if BASE was executed?
+  reward_value = 8;             // How large is the reward for performing this task?
+  is_multiplicative = do_multiply;        // Should reward be multiplied (true) or added(false) to current score?
+}
+EvalTaskNor task_nor {          // Organism-triggered evaluation of NOR operation
+  inputs_trait = "input";       // Which trait contains the organism's inputs?
+  outputs_trait = "output";     // Which trait contains the organism's outputs?
+  fitness_trait = "child_merit";// Which trait should we increase if BASE was executed?
+  performed_trait = "nor_performed";// Which trait should track if BASE was executed?
+  reward_value = 16;            // How large is the reward for performing this task?
+  is_multiplicative = do_multiply;        // Should reward be multiplied (true) or added(false) to current score?
+}
+EvalTaskXor task_xor {          // Organism-triggered evaluation of XOR operation
+  inputs_trait = "input";       // Which trait contains the organism's inputs?
+  outputs_trait = "output";     // Which trait contains the organism's outputs?
+  fitness_trait = "child_merit";// Which trait should we increase if BASE was executed?
+  performed_trait = "xor_performed";// Which trait should track if BASE was executed?
+  reward_value = 16;            // How large is the reward for performing this task?
+  is_multiplicative = do_multiply;        // Should reward be multiplied (true) or added(false) to current score?
+}
+EvalTaskEqu task_equ {          // Organism-triggered evaluation of EQU operation
+  inputs_trait = "input";       // Which trait contains the organism's inputs?
+  outputs_trait = "output";     // Which trait contains the organism's outputs?
+  fitness_trait = "child_merit";// Which trait should we increase if BASE was executed?
+  performed_trait = "equ_performed";// Which trait should track if BASE was executed?
+  reward_value = 32;            // How large is the reward for performing this task?
+  is_multiplicative = do_multiply;        // Should reward be multiplied (true) or added(false) to current score?
 }
 VirtualCPUOrg avida_org {       // Organism consisting of Avida instructions.
   mut_prob = 0.01;              // Probability of each instruction mutating on reproduction.
@@ -73,6 +133,7 @@ VirtualCPUOrg avida_org {       // Organism consisting of Avida instructions.
   genome_name = "genome";       // Where to store the genome?.
   merit_name = "merit";         // Name of variable corresponding to the organism's task performance.
   child_merit_name = "child_merit";// Name of variable corresponding to the organism's task performance that will be used to calculate CPU cylces given to offspring.
+  inititial_merit = 1;          // Initial value for merit (task performance)
 }
 
 @start(0) print("\n\nStarting run\n");
