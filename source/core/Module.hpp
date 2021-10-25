@@ -421,6 +421,7 @@ namespace mabe {
       new_info.init_fun = [desc](MABE & control, const std::string & name) -> ConfigType & {
         return control.AddModule<T>(name, desc);
       };
+      new_info.type_id = emp::GetTypeID<T>();
       GetModuleInfo().insert(new_info);
     }
   };
