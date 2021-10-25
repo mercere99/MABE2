@@ -388,12 +388,28 @@ namespace mabe {
     ConfigTypeInfo & AddType(
       const std::string & type_name,
       const std::string & desc,
-      std::function<ConfigType & (const std::string &)> init_fun
+      std::function<ConfigType & (const std::string &)> init_fun,
+      emp::TypeID type_id
     ) {
       emp_assert(!emp::Has(type_map, type_name), type_name, "Type already exists!");
       size_t index = type_map.size();
-      type_map[type_name] = emp::NewPtr<ConfigTypeInfo>( index, type_name, desc, init_fun );
+      auto info_ptr = emp::NewPtr<ConfigTypeInfo>( index, type_name, desc, init_fun );
+      info_ptr->LinkType(type_id);
+      type_map[type_name] = info_ptr;
       return *type_map[type_name];
+    }
+
+    /// If the linked type can be provided as a template parameter, we can also double check that
+    /// it is derived from ConfigType (as it needs to be...)
+    template <typename OBJECT_T>
+    ConfigTypeInfo & AddType(
+      const std::string & type_name,
+      const std::string & desc,
+      std::function<ConfigType & (const std::string &)> init_fun
+    ) {
+      static_assert(std::is_base_of<ConfigType, OBJECT_T>(),
+                    "Only ConfigType objects can be used as a custom config type.");
+      return AddType(type_name, desc, init_fun, emp::GetTypeID<OBJECT_T>());
     }
 
     /// To add a built-in function (at the root level) provide it with a name and description.
