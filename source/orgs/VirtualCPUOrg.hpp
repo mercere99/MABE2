@@ -50,6 +50,7 @@ namespace mabe {
       std::string merit_name = "merit";    ///< Name of trait that stores an organism's fitness 
       std::string genome_name = "genome";    ///< Name of trait that stores an organism's fitness 
       std::string child_merit_name = "child_merit"; 
+      double initial_merit = 0;
 
       // Internal use
       emp::Binomial mut_dist;            ///< Distribution of number of mutations to occur.
@@ -86,14 +87,33 @@ namespace mabe {
     }
 
     void Initialize(emp::Random & random) override {
+      std::cout << "Original genome:" << std::endl;
+      std::cout << GetString() << std::endl;
+      constexpr bool start_with_not = false;
       if (SharedData().init_random) Randomize(random);
       else{
+        std::cout << "Filling genome!" << std::endl;
         PushInst("HAlloc");  // 0  
         PushInst("HSearch"); // 1
         PushInst("NopC");    // 2
         PushInst("NopA");    // 3
         PushInst("MovHead"); // 4
-        for(size_t i = 0; i < (50 - 14); i++) PushInst("NopC");   
+        if constexpr(!start_with_not){
+          for(size_t i = 0; i < (50 - 14); i++) PushInst("NopC");   
+        }
+        else{
+          for(size_t i = 0; i < (50 - 24); i++) PushInst("NopC");   
+          PushInst("IO");
+          PushInst("NopB");
+          PushInst("Push");
+          PushInst("NopB");
+          PushInst("Pop");
+          PushInst("NopC");
+          PushInst("Nand");
+          PushInst("NopB");
+          PushInst("IO");
+          PushInst("NopB");
+        }
         PushInst("HSearch"); // 41
         PushInst("HCopy");   // 42
         PushInst("IfLabel"); // 43
@@ -103,26 +123,20 @@ namespace mabe {
         PushInst("MovHead"); // 47
         PushInst("NopA");    // 48
         PushInst("NopB");    // 49
-        // NOT
-        //PushInst("IO");
-        //PushInst("NopB");
-        //PushInst("Push");
-        //PushInst("NopB");
-        //PushInst("Pop");
-        //PushInst("NopC");
-        //PushInst("Nand");
-        //PushInst("NopA");
-        //PushInst("IO");
-        //PushInst("NopA");
       }
       Organism::SetTrait<std::string>(SharedData().genome_name, GetString());
+      Organism::SetTrait<double>(SharedData().merit_name, SharedData().initial_merit); 
+      Organism::SetTrait<double>(SharedData().child_merit_name, SharedData().initial_merit); 
       CurateNops();
+      std::cout << "Modified genome:" << std::endl;
+      std::cout << GetString() << std::endl;
     }
     
     emp::Ptr<Organism> MakeOffspringOrganism(emp::Random & random) const {
       emp::Ptr<Organism> offspring = CloneOrganism();
       offspring->Mutate(random);
-      offspring->SetTrait(SharedData().merit_name, GetTrait<double>(SharedData().child_merit_name)); 
+      offspring->SetTrait<double>(SharedData().merit_name, GetTrait<double>(SharedData().child_merit_name)); 
+      offspring->SetTrait<double>(SharedData().child_merit_name, SharedData().initial_merit); 
       offspring.DynamicCast<VirtualCPUOrg>()->CurateNops();
       offspring.DynamicCast<VirtualCPUOrg>()->Organism::SetTrait<std::string>(
           SharedData().genome_name, offspring.DynamicCast<VirtualCPUOrg>()->GetString());
@@ -131,7 +145,15 @@ namespace mabe {
     
     virtual emp::Ptr<Organism> CloneOrganism() const {
       auto offspring = OrgType::Clone().DynamicCast<VirtualCPUOrg>();
+      //std::cout << 
+      //  GetTrait<OrgPosition>("org_pos").Pos() << 
+      //  ConvertGenome(genome_working) << 
+      //  " -> " << 
+      //  ConvertGenome(GetTrait<genome_t>("offspring_genome")) << 
+      //  std::endl; 
       offspring->genome = GetTrait<genome_t>("offspring_genome");
+      offspring->SetTrait<double>(SharedData().merit_name, GetTrait<double>(SharedData().child_merit_name)); 
+      offspring->SetTrait<double>(SharedData().child_merit_name, SharedData().initial_merit); 
       offspring->genome_working = offspring->genome;
       offspring->ResetHardware();
       offspring->Organism::SetTrait<std::string>(SharedData().genome_name, offspring->GetString());
@@ -162,7 +184,7 @@ namespace mabe {
       GetManager().LinkVar(SharedData().mut_prob, "mut_prob",
                       "Probability of each instruction mutating on reproduction.");
       GetManager().LinkFuns<size_t>([this](){ return GetSize(); },
-                       [this](const size_t & N){ Reset(); PushDefaultInst(N); },
+                       [this](const size_t & N){ Reset(); /*PushDefaultInst(N);*/ },
                        "N", "Initial number of instructions in genome");
       GetManager().LinkVar(SharedData().init_random, "init_random",
                       "Should we randomize ancestor?  (0 = \"blank\" default)");
@@ -179,6 +201,8 @@ namespace mabe {
       GetManager().LinkVar(SharedData().child_merit_name, "child_merit_name",
                       "Name of variable corresponding to the organism's task performance that"
                       " will be used to calculate CPU cylces given to offspring.");
+      GetManager().LinkVar(SharedData().initial_merit, "inititial_merit",
+                      "Initial value for merit (task performance)");
     }
 
     /// Setup this organism type with the traits it need to track.
@@ -195,9 +219,9 @@ namespace mabe {
                                   "Value map output from organism.",
                                   emp::vector<data_t>());
       GetManager().AddSharedTrait<double>(SharedData().merit_name,
-                                  "Value representing fitness of organism", 0);
+                                  "Value representing fitness of organism", SharedData().initial_merit);
       GetManager().AddSharedTrait<double>(SharedData().child_merit_name,
-                                  "Fitness passed on to children", 0);
+                                  "Fitness passed on to children", SharedData().initial_merit);
       GetManager().AddOwnedTrait<std::string>(SharedData().genome_name, "Organism's genome", "[None]");
       GetManager().AddSharedTrait<genome_t>("offspring_genome", "Latest genome copied", { } );
       GetManager().AddSharedTrait<genome_t>("passed_genome", "Genome as passed from parent", { } );
@@ -285,6 +309,16 @@ namespace mabe {
       Process(1);
       return true; 
     }
+
+      static std::string ConvertGenome(const genome_t& genome){
+        std::stringstream sstr;
+        sstr << "[" << genome.size() << "]";
+        for(size_t idx = 0; idx < genome.size(); idx++){
+          unsigned char c = 'a' + genome[idx].id;
+          sstr << c;
+        }
+        return sstr.str();
+      }
   };
 
   MABE_REGISTER_ORG_TYPE(VirtualCPUOrg, "Organism consisting of Avida instructions.");
