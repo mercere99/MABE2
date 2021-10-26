@@ -19,10 +19,20 @@
 
 namespace mabe {
 
+  class Config;
+
   // Base class for types that we want to be used for scripting.
   class ConfigType : public ConfigTypeBase {
   public:
-    // Setup a new ConfigType object; provide it with its scope and type information.    
+    /// Setup the TYPE of object in the config.  This is a stub class, but any new class derived from
+    /// ConfigType can create its own version to automatically load in member functions, etc.
+    static void InitType(Config & /*config*/, ConfigTypeInfo & /*info*/) {
+      // If you create a version of this function for your own ConfigType, this is where you would
+      // create member functions.
+    }
+
+
+    /// Setup an instance of a new ConfigType object; provide it with its scope and type information.    
     void Setup(ConfigEntry_Scope & _scope, ConfigTypeInfo & _info) {
       cur_scope = &_scope;
       type_info_ptr = &_info;
