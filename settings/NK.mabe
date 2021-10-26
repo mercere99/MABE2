@@ -13,7 +13,7 @@ EvalNK eval_nk {                // Evaluate bitstrings on an NK fitness lanscape
   bits_trait = "bits";          // Which trait stores the bit sequence to evaluate?
   fitness_trait = "fitness";    // Which trait should we store NK fitness in?
 }
-FileOutput output {             // Output collected data into a specified file.
+FileOutput output2 {             // Output collected data into a specified file.
   filename = "output.csv";      // Name of file for output data.
   format = "fitness:max,fitness:mean";// Column format to use in the file.
   target = "main_pop";          // Which population(s) should we print from?
@@ -45,7 +45,7 @@ AnalyzeSystematics sys {        // Module to track the population's phylogeny.
   store_outside = 0;            // Store all taxa that ever existed.(1 = TRUE)
   store_ancestors = 1;          // Store all ancestors of extant taxa.(1 = TRUE)
   taxon_info = "bits";    // Which trait should we identify unique taxa based on
-  snapshot_updates = "-1:1";    // Which updates should we output a snapshot of the phylogeny?
+  snapshot_updates = "0:1";    // Which updates should we output a snapshot of the phylogeny?
   data_updates = "0:1";       // Which updates should we output a data from the phylogeny?
 }
 BitsOrg bits_org {              // Organism consisting of a series of N bits.
