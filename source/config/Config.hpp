@@ -409,7 +409,9 @@ namespace mabe {
     ) {
       static_assert(std::is_base_of<ConfigType, OBJECT_T>(),
                     "Only ConfigType objects can be used as a custom config type.");
-      return AddType(type_name, desc, init_fun, emp::GetTypeID<OBJECT_T>());
+      ConfigTypeInfo & info = AddType(type_name, desc, init_fun, emp::GetTypeID<OBJECT_T>());
+      OBJECT_T::InitType(*this, info);
+      return info;
     }
 
     /// To add a built-in function (at the root level) provide it with a name and description.
