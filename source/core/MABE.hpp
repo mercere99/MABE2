@@ -599,7 +599,7 @@ namespace mabe {
       [this](const std::string & name) -> ConfigType & {
         return AddPopulation(name);
       };
-    config.AddType("Population", "Collection of organisms", pop_init_fun);
+    config.AddType<Population>("Population", "Collection of organisms", pop_init_fun);
 
     // Setup all known modules as available types in the config file.
     for (auto & mod : GetModuleInfo()) {
@@ -607,7 +607,7 @@ namespace mabe {
         [this,&mod](const std::string & name) -> ConfigType & {
           return mod.init_fun(*this,name);
         };
-      config.AddType(mod.name, mod.desc, mod_init_fun);
+      config.AddType(mod.name, mod.desc, mod_init_fun, mod.type_id);
     }
 
 
@@ -867,7 +867,10 @@ namespace mabe {
                       size_t copy_count) {      
     int pop_id = GetPopID(pop_name);
     if (pop_id == -1) {
-      error_man.AddError("Invalid population name used in inject '", pop_name, "'.");        
+      error_man.AddError("Invalid population name used in inject: ",
+                         "org_type= '", type_name, "'; ",
+                         "pop_name= '", pop_name, "'; ",
+                         "copy_count=", copy_count);
     }
     Population & pop = GetPopulation(pop_id);
     OrgPosition pos = Inject(type_name, pop, copy_count);  // Inject a copy of the organism.
