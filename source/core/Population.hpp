@@ -153,9 +153,6 @@ namespace mabe {
     iterator_t IteratorAt(size_t pos) { return iterator_t(this, pos); }
     const_iterator_t ConstIteratorAt(size_t pos) const { return const_iterator_t(this, pos); }
 
-    /// Required SetupConfig function; for now population don't have any config options.
-    void SetupConfig() override { }
-
   private:  // ---== To be used by friend class MABEBase only! ==---
 
     void SetOrg(size_t pos, emp::Ptr<Organism> org_ptr) {
@@ -202,6 +199,14 @@ namespace mabe {
     void SetEmpty(emp::Ptr<Organism> in_empty) { empty_org = in_empty; }
 
   public:
+    // Setup member functions associated with population.
+    static void InitType(Config & /*config*/, ConfigTypeInfo & info) {
+      std::function<int(Population &)> fun_size =
+        [](Population & target) { return target.GetSize(); };
+      info.AddMemberFunction("SIZE", fun_size, "Return the size of the population.");
+    }
+
+
     // ------ DEBUG FUNCTIONS ------
     bool OK() const {
       // We may have a handful of populations, but assume error if we have more than a billion.
@@ -242,6 +247,8 @@ namespace mabe {
 
       return true;
     }
+
+    static std::string EMPGetTypeName() { return "mabe::Population"; }
   };
 
 
