@@ -70,12 +70,8 @@ namespace mabe {
     ConfigType & MakeObj(const std::string & name) const { return init_fun(name); }
 
     // Link this ConfigTypeInfo object to a real C++ type.
-    template <typename OBJECT_T>
-    void LinkType() {
-      static_assert(std::is_base_of<ConfigType, OBJECT_T>(),
-                    "Only ConfigType objects can be used as a custom config type.");
-      type_id = emp::GetTypeID<OBJECT_T>();
-    }
+    // @CAO It would be nice to test to make sure this is a ConfigType, but not possible with a TypeID.
+    void LinkType(emp::TypeID in_id) { type_id = in_id; }
 
     // Add a member function that can be called on objects of this type.
     template <typename FUN_T>
@@ -84,6 +80,11 @@ namespace mabe {
       FUN_T fun,
       const std::string & desc
     ) {
+      // std::cout << "Adding member function '" << name
+      //           << "' to type '" << type_name << "'."
+      //           << "  (Entry #" << member_funs.size() << ")"
+      //           << std::endl;
+
       // ----- Transform this function into one that ConfigTypeInfo can make use of ----
       MemberFunInfo::fun_t member_fun = ConfigTools::WrapMemberFunction(type_id, name, fun);
 
