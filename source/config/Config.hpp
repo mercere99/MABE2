@@ -250,19 +250,12 @@ namespace mabe {
       precedence_map["||"] = cur_prec++;
       precedence_map["="] = cur_prec++;
 
-      // Setup default DataFile type.
-      files.SetOutputDefaultFile();  // Stream manager should default to files for output.
-      std::function<ConfigType & (const std::string &)> df_init = 
-        [this](const std::string & name) -> ConfigType & { return this->AddDataFile(name); };
-
-      auto & df_type = AddType<ConfigDataFile>("DataFile", "Manage CSV-style date file output.", df_init);
-
       // Setup default functions.
 
       // 'EXEC' dynamically executes the contents of a string.
-      std::function<std::string(const std::string &)> eval_fun =
-        [this](const std::string & expression) { return Eval(expression); };
-      AddFunction("EXEC", eval_fun, "Dynamically execute the string passed in.");
+      std::function<std::string(const std::string &)> exec_fun =
+        [this](const std::string & expression) { return Execute(expression); };
+      AddFunction("EXEC", exec_fun, "Dynamically execute the string passed in.");
 
       // 'PRINT' is a simple debugging command to output the value of a variable.
       std::function<int(const emp::vector<emp::Ptr<ConfigEntry>> &)> print_fun =
@@ -346,6 +339,22 @@ namespace mabe {
       AddFunction("TO_SCALE", math3_fun, "Scale arg1 to arg2-arg3 as unit distance" );
       math3_fun = [](double x, double y, double z){ return (x-y) / (z-y); };
       AddFunction("FROM_SCALE", math3_fun, "Scale arg1 from arg2-arg3 as unit distance" );
+
+      // Setup default DataFile type.
+      files.SetOutputDefaultFile();  // Stream manager should default to files for output.
+      std::function<ConfigType & (const std::string &)> df_init = 
+        [this](const std::string & name) -> ConfigType & { return this->AddDataFile(name); };
+
+      auto & df_type = AddType<ConfigDataFile>("DataFile", "Manage CSV-style date file output.", df_init);
+      df_type.AddMemberFunction("ADD_COLUMN",
+        [exec_fun](ConfigDataFile & file, const std::string & title, const std::string & expression){
+          return file.AddColumn(title, [exec_fun,expression](){
+            std::string out_string = exec_fun(expression);
+            return out_string;
+          });
+        },
+        "Add a column to the associated DataFile.  Args: title, string to execute for result"
+      );
     }
 
     // Prevent copy or move since we are using lambdas that capture 'this'
@@ -487,8 +496,8 @@ namespace mabe {
     }
 
     // Load the provided statement and run it.
-    std::string Eval(std::string_view statement, emp::Ptr<ConfigEntry_Scope> scope=nullptr) {
-      Debug("Running Eval()");
+    std::string Execute(std::string_view statement, emp::Ptr<ConfigEntry_Scope> scope=nullptr) {
+      Debug("Running Execute()");
       if (!scope) scope = &root_scope;                      // Default scope to root level.
       auto tokens = lexer.Tokenize(statement, "eval command"); // Convert to a TokenStream.
       tokens.push_back(lexer.ToToken(";"));                 // Ensure a semi-colon at end.
