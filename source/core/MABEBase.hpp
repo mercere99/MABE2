@@ -77,10 +77,10 @@ namespace mabe {
     // TraceEval()
     SigListener<ModuleBase,void,Organism &,std::ostream&> trace_eval_sig;
 
-    // OrgPosition DoPlaceBirth(Organism & offspring, OrgPosition parent_position, Population & target_pop);
-    SigListener<ModuleBase, OrgPosition, Organism &, OrgPosition, Population &> do_place_birth_sig;
-    // OrgPosition DoPlaceInject(Organism & new_organism)
-    SigListener<ModuleBase, OrgPosition, Organism &, Population &> do_place_inject_sig;
+    // OrgPosition DoPlaceBirth(Population & target_pop, Organism & offspring, OrgPosition parent_position);
+    SigListener<ModuleBase, OrgPosition, Population &, Organism &, OrgPosition> do_place_birth_sig;
+    // OrgPosition DoPlaceInject(Population & target_pop, Organism & new_organism)
+    SigListener<ModuleBase, OrgPosition, Population &, Organism &> do_place_inject_sig;
     // OrgPosition DoFindNeighbor(OrgPosition target_organism) {
     SigListener<ModuleBase, OrgPosition, OrgPosition> do_find_neighbor_sig;
 
