@@ -49,6 +49,8 @@ namespace mabe {
     static void InitType(Config & /*config*/, ConfigTypeInfo & info) {
       auto fun_num_cols = [](ConfigDataFile & target) { return target.cols.size(); };
       info.AddMemberFunction("NUM_COLS", fun_num_cols, "Return the number of columns in this file.");
+      info.AddMemberFunction("WRITE", [](ConfigDataFile & target) { return target.Write(); },
+                             "Add on the next line of data.");
     }
 
     void SetupConfig() override {
@@ -61,7 +63,7 @@ namespace mabe {
       return col_id;
     }
 
-    void Write() {
+    size_t Write() {
       const bool file_exists = files.Has(filename);           // Is file is already setup?
       std::ostream & file = files.GetOutputStream(filename);  // File to write to.
 
@@ -80,6 +82,8 @@ namespace mabe {
         file << cols[i].fun();
       }
       file << std::endl;
+
+      return 1;
     }
 
     static std::string EMPGetTypeName() { return "mabe::ConfigDataFile"; }
