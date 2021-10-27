@@ -28,7 +28,6 @@
 #include "emp/data/DataMap.hpp"
 #include "emp/data/DataMapParser.hpp"
 #include "emp/datastructs/vector_utils.hpp"
-#include "emp/io/StreamManager.hpp"
 #include "emp/math/Random.hpp"
 #include "emp/tools/string_utils.hpp"
 
@@ -64,7 +63,6 @@ namespace mabe {
     bool show_help = false;      ///< Should we show "help" before exiting?
     bool exit_now = false;       ///< Do we need to immediately clean up and exit the run?
     ErrorManager error_man;      ///< Object to manage warnings and errors.
-    emp::StreamManager files;    ///< Track all of the file streams used in MABE.
 
     // Setup helper types.
     using trait_equation_t = std::function<double(emp::DataMap &)>;
@@ -183,11 +181,11 @@ namespace mabe {
 
     // -- World Structure --
 
-    OrgPosition FindBirthPosition(Organism & offspring, OrgPosition ppos, Population & pop) {
-      return do_place_birth_sig.FindPosition(offspring, ppos, pop);
+    OrgPosition FindBirthPosition(Population & pop, Organism & offspring, OrgPosition ppos) {
+      return do_place_birth_sig.FindPosition(pop, offspring, ppos);
     }
-    OrgPosition FindInjectPosition(Organism & new_org, Population & pop) {
-      return do_place_inject_sig.FindPosition(new_org, pop);
+    OrgPosition FindInjectPosition(Population & pop, Organism & new_org) {
+      return do_place_inject_sig.FindPosition(pop, new_org);
     }
     OrgPosition FindNeighbor(OrgPosition pos) {
       return do_find_neighbor_sig.FindPosition(pos);
@@ -218,23 +216,23 @@ namespace mabe {
 
     /// Inject a copy of the provided organism and return the position it was placed in;
     /// if more than one is added, return the position of the final injection.
-    OrgPosition Inject(const Organism & org, Population & pop, size_t copy_count=1);
+    OrgPosition Inject(Population & pop, const Organism & org, size_t copy_count=1);
 
     /// Inject this specific instance of an organism and turn over the pointer to be managed
     /// by MABE.  Teturn the position the organism was placed in.
-    OrgPosition InjectInstance(emp::Ptr<Organism> org_ptr, Population & pop);
+    OrgPosition InjectInstance(Population & pop, emp::Ptr<Organism> org_ptr);
     
 
     /// Add an organsim of a specified type to the world (provide the type name and the
     /// MABE controller will create instances of it.)  Returns the position of the last
     /// organism placed.
-    OrgPosition Inject(const std::string & type_name, Population & pop, size_t copy_count=1);
+    OrgPosition Inject(Population & pop, const std::string & type_name, size_t copy_count=1);
 
     /// Add an organism of a specified type and population (provide names of both and they
     /// will be properly setup.)
-    OrgPosition Inject(const std::string & type_name, 
-                       const std::string & pop_name,
-                       size_t copy_count=1);
+    OrgPosition InjectByName(const std::string & pop_name,
+                             const std::string & type_name, 
+                             size_t copy_count=1);
 
     /// Inject a copy of the provided organism at a specified position.
     void InjectAt(const Organism & org, OrgPosition pos) {
@@ -599,7 +597,17 @@ namespace mabe {
       [this](const std::string & name) -> ConfigType & {
         return AddPopulation(name);
       };
-    config.AddType<Population>("Population", "Collection of organisms", pop_init_fun);
+    auto & pop_type = config.AddType<Population>("Population", "Collection of organisms", pop_init_fun);
+
+    // 'INJECT' allows a user to add an organism to a population.
+    std::function<int(Population &, const std::string &, size_t)> inject_fun =
+      [this](Population & pop, const std::string & org_type_name, size_t count) {
+        Inject(pop, org_type_name, count);
+        return 0;
+      };
+    pop_type.AddMemberFunction("INJECT", inject_fun,
+      "Inject organisms into population (args: org_name, org_count).");
+
 
     // Setup all known modules as available types in the config file.
     for (auto & mod : GetModuleInfo()) {
@@ -612,6 +620,7 @@ namespace mabe {
 
 
     // ------ DEPRECATED FUNCTION NAMES ------
+    Deprecate("EVAL", "EXEC");
     Deprecate("exit", "EXIT");
     Deprecate("inject", "INJECT");
     Deprecate("print", "PRINT");
@@ -623,31 +632,15 @@ namespace mabe {
     config.AddFunction("EXIT", exit_fun, "Exit from this MABE run.");
 
 
-    // 'INJECT' allows a user to add an organism to a population.
-    std::function<int(const std::string &, const std::string &, size_t)> inject_fun =
-      [this](const std::string & org_type_name, const std::string & pop_name, size_t count) {
-        Inject(org_type_name, pop_name, count);
-        return 0;
-      };
-    config.AddFunction("INJECT", inject_fun,
-      "Inject organisms into a population (args: org_name, pop_name, org_count).");
-
-
     std::function<std::string(const std::string &)> preprocess_fun =
       [this](const std::string & str) { return Preprocess(str); };
     config.AddFunction("PP", preprocess_fun, "Preprocess a string (replacing any ${...} with result.)");
 
 
-    // @CAO Should be a method on a Population or Collection, not called by name.
-    std::function<int(const std::string &)> pop_size_fun =
-      [this](const std::string & target) { return ToCollection(target).GetSize(); };
-    config.AddFunction("SIZE", pop_size_fun, "Return the size of the target population.");
-
-
     // 'WRITE' will collect data and write it to a file.
-    files.SetOutputDefaultFile();  // Stream manager should default to files for output.
+    auto & files = config.GetFileManager();
     std::function<int(const std::string &, const std::string &, const std::string &)> write_fun =
-      [this](const std::string & filename, const std::string & collection, std::string format) {
+      [this,&files](const std::string & filename, const std::string & collection, std::string format) {
         const bool file_exists = files.Has(filename);           // Is file is already setup?
         std::ostream & file = files.GetOutputStream(filename);  // File to write to.
         OutputTraitData(file, ToCollection(collection), format, !file_exists);
@@ -660,14 +653,14 @@ namespace mabe {
     // --- ORGANISM-BASED FUNCTIONS ---
 
     std::function<int(const std::string &, const std::string &, double)> trace_eval_fun =
-      [this](const std::string & filename, const std::string & target, double id) {
+      [this,&files](const std::string & filename, const std::string & target, double id) {
         Collection c = ToCollection(target);                   // Collection with organisms
         Organism & org = c.At((size_t) id);                    // Specific organism to analyze.
         std::ostream & file = files.GetOutputStream(filename); // File to write to.
         TraceEval(org, file);
         return 0;
       };
-    config.AddFunction("TRACE_EVAL", trace_eval_fun, "Return the size of the target population.");
+    config.AddFunction("TRACE_EVAL", trace_eval_fun, "Collect information about how evaluations are performed.");
 
     // --- TRAIT-BASED FUNCTIONS ---
 
@@ -686,22 +679,6 @@ namespace mabe {
         return emp::from_string<double>(fun( ToCollection(target) ));
       };
     config.AddFunction("TRAIT_VALUE", trait_value_fun, "Collect information about a specified trait.");
-
-    // std::function<double(const std::string &, const std::string &)> trait_mean_fun =
-    //   [this](const std::string & target, const std::string & trait) {
-    //     if constexpr (std::is_arithmetic_v<DATA_T>) {
-    //       double total = 0.0;
-    //       size_t count = 0;
-    //       for (const auto & entry : container) {
-    //         total += (double) get_fun(entry);
-    //         count++;
-    //       }
-    //       return emp::to_string( total / count );
-    //     }
-    //     return 0.0; // @CAO: or Nan?
-    //   };
-    // config.AddFunction("trait_mean", trait_mean_fun, "Return the size of the target population.");
-
 
     // Add in built-in event triggers; these are used to indicate when events should happen.
     config.AddEventType("start");   // Triggered at the beginning of a run.
@@ -812,13 +789,13 @@ namespace mabe {
 
   /// Inject a copy of the provided organism and return the position it was placed in;
   /// if more than one is added, return the position of the final injection.
-  OrgPosition MABE::Inject(const Organism & org, Population & pop, size_t copy_count) {
+  OrgPosition MABE::Inject(Population & pop, const Organism & org, size_t copy_count) {
     emp_assert(org.GetDataMap().SameLayout(org_data_map));
     OrgPosition pos;
     for (size_t i = 0; i < copy_count; i++) {
       emp::Ptr<Organism> inject_org = org.CloneOrganism();
       on_inject_ready_sig.Trigger(*inject_org, pop);
-      pos = FindInjectPosition(*inject_org, pop);
+      pos = FindInjectPosition(pop, *inject_org);
       if (pos.IsValid()) {
         AddOrgAt( inject_org, pos);
       } else {
@@ -831,10 +808,10 @@ namespace mabe {
 
   /// Inject this specific instance of an organism and turn over the pointer to be managed
   /// by MABE.  Teturn the position the organism was placed in.
-  OrgPosition MABE::InjectInstance(emp::Ptr<Organism> org_ptr, Population & pop) {
+  OrgPosition MABE::InjectInstance(Population & pop, emp::Ptr<Organism> org_ptr) {
     emp_assert(org_ptr->GetDataMap().SameLayout(org_data_map));
     on_inject_ready_sig.Trigger(*org_ptr, pop);
-    OrgPosition pos = FindInjectPosition(*org_ptr, pop);
+    OrgPosition pos = FindInjectPosition(pop, *org_ptr);
     if (pos.IsValid()) AddOrgAt( org_ptr, pos);
     else {
       org_ptr.Delete();          
@@ -847,7 +824,7 @@ namespace mabe {
   /// Add an organsim of a specified type to the world (provide the type name and the
   /// MABE controller will create instances of it.)  Returns the position of the last
   /// organism placed.
-  OrgPosition MABE::Inject(const std::string & type_name, Population & pop, size_t copy_count) {
+  OrgPosition MABE::Inject(Population & pop, const std::string & type_name, size_t copy_count) {
     Verbose("Injecting ", copy_count, " orgs of type '", type_name,
             "' into population ", pop.GetID());
 
@@ -855,16 +832,16 @@ namespace mabe {
     OrgPosition pos;                              // Place to save injection position.
     for (size_t i = 0; i < copy_count; i++) {     // Loop through, injecting each instance.
       auto org_ptr = org_manager.Make<Organism>(random);  // ...Build an org of this type.
-      pos = InjectInstance(org_ptr, pop);         // ...Inject it into the population.
+      pos = InjectInstance(pop, org_ptr);         // ...Inject it into the population.
     }
     return pos;                                   // Return last position injected.
   }
 
   /// Add an organism of a specified type and population (provide names of both and they
   /// will be properly setup.)
-  OrgPosition MABE::Inject(const std::string & type_name, 
-                      const std::string & pop_name,
-                      size_t copy_count) {      
+  OrgPosition MABE::InjectByName(const std::string & pop_name,
+                                 const std::string & type_name, 
+                                 size_t copy_count) {      
     int pop_id = GetPopID(pop_name);
     if (pop_id == -1) {
       error_man.AddError("Invalid population name used in inject: ",
@@ -873,7 +850,7 @@ namespace mabe {
                          "copy_count=", copy_count);
     }
     Population & pop = GetPopulation(pop_id);
-    OrgPosition pos = Inject(type_name, pop, copy_count);  // Inject a copy of the organism.
+    OrgPosition pos = Inject(pop, type_name, copy_count); // Inject a copy of the organism.
     return pos;                                           // Return last position injected.
   }
 
@@ -894,7 +871,7 @@ namespace mabe {
 
       // Alert modules that offspring is ready, then find its birth position.
       on_offspring_ready_sig.Trigger(*new_org, ppos, target_pop);
-      pos = FindBirthPosition(*new_org, ppos, target_pop);
+      pos = FindBirthPosition(target_pop, *new_org, ppos);
 
       // If this placement is valid, do so.  Otherwise delete the organism.
       if (pos.IsValid()) AddOrgAt(new_org, pos, ppos);
