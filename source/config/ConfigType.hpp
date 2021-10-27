@@ -48,11 +48,19 @@ namespace mabe {
       using entry_ptr_t = emp::Ptr<ConfigEntry>;
       using member_fun_t = std::function<entry_ptr_t(const emp::vector<entry_ptr_t> &)>;
       const auto & member_map = type_info_ptr->GetMemberFunctions();
+
+      // std::cout << "Loading member functions for '" << _scope.GetName() << "'; "
+      //           << member_map.size() << " found."
+      //           << std::endl;
+
       for (const MemberFunInfo & member_info : member_map) {
         member_fun_t linked_fun = [this, &member_info](const emp::vector<entry_ptr_t> & args){
           return member_info.fun(*this, args);
         };
         cur_scope->AddFunction(member_info.name, linked_fun, member_info.desc).SetBuiltin();
+
+        // std::cout << "Adding member function '" << member_info.name << "' to object '"
+        //           << cur_scope->GetName() << "'." << std::endl;
       }
     }
 
