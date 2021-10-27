@@ -348,19 +348,20 @@ namespace mabe {
     // be queried in order until one of them returns a valid result.
 
     // Function: Place a new organism about to be born.
-    // Args: Organism that will be placed, position of parent, population to place.
+    // Args: Population to place in, Organism to place, position of parent
     // Return: Position to place offspring or an invalid position if failed.
 
-    OrgPosition DoPlaceBirth(Organism &, OrgPosition, Population &) override {
+    OrgPosition DoPlaceBirth(Population &, Organism &, OrgPosition) override {
       has_signal[SIG_DoPlaceBirth] = false;
       control.RescanSignals();
       return OrgPosition();
     }
 
     // Function: Place a new organism about to be injected.
-    // Args: Organism that will be placed, position to place.
+    // Args: Population to place in, Organism that will be placed.
+    // Return: Position to place injected organism, or an invalid position if failed.
 
-    OrgPosition DoPlaceInject(Organism &, Population &) override {
+    OrgPosition DoPlaceInject(Population &, Organism &) override {
       has_signal[SIG_DoPlaceInject] = false;
       control.RescanSignals();
       return OrgPosition();
