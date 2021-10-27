@@ -72,10 +72,12 @@
 
 #include "emp/base/assert.hpp"
 #include "emp/base/map.hpp"
+#include "emp/io/StreamManager.hpp"
 #include "emp/meta/TypeID.hpp"
 #include "emp/tools/string_utils.hpp"
 
 #include "ConfigAST.hpp"
+#include "ConfigDataFile.hpp"
 #include "ConfigEvents.hpp"
 #include "ConfigEntry_Function.hpp"
 #include "ConfigLexer.hpp"
@@ -96,12 +98,15 @@ namespace mabe {
     ASTNode_Block ast_root;       ///< Abstract syntax tree version of input file.
     bool debug = false;           ///< Should we print full debug information?
 
-
     /// A map of names to event groups.
     std::map<std::string, ConfigEvents> events_map;
 
     /// A map of all types available in the script.
     std::unordered_map<std::string, emp::Ptr<ConfigTypeInfo>> type_map;
+
+    /// Management of built-in types.
+    emp::StreamManager files;    ///< Track all of the file streams used in MABE.
+    emp::vector<ConfigDataFile> file_map;
 
     /// A list of precedence levels for symbols.
     std::unordered_map<std::string, size_t> precedence_map;
@@ -245,12 +250,19 @@ namespace mabe {
       precedence_map["||"] = cur_prec++;
       precedence_map["="] = cur_prec++;
 
+      // Setup default DataFile type.
+      files.SetOutputDefaultFile();  // Stream manager should default to files for output.
+      std::function<ConfigType & (const std::string &)> df_init = 
+        [this](const std::string & name) -> ConfigType & { return this->AddDataFile(name); };
+
+      auto & df_type = AddType<ConfigDataFile>("DataFile", "Manage CSV-style date file output.", df_init);
+
       // Setup default functions.
 
-      // 'EVAL' dynamically evaluates the contents of a string.
+      // 'EXEC' dynamically executes the contents of a string.
       std::function<std::string(const std::string &)> eval_fun =
         [this](const std::string & expression) { return Eval(expression); };
-      AddFunction("EVAL", eval_fun, "Dynamically evaluate the string passed in.");
+      AddFunction("EXEC", eval_fun, "Dynamically execute the string passed in.");
 
       // 'PRINT' is a simple debugging command to output the value of a variable.
       std::function<int(const emp::vector<emp::Ptr<ConfigEntry>> &)> print_fun =
@@ -414,6 +426,15 @@ namespace mabe {
       return info;
     }
 
+    /// Add in a new data file.
+    ConfigDataFile & AddDataFile(const std::string & obj_name) {
+      file_map.emplace_back(obj_name, files);
+      return file_map.back();
+    }
+
+    /// Also allow direct file management.
+    emp::StreamManager & GetFileManager() { return files; }
+
     /// To add a built-in function (at the root level) provide it with a name and description.
     /// As long as the function only requires types known to the config system, it should be
     /// converted properly.  For a variadic function, the provided std::function must take a
@@ -537,7 +558,8 @@ namespace mabe {
 
     // If we can't find this variable, throw an error.
     if (cur_entry.IsNull()) {
-      Error(pos, "'", var_name, "' does not exist as a parameter, variable, or type.");
+      Error(pos, "'", var_name, "' does not exist as a parameter, variable, or type.",
+            "  Current scope is '", cur_scope.GetName(), "'");
     }
 
     // If this variable just provided a scope, keep going.
