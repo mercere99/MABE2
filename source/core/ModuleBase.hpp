@@ -61,9 +61,9 @@
  *     ...
  * 
  *    - Various Do* functions run in modules until one of them returns a valid answer.
- *     DoPlaceBirth(Organism & offspring, OrgPosition parent_pos, Population & target_pop)
+ *     DoPlaceBirth(Population & target_pop, Organism & offspring, OrgPosition parent_pos)
  *       : Place a new offspring about to be born.
- *     DoPlaceInject(Organism & new_org, Population & pop)
+ *     DoPlaceInject(Population & pop, Organism & new_org)
  *       : Place a new offspring about to be injected.
  *     DoFindNeighbor(OrgPosition target_pos)
  *       : Find a random neighbor to a designated position.
@@ -264,8 +264,8 @@ namespace mabe {
     virtual void OnHelp() = 0;
     virtual void TraceEval(Organism &, std::ostream &) = 0;
 
-    virtual OrgPosition DoPlaceBirth(Organism &, OrgPosition, Population &) = 0;
-    virtual OrgPosition DoPlaceInject(Organism &, Population &) = 0;
+    virtual OrgPosition DoPlaceBirth(Population &, Organism &, OrgPosition) = 0;
+    virtual OrgPosition DoPlaceInject(Population &, Organism &) = 0;
     virtual OrgPosition DoFindNeighbor(OrgPosition) = 0;
 
     virtual void Deactivate() = 0;  ///< Turn off all signals in this function.
