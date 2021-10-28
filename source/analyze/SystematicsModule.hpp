@@ -78,8 +78,8 @@ public:
       std::function<size_t ()> updatefun = [this](){return control.GetUpdate();};
       data.AddFun(updatefun,"Generation", "The current generation");
       data.AddCurrent(*sys.GetDataNode("phylogenetic_diversity"), "phylogenetic_diversity","The current phylogenetic diversity.", true, true);
-      data.AddCurrent(*sys.GetDataNode("pairwise_distance"), "pairwise_distance", "The pairwise distance metric", true, true);
-      data.AddCurrent(*sys.GetDataNode("evolutionary_distinctiveness"), "evolutionary_distinctiveness", "The evolutionary_distinctiveness metric", true, true);
+      data.AddStats(*sys.GetDataNode("pairwise_distance"),"pairwise_distance","pairwise distance",true,true);
+      data.AddStats(*sys.GetDataNode("evolutionary_distinctiveness"),"evolutionary_distinctiveness","evolutionary distinctiveness",true,true);
       data.PrintHeaderKeys();
       data.SetTimingRange(data_start, data_frequency, data_end);    
 
