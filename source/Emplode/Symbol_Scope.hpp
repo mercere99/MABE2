@@ -47,7 +47,7 @@ namespace emplode {
 
     template <typename T, typename... ARGS>
     T & AddBuiltin(const std::string & name, ARGS &&... args) {
-      T & result = Add<T, ARGS...>(name, std::forward<ARGS>(args)...);
+      T & result = Add<T>(name, std::forward<ARGS>(args)...);
       result.SetBuiltin();
       return result;
     }
@@ -162,17 +162,17 @@ namespace emplode {
     }
 
     /// Add a new user-defined function.
-    template <typename RETURN_T, typename... ARGS>
+    template <typename FUN_T>
     Symbol_Function & AddFunction(const std::string & name,
-                              std::function<RETURN_T(ARGS...)> fun,
+                              FUN_T fun,
                               const std::string & desc) {
       return Add<Symbol_Function>(name, fun, desc, this);
     }
 
     /// Add a new function that is a standard part of the scripting language.
-    template <typename RETURN_T, typename... ARGS>
+    template <typename FUN_T>
     Symbol_Function & AddBuiltinFunction(const std::string & name,
-                                        std::function<RETURN_T(ARGS...)> fun,
+                                        FUN_T fun,
                                         const std::string & desc) {
       return AddBuiltin<Symbol_Function>(name, fun, desc, this);
     }
