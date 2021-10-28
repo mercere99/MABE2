@@ -1,3 +1,12 @@
+/**
+ *  @note This file is part of MABE, https://github.com/mercere99/MABE2
+ *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
+ *  @date 2019-2021.
+ *
+ *  @file  SystematicsModule.hpp
+ *  @brief MABE systematic tracking module.
+ */
+
 #ifndef MABE_ANALYZE_SYSTEMATICS_MODULE_H
 #define MABE_ANALYZE_SYSTEMATICS_MODULE_H
 
@@ -14,21 +23,23 @@ class AnalyzeSystematics : public Module {
 private:
 
     // Systematics manager
-    bool store_outside;
+    // Should the systematics manager track extinct non-ancestor taxa?
+    bool store_outside; 
+    // Should the systematics manager track extinct ancestor taxa?
     bool store_ancestors;
-    std::string taxon_info;
-    emp::Systematics <Organism, std::string> sys;
+    std::string taxon_info; // Which trait should taxa be based on?
+    emp::Systematics <Organism, std::string> sys; // The systematics manager.
 
     // Output
-    int snapshot_start;
-    int snapshot_frequency;
-    int snapshot_end;
-    std::string snapshot_file_root_name;
-    int data_start;
-    int data_frequency;
-    int data_end;
-    std::string data_file_name;
-    emp::DataFile data; 
+    int snapshot_start; // The update we should start taking snapshots.
+    int snapshot_frequency; // The number of updates between snapshots.
+    int snapshot_end; // The update we should end taking snapshots.
+    std::string snapshot_file_root_name; // Root name of the snapshot files.
+    int data_start; // The update we should start adding rows to the datafile.
+    int data_frequency; // The number of updates between each row.
+    int data_end; // The update we should end adding rows to the datafile.
+    std::string data_file_name; // Name of the data file.
+    emp::DataFile data; // The data file object.
 
 public:
     AnalyzeSystematics(mabe::MABE & control,
@@ -55,9 +66,11 @@ public:
     ~AnalyzeSystematics() { }
 
     void SetupConfig() override {
+      // Settings for the systematic manager.
       LinkVar(store_outside, "store_outside", "Store all taxa that ever existed.(1 = TRUE)" );
       LinkVar(store_ancestors, "store_ancestors", "Store all ancestors of extant taxa.(1 = TRUE)" );
       LinkVar(taxon_info, "taxon_info", "Which trait should we identify unique taxa based on");
+      // Settings for output files.
       LinkVar(data_file_name, "data_file_name", "Filename for systematics data file.");
       LinkVar(snapshot_file_root_name, "snapshot_file_root_name", "Filename for snapshot files (will have update number and .csv appended to end)");
       LinkRange(snapshot_start, snapshot_frequency, snapshot_end, "snapshot_updates", "Which updates should we output a snapshot of the phylogeny?");
@@ -95,15 +108,16 @@ public:
         sys.Snapshot(snapshot_file_root_name + "_" + emp::to_string(update) + ".csv");
       }
       data.Update(update);
-      //if (update >= data_start && update <= data_end && (update - data_start) % data_frequency == 0) {
-        //sys.data("phylogeny_" + emp::to_string(update) + ".csv");
+      
     }
 
     void BeforeDeath(OrgPosition pos) override {
+      // Notify the systematics manager when an organism dies.
       sys.RemoveOrg({pos.Pos(), (size_t)pos.PopID()});
     }
 
     void BeforePlacement(Organism& org, OrgPosition pos, OrgPosition ppos) override {
+      // Notify the systematics manager when an organism is born.
       if (ppos.IsValid()) {
         sys.AddOrg(org, {pos.Pos(), (size_t)pos.PopID()}, {ppos.Pos(), (size_t)ppos.PopID()});
       } else {
@@ -116,6 +130,7 @@ public:
     }
 
     void OnSwap(OrgPosition pos1, OrgPosition pos2) override {
+      // Notify the systematics manager when an organism is moved.
       sys.SwapPositions({pos1.Pos(), (size_t)pos1.PopID()}, {pos2.Pos(), (size_t)pos2.PopID()});
     }
 };
