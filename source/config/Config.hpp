@@ -106,7 +106,6 @@ namespace mabe {
 
     /// Management of built-in types.
     emp::StreamManager files;    ///< Track all of the file streams used in MABE.
-    emp::vector<ConfigDataFile> file_map;
 
     /// A list of precedence levels for symbols.
     std::unordered_map<std::string, size_t> precedence_map;
@@ -342,14 +341,16 @@ namespace mabe {
 
       // Setup default DataFile type.
       files.SetOutputDefaultFile();  // Stream manager should default to files for output.
-      std::function<ConfigType & (const std::string &)> df_init = 
-        [this](const std::string & name) -> ConfigType & { return this->AddDataFile(name); };
+      std::function<emp::Ptr<ConfigType> (const std::string &)> df_init = 
+        [this](const std::string & name) { return emp::NewPtr<ConfigDataFile>(name, files); };
 
-      auto & df_type = AddType<ConfigDataFile>("DataFile", "Manage CSV-style date file output.", df_init);
-      df_type.AddMemberFunction("ADD_COLUMN",
+      auto & df_type = AddType<ConfigDataFile>("DataFile", "Manage CSV-style date file output.", df_init, true);
+      df_type.AddMemberFunction(
+        "ADD_COLUMN",
         [exec_fun](ConfigDataFile & file, const std::string & title, const std::string & expression){
           return file.AddColumn(title, [exec_fun,expression](){
             std::string out_string = exec_fun(expression);
+            if (!emp::is_number(out_string)) return emp::to_literal(out_string);
             return out_string;
           });
         },
@@ -406,15 +407,17 @@ namespace mabe {
     /// To add a type, provide the type name (that can be referred to in a script) and a function
     /// that should be called (with the variable name) when an instance of that type is created.
     /// The function must return a reference to the newly created instance.
+    template <typename FUN_T>
     ConfigTypeInfo & AddType(
       const std::string & type_name,
       const std::string & desc,
-      std::function<ConfigType & (const std::string &)> init_fun,
-      emp::TypeID type_id
+      FUN_T init_fun,
+      emp::TypeID type_id,
+      bool is_config_owned=false
     ) {
       emp_assert(!emp::Has(type_map, type_name), type_name, "Type already exists!");
       size_t index = type_map.size();
-      auto info_ptr = emp::NewPtr<ConfigTypeInfo>( index, type_name, desc, init_fun );
+      auto info_ptr = emp::NewPtr<ConfigTypeInfo>( index, type_name, desc, init_fun, is_config_owned );
       info_ptr->LinkType(type_id);
       type_map[type_name] = info_ptr;
       return *type_map[type_name];
@@ -422,23 +425,18 @@ namespace mabe {
 
     /// If the linked type can be provided as a template parameter, we can also double check that
     /// it is derived from ConfigType (as it needs to be...)
-    template <typename OBJECT_T>
+    template <typename OBJECT_T, typename FUN_T>
     ConfigTypeInfo & AddType(
       const std::string & type_name,
       const std::string & desc,
-      std::function<ConfigType & (const std::string &)> init_fun
+      FUN_T init_fun,
+      bool is_config_owned=false
     ) {
       static_assert(std::is_base_of<ConfigType, OBJECT_T>(),
                     "Only ConfigType objects can be used as a custom config type.");
-      ConfigTypeInfo & info = AddType(type_name, desc, init_fun, emp::GetTypeID<OBJECT_T>());
+      ConfigTypeInfo & info = AddType(type_name, desc, init_fun, emp::GetTypeID<OBJECT_T>(), is_config_owned);
       OBJECT_T::InitType(*this, info);
       return info;
-    }
-
-    /// Add in a new data file.
-    ConfigDataFile & AddDataFile(const std::string & obj_name) {
-      file_map.emplace_back(obj_name, files);
-      return file_map.back();
     }
 
     /// Also allow direct file management.
@@ -787,16 +785,18 @@ namespace mabe {
     Debug("Building var '", var_name, "' of type '", type_name, "'");
 
     // Retrieve the information about the requested type.
-    ConfigTypeInfo & type_info = *type_map[type_name]; 
+    ConfigTypeInfo & type_info = *type_map[type_name];
+    const std::string & type_desc = type_map[type_name]->GetDesc();
+    const bool is_config_owned = type_info.GetConfigOwned();
 
     // Use the ConfigTypeInfo associated with the provided type name to build an instance.
-    ConfigType & new_obj = type_info.MakeObj(var_name);
+    emp::Ptr<ConfigType> new_obj = type_info.MakeObj(var_name);
 
     // Setup a scope for this new type, linking the object to it.
-    ConfigEntry_Scope & new_scope = scope.AddScope(var_name, type_map[type_name]->GetDesc(), &new_obj);
+    ConfigEntry_Scope & new_scope = scope.AddScope(var_name, type_desc, new_obj, is_config_owned);
 
     // Let the new object know about its scope.
-    new_obj.Setup(new_scope, type_info);
+    new_obj->Setup(new_scope, type_info);
 
     return new_scope;
   }
