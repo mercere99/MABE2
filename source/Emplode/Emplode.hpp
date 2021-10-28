@@ -92,11 +92,11 @@ namespace emplode {
     using pos_t = emp::TokenStream::Iterator;
 
   protected:
-    std::string filename;         ///< Source for for code to generate.
-    Lexer lexer;            ///< Lexer to process input code.
-    Symbol_Scope root_scope; ///< All variables from the root level.
-    ASTNode_Block ast_root;       ///< Abstract syntax tree version of input file.
-    bool debug = false;           ///< Should we print full debug information?
+    std::string filename;      ///< Source for for code to generate.
+    Lexer lexer;               ///< Lexer to process input code.
+    Symbol_Scope root_scope;   ///< All variables from the root level.
+    ASTNode_Block ast_root;    ///< Abstract syntax tree version of input file.
+    bool debug = false;        ///< Should we print full debug information?
 
     /// A map of names to event groups.
     std::map<std::string, Events> events_map;
@@ -191,8 +191,8 @@ namespace emplode {
 
     /// Calculate the result of the provided operation on two computed entries.
     [[nodiscard]] emp::Ptr<ASTNode> ProcessOperation(const std::string & symbol,
-                                       emp::Ptr<ASTNode> value1,
-                                       emp::Ptr<ASTNode> value2);
+                                                     emp::Ptr<ASTNode> value1,
+                                                     emp::Ptr<ASTNode> value2);
 
     /// Calculate a full expression found in a token sequence, using the provided scope.
     [[nodiscard]] emp::Ptr<ASTNode>
@@ -252,98 +252,65 @@ namespace emplode {
       // Setup default functions.
 
       // 'EXEC' dynamically executes the contents of a string.
-      std::function<std::string(const std::string &)> exec_fun =
-        [this](const std::string & expression) { return Execute(expression); };
+      auto exec_fun = [this](const std::string & expression) { return Execute(expression); };
       AddFunction("EXEC", exec_fun, "Dynamically execute the string passed in.");
 
       // 'PRINT' is a simple debugging command to output the value of a variable.
-      std::function<int(const emp::vector<emp::Ptr<Symbol>> &)> print_fun =
-        [](const emp::vector<emp::Ptr<Symbol>> & args) {
+      auto print_fun = [](const emp::vector<emp::Ptr<Symbol>> & args) {
           for (auto entry_ptr : args) std::cout << entry_ptr->AsString();
           return 0;
         };
       AddFunction("PRINT", print_fun, "Print out the provided variables.");
 
       // Default 1-input math functions
-      std::function<double(double)> math1_fun = [](double x){ return std::abs(x); };
-      AddFunction("ABS", math1_fun, "Absolute Value" );
-      math1_fun = [](double x){ return emp::Pow(emp::E, x); };
-      AddFunction("EXP", math1_fun, "Exponentiation" );
-      math1_fun = [](double x){ return std::log(x); };
-      AddFunction("LOG2", math1_fun, "Log base-2" );
-      math1_fun = [](double x){ return std::log10(x); };
-      AddFunction("LOG10", math1_fun, "Log base-10" );
+      AddFunction("ABS", [](double x){ return std::abs(x); }, "Absolute Value" );
+      AddFunction("EXP", [](double x){ return emp::Pow(emp::E, x); }, "Exponentiation" );
+      AddFunction("LOG2", [](double x){ return std::log(x); }, "Log base-2" );
+      AddFunction("LOG10", [](double x){ return std::log10(x); }, "Log base-10" );
 
-      math1_fun = [](double x){ return std::sqrt(x); };
-      AddFunction("SQRT", math1_fun, "Square Root" );
-      math1_fun = [](double x){ return std::cbrt(x); };
-      AddFunction("CBRT", math1_fun, "Cube Root" );
+      AddFunction("SQRT", [](double x){ return std::sqrt(x); }, "Square Root" );
+      AddFunction("CBRT", [](double x){ return std::cbrt(x); }, "Cube Root" );
 
-      math1_fun = [](double x){ return std::sin(x); };
-      AddFunction("SIN", math1_fun, "Sine" );
-      math1_fun = [](double x){ return std::cos(x); };
-      AddFunction("COS", math1_fun, "Cosine" );
-      math1_fun = [](double x){ return std::tan(x); };
-      AddFunction("TAN", math1_fun, "Tangent" );
-      math1_fun = [](double x){ return std::asin(x); };
-      AddFunction("ASIN", math1_fun, "Arc Sine" );
-      math1_fun = [](double x){ return std::acos(x); };
-      AddFunction("ACOS", math1_fun, "Arc Cosine" );
-      math1_fun = [](double x){ return std::atan(x); };
-      AddFunction("ATAN", math1_fun, "Arc Tangent" );
-      math1_fun = [](double x){ return std::sinh(x); };
-      AddFunction("SINH", math1_fun, "Hyperbolic Sine" );
-      math1_fun = [](double x){ return std::cosh(x); };
-      AddFunction("COSH", math1_fun, "Hyperbolic Cosine" );
-      math1_fun = [](double x){ return std::tanh(x); };
-      AddFunction("TANH", math1_fun, "Hyperbolic Tangent" );
-      math1_fun = [](double x){ return std::asinh(x); };
-      AddFunction("ASINH", math1_fun, "Hyperbolic Arc Sine" );
-      math1_fun = [](double x){ return std::acosh(x); };
-      AddFunction("ACOSH", math1_fun, "Hyperbolic Arc Cosine" );
-      math1_fun = [](double x){ return std::atanh(x); };
-      AddFunction("ATANH", math1_fun, "Hyperbolic Arc Tangent" );
+      AddFunction("SIN", [](double x){ return std::sin(x); }, "Sine" );
+      AddFunction("COS", [](double x){ return std::cos(x); }, "Cosine" );
+      AddFunction("TAN", [](double x){ return std::tan(x); }, "Tangent" );
+      AddFunction("ASIN", [](double x){ return std::asin(x); }, "Arc Sine" );
+      AddFunction("ACOS", [](double x){ return std::acos(x); }, "Arc Cosine" );
+      AddFunction("ATAN", [](double x){ return std::atan(x); }, "Arc Tangent" );
+      AddFunction("SINH", [](double x){ return std::sinh(x); }, "Hyperbolic Sine" );
+      AddFunction("COSH", [](double x){ return std::cosh(x); }, "Hyperbolic Cosine" );
+      AddFunction("TANH", [](double x){ return std::tanh(x); }, "Hyperbolic Tangent" );
+      AddFunction("ASINH", [](double x){ return std::asinh(x); }, "Hyperbolic Arc Sine" );
+      AddFunction("ACOSH", [](double x){ return std::acosh(x); }, "Hyperbolic Arc Cosine" );
+      AddFunction("ATANH", [](double x){ return std::atanh(x); }, "Hyperbolic Arc Tangent" );
 
-      math1_fun = [](double x){ return std::ceil(x); };
-      AddFunction("CEIL", math1_fun, "Round UP" );
-      math1_fun = [](double x){ return std::floor(x); };
-      AddFunction("FLOOR", math1_fun, "Round DOWN" );
-      math1_fun = [](double x){ return std::round(x); };
-      AddFunction("ROUND", math1_fun, "Round to nearest" );
+      AddFunction("CEIL", [](double x){ return std::ceil(x); }, "Round UP" );
+      AddFunction("FLOOR", [](double x){ return std::floor(x); }, "Round DOWN" );
+      AddFunction("ROUND", [](double x){ return std::round(x); }, "Round to nearest" );
 
-      math1_fun = [](double x){ return std::isinf(x); };
-      AddFunction("ISINF", math1_fun, "Test if Infinite" );
-      math1_fun = [](double x){ return std::isnan(x); };
-      AddFunction("ISNAN", math1_fun, "Test if Not-a-number" );
+      AddFunction("ISINF", [](double x){ return std::isinf(x); }, "Test if Infinite" );
+      AddFunction("ISNAN", [](double x){ return std::isnan(x); }, "Test if Not-a-number" );
 
       // Default 2-input math functions
-      std::function<double(double,double)> math2_fun = [](double x, double y){ return std::hypot(x,y); };
-      AddFunction("HYPOT", math2_fun, "Given sides, find hypotenuse" );
-      math2_fun = [](double x, double y){ return emp::Pow(x,y); };
-      AddFunction("LOG", math2_fun, "Take log of arg1 with base arg2" );
-      math2_fun = [](double x, double y){ return (x<y) ? x : y; };
-      AddFunction("MIN", math2_fun, "Return lesser value" );
-      math2_fun = [](double x, double y){ return (x>y) ? x : y; };
-      AddFunction("MAX", math2_fun, "Return greater value" );
-      math2_fun = [](double x, double y){ return emp::Pow(x,y); };
-      AddFunction("POW", math2_fun, "Take arg1 to the arg2 power" );
+      AddFunction("HYPOT", [](double x, double y){ return std::hypot(x,y); }, "Given sides, find hypotenuse" );
+      AddFunction("LOG", [](double x, double y){ return emp::Pow(x,y); }, "Take log of arg1 with base arg2" );
+      AddFunction("MIN", [](double x, double y){ return (x<y) ? x : y; }, "Return lesser value" );
+      AddFunction("MAX", [](double x, double y){ return (x>y) ? x : y; }, "Return greater value" );
+      AddFunction("POW", [](double x, double y){ return emp::Pow(x,y); }, "Take arg1 to the arg2 power" );
 
       // Default 3-input math functions
-      std::function<double(double,double,double)> math3_fun =
-        [](double x, double y, double z){ return (x!=0.0) ? y : z; };
-      AddFunction("IF", math3_fun, "If arg1 is true, return arg2, else arg3" );
-      math3_fun = [](double x, double y, double z){ return (x<y) ? y : (x>z) ? z : x; };
-      AddFunction("CLAMP", math3_fun, "Return arg1, forced into range [arg2,arg3]" );
-      math3_fun = [](double x, double y, double z){ return (z-y)*x+y; };
-      AddFunction("TO_SCALE", math3_fun, "Scale arg1 to arg2-arg3 as unit distance" );
-      math3_fun = [](double x, double y, double z){ return (x-y) / (z-y); };
-      AddFunction("FROM_SCALE", math3_fun, "Scale arg1 from arg2-arg3 as unit distance" );
+      auto math3_if = [](double x, double y, double z){ return (x!=0.0) ? y : z; };
+      AddFunction("IF", math3_if, "If arg1 is true, return arg2, else arg3" );
+      auto math3_clamp = [](double x, double y, double z){ return (x<y) ? y : (x>z) ? z : x; };
+      AddFunction("CLAMP", math3_clamp, "Return arg1, forced into range [arg2,arg3]" );
+      auto math3_to_scale = [](double x, double y, double z){ return (z-y)*x+y; };
+      AddFunction("TO_SCALE", math3_to_scale, "Scale arg1 to arg2-arg3 as unit distance" );
+      auto math3_from_scale = [](double x, double y, double z){ return (x-y) / (z-y); };
+      AddFunction("FROM_SCALE", math3_from_scale, "Scale arg1 from arg2-arg3 as unit distance" );
 
       // Setup default DataFile type.
       files.SetOutputDefaultFile();  // Stream manager should default to files for output.
-      std::function<emp::Ptr<EmplodeType> (const std::string &)> df_init = 
-        [this](const std::string & name) { return emp::NewPtr<DataFile>(name, files); };
-
+      auto df_init = [this](const std::string & name) { return emp::NewPtr<DataFile>(name, files); };
       auto & df_type = AddType<DataFile>("DataFile", "Manage CSV-style date file output.", df_init, true);
       df_type.AddMemberFunction(
         "ADD_COLUMN",
@@ -439,18 +406,22 @@ namespace emplode {
       return info;
     }
 
+    /// If init_fun is not specified in add type, build our own and assume that we own the object.
+    template <typename OBJECT_T>
+    TypeInfo & AddType(const std::string & type_name, const std::string & desc) {
+      return AddType<OBJECT_T>(type_name, desc, [](){ return emp::NewPtr<OBJECT_T>(); }, true);
+    }
+
     /// Also allow direct file management.
     emp::StreamManager & GetFileManager() { return files; }
 
     /// To add a built-in function (at the root level) provide it with a name and description.
     /// As long as the function only requires types known to the config system, it should be
-    /// converted properly.  For a variadic function, the provided std::function must take a
+    /// converted properly.  For a variadic function, the provided function must take a
     /// vector of ASTNode pointers, but may return any known type.
-    template <typename RETURN_T, typename... ARGS>
-    void AddFunction(const std::string & name,
-                     std::function<RETURN_T(ARGS...)> fun,
-                     const std::string & desc) {
-      root_scope.AddBuiltinFunction<RETURN_T, ARGS...>(name, fun, desc);
+    template <typename FUN_T>
+    void AddFunction(const std::string & name, FUN_T fun, const std::string & desc) {
+      root_scope.AddBuiltinFunction(name, fun, desc);
     }
 
     Symbol_Scope & GetRootScope() { return root_scope; }
@@ -644,75 +615,69 @@ namespace emplode {
     if (in_node1->IsNumeric()) {
 
       // Determine the output value and put it in a temporary node.
-      std::function<double(double,double)> fun;
-      if (symbol == "+") fun = [](double val1, double val2){ return val1 + val2; };
-      else if (symbol == "-") fun = [](double val1, double val2){ return val1 - val2; };
-      else if (symbol == "**") fun = [](double val1, double val2){ return emp::Pow(val1, val2); };
-      else if (symbol == "*") fun = [](double val1, double val2){ return val1 * val2; };
-      else if (symbol == "/") fun = [](double val1, double val2){ return val1 / val2; };
-      else if (symbol == "%") fun = [](double val1, double val2){ return emp::Mod(val1, val2); };
-      else if (symbol == "==") fun = [](double val1, double val2){ return val1 == val2; };
-      else if (symbol == "!=") fun = [](double val1, double val2){ return val1 != val2; };
-      else if (symbol == "<")  fun = [](double val1, double val2){ return val1 < val2; };
-      else if (symbol == "<=") fun = [](double val1, double val2){ return val1 <= val2; };
-      else if (symbol == ">")  fun = [](double val1, double val2){ return val1 > val2; };
-      else if (symbol == ">=") fun = [](double val1, double val2){ return val1 >= val2; };
+      emp::Ptr<ASTNode_Math2> out_val = emp::NewPtr<ASTNode_Math2>(symbol);
+
+      if (symbol == "+") out_val->SetFun( [](double v1, double v2){ return v1 + v2; } );
+      else if (symbol == "-") out_val->SetFun( [](double v1, double v2){ return v1 - v2; } );
+      else if (symbol == "**") out_val->SetFun( [](double v1, double v2){ return emp::Pow(v1, v2); } );
+      else if (symbol == "*") out_val->SetFun( [](double v1, double v2){ return v1 * v2; } );
+      else if (symbol == "/") out_val->SetFun( [](double v1, double v2){ return v1 / v2; } );
+      else if (symbol == "%") out_val->SetFun( [](double v1, double v2){ return emp::Mod(v1, v2); } );
+      else if (symbol == "==") out_val->SetFun( [](double v1, double v2){ return v1 == v2; } );
+      else if (symbol == "!=") out_val->SetFun( [](double v1, double v2){ return v1 != v2; } );
+      else if (symbol == "<")  out_val->SetFun( [](double v1, double v2){ return v1 < v2; } );
+      else if (symbol == "<=") out_val->SetFun( [](double v1, double v2){ return v1 <= v2; } );
+      else if (symbol == ">")  out_val->SetFun( [](double v1, double v2){ return v1 > v2; } );
+      else if (symbol == ">=") out_val->SetFun( [](double v1, double v2){ return v1 >= v2; } );
 
       // @CAO: Need to still handle these last two differently for short-circuiting.
-      else if (symbol == "&&") fun = [](double val1, double val2){ return val1 && val2; };
-      else if (symbol == "||") fun = [](double val1, double val2){ return val1 || val2; };
+      else if (symbol == "&&") out_val->SetFun( [](double v1, double v2){ return v1 && v2; } );
+      else if (symbol == "||") out_val->SetFun( [](double v1, double v2){ return v1 || v2; } );
 
-      emp::Ptr<ASTNode_Math2> out_value = emp::NewPtr<ASTNode_Math2>(symbol);
-      out_value->SetFun(fun);
-      out_value->AddChild(in_node1);
-      out_value->AddChild(in_node2);
+      out_val->AddChild(in_node1);
+      out_val->AddChild(in_node2);
 
-      return out_value;
+      return out_val;
     }
 
     // Otherwise assume that we are dealing with strings.
     if (symbol == "+") {
-      std::function<std::string(std::string,std::string)> fun;
-      fun = [](std::string val1, std::string val2){ return val1 + val2; };
+      auto out_val = emp::NewPtr<ASTNode_Op2<std::string,std::string,std::string>>(symbol);
+      out_val->SetFun([](std::string val1, std::string val2){ return val1 + val2; });
+      out_val->AddChild(in_node1);
+      out_val->AddChild(in_node2);
 
-      auto out_value = emp::NewPtr<ASTNode_Op2<std::string,std::string,std::string>>(symbol);
-      out_value->SetFun(fun);
-      out_value->AddChild(in_node1);
-      out_value->AddChild(in_node2);
-
-      return out_value;
+      return out_val;
     }
     else if (symbol == "*") {
-      std::function<std::string(std::string,double)> fun;
-      fun = [](std::string val1, double val2) {
+      auto fun = [](std::string val1, double val2) {
         std::string out_string;
         out_string.reserve(val1.size() * (size_t) val2);
         for (size_t i = 0; i < (size_t) val2; i++) out_string += val1;
         return out_string;
       };
 
-      auto out_value = emp::NewPtr<ASTNode_Op2<std::string,std::string,double>>(symbol);
-      out_value->SetFun(fun);
-      out_value->AddChild(in_node1);
-      out_value->AddChild(in_node2);
+      auto out_val = emp::NewPtr<ASTNode_Op2<std::string,std::string,double>>(symbol);
+      out_val->SetFun(fun);
+      out_val->AddChild(in_node1);
+      out_val->AddChild(in_node2);
 
-      return out_value;
+      return out_val;
     }
     else {
-      std::function<double(std::string,std::string)> fun;
-      if (symbol == "==") fun = [](std::string val1, std::string val2){ return val1 == val2; };
-      else if (symbol == "!=") fun = [](std::string val1, std::string val2){ return val1 != val2; };
-      else if (symbol == "<")  fun = [](std::string val1, std::string val2){ return val1 < val2; };
-      else if (symbol == "<=") fun = [](std::string val1, std::string val2){ return val1 <= val2; };
-      else if (symbol == ">")  fun = [](std::string val1, std::string val2){ return val1 > val2; };
-      else if (symbol == ">=") fun = [](std::string val1, std::string val2){ return val1 >= val2; };
+      auto out_val = emp::NewPtr<ASTNode_Op2<double,std::string,std::string>>(symbol);
 
-      auto out_value = emp::NewPtr<ASTNode_Op2<double,std::string,std::string>>(symbol);
-      out_value->SetFun(fun);
-      out_value->AddChild(in_node1);
-      out_value->AddChild(in_node2);
+      if (symbol == "==")      out_val->SetFun([](std::string v1, std::string v2){ return v1 == v2; });
+      else if (symbol == "!=") out_val->SetFun([](std::string v1, std::string v2){ return v1 != v2; });
+      else if (symbol == "<")  out_val->SetFun([](std::string v1, std::string v2){ return v1 < v2; });
+      else if (symbol == "<=") out_val->SetFun([](std::string v1, std::string v2){ return v1 <= v2; });
+      else if (symbol == ">")  out_val->SetFun([](std::string v1, std::string v2){ return v1 > v2; });
+      else if (symbol == ">=") out_val->SetFun([](std::string v1, std::string v2){ return v1 >= v2; });
 
-      return out_value;
+      out_val->AddChild(in_node1);
+      out_val->AddChild(in_node2);
+
+      return out_val;
     }
 
     return nullptr;
