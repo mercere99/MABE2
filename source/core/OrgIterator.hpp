@@ -29,7 +29,7 @@
 namespace mabe {
 
   /// Base class for all organsim containers, including population.  
-  struct OrgContainer {
+  struct OrgContainer : public EmplodeType {
     virtual ~OrgContainer() { }
 
     virtual std::string GetName() const { return ""; }

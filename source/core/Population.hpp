@@ -83,7 +83,7 @@ namespace mabe {
 
   /// A Population maintains a collection of organisms.  It is derived from EmplodeType so that it
   /// can be easily used in the MABE scripting language.
-  class Population : public EmplodeType, public OrgContainer {
+  class Population : public OrgContainer {
     friend class MABEBase;
   private:
     std::string name="";                    ///< Unique name for this population.
