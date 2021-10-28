@@ -562,7 +562,7 @@ namespace mabe {
       size_t end_pos = emp::find_paren_match(out_string, i+1, '{', '}', false);
       if (end_pos == i+1) return out_string;  // No end brace found!  @CAO -- exception here?
       const std::string replacement_text =
-        config.Eval(emp::view_string_range(out_string, i+2, end_pos));
+        config.Execute(emp::view_string_range(out_string, i+2, end_pos));
       out_string.replace(i, end_pos-i+1, replacement_text);
 
       i += replacement_text.size(); // Continue from the end point...
@@ -593,9 +593,9 @@ namespace mabe {
     , cur_scope(&(config.GetRootScope()))
   {
     // Setup "Population" as a type in the config file.
-    std::function<ConfigType &(const std::string &)> pop_init_fun =
-      [this](const std::string & name) -> ConfigType & {
-        return AddPopulation(name);
+    auto pop_init_fun =
+      [this](const std::string & name) -> emp::Ptr<ConfigType> {
+        return &AddPopulation(name);
       };
     auto & pop_type = config.AddType<Population>("Population", "Collection of organisms", pop_init_fun);
 
@@ -611,10 +611,9 @@ namespace mabe {
 
     // Setup all known modules as available types in the config file.
     for (auto & mod : GetModuleInfo()) {
-      std::function<ConfigType &(const std::string &)> mod_init_fun =
-        [this,&mod](const std::string & name) -> ConfigType & {
-          return mod.init_fun(*this,name);
-        };
+      auto mod_init_fun = [this,&mod](const std::string & name) -> emp::Ptr<ConfigType> {
+        return mod.init_fun(*this,name);
+      };
       config.AddType(mod.name, mod.desc, mod_init_fun, mod.type_id);
     }
 
