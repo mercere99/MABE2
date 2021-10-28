@@ -1,9 +1,9 @@
 /**
- *  @note This file is part of MABE, https://github.com/mercere99/MABE2
+ *  @note This file is part of Emplode, currently within https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
  *  @date 2019-2021.
  *
- *  @file  ConfigEvents.hpp
+ *  @file  Events.hpp
  *  @brief Manages events for configurations.
  *  @note Status: BETA
  * 
@@ -12,19 +12,19 @@
  *    rather than assuming all repeating events will be evenly spaced.
  */
 
-#ifndef MABE_CONFIG_EVENTS_H
-#define MABE_CONFIG_EVENTS_H
+#ifndef EMPLODE_EVENTS_HPP
+#define EMPLODE_EVENTS_HPP
 
 #include <string>
 
 #include "emp/base/map.hpp"
 #include "emp/base/Ptr.hpp"
 
-#include "ConfigAST.hpp"
+#include "AST.hpp"
 
-namespace mabe {
+namespace emplode {
 
-  class ConfigEvents {
+  class Events {
   private:
 
     // Structure to track the timings for a single event.
@@ -45,8 +45,8 @@ namespace mabe {
       // Trigger a single event as having occurred; return true/false base on whether this event
       // should continue to be considered active.
       bool Trigger() {
-        auto result_entry = ast_action->Process();
-        if (result_entry && result_entry->IsTemporary()) result_entry.Delete();
+        auto result_symbol = ast_action->Process();
+        if (result_symbol && result_symbol->IsTemporary()) result_symbol.Delete();
         next += repeat;
 
         if (max != -1.0 && next > max) repeat = 0.0;
@@ -83,8 +83,8 @@ namespace mabe {
     }
 
   public:
-    ConfigEvents() { ; }
-    ~ConfigEvents() {
+    Events() { ; }
+    ~Events() {
       // Must delete all events in the queue.
       for (auto [time, event_ptr] : queue) {
         event_ptr.Delete();

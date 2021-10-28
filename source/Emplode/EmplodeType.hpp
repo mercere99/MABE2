@@ -1,39 +1,39 @@
 /**
- *  @note This file is part of MABE, https://github.com/mercere99/MABE2
+ *  @note This file is part of Emplode, currently within https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
  *  @date 2019-2021.
  *
- *  @file  ConfigType.hpp
+ *  @file  EmplodeType.hpp
  *  @brief Setup types for use in scripting.
- *  @note Status: ALPHA
+ *  @note Status: BETA
  */
 
-#ifndef MABE_CONFIG_TYPE_H
-#define MABE_CONFIG_TYPE_H
+#ifndef EMPLODE_TYPE_HPP
+#define EMPLODE_TYPE_HPP
 
 #include "emp/base/assert.hpp"
 
-#include "ConfigTypeBase.hpp"
-#include "ConfigEntry_Scope.hpp"
-#include "ConfigTypeInfo.hpp"
+#include "EmplodeTypeBase.hpp"
+#include "Symbol_Scope.hpp"
+#include "TypeInfo.hpp"
 
-namespace mabe {
+namespace emplode {
 
-  class Config;
+  class Emplode;
 
   // Base class for types that we want to be used for scripting.
-  class ConfigType : public ConfigTypeBase {
+  class EmplodeType : public EmplodeTypeBase {
   public:
     /// Setup the TYPE of object in the config.  This is a stub class, but any new class derived from
-    /// ConfigType can create its own version to automatically load in member functions, etc.
-    static void InitType(Config & /*config*/, ConfigTypeInfo & /*info*/) {
-      // If you create a version of this function for your own ConfigType, this is where you would
+    /// EmplodeType can create its own version to automatically load in member functions, etc.
+    static void InitType(Emplode & /*config*/, TypeInfo & /*info*/) {
+      // If you create a version of this function for your own EmplodeType, this is where you would
       // create member functions.
     }
 
 
-    /// Setup an instance of a new ConfigType object; provide it with its scope and type information.    
-    void Setup(ConfigEntry_Scope & _scope, ConfigTypeInfo & _info) {
+    /// Setup an instance of a new EmplodeType object; provide it with its scope and type information.    
+    void Setup(Symbol_Scope & _scope, TypeInfo & _info) {
       cur_scope = &_scope;
       type_info_ptr = &_info;
 
@@ -45,8 +45,8 @@ namespace mabe {
       SetupConfig();
 
       // Load in any member function for this object into the scope.
-      using entry_ptr_t = emp::Ptr<ConfigEntry>;
-      using member_fun_t = std::function<entry_ptr_t(const emp::vector<entry_ptr_t> &)>;
+      using symbol_ptr_t = emp::Ptr<Symbol>;
+      using member_fun_t = std::function<symbol_ptr_t(const emp::vector<symbol_ptr_t> &)>;
       const auto & member_map = type_info_ptr->GetMemberFunctions();
 
       // std::cout << "Loading member functions for '" << _scope.GetName() << "'; "
@@ -54,7 +54,7 @@ namespace mabe {
       //           << std::endl;
 
       for (const MemberFunInfo & member_info : member_map) {
-        member_fun_t linked_fun = [this, &member_info](const emp::vector<entry_ptr_t> & args){
+        member_fun_t linked_fun = [this, &member_info](const emp::vector<symbol_ptr_t> & args){
           return member_info.fun(*this, args);
         };
         cur_scope->AddFunction(member_info.name, linked_fun, member_info.desc).SetBuiltin();
@@ -70,7 +70,7 @@ namespace mabe {
     /// Link a variable to a configuration entry - the value will default to the
     /// variables current value, but be updated when configs are loaded.
     template <typename VAR_T>
-    ConfigEntry_Linked<VAR_T> & LinkVar(VAR_T & var,
+    Symbol_Linked<VAR_T> & LinkVar(VAR_T & var,
                                         const std::string & name,
                                         const std::string & desc,
                                         bool is_builtin = false) {
@@ -80,7 +80,7 @@ namespace mabe {
     /// Link a configuration entry to a pair of functions - it automatically calls the set
     /// function when configs are loaded, and the get function when current value is needed.
     template <typename VAR_T>
-    ConfigEntry_LinkedFunctions<VAR_T> & LinkFuns(std::function<VAR_T()> get_fun,
+    Symbol_LinkedFunctions<VAR_T> & LinkFuns(std::function<VAR_T()> get_fun,
                                             std::function<void(const VAR_T &)> set_fun,
                                             const std::string & name,
                                             const std::string & desc,
@@ -103,7 +103,7 @@ namespace mabe {
     /// Each option should include three arguments:
     /// The return value, the option name, and the option description.
     template <typename VAR_T, typename... Ts>
-    ConfigEntry_LinkedFunctions<std::string> & LinkMenu(VAR_T & var,
+    Symbol_LinkedFunctions<std::string> & LinkMenu(VAR_T & var,
                                                   const std::string & name,
                                                   const std::string & desc,
                                                   const Ts &... entries) {

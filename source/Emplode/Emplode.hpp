@@ -1,10 +1,10 @@
 /**
- *  @note This file is part of MABE, https://github.com/mercere99/MABE2
+ *  @note This file is part of Emplode, currently within https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
  *  @date 2019-2021.
  *
- *  @file  Config.hpp
- *  @brief Manages all configuration of MABE runs (full parser implementation here)
+ *  @file  Emplode.hpp
+ *  @brief Manages all configuration with Emplode language.
  *  @note Status: BETA
  * 
  *  Example usage:
@@ -65,8 +65,8 @@
  *   }
  */
 
-#ifndef MABE_CONFIG_H
-#define MABE_CONFIG_H
+#ifndef EMPLODE_HPP
+#define EMPLODE_HPP
 
 #include <fstream>
 
@@ -76,36 +76,36 @@
 #include "emp/meta/TypeID.hpp"
 #include "emp/tools/string_utils.hpp"
 
-#include "ConfigAST.hpp"
-#include "ConfigDataFile.hpp"
-#include "ConfigEvents.hpp"
-#include "ConfigEntry_Function.hpp"
-#include "ConfigLexer.hpp"
-#include "ConfigEntry_Scope.hpp"
-#include "ConfigType.hpp"
-#include "ConfigTypeInfo.hpp"
+#include "AST.hpp"
+#include "DataFile.hpp"
+#include "EmplodeType.hpp"
+#include "Symbol_Function.hpp"
+#include "Symbol_Scope.hpp"
+#include "Events.hpp"
+#include "Lexer.hpp"
+#include "TypeInfo.hpp"
 
-namespace mabe {
+namespace emplode {
 
-  class Config {
+  class Emplode {
   public:
     using pos_t = emp::TokenStream::Iterator;
 
   protected:
     std::string filename;         ///< Source for for code to generate.
-    ConfigLexer lexer;            ///< Lexer to process input code.
-    ConfigEntry_Scope root_scope; ///< All variables from the root level.
+    Lexer lexer;            ///< Lexer to process input code.
+    Symbol_Scope root_scope; ///< All variables from the root level.
     ASTNode_Block ast_root;       ///< Abstract syntax tree version of input file.
     bool debug = false;           ///< Should we print full debug information?
 
     /// A map of names to event groups.
-    std::map<std::string, ConfigEvents> events_map;
+    std::map<std::string, Events> events_map;
 
     /// A map of all types available in the script.
-    std::unordered_map<std::string, emp::Ptr<ConfigTypeInfo>> type_map;
+    std::unordered_map<std::string, emp::Ptr<TypeInfo>> type_map;
 
     /// Management of built-in types.
-    emp::StreamManager files;    ///< Track all of the file streams used in MABE.
+    emp::StreamManager files;    ///< Track all file streams.
 
     /// A list of precedence levels for symbols.
     std::unordered_map<std::string, size_t> precedence_map;
@@ -182,12 +182,12 @@ namespace mabe {
     /// If create_ok is true, create any variables that we don't find.  Otherwise continue the
     /// search for them in successively outer (lower) scopes.
     [[nodiscard]] emp::Ptr<ASTNode_Leaf> ParseVar(pos_t & pos,
-                                                  ConfigEntry_Scope & cur_scope,
+                                                  Symbol_Scope & cur_scope,
                                                   bool create_ok=false,
                                                   bool scan_scopes=true);
 
     /// Load a value from the provided scope, which can come from a variable or a literal.
-    [[nodiscard]] emp::Ptr<ASTNode> ParseValue(pos_t & pos, ConfigEntry_Scope & cur_scope);
+    [[nodiscard]] emp::Ptr<ASTNode> ParseValue(pos_t & pos, Symbol_Scope & cur_scope);
 
     /// Calculate the result of the provided operation on two computed entries.
     [[nodiscard]] emp::Ptr<ASTNode> ProcessOperation(const std::string & symbol,
@@ -196,20 +196,20 @@ namespace mabe {
 
     /// Calculate a full expression found in a token sequence, using the provided scope.
     [[nodiscard]] emp::Ptr<ASTNode>
-      ParseExpression(pos_t & pos, ConfigEntry_Scope & cur_scope, size_t prec_limit=1000);
+      ParseExpression(pos_t & pos, Symbol_Scope & cur_scope, size_t prec_limit=1000);
 
-    /// Parse the declaration of a variable and return the newly created ConfigEntry
-    ConfigEntry & ParseDeclaration(pos_t & pos, ConfigEntry_Scope & scope);
+    /// Parse the declaration of a variable and return the newly created Symbol
+    Symbol & ParseDeclaration(pos_t & pos, Symbol_Scope & scope);
 
     /// Parse an event description.
-    emp::Ptr<ASTNode> ParseEvent(pos_t & pos, ConfigEntry_Scope & scope);
+    emp::Ptr<ASTNode> ParseEvent(pos_t & pos, Symbol_Scope & scope);
 
     /// Parse the next input in the specified Struct.  A statement can be a variable declaration,
     /// an expression, or an event.
-    [[nodiscard]] emp::Ptr<ASTNode> ParseStatement(pos_t & pos, ConfigEntry_Scope & scope);
+    [[nodiscard]] emp::Ptr<ASTNode> ParseStatement(pos_t & pos, Symbol_Scope & scope);
 
     /// Keep parsing statements until there aren't any more or we leave this scope. 
-    [[nodiscard]] emp::Ptr<ASTNode_Block> ParseStatementList(pos_t & pos, ConfigEntry_Scope & scope) {
+    [[nodiscard]] emp::Ptr<ASTNode_Block> ParseStatementList(pos_t & pos, Symbol_Scope & scope) {
       Debug("Running ParseStatementList(", pos.GetIndex(), ":('", AsLexeme(pos), "'),", scope.GetName(), ")");
       auto cur_block = emp::NewPtr<ASTNode_Block>(scope);
       while (pos.IsValid() && AsChar(pos) != '}') {
@@ -223,19 +223,19 @@ namespace mabe {
     }
 
   public:
-    Config(std::string in_filename="")
+    Emplode(std::string in_filename="")
       : filename(in_filename)
-      , root_scope("MABE", "Outer-most, global scope.", nullptr)
+      , root_scope("Emplode", "Outer-most, global scope.", nullptr)
       , ast_root(root_scope)
     {
       if (filename != "") Load(filename);
 
       // Initialize the type map.
-      type_map["INVALID"] = emp::NewPtr<ConfigTypeInfo>( (size_t) BaseType::INVALID, "/*ERROR*/", "Error, Invalid type!" );
-      type_map["Void"] = emp::NewPtr<ConfigTypeInfo>( (size_t) BaseType::VOID, "Void", "Non-type variable; no value" );
-      type_map["Value"] = emp::NewPtr<ConfigTypeInfo>( (size_t) BaseType::VALUE, "Value", "Numeric variable" );
-      type_map["String"] = emp::NewPtr<ConfigTypeInfo>( (size_t) BaseType::STRING, "String", "String variable" );
-      type_map["Struct"] = emp::NewPtr<ConfigTypeInfo>( (size_t) BaseType::STRUCT, "Struct", "User-made structure" );
+      type_map["INVALID"] = emp::NewPtr<TypeInfo>( (size_t) BaseType::INVALID, "/*ERROR*/", "Error, Invalid type!" );
+      type_map["Void"] = emp::NewPtr<TypeInfo>( (size_t) BaseType::VOID, "Void", "Non-type variable; no value" );
+      type_map["Value"] = emp::NewPtr<TypeInfo>( (size_t) BaseType::VALUE, "Value", "Numeric variable" );
+      type_map["String"] = emp::NewPtr<TypeInfo>( (size_t) BaseType::STRING, "String", "String variable" );
+      type_map["Struct"] = emp::NewPtr<TypeInfo>( (size_t) BaseType::STRUCT, "Struct", "User-made structure" );
 
       // Setup operator precedence.
       size_t cur_prec = 0;
@@ -257,8 +257,8 @@ namespace mabe {
       AddFunction("EXEC", exec_fun, "Dynamically execute the string passed in.");
 
       // 'PRINT' is a simple debugging command to output the value of a variable.
-      std::function<int(const emp::vector<emp::Ptr<ConfigEntry>> &)> print_fun =
-        [](const emp::vector<emp::Ptr<ConfigEntry>> & args) {
+      std::function<int(const emp::vector<emp::Ptr<Symbol>> &)> print_fun =
+        [](const emp::vector<emp::Ptr<Symbol>> & args) {
           for (auto entry_ptr : args) std::cout << entry_ptr->AsString();
           return 0;
         };
@@ -341,13 +341,13 @@ namespace mabe {
 
       // Setup default DataFile type.
       files.SetOutputDefaultFile();  // Stream manager should default to files for output.
-      std::function<emp::Ptr<ConfigType> (const std::string &)> df_init = 
-        [this](const std::string & name) { return emp::NewPtr<ConfigDataFile>(name, files); };
+      std::function<emp::Ptr<EmplodeType> (const std::string &)> df_init = 
+        [this](const std::string & name) { return emp::NewPtr<DataFile>(name, files); };
 
-      auto & df_type = AddType<ConfigDataFile>("DataFile", "Manage CSV-style date file output.", df_init, true);
+      auto & df_type = AddType<DataFile>("DataFile", "Manage CSV-style date file output.", df_init, true);
       df_type.AddMemberFunction(
         "ADD_COLUMN",
-        [exec_fun](ConfigDataFile & file, const std::string & title, const std::string & expression){
+        [exec_fun](DataFile & file, const std::string & title, const std::string & expression){
           return file.AddColumn(title, [exec_fun,expression](){
             std::string out_string = exec_fun(expression);
             if (!emp::is_number(out_string)) return emp::to_literal(out_string);
@@ -359,18 +359,18 @@ namespace mabe {
     }
 
     // Prevent copy or move since we are using lambdas that capture 'this'
-    Config(const Config &) = delete;
-    Config(Config &&) = delete;
-    Config & operator=(const Config &) = delete;
-    Config & operator=(Config &&) = delete;
+    Emplode(const Emplode &) = delete;
+    Emplode(Emplode &&) = delete;
+    Emplode & operator=(const Emplode &) = delete;
+    Emplode & operator=(Emplode &&) = delete;
 
-    ~Config() {
+    ~Emplode() {
       // Clean up type information.
       for (auto [name, ptr] : type_map) ptr.Delete();
     }
 
     /// Create a new type of event that can be used in the scripting language.
-    ConfigEvents & AddEventType(const std::string & name) {
+    Events & AddEventType(const std::string & name) {
       emp_assert(!emp::Has(events_map, name));
       Debug ("Adding event type '", name, "'");
       return events_map[name];
@@ -408,7 +408,7 @@ namespace mabe {
     /// that should be called (with the variable name) when an instance of that type is created.
     /// The function must return a reference to the newly created instance.
     template <typename FUN_T>
-    ConfigTypeInfo & AddType(
+    TypeInfo & AddType(
       const std::string & type_name,
       const std::string & desc,
       FUN_T init_fun,
@@ -417,24 +417,24 @@ namespace mabe {
     ) {
       emp_assert(!emp::Has(type_map, type_name), type_name, "Type already exists!");
       size_t index = type_map.size();
-      auto info_ptr = emp::NewPtr<ConfigTypeInfo>( index, type_name, desc, init_fun, is_config_owned );
+      auto info_ptr = emp::NewPtr<TypeInfo>( index, type_name, desc, init_fun, is_config_owned );
       info_ptr->LinkType(type_id);
       type_map[type_name] = info_ptr;
       return *type_map[type_name];
     }
 
     /// If the linked type can be provided as a template parameter, we can also double check that
-    /// it is derived from ConfigType (as it needs to be...)
+    /// it is derived from EmplodeType (as it needs to be...)
     template <typename OBJECT_T, typename FUN_T>
-    ConfigTypeInfo & AddType(
+    TypeInfo & AddType(
       const std::string & type_name,
       const std::string & desc,
       FUN_T init_fun,
       bool is_config_owned=false
     ) {
-      static_assert(std::is_base_of<ConfigType, OBJECT_T>(),
-                    "Only ConfigType objects can be used as a custom config type.");
-      ConfigTypeInfo & info = AddType(type_name, desc, init_fun, emp::GetTypeID<OBJECT_T>(), is_config_owned);
+      static_assert(std::is_base_of<EmplodeType, OBJECT_T>(),
+                    "Only EmplodeType objects can be used as a custom config type.");
+      TypeInfo & info = AddType(type_name, desc, init_fun, emp::GetTypeID<OBJECT_T>(), is_config_owned);
       OBJECT_T::InitType(*this, info);
       return info;
     }
@@ -453,8 +453,8 @@ namespace mabe {
       root_scope.AddBuiltinFunction<RETURN_T, ARGS...>(name, fun, desc);
     }
 
-    ConfigEntry_Scope & GetRootScope() { return root_scope; }
-    const ConfigEntry_Scope & GetRootScope() const { return root_scope; }
+    Symbol_Scope & GetRootScope() { return root_scope; }
+    const Symbol_Scope & GetRootScope() const { return root_scope; }
 
     // Load a single, specified configuration file.
     void Load(const std::string & filename) {
@@ -494,32 +494,32 @@ namespace mabe {
     }
 
     // Load the provided statement and run it.
-    std::string Execute(std::string_view statement, emp::Ptr<ConfigEntry_Scope> scope=nullptr) {
+    std::string Execute(std::string_view statement, emp::Ptr<Symbol_Scope> scope=nullptr) {
       Debug("Running Execute()");
       if (!scope) scope = &root_scope;                      // Default scope to root level.
       auto tokens = lexer.Tokenize(statement, "eval command"); // Convert to a TokenStream.
       tokens.push_back(lexer.ToToken(";"));                 // Ensure a semi-colon at end.
       pos_t pos = tokens.begin();                           // Start are beginning of stream.
       auto cur_block = ParseStatement(pos, root_scope);     // Convert tokens to AST
-      auto result_ptr = cur_block->Process();               // Process AST to get result entry.
+      auto result_ptr = cur_block->Process();               // Process AST to get result symbol.
       std::string result = "";                              // Default result to an empty string.
       if (result_ptr) {
         result = result_ptr->AsString();                    // Convert result to output string.
-        if (result_ptr->IsTemporary()) result_ptr.Delete(); // Delete the result entry if done.
+        if (result_ptr->IsTemporary()) result_ptr.Delete(); // Delete the result symbol if done.
       }
       cur_block.Delete();                                   // Delete the AST.
       return result;                                        // Return the result string.
     }
 
 
-    Config & Write(std::ostream & os=std::cout) {
+    Emplode & Write(std::ostream & os=std::cout) {
       root_scope.WriteContents(os);
       os << '\n';
       PrintEvents(os);
       return *this;
     }
 
-    Config & Write(const std::string & filename) {
+    Emplode & Write(const std::string & filename) {
       // If the filename is empty or "_", output to standard out.
       if (filename == "" || filename == "_") return Write();
 
@@ -530,12 +530,12 @@ namespace mabe {
   };
 
   //////////////////////////////////////////////////////////
-  //  --==  Config member function Implementations!  ==--
+  //  --==  Emplode member function Implementations!  ==--
 
 
   // Load a variable name from the provided scope.
-  emp::Ptr<ASTNode_Leaf> Config::ParseVar(pos_t & pos,
-                                          ConfigEntry_Scope & cur_scope,
+  emp::Ptr<ASTNode_Leaf> Emplode::ParseVar(pos_t & pos,
+                                          Symbol_Scope & cur_scope,
                                           bool create_ok, bool scan_scopes)
   {
     Debug("Running ParseVar(", pos.GetIndex(), ":('", AsLexeme(pos), "'),", cur_scope.GetName(), ",", create_ok, ")");
@@ -544,7 +544,7 @@ namespace mabe {
     if (IsDots(pos)) {
       scan_scopes = false;             // One or more initial dots specify scope; don't scan!
       size_t num_dots = GetSize(pos);  // Extra dots shift scope.
-      emp::Ptr<ConfigEntry_Scope> scope_ptr = &cur_scope;
+      emp::Ptr<Symbol_Scope> scope_ptr = &cur_scope;
       while (num_dots-- > 1) {
         scope_ptr = scope_ptr->GetScope();
         if (scope_ptr.IsNull()) Error(pos, "Too many dots; goes beyond global scope.");
@@ -561,35 +561,35 @@ namespace mabe {
     std::string var_name = AsLexeme(pos++);
 
     // Lookup this variable.
-    emp::Ptr<ConfigEntry> cur_entry = cur_scope.LookupEntry(var_name, scan_scopes);
+    emp::Ptr<Symbol> cur_symbol = cur_scope.LookupSymbol(var_name, scan_scopes);
 
     // If we can't find this variable, throw an error.
-    if (cur_entry.IsNull()) {
+    if (cur_symbol.IsNull()) {
       Error(pos, "'", var_name, "' does not exist as a parameter, variable, or type.",
             "  Current scope is '", cur_scope.GetName(), "'");
     }
 
     // If this variable just provided a scope, keep going.
-    if (IsDots(pos)) return ParseVar(pos, cur_entry->AsScope(), create_ok, false);
+    if (IsDots(pos)) return ParseVar(pos, cur_symbol->AsScope(), create_ok, false);
 
     // Otherwise return the variable as a leaf!
-    return emp::NewPtr<ASTNode_Leaf>(cur_entry);
+    return emp::NewPtr<ASTNode_Leaf>(cur_symbol);
   }
 
   emp::Ptr<ASTNode_Leaf> MakeTempLeaf(double val) {
-    auto out_ptr = emp::NewPtr<ConfigEntry_DoubleVar>("", val, "Temporary double", nullptr);
+    auto out_ptr = emp::NewPtr<Symbol_DoubleVar>("", val, "Temporary double", nullptr);
     out_ptr->SetTemporary();
     return emp::NewPtr<ASTNode_Leaf>(out_ptr);
   }
 
   emp::Ptr<ASTNode_Leaf> MakeTempLeaf(const std::string & val) {
-    auto out_ptr = emp::NewPtr<ConfigEntry_StringVar>("", val, "Temporary string", nullptr);
+    auto out_ptr = emp::NewPtr<Symbol_StringVar>("", val, "Temporary string", nullptr);
     out_ptr->SetTemporary();
     return emp::NewPtr<ASTNode_Leaf>(out_ptr);
   }
 
   // Load a value from the provided scope, which can come from a variable or a literal.
-  emp::Ptr<ASTNode> Config::ParseValue(pos_t & pos, ConfigEntry_Scope & cur_scope) {
+  emp::Ptr<ASTNode> Emplode::ParseValue(pos_t & pos, Symbol_Scope & cur_scope) {
     Debug("Running ParseValue(", pos.GetIndex(), ":('", AsLexeme(pos), "'),", cur_scope.GetName(), ")");
 
     // Anything that begins with an identifier or dots must represent a variable.  Refer!
@@ -599,21 +599,21 @@ namespace mabe {
     if (IsNumber(pos)) {
       Debug("...value is a number: ", AsLexeme(pos));
       double value = emp::from_string<double>(AsLexeme(pos++)); // Calculate value.
-      return MakeTempLeaf(value);                             // Return temporary ConfigEntry.
+      return MakeTempLeaf(value);                             // Return temporary Symbol.
     }
 
     // A literal char should be converted to its ASCII value.
     if (IsChar(pos)) {
       Debug("...value is a char: ", AsLexeme(pos));
       char lit_char = emp::from_literal_char(AsLexeme(pos++));  // Convert the literal char.
-      return MakeTempLeaf((double) lit_char);                 // Return temporary ConfigEntry.
+      return MakeTempLeaf((double) lit_char);                 // Return temporary Symbol.
     }
 
     // A literal string should be converted to a regular string and used.
     if (IsString(pos)) {
       Debug("...value is a string: ", AsLexeme(pos));
       std::string str = emp::from_literal_string(AsLexeme(pos++)); // Convert the literal string.
-      return MakeTempLeaf(str);                         // Return temporary ConfigEntry.
+      return MakeTempLeaf(str);                         // Return temporary Symbol.
     }
 
     // If we have an open parenthesis, process everything inside into a single value...
@@ -629,8 +629,8 @@ namespace mabe {
     return nullptr;
   }
 
-  // Process a single provided operation on two ConfigEntry objects.
-  emp::Ptr<ASTNode> Config::ProcessOperation(const std::string & symbol,
+  // Process a single provided operation on two Symbol objects.
+  emp::Ptr<ASTNode> Emplode::ProcessOperation(const std::string & symbol,
                                              emp::Ptr<ASTNode> in_node1,
                                              emp::Ptr<ASTNode> in_node2)
   {
@@ -720,9 +720,9 @@ namespace mabe {
                                       
 
   // Calculate an expression in the provided scope.
-  emp::Ptr<ASTNode> Config::ParseExpression(
+  emp::Ptr<ASTNode> Emplode::ParseExpression(
     pos_t & pos,
-    ConfigEntry_Scope & scope,
+    Symbol_Scope & scope,
     size_t prec_limit
   ) {
     Debug("Running ParseExpression(", pos.GetIndex(), ":('", AsLexeme(pos), "'),", scope.GetName(), ")");
@@ -766,7 +766,7 @@ namespace mabe {
   }
 
   // Parse an the declaration of a variable.
-  ConfigEntry & Config::ParseDeclaration(pos_t & pos, ConfigEntry_Scope & scope) {
+  Symbol & Emplode::ParseDeclaration(pos_t & pos, Symbol_Scope & scope) {
     std::string type_name = AsLexeme(pos++);
     RequireID(pos, "Type name '", type_name, "' must be followed by variable to declare.");
     std::string var_name = AsLexeme(pos++);
@@ -785,15 +785,15 @@ namespace mabe {
     Debug("Building var '", var_name, "' of type '", type_name, "'");
 
     // Retrieve the information about the requested type.
-    ConfigTypeInfo & type_info = *type_map[type_name];
+    TypeInfo & type_info = *type_map[type_name];
     const std::string & type_desc = type_map[type_name]->GetDesc();
-    const bool is_config_owned = type_info.GetConfigOwned();
+    const bool is_config_owned = type_info.GetOwned();
 
-    // Use the ConfigTypeInfo associated with the provided type name to build an instance.
-    emp::Ptr<ConfigType> new_obj = type_info.MakeObj(var_name);
+    // Use the TypeInfo associated with the provided type name to build an instance.
+    emp::Ptr<EmplodeType> new_obj = type_info.MakeObj(var_name);
 
     // Setup a scope for this new type, linking the object to it.
-    ConfigEntry_Scope & new_scope = scope.AddScope(var_name, type_desc, new_obj, is_config_owned);
+    Symbol_Scope & new_scope = scope.AddScope(var_name, type_desc, new_obj, is_config_owned);
 
     // Let the new object know about its scope.
     new_obj->Setup(new_scope, type_info);
@@ -802,7 +802,7 @@ namespace mabe {
   }
 
   // Parse an event description.
-  emp::Ptr<ASTNode> Config::ParseEvent(pos_t & pos, ConfigEntry_Scope & scope) {
+  emp::Ptr<ASTNode> Emplode::ParseEvent(pos_t & pos, Symbol_Scope & scope) {
     RequireChar('@', pos++, "All event declarations must being with an '@'.");
     RequireID(pos, "Events must start by specifying event name.");
     const std::string & event_name = AsLexeme(pos++);
@@ -820,7 +820,7 @@ namespace mabe {
     Debug("Building event '", event_name, "' with args ", args);
 
     auto setup_event = [this, event_name](emp::Ptr<ASTNode> action,
-                                          const emp::vector<emp::Ptr<ConfigEntry>> & args) {
+                                          const emp::vector<emp::Ptr<Symbol>> & args) {
       AddEvent(event_name, action,
                (args.size() > 0) ? args[0]->AsDouble() : 0.0,
                (args.size() > 1) ? args[1]->AsDouble() : 0.0,
@@ -831,7 +831,7 @@ namespace mabe {
   }
 
   // Process the next input in the specified Struct.
-  emp::Ptr<ASTNode> Config::ParseStatement(pos_t & pos, ConfigEntry_Scope & scope) {
+  emp::Ptr<ASTNode> Emplode::ParseStatement(pos_t & pos, Symbol_Scope & scope) {
     Debug("Running ParseStatement(", pos.GetIndex(), ":('", AsLexeme(pos), "'),", scope.GetName(), ")");
 
     // Allow a statement with an empty line.
@@ -851,7 +851,7 @@ namespace mabe {
 
     // Allow this statement to be a declaration if it begins with a type.
     if (IsType(pos)) {
-      ConfigEntry & new_entry = ParseDeclaration(pos, scope);
+      Symbol & new_symbol = ParseDeclaration(pos, scope);
   
       // If the next symbol is a ';' this is a declaration without an assignment.
       if (AsChar(pos) == ';') {
@@ -859,13 +859,13 @@ namespace mabe {
         return nullptr;  // We are done!
       }
 
-      // If this entry is a new scope, it should be populated now.
-      if (new_entry.IsScope()) {
-        RequireChar('{', pos, "Expected scope '", new_entry.GetName(),
+      // If this symbol is a new scope, it should be populated now.
+      if (new_symbol.IsScope()) {
+        RequireChar('{', pos, "Expected scope '", new_symbol.GetName(),
                     "' definition to start with a '{'; found ''", AsLexeme(pos), "'.");
         pos++;
-        emp::Ptr<ASTNode> out_node = ParseStatementList(pos, new_entry.AsScope());
-        RequireChar('}', pos++, "Expected scope '", new_entry.GetName(), "' to end with a '}'.");
+        emp::Ptr<ASTNode> out_node = ParseStatementList(pos, new_symbol.AsScope());
+        RequireChar('}', pos++, "Expected scope '", new_symbol.GetName(), "' to end with a '}'.");
         return out_node;
       }
 

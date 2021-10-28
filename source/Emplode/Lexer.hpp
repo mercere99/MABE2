@@ -1,21 +1,21 @@
 /**
- *  @note This file is part of MABE, https://github.com/mercere99/MABE2
+ *  @note This file is part of Emplode, currently within https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
  *  @date 2019-2021.
  *
- *  @file  ConfigLexer.hpp
- *  @brief A Lexer used to tokenize MABE config files.
+ *  @file  Lexer.hpp
+ *  @brief A Lexer used to tokenize Emplode config files.
  *  @note Status: BETA
  **/
 
-#ifndef MABE_CONFIG_LEXER_H
-#define MABE_CONFIG_LEXER_H
+#ifndef EMPLODE_LEXER_HPP
+#define EMPLODE_LEXER_HPP
 
 #include "emp/compiler/Lexer.hpp"
 
-namespace mabe {
+namespace emplode {
 
-  class ConfigLexer : public emp::Lexer {
+  class Lexer : public emp::Lexer {
   private:
     int token_identifier = -1;        ///< Token id for identifiers
     int token_number = -1;            ///< Token id for literal numbers
@@ -25,7 +25,7 @@ namespace mabe {
     int token_symbol = -1;            ///< Token id for other symbols
 
   public:
-    ConfigLexer() {
+    Lexer() {
       // Whitespace and comments should always be dismissed (top priority)
       IgnoreToken("Whitespace", "[ \t\n\r]+");
       IgnoreToken("//-Comments", "//.*");

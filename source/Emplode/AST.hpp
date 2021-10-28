@@ -1,31 +1,31 @@
 /**
- *  @note This file is part of MABE, https://github.com/mercere99/MABE2
+ *  @note This file is part of Emplode, currently within https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
  *  @date 2019-2021.
  *
- *  @file  ConfigAST.hpp
- *  @brief Manages Abstract Syntax Tree nodes for Config.
+ *  @file  AST.hpp
+ *  @brief Manages Abstract Syntax Tree nodes for Emplode.
  *  @note Status: BETA
  */
 
-#ifndef MABE_CONFIG_AST_H
-#define MABE_CONFIG_AST_H
+#ifndef EMPLODE_AST_HPP
+#define EMPLODE_AST_HPP
 
 #include "emp/base/assert.hpp"
 #include "emp/base/Ptr.hpp"
 #include "emp/base/vector.hpp"
 
-#include "ConfigEntry.hpp"
-#include "ConfigEntry_Scope.hpp"
-#include "ConfigTools.hpp"
+#include "Symbol.hpp"
+#include "Symbol_Scope.hpp"
+#include "EmplodeTools.hpp"
 
-namespace mabe {
+namespace emplode {
 
   /// Base class for all AST Nodes.
   class ASTNode {
   protected:
-    using entry_ptr_t = emp::Ptr<ConfigEntry>;
-    using entry_vector_t = emp::vector<entry_ptr_t>;
+    using symbol_ptr_t = emp::Ptr<Symbol>;
+    using symbol_vector_t = emp::vector<symbol_ptr_t>;
 
     using node_ptr_t = emp::Ptr<ASTNode>;
     using node_vector_t = emp::vector<node_ptr_t>;
@@ -51,9 +51,9 @@ namespace mabe {
     virtual node_ptr_t GetChild(size_t /* id */) { emp_assert(false); return nullptr; }
     node_ptr_t GetParent() { return parent; }
     void SetParent(node_ptr_t in_parent) { parent = in_parent; }
-    virtual emp::Ptr<ConfigEntry_Scope> GetScope() { return parent ? parent->GetScope() : nullptr; }
+    virtual emp::Ptr<Symbol_Scope> GetScope() { return parent ? parent->GetScope() : nullptr; }
 
-    virtual entry_ptr_t Process() = 0;
+    virtual symbol_ptr_t Process() = 0;
 
     virtual void Write(std::ostream & /* os */=std::cout,
                        const std::string & /* offset */="") const { }
@@ -84,38 +84,38 @@ namespace mabe {
   /// An ASTNode representing a leaf in the tree (i.e., a variable or literal)
   class ASTNode_Leaf : public ASTNode {
   protected:
-    entry_ptr_t entry_ptr;   ///< Pointer to ConfigEntry at this leaf.
-    bool own_entry;          ///< Should this node be in charge of deleting the entry pointer?
+    symbol_ptr_t symbol_ptr;  ///< Pointer to Symbol at this leaf.
+    bool own_symbol;          ///< Should this node be in charge of deleting the symbol?
 
   public:
-    ASTNode_Leaf(entry_ptr_t _ptr) : entry_ptr(_ptr), own_entry(_ptr->IsTemporary()) {
-      entry_ptr->SetTemporary(false); // If this entry was temporary, it is now owned.
+    ASTNode_Leaf(symbol_ptr_t _ptr) : symbol_ptr(_ptr), own_symbol(_ptr->IsTemporary()) {
+      symbol_ptr->SetTemporary(false); // If this symbol was temporary, it is now owned.
     }
-    ~ASTNode_Leaf() { if (own_entry) entry_ptr.Delete(); }
+    ~ASTNode_Leaf() { if (own_symbol) symbol_ptr.Delete(); }
 
-    const std::string & GetName() const override { return entry_ptr->GetName(); }
-    ConfigEntry & GetEntry() { return *entry_ptr; }
+    const std::string & GetName() const override { return symbol_ptr->GetName(); }
+    Symbol & GetSymbol() { return *symbol_ptr; }
 
-    bool IsNumeric() const override { return entry_ptr->IsNumeric(); }
-    bool IsString() const override { return entry_ptr->IsString(); }
+    bool IsNumeric() const override { return symbol_ptr->IsNumeric(); }
+    bool IsString() const override { return symbol_ptr->IsString(); }
     bool HasValue() const override { return true; }
-    bool HasNumericReturn() const override { return entry_ptr->HasNumericReturn(); }
-    bool HasStringReturn() const override { return entry_ptr->HasStringReturn(); }
+    bool HasNumericReturn() const override { return symbol_ptr->HasNumericReturn(); }
+    bool HasStringReturn() const override { return symbol_ptr->HasStringReturn(); }
 
     bool IsLeaf() const override { return true; }
 
-    entry_ptr_t Process() override { return entry_ptr; };
+    symbol_ptr_t Process() override { return symbol_ptr; };
 
     void Write(std::ostream & os, const std::string &) const override {
       // If this is a variable, print the variable name,
-      std::string output = entry_ptr->GetName();
+      std::string output = symbol_ptr->GetName();
 
       // If it is a literal, print the value.
       if (output == "") {
-        output = entry_ptr->AsString();
+        output = symbol_ptr->AsString();
 
-        // If the entry is a string, convert it to a string literal.
-        if (entry_ptr->IsString()) output = emp::to_literal(output);
+        // If the symbol is a string, convert it to a string literal.
+        if (symbol_ptr->IsString()) output = emp::to_literal(output);
       }
       os << output;
     }
@@ -123,16 +123,16 @@ namespace mabe {
 
   class ASTNode_Block : public ASTNode_Internal {
   protected:
-    emp::Ptr<ConfigEntry_Scope> scope_ptr;
+    emp::Ptr<Symbol_Scope> scope_ptr;
 
   public:
-    ASTNode_Block(ConfigEntry_Scope & in_scope) : scope_ptr(&in_scope) { }
+    ASTNode_Block(Symbol_Scope & in_scope) : scope_ptr(&in_scope) { }
 
-    emp::Ptr<ConfigEntry_Scope> GetScope()  override { return scope_ptr; }
+    emp::Ptr<Symbol_Scope> GetScope()  override { return scope_ptr; }
 
-    entry_ptr_t Process() override {
+    symbol_ptr_t Process() override {
       for (auto node : children) {
-        entry_ptr_t out = node->Process();
+        symbol_ptr_t out = node->Process();
         if (out && out->IsTemporary()) out.Delete();
       }
       return nullptr;
@@ -159,12 +159,12 @@ namespace mabe {
 
     void SetFun(std::function< double(double) > _fun) { fun = _fun; }
 
-    entry_ptr_t Process() override {
+    symbol_ptr_t Process() override {
       emp_assert(children.size() == 1);
-      entry_ptr_t input_entry = children[0]->Process();     // Process child to get input entry
-      double output_value = fun(input_entry->AsDouble());   // Run the function to get ouput value
-      if (input_entry->IsTemporary()) input_entry.Delete(); // If we are done with input; delete!
-      return ConfigTools::MakeTempEntry(output_value);
+      symbol_ptr_t input_symbol = children[0]->Process();     // Process child to get input symbol
+      double output_value = fun(input_symbol->AsDouble());    // Run the function to get ouput value
+      if (input_symbol->IsTemporary()) input_symbol.Delete(); // If we are done with input; delete!
+      return EmplodeTools::MakeTempSymbol(output_value);
     }
 
     void Write(std::ostream & os, const std::string & offset) const override { 
@@ -187,14 +187,14 @@ namespace mabe {
 
     void SetFun(std::function< RETURN_T(ARG1_T, ARG2_T) > _fun) { fun = _fun; }
 
-    entry_ptr_t Process() override {
+    symbol_ptr_t Process() override {
       emp_assert(children.size() == 2);
-      entry_ptr_t in1 = children[0]->Process();               // Process 1st child to input entry
-      entry_ptr_t in2 = children[1]->Process();               // Process 2nd child to input entry
+      symbol_ptr_t in1 = children[0]->Process();               // Process 1st child to input symbol
+      symbol_ptr_t in2 = children[1]->Process();               // Process 2nd child to input symbol
       auto out_val = fun(in1->As<ARG1_T>(), in2->As<ARG2_T>()); // Run function; get ouput
       if (in1->IsTemporary()) in1.Delete();                   // If we are done with in1; delete!
       if (in2->IsTemporary()) in2.Delete();                   // If we are done with in2; delete!
-      return ConfigTools::MakeTempEntry(out_val);
+      return EmplodeTools::MakeTempSymbol(out_val);
     }
 
     void Write(std::ostream & os, const std::string & offset) const override { 
@@ -220,10 +220,10 @@ namespace mabe {
     bool HasNumericReturn() const override { return children[0]->HasNumericReturn(); }
     bool HasStringReturn() const override { return children[0]->HasStringReturn(); }
 
-    entry_ptr_t Process() override {
+    symbol_ptr_t Process() override {
       emp_assert(children.size() == 2);
-      entry_ptr_t lhs = children[0]->Process();  // Determine the left-hand-side value.
-      entry_ptr_t rhs = children[1]->Process();  // Determine the right-hand-side value.
+      symbol_ptr_t lhs = children[0]->Process();  // Determine the left-hand-side value.
+      symbol_ptr_t rhs = children[1]->Process();  // Determine the right-hand-side value.
       // @CAO Should make sure that lhs is properly assignable.
       lhs->CopyValue(*rhs);
       if (rhs->IsTemporary()) rhs.Delete();
@@ -250,16 +250,16 @@ namespace mabe {
     // @CAO Technically, one function can return another, so we should check
     // HasNumericReturn() and HasStringReturn() on return values... but hard to implement.
 
-    entry_ptr_t Process() override {
+    symbol_ptr_t Process() override {
       emp_assert(children.size() >= 1);
-      entry_ptr_t fun = children[0]->Process();
+      symbol_ptr_t fun = children[0]->Process();
 
       // Collect all arguments and call
-      entry_vector_t args;
+      symbol_vector_t args;
       for (size_t i = 1; i < children.size(); i++) {
         args.push_back(children[i]->Process());
       }
-      entry_ptr_t result = fun->Call(args);
+      symbol_ptr_t result = fun->Call(args);
 
       // Cleanup and return
       for (auto arg : args) if (arg->IsTemporary()) arg.Delete();
@@ -279,7 +279,7 @@ namespace mabe {
 
   class ASTNode_Event : public ASTNode_Internal {
   protected:
-    using setup_fun_t = std::function<void(node_ptr_t, const entry_vector_t &)>;
+    using setup_fun_t = std::function<void(node_ptr_t, const symbol_vector_t &)>;
     setup_fun_t setup_event;
 
   public:
@@ -290,9 +290,9 @@ namespace mabe {
       for (auto arg : args) AddChild(arg);
     }
 
-    entry_ptr_t Process() override {
+    symbol_ptr_t Process() override {
       emp_assert(children.size() >= 1);
-      entry_vector_t arg_entries;
+      symbol_vector_t arg_entries;
       for (size_t id = 1; id < children.size(); id++) {
         arg_entries.push_back( children[id]->Process() );
       }

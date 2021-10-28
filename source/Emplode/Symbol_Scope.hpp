@@ -1,40 +1,39 @@
 /**
- *  @note This file is part of MABE, https://github.com/mercere99/MABE2
+ *  @note This file is part of Emplode, currently within https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
  *  @date 2019-2021.
  *
- *  @file  ConfigEntry_Scope.hpp
- *  @brief Manages a full scope with many config entries (or sub-scopes).
+ *  @file  Symbol_Scope.hpp
+ *  @brief Manages a full scope with many internal symbols (including sub-scopes).
  *  @note Status: BETA
  * 
  *  DEVELOPER NOTES:
  *  - Need to fix Add() function to give a user-level error, rather than an assert on duplication.
- * 
  */
 
-#ifndef MABE_CONFIG_SCOPE_H
-#define MABE_CONFIG_SCOPE_H
+#ifndef EMPLODE_SYMBOL_SCOPE_HPP
+#define EMPLODE_SYMBOL_SCOPE_HPP
 
 #include "emp/base/map.hpp"
 
-#include "ConfigEntry.hpp"
-#include "ConfigEntry_Function.hpp"
-#include "ConfigEntry_Linked.hpp"
-#include "ConfigTypeBase.hpp"
+#include "Symbol.hpp"
+#include "Symbol_Function.hpp"
+#include "Symbol_Linked.hpp"
+#include "EmplodeTypeBase.hpp"
 
-namespace mabe {
+namespace emplode {
 
-  class ConfigType;
+  class EmplodeType;
 
   // Set of multiple config entries.
-  class ConfigEntry_Scope : public ConfigEntry {
+  class Symbol_Scope : public Symbol {
   protected:
-    using entry_ptr_t = emp::Ptr<ConfigEntry>;
-    using const_entry_ptr_t = emp::Ptr<const ConfigEntry>;
-    emp::map< std::string, entry_ptr_t > symbol_table;   ///< Map of names to entries.
+    using symbol_ptr_t = emp::Ptr<Symbol>;
+    using const_symbol_ptr_t = emp::Ptr<const Symbol>;
+    emp::map< std::string, symbol_ptr_t > symbol_table;   ///< Map of names to entries.
 
     ///< If this scope represents a structure, point to it; otherwise set to null.
-    emp::Ptr<ConfigType> obj_ptr = nullptr;
+    emp::Ptr<EmplodeType> obj_ptr = nullptr;
     bool obj_owned = false;
 
     template <typename T, typename... ARGS>
@@ -54,20 +53,20 @@ namespace mabe {
     }
 
   public:
-    ConfigEntry_Scope(const std::string & _name,
+    Symbol_Scope(const std::string & _name,
                 const std::string & _desc,
-                emp::Ptr<ConfigEntry_Scope> _scope,
-                emp::Ptr<ConfigType> _obj=nullptr,
+                emp::Ptr<Symbol_Scope> _scope,
+                emp::Ptr<EmplodeType> _obj=nullptr,
                 bool _owned=false)
-      : ConfigEntry(_name, _desc, _scope), obj_ptr(_obj), obj_owned(_owned) { }
+      : Symbol(_name, _desc, _scope), obj_ptr(_obj), obj_owned(_owned) { }
 
-    ConfigEntry_Scope(const ConfigEntry_Scope & in) : ConfigEntry(in) {
+    Symbol_Scope(const Symbol_Scope & in) : Symbol(in) {
       // Copy all defined variables/scopes/functions
       for (auto [name, ptr] : symbol_table) { symbol_table[name] = ptr->Clone(); }
     }
-    ConfigEntry_Scope(ConfigEntry_Scope &&) = default;
+    Symbol_Scope(Symbol_Scope &&) = default;
 
-    ~ConfigEntry_Scope() {
+    ~Symbol_Scope() {
       // If this scope owns its object pointer, delete it now.
       if (obj_owned) obj_ptr.Delete();
 
@@ -75,27 +74,27 @@ namespace mabe {
       for (auto [name, ptr] : symbol_table) { ptr.Delete(); }
     }
 
-    emp::Ptr<ConfigType> GetObjectPtr()  override { return obj_ptr; }  
-    emp::Ptr<const ConfigType> GetObjectPtr() const override { return obj_ptr; }  
+    emp::Ptr<EmplodeType> GetObjectPtr()  override { return obj_ptr; }  
+    emp::Ptr<const EmplodeType> GetObjectPtr() const override { return obj_ptr; }  
 
     bool IsScope() const override { return true; }
     bool IsLocal() const override { return true; }  // @CAO, for now assuming all scopes are local!
 
-    /// Set this entry to be a correctly-types scope pointer.
-    emp::Ptr<ConfigEntry_Scope> AsScopePtr() override { return this; }
+    /// Set this symbol to be a correctly-typed scope pointer.
+    emp::Ptr<Symbol_Scope> AsScopePtr() override { return this; }
 
-    /// Get an entry out of this scope; 
-    entry_ptr_t GetEntry(std::string name) { return emp::Find(symbol_table, name, nullptr); }
+    /// Get a symbol out of this scope; 
+    symbol_ptr_t GetSymbol(std::string name) { return emp::Find(symbol_table, name, nullptr); }
 
     /// Lookup a variable, scanning outer scopes if needed
-    entry_ptr_t LookupEntry(const std::string & name, bool scan_scopes=true) override {
-      // See if this next entry is in the var list.
+    symbol_ptr_t LookupSymbol(const std::string & name, bool scan_scopes=true) override {
+      // See if this next symbol is in the var list.
       auto it = symbol_table.find(name);
 
       // If this name is unknown, check with the parent scope!
       if (it == symbol_table.end()) {
         if (scope.IsNull() || !scan_scopes) return nullptr;  // No parent?  Just fail...
-        return scope->LookupEntry(name);
+        return scope->LookupSymbol(name);
       }
 
       // Otherwise we found it!
@@ -103,83 +102,83 @@ namespace mabe {
     }
 
     /// Lookup a variable, scanning outer scopes if needed (in const context!)
-    const_entry_ptr_t LookupEntry(const std::string & name, bool scan_scopes=true) const override {
-      // See if this entry is in the var list.
+    const_symbol_ptr_t LookupSymbol(const std::string & name, bool scan_scopes=true) const override {
+      // See if this symbol is in the var list.
       auto it = symbol_table.find(name);
 
       // If this name is unknown, check with the parent scope!
       if (it == symbol_table.end()) {
         if (scope.IsNull() || !scan_scopes) return nullptr;  // No parent?  Just fail...
-        return scope->LookupEntry(name);
+        return scope->LookupSymbol(name);
       }
 
       // Otherwise we found it!
       return it->second;
     }
 
-    /// Add a configuration entry that is linked to a variable - the incoming variable sets
+    /// Add a configuration symbol that is linked to a variable - the incoming variable sets
     /// the default and is automatically updated when configs are loaded.
     template <typename VAR_T>
-    ConfigEntry_Linked<VAR_T> & LinkVar(const std::string & name,
+    Symbol_Linked<VAR_T> & LinkVar(const std::string & name,
                                         VAR_T & var,
                                         const std::string & desc,
                                         bool is_builtin = false) {
-      if (is_builtin) return AddBuiltin<ConfigEntry_Linked<VAR_T>>(name, var, desc, this);
-      return Add<ConfigEntry_Linked<VAR_T>>(name, var, desc, this);
+      if (is_builtin) return AddBuiltin<Symbol_Linked<VAR_T>>(name, var, desc, this);
+      return Add<Symbol_Linked<VAR_T>>(name, var, desc, this);
     }
 
-    /// Add a configuration entry that interacts through a pair of functions - the functions
-    /// are automatically called any time the entry is accessed (get_fun) or changed (set_fun)
+    /// Add a configuration symbol that interacts through a pair of functions - the functions are
+    /// automatically called any time the symbol value is accessed (get_fun) or changed (set_fun)
     template <typename VAR_T>
-    ConfigEntry_LinkedFunctions<VAR_T> & LinkFuns(const std::string & name,
+    Symbol_LinkedFunctions<VAR_T> & LinkFuns(const std::string & name,
                                             std::function<VAR_T()> get_fun,
                                             std::function<void(const VAR_T &)> set_fun,
                                             const std::string & desc,
                                             bool is_builtin = false) {
       if (is_builtin) {
-        return AddBuiltin<ConfigEntry_LinkedFunctions<VAR_T>>(name, get_fun, set_fun, desc, this);
+        return AddBuiltin<Symbol_LinkedFunctions<VAR_T>>(name, get_fun, set_fun, desc, this);
       }
-      return Add<ConfigEntry_LinkedFunctions<VAR_T>>(name, get_fun, set_fun, desc, this);
+      return Add<Symbol_LinkedFunctions<VAR_T>>(name, get_fun, set_fun, desc, this);
     }
 
     /// Add an internal variable of type String.
-    ConfigEntry_StringVar & AddStringVar(const std::string & name, const std::string & desc) {
-      return Add<ConfigEntry_StringVar>(name, "", desc, this);
+    Symbol_StringVar & AddStringVar(const std::string & name, const std::string & desc) {
+      return Add<Symbol_StringVar>(name, "", desc, this);
     }
 
     /// Add an internal variable of type Value.
-    ConfigEntry_DoubleVar & AddValueVar(const std::string & name, const std::string & desc) {
-      return Add<ConfigEntry_DoubleVar>(name, 0.0, desc, this);
+    Symbol_DoubleVar & AddValueVar(const std::string & name, const std::string & desc) {
+      return Add<Symbol_DoubleVar>(name, 0.0, desc, this);
     }
 
     /// Add an internal scope inside of this one.
-    ConfigEntry_Scope & AddScope(
+    Symbol_Scope & AddScope(
       const std::string & name,
       const std::string & desc,
-      emp::Ptr<ConfigType> obj_ptr=nullptr,
+      emp::Ptr<EmplodeType> obj_ptr=nullptr,
       bool obj_owned=false
     ) {
-      return Add<ConfigEntry_Scope>(name, desc, this, obj_ptr, obj_owned);
+      return Add<Symbol_Scope>(name, desc, this, obj_ptr, obj_owned);
     }
 
     /// Add a new user-defined function.
     template <typename RETURN_T, typename... ARGS>
-    ConfigEntry_Function & AddFunction(const std::string & name,
+    Symbol_Function & AddFunction(const std::string & name,
                               std::function<RETURN_T(ARGS...)> fun,
                               const std::string & desc) {
-      return Add<ConfigEntry_Function>(name, fun, desc, this);
+      return Add<Symbol_Function>(name, fun, desc, this);
     }
 
     /// Add a new function that is a standard part of the scripting language.
     template <typename RETURN_T, typename... ARGS>
-    ConfigEntry_Function & AddBuiltinFunction(const std::string & name,
+    Symbol_Function & AddBuiltinFunction(const std::string & name,
                                         std::function<RETURN_T(ARGS...)> fun,
                                         const std::string & desc) {
-      return AddBuiltin<ConfigEntry_Function>(name, fun, desc, this);
+      return AddBuiltin<Symbol_Function>(name, fun, desc, this);
     }
 
     /// Write out all of the parameters contained in this scope to the provided stream.
-    const ConfigEntry & WriteContents(std::ostream & os=std::cout, const std::string & prefix="",
+    const Symbol & WriteContents(std::ostream & os=std::cout, const std::string & prefix="",
                                       size_t comment_offset=32) const {
 
       // Loop through all of the entires in this scope and Write them.
@@ -192,7 +191,7 @@ namespace mabe {
     }
 
     /// Write out this scope AND it's contents to the provided stream.
-    const ConfigEntry & Write(std::ostream & os=std::cout, const std::string & prefix="",
+    const Symbol & Write(std::ostream & os=std::cout, const std::string & prefix="",
                               size_t comment_offset=32) const override
     {
       // If this is a built-in scope, don't print it.
@@ -203,7 +202,7 @@ namespace mabe {
       if (IsLocal()) cur_line += emp::to_string(GetTypename(), " ");
       cur_line += name;
 
-      bool has_body = emp::AnyOf(symbol_table, [](entry_ptr_t ptr){ return !ptr->IsBuiltin(); });
+      bool has_body = emp::AnyOf(symbol_table, [](symbol_ptr_t ptr){ return !ptr->IsBuiltin(); });
       
       // Only open this scope if there are contents.
       cur_line += has_body ? " { " : ";";
@@ -222,7 +221,7 @@ namespace mabe {
     }
 
     /// Make a copy of this scope and all of the entries inside it.
-    entry_ptr_t Clone() const override { return emp::NewPtr<ConfigEntry_Scope>(*this); }
+    symbol_ptr_t Clone() const override { return emp::NewPtr<Symbol_Scope>(*this); }
   };
 
 }

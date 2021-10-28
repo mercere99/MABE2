@@ -1,15 +1,15 @@
 /**
- *  @note This file is part of MABE, https://github.com/mercere99/MABE2
+ *  @note This file is part of Emplode, currently within https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
  *  @date 2021.
  *
- *  @file  ConfigDataFile.hpp
+ *  @file  DataFile.hpp
  *  @brief Manages a DataFile object for config.
  *  @note Status: BETA
  */
 
-#ifndef MABE_CONFIG_DATA_FILE_H
-#define MABE_CONFIG_DATA_FILE_H
+#ifndef EMPLODE_DATA_FILE_HPP
+#define EMPLODE_DATA_FILE_HPP
 
 #include <functional>
 #include <string>
@@ -17,13 +17,13 @@
 #include "emp/base/Ptr.hpp"
 #include "emp/base/vector.hpp"
 
-#include "ConfigType.hpp"
+#include "EmplodeType.hpp"
 
-namespace mabe {
+namespace emplode {
 
-  /// A ConfigDataFile maintains an output file that has specified columns and can be generate
+  /// A DataFile maintains an output file that has specified columns and can be generate
   /// dynamically.
-  class ConfigDataFile : public ConfigType {
+  class DataFile : public EmplodeType {
   private:
     using fun_t = std::function<std::string()>;
     struct ColumnInfo {
@@ -38,18 +38,18 @@ namespace mabe {
     emp::vector<ColumnInfo> cols;    ///< Data about columns maintainted.
 
   public:
-    ConfigDataFile() = delete;
-    ConfigDataFile(const std::string & in_name, emp::StreamManager & _files)
+    DataFile() = delete;
+    DataFile(const std::string & in_name, emp::StreamManager & _files)
       : name(in_name), files(_files) { }
-    ~ConfigDataFile() { }
+    ~DataFile() { }
 
     std::string GetName() const { return name; }
 
     // Setup member functions associated with population.
-    static void InitType(Config & /*config*/, ConfigTypeInfo & info) {
-      auto fun_num_cols = [](ConfigDataFile & target) { return target.cols.size(); };
+    static void InitType(Emplode & /*config*/, TypeInfo & info) {
+      auto fun_num_cols = [](DataFile & target) { return target.cols.size(); };
       info.AddMemberFunction("NUM_COLS", fun_num_cols, "Return the number of columns in this file.");
-      info.AddMemberFunction("WRITE", [](ConfigDataFile & target) { return target.Write(); },
+      info.AddMemberFunction("WRITE", [](DataFile & target) { return target.Write(); },
                              "Add on the next line of data.");
     }
 
@@ -86,7 +86,7 @@ namespace mabe {
       return 1;
     }
 
-    static std::string EMPGetTypeName() { return "mabe::ConfigDataFile"; }
+    static std::string EMPGetTypeName() { return "emplode::DataFile"; }
   };
 }
 

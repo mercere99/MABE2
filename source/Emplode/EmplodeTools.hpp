@@ -1,15 +1,15 @@
 /**
- *  @note This file is part of MABE, https://github.com/mercere99/MABE2
+ *  @note This file is part of Emplode, currently within https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
  *  @date 2021.
  *
- *  @file  ConfigTools.hpp
- *  @brief Tools for working with ConfigEntry objects.
+ *  @file  EmplodeTools.hpp
+ *  @brief Tools for working with Symbol objects, especially for wrapping functions.
  *  @note Status: BETA
  */
 
-#ifndef MABE_CONFIG_TOOLS_HPP
-#define MABE_CONFIG_TOOLS_HPP
+#ifndef EMPLODE_TOOLS_HPP
+#define EMPLODE_TOOLS_HPP
 
 #include <string>
 
@@ -19,43 +19,42 @@
 #include "emp/meta/FunInfo.hpp"
 #include "emp/meta/ValPack.hpp"
 
-#include "ConfigEntry.hpp"
-#include "ConfigTools.hpp"
+#include "Symbol.hpp"
 
-namespace mabe {
-namespace ConfigTools {
+namespace emplode {
+namespace EmplodeTools {
 
-  using entry_ptr_t = emp::Ptr<ConfigEntry>;
-  using entry_vector_t = emp::vector<entry_ptr_t>;
-  using target_t = entry_ptr_t( const entry_vector_t & );
+  using symbol_ptr_t = emp::Ptr<Symbol>;
+  using symbol_vector_t = emp::vector<symbol_ptr_t>;
+  using target_t = symbol_ptr_t( const symbol_vector_t & );
 
-  // Use ConfigTools::MakeTempEntry(value) to quickly allocate a temporary entry with a
-  // given value.  NOTE: Caller is responsible for deleting the created entry!
+  // Use EmplodeTools::MakeTempSymbol(value) to quickly allocate a temporary symbol with a
+  // given value.  NOTE: Caller is responsible for deleting the created symbol!
   template <typename VALUE_T>
-  static emp::Ptr<ConfigEntry_Var<VALUE_T>> MakeTempEntry(VALUE_T value) {
-    auto out_entry = emp::NewPtr<ConfigEntry_Var<VALUE_T>>("__Temp", value, "", nullptr);
-    out_entry->SetTemporary();
-    return out_entry;
+  static emp::Ptr<Symbol_Var<VALUE_T>> MakeTempSymbol(VALUE_T value) {
+    auto out_symbol = emp::NewPtr<Symbol_Var<VALUE_T>>("__Temp", value, "", nullptr);
+    out_symbol->SetTemporary();
+    return out_symbol;
   }
 
   template <typename RETURN_T>
   static auto ConvertReturn( RETURN_T && return_value ) {
-    // If a return value is already an entry pointer, just pass it through.
-    if constexpr (std::is_same<RETURN_T, entry_ptr_t>()) {
+    // If a return value is already a symbol pointer, just pass it through.
+    if constexpr (std::is_same<RETURN_T, symbol_ptr_t>()) {
       return return_value;
     }
 
-    // If a return value is a basic type, wrap it in a temporary entry
+    // If a return value is a basic type, wrap it in a temporary symbol
     else if constexpr (std::is_same<RETURN_T, std::string>() ||
                   std::is_arithmetic<RETURN_T>()) {
-      return MakeTempEntry(return_value);
+      return MakeTempSymbol(return_value);
     }
 
     // For now these are the only legal return type; raise error otherwise!
     else {
       emp::ShowType<RETURN_T>{};
       static_assert(emp::dependent_false<RETURN_T>(),
-                    "Invalid return value in ConfigEntry_Function::SetFunction()");
+                    "Invalid return value in Symbol_Function::SetFunction()");
     }
   }
 
@@ -68,7 +67,7 @@ namespace ConfigTools {
 
     template <typename FUN_T>
     static auto ConvertFun([[maybe_unused]] const std::string & name, FUN_T fun) {
-      return [name=name,fun=fun]([[maybe_unused]] const entry_vector_t & args) {
+      return [name=name,fun=fun]([[maybe_unused]] const symbol_vector_t & args) {
         emp_assert(args.size() == 0, "Too many arguments (expected 0)", name, args.size());
         return ConvertReturn( fun() );
       };
@@ -85,11 +84,11 @@ namespace ConfigTools {
 
     template <typename FUN_T>
     static auto ConvertFun(const std::string & name, FUN_T fun) {        
-      return [name=name,fun=fun](const entry_vector_t & args) {
-        // If this function already takes a const entry_vector_t & as its only parameter,
+      return [name=name,fun=fun](const symbol_vector_t & args) {
+        // If this function already takes a const symbol_vector_t & as its only parameter,
         // just pass it along.
         if constexpr (sizeof...(PARAM_Ts) == 0 &&
-                      std::is_same_v<PARAM1_T, const entry_vector_t &>) {
+                      std::is_same_v<PARAM1_T, const symbol_vector_t &>) {
           return ConvertReturn( fun(args) );
         }
 
@@ -116,14 +115,14 @@ namespace ConfigTools {
 
       static_assert(std::is_reference_v<PARAM1_T>,
                     "First parameter for supplied member functions must be reference to object");
-      static_assert(std::is_base_of_v<ConfigType, std::remove_reference_t<PARAM1_T>>,
-                    "First parameter for supplied member functions must derived from ConfigType");
+      static_assert(std::is_base_of_v<EmplodeType, std::remove_reference_t<PARAM1_T>>,
+                    "First parameter for supplied member functions must derived from EmplodeType");
       static_assert(info_t::num_args == sizeof...(PARAM_Ts) + 1,
                     "PARAM_Ts must match the extra arguments in member function.");
 
-      return [name=name,fun=fun](ConfigType & obj, const entry_vector_t & args) {
+      return [name=name,fun=fun](EmplodeType & obj, const symbol_vector_t & args) {
         // Make sure the correct object type is used for first argument.
-        emp::Ptr<ConfigType> obj_ptr(&obj);
+        emp::Ptr<EmplodeType> obj_ptr(&obj);
         auto typed_ptr = obj_ptr.DynamicCast<std::remove_reference_t<PARAM1_T>>();
         emp_assert(typed_ptr, "Internal error: member function call on wrong object type!", name);
 
@@ -139,10 +138,10 @@ namespace ConfigTools {
           return ConvertReturn( fun(*typed_ptr) );
         }
 
-        // If this function already takes a const entry_vector_t & as its only extra parameter,
+        // If this function already takes a const symbol_vector_t & as its only extra parameter,
         // just pass it along.
         else if constexpr (sizeof...(PARAM_Ts) == 1 &&
-                      std::is_same_v<typename info_t::template arg_t<1>, const entry_vector_t &>) {
+                      std::is_same_v<typename info_t::template arg_t<1>, const symbol_vector_t &>) {
           return ConvertReturn( fun(*typed_ptr, args) );
         }
 
@@ -164,8 +163,8 @@ namespace ConfigTools {
 
   };
 
-  // Wrap a provided function to make it take a vector of Ptr<ConfigEntry> and return a
-  // single Ptr<ConfigEntry> representing the result.
+  // Wrap a provided function to make it take a vector of Ptr<Symbol> and return a
+  // single Ptr<Symbol> representing the result.
   template <typename FUN_T>
   static auto WrapFunction(const std::string & name, FUN_T fun) {
     using info_t = emp::FunInfo<FUN_T>;
@@ -179,7 +178,7 @@ namespace ConfigTools {
   }
 
   // Wrap a provided MEMBER function to make it take a reference to the object it is a member of
-  // and a vector of Ptr<ConfigEntry> and return a single Ptr<ConfigEntry> representing the result.
+  // and a vector of Ptr<Symbol> and return a single Ptr<Symbol> representing the result.
   template <typename FUN_T>
   static auto WrapMemberFunction(emp::TypeID class_type, const std::string & name, FUN_T fun) {
     // Do some checks that will produce reasonable errors.
@@ -190,8 +189,8 @@ namespace ConfigTools {
     // Is the first parameter the correct type?
     using object_t = typename info_t::template arg_t<0>;
     using base_object_t = typename std::remove_cv_t< std::remove_reference_t<object_t> >;
-    static_assert(std::is_base_of<ConfigType, base_object_t>(),
-                  "Member functions must take a reference to the associated ConfigType");
+    static_assert(std::is_base_of<EmplodeType, base_object_t>(),
+                  "Member functions must take a reference to the associated EmplodeType");
     emp_assert( class_type.IsType<base_object_t>(),
                 "First parameter must match class type of member function being created!",
                 emp::GetTypeID<object_t>(), class_type );
