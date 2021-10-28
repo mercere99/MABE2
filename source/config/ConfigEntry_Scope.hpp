@@ -35,6 +35,7 @@ namespace mabe {
 
     ///< If this scope represents a structure, point to it; otherwise set to null.
     emp::Ptr<ConfigType> obj_ptr = nullptr;
+    bool obj_owned = false;
 
     template <typename T, typename... ARGS>
     T & Add(const std::string & name, ARGS &&... args) {
@@ -56,8 +57,9 @@ namespace mabe {
     ConfigEntry_Scope(const std::string & _name,
                 const std::string & _desc,
                 emp::Ptr<ConfigEntry_Scope> _scope,
-                emp::Ptr<ConfigType> _obj=nullptr)
-      : ConfigEntry(_name, _desc, _scope), obj_ptr(_obj) { }
+                emp::Ptr<ConfigType> _obj=nullptr,
+                bool _owned=false)
+      : ConfigEntry(_name, _desc, _scope), obj_ptr(_obj), obj_owned(_owned) { }
 
     ConfigEntry_Scope(const ConfigEntry_Scope & in) : ConfigEntry(in) {
       // Copy all defined variables/scopes/functions
@@ -66,6 +68,9 @@ namespace mabe {
     ConfigEntry_Scope(ConfigEntry_Scope &&) = default;
 
     ~ConfigEntry_Scope() {
+      // If this scope owns its object pointer, delete it now.
+      if (obj_owned) obj_ptr.Delete();
+
       // Clear up the symbol table.
       for (auto [name, ptr] : symbol_table) { ptr.Delete(); }
     }
@@ -151,9 +156,10 @@ namespace mabe {
     ConfigEntry_Scope & AddScope(
       const std::string & name,
       const std::string & desc,
-      emp::Ptr<ConfigType> obj_ptr=nullptr
+      emp::Ptr<ConfigType> obj_ptr=nullptr,
+      bool obj_owned=false
     ) {
-      return Add<ConfigEntry_Scope>(name, desc, this, obj_ptr);
+      return Add<ConfigEntry_Scope>(name, desc, this, obj_ptr, obj_owned);
     }
 
     /// Add a new user-defined function.
