@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019-2020.
+ *  @date 2019-2021.
  *
  *  @file  Population.hpp
  *  @brief Container for a group of arbitrary MABE organisms.
@@ -21,12 +21,14 @@
 #include "emp/base/Ptr.hpp"
 #include "emp/base/vector.hpp"
 
-#include "../config/ConfigType.hpp"
+#include "../Emplode/EmplodeType.hpp"
 
 #include "Organism.hpp"
 #include "OrgIterator.hpp"
 
 namespace mabe {
+
+  using emplode::EmplodeType;
 
   class PopIterator : public OrgIterator_Interface<PopIterator, Organism, Population> {
   protected:
@@ -79,9 +81,9 @@ namespace mabe {
     ConstPopIterator & operator=(const ConstPopIterator & in) = default;
   };
 
-  /// A Population maintains a collection of organisms.  It is derived from ConfigType so that it
+  /// A Population maintains a collection of organisms.  It is derived from EmplodeType so that it
   /// can be easily used in the MABE scripting language.
-  class Population : public ConfigType, public OrgContainer {
+  class Population : public EmplodeType, public OrgContainer {
     friend class MABEBase;
   private:
     std::string name="";                    ///< Unique name for this population.
@@ -200,7 +202,7 @@ namespace mabe {
 
   public:
     // Setup member functions associated with population.
-    static void InitType(Config & /*config*/, ConfigTypeInfo & info) {
+    static void InitType(emplode::Emplode & /*config*/, emplode::TypeInfo & info) {
       std::function<int(Population &)> fun_size =
         [](Population & target) { return target.GetSize(); };
       info.AddMemberFunction("SIZE", fun_size, "Return the size of the population.");
@@ -209,8 +211,8 @@ namespace mabe {
 
     // ------ DEBUG FUNCTIONS ------
     bool OK() const {
-      // We may have a handful of populations, but assume error if we have more than a billion.
-      if (pop_id > 1000000000) {
+      // We may have a handful of populations, but assume error if we have more than a million.
+      if (pop_id > 1000000) {
         std::cout << "WARNING: Invalid Population ID (pop_id = " << pop_id << ")" << std::endl;
         return false;
       }

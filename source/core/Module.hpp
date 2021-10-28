@@ -29,8 +29,6 @@
 #include "emp/datastructs/map_utils.hpp"
 #include "emp/datastructs/reference_vector.hpp"
 
-#include "../config/Config.hpp"
-
 #include "MABE.hpp"
 #include "ModuleBase.hpp"
 #include "Population.hpp"
@@ -48,10 +46,10 @@ namespace mabe {
   protected:
 
     // Specialized configuration links for MABE-specific modules.
-    // (Other ways of linking variable to config file are in ConfigType.h)
+    // (Other ways of linking variable to config file are in EmplodeType.h)
 
     /// Link a single population to a parameter by name.
-    ConfigEntry_LinkedFunctions<std::string> & LinkPop(
+    emplode::Symbol_LinkedFunctions<std::string> & LinkPop(
       int & var,
       const std::string & name,
       const std::string & desc
@@ -69,7 +67,7 @@ namespace mabe {
     }
 
     /// Link one or more populations (or portions of a population) to a parameter.
-    ConfigEntry_LinkedFunctions<std::string> & LinkCollection(
+    emplode::Symbol_LinkedFunctions<std::string> & LinkCollection(
       mabe::Collection & var,
       const std::string & name,
       const std::string & desc
@@ -86,7 +84,7 @@ namespace mabe {
     }
 
     /// Link another module to this one, by name (track using int ID)
-    ConfigEntry_LinkedFunctions<std::string> & LinkModule(
+    emplode::Symbol_LinkedFunctions<std::string> & LinkModule(
       int & var,
       const std::string & name,
       const std::string & desc
@@ -104,7 +102,7 @@ namespace mabe {
     }
 
     /// Link a range of values with a start, stop, and step.
-    ConfigEntry_LinkedFunctions<std::string> & LinkRange(
+    emplode::Symbol_LinkedFunctions<std::string> & LinkRange(
       int & start_var,
       int & step_var,
       int & stop_var,
@@ -419,7 +417,7 @@ namespace mabe {
       ModuleInfo new_info;
       new_info.name = type_name;
       new_info.desc = desc;
-      new_info.init_fun = [desc](MABE & control, const std::string & name) -> emp::Ptr<ConfigType> {
+      new_info.init_fun = [desc](MABE & control, const std::string & name) -> emp::Ptr<EmplodeType> {
         return &control.AddModule<T>(name, desc);
       };
       new_info.type_id = emp::GetTypeID<T>();

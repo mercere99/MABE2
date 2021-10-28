@@ -36,7 +36,7 @@ A new specialty organism class must use OrganismsTemplate<ORG_T> as a base class
 
 ## Adding Modules
 
-## Adding Managed Config Types
+## Adding Managed Configuration Types
 
 
 # Core MABE Development
@@ -77,5 +77,3 @@ MABE.hpp:
 * Problem to resolve: Different types of organisms will have different traits that they need to deal with.  For example, "Wolves" vs "Sheep".  Do unused values just stay at a default?  Or can we have organism categories that each have their own trait layouts?
 
 * Setup Organisms to be composed of brains, genomes, and adaptors (to be assembled during configuration).  Right now organisms must be built as a whole class, which is much less flexible.
-  
-* Update Config system to allow more generic categories.

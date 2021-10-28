@@ -81,7 +81,7 @@
 #include "emp/datastructs/map_utils.hpp"
 #include "emp/datastructs/reference_vector.hpp"
 
-#include "../config/Config.hpp"
+#include "../Emplode/Emplode.hpp"
 
 #include "ErrorManager.hpp"
 #include "TraitInfo.hpp"
@@ -94,7 +94,9 @@ namespace mabe {
   class OrgPosition;
   class Population;
 
-  class ModuleBase : public mabe::ConfigType {
+  using emplode::EmplodeType;
+
+  class ModuleBase : public EmplodeType {
     friend MABE;
   protected:
     std::string name;          ///< Unique name for this module.
@@ -323,7 +325,7 @@ namespace mabe {
   struct ModuleInfo {
     std::string name;
     std::string desc;
-    std::function<emp::Ptr<ConfigType>(MABE &, const std::string &)> init_fun;
+    std::function<emp::Ptr<EmplodeType>(MABE &, const std::string &)> init_fun;
     emp::TypeID type_id;
     bool operator<(const ModuleInfo & in) const { return name < in.name; }
   };

@@ -24,8 +24,6 @@
 #include "emp/base/Ptr.hpp"
 #include "emp/base/vector.hpp"
 
-#include "../config/ConfigType.hpp"
-
 #include "Organism.hpp"
 
 namespace mabe {

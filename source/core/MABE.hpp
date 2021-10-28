@@ -31,7 +31,7 @@
 #include "emp/math/Random.hpp"
 #include "emp/tools/string_utils.hpp"
 
-#include "../config/Config.hpp"
+#include "../Emplode/Emplode.hpp"
 
 #include "Collection.hpp"
 #include "data_collect.hpp"
@@ -53,6 +53,10 @@ namespace mabe {
   ///  Note that this class is derived from MABEBase, which handles all population
   ///  manipulation and signal management.
 
+  using emplode::Emplode;
+  using emplode::EmplodeType;
+  using EmplodeScope = emplode::Symbol_Scope;
+
   class MABE : public MABEBase {
   private:
     const std::string VERSION = "0.0.1";
@@ -67,6 +71,7 @@ namespace mabe {
     // Setup helper types.
     using trait_equation_t = std::function<double(emp::DataMap &)>;
     using trait_summary_t = std::function<std::string(const Collection &)>;
+    using symbol_ptr_t = emp::Ptr<emplode::Symbol>;
 
     // Setup a cache for functions used to collect data for files.
     std::unordered_map<std::string, emp::vector<trait_summary_t>> file_fun_cache;
@@ -111,8 +116,8 @@ namespace mabe {
     emp::vector<std::string> config_filenames; ///< Names of configuration files to load.
     emp::vector<std::string> config_settings;  ///< Additional config commands to run.
     std::string gen_filename;                  ///< Name of output file to generate.
-    Config config;                             ///< Configuration information for this run.
-    emp::Ptr<ConfigEntry_Scope> cur_scope;     ///< Which config scope are we currently using?
+    Emplode config;                            ///< Configuration information for this run.
+    emp::Ptr<EmplodeScope> cur_scope; ///< Which config scope are we currently using?
 
 
     // ----------- Helper Functions -----------
@@ -355,19 +360,19 @@ namespace mabe {
     // --- Manage configuration scope ---
 
     /// Access to the current configuration scope.
-    ConfigEntry_Scope & GetCurScope() { return *cur_scope; }
+    EmplodeScope & GetCurScope() { return *cur_scope; }
 
     /// Add a new scope under the current one.
-    ConfigEntry_Scope & AddScope(const std::string & name, const std::string & desc) {
+    EmplodeScope & AddScope(const std::string & name, const std::string & desc) {
       cur_scope = &(cur_scope->AddScope(name, desc));
       return *cur_scope;
     }
 
     /// Move up one level of scope.
-    ConfigEntry_Scope & LeaveScope() { return *(cur_scope = cur_scope->GetScope()); }
+    EmplodeScope & LeaveScope() { return *(cur_scope = cur_scope->GetScope()); }
 
     /// Return to the root scope.
-    ConfigEntry_Scope & ResetScope() { return *(cur_scope = &(config.GetRootScope())); }
+    EmplodeScope & ResetScope() { return *(cur_scope = &(config.GetRootScope())); }
 
     /// Setup the configuration options for MABE, including for each module.
     void SetupConfig();
@@ -445,7 +450,7 @@ namespace mabe {
           std::cout << "'--generate' must be followed by a single filename.\n";
           exit_now = true;
         } else {
-          // MABE Config files should be generated FROM a *.gen file, typically creating a *.mabe
+          // MABE config files can be generated FROM a *.gen file, typically creating a *.mabe
           // file.  If output file is *.gen assume an error. (for now; override should be allowed)
           if (in[0].size() > 4 && in[0].substr(in[0].size()-4) == ".gen") {
             error_man.AddError("Error: generated file ", in[0], " not allowed to be *.gen; typically should end in *.mabe.");
@@ -572,8 +577,8 @@ namespace mabe {
   }
 
   void MABE::Deprecate(const std::string & old_name, const std::string & new_name) {
-    std::function<int(const emp::vector<emp::Ptr<ConfigEntry>> &)> dep_fun =
-      [this,old_name,new_name](const emp::vector<emp::Ptr<ConfigEntry>> &){
+    std::function<int(const emp::vector<symbol_ptr_t> &)> dep_fun =
+      [this,old_name,new_name](const emp::vector<symbol_ptr_t> &){
         std::cerr << "Function '" << old_name << "' deprecated; use '" << new_name << "'\n";
         exit_now = true;
         return 0;      
@@ -594,7 +599,7 @@ namespace mabe {
   {
     // Setup "Population" as a type in the config file.
     auto pop_init_fun =
-      [this](const std::string & name) -> emp::Ptr<ConfigType> {
+      [this](const std::string & name) -> emp::Ptr<EmplodeType> {
         return &AddPopulation(name);
       };
     auto & pop_type = config.AddType<Population>("Population", "Collection of organisms", pop_init_fun);
@@ -611,7 +616,7 @@ namespace mabe {
 
     // Setup all known modules as available types in the config file.
     for (auto & mod : GetModuleInfo()) {
-      auto mod_init_fun = [this,&mod](const std::string & name) -> emp::Ptr<ConfigType> {
+      auto mod_init_fun = [this,&mod](const std::string & name) -> emp::Ptr<EmplodeType> {
         return mod.init_fun(*this,name);
       };
       config.AddType(mod.name, mod.desc, mod_init_fun, mod.type_id);

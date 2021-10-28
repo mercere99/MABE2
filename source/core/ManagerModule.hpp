@@ -12,8 +12,6 @@
 
 #include "emp/meta/TypeID.hpp"
 
-#include "../config/Config.hpp"
-
 #include "MABE.hpp"
 #include "Module.hpp"
 
@@ -119,7 +117,7 @@ namespace mabe {
       ModuleInfo new_info;
       new_info.name = type_name;
       new_info.desc = desc;
-      new_info.init_fun = [desc](MABE & control, const std::string & name) -> emp::Ptr<ConfigType> {
+      new_info.init_fun = [desc](MABE & control, const std::string & name) -> emp::Ptr<EmplodeType> {
         return &control.AddModule<MODULE_T>(name, desc);
       };
       GetModuleInfo().insert(new_info);
