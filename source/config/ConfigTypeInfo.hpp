@@ -39,7 +39,7 @@ namespace mabe {
   class ConfigTypeInfo {
   private:
     using entry_ptr_t = emp::Ptr<ConfigEntry>;
-    using init_fun_t = std::function<ConfigType & (const std::string &)>;
+    using init_fun_t = std::function<emp::Ptr<ConfigType> (const std::string &)>;
 
     size_t index;
     std::string type_name;
@@ -47,27 +47,29 @@ namespace mabe {
     emp::TypeID type_id;
 
     init_fun_t init_fun;
+    bool config_owned = false; // Should objects of this type be managed by Emplode?
 
     emp::vector< MemberFunInfo > member_funs;
 
   public:
     // Constructor to allow a simple new configuration type
-    ConfigTypeInfo(size_t in_id, const std::string & in_name, const std::string & in_desc)
-      : index(in_id), type_name(in_name), desc(in_desc) { }
+    ConfigTypeInfo(size_t _id, const std::string & _name, const std::string & _desc)
+      : index(_id), type_name(_name), desc(_desc) { }
 
     // Constructor to allow a new configuration type whose objects require initialization.
-    ConfigTypeInfo(size_t in_id, const std::string & in_name, const std::string & in_desc, init_fun_t in_init)
-      : index(in_id), type_name(in_name), desc(in_desc), init_fun(in_init)
-    {
-    }
+    ConfigTypeInfo(size_t _id, const std::string & _name, const std::string & _desc,
+                   init_fun_t _init, bool _config_owned=false)
+      : index(_id), type_name(_name), desc(_desc), init_fun(_init), config_owned(_config_owned)
+    { }
 
     size_t GetIndex() const { return index; }
     const std::string & GetTypeName() const { return type_name; }
     const std::string & GetDesc() const { return desc; }
     emp::TypeID GetType() const { return type_id; }
+    bool GetConfigOwned() const { return config_owned; }
     const emp::vector<MemberFunInfo> & GetMemberFunctions() const { return member_funs; }
 
-    ConfigType & MakeObj(const std::string & name) const { return init_fun(name); }
+    emp::Ptr<ConfigType> MakeObj(const std::string & name) const { return init_fun(name); }
 
     // Link this ConfigTypeInfo object to a real C++ type.
     // @CAO It would be nice to test to make sure this is a ConfigType, but not possible with a TypeID.
