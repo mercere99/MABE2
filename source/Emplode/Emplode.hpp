@@ -409,7 +409,9 @@ namespace emplode {
     /// If init_fun is not specified in add type, build our own and assume that we own the object.
     template <typename OBJECT_T>
     TypeInfo & AddType(const std::string & type_name, const std::string & desc) {
-      return AddType<OBJECT_T>(type_name, desc, [](){ return emp::NewPtr<OBJECT_T>(); }, true);
+      return AddType<OBJECT_T>(type_name, desc,
+                               [](const std::string & /*name*/){ return emp::NewPtr<OBJECT_T>(); },
+                               true);
     }
 
     /// Also allow direct file management.
