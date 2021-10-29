@@ -15,7 +15,7 @@
 
 namespace emplode {
 
-  class Symbol_Scope;
+  class Symbol_Object;
   class TypeInfo;
 
   enum class BaseType {
@@ -28,7 +28,7 @@ namespace emplode {
 
   class EmplodeTypeBase {
   protected:
-    emp::Ptr<Symbol_Scope> cur_scope;
+    emp::Ptr<Symbol_Object> symbol_ptr;
     emp::Ptr<TypeInfo> type_info_ptr;
 
     // Some special, internal variables associated with each object.
@@ -41,8 +41,8 @@ namespace emplode {
     // Optional function to override to add configuration options associated with an object.
     virtual void SetupConfig() { };
 
-    Symbol_Scope & GetScope() { emp_assert(!cur_scope.IsNull()); return *cur_scope; }
-    const Symbol_Scope & GetScope() const { emp_assert(!cur_scope.IsNull()); return *cur_scope; }
+    Symbol_Object & GetScope() { emp_assert(!symbol_ptr.IsNull()); return *symbol_ptr; }
+    const Symbol_Object & GetScope() const { emp_assert(!symbol_ptr.IsNull()); return *symbol_ptr; }
 
     const TypeInfo & GetTypeInfo() const { return *type_info_ptr; }
   };

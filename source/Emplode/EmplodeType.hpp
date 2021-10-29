@@ -14,7 +14,7 @@
 #include "emp/base/assert.hpp"
 
 #include "EmplodeTypeBase.hpp"
-#include "Symbol_Scope.hpp"
+#include "Symbol_Object.hpp"
 #include "TypeInfo.hpp"
 
 namespace emplode {
@@ -33,24 +33,24 @@ namespace emplode {
     }
 
 
-    /// Setup an instance of a new EmplodeType object; provide it with its scope and type information.    
-    void Setup(Symbol_Scope & _scope, TypeInfo & _info) {
-      cur_scope = &_scope;
+    /// Setup an instance of a new EmplodeType object; provide it with its symbol and type information.    
+    void Setup(Symbol_Object & in_symbol, TypeInfo & _info) {
+      symbol_ptr = &in_symbol;
       type_info_ptr = &_info;
 
-      // Link standard internal variables for this scope.
+      // Link standard internal variables for this object.
       LinkVar(_active, "_active", "Should we activate this module? (0=off, 1=on)", true);
       LinkVar(_desc,   "_desc",   "Special description for those object.", true);
 
       // Link specialized variable for the derived type.
       SetupConfig();
 
-      // Load in any member function for this object into the scope.
+      // Load in any member function for this object into the object.
       using symbol_ptr_t = emp::Ptr<Symbol>;
       using member_fun_t = std::function<symbol_ptr_t(const emp::vector<symbol_ptr_t> &)>;
       const auto & member_map = type_info_ptr->GetMemberFunctions();
 
-      // std::cout << "Loading member functions for '" << _scope.GetName() << "'; "
+      // std::cout << "Loading member functions for '" << in_symbol.GetName() << "'; "
       //           << member_map.size() << " found."
       //           << std::endl;
 
@@ -58,10 +58,10 @@ namespace emplode {
         member_fun_t linked_fun = [this, &member_info](const emp::vector<symbol_ptr_t> & args){
           return member_info.fun(*this, args);
         };
-        cur_scope->AddFunction(member_info.name, linked_fun, member_info.desc).SetBuiltin();
+        symbol_ptr->AddFunction(member_info.name, linked_fun, member_info.desc).SetBuiltin();
 
         // std::cout << "Adding member function '" << member_info.name << "' to object '"
-        //           << cur_scope->GetName() << "'." << std::endl;
+        //           << symbol_ptr->GetName() << "'." << std::endl;
       }
     }
 
