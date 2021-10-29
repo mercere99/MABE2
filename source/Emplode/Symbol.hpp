@@ -107,6 +107,7 @@ namespace emplode {
     virtual bool IsLocal() const { return false; }     ///< Was symbol defined in config file?
     virtual bool IsFunction() const { return false; }  ///< Is symbol a function?
     virtual bool IsScope() const { return false; }     ///< Is symbol a full scope?
+    virtual bool IsObject() const { return false; }    ///< Is symbol associated with C++ object?
     virtual bool IsError() const { return false; }     ///< Does symbol flag an error?
 
     virtual bool HasNumericReturn() const { return false; } ///< Is symbol a function that returns a number?
