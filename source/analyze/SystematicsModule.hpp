@@ -81,7 +81,7 @@ public:
     void SetupModule() override {
       // Setup the traits.
       // TODO: Ideally it would be great if we didn't have to list all possible allowed types here
-      AddRequiredTrait<std::string, emp::BitVector, int, double, emp::vector<int>>(taxon_info);
+      AddRequiredTrait<std::string, emp::BitVector, int, double, emp::vector<int>, emp::vector<double>>(taxon_info);
      
       // Setup the data file
       data = emp::DataFile(data_file_name);
