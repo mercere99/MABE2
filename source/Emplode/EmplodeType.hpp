@@ -28,7 +28,8 @@ namespace emplode {
     /// EmplodeType can create its own version to automatically load in member functions, etc.
     static void InitType(Emplode & /*config*/, TypeInfo & /*info*/) {
       // If you create a version of this function for your own EmplodeType, this is where you would
-      // create member functions.
+      // create member functions.  Note that this is a static function, so just make a version of it
+      // in your own class; you are NOT overriding a virtual function.
     }
 
 
