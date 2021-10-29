@@ -13,7 +13,6 @@
 
 #include "emp/base/assert.hpp"
 
-#include "EmplodeTypeBase.hpp"
 #include "Symbol_Object.hpp"
 #include "TypeInfo.hpp"
 
@@ -22,7 +21,15 @@ namespace emplode {
   class Emplode;
 
   // Base class for types that we want to be used for scripting.
-  class EmplodeType : public EmplodeTypeBase {
+  class EmplodeType {
+  protected:
+    emp::Ptr<Symbol_Object> symbol_ptr;
+    emp::Ptr<TypeInfo> type_info_ptr;
+
+    // Some special, internal variables associated with each object.
+    bool _active=true;       ///< Should this object be used in the current run?
+    std::string _desc="";    ///< Special description for this object.
+
   public:
     /// Setup the TYPE of object in the config.  This is a stub class, but any new class derived from
     /// EmplodeType can create its own version to automatically load in member functions, etc.
@@ -32,6 +39,15 @@ namespace emplode {
       // in your own class; you are NOT overriding a virtual function.
     }
 
+    virtual ~EmplodeType() { }
+
+    // Optional function to override to add configuration options associated with an object.
+    virtual void SetupConfig() { };
+
+    Symbol_Object & GetScope() { emp_assert(!symbol_ptr.IsNull()); return *symbol_ptr; }
+    const Symbol_Object & GetScope() const { emp_assert(!symbol_ptr.IsNull()); return *symbol_ptr; }
+
+    const TypeInfo & GetTypeInfo() const { return *type_info_ptr; }
 
     /// Setup an instance of a new EmplodeType object; provide it with its symbol and type information.    
     void Setup(Symbol_Object & in_symbol, TypeInfo & _info) {
