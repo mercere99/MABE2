@@ -19,11 +19,11 @@
 #include "Symbol.hpp"
 #include "Symbol_Function.hpp"
 #include "Symbol_Linked.hpp"
-#include "EmplodeTypeBase.hpp"
 
 namespace emplode {
 
   class EmplodeType;
+  class Symbol_Object;
 
   // Set of multiple config entries.
   class Symbol_Scope : public Symbol {
@@ -31,10 +31,6 @@ namespace emplode {
     using symbol_ptr_t = emp::Ptr<Symbol>;
     using const_symbol_ptr_t = emp::Ptr<const Symbol>;
     emp::map< std::string, symbol_ptr_t > symbol_table;   ///< Map of names to entries.
-
-    ///< If this scope represents a structure, point to it; otherwise set to null.
-    emp::Ptr<EmplodeType> obj_ptr = nullptr;
-    bool obj_owned = false;
 
     template <typename T, typename... ARGS>
     T & Add(const std::string & name, ARGS &&... args) {
@@ -53,12 +49,8 @@ namespace emplode {
     }
 
   public:
-    Symbol_Scope(const std::string & _name,
-                const std::string & _desc,
-                emp::Ptr<Symbol_Scope> _scope,
-                emp::Ptr<EmplodeType> _obj=nullptr,
-                bool _owned=false)
-      : Symbol(_name, _desc, _scope), obj_ptr(_obj), obj_owned(_owned) { }
+    Symbol_Scope(const std::string & _name, const std::string & _desc, emp::Ptr<Symbol_Scope> _scope)
+      : Symbol(_name, _desc, _scope) { }
 
     Symbol_Scope(const Symbol_Scope & in) : Symbol(in) {
       // Copy all defined variables/scopes/functions
@@ -67,15 +59,9 @@ namespace emplode {
     Symbol_Scope(Symbol_Scope &&) = default;
 
     ~Symbol_Scope() {
-      // If this scope owns its object pointer, delete it now.
-      if (obj_owned) obj_ptr.Delete();
-
       // Clear up the symbol table.
       for (auto [name, ptr] : symbol_table) { ptr.Delete(); }
     }
-
-    emp::Ptr<EmplodeType> GetObjectPtr()  override { return obj_ptr; }  
-    emp::Ptr<const EmplodeType> GetObjectPtr() const override { return obj_ptr; }  
 
     bool IsScope() const override { return true; }
     bool IsLocal() const override { return true; }  // @CAO, for now assuming all scopes are local!
@@ -152,14 +138,17 @@ namespace emplode {
     }
 
     /// Add an internal scope inside of this one.
-    Symbol_Scope & AddScope(
+    Symbol_Scope & AddScope(const std::string & name, const std::string & desc) {
+      return Add<Symbol_Scope>(name, desc, this);
+    }
+
+    /// Add an internal scope inside of this one (defined in Symbol_Object.hpp)
+    Symbol_Object & AddObject(
       const std::string & name,
       const std::string & desc,
       emp::Ptr<EmplodeType> obj_ptr=nullptr,
       bool obj_owned=false
-    ) {
-      return Add<Symbol_Scope>(name, desc, this, obj_ptr, obj_owned);
-    }
+    );
 
     /// Add a new user-defined function.
     template <typename FUN_T>
