@@ -4,32 +4,34 @@ Parser
 
 LEVEL MAP:
 
-ConfigEntry          - []
-ConfigLexer          - []
-ConfigTypeBase       - []
+Symbol            - []
+Lexer             - []
 
-ConfigTools          - [ConfigEntry]
+EmplodeTools      - [Symbol]
 
-ConfigTypeInfo       - [ConfigEntry,ConfigTools] Basic information for a user-defined type.
-ConfigEntry_Function - [ConfigEntry]
-ConfigEntry_Linked   - [ConfigEntry]
+TypeInfo          - [Symbol,EmplodeTools] Basic information for a user-defined type.
+Symbol_Function   - [Symbol]
+Symbol_Linked     - [Symbol]
 
-ConfigEntry_Scope    - [ConfigEntry,ConfigEntry_Function,ConfigEntry_Linked,ConfigTypeBase]
+Symbol_Scope      - [Symbol,Symbol_Function,Symbol_Linked]
 
-ConfigAST            - [ConfigEntry_Scope,ConfigEntry,ConfigTools]
-ConfigType           - [ConfigEntry_Scope,ConfigTypeInfo]
+Symbol_Object     - [Symbol_Scope]
 
-ConfigEvents         - [ConfigAST]
+AST               - [Symbol_Object,Symbol,EmplodeTools]
+EmplodeType       - [Symbol_Object,TypeInfo]
 
-Config               - [ALL] Main parser
+Events            - [AST]
+DataFile          - [EmplodeType]
+
+Emplode           - [ALL] Main parser
 
 
 TODO:
 
-* Config as a whole should move from MABE to Empirical
+* Emplode as a whole should move from MABE to Empirical
 
 * We need a consistent and functional error system.
-Right now we either output direct to the command line OR create a ConfigEntry_Error
+Right now we either output direct to the command line OR create a Symbol_Error
 with a meaningful error included, but it's then ignored and never printed.
 What should happen is that an error message is raised and the appropriate interface
 module handles it.
@@ -58,7 +60,7 @@ but it's not hooked in.
 * Need a stand-alone config interpreter along with a full test suite to make sure it's
 working properly.
 
-* Should be able to make new types (not just new instances) inside the interpreter.
+* Should be able to make whole new types (not just new instances) inside the interpreter.
 
 * Should be able to adjust default values for existing types.  This will allow for config
 files to be included in that just setup defaults, but don't actually build any new object.
