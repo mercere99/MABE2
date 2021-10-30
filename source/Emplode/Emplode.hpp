@@ -231,11 +231,11 @@ namespace emplode {
       if (filename != "") Load(filename);
 
       // Initialize the type map.
-      type_map["INVALID"] = emp::NewPtr<TypeInfo>( (size_t) BaseType::INVALID, "/*ERROR*/", "Error, Invalid type!" );
-      type_map["Void"] = emp::NewPtr<TypeInfo>( (size_t) BaseType::VOID, "Void", "Non-type variable; no value" );
-      type_map["Value"] = emp::NewPtr<TypeInfo>( (size_t) BaseType::VALUE, "Value", "Numeric variable" );
-      type_map["String"] = emp::NewPtr<TypeInfo>( (size_t) BaseType::STRING, "String", "String variable" );
-      type_map["Struct"] = emp::NewPtr<TypeInfo>( (size_t) BaseType::STRUCT, "Struct", "User-made structure" );
+      type_map["INVALID"] = emp::NewPtr<TypeInfo>( 0, "/*ERROR*/", "Error, Invalid type!" );
+      type_map["Void"] = emp::NewPtr<TypeInfo>( 1, "Void", "Non-type variable; no value" );
+      type_map["Value"] = emp::NewPtr<TypeInfo>( 2, "Value", "Numeric variable" );
+      type_map["String"] = emp::NewPtr<TypeInfo>( 3, "String", "String variable" );
+      type_map["Struct"] = emp::NewPtr<TypeInfo>( 4, "Struct", "User-made structure" );
 
       // Setup operator precedence.
       size_t cur_prec = 0;
