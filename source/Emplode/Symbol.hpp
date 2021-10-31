@@ -125,7 +125,12 @@ namespace emplode {
     virtual Symbol & SetString(const std::string & in) { (void) in; emp_assert(false, in); return *this; }
 
     virtual emp::Ptr<Symbol_Scope> AsScopePtr() { return nullptr; }
+    virtual emp::Ptr<const Symbol_Scope> AsScopePtr() const { return nullptr; }
     Symbol_Scope & AsScope() {
+      emp_assert(AsScopePtr());
+      return *(AsScopePtr());
+    }
+    const Symbol_Scope & AsScope() const {
       emp_assert(AsScopePtr());
       return *(AsScopePtr());
     }
