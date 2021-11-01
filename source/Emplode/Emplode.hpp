@@ -826,17 +826,22 @@ namespace emplode {
         return nullptr;  // We are done!
       }
 
-      // If this symbol is a new scope, it should be populated now.
+      // If this symbol is a new scope, it can be populated now either directly (with in braces)
+      // or indirectly (with and assignment)
       if (new_symbol.IsScope()) {
-        RequireChar('{', pos, "Expected scope '", new_symbol.GetName(),
-                    "' definition to start with a '{'; found ''", AsLexeme(pos), "'.");
-        pos++;
-        emp::Ptr<ASTNode> out_node = ParseStatementList(pos, new_symbol.AsScope());
-        RequireChar('}', pos++, "Expected scope '", new_symbol.GetName(), "' to end with a '}'.");
-        return out_node;
-      }
+        if (AsChar(pos) == '{') {
+          pos++;
+          emp::Ptr<ASTNode> out_node = ParseStatementList(pos, new_symbol.AsScope());
+          RequireChar('}', pos++, "Expected scope '", new_symbol.GetName(), "' to end with a '}'.");
+          return out_node;
+        }
 
-      // Otherwise rewind so that variable can be used to start an expression.
+        RequireChar('=', pos, "Expected scope '", new_symbol.GetName(),
+                     "' definition to start with a '{' or '='; found ''", AsLexeme(pos), "'.");
+        
+      }      
+
+      // Otherwise rewind so that the new variable can be used to start an expression.
       --pos;
     }
 
