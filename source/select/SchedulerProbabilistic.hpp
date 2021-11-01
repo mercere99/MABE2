@@ -67,6 +67,7 @@ namespace mabe {
       double total_weight = weight_map.GetWeight();
       // Dole out updates
       for(size_t i = 0; i < N * avg_updates; ++i){
+        total_weight = weight_map.GetWeight();
         if(total_weight > 0)
           selected_idx = weight_map.Index(random.GetDouble() * total_weight);
         else
