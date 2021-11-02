@@ -202,7 +202,7 @@ namespace mabe {
 
   public:
     // Setup member functions associated with population.
-    static void InitType(emplode::Emplode & /*config*/, emplode::TypeInfo & info) {
+    static void InitType(emplode::TypeInfo & info) {
       std::function<int(Population &)> fun_size =
         [](Population & target) { return target.GetSize(); };
       info.AddMemberFunction("SIZE", fun_size, "Return the size of the population.");

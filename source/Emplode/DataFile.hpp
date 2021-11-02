@@ -46,7 +46,7 @@ namespace emplode {
     std::string GetName() const { return name; }
 
     // Setup member functions associated with population.
-    static void InitType(Emplode & /*config*/, TypeInfo & info) {
+    static void InitType(TypeInfo & info) {
       auto fun_num_cols = [](DataFile & target) { return target.cols.size(); };
       info.AddMemberFunction("NUM_COLS", fun_num_cols, "Return the number of columns in this file.");
       info.AddMemberFunction("WRITE", [](DataFile & target) { return target.Write(); },
@@ -70,7 +70,7 @@ namespace emplode {
       // If we need headers, set them up!
       if (!file_exists) {
         for (size_t i = 0; i < cols.size(); ++i) {
-          if (i) file << ", ";
+          if (i) file << ",";
           file << cols[i].header;
         }
         file << '\n';
@@ -78,7 +78,7 @@ namespace emplode {
 
       // Now print out each entry.
       for (size_t i = 0; i < cols.size(); ++i) {
-        if (i) file << ", ";
+        if (i) file << ",";
         file << cols[i].fun();
       }
       file << std::endl;
