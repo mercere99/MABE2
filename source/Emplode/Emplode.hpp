@@ -230,6 +230,35 @@ namespace emplode {
 
   };
   
+  class ParseState {
+  private:
+    emp::TokenStream::Iterator pos;
+    emp::Ptr<SymbolTable> symbol_table;
+    emp::Ptr<Symbol_Scope> scope;
+    emp::Ptr<Lexer> lexer;
+
+  public:
+    ParseState(emp::TokenStream::Iterator _pos, SymbolTable & _table,
+               Symbol_Scope & _scope, Lexer & _lexer)
+      : pos(_pos), symbol_table(&_table), scope(&_scope), lexer(&_lexer) {}
+    ParseState(ParseState &) = default;
+    ~ParseState() { }
+
+    ParseState & operator=(const ParseState &) = default;
+
+    bool IsID() const { return pos && lexer->IsID(*pos); }
+    bool IsNumber() const { return pos && lexer->IsNumber(*pos); }
+    bool IsChar() const { return pos && lexer->IsChar(*pos); }
+    bool IsString() const { return pos && lexer->IsString(*pos); }
+    bool IsDots() const { return pos && lexer->IsDots(*pos); }
+
+    bool IsEvent() const { return symbol_table->HasEvent(AsLexeme()); }
+    bool IsType() const { return symbol_table->HasType(AsLexeme()); }
+
+    char AsChar() const { return (pos && lexer->IsSymbol(*pos)) ? pos->lexeme[0] : 0; }
+    const std::string & AsLexeme() const { return pos ? pos->lexeme : emp::empty_string(); }
+  };
+
 
   class Emplode {
   public:
