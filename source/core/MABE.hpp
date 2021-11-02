@@ -372,7 +372,7 @@ namespace mabe {
     EmplodeScope & LeaveScope() { return *(cur_scope = cur_scope->GetScope()); }
 
     /// Return to the root scope.
-    EmplodeScope & ResetScope() { return *(cur_scope = &(config.GetRootScope())); }
+    EmplodeScope & ResetScope() { return *(cur_scope = &(config.GetSymbolTable().GetRootScope())); }
 
     /// Setup the configuration options for MABE, including for each module.
     void SetupConfig();
@@ -595,13 +595,10 @@ namespace mabe {
                  [this](const std::string & msg){ on_warning_sig.Trigger(msg); } )
     , trait_man(error_man)
     , args(emp::cl::args_to_strings(argc, argv))
-    , cur_scope(&(config.GetRootScope()))
+    , cur_scope(&(config.GetSymbolTable().GetRootScope()))
   {
     // Setup "Population" as a type in the config file.
-    auto pop_init_fun =
-      [this](const std::string & name) -> emp::Ptr<EmplodeType> {
-        return &AddPopulation(name);
-      };
+    auto pop_init_fun = [this](const std::string & name) { return &AddPopulation(name); };
     auto & pop_type = config.AddType<Population>("Population", "Collection of organisms", pop_init_fun);
 
     // 'INJECT' allows a user to add an organism to a population.
@@ -612,6 +609,10 @@ namespace mabe {
       };
     pop_type.AddMemberFunction("INJECT", inject_fun,
       "Inject organisms into population (args: org_name, org_count).");
+
+
+    // Setup "Collection" as another config type.
+    auto & collect_type = config.AddType<Collection>("OrgList", "Collection of organism pointers");
 
 
     // Setup all known modules as available types in the config file.
@@ -642,7 +643,7 @@ namespace mabe {
 
 
     // 'WRITE' will collect data and write it to a file.
-    auto & files = config.GetFileManager();
+    auto & files = config.GetSymbolTable().GetFileManager();
     std::function<int(const std::string &, const std::string &, const std::string &)> write_fun =
       [this,&files](const std::string & filename, const std::string & collection, std::string format) {
         const bool file_exists = files.Has(filename);           // Is file is already setup?
@@ -1055,9 +1056,9 @@ namespace mabe {
 
   void MABE::SetupConfig() {
     emp_assert(cur_scope);
-    emp_assert(cur_scope.Raw() == &(config.GetRootScope()),
+    emp_assert(cur_scope.Raw() == &(config.GetSymbolTable().GetRootScope()),
                 cur_scope->GetName(),
-                config.GetRootScope().GetName());  // Scope should start at root level.
+                config.GetSymbolTable().GetRootScope().GetName());  // Scope should start at root level.
 
     // Setup main MABE variables.
     cur_scope->LinkFuns<int>("random_seed",
