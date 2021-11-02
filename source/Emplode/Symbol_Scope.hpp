@@ -68,6 +68,27 @@ namespace emplode {
 
     /// Set this symbol to be a correctly-typed scope pointer.
     emp::Ptr<Symbol_Scope> AsScopePtr() override { return this; }
+    emp::Ptr<const Symbol_Scope> AsScopePtr() const override { return this; }
+
+    bool CopyValue(const Symbol & in) override {
+      if (in.IsScope() == false) return false;   // Mis-matched types; failed to copy.
+
+      const Symbol_Scope & in_scope = in.AsScope();
+
+      // Assignment to an existing Struct cannot create new variables; all must already exist.
+      // Do not delete other existing entries.
+      for (const auto & [name, ptr] : in_scope.symbol_table) {
+        // If entry does not exist fail the copy.
+        if (emp::Has(symbol_table, name)) return false;
+
+        bool success = symbol_table[name]->CopyValue(*ptr);
+        if (!success) return false; // Stop immediately on failure.
+      }
+
+      // If we made it this far, it must have worked!
+      return true;
+    }
+
 
     /// Get a symbol out of this scope; 
     symbol_ptr_t GetSymbol(std::string name) { return emp::Find(symbol_table, name, nullptr); }
@@ -181,7 +202,7 @@ namespace emplode {
 
     /// Write out this scope AND it's contents to the provided stream.
     const Symbol & Write(std::ostream & os=std::cout, const std::string & prefix="",
-                              size_t comment_offset=32) const override
+                         size_t comment_offset=32) const override
     {
       // If this is a built-in scope, don't print it.
       if (IsBuiltin()) return *this;
