@@ -214,6 +214,7 @@ namespace mabe {
     }
 
     uint32_t Sense(PathFollowState& state){
+      if(!state.initialized) InitializeState(state);
       switch(tile_map_vec[state.cur_map_idx].Get(state.cur_pos[1], state.cur_pos[0])){
         case Tile::EMPTY:
           return state.empty_val;
