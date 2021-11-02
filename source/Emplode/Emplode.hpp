@@ -87,6 +87,150 @@
 
 namespace emplode {
 
+  class SymbolTable {
+  protected:
+    Symbol_Scope root_scope;                                      ///< All variables from the root level.
+    std::map<std::string, Events> events_map;                     ///< A map of names to event groups.
+    std::unordered_map<std::string, emp::Ptr<TypeInfo>> type_map; ///< All types available in the script.
+    emp::StreamManager file_map;                                     ///< Track all file streams by name.
+
+  public:
+    SymbolTable(const std::string & name)
+    : root_scope(name, "Outer-most, global scope.", nullptr) {
+      // Initialize the type map.
+      type_map["INVALID"] = emp::NewPtr<TypeInfo>( 0, "/*ERROR*/", "Error, Invalid type!" );
+      type_map["Void"] = emp::NewPtr<TypeInfo>( 1, "Void", "Non-type variable; no value" );
+      type_map["Value"] = emp::NewPtr<TypeInfo>( 2, "Value", "Numeric variable" );
+      type_map["String"] = emp::NewPtr<TypeInfo>( 3, "String", "String variable" );
+      type_map["Struct"] = emp::NewPtr<TypeInfo>( 4, "Struct", "User-made structure" );
+
+      file_map.SetOutputDefaultFile();  // Stream manager should default to 'file' output.
+    }
+
+    ~SymbolTable() {
+      // Clean up type information.
+      for (auto [name, ptr] : type_map) ptr.Delete();
+    }
+
+    Symbol_Scope & GetRootScope() { return root_scope; }
+    const Symbol_Scope & GetRootScope() const { return root_scope; }
+    emp::StreamManager & GetFileManager() { return file_map; }
+
+    bool HasEvent(const std::string & name) const { return emp::Has(events_map, name); }
+    bool HasType(const std::string & name) const { return emp::Has(type_map, name); }
+
+    /// To add a built-in function (at the root level) provide it with a name and description.
+    /// As long as the function only requires types known to the config system, it should be
+    /// converted properly.  For a variadic function, the provided function must take a
+    /// vector of ASTNode pointers, but may return any known type.
+    template <typename FUN_T>
+    void AddFunction(const std::string & name, FUN_T fun, const std::string & desc) {
+      root_scope.AddBuiltinFunction(name, fun, desc);
+    }
+
+    /// To add a type, provide the type name (that can be referred to in a script) and a function
+    /// that should be called (with the variable name) when an instance of that type is created.
+    /// The function must return a reference to the newly created instance.
+    template <typename FUN_T>
+    TypeInfo & AddType(
+      const std::string & type_name,
+      const std::string & desc,
+      FUN_T init_fun,
+      emp::TypeID type_id,
+      bool is_config_owned=false
+    ) {
+      emp_assert(!emp::Has(type_map, type_name), type_name, "Type already exists!");
+      size_t index = type_map.size();
+      auto info_ptr = emp::NewPtr<TypeInfo>( index, type_name, desc, init_fun, is_config_owned );
+      info_ptr->LinkType(type_id);
+      type_map[type_name] = info_ptr;
+      return *type_map[type_name];
+    }
+
+    /// If the linked type can be provided as a template parameter, we can also double check that
+    /// it is derived from EmplodeType (as it needs to be...)
+    template <typename OBJECT_T, typename FUN_T>
+    TypeInfo & AddType(
+      const std::string & type_name,
+      const std::string & desc,
+      FUN_T init_fun,
+      bool is_config_owned=false
+    ) {
+      static_assert(std::is_base_of<EmplodeType, OBJECT_T>(),
+                    "Only EmplodeType objects can be used as a custom config type.");
+      TypeInfo & info = AddType(type_name, desc, init_fun, emp::GetTypeID<OBJECT_T>(), is_config_owned);
+      OBJECT_T::InitType(info);
+      return info;
+    }
+
+    /// If init_fun is not specified in add type, build our own and assume that we own the object.
+    template <typename OBJECT_T>
+    TypeInfo & AddType(const std::string & type_name, const std::string & desc) {
+      return AddType<OBJECT_T>(type_name, desc,
+                               [](const std::string & /*name*/){ return emp::NewPtr<OBJECT_T>(); },
+                               true);
+    }
+
+    Symbol_Object &  MakeObjSymbol(
+      const std::string & type_name,
+      const std::string & var_name,
+      Symbol_Scope & scope
+    ) {
+      // Retrieve the information about the requested type.
+      TypeInfo & type_info = *type_map[type_name];
+      const std::string & type_desc = type_info.GetDesc();
+      const bool is_config_owned = type_info.GetOwned();
+
+      // Use the TypeInfo associated with the provided type name to build an instance.
+      emp::Ptr<EmplodeType> new_obj = type_info.MakeObj(var_name);
+ 
+      // Setup a scope for this new type, linking the object to it.
+      Symbol_Object & new_obj_symbol = scope.AddObject(var_name, type_desc, new_obj, is_config_owned);
+
+      // Let the new object know about its scope.
+      new_obj->Setup(new_obj_symbol, type_info);
+
+      return new_obj_symbol;
+    }
+
+
+    /// Create a new type of event that can be used in the scripting language.
+    Events & AddEventType(const std::string & name) {
+      emp_assert(!HasEvent(name), "Event type already exists!", name);
+      return events_map[name];
+    }
+
+    /// Add an instance of an event with an action that should be triggered.
+    void AddEvent(const std::string & name, emp::Ptr<ASTNode> action,
+                  double first=0.0, double repeat=0.0, double max=-1.0) {
+      emp_assert(HasEvent(name), name);
+      // Debug ("Adding event instance for '", name, "' (", first, ":", repeat, ":", max, ")");
+      events_map[name].AddEvent(action, first, repeat, max);
+    }
+
+    /// Indicate the an event trigger value has been updated; trigger associated events.
+    void UpdateEventValue(const std::string & name, double new_value) {
+      emp_assert(HasEvent(name), name);
+      // Debug("Uppdating event value '", name, "' to ", new_value);
+      events_map[name].UpdateValue(new_value);
+    }
+
+    /// Trigger all events of a type (ignoring trigger values)
+    void TriggerEvents(const std::string & name) {
+      emp_assert(HasEvent(name), name);
+      events_map[name].TriggerAll();
+    }
+
+    /// Print all of the events to the provided stream.
+    void PrintEvents(std::ostream & os) const {
+      for (const auto & x : events_map) {
+        x.second.Write(x.first, os);
+      }
+    }
+
+  };
+  
+
   class Emplode {
   public:
     using pos_t = emp::TokenStream::Iterator;
@@ -94,18 +238,9 @@ namespace emplode {
   protected:
     std::string filename;      ///< Source for for code to generate.
     Lexer lexer;               ///< Lexer to process input code.
-    Symbol_Scope root_scope;   ///< All variables from the root level.
+    SymbolTable symbol_table;  ///< Management of identifiers.
     ASTNode_Block ast_root;    ///< Abstract syntax tree version of input file.
     bool debug = false;        ///< Should we print full debug information?
-
-    /// A map of names to event groups.
-    std::map<std::string, Events> events_map;
-
-    /// A map of all types available in the script.
-    std::unordered_map<std::string, emp::Ptr<TypeInfo>> type_map;
-
-    /// Management of built-in types.
-    emp::StreamManager files;    ///< Track all file streams.
 
     /// A list of precedence levels for symbols.
     std::unordered_map<std::string, size_t> precedence_map;
@@ -117,7 +252,7 @@ namespace emplode {
     bool IsString(pos_t pos) const { return pos.IsValid() && lexer.IsString(*pos); }
     bool IsDots(pos_t pos) const { return pos.IsValid() && lexer.IsDots(*pos); }
 
-    bool IsType(pos_t pos) const { return pos.IsValid() && emp::Has(type_map, pos->lexeme); }
+    bool IsType(pos_t pos) const { return pos.IsValid() && symbol_table.HasType(pos->lexeme); }
 
     char AsChar(pos_t pos) const {
       return (pos.IsValid() && lexer.IsSymbol(*pos)) ? pos->lexeme[0] : 0;
@@ -225,17 +360,10 @@ namespace emplode {
   public:
     Emplode(std::string in_filename="")
       : filename(in_filename)
-      , root_scope("Emplode", "Outer-most, global scope.", nullptr)
-      , ast_root(root_scope)
+      , symbol_table("Emplode")
+      , ast_root(symbol_table.GetRootScope())
     {
       if (filename != "") Load(filename);
-
-      // Initialize the type map.
-      type_map["INVALID"] = emp::NewPtr<TypeInfo>( 0, "/*ERROR*/", "Error, Invalid type!" );
-      type_map["Void"] = emp::NewPtr<TypeInfo>( 1, "Void", "Non-type variable; no value" );
-      type_map["Value"] = emp::NewPtr<TypeInfo>( 2, "Value", "Numeric variable" );
-      type_map["String"] = emp::NewPtr<TypeInfo>( 3, "String", "String variable" );
-      type_map["Struct"] = emp::NewPtr<TypeInfo>( 4, "Struct", "User-made structure" );
 
       // Setup operator precedence.
       size_t cur_prec = 0;
@@ -309,8 +437,9 @@ namespace emplode {
       AddFunction("FROM_SCALE", math3_from_scale, "Scale arg1 from arg2-arg3 as unit distance" );
 
       // Setup default DataFile type.
-      files.SetOutputDefaultFile();  // Stream manager should default to files for output.
-      auto df_init = [this](const std::string & name) { return emp::NewPtr<DataFile>(name, files); };
+      auto df_init = [this](const std::string & name) {
+        return emp::NewPtr<DataFile>(name, symbol_table.GetFileManager());
+      };
       auto & df_type = AddType<DataFile>("DataFile", "Manage CSV-style date file output.", df_init, true);
       df_type.AddMemberFunction(
         "ADD_COLUMN",
@@ -331,91 +460,27 @@ namespace emplode {
     Emplode & operator=(const Emplode &) = delete;
     Emplode & operator=(Emplode &&) = delete;
 
-    ~Emplode() {
-      // Clean up type information.
-      for (auto [name, ptr] : type_map) ptr.Delete();
-    }
-
     /// Create a new type of event that can be used in the scripting language.
-    Events & AddEventType(const std::string & name) {
-      emp_assert(!emp::Has(events_map, name));
-      Debug ("Adding event type '", name, "'");
-      return events_map[name];
-    }
+    Events & AddEventType(const std::string & name) { return symbol_table.AddEventType(name); }
 
     /// Add an instance of an event with an action that should be triggered.
-    void AddEvent(const std::string & name, emp::Ptr<ASTNode> action,
-                  double first=0.0, double repeat=0.0, double max=-1.0) {
-      emp_assert(emp::Has(events_map, name), name);
-      Debug ("Adding event instance for '", name, "' (", first, ":", repeat, ":", max, ")");
-      events_map[name].AddEvent(action, first, repeat, max);
-    }
+    template <typename... Ts>
+    void AddEvent(Ts &&... args) { symbol_table.AddEvent(std::forward<Ts>(args)...); }
 
     /// Indicate the an event trigger value has been updated; trigger associated events.
     void UpdateEventValue(const std::string & name, double new_value) {
-      emp_assert(emp::Has(events_map, name), name);
-      Debug("Uppdating event value '", name, "' to ", new_value);
-      events_map[name].UpdateValue(new_value);
+      symbol_table.UpdateEventValue(name, new_value);
     }
 
     /// Trigger all events of a type (ignoring trigger values)
-    void TriggerEvents(const std::string & name) {
-      emp_assert(emp::Has(events_map, name), name);
-      events_map[name].TriggerAll();
+    void TriggerEvents(const std::string & name) { symbol_table.TriggerEvents(name); }
+
+
+    template <typename... EXTRA_Ts, typename... ARG_Ts>
+    TypeInfo & AddType(ARG_Ts &&... args) {
+      return symbol_table.AddType<EXTRA_Ts...>( std::forward<ARG_Ts>(args)... );
     }
 
-    /// Print all of the events to the provided stream.
-    void PrintEvents(std::ostream & os) const {
-      for (const auto & x : events_map) {
-        x.second.Write(x.first, os);
-      }
-    }
-
-    /// To add a type, provide the type name (that can be referred to in a script) and a function
-    /// that should be called (with the variable name) when an instance of that type is created.
-    /// The function must return a reference to the newly created instance.
-    template <typename FUN_T>
-    TypeInfo & AddType(
-      const std::string & type_name,
-      const std::string & desc,
-      FUN_T init_fun,
-      emp::TypeID type_id,
-      bool is_config_owned=false
-    ) {
-      emp_assert(!emp::Has(type_map, type_name), type_name, "Type already exists!");
-      size_t index = type_map.size();
-      auto info_ptr = emp::NewPtr<TypeInfo>( index, type_name, desc, init_fun, is_config_owned );
-      info_ptr->LinkType(type_id);
-      type_map[type_name] = info_ptr;
-      return *type_map[type_name];
-    }
-
-    /// If the linked type can be provided as a template parameter, we can also double check that
-    /// it is derived from EmplodeType (as it needs to be...)
-    template <typename OBJECT_T, typename FUN_T>
-    TypeInfo & AddType(
-      const std::string & type_name,
-      const std::string & desc,
-      FUN_T init_fun,
-      bool is_config_owned=false
-    ) {
-      static_assert(std::is_base_of<EmplodeType, OBJECT_T>(),
-                    "Only EmplodeType objects can be used as a custom config type.");
-      TypeInfo & info = AddType(type_name, desc, init_fun, emp::GetTypeID<OBJECT_T>(), is_config_owned);
-      OBJECT_T::InitType(*this, info);
-      return info;
-    }
-
-    /// If init_fun is not specified in add type, build our own and assume that we own the object.
-    template <typename OBJECT_T>
-    TypeInfo & AddType(const std::string & type_name, const std::string & desc) {
-      return AddType<OBJECT_T>(type_name, desc,
-                               [](const std::string & /*name*/){ return emp::NewPtr<OBJECT_T>(); },
-                               true);
-    }
-
-    /// Also allow direct file management.
-    emp::StreamManager & GetFileManager() { return files; }
 
     /// To add a built-in function (at the root level) provide it with a name and description.
     /// As long as the function only requires types known to the config system, it should be
@@ -423,11 +488,11 @@ namespace emplode {
     /// vector of ASTNode pointers, but may return any known type.
     template <typename FUN_T>
     void AddFunction(const std::string & name, FUN_T fun, const std::string & desc) {
-      root_scope.AddBuiltinFunction(name, fun, desc);
+      symbol_table.AddFunction(name, fun, desc);
     }
 
-    Symbol_Scope & GetRootScope() { return root_scope; }
-    const Symbol_Scope & GetRootScope() const { return root_scope; }
+    SymbolTable & GetSymbolTable() { return symbol_table; }
+    const SymbolTable & GetSymbolTable() const { return symbol_table; }
 
     // Load a single, specified configuration file.
     void Load(const std::string & filename) {
@@ -438,7 +503,7 @@ namespace emplode {
       pos_t pos = tokens.begin();             // Start at the beginning of the file.
 
       // Parse and run the program, starting from the outer scope.
-      auto cur_block = ParseStatementList(pos, root_scope);
+      auto cur_block = ParseStatementList(pos, symbol_table.GetRootScope());
       cur_block->Process();
 
       // Store this AST onto the full set we're working with.
@@ -459,7 +524,7 @@ namespace emplode {
       pos_t pos = tokens.begin();
 
       // Parse and run the program, starting from the outer scope.
-      auto cur_block = ParseStatementList(pos, root_scope);
+      auto cur_block = ParseStatementList(pos, symbol_table.GetRootScope());
       cur_block->Process();
 
       // Store this AST onto the full set we're working with.
@@ -469,11 +534,11 @@ namespace emplode {
     // Load the provided statement and run it.
     std::string Execute(std::string_view statement, emp::Ptr<Symbol_Scope> scope=nullptr) {
       Debug("Running Execute()");
-      if (!scope) scope = &root_scope;                      // Default scope to root level.
+      if (!scope) scope = &symbol_table.GetRootScope();     // Default scope to root level.
       auto tokens = lexer.Tokenize(statement, "eval command"); // Convert to a TokenStream.
       tokens.push_back(lexer.ToToken(";"));                 // Ensure a semi-colon at end.
       pos_t pos = tokens.begin();                           // Start are beginning of stream.
-      auto cur_block = ParseStatement(pos, root_scope);     // Convert tokens to AST
+      auto cur_block = ParseStatement(pos, symbol_table.GetRootScope());  // Convert tokens to AST
       auto result_ptr = cur_block->Process();               // Process AST to get result symbol.
       std::string result = "";                              // Default result to an empty string.
       if (result_ptr) {
@@ -486,9 +551,9 @@ namespace emplode {
 
 
     Emplode & Write(std::ostream & os=std::cout) {
-      root_scope.WriteContents(os);
+      symbol_table.GetRootScope().WriteContents(os);
       os << '\n';
-      PrintEvents(os);
+      symbol_table.PrintEvents(os);
       return *this;
     }
 
@@ -751,21 +816,7 @@ namespace emplode {
     // Otherwise we have an object of a custom type to add.
     Debug("Building var '", var_name, "' of type '", type_name, "'");
 
-    // Retrieve the information about the requested type.
-    TypeInfo & type_info = *type_map[type_name];
-    const std::string & type_desc = type_map[type_name]->GetDesc();
-    const bool is_config_owned = type_info.GetOwned();
-
-    // Use the TypeInfo associated with the provided type name to build an instance.
-    emp::Ptr<EmplodeType> new_obj = type_info.MakeObj(var_name);
-
-    // Setup a scope for this new type, linking the object to it.
-    Symbol_Object & new_obj_symbol = scope.AddObject(var_name, type_desc, new_obj, is_config_owned);
-
-    // Let the new object know about its scope.
-    new_obj->Setup(new_obj_symbol, type_info);
-
-    return new_obj_symbol;
+    return symbol_table.MakeObjSymbol(type_name, var_name, scope);
   }
 
   // Parse an event description.
