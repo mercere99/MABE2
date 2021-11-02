@@ -53,10 +53,6 @@ namespace mabe {
   ///  Note that this class is derived from MABEBase, which handles all population
   ///  manipulation and signal management.
 
-  using emplode::Emplode;
-  using emplode::EmplodeType;
-  using EmplodeScope = emplode::Symbol_Scope;
-
   class MABE : public MABEBase {
   private:
     const std::string VERSION = "0.0.1";
@@ -73,7 +69,7 @@ namespace mabe {
     using trait_summary_t = std::function<std::string(const Collection &)>;
     using symbol_ptr_t = emp::Ptr<emplode::Symbol>;
 
-    // Setup a cache for functions used to collect data for files.
+    // Setup a cache for functions used to collect data for files.  @CAO: Move to module!
     std::unordered_map<std::string, emp::vector<trait_summary_t>> file_fun_cache;
 
     /// Populations used; generated in the configuration file.
@@ -116,8 +112,7 @@ namespace mabe {
     emp::vector<std::string> config_filenames; ///< Names of configuration files to load.
     emp::vector<std::string> config_settings;  ///< Additional config commands to run.
     std::string gen_filename;                  ///< Name of output file to generate.
-    Emplode config;                            ///< Configuration information for this run.
-    emp::Ptr<EmplodeScope> cur_scope; ///< Which config scope are we currently using?
+    emplode::Emplode config;                   ///< Configuration information for this run.
 
 
     // ----------- Helper Functions -----------
@@ -359,21 +354,6 @@ namespace mabe {
 
     // --- Manage configuration scope ---
 
-    /// Access to the current configuration scope.
-    EmplodeScope & GetCurScope() { return *cur_scope; }
-
-    /// Add a new scope under the current one.
-    EmplodeScope & AddScope(const std::string & name, const std::string & desc) {
-      cur_scope = &(cur_scope->AddScope(name, desc));
-      return *cur_scope;
-    }
-
-    /// Move up one level of scope.
-    EmplodeScope & LeaveScope() { return *(cur_scope = cur_scope->GetScope()); }
-
-    /// Return to the root scope.
-    EmplodeScope & ResetScope() { return *(cur_scope = &(config.GetSymbolTable().GetRootScope())); }
-
     /// Setup the configuration options for MABE, including for each module.
     void SetupConfig();
 
@@ -595,7 +575,6 @@ namespace mabe {
                  [this](const std::string & msg){ on_warning_sig.Trigger(msg); } )
     , trait_man(error_man)
     , args(emp::cl::args_to_strings(argc, argv))
-    , cur_scope(&(config.GetSymbolTable().GetRootScope()))
   {
     // Setup "Population" as a type in the config file.
     auto pop_init_fun = [this](const std::string & name) { return &AddPopulation(name); };
@@ -617,7 +596,7 @@ namespace mabe {
 
     // Setup all known modules as available types in the config file.
     for (auto & mod : GetModuleInfo()) {
-      auto mod_init_fun = [this,&mod](const std::string & name) -> emp::Ptr<EmplodeType> {
+      auto mod_init_fun = [this,&mod](const std::string & name) -> emp::Ptr<emplode::EmplodeType> {
         return mod.init_fun(*this,name);
       };
       config.AddType(mod.name, mod.desc, mod_init_fun, mod.type_id);
@@ -916,7 +895,6 @@ namespace mabe {
   /// Return a ramdom position from a desginated population with a living organism in it.
   OrgPosition MABE::GetRandomOrgPos(Population & pop) {
     emp_assert(pop.GetNumOrgs() > 0, "GetRandomOrgPos cannot be called if there are no orgs.");
-    // @CAO: Something better to do in a sparse population?
     OrgPosition pos = GetRandomPos(pop);
     while (pos.IsEmpty()) pos = GetRandomPos(pop);
     return pos;
@@ -1055,13 +1033,9 @@ namespace mabe {
   }
 
   void MABE::SetupConfig() {
-    emp_assert(cur_scope);
-    emp_assert(cur_scope.Raw() == &(config.GetSymbolTable().GetRootScope()),
-                cur_scope->GetName(),
-                config.GetSymbolTable().GetRootScope().GetName());  // Scope should start at root level.
-
     // Setup main MABE variables.
-    cur_scope->LinkFuns<int>("random_seed",
+    auto & root_scope = config.GetSymbolTable().GetRootScope();
+    root_scope.LinkFuns<int>("random_seed",
                              [this](){ return random.GetSeed(); },
                              [this](int seed){ random.ResetSeed(seed); },
                              "Seed for random number generator; use 0 to base on time.");
@@ -1070,14 +1044,8 @@ namespace mabe {
 
   bool MABE::OK() {
     bool result = true;
-
-    // Make sure the populations are all OK.
-    for (size_t pop_id = 0; pop_id < pops.size(); pop_id++) {
-      result &= pops[pop_id]->OK();
-    }
-
-    // @CAO: Should check to make sure modules are okay too.
-
+    for (auto mod_ptr : modules) result &= mod_ptr->OK(); // Ensure modules are okay.
+    for (auto pop_ptr : pops) result &= pop_ptr->OK();    // Ensure populations are okay.
     return result;
   }
 
