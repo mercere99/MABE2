@@ -297,6 +297,8 @@ namespace mabe {
     virtual bool DoPlaceInject_IsTriggered() = 0;
     virtual bool DoFindNeighbor_IsTriggered() = 0;
 
+    virtual bool OK() const = 0;  // For debugging purposes only.
+
     // ---=== Specialty Functions for Organism Managers ===---
     virtual emp::TypeID GetObjType() const {
       emp_assert(false, "GetObjType() must be overridden for ManagerModule.");

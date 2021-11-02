@@ -408,6 +408,8 @@ namespace mabe {
     bool DoPlaceBirth_IsTriggered() override { return control.DoPlaceBirth_IsTriggered(this); };
     bool DoPlaceInject_IsTriggered() override { return control.DoPlaceInject_IsTriggered(this); };
     bool DoFindNeighbor_IsTriggered() override { return control.DoFindNeighbor_IsTriggered(this); };
+
+    bool OK() const override { return true; }
   };
 
   /// Build a class that will automatically register modules when created (globally)
