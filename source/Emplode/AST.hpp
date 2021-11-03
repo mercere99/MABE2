@@ -121,6 +121,19 @@ namespace emplode {
     }
   };
 
+  // Helper functions for making temporary leaves.
+  emp::Ptr<ASTNode_Leaf> MakeTempLeaf(double val) {
+    auto out_ptr = emp::NewPtr<Symbol_DoubleVar>("", val, "Temporary double", nullptr);
+    out_ptr->SetTemporary();
+    return emp::NewPtr<ASTNode_Leaf>(out_ptr);
+  }
+
+  emp::Ptr<ASTNode_Leaf> MakeTempLeaf(const std::string & val) {
+    auto out_ptr = emp::NewPtr<Symbol_StringVar>("", val, "Temporary string", nullptr);
+    out_ptr->SetTemporary();
+    return emp::NewPtr<ASTNode_Leaf>(out_ptr);
+  }
+
   class ASTNode_Block : public ASTNode_Internal {
   protected:
     emp::Ptr<Symbol_Scope> scope_ptr;
@@ -224,6 +237,7 @@ namespace emplode {
       emp_assert(children.size() == 2);
       symbol_ptr_t lhs = children[0]->Process();  // Determine the left-hand-side value.
       symbol_ptr_t rhs = children[1]->Process();  // Determine the right-hand-side value.
+
       // @CAO Should make sure that lhs is properly assignable.
       lhs->CopyValue(*rhs);
       if (rhs->IsTemporary()) rhs.Delete();
