@@ -96,7 +96,7 @@ namespace emplode {
 
   public:
     SymbolTable(const std::string & name)
-    : root_scope(name, "Outer-most, global scope.", nullptr) {
+    : root_scope(name, "Global scope", nullptr) {
       // Initialize the type map.
       type_map["INVALID"] = emp::NewPtr<TypeInfo>( 0, "/*ERROR*/", "Error, Invalid type!" );
       type_map["Void"] = emp::NewPtr<TypeInfo>( 1, "Void", "Non-type variable; no value" );
@@ -230,21 +230,58 @@ namespace emplode {
 
   };
   
+
+
+
   class ParseState {
   private:
     emp::TokenStream::Iterator pos;
     emp::Ptr<SymbolTable> symbol_table;
-    emp::Ptr<Symbol_Scope> scope;
+    emp::vector< emp::Ptr<Symbol_Scope> > scope_stack;
     emp::Ptr<Lexer> lexer;
 
   public:
     ParseState(emp::TokenStream::Iterator _pos, SymbolTable & _table,
                Symbol_Scope & _scope, Lexer & _lexer)
-      : pos(_pos), symbol_table(&_table), scope(&_scope), lexer(&_lexer) {}
+      : pos(_pos), symbol_table(&_table), lexer(&_lexer) { scope_stack.push_back(&_scope); }
     ParseState(ParseState &) = default;
     ~ParseState() { }
 
     ParseState & operator=(const ParseState &) = default;
+
+    bool operator==(const ParseState & in) const { return pos == in.pos; }
+    bool operator!=(const ParseState & in) const { return pos != in.pos; }
+    bool operator< (const ParseState & in) const { return pos <  in.pos; }
+    bool operator<=(const ParseState & in) const { return pos <= in.pos; }
+    bool operator> (const ParseState & in) const { return pos >  in.pos; }
+    bool operator>=(const ParseState & in) const { return pos >= in.pos; }
+
+    ParseState & operator++() { ++pos; return *this; }
+    ParseState operator++(int) { ParseState old(*this); ++pos; return old; }
+    ParseState & operator--() { --pos; return *this; }
+    ParseState operator--(int) { ParseState old(*this); --pos; return old; }
+
+    bool IsValid() const { return pos.IsValid(); }
+    bool AtEnd() const { return pos.AtEnd(); }
+
+    size_t GetIndex() const { return pos.GetIndex(); }  ///< Return index in token stream.
+    size_t GetTokenSize() const { return pos.IsValid() ? pos->lexeme.size() : 0; }
+    Symbol_Scope & GetScope() {
+      emp_assert(scope_stack.size() && scope_stack.back() != nullptr);
+      return *scope_stack.back();
+    }
+    const Symbol_Scope & GetScope() const {
+      emp_assert(scope_stack.size() && scope_stack.back() != nullptr);
+      return *scope_stack.back();
+    }
+    const std::string & GetScopeName() const { return GetScope().GetName(); }
+
+    std::string AsString() {
+      return emp::to_string("[pos=", pos.GetIndex(),
+                            ",lex='", AsLexeme(),
+                            "',scope='", GetScope().GetName(),
+                            "']");
+    }
 
     bool IsID() const { return pos && lexer->IsID(*pos); }
     bool IsNumber() const { return pos && lexer->IsNumber(*pos); }
@@ -257,6 +294,70 @@ namespace emplode {
 
     char AsChar() const { return (pos && lexer->IsSymbol(*pos)) ? pos->lexeme[0] : 0; }
     const std::string & AsLexeme() const { return pos ? pos->lexeme : emp::empty_string(); }
+    const std::string & UseLexeme() {
+      const std::string & out = AsLexeme();
+      pos++;
+      return out;
+    }
+
+    template <typename... Ts>
+    void Error(Ts &&... args) const {
+      std::string line_info = pos.AtEnd() ? "end of input" : emp::to_string("line ", pos->line_id);
+      std::cout << "Error (" << line_info << " in '" << pos.GetTokenStream().GetName() << "'): "
+                << emp::to_string(std::forward<Ts>(args)...) << "\nAborting." << std::endl;
+      exit(1);
+    }
+
+    template <typename... Ts>
+    void Require(bool test, Ts &&... args) const {
+      if (!test) Error(std::forward<Ts>(args)...);
+    }
+    template <typename... Ts>
+    void RequireID(Ts &&... args) const {
+      if (!IsID()) Error(std::forward<Ts>(args)...);
+    }
+    template <typename... Ts>
+    void RequireNumber(Ts &&... args) const {
+      if (!IsNumber()) Error(std::forward<Ts>(args)...);
+    }
+    template <typename... Ts>
+    void RequireString(Ts &&... args) const {
+      if (!IsString()) Error(std::forward<Ts>(args)...);
+    }
+    template <typename... Ts>
+    void RequireChar(char req_char, Ts &&... args) const {
+      if (AsChar() != req_char) Error(std::forward<Ts>(args)...);
+    }
+    template <typename... Ts>
+    void RequireLexeme(const std::string & lex, Ts &&... args) const {
+      if (AsLexeme() != lex) Error(std::forward<Ts>(args)...);
+    }
+
+    void PushScope(Symbol_Scope & _scope) { scope_stack.push_back(&_scope); }
+    void PopScope() { scope_stack.pop_back(); }
+
+    Symbol & LookupSymbol(const std::string & var_name, bool scan_scopes) {
+      emp::Ptr<Symbol> out_symbol = GetScope().LookupSymbol(var_name, scan_scopes);
+      // If we can't find this identifier, throw an error.
+      if (out_symbol.IsNull()) {
+        Error("'", var_name, "' does not exist as a parameter, variable, or type.",
+              "  Current scope is '", GetScope().GetName(), "'");
+      }
+      return *out_symbol;
+    }
+
+    Symbol_StringVar & AddStringVar(const std::string & name, const std::string & desc) {
+      return GetScope().AddStringVar(name, desc);
+    }
+    Symbol_DoubleVar & AddValueVar(const std::string & name, const std::string & desc) {
+      return GetScope().AddValueVar(name, desc);
+    }
+    Symbol_Scope & AddScope(const std::string & name, const std::string & desc) {
+      return GetScope().AddScope(name, desc);
+    }
+    Symbol_Object & AddObject(const std::string & type_name, const std::string & var_name) {
+      return symbol_table->MakeObjSymbol(type_name, var_name, GetScope());
+    }
   };
 
 
@@ -269,27 +370,8 @@ namespace emplode {
     Lexer lexer;               ///< Lexer to process input code.
     SymbolTable symbol_table;  ///< Management of identifiers.
     ASTNode_Block ast_root;    ///< Abstract syntax tree version of input file.
-    bool debug = false;        ///< Should we print full debug information?
-
-    /// A list of precedence levels for symbols.
-    std::unordered_map<std::string, size_t> precedence_map;
-
-    // -- Helper functions --
-    bool IsID(pos_t pos) const { return pos.IsValid() && lexer.IsID(*pos); }
-    bool IsNumber(pos_t pos) const { return pos.IsValid() && lexer.IsNumber(*pos); }
-    bool IsChar(pos_t pos) const { return pos.IsValid() && lexer.IsChar(*pos); }
-    bool IsString(pos_t pos) const { return pos.IsValid() && lexer.IsString(*pos); }
-    bool IsDots(pos_t pos) const { return pos.IsValid() && lexer.IsDots(*pos); }
-
-    bool IsType(pos_t pos) const { return pos.IsValid() && symbol_table.HasType(pos->lexeme); }
-
-    char AsChar(pos_t pos) const {
-      return (pos.IsValid() && lexer.IsSymbol(*pos)) ? pos->lexeme[0] : 0;
-    }
-    const std::string & AsLexeme(pos_t pos) const {
-      return pos.IsValid() ? pos->lexeme : emp::empty_string();
-    }
-    size_t GetSize(pos_t pos) const { return pos.IsValid() ? pos->lexeme.size() : 0; }
+    bool debug = true;        ///< Should we print full debug information?
+    std::unordered_map<std::string, size_t> precedence_map;  ///< Precedence levels for symbols.
 
     std::string ConcatLexemes(pos_t start_pos, pos_t end_pos) const {
       emp_assert(start_pos <= end_pos);
@@ -305,53 +387,20 @@ namespace emplode {
     }
 
     template <typename... Ts>
-    void Error(pos_t pos, Ts... args) const {
-      std::string line_info = pos.AtEnd() ? "end of input" : emp::to_string("line ", pos->line_id);
-      std::cout << "Error (" << line_info << " in '" << pos.GetTokenStream().GetName() << "'): "
-                << emp::to_string(std::forward<Ts>(args)...) << "\nAborting." << std::endl;
-      exit(1);
-    }
-
-    template <typename... Ts>
     void Debug(Ts... args) const {
       if (debug) std::cout << "DEBUG: " << emp::to_string(std::forward<Ts>(args)...) << std::endl;
     }
 
-    template <typename... Ts>
-    void Require(bool result, pos_t pos, Ts... args) const {
-      if (!result) { Error(pos, std::forward<Ts>(args)...); }
-    }
-    template <typename... Ts>
-    void RequireID(pos_t pos, Ts... args) const {
-      if (!IsID(pos)) { Error(pos, std::forward<Ts>(args)...); }
-    }
-    template <typename... Ts>
-    void RequireNumber(pos_t pos, Ts... args) const {
-      if (!IsNumber(pos)) { Error(pos, std::forward<Ts>(args)...); }
-    }
-    template <typename... Ts>
-    void RequireString(pos_t pos, Ts... args) const {
-      if (!IsString(pos)) { Error(pos, std::forward<Ts>(args)...); }
-    }
-    template <typename... Ts>
-    void RequireChar(char req_char, pos_t pos, Ts... args) const {
-      if (AsChar(pos) != req_char) { Error(pos, std::forward<Ts>(args)...); }
-    }
-    template <typename... Ts>
-    void RequireLexeme(const std::string & req_str, pos_t pos, Ts... args) const {
-      if (AsLexeme(pos) != req_str) { Error(pos, std::forward<Ts>(args)...); }
-    }
 
     /// Load a variable name from the provided scope.
     /// If create_ok is true, create any variables that we don't find.  Otherwise continue the
     /// search for them in successively outer (lower) scopes.
-    [[nodiscard]] emp::Ptr<ASTNode_Leaf> ParseVar(pos_t & pos,
-                                                  Symbol_Scope & cur_scope,
+    [[nodiscard]] emp::Ptr<ASTNode_Leaf> ParseVar(ParseState & state,
                                                   bool create_ok=false,
                                                   bool scan_scopes=true);
 
     /// Load a value from the provided scope, which can come from a variable or a literal.
-    [[nodiscard]] emp::Ptr<ASTNode> ParseValue(pos_t & pos, Symbol_Scope & cur_scope);
+    [[nodiscard]] emp::Ptr<ASTNode> ParseValue(ParseState & state);
 
     /// Calculate the result of the provided operation on two computed entries.
     [[nodiscard]] emp::Ptr<ASTNode> ProcessOperation(const std::string & symbol,
@@ -359,26 +408,25 @@ namespace emplode {
                                                      emp::Ptr<ASTNode> value2);
 
     /// Calculate a full expression found in a token sequence, using the provided scope.
-    [[nodiscard]] emp::Ptr<ASTNode>
-      ParseExpression(pos_t & pos, Symbol_Scope & cur_scope, size_t prec_limit=1000);
+    [[nodiscard]] emp::Ptr<ASTNode> ParseExpression(ParseState & state, size_t prec_limit=1000);
 
     /// Parse the declaration of a variable and return the newly created Symbol
-    Symbol & ParseDeclaration(pos_t & pos, Symbol_Scope & scope);
+    Symbol & ParseDeclaration(ParseState & state);
 
     /// Parse an event description.
-    emp::Ptr<ASTNode> ParseEvent(pos_t & pos, Symbol_Scope & scope);
+    emp::Ptr<ASTNode> ParseEvent(ParseState & state);
 
     /// Parse the next input in the specified Struct.  A statement can be a variable declaration,
     /// an expression, or an event.
-    [[nodiscard]] emp::Ptr<ASTNode> ParseStatement(pos_t & pos, Symbol_Scope & scope);
+    [[nodiscard]] emp::Ptr<ASTNode> ParseStatement(ParseState & state);
 
     /// Keep parsing statements until there aren't any more or we leave this scope. 
-    [[nodiscard]] emp::Ptr<ASTNode_Block> ParseStatementList(pos_t & pos, Symbol_Scope & scope) {
-      Debug("Running ParseStatementList(", pos.GetIndex(), ":('", AsLexeme(pos), "'),", scope.GetName(), ")");
-      auto cur_block = emp::NewPtr<ASTNode_Block>(scope);
-      while (pos.IsValid() && AsChar(pos) != '}') {
+    [[nodiscard]] emp::Ptr<ASTNode_Block> ParseStatementList(ParseState & state) {
+      Debug("Running ParseStatementList(", state.AsString(), ")");
+      auto cur_block = emp::NewPtr<ASTNode_Block>(state.GetScope());
+      while (state.IsValid() && state.AsChar() != '}') {
         // Parse each statement in the file.
-        emp::Ptr<ASTNode> statement_node = ParseStatement(pos, scope);
+        emp::Ptr<ASTNode> statement_node = ParseStatement(state);
 
         // If the current statement is real, add it to the current block.
         if (!statement_node.IsNull()) cur_block->AddChild( statement_node );
@@ -532,7 +580,8 @@ namespace emplode {
       pos_t pos = tokens.begin();             // Start at the beginning of the file.
 
       // Parse and run the program, starting from the outer scope.
-      auto cur_block = ParseStatementList(pos, symbol_table.GetRootScope());
+      ParseState state{pos, symbol_table, symbol_table.GetRootScope(), lexer};
+      auto cur_block = ParseStatementList(state);
       cur_block->Process();
 
       // Store this AST onto the full set we're working with.
@@ -553,7 +602,8 @@ namespace emplode {
       pos_t pos = tokens.begin();
 
       // Parse and run the program, starting from the outer scope.
-      auto cur_block = ParseStatementList(pos, symbol_table.GetRootScope());
+      ParseState state{pos, symbol_table, symbol_table.GetRootScope(), lexer};
+      auto cur_block = ParseStatementList(state);
       cur_block->Process();
 
       // Store this AST onto the full set we're working with.
@@ -567,7 +617,8 @@ namespace emplode {
       auto tokens = lexer.Tokenize(statement, "eval command"); // Convert to a TokenStream.
       tokens.push_back(lexer.ToToken(";"));                 // Ensure a semi-colon at end.
       pos_t pos = tokens.begin();                           // Start are beginning of stream.
-      auto cur_block = ParseStatement(pos, symbol_table.GetRootScope());  // Convert tokens to AST
+      ParseState state{pos, symbol_table, symbol_table.GetRootScope(), lexer};
+      auto cur_block = ParseStatement(state);               // Convert tokens to AST
       auto result_ptr = cur_block->Process();               // Process AST to get result symbol.
       std::string result = "";                              // Default result to an empty string.
       if (result_ptr) {
@@ -601,97 +652,92 @@ namespace emplode {
 
 
   // Load a variable name from the provided scope.
-  emp::Ptr<ASTNode_Leaf> Emplode::ParseVar(pos_t & pos,
-                                          Symbol_Scope & cur_scope,
-                                          bool create_ok, bool scan_scopes)
+  emp::Ptr<ASTNode_Leaf> Emplode::ParseVar(ParseState & state, bool create_ok, bool scan_scopes)
   {
-    Debug("Running ParseVar(", pos.GetIndex(), ":('", AsLexeme(pos), "'),", cur_scope.GetName(), ",", create_ok, ")");
+    Debug("Running ParseVar(", state.AsString(), ",", create_ok, ",", scan_scopes, ")");
 
     // First, check for leading dots.
-    if (IsDots(pos)) {
+    if (state.IsDots()) {
+      Debug("...found dots: ", state.AsLexeme());
       scan_scopes = false;             // One or more initial dots specify scope; don't scan!
-      size_t num_dots = GetSize(pos);  // Extra dots shift scope.
-      emp::Ptr<Symbol_Scope> scope_ptr = &cur_scope;
+      size_t num_dots = state.GetTokenSize();  // Extra dots shift scope.
+      emp::Ptr<Symbol_Scope> cur_scope = &state.GetScope();
       while (num_dots-- > 1) {
-        scope_ptr = scope_ptr->GetScope();
-        if (scope_ptr.IsNull()) Error(pos, "Too many dots; goes beyond global scope.");
+        cur_scope = cur_scope->GetScope();
+        if (cur_scope.IsNull()) state.Error("Too many dots; goes beyond global scope.");
       }
-      ++pos;
+      ++state;
 
       // Recursively call in the found scope if needed; given leading dot, do not scan scopes.
-      if (scope_ptr.Raw() != &cur_scope) return ParseVar(pos, *scope_ptr, create_ok, false);
+      if (cur_scope.Raw() != &state.GetScope()) {
+        state.PushScope(*cur_scope);
+        auto result = ParseVar(state, create_ok, false);
+        state.PopScope();
+        return result;
+      }
     }
 
     // Next, we must have a variable name.
     // @CAO: Or a : ?  E.g., technically "..:size" could give you the parent scope size.
-    RequireID(pos, "Must provide a variable identifier!");
-    std::string var_name = AsLexeme(pos++);
+    state.RequireID("Must provide a variable identifier!");
+    std::string var_name = state.UseLexeme();
 
     // Lookup this variable.
-    emp::Ptr<Symbol> cur_symbol = cur_scope.LookupSymbol(var_name, scan_scopes);
-
-    // If we can't find this variable, throw an error.
-    if (cur_symbol.IsNull()) {
-      Error(pos, "'", var_name, "' does not exist as a parameter, variable, or type.",
-            "  Current scope is '", cur_scope.GetName(), "'");
-    }
+    Debug("...looking up symbol '", var_name,
+          "' starting at scope '", state.GetScopeName(),
+          "'; scanning=", scan_scopes);
+    Symbol & cur_symbol = state.LookupSymbol(var_name, scan_scopes);
 
     // If this variable just provided a scope, keep going.
-    if (IsDots(pos)) return ParseVar(pos, cur_symbol->AsScope(), create_ok, false);
+    if (state.IsDots()) {
+      state.PushScope(cur_symbol.AsScope());
+      auto result = ParseVar(state, create_ok, false);
+      state.PopScope();
+      return result;
+    }
 
     // Otherwise return the variable as a leaf!
-    return emp::NewPtr<ASTNode_Leaf>(cur_symbol);
-  }
-
-  emp::Ptr<ASTNode_Leaf> MakeTempLeaf(double val) {
-    auto out_ptr = emp::NewPtr<Symbol_DoubleVar>("", val, "Temporary double", nullptr);
-    out_ptr->SetTemporary();
-    return emp::NewPtr<ASTNode_Leaf>(out_ptr);
-  }
-
-  emp::Ptr<ASTNode_Leaf> MakeTempLeaf(const std::string & val) {
-    auto out_ptr = emp::NewPtr<Symbol_StringVar>("", val, "Temporary string", nullptr);
-    out_ptr->SetTemporary();
-    return emp::NewPtr<ASTNode_Leaf>(out_ptr);
+    return emp::NewPtr<ASTNode_Leaf>(&cur_symbol);
   }
 
   // Load a value from the provided scope, which can come from a variable or a literal.
-  emp::Ptr<ASTNode> Emplode::ParseValue(pos_t & pos, Symbol_Scope & cur_scope) {
-    Debug("Running ParseValue(", pos.GetIndex(), ":('", AsLexeme(pos), "'),", cur_scope.GetName(), ")");
+  emp::Ptr<ASTNode> Emplode::ParseValue(ParseState & state) {
+    Debug("Running ParseValue(", state.AsString(), ")");
 
     // Anything that begins with an identifier or dots must represent a variable.  Refer!
-    if (IsID(pos) || IsDots(pos)) return ParseVar(pos, cur_scope, false, true);
+    if (state.IsID() || state.IsDots()) return ParseVar(state, false, true);
 
     // A literal number should have a temporary created with its value.
-    if (IsNumber(pos)) {
-      Debug("...value is a number: ", AsLexeme(pos));
-      double value = emp::from_string<double>(AsLexeme(pos++)); // Calculate value.
-      return MakeTempLeaf(value);                             // Return temporary Symbol.
+    if (state.IsNumber()) {
+      Debug("...value is a number: ", state.AsLexeme());
+      double value = emp::from_string<double>(state.UseLexeme()); // Calculate value.
+      return MakeTempLeaf(value);                                 // Return temporary Symbol.
     }
 
     // A literal char should be converted to its ASCII value.
-    if (IsChar(pos)) {
-      Debug("...value is a char: ", AsLexeme(pos));
-      char lit_char = emp::from_literal_char(AsLexeme(pos++));  // Convert the literal char.
-      return MakeTempLeaf((double) lit_char);                 // Return temporary Symbol.
+    if (state.IsChar()) {
+      Debug("...value is a char: ", state.AsLexeme());
+      char lit_char = emp::from_literal_char(state.UseLexeme());  // Convert the literal char.
+      return MakeTempLeaf((double) lit_char);                     // Return temporary Symbol.
     }
 
     // A literal string should be converted to a regular string and used.
-    if (IsString(pos)) {
-      Debug("...value is a string: ", AsLexeme(pos));
-      std::string str = emp::from_literal_string(AsLexeme(pos++)); // Convert the literal string.
-      return MakeTempLeaf(str);                         // Return temporary Symbol.
+    if (state.IsString()) {
+      Debug("...value is a string: ", state.AsLexeme());
+      std::string str = emp::from_literal_string(state.UseLexeme()); // Convert the literal string.
+      return MakeTempLeaf(str);                                      // Return temporary Symbol.
     }
 
     // If we have an open parenthesis, process everything inside into a single value...
-    if (AsChar(pos) == '(') {
-      pos++;
-      emp::Ptr<ASTNode> out_ast = ParseExpression(pos, cur_scope);
-      RequireChar(')', pos++, "Expected a close parenthesis in expression.");
+    if (state.AsChar() == '(') {
+      ++state;
+      emp::Ptr<ASTNode> out_ast = ParseExpression(state);
+      state.RequireChar(')', "Expected a close parenthesis in expression.");
+      ++state;
       return out_ast;
     }
 
-    Error(pos, "Expected a value, found: ", AsLexeme(pos));
+    state.Error("Expected a value, found: ", state.AsLexeme());
 
     return nullptr;
   }
@@ -781,31 +827,31 @@ namespace emplode {
                                       
 
   // Calculate an expression in the provided scope.
-  emp::Ptr<ASTNode> Emplode::ParseExpression(
-    pos_t & pos,
-    Symbol_Scope & scope,
-    size_t prec_limit
-  ) {
-    Debug("Running ParseExpression(", pos.GetIndex(), ":('", AsLexeme(pos), "'),", scope.GetName(), ")");
+  emp::Ptr<ASTNode> Emplode::ParseExpression(ParseState & state, size_t prec_limit) {
+    Debug("Running ParseExpression(", state.AsString(), ", limit=", prec_limit, ")");
 
     // @CAO Should test for unary operators at the beginning of an expression.
 
     /// Process a value (and possibly more!)
-    emp::Ptr<ASTNode> cur_node = ParseValue(pos, scope);
-    std::string symbol = AsLexeme(pos);
+    emp::Ptr<ASTNode> cur_node = ParseValue(state);
+    std::string symbol = state.AsLexeme();
+
+    Debug("...back in ParseExpression; symbol=", symbol, "; state=", state.AsString());
+
     while ( emp::Has(precedence_map, symbol) && precedence_map[symbol] < prec_limit ) {
-      ++pos;
+      ++state;
       // Do we have a function call?
       if (symbol == "(") {
         // Collect arguments.
         emp::vector< emp::Ptr<ASTNode> > args;
-        while (AsChar(pos) != ')') {
-          emp::Ptr<ASTNode> next_arg = ParseExpression(pos, scope);
-          args.push_back(next_arg);       // Save this argument.
-          if (AsChar(pos) != ',') break;  // If we don't have a comma, no more args!
-          ++pos;                          // Move on to the next argument.
+        while (state.AsChar() != ')') {
+          emp::Ptr<ASTNode> next_arg = ParseExpression(state);
+          args.push_back(next_arg);          // Save this argument.
+          if (state.AsChar() != ',') break;  // If we don't have a comma, no more args!
+          ++state;                           // Move on to the next argument.
         }
-        RequireChar(')', pos++, "Expected a ')' to end function call.");
+        state.RequireChar(')', "Expected a ')' to end function call.");
+        ++state;
 
         // cur_node should have evaluated itself to a function; a Call node will link that
         // function with its arguments, run it, and return the result.
@@ -814,12 +860,12 @@ namespace emplode {
 
       // Otherwise we must have a binary math operation.
       else {
-        emp::Ptr<ASTNode> node2 = ParseExpression(pos, scope, precedence_map[symbol]);
+        emp::Ptr<ASTNode> node2 = ParseExpression(state, precedence_map[symbol]);
         cur_node = ProcessOperation(symbol, cur_node, node2);
       }
 
       // Move the current value over to cur_node and check if we have a new symbol...
-      symbol = AsLexeme(pos);
+      symbol = state.AsLexeme();
     }
 
     emp_assert(!cur_node.IsNull());
@@ -827,113 +873,123 @@ namespace emplode {
   }
 
   // Parse an the declaration of a variable.
-  Symbol & Emplode::ParseDeclaration(pos_t & pos, Symbol_Scope & scope) {
-    std::string type_name = AsLexeme(pos++);
-    RequireID(pos, "Type name '", type_name, "' must be followed by variable to declare.");
-    std::string var_name = AsLexeme(pos++);
+  Symbol & Emplode::ParseDeclaration(ParseState & state) {
+    std::string type_name = state.UseLexeme();
+    state.RequireID("Type name '", type_name, "' must be followed by variable to declare.");
+    std::string var_name = state.UseLexeme();
 
     if (type_name == "String") {
-      return scope.AddStringVar(var_name, "Local string variable.");
+      return state.AddStringVar(var_name, "Local string variable.");
     }
     else if (type_name == "Value") {
-      return scope.AddValueVar(var_name, "Local value variable.");
+      return state.AddValueVar(var_name, "Local value variable.");
     }
     else if (type_name == "Struct") {
-      return scope.AddScope(var_name, "Local struct");
+      return state.AddScope(var_name, "Local struct");
     }
 
     // Otherwise we have an object of a custom type to add.
-    Debug("Building var '", var_name, "' of type '", type_name, "'");
-
-    return symbol_table.MakeObjSymbol(type_name, var_name, scope);
+    Debug("Building object '", var_name, "' of type '", type_name, "'");
+    return state.AddObject(type_name, var_name);
   }
 
   // Parse an event description.
-  emp::Ptr<ASTNode> Emplode::ParseEvent(pos_t & pos, Symbol_Scope & scope) {
-    RequireChar('@', pos++, "All event declarations must being with an '@'.");
-    RequireID(pos, "Events must start by specifying event name.");
-    const std::string & event_name = AsLexeme(pos++);
-    RequireChar('(', pos++, "Expected parentheses after '", event_name, "' for args.");
+  emp::Ptr<ASTNode> Emplode::ParseEvent(ParseState & state) {
+    state.RequireChar('@', "All event declarations must being with an '@'.");
+    ++state;
+    state.RequireID("Events must start by specifying event name.");
+    const std::string & event_name = state.UseLexeme();
+    state.RequireChar('(', "Expected parentheses after '", event_name, "' for args.");
+    ++state;
 
     emp::vector<emp::Ptr<ASTNode>> args;
-    while (AsChar(pos) != ')') {
-      args.push_back( ParseExpression(pos, scope) );
-      if (AsChar(pos) == ',') pos++;
+    while (state.AsChar() != ')') {
+      args.push_back( ParseExpression(state) );
+      if (state.AsChar() == ',') ++state;
     }
-    RequireChar(')', pos++, "Event args must end in a ')'");
+    state.RequireChar(')', "Event args must end in a ')'");
+    ++state;
 
-    emp::Ptr<ASTNode> action = ParseStatement(pos, scope);
+    emp::Ptr<ASTNode> action = ParseStatement(state);
 
     Debug("Building event '", event_name, "' with args ", args);
 
     auto setup_event = [this, event_name](emp::Ptr<ASTNode> action,
-                                          const emp::vector<emp::Ptr<Symbol>> & args) {
-      AddEvent(event_name, action,
-               (args.size() > 0) ? args[0]->AsDouble() : 0.0,
-               (args.size() > 1) ? args[1]->AsDouble() : 0.0,
-               (args.size() > 2) ? args[2]->AsDouble() : -1.0);
+                                           const emp::vector<emp::Ptr<Symbol>> & args) {
+      AddEvent(
+        event_name, action,
+        (args.size() > 0) ? args[0]->AsDouble() : 0.0,
+        (args.size() > 1) ? args[1]->AsDouble() : 0.0,
+        (args.size() > 2) ? args[2]->AsDouble() : -1.0
+      );
     };
 
     return emp::NewPtr<ASTNode_Event>(event_name, action, args, setup_event);
   }
 
   // Process the next input in the specified Struct.
-  emp::Ptr<ASTNode> Emplode::ParseStatement(pos_t & pos, Symbol_Scope & scope) {
-    Debug("Running ParseStatement(", pos.GetIndex(), ":('", AsLexeme(pos), "'),", scope.GetName(), ")");
+  emp::Ptr<ASTNode> Emplode::ParseStatement(ParseState & state) {
+    Debug("Running ParseStatement(", state.AsString(), ")");
 
     // Allow a statement with an empty line.
-    if (AsChar(pos) == ';') { pos++; return nullptr; }
+    if (state.AsChar() == ';') { ++state; return nullptr; }
 
     // Allow a statement to be a new scope.
-    if (AsChar(pos) == '{') {
-      pos++;
+    if (state.AsChar() == '{') {
+      state++;
       // @CAO Need to add an anonymous scope (that gets written properly)
-      emp::Ptr<ASTNode> out_node = ParseStatementList(pos, scope);
-      RequireChar('}', pos++, "Expected '}' to close scope.");
+      emp::Ptr<ASTNode> out_node = ParseStatementList(state);
+      state.RequireChar('}', "Expected '}' to close scope.");
+      ++state;
       return out_node;
     }
 
     // Allow event definitions if a statement begins with an '@'
-    if (AsChar(pos) == '@') return ParseEvent(pos, scope);
+    if (state.AsChar() == '@') return ParseEvent(state);
 
     // Allow this statement to be a declaration if it begins with a type.
-    if (IsType(pos)) {
-      Symbol & new_symbol = ParseDeclaration(pos, scope);
+    if (state.IsType()) {
+      Symbol & new_symbol = ParseDeclaration(state);
   
       // If the next symbol is a ';' this is a declaration without an assignment.
-      if (AsChar(pos) == ';') {
-        pos++;           // Skip the semi-colon.
+      if (state.AsChar() == ';') {
+        state++;           // Skip the semi-colon.
         return nullptr;  // We are done!
       }
 
       // If this symbol is a new scope, it can be populated now either directly (with in braces)
       // or indirectly (with and assignment)
       if (new_symbol.IsScope()) {
-        if (AsChar(pos) == '{') {
-          pos++;
-          emp::Ptr<ASTNode> out_node = ParseStatementList(pos, new_symbol.AsScope());
-          RequireChar('}', pos++, "Expected scope '", new_symbol.GetName(), "' to end with a '}'.");
+        if (state.AsChar() == '{') {
+          ++state;
+          state.PushScope(new_symbol.AsScope());
+          emp::Ptr<ASTNode> out_node = ParseStatementList(state);
+          state.PopScope();
+          state.RequireChar('}', "Expected scope '", new_symbol.GetName(), "' to end with a '}'.");
+          ++state;
           return out_node;
         }
 
-        RequireChar('=', pos, "Expected scope '", new_symbol.GetName(),
-                     "' definition to start with a '{' or '='; found ''", AsLexeme(pos), "'.");
+        state.RequireChar('=', "Expected scope '", new_symbol.GetName(),
+                     "' definition to start with a '{' or '='; found ''", state.AsLexeme(), "'.");
         
       }      
 
       // Otherwise rewind so that the new variable can be used to start an expression.
-      --pos;
+      --state;
     }
 
 
     // If we made it here, remainder should be an expression.
-    emp::Ptr<ASTNode> out_node = ParseExpression(pos, scope);
+    emp::Ptr<ASTNode> out_node = ParseExpression(state);
 
     // Expressions must end in a semi-colon.
-    RequireChar(';', pos++, "Expected ';' at the end of a statement.");
+    state.RequireChar(';', "Expected ';' at the end of a statement; found: ", state.AsLexeme());
+    ++state;
 
     return out_node;
   }
 
 }
+
 #endif
