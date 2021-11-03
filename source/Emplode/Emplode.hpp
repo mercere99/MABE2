@@ -292,14 +292,27 @@ namespace emplode {
     bool IsEvent() const { return symbol_table->HasEvent(AsLexeme()); }
     bool IsType() const { return symbol_table->HasType(AsLexeme()); }
 
+    /// Convert the current state to a character; use \0 if cur token is not a symbol.
     char AsChar() const { return (pos && lexer->IsSymbol(*pos)) ? pos->lexeme[0] : 0; }
+
+    /// Return the lexeme associate with the current state.
     const std::string & AsLexeme() const { return pos ? pos->lexeme : emp::empty_string(); }
+
+    /// Return the lexeme associate with the current state AND advance the token stream.
     const std::string & UseLexeme() {
       const std::string & out = AsLexeme();
       pos++;
       return out;
     }
 
+    /// Return whether the current token is the specified char; if so also advance token stream.
+    bool UseIfChar(char test_char) {
+      if (AsChar() != test_char) return false;
+      ++pos;
+      return true;
+    }
+
+    /// Report an error in parsing this file and exit.
     template <typename... Ts>
     void Error(Ts &&... args) const {
       std::string line_info = pos.AtEnd() ? "end of input" : emp::to_string("line ", pos->line_id);
@@ -331,6 +344,12 @@ namespace emplode {
     template <typename... Ts>
     void RequireLexeme(const std::string & lex, Ts &&... args) const {
       if (AsLexeme() != lex) Error(std::forward<Ts>(args)...);
+    }
+
+    template <typename... Ts>
+    void UseRequiredChar(char req_char, Ts &&... args) {
+      if (AsChar() != req_char) Error(std::forward<Ts>(args)...);
+      ++pos;      
     }
 
     void PushScope(Symbol_Scope & _scope) { scope_stack.push_back(&_scope); }
@@ -729,11 +748,9 @@ namespace emplode {
     }
 
     // If we have an open parenthesis, process everything inside into a single value...
-    if (state.AsChar() == '(') {
-      ++state;
+    if (state.UseIfChar('(')) {
       emp::Ptr<ASTNode> out_ast = ParseExpression(state);
-      state.RequireChar(')', "Expected a close parenthesis in expression.");
-      ++state;
+      state.UseRequiredChar(')', "Expected a close parenthesis in expression.");
       return out_ast;
     }
 
@@ -834,14 +851,14 @@ namespace emplode {
 
     /// Process a value (and possibly more!)
     emp::Ptr<ASTNode> cur_node = ParseValue(state);
-    std::string symbol = state.AsLexeme();
+    std::string op = state.AsLexeme();
 
-    Debug("...back in ParseExpression; symbol=", symbol, "; state=", state.AsString());
+    Debug("...back in ParseExpression; op=`", op, "`; state=", state.AsString());
 
-    while ( emp::Has(precedence_map, symbol) && precedence_map[symbol] < prec_limit ) {
-      ++state;
+    while ( emp::Has(precedence_map, op) && precedence_map[op] < prec_limit ) {
+      ++state; // Move past the current operator
       // Do we have a function call?
-      if (symbol == "(") {
+      if (op == "(") {
         // Collect arguments.
         emp::vector< emp::Ptr<ASTNode> > args;
         while (state.AsChar() != ')') {
@@ -850,8 +867,7 @@ namespace emplode {
           if (state.AsChar() != ',') break;  // If we don't have a comma, no more args!
           ++state;                           // Move on to the next argument.
         }
-        state.RequireChar(')', "Expected a ')' to end function call.");
-        ++state;
+        state.UseRequiredChar(')', "Expected a ')' to end function call.");
 
         // cur_node should have evaluated itself to a function; a Call node will link that
         // function with its arguments, run it, and return the result.
@@ -860,12 +876,12 @@ namespace emplode {
 
       // Otherwise we must have a binary math operation.
       else {
-        emp::Ptr<ASTNode> node2 = ParseExpression(state, precedence_map[symbol]);
-        cur_node = ProcessOperation(symbol, cur_node, node2);
+        emp::Ptr<ASTNode> node2 = ParseExpression(state, precedence_map[op]);
+        cur_node = ProcessOperation(op, cur_node, node2);
       }
 
-      // Move the current value over to cur_node and check if we have a new symbol...
-      symbol = state.AsLexeme();
+      // Move the current value over to cur_node and check if we have a new operator...
+      op = state.AsLexeme();
     }
 
     emp_assert(!cur_node.IsNull());
@@ -895,20 +911,17 @@ namespace emplode {
 
   // Parse an event description.
   emp::Ptr<ASTNode> Emplode::ParseEvent(ParseState & state) {
-    state.RequireChar('@', "All event declarations must being with an '@'.");
-    ++state;
+    state.UseRequiredChar('@', "All event declarations must being with an '@'.");
     state.RequireID("Events must start by specifying event name.");
     const std::string & event_name = state.UseLexeme();
-    state.RequireChar('(', "Expected parentheses after '", event_name, "' for args.");
-    ++state;
+    state.UseRequiredChar('(', "Expected parentheses after '", event_name, "' for args.");
 
     emp::vector<emp::Ptr<ASTNode>> args;
     while (state.AsChar() != ')') {
       args.push_back( ParseExpression(state) );
-      if (state.AsChar() == ',') ++state;
+      state.UseIfChar(',');                     // Skip comma if next (does allow trailing comma)
     }
-    state.RequireChar(')', "Event args must end in a ')'");
-    ++state;
+    state.UseRequiredChar(')', "Event args must end in a ')'");
 
     emp::Ptr<ASTNode> action = ParseStatement(state);
 
@@ -932,15 +945,13 @@ namespace emplode {
     Debug("Running ParseStatement(", state.AsString(), ")");
 
     // Allow a statement with an empty line.
-    if (state.AsChar() == ';') { ++state; return nullptr; }
+    if (state.UseIfChar(';')) { return nullptr; }
 
     // Allow a statement to be a new scope.
-    if (state.AsChar() == '{') {
-      state++;
+    if (state.UseIfChar('{')) {
       // @CAO Need to add an anonymous scope (that gets written properly)
       emp::Ptr<ASTNode> out_node = ParseStatementList(state);
-      state.RequireChar('}', "Expected '}' to close scope.");
-      ++state;
+      state.UseRequiredChar('}', "Expected '}' to close scope.");
       return out_node;
     }
 
@@ -960,13 +971,11 @@ namespace emplode {
       // If this symbol is a new scope, it can be populated now either directly (with in braces)
       // or indirectly (with and assignment)
       if (new_symbol.IsScope()) {
-        if (state.AsChar() == '{') {
-          ++state;
+        if (state.UseIfChar('{')) {
           state.PushScope(new_symbol.AsScope());
           emp::Ptr<ASTNode> out_node = ParseStatementList(state);
           state.PopScope();
-          state.RequireChar('}', "Expected scope '", new_symbol.GetName(), "' to end with a '}'.");
-          ++state;
+          state.UseRequiredChar('}', "Expected scope '", new_symbol.GetName(), "' to end with a '}'.");
           return out_node;
         }
 
@@ -984,8 +993,7 @@ namespace emplode {
     emp::Ptr<ASTNode> out_node = ParseExpression(state);
 
     // Expressions must end in a semi-colon.
-    state.RequireChar(';', "Expected ';' at the end of a statement; found: ", state.AsLexeme());
-    ++state;
+    state.UseRequiredChar(';', "Expected ';' at the end of a statement; found: ", state.AsLexeme());
 
     return out_node;
   }
