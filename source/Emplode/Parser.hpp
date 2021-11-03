@@ -251,7 +251,7 @@ namespace emplode {
   {
     Debug("Running ParseVar(", state.AsString(), ",", create_ok, ",", scan_scopes, ")");
 
-    // First, check for leading dots.
+    // Check for leading dots to require this scope (one dot) or indicate a lower-level scope.
     if (state.IsDots()) {
       Debug("...found dots: ", state.AsLexeme());
       scan_scopes = false;             // One or more initial dots specify scope; don't scan!
@@ -298,6 +298,14 @@ namespace emplode {
   // Load a value from the provided scope, which can come from a variable or a literal.
   emp::Ptr<ASTNode> Parser::ParseValue(ParseState & state) {
     Debug("Running ParseValue(", state.AsString(), ")");
+
+    // First check for a unary negation at the start of the value.
+    if (state.UseIfChar('-')) {
+      auto out_val = emp::NewPtr<ASTNode_Math1>("unary negation");
+      out_val->SetFun( [](double val){ return -val; } );
+      out_val->AddChild(ParseValue(state));
+      return out_val;
+    }
 
     // Anything that begins with an identifier or dots must represent a variable.  Refer!
     if (state.IsID() || state.IsDots()) return ParseVar(state, false, true);
