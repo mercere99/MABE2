@@ -37,6 +37,17 @@ namespace EmplodeTools {
     return out_symbol;
   }
 
+  template <typename T>
+  static auto DefaultCopyFun() {
+    return [](const EmplodeType & from, EmplodeType & to) {
+      emp::Ptr<const T> from_ptr = dynamic_cast<const T *>(&from);
+      emp::Ptr<T> to_ptr = dynamic_cast<T *>(&to);
+      if (!from_ptr || !to_ptr) return false;
+      *to_ptr = *from_ptr;
+      return true;
+    };
+  }
+
   template <typename RETURN_T>
   static auto ConvertReturn( RETURN_T && return_value ) {
     // If a return value is already a symbol pointer, just pass it through.
@@ -180,7 +191,9 @@ namespace EmplodeTools {
   // Wrap a provided MEMBER function to make it take a reference to the object it is a member of
   // and a vector of Ptr<Symbol> and return a single Ptr<Symbol> representing the result.
   template <typename FUN_T>
-  static auto WrapMemberFunction(emp::TypeID class_type, const std::string & name, FUN_T fun) {
+  static auto WrapMemberFunction([[maybe_unused]] emp::TypeID class_type,
+                                 const std::string & name, FUN_T fun)
+  {
     // Do some checks that will produce reasonable errors.
     using info_t = emp::FunInfo<FUN_T>;
     using index_t = emp::ValPackCount<info_t::num_args-1>;
