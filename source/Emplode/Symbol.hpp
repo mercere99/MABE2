@@ -35,8 +35,10 @@
 
 namespace emplode {
 
-  class Symbol_Scope;
   class EmplodeType;
+  class Symbol_Function;
+  class Symbol_Object;
+  class Symbol_Scope;
 
   class Symbol {
   protected:
@@ -100,15 +102,16 @@ namespace emplode {
 
     virtual bool IsNumeric() const { return false; }   ///< Is symbol any kind of number?
     virtual bool IsBool() const { return false; }      ///< Is symbol a Boolean value?
-    virtual bool IsInt() const { return false; }       ///< Is symbol a integer value?
     virtual bool IsDouble() const { return false; }    ///< Is symbol a floting point value?
+    virtual bool IsInt() const { return false; }       ///< Is symbol a integer value?
     virtual bool IsString() const { return false; }    ///< Is symbol a string?
 
-    virtual bool IsLocal() const { return false; }     ///< Was symbol defined in config file?
-    virtual bool IsFunction() const { return false; }  ///< Is symbol a function?
-    virtual bool IsScope() const { return false; }     ///< Is symbol a full scope?
-    virtual bool IsObject() const { return false; }    ///< Is symbol associated with C++ object?
     virtual bool IsError() const { return false; }     ///< Does symbol flag an error?
+    virtual bool IsFunction() const { return false; }  ///< Is symbol a function?
+    virtual bool IsObject() const { return false; }    ///< Is symbol associated with C++ object?
+    virtual bool IsScope() const { return false; }     ///< Is symbol a full scope?
+
+    virtual bool IsLocal() const { return false; }     ///< Was symbol defined in config file?
 
     virtual bool HasNumericReturn() const { return false; } ///< Is symbol a function that returns a number?
     virtual bool HasStringReturn() const { return false; }  ///< Is symbol a function that returns a string?
@@ -124,16 +127,19 @@ namespace emplode {
     virtual Symbol & SetValue(double in) { (void) in; emp_assert(false, in); return *this; }
     virtual Symbol & SetString(const std::string & in) { (void) in; emp_assert(false, in); return *this; }
 
+    virtual emp::Ptr<Symbol_Function> AsFunctionPtr() { return nullptr; }
+    virtual emp::Ptr<const Symbol_Function> AsFunctionPtr() const { return nullptr; }
+    virtual emp::Ptr<Symbol_Object> AsObjectPtr() { return nullptr; }
+    virtual emp::Ptr<const Symbol_Object> AsObjectPtr() const { return nullptr; }
     virtual emp::Ptr<Symbol_Scope> AsScopePtr() { return nullptr; }
     virtual emp::Ptr<const Symbol_Scope> AsScopePtr() const { return nullptr; }
-    Symbol_Scope & AsScope() {
-      emp_assert(AsScopePtr());
-      return *(AsScopePtr());
-    }
-    const Symbol_Scope & AsScope() const {
-      emp_assert(AsScopePtr());
-      return *(AsScopePtr());
-    }
+
+    Symbol_Function & AsFunction() { emp_assert(AsFunctionPtr()); return *(AsFunctionPtr()); }
+    const Symbol_Function & AsFunction() const { emp_assert(AsFunctionPtr()); return *(AsFunctionPtr()); }
+    Symbol_Object & AsObject() { emp_assert(AsObjectPtr()); return *(AsObjectPtr()); }
+    const Symbol_Object & AsObject() const { emp_assert(AsObjectPtr()); return *(AsObjectPtr()); }
+    Symbol_Scope & AsScope() { emp_assert(AsScopePtr()); return *(AsScopePtr()); }
+    const Symbol_Scope & AsScope() const { emp_assert(AsScopePtr()); return *(AsScopePtr()); }
 
     virtual emp::Ptr<EmplodeType> GetObjectPtr() { return nullptr; }
     virtual emp::Ptr<const EmplodeType> GetObjectPtr() const { return nullptr; }
