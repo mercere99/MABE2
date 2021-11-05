@@ -9,6 +9,9 @@
  * 
  */
 
+#ifndef EMPLODE_SYMBOL_TABLE_HPP
+#define EMPLODE_SYMBOL_TABLE_HPP
+
 #include <map>
 #include <string>
 #include <type_traits>
@@ -21,9 +24,6 @@
 #include "Events.hpp"
 #include "Symbol_Scope.hpp"
 
-
-#ifndef EMPLODE_SYMBOL_TABLE_HPP
-#define EMPLODE_SYMBOL_TABLE_HPP
 
 namespace emplode {
 
@@ -71,17 +71,19 @@ namespace emplode {
     /// To add a type, provide the type name (that can be referred to in a script) and a function
     /// that should be called (with the variable name) when an instance of that type is created.
     /// The function must return a reference to the newly created instance.
-    template <typename FUN_T>
+    template <typename INIT_FUN_T, typename COPY_FUN_T>
     TypeInfo & AddType(
       const std::string & type_name,
       const std::string & desc,
-      FUN_T init_fun,
+      INIT_FUN_T init_fun,
+      COPY_FUN_T copy_fun,
       emp::TypeID type_id,
       bool is_config_owned=false
     ) {
       emp_assert(!emp::Has(type_map, type_name), type_name, "Type already exists!");
       size_t index = type_map.size();
-      auto info_ptr = emp::NewPtr<TypeInfo>( index, type_name, desc, init_fun, is_config_owned );
+      auto info_ptr = emp::NewPtr<TypeInfo>( index, type_name, desc,
+                                             init_fun, copy_fun, is_config_owned );
       info_ptr->LinkType(type_id);
       type_map[type_name] = info_ptr;
       return *type_map[type_name];
@@ -89,26 +91,29 @@ namespace emplode {
 
     /// If the linked type can be provided as a template parameter, we can also double check that
     /// it is derived from EmplodeType (as it needs to be...)
-    template <typename OBJECT_T, typename FUN_T>
+    template <typename OBJECT_T, typename INIT_FUN_T, typename COPY_FUN_T>
     TypeInfo & AddType(
       const std::string & type_name,
       const std::string & desc,
-      FUN_T init_fun,
+      INIT_FUN_T init_fun,
+      COPY_FUN_T copy_fun,
       bool is_config_owned=false
     ) {
       static_assert(std::is_base_of<EmplodeType, OBJECT_T>(),
                     "Only EmplodeType objects can be used as a custom config type.");
-      TypeInfo & info = AddType(type_name, desc, init_fun, emp::GetTypeID<OBJECT_T>(), is_config_owned);
+      TypeInfo & info = AddType(type_name, desc, init_fun, copy_fun,
+                                emp::GetTypeID<OBJECT_T>(), is_config_owned);
       OBJECT_T::InitType(info);
       return info;
     }
 
-    /// If init_fun is not specified in add type, build our own and assume that we own the object.
+    /// If init_fun and copy_fun are not specified in add type, build our own and assume that we
+    /// own the object.
     template <typename OBJECT_T>
     TypeInfo & AddType(const std::string & type_name, const std::string & desc) {
-      return AddType<OBJECT_T>(type_name, desc,
-                               [](const std::string & /*name*/){ return emp::NewPtr<OBJECT_T>(); },
-                               true);
+      auto init_fun = [](const std::string & /*name*/){ return emp::NewPtr<OBJECT_T>(); };
+      auto copy_fun = EmplodeTools::DefaultCopyFun<OBJECT_T>();
+      return AddType<OBJECT_T>(type_name, desc, init_fun, copy_fun, true);
     }
 
     Symbol_Object &  MakeObjSymbol(
