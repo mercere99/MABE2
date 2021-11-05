@@ -19,6 +19,7 @@
 #include "emp/base/vector.hpp"
 #include "emp/tools/string_utils.hpp"
 
+#include "AST.hpp"
 #include "Lexer.hpp"
 #include "Symbol_Scope.hpp"
 #include "SymbolTable.hpp"
@@ -57,6 +58,7 @@ namespace emplode {
     bool AtEnd() const { return pos.AtEnd(); }
 
     size_t GetIndex() const { return pos.GetIndex(); }  ///< Return index in token stream.
+    int GetLine() const { return (int) pos->line_id; }
     size_t GetTokenSize() const { return pos.IsValid() ? pos->lexeme.size() : 0; }
     Symbol_Scope & GetScope() {
       emp_assert(scope_stack.size() && scope_stack.back() != nullptr);
@@ -86,6 +88,9 @@ namespace emplode {
 
     /// Convert the current state to a character; use \0 if cur token is not a symbol.
     char AsChar() const { return (pos && lexer->IsSymbol(*pos)) ? pos->lexeme[0] : 0; }
+
+    /// Return the token associate with the current state.
+    emp::Token AsToken() const { return *pos; }
 
     /// Return the lexeme associate with the current state.
     const std::string & AsLexeme() const { return pos ? pos->lexeme : emp::empty_string(); }
@@ -214,7 +219,7 @@ namespace emplode {
     [[nodiscard]] emp::Ptr<ASTNode> ParseValue(ParseState & state);
 
     /// Calculate the result of the provided operation on two computed entries.
-    [[nodiscard]] emp::Ptr<ASTNode> ProcessOperation(const std::string & symbol,
+    [[nodiscard]] emp::Ptr<ASTNode> ProcessOperation(const emp::Token & op_token,
                                                      emp::Ptr<ASTNode> value1,
                                                      emp::Ptr<ASTNode> value2);
 
@@ -234,7 +239,7 @@ namespace emplode {
     /// Keep parsing statements until there aren't any more or we leave this scope. 
     [[nodiscard]] emp::Ptr<ASTNode_Block> ParseStatementList(ParseState & state) {
       Debug("Running ParseStatementList(", state.AsString(), ")");
-      auto cur_block = emp::NewPtr<ASTNode_Block>(state.GetScope());
+      auto cur_block = emp::NewPtr<ASTNode_Block>(state.GetScope(), state.GetLine());
       while (state.IsValid() && state.AsChar() != '}') {
         // Parse each statement in the file.
         emp::Ptr<ASTNode> statement_node = ParseStatement(state);
@@ -249,7 +254,9 @@ namespace emplode {
   // Load a variable name from the provided scope.
   emp::Ptr<ASTNode_Leaf> Parser::ParseVar(ParseState & state, bool create_ok, bool scan_scopes)
   {
-    Debug("Running ParseVar(", state.AsString(), ",", create_ok, ",", scan_scopes, ")");
+    int start_line = state.GetLine();
+    Debug("Running ParseVar(", state.AsString(), ",", create_ok, ",", scan_scopes,
+          ") at line ", start_line);
 
     // Check for leading dots to require this scope (one dot) or indicate a lower-level scope.
     if (state.IsDots()) {
@@ -292,7 +299,7 @@ namespace emplode {
     }
 
     // Otherwise return the variable as a leaf!
-    return emp::NewPtr<ASTNode_Leaf>(&cur_symbol);
+    return emp::NewPtr<ASTNode_Leaf>(&cur_symbol, start_line);
   }
 
   // Load a value from the provided scope, which can come from a variable or a literal.
@@ -301,7 +308,7 @@ namespace emplode {
 
     // First check for a unary negation at the start of the value.
     if (state.UseIfChar('-')) {
-      auto out_val = emp::NewPtr<ASTNode_Math1>("unary negation");
+      auto out_val = emp::NewPtr<ASTNode_Math1>("unary negation", state.GetLine());
       out_val->SetFun( [](double val){ return -val; } );
       out_val->AddChild(ParseValue(state));
       return out_val;
@@ -344,21 +351,22 @@ namespace emplode {
   }
 
   // Process a single provided operation on two Symbol objects.
-  emp::Ptr<ASTNode> Parser::ProcessOperation(const std::string & symbol,
+  emp::Ptr<ASTNode> Parser::ProcessOperation(const emp::Token & op_token,
                                              emp::Ptr<ASTNode> in_node1,
                                              emp::Ptr<ASTNode> in_node2)
   {
+    const std::string symbol = op_token.lexeme;
     emp_assert(!in_node1.IsNull());
     emp_assert(!in_node2.IsNull());
 
     // If this operation is assignment, do so!
-    if (symbol == "=") return emp::NewPtr<ASTNode_Assign>(in_node1, in_node2);
+    if (symbol == "=") return emp::NewPtr<ASTNode_Assign>(in_node1, in_node2, op_token.line_id);
     
     // If the first argument is numeric, assume we are using a math operator.
     if (in_node1->IsNumeric()) {
 
       // Determine the output value and put it in a temporary node.
-      emp::Ptr<ASTNode_Math2> out_val = emp::NewPtr<ASTNode_Math2>(symbol);
+      emp::Ptr<ASTNode_Math2> out_val = emp::NewPtr<ASTNode_Math2>(symbol, op_token.line_id);
 
       if (symbol == "+") out_val->SetFun( [](double v1, double v2){ return v1 + v2; } );
       else if (symbol == "-") out_val->SetFun( [](double v1, double v2){ return v1 - v2; } );
@@ -385,7 +393,8 @@ namespace emplode {
 
     // Otherwise assume that we are dealing with strings.
     if (symbol == "+") {
-      auto out_val = emp::NewPtr<ASTNode_Op2<std::string,std::string,std::string>>(symbol);
+      auto out_val =
+        emp::NewPtr<ASTNode_Op2<std::string,std::string,std::string>>(symbol, op_token.line_id);
       out_val->SetFun([](std::string val1, std::string val2){ return val1 + val2; });
       out_val->AddChild(in_node1);
       out_val->AddChild(in_node2);
@@ -400,7 +409,7 @@ namespace emplode {
         return out_string;
       };
 
-      auto out_val = emp::NewPtr<ASTNode_Op2<std::string,std::string,double>>(symbol);
+      auto out_val = emp::NewPtr<ASTNode_Op2<std::string,std::string,double>>(symbol, op_token.line_id);
       out_val->SetFun(fun);
       out_val->AddChild(in_node1);
       out_val->AddChild(in_node2);
@@ -408,7 +417,7 @@ namespace emplode {
       return out_val;
     }
     else {
-      auto out_val = emp::NewPtr<ASTNode_Op2<double,std::string,std::string>>(symbol);
+      auto out_val = emp::NewPtr<ASTNode_Op2<double,std::string,std::string>>(symbol, op_token.line_id);
 
       if (symbol == "==")      out_val->SetFun([](std::string v1, std::string v2){ return v1 == v2; });
       else if (symbol == "!=") out_val->SetFun([](std::string v1, std::string v2){ return v1 != v2; });
@@ -435,6 +444,7 @@ namespace emplode {
 
     /// Process a value (and possibly more!)
     emp::Ptr<ASTNode> cur_node = ParseValue(state);
+    emp::Token op_token = state.AsToken();
     std::string op = state.AsLexeme();
 
     Debug("...back in ParseExpression; op=`", op, "`; state=", state.AsString());
@@ -455,17 +465,18 @@ namespace emplode {
 
         // cur_node should have evaluated itself to a function; a Call node will link that
         // function with its arguments, run it, and return the result.
-        cur_node = emp::NewPtr<ASTNode_Call>(cur_node, args);
+        cur_node = emp::NewPtr<ASTNode_Call>(cur_node, args, op_token.line_id);
       }
 
       // Otherwise we must have a binary math operation.
       else {
         emp::Ptr<ASTNode> node2 = ParseExpression(state, precedence_map[op]);
-        cur_node = ProcessOperation(op, cur_node, node2);
+        cur_node = ProcessOperation(op_token, cur_node, node2);
       }
 
       // Move the current value over to cur_node and check if we have a new operator...
       op = state.AsLexeme();
+      op_token = state.AsToken();
     }
 
     emp_assert(!cur_node.IsNull());
@@ -495,6 +506,7 @@ namespace emplode {
 
   // Parse an event description.
   emp::Ptr<ASTNode> Parser::ParseEvent(ParseState & state) {
+    emp::Token start_token = state.AsToken();
     state.UseRequiredChar('@', "All event declarations must being with an '@'.");
     state.RequireID("Events must start by specifying event name.");
     const std::string & event_name = state.UseLexeme();
@@ -522,7 +534,7 @@ namespace emplode {
       );
     };
 
-    return emp::NewPtr<ASTNode_Event>(event_name, action, args, setup_event);
+    return emp::NewPtr<ASTNode_Event>(event_name, action, args, setup_event, start_token.line_id);
   }
 
   // Process the next input in the specified Struct.
@@ -548,10 +560,7 @@ namespace emplode {
       Symbol & new_symbol = ParseDeclaration(state);
   
       // If the next symbol is a ';' this is a declaration without an assignment.
-      if (state.AsChar() == ';') {
-        state++;           // Skip the semi-colon.
-        return nullptr;  // We are done!
-      }
+      if (state.UseIfChar(';')) return nullptr;  // We are done!
 
       // If this symbol is a new scope, it can be populated now either directly (with in braces)
       // or indirectly (with and assignment)
