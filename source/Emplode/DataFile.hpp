@@ -16,6 +16,7 @@
 
 #include "emp/base/Ptr.hpp"
 #include "emp/base/vector.hpp"
+#include "emp/io/StreamManager.hpp"
 
 #include "EmplodeType.hpp"
 
@@ -31,17 +32,20 @@ namespace emplode {
       fun_t fun;
     };
 
-    std::string name="";             ///< Unique name for this object.
-    emp::StreamManager & files;      ///< Global file manager.
+    std::string name="";                 ///< Unique name for this object.
+    emp::Ptr<emp::StreamManager> files;  ///< Global file manager.
 
-    std::string filename;            ///< Name of output file.
-    emp::vector<ColumnInfo> cols;    ///< Data about columns maintainted.
+    std::string filename;                ///< Name of output file.
+    emp::vector<ColumnInfo> cols;        ///< Data about columns maintainted.
 
   public:
     DataFile() = delete;
     DataFile(const std::string & in_name, emp::StreamManager & _files)
-      : name(in_name), files(_files) { }
+      : name(in_name), files(&_files) { }
+    DataFile(const DataFile &) = default;
     ~DataFile() { }
+
+    DataFile & operator=(const DataFile &) = default;
 
     std::string GetName() const { return name; }
 
@@ -64,8 +68,8 @@ namespace emplode {
     }
 
     size_t Write() {
-      const bool file_exists = files.Has(filename);           // Is file is already setup?
-      std::ostream & file = files.GetOutputStream(filename);  // File to write to.
+      const bool file_exists = files->Has(filename);           // Is file is already setup?
+      std::ostream & file = files->GetOutputStream(filename);  // File to write to.
 
       // If we need headers, set them up!
       if (!file_exists) {
