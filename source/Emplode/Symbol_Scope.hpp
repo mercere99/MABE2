@@ -71,7 +71,11 @@ namespace emplode {
     emp::Ptr<const Symbol_Scope> AsScopePtr() const override { return this; }
 
     bool CopyValue(const Symbol & in) override {
-      if (in.IsScope() == false) return false;   // Mis-matched types; failed to copy.
+      if (in.IsScope() == false) {
+          std::cerr << "Trying to assign `" << in.GetName() << "' to '" << GetName()
+                    << "', but " << in.GetName() << " is not a Scope." << std::endl;
+        return false;   // Mis-matched types; failed to copy.
+      }
 
       const Symbol_Scope & in_scope = in.AsScope();
 
@@ -79,10 +83,20 @@ namespace emplode {
       // Do not delete other existing entries.
       for (const auto & [name, ptr] : in_scope.symbol_table) {
         // If entry does not exist fail the copy.
-        if (emp::Has(symbol_table, name)) return false;
+        if (!emp::Has(symbol_table, name)) {
+          std::cerr << "Trying to assign `" << in.GetName() << "' to '" << GetName()
+                    << "', but " << GetName() << "." << name << " does not exist." << std::endl;
+          return false;
+        }
+
+        if (ptr->IsFunction()) continue; // Don't copy functions.
 
         bool success = symbol_table[name]->CopyValue(*ptr);
-        if (!success) return false; // Stop immediately on failure.
+        if (!success) {
+          std::cerr << "Trying to assign `" << in.GetName() << "' to '" << GetName()
+                    << "', but failed on `" << GetName() << "." << name << "`." << std::endl;
+          return false; // Stop immediately on failure.
+        }
       }
 
       // If we made it this far, it must have worked!
