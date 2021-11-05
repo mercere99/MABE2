@@ -17,6 +17,7 @@
 
 #include "Symbol.hpp"
 #include "Symbol_Scope.hpp"
+#include "Symbol_Object.hpp"
 #include "EmplodeTools.hpp"
 
 namespace emplode {
@@ -31,10 +32,14 @@ namespace emplode {
     using node_vector_t = emp::vector<node_ptr_t>;
 
     node_ptr_t parent = nullptr;
+    int line_id = -1;             // Line number of input file with error.
 
   public:
     ASTNode() { ; }
     virtual ~ASTNode() { ; }
+
+    int GetLine() const { return line_id; }
+    void SetLine(int in_line) { line_id = in_line; }
 
     virtual const std::string & GetName() const = 0;
 
@@ -88,8 +93,11 @@ namespace emplode {
     bool own_symbol;          ///< Should this node be in charge of deleting the symbol?
 
   public:
-    ASTNode_Leaf(symbol_ptr_t _ptr) : symbol_ptr(_ptr), own_symbol(_ptr->IsTemporary()) {
+    ASTNode_Leaf(symbol_ptr_t _ptr, int _line=-1)
+      : symbol_ptr(_ptr), own_symbol(_ptr->IsTemporary())
+    {
       symbol_ptr->SetTemporary(false); // If this symbol was temporary, it is now owned.
+      line_id = _line;
     }
     ~ASTNode_Leaf() { if (own_symbol) symbol_ptr.Delete(); }
 
@@ -139,7 +147,9 @@ namespace emplode {
     emp::Ptr<Symbol_Scope> scope_ptr;
 
   public:
-    ASTNode_Block(Symbol_Scope & in_scope) : scope_ptr(&in_scope) { }
+    ASTNode_Block(Symbol_Scope & in_scope, int in_line=-1) : scope_ptr(&in_scope) {
+      line_id = in_line;
+    }
 
     emp::Ptr<Symbol_Scope> GetScope()  override { return scope_ptr; }
 
@@ -165,7 +175,9 @@ namespace emplode {
     // A unary operator take in a double and returns another one.
     std::function< double(double) > fun;
   public:
-    ASTNode_Math1(const std::string & name) : ASTNode_Internal(name) { }
+    ASTNode_Math1(const std::string & name, int _line=-1) : ASTNode_Internal(name) { 
+      line_id = _line;
+    }
 
     bool IsNumeric() const override { return true; }
     bool HasValue() const override { return true; }
@@ -192,7 +204,9 @@ namespace emplode {
   protected:
     std::function< RETURN_T(ARG1_T, ARG2_T) > fun;
   public:
-    ASTNode_Op2(const std::string & name) : ASTNode_Internal(name) { }
+    ASTNode_Op2(const std::string & name, int _line=-1) : ASTNode_Internal(name) {
+      line_id = _line;
+    }
 
     bool IsNumeric() const override { return std::is_same<RETURN_T, double>(); }
     bool IsString() const override { return std::is_same<RETURN_T, std::string>(); }
@@ -222,9 +236,10 @@ namespace emplode {
 
   class ASTNode_Assign : public ASTNode_Internal {
   public:
-    ASTNode_Assign(node_ptr_t lhs, node_ptr_t rhs) {
+    ASTNode_Assign(node_ptr_t lhs, node_ptr_t rhs, int _line=-1) {
       AddChild(lhs);
       AddChild(rhs);
+      line_id = _line;
     }
 
     bool IsNumeric() const override { return children[0]->IsNumeric(); }
@@ -238,8 +253,17 @@ namespace emplode {
       symbol_ptr_t lhs = children[0]->Process();  // Determine the left-hand-side value.
       symbol_ptr_t rhs = children[1]->Process();  // Determine the right-hand-side value.
 
+      if (lhs->IsObject() && lhs->AsObject().GetObjectType().GetName() == "mabe::Population") {
+        std::cout << "BREAKPOINT!" << std::endl;
+        //emp_error("BREAKPOINT! line=", line_id);
+      }
+
       // @CAO Should make sure that lhs is properly assignable.
-      lhs->CopyValue(*rhs);
+      bool success = lhs->CopyValue(*rhs);
+      if (!success) {
+        std::cerr << "Error: copy to '" << lhs->GetName() << "' failed" << std::endl;
+        exit(1);
+      }
       if (rhs->IsTemporary()) rhs.Delete();
       return lhs;
     }
@@ -253,9 +277,10 @@ namespace emplode {
 
   class ASTNode_Call : public ASTNode_Internal {
   public:
-    ASTNode_Call(node_ptr_t fun, const node_vector_t & args) {
+    ASTNode_Call(node_ptr_t fun, const node_vector_t & args, int _line=-1) {
       AddChild(fun);
       for (auto arg : args) AddChild(arg);
+      line_id = _line;
     }
 
     bool IsNumeric() const override { return children[0]->HasNumericReturn(); }
@@ -297,11 +322,18 @@ namespace emplode {
     setup_fun_t setup_event;
 
   public:
-    ASTNode_Event(const std::string & event_name, node_ptr_t action, const node_vector_t & args, setup_fun_t in_fun)
+    ASTNode_Event(
+      const std::string & event_name,
+      node_ptr_t action,
+      const node_vector_t & args,
+      setup_fun_t in_fun,
+      int _line=-1
+    )
      : ASTNode_Internal(event_name), setup_event(in_fun)
     {
       AddChild(action);
       for (auto arg : args) AddChild(arg);
+      line_id = _line;
     }
 
     symbol_ptr_t Process() override {
