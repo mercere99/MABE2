@@ -39,6 +39,7 @@ namespace emplode {
   class TypeInfo {
   private:
     using init_fun_t = std::function<emp::Ptr<EmplodeType> (const std::string &)>;
+    using copy_fun_t = std::function<bool (const EmplodeType &, EmplodeType &)>;
 
     size_t index;
     std::string type_name;
@@ -46,6 +47,7 @@ namespace emplode {
     emp::TypeID type_id;
 
     init_fun_t init_fun;
+    copy_fun_t copy_fun;
     bool config_owned = false; // Should objects of this type be managed by Emplode?
 
     emp::vector< MemberFunInfo > member_funs;
@@ -57,18 +59,26 @@ namespace emplode {
 
     // Constructor to allow a new configuration type whose objects require initialization.
     TypeInfo(size_t _id, const std::string & _name, const std::string & _desc,
-                   init_fun_t _init, bool _config_owned=false)
-      : index(_id), type_name(_name), desc(_desc), init_fun(_init), config_owned(_config_owned)
+             init_fun_t _init, copy_fun_t _copy, bool _config_owned=false)
+      : index(_id), type_name(_name), desc(_desc),
+        init_fun(_init), copy_fun(_copy), config_owned(_config_owned)
     { }
 
     size_t GetIndex() const { return index; }
     const std::string & GetTypeName() const { return type_name; }
     const std::string & GetDesc() const { return desc; }
-    emp::TypeID GetType() const { return type_id; }
+    emp::TypeID GetTypeID() const { return type_id; }
     bool GetOwned() const { return config_owned; }
     const emp::vector<MemberFunInfo> & GetMemberFunctions() const { return member_funs; }
 
-    emp::Ptr<EmplodeType> MakeObj(const std::string & name) const { return init_fun(name); }
+    emp::Ptr<EmplodeType> MakeObj(const std::string & name) const {
+      emp_assert(init_fun, "No initialization function exists for type.", type_name);
+      return init_fun(name);
+    }
+    bool CopyObj(const EmplodeType & from, EmplodeType & to) const {
+      emp_assert(copy_fun, "No copy function exists for type.", type_name);
+      return copy_fun(from, to);
+    }
 
     // Link this TypeInfo object to a real C++ type.
     // @CAO It would be nice to test to make sure this is an EmplodeType, but not possible with a TypeID.
