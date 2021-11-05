@@ -15,22 +15,27 @@ Symbol_Linked     - [Symbol]
 
 Symbol_Scope      - [Symbol,Symbol_Function,Symbol_Linked]
 
-Symbol_Object     - [Symbol_Scope]
+EmplodeType       - [Symbol_Scope,TypeInfo]
+
+Symbol_Object     - [Symbol_Scope,EmplodeType]
 
 AST               - [Symbol_Object,Symbol,EmplodeTools]
-EmplodeType       - [Symbol_Object,TypeInfo]
 
 Events            - [AST]
 DataFile          - [EmplodeType]
 
-Emplode           - [ALL] Main parser
+SymbolTable       - [Events,Symbol_Scope]
+
+Parser            - [AST,Lexer,SymbolTable]
+
+Emplode           - [ALL]
 
 
 TODO:
 
 * Emplode as a whole should move from MABE to Empirical
 
-* We need a consistent and functional error system.
+* We need a consistent and functional ERROR SYSTEM.
 Right now we either output direct to the command line OR create a Symbol_Error
 with a meaningful error included, but it's then ignored and never printed.
 What should happen is that an error message is raised and the appropriate interface
