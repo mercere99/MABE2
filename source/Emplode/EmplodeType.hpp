@@ -13,17 +13,18 @@
 
 #include "emp/base/assert.hpp"
 
-#include "Symbol_Object.hpp"
+#include "Symbol_Scope.hpp"
 #include "TypeInfo.hpp"
 
 namespace emplode {
 
   class Emplode;
+  class Symbol_Object;
 
   // Base class for types that we want to be used for scripting.
   class EmplodeType {
   protected:
-    emp::Ptr<Symbol_Object> symbol_ptr;
+    emp::Ptr<Symbol_Scope> symbol_ptr;
     emp::Ptr<TypeInfo> type_info_ptr;
 
     // Some special, internal variables associated with each object.
@@ -44,8 +45,14 @@ namespace emplode {
     // Optional function to override to add configuration options associated with an object.
     virtual void SetupConfig() { };
 
-    Symbol_Object & GetScope() { emp_assert(!symbol_ptr.IsNull()); return *symbol_ptr; }
-    const Symbol_Object & GetScope() const { emp_assert(!symbol_ptr.IsNull()); return *symbol_ptr; }
+    Symbol_Scope & AsScope() {
+      emp_assert(!symbol_ptr.IsNull());
+      return *symbol_ptr.DynamicCast<Symbol_Scope>();
+    }
+    const Symbol_Scope & AsScope() const {
+      emp_assert(!symbol_ptr.IsNull());
+      return *symbol_ptr.DynamicCast<const Symbol_Scope>();
+    }
 
     const TypeInfo & GetTypeInfo() const { return *type_info_ptr; }
 
@@ -91,7 +98,7 @@ namespace emplode {
                                         const std::string & name,
                                         const std::string & desc,
                                         bool is_builtin = false) {
-      return GetScope().LinkVar<VAR_T>(name, var, desc, is_builtin);
+      return AsScope().LinkVar<VAR_T>(name, var, desc, is_builtin);
     }
 
     /// Link a configuration entry to a pair of functions - it automatically calls the set
@@ -102,7 +109,7 @@ namespace emplode {
                                             const std::string & name,
                                             const std::string & desc,
                                             bool is_builtin = false) {
-      return GetScope().LinkFuns<VAR_T>(name, get_fun, set_fun, desc, is_builtin);
+      return AsScope().LinkFuns<VAR_T>(name, get_fun, set_fun, desc, is_builtin);
     }
 
     // Helper functions and info.
@@ -153,7 +160,7 @@ namespace emplode {
         new_desc << "\n " << entry.name << ": " << entry.desc;
       }
 
-      return GetScope().LinkFuns<std::string>(name, get_fun, set_fun, new_desc.str());
+      return AsScope().LinkFuns<std::string>(name, get_fun, set_fun, new_desc.str());
     }
   };
 }
