@@ -53,6 +53,26 @@ namespace emplode {
     bool HasNumericReturn() const override { return numeric_return; }
     bool HasStringReturn() const override { return string_return; }
 
+    /// Set this symbol to be a correctly-typed scope pointer.
+    emp::Ptr<Symbol_Function> AsFunctionPtr() override { return this; }
+    emp::Ptr<const Symbol_Function> AsFunctionPtr() const override { return this; }
+
+    bool CopyValue(const Symbol & in) override {
+      if (in.IsFunction() == false) {
+          std::cerr << "Trying to assign `" << in.GetName() << "' to '" << GetName()
+                    << "', but " << in.GetName() << " is not a Function." << std::endl;
+        return false;   // Mis-matched types; failed to copy.
+      }
+
+      const Symbol_Function & in_fun = in.AsFunction();
+      fun = in_fun.fun;
+      numeric_return = in_fun.numeric_return;
+      string_return = in_fun.string_return;
+
+      return true;
+    }
+
+
     symbol_ptr_t Call( const emp::vector<symbol_ptr_t> & args ) override { return fun(args); }
   };
 
