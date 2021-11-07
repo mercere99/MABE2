@@ -66,6 +66,26 @@ namespace emplode {
     emp::Ptr<Symbol_Object> AsObjectPtr() override { return this; }
     emp::Ptr<const Symbol_Object> AsObjectPtr() const override { return this; }
 
+    bool CopyValue(const Symbol & in) override {
+      if (in.IsObject() == false) {
+          std::cerr << "Trying to assign `" << in.GetName() << "' to '" << GetName()
+                    << "', but " << in.GetName() << " is not an Object." << std::endl;
+        return false;   // Mis-matched types; failed to copy.
+      }
+
+      // Copy the underlying scope...
+      Symbol_Scope::CopyValue(in);
+
+      // Now copy special details for the object.
+      const Symbol_Object & in_object = in.AsObject();
+
+      // If typeinfo knows how to make this copy, let it.
+      if (obj_ptr->GetTypeInfo().CopyObj(*in_object.obj_ptr, *obj_ptr)) return true;
+
+      // Otherwise use the default copy method for the object.
+      return obj_ptr->CopyValue(*in_object.obj_ptr);
+    }
+
     /// Make a copy of this scope and all of the entries inside it.
     emp::Ptr<Symbol> Clone() const override { return emp::NewPtr<Symbol_Object>(*this); }
   };
