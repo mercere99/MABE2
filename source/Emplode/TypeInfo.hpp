@@ -55,14 +55,19 @@ namespace emplode {
   public:
     // Constructor to allow a simple new configuration type
     TypeInfo(size_t _id, const std::string & _name, const std::string & _desc)
-      : index(_id), type_name(_name), desc(_desc) { }
+      : index(_id), type_name(_name), desc(_desc)
+    {
+      emp_assert(type_name != "");
+    }
 
     // Constructor to allow a new configuration type whose objects require initialization.
     TypeInfo(size_t _id, const std::string & _name, const std::string & _desc,
              init_fun_t _init, copy_fun_t _copy, bool _config_owned=false)
       : index(_id), type_name(_name), desc(_desc),
         init_fun(_init), copy_fun(_copy), config_owned(_config_owned)
-    { }
+    {
+      emp_assert(type_name != "");
+    }
 
     size_t GetIndex() const { return index; }
     const std::string & GetTypeName() const { return type_name; }
@@ -76,8 +81,8 @@ namespace emplode {
       return init_fun(name);
     }
     bool CopyObj(const EmplodeType & from, EmplodeType & to) const {
-      emp_assert(copy_fun, "No copy function exists for type.", type_name);
-      return copy_fun(from, to);
+      if (copy_fun) return copy_fun(from, to);
+      return false;
     }
 
     // Link this TypeInfo object to a real C++ type.
