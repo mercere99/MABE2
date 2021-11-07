@@ -201,6 +201,12 @@ namespace mabe {
       for (auto & x : trait_map) x.second.Delete();
     }
 
+    /// By DEFAULT modules do not do anything extra when copying themselves.
+    bool CopyValue(const EmplodeType &) override { return true; }
+
+    /// By DEFAULT modules do not do anything to setup configurations.
+    void SetupConfig() override { }
+
     const std::string & GetName() const noexcept { return name; }
     const std::string & GetDesc() const noexcept { return desc; }
 
@@ -320,8 +326,6 @@ namespace mabe {
     emp::Ptr<OBJ_T> Make(emp::Random & random) {
       return Make_impl(random).template DynamicCast<OBJ_T>();
     }
-
-    virtual void SetupConfig() { }
   };
 
   struct ModuleInfo {
