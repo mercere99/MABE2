@@ -169,8 +169,10 @@ namespace mabe {
       // If we're off the path, decrement score
       if(tile_map_vec[state.cur_map_idx].Get(state.cur_pos[1], state.cur_pos[0]) == Tile::EMPTY)
         return -1;
+      else if(tile_map_vec[state.cur_map_idx].Get(state.cur_pos[1], state.cur_pos[0]) == Tile::START)
+        return 0;
       // On a new tile of the path, add score
-      if(!state.visited_tiles.Get(state.cur_pos[1], state.cur_pos[0])){
+      else if(!state.visited_tiles.Get(state.cur_pos[1], state.cur_pos[0])){
         state.visited_tiles.Set(state.cur_pos[1], state.cur_pos[0], true);
         return 1;
       }
