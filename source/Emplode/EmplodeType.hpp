@@ -45,6 +45,10 @@ namespace emplode {
     // Optional function to override to add configuration options associated with an object.
     virtual void SetupConfig() { };
 
+    // Normally when an EmplodeType is copied, just the scope variables are copied over.
+    // Override CopyValue() if more needs to happen.
+    virtual bool CopyValue(const EmplodeType &) { return false; }
+
     Symbol_Scope & AsScope() {
       emp_assert(!symbol_ptr.IsNull());
       return *symbol_ptr.DynamicCast<Symbol_Scope>();
