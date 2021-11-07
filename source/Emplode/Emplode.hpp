@@ -131,6 +131,7 @@ namespace emplode {
       // 'PRINT' is a simple debugging command to output the value of a variable.
       auto print_fun = [](const emp::vector<emp::Ptr<Symbol>> & args) {
           for (auto entry_ptr : args) std::cout << entry_ptr->AsString();
+          std::cout << std::endl;
           return 0;
         };
       AddFunction("PRINT", print_fun, "Print out the provided variables.");
@@ -185,7 +186,9 @@ namespace emplode {
       auto df_init = [this](const std::string & name) {
         return emp::NewPtr<DataFile>(name, symbol_table.GetFileManager());
       };
-      auto & df_type = AddType<DataFile>("DataFile", "Manage CSV-style date file output.", df_init, true);
+      auto df_copy = EmplodeTools::DefaultCopyFun<DataFile>();
+      auto & df_type = AddType<DataFile>("DataFile", "Manage CSV-style date file output.",
+                                         df_init, df_copy, true);
       df_type.AddMemberFunction(
         "ADD_COLUMN",
         [exec_fun](DataFile & file, const std::string & title, const std::string & expression){
