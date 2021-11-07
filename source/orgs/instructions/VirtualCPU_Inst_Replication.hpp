@@ -26,6 +26,12 @@ namespace mabe {
     std::function<void(VirtualCPUOrg&, const VirtualCPUOrg::inst_t&)> func_h_divide;
     std::function<void(VirtualCPUOrg&, const VirtualCPUOrg::inst_t&)> func_h_copy;
     std::function<void(VirtualCPUOrg&, const VirtualCPUOrg::inst_t&)> func_h_search;
+    std::function<void(VirtualCPUOrg&, const VirtualCPUOrg::inst_t&)> func_repro;
+    bool include_h_alloc = true;
+    bool include_h_divide = true;
+    bool include_h_copy = true;
+    bool include_h_search = true;
+    bool include_repro = false;
 
   public:
     VirtualCPU_Inst_Replication(mabe::MABE & control,
@@ -38,12 +44,17 @@ namespace mabe {
     void SetupConfig() override {
       LinkPop(pop_id, "target_pop", "Population(s) to manage.");
       LinkVar(org_pos_trait, "pos_trait", "Name of trait that holds organism's position");
+      LinkVar(include_h_alloc, "include_h_alloc", "Do we include the 'h_alloc' instruction?");
+      LinkVar(include_h_divide, "include_h_divide", "Do we include the 'h_divide' instruction?");
+      LinkVar(include_h_copy, "include_h_copy", "Do we include the 'h_copy' instruction?");
+      LinkVar(include_h_search, "include_h_search", "Do we include the 'h_search' instruction?");
+      LinkVar(include_repro, "include_repro", "Do we include the 'repro' instruction?");
     }
 
     void SetupFuncs(){
       ActionMap& action_map = control.GetActionMap(pop_id);
       // Head allocate 
-      {
+      if(include_h_alloc){
         func_h_alloc = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){
           //std::cout << "HAlloc!" << std::endl;
           //std::cout << "Working genome: " << hw.GetString() << std::endl;
@@ -59,7 +70,7 @@ namespace mabe {
         action.data.AddVar<int>("inst_id", 22);
       }
       // Head divide 
-      {
+      if(include_h_divide){
         func_h_divide = [this](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){
           if(hw.read_head >= hw.genome.size() && hw.copied_inst_id_vec.size() >= hw.genome_working.size() / 2){
             OrgPosition& org_pos = hw.GetTrait<OrgPosition>(org_pos_trait);
@@ -84,7 +95,7 @@ namespace mabe {
         action.data.AddVar<int>("inst_id", 23);
       }
       // Head copy 
-      {
+      if(include_h_copy){
         func_h_copy = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){
           //std::cout << "Copy!" << std::endl;
           //std::cout << "Working genome: " << hw.GetString() << std::endl;
@@ -105,7 +116,7 @@ namespace mabe {
         action.data.AddVar<int>("inst_id", 21);
       }
       // Head search 
-      {
+      if(include_h_search){
         func_h_search = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
           int res = hw.FindComplementLabel(inst.nop_vec, hw.inst_ptr);
           if(res == -1){ // Fail
@@ -123,6 +134,25 @@ namespace mabe {
         Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
             "HSearch", func_h_search);
         action.data.AddVar<int>("inst_id", 25);
+      }
+      // Repro 
+      if(include_repro){
+        func_repro = [this](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){
+            OrgPosition& org_pos = hw.GetTrait<OrgPosition>(org_pos_trait);
+            VirtualCPUOrg::genome_t& offspring_genome = hw.GetTrait<VirtualCPUOrg::genome_t>(
+                "offspring_genome");
+            offspring_genome = hw.genome_working;
+            std::copy(
+                hw.genome_working.begin(), 
+                hw.genome_working.end(),
+                offspring_genome.begin());
+            hw.ResetHardware();
+            hw.inst_ptr = hw.genome_working.size() - 1;
+            control.Replicate(org_pos, *org_pos.PopPtr());
+        };
+        Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
+            "Repro", func_repro);
+        action.data.AddVar<int>("inst_id", 23);
       }
     }
 

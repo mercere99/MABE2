@@ -51,6 +51,7 @@ namespace mabe {
       std::string genome_name = "genome";    ///< Name of trait that stores an organism's fitness 
       std::string child_merit_name = "child_merit"; 
       double initial_merit = 0;
+      bool verbose = false;
 
       // Internal use
       emp::Binomial mut_dist;            ///< Distribution of number of mutations to occur.
@@ -93,36 +94,38 @@ namespace mabe {
       if (SharedData().init_random) Randomize(random);
       else{
         std::cout << "Filling genome!" << std::endl;
-        PushInst("HAlloc");  // 0  
-        PushInst("HSearch"); // 1
-        PushInst("NopC");    // 2
-        PushInst("NopA");    // 3
-        PushInst("MovHead"); // 4
-        if constexpr(!start_with_not){
-          for(size_t i = 0; i < (50 - 14); i++) PushInst("NopC");   
-        }
-        else{
-          for(size_t i = 0; i < (50 - 24); i++) PushInst("NopC");   
-          PushInst("IO");
-          PushInst("NopB");
-          PushInst("Push");
-          PushInst("NopB");
-          PushInst("Pop");
-          PushInst("NopC");
-          PushInst("Nand");
-          PushInst("NopB");
-          PushInst("IO");
-          PushInst("NopB");
-        }
-        PushInst("HSearch"); // 41
-        PushInst("HCopy");   // 42
-        PushInst("IfLabel"); // 43
-        PushInst("NopC");    // 44
-        PushInst("NopA");    // 45
-        PushInst("HDivide"); // 46
-        PushInst("MovHead"); // 47
-        PushInst("NopA");    // 48
-        PushInst("NopB");    // 49
+        for(size_t i = 0; i < 49; i++) PushInst("NopC");   
+        PushInst("Repro");
+        //PushInst("HAlloc");  // 0  
+        //PushInst("HSearch"); // 1
+        //PushInst("NopC");    // 2
+        //PushInst("NopA");    // 3
+        //PushInst("MovHead"); // 4
+        //if constexpr(!start_with_not){
+        //  for(size_t i = 0; i < (50 - 14); i++) PushInst("NopC");   
+        //}
+        //else{
+        //  for(size_t i = 0; i < (50 - 24); i++) PushInst("NopC");   
+        //  PushInst("IO");
+        //  PushInst("NopB");
+        //  PushInst("Push");
+        //  PushInst("NopB");
+        //  PushInst("Pop");
+        //  PushInst("NopC");
+        //  PushInst("Nand");
+        //  PushInst("NopB");
+        //  PushInst("IO");
+        //  PushInst("NopB");
+        //}
+        //PushInst("HSearch"); // 41
+        //PushInst("HCopy");   // 42
+        //PushInst("IfLabel"); // 43
+        //PushInst("NopC");    // 44
+        //PushInst("NopA");    // 45
+        //PushInst("HDivide"); // 46
+        //PushInst("MovHead"); // 47
+        //PushInst("NopA");    // 48
+        //PushInst("NopB");    // 49
       }
       Organism::SetTrait<std::string>(SharedData().genome_name, GetString());
       Organism::SetTrait<double>(SharedData().merit_name, SharedData().initial_merit); 
@@ -168,7 +171,7 @@ namespace mabe {
       SetInputs(Organism::GetTrait<emp::vector<data_t>>(SharedData().input_name));
 
       // Run the code.
-      Process(SharedData().eval_time);
+      Process(SharedData().eval_time, SharedData().verbose);
 
       // Store the results.
       Organism::SetTrait<emp::vector<data_t>>(SharedData().output_name, emp::ToVector( GetOutputs() ));
@@ -203,6 +206,8 @@ namespace mabe {
                       " will be used to calculate CPU cylces given to offspring.");
       GetManager().LinkVar(SharedData().initial_merit, "inititial_merit",
                       "Initial value for merit (task performance)");
+      GetManager().LinkVar(SharedData().verbose, "verbose",
+                      "If true, print execution info of organisms");
     }
 
     /// Setup this organism type with the traits it need to track.
@@ -297,28 +302,19 @@ namespace mabe {
     }
 
     bool ProcessStep() override { 
-      //std::cout << GetString() << std::endl;
-      //if(GetTrait<OrgPosition>("org_pos").Pos() == 1){
-      //  std::cout 
-      //      << GetTrait<OrgPosition>("org_pos").Pos() 
-      //      << " -> " 
-      //      << inst_ptr 
-      //      << " (" << GetInstLib().GetName(genome_working[inst_ptr].idx) << ")"
-      //      << std::endl; 
-      //}
-      Process(1);
+      Process(1, SharedData().verbose);
       return true; 
     }
 
-      static std::string ConvertGenome(const genome_t& genome){
-        std::stringstream sstr;
-        sstr << "[" << genome.size() << "]";
-        for(size_t idx = 0; idx < genome.size(); idx++){
-          unsigned char c = 'a' + genome[idx].id;
-          sstr << c;
-        }
-        return sstr.str();
+    static std::string ConvertGenome(const genome_t& genome){
+      std::stringstream sstr;
+      sstr << "[" << genome.size() << "]";
+      for(size_t idx = 0; idx < genome.size(); idx++){
+        unsigned char c = 'a' + genome[idx].id;
+        sstr << c;
       }
+      return sstr.str();
+    }
   };
 
   MABE_REGISTER_ORG_TYPE(VirtualCPUOrg, "Organism consisting of Avida instructions.");

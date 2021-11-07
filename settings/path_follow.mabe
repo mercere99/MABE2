@@ -2,7 +2,7 @@ random_seed = 0;                // Seed for random number generator; use 0 to ba
 Population main_pop;            // Collection of organisms
 Population next_pop;            // Collection of organisms
 Value pop_size = 3600;          // Local value variable.
-Value max_gens = 1000;            // Local value variable.
+Value max_gens = 1000;          // Local value variable.
 Value do_multiply = 1;          // Local value variable.
 CommandLine cl {                // Handle basic I/O on the command line.
   format = "merit:mean, merit:max, child_merit:mean, child_merit:max";// Column format to use in the file.
@@ -31,6 +31,7 @@ SchedulerProbabilistic scheduler { // Rations out updates to organisms based on 
 }
 VirtualCPU_Inst_Nop inst_lib_nop { // Nop instructions for VirtualCPUOrg
   target_pop = "main_pop";      // Population(s) to manage.
+  num_nops = 6;                 // Number of nops to include.
 }
 VirtualCPU_Inst_Math inst_lib_math { // Math instructions for VirtualCPUOrg
   target_pop = "main_pop";      // Population(s) to manage.
@@ -50,6 +51,11 @@ VirtualCPU_Inst_Manipulation inst_lib_manip { // Manipulation instructions for V
 VirtualCPU_Inst_Replication inst_lib_repl { // Replication instructions for VirtualCPUOrg
   target_pop = "main_pop";      // Population(s) to manage.
   pos_trait = "org_pos";        // Name of trait that holds organism's position
+  include_h_alloc = 0;          // Do we include the 'h_alloc' instruction?
+  include_h_divide = 0;         // Do we include the 'h_divide' instruction?
+  include_h_copy = 0;           // Do we include the 'h_copy' instruction?
+  include_h_search = 0;         // Do we include the 'h_search' instruction?
+  include_repro = 1;            // Do we include the 'repro' instruction?
 }
 EvalPathFollow path_follow {      // Evaluate organisms on their ability to follow a path.
   target = "main_pop";            // Which population(s) should we evaluate?
@@ -67,7 +73,8 @@ VirtualCPUOrg avida_org {       // Organism consisting of Avida instructions.
   genome_name = "genome";       // Where to store the genome?.
   merit_name = "merit";         // Name of variable corresponding to the organism's task performance.
   child_merit_name = "child_merit";// Name of variable corresponding to the organism's task performance that will be used to calculate CPU cylces given to offspring.
-  inititial_merit = 0;          // Initial value for merit (task performance)
+  inititial_merit = 0.01;       // Initial value for merit (task performance)
+  verbose = 0;
 }
 
 @start(0) print("\n\nStarting run\n");
