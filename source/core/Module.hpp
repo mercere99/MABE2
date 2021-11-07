@@ -63,7 +63,7 @@ namespace mabe {
           if (var == -1) AddError("Trying to access population '", name, "'; does not exist.");
         };
 
-      return GetScope().LinkFuns<std::string>(name, get_fun, set_fun, desc);
+      return AsScope().LinkFuns<std::string>(name, get_fun, set_fun, desc);
     }
 
     /// Link one or more populations (or portions of a population) to a parameter.
@@ -80,7 +80,7 @@ namespace mabe {
           var = control.ToCollection(load_str);
         };
 
-      return GetScope().LinkFuns<std::string>(name, get_fun, set_fun, desc);
+      return AsScope().LinkFuns<std::string>(name, get_fun, set_fun, desc);
     }
 
     /// Link another module to this one, by name (track using int ID)
@@ -98,7 +98,7 @@ namespace mabe {
           if (var == -1) AddError("Trying to access module '", name, "'; does not exist.");
         };
 
-      return GetScope().LinkFuns<std::string>(name, get_fun, set_fun, desc);
+      return AsScope().LinkFuns<std::string>(name, get_fun, set_fun, desc);
     }
 
     /// Link a range of values with a start, stop, and step.
@@ -123,7 +123,7 @@ namespace mabe {
           stop_var = name.size() ? emp::from_string<int>(name) : -1; // -1 indicates no stop.
         };
 
-      return GetScope().LinkFuns<std::string>(name, get_fun, set_fun, desc);
+      return AsScope().LinkFuns<std::string>(name, get_fun, set_fun, desc);
     }
   public:
 
