@@ -44,6 +44,8 @@
 
 namespace mabe {
 
+  using namespace emplode::EmplodeTools;
+
   ///  @brief The main MABE controller class
   ///
   ///  The MABE controller class manages interactions between all modules,
@@ -578,7 +580,9 @@ namespace mabe {
   {
     // Setup "Population" as a type in the config file.
     auto pop_init_fun = [this](const std::string & name) { return &AddPopulation(name); };
-    auto & pop_type = config.AddType<Population>("Population", "Collection of organisms", pop_init_fun);
+    auto pop_copy_fun = DefaultCopyFun<Population>();
+    auto & pop_type = config.AddType<Population>("Population", "Collection of organisms",
+                                                 pop_init_fun, pop_copy_fun);
 
     // 'INJECT' allows a user to add an organism to a population.
     std::function<int(Population &, const std::string &, size_t)> inject_fun =
@@ -599,7 +603,7 @@ namespace mabe {
       auto mod_init_fun = [this,&mod](const std::string & name) -> emp::Ptr<emplode::EmplodeType> {
         return mod.init_fun(*this,name);
       };
-      config.AddType(mod.name, mod.desc, mod_init_fun, mod.type_id);
+      config.AddType(mod.name, mod.desc, mod_init_fun, nullptr, mod.type_id);
     }
 
 
