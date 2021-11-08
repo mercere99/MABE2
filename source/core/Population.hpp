@@ -90,7 +90,6 @@ namespace mabe {
     size_t pop_id = (size_t) -1;            ///< Position in world of this population.
     emp::vector<emp::Ptr<Organism>> orgs;   ///< Info on all organisms in this population.
     size_t num_orgs = 0;                    ///< How many living organisms are in this population?
-    size_t max_orgs = (size_t) -1;          ///< Maximum number of orgs allowed in population.
 
     emp::Ptr<Organism> empty_org = nullptr; ///< Organism to fill in empty cells (does have data map!)
 
@@ -107,28 +106,11 @@ namespace mabe {
     {
       orgs.resize(pop_size, empty_org);
     }
-    Population(const Population & in_pop)
-      : name(in_pop.name), pop_id(in_pop.pop_id), orgs(in_pop.orgs.size())
-      , num_orgs(in_pop.num_orgs), max_orgs(in_pop.max_orgs)
-      , empty_org(in_pop.empty_org)
-    {
-      emp_assert(in_pop.OK());
-      for (size_t i = 0; i < orgs.size(); i++) {
-        if (in_pop.orgs[i]->IsEmpty()) {       // Make sure we always use local empty organism.
-          emp_assert(!empty_org.IsNull(), "Empty organisms must be set before they can be used!");
-          orgs[i] = empty_org;
-        } else {                              // Otherwise clone the organism.
-          orgs[i] = in_pop.orgs[i]->CloneOrganism();
-        }
-      }
-      emp_assert(OK());
-    }
 
-    // All organism copying must be tracked!
-    Population & operator=(const Population & in_pop) = delete;
-
-    // Populations can be copied, but should not be moved to maintain correct empty orgs.
+    // All organism moving/copying must be tracked and done through MABE object.
+    Population(const Population & in_pop) = delete;
     Population(Population &&) = delete;
+    Population & operator=(const Population & in_pop) = delete;
     Population & operator=(Population &&) = delete;
 
     ~Population() { emp_assert(num_orgs==0, "Population should be cleaned up before deletion."); }
