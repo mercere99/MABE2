@@ -50,6 +50,9 @@ namespace EmplodeTools {
 
   template <typename RETURN_T>
   static auto ConvertReturn( RETURN_T && return_value ) {
+    constexpr bool is_ref = std::is_lvalue_reference<RETURN_T>();
+    using base_t = std::remove_reference_t<RETURN_T>;
+
     // If a return value is already a symbol pointer, just pass it through.
     if constexpr (std::is_same<RETURN_T, symbol_ptr_t>()) {
       return return_value;
@@ -59,6 +62,11 @@ namespace EmplodeTools {
     else if constexpr (std::is_same<RETURN_T, std::string>() ||
                   std::is_arithmetic<RETURN_T>()) {
       return MakeTempSymbol(return_value);
+    }
+
+    // If a return value is a Emplode type, return its Symbol_Object reference.
+    else if constexpr (is_ref && std::is_base_of<EmplodeType, base_t>()) {
+      return return_value.AsScope().AsObject();
     }
 
     // For now these are the only legal return type; raise error otherwise!
