@@ -622,7 +622,46 @@ namespace mabe {
 
     // Setup "Collection" as another config type.
     auto & collect_type = config.AddType<Collection>("OrgList", "Collection of organism pointers");
-
+    collect_type.AddMemberFunction("ADD_COLLECT",
+      [](Collection & collect, Collection & in) -> Collection&
+        { return collect.Insert(in); },
+      "Merge another collection into this one."
+    );
+    collect_type.AddMemberFunction("ADD_ORG",
+      [](Collection & collect, Population & pop, size_t id) -> Collection&
+        { return collect.Insert(pop.IteratorAt(id)); },
+      "Add a single position to this collection."
+    );
+    collect_type.AddMemberFunction("ADD_POP",
+      [](Collection & collect, Population & pop) -> Collection& { return collect.Insert(pop); },
+      "Add a whole population to this collection."
+    );
+    collect_type.AddMemberFunction("CLEAR",
+      [](Collection & collect) -> Collection& { return collect.Clear(); },
+      "Remove all entries from this collection."
+    );
+    collect_type.AddMemberFunction("HAS_ORG",
+      [](Collection & collect, Population & pop, size_t id)
+        { return collect.HasPosition(pop.IteratorAt(id)); },
+      "Is the specified org position in this collection?"
+    );
+    collect_type.AddMemberFunction("HAS_POP",
+      [](Collection & collect, Population & pop) { return collect.HasPopulation(pop); },
+      "Is the specified population in this collection?"
+    );
+    collect_type.AddMemberFunction("SET_ORG",
+      [](Collection & collect, Population & pop, size_t id) -> Collection&
+        { return collect.Set(pop.IteratorAt(id)); },
+      "Set this collection to be a single position."
+    );
+    collect_type.AddMemberFunction("SET_POP",
+      [](Collection & collect, Population & pop) -> Collection& { return collect.Set(pop); },
+      "Set this collection to be a whole population."
+    );
+    collect_type.AddMemberFunction("SIZE",
+      [](Collection & collect) { return collect.GetSize(); },
+      "Identify how many positions are in this collection."
+    );
 
     // Setup all known modules as available types in the config file.
     for (auto & mod : GetModuleInfo()) {
