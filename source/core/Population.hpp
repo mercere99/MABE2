@@ -98,7 +98,6 @@ namespace mabe {
     using iterator_t = PopIterator;
     using const_iterator_t = ConstPopIterator;
 
-  public:
     Population() { emp_assert(false, "Do not use default constructor on Population!"); }
     Population(const std::string & in_name,
                size_t in_id,
@@ -125,11 +124,14 @@ namespace mabe {
       emp_assert(OK());
     }
 
+    // All organism copying must be tracked!
+    Population & operator=(const Population & in_pop) = delete;
+
     // Populations can be copied, but should not be moved to maintain correct empty orgs.
     Population(Population &&) = delete;
     Population & operator=(Population &&) = delete;
 
-    ~Population() { for (auto x : orgs) if (!x->IsEmpty()) x.Delete(); }
+    ~Population() { emp_assert(num_orgs==0, "Population should be cleaned up before deletion."); }
 
     std::string GetName() const override { return name; }
     int GetID() const noexcept override { return pop_id; }
@@ -140,6 +142,7 @@ namespace mabe {
     bool IsEmpty(size_t pos) const { return IsValid(pos) && orgs[pos]->IsEmpty(); }
     bool IsOccupied(size_t pos) const { return IsValid(pos) && !orgs[pos]->IsEmpty(); }
 
+    void SetName(const std::string & in_name) { name = in_name; }
     void SetID(int in_id) noexcept { pop_id = in_id; }
 
     Organism & operator[](size_t org_id) { return *(orgs[org_id]); }
@@ -160,8 +163,9 @@ namespace mabe {
     void SetOrg(size_t pos, emp::Ptr<Organism> org_ptr) {
       emp_assert(pos < orgs.size());
       emp_assert(IsEmpty(pos));         // Must be valid and should not overwrite a living cell.
-      emp_assert(!org_ptr->IsEmpty());  // Use ClearOrg if you want to empty a cell.
+      emp_assert(!org_ptr->IsEmpty());  // Use ExtractOrg if you want to make a cell empty.
       orgs[pos] = org_ptr;
+      org_ptr->SetPopulation(*this);
       num_orgs++;
     }
 
@@ -171,7 +175,10 @@ namespace mabe {
       emp_assert(!empty_org.IsNull(), "Empty org must be provided before extraction.");
       emp::Ptr<Organism> out_org = orgs[pos];
       orgs[pos] = empty_org;
-      if (!out_org->IsEmpty()) num_orgs--;
+      if (!out_org->IsEmpty()) {
+        num_orgs--;
+        out_org->ClearPopulation(); // Alert organism that it is no longer part of this population.
+      }
       return out_org;
     }
 
@@ -203,9 +210,16 @@ namespace mabe {
   public:
     // Setup member functions associated with population.
     static void InitType(emplode::TypeInfo & info) {
-      std::function<int(Population &)> fun_size =
-        [](Population & target) { return target.GetSize(); };
-      info.AddMemberFunction("SIZE", fun_size, "Return the size of the population.");
+      info.AddMemberFunction("ID", [](Population & target) { return target.GetID(); },
+                             "Return the ID number for the population.");
+      info.AddMemberFunction("NAME", [](Population & target) { return target.GetName(); },
+                             "Return the name of the population.");
+      info.AddMemberFunction("NUM_ORGS", [](Population & target) { return target.GetNumOrgs(); },
+                             "Return the number of organisms in the population.");
+      info.AddMemberFunction("SIZE", [](Population & target) { return target.GetSize(); },
+                             "Return the capacity of the population.");
+      info.AddMemberFunction("PTR", [](Population & target) { return (size_t) &target; },
+                             "DEBUG: Give memory location of target.");
     }
 
 
@@ -213,13 +227,13 @@ namespace mabe {
     bool OK() const {
       // We may have a handful of populations, but assume error if we have more than a million.
       if (pop_id > 1000000) {
-        std::cout << "WARNING: Invalid Population ID (pop_id = " << pop_id << ")" << std::endl;
+        std::cerr << "WARNING: Invalid Population ID (pop_id = " << pop_id << ")" << std::endl;
         return false;
       }
 
       // We should never have more living organisms than slots in the population.
       if (num_orgs > orgs.size()) {
-        std::cout << "ERROR: Population " << pop_id << " size is " << orgs.size()
+        std::cerr << "ERROR: Population " << pop_id << " size is " << orgs.size()
                   << " but num_orgs = " << num_orgs << std::endl;
         return false;
       }
@@ -229,8 +243,15 @@ namespace mabe {
       for (size_t pos = 0; pos < orgs.size(); pos++) {
         // No vector positions should be NULL (use EmptyOrganism instead)
         if (orgs[pos].IsNull()) {
-          std::cout << "ERROR: Population " << pop_id << " as position " << pos
+          std::cerr << "ERROR: Population " << pop_id << " as position " << pos
                     << " has null pointer instead of an organism." << std::endl;
+          return false;
+        }
+
+        // Organisms should point back at this population.
+        if (orgs[pos]->GetPopPtr() != this) {
+          std::cerr << "ERROR: Population " << pop_id << " org# " << pos
+                    << " does not point back at the correct population." << std::endl;
           return false;
         }
 
@@ -240,7 +261,7 @@ namespace mabe {
 
       // Make sure we counted the correct number of organisms in the population.
       if (num_orgs != org_count) {
-          std::cout << "ERROR: Population " << pop_id << " has num_orgs = " << num_orgs
+          std::cerr << "ERROR: Population " << pop_id << " has num_orgs = " << num_orgs
                     << ", but audit counts " << org_count << " orgs." << std::endl;
           return false;
       }
