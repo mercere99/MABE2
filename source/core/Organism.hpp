@@ -36,13 +36,27 @@
 
 namespace mabe {
 
+  class Population;
+
   class Organism : public OrgType, public emp::AnnotatedType {
+  private:
+    emp::Ptr<Population> pop_ptr = nullptr;
   public:
     Organism(ModuleBase & _man) : OrgType(_man) { ; }
-    virtual ~Organism() {}
+    virtual ~Organism() {
+      emp_assert(
+        pop_ptr.IsNull(),
+        "Organisms must be removed from populations before deletion; use MABE::ClearOrgAt()."
+      );
+    }
 
     /// Test if this organism represents an empty cell.
     virtual bool IsEmpty() const noexcept { return false; }
+
+    emp::Ptr<Population> GetPopPtr() const { return pop_ptr; }
+    Population & GetPopulation() { return *pop_ptr; }
+    void SetPopulation(Population & in) { pop_ptr = &in; }
+    void ClearPopulation() { pop_ptr = nullptr; }
 
     /// Specialty version of Clone to return an Organism type.
     [[nodiscard]] emp::Ptr<Organism> CloneOrganism() const {
