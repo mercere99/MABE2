@@ -153,9 +153,13 @@ namespace mabe {
     MABE(const MABE &) = delete;
     MABE(MABE &&) = delete;
     ~MABE() {
-      if (empty_org) empty_org.Delete();                           // Delete empty_org ptr.
-      for (auto x : modules) x.Delete();                           // Delete all modules.
-      for (auto x : pops) x.Delete();                              // Delete all populations.
+      for (auto mod_ptr : modules) mod_ptr.Delete();    // Delete all modules.
+      for (auto pop_ptr : pops) {                       // Delete all populations.
+        ClearPop(*pop_ptr);
+        pop_ptr.Delete();
+      }
+      // Delete the empty organism AFTER clearing the populations, so it's not still used.
+      if (empty_org) empty_org.Delete();
     }
 
     // --- Basic accessors ---
@@ -265,8 +269,24 @@ namespace mabe {
       return DoBirth(*ppos, ppos, target_pop, birth_count, do_mutations);
     }
 
+    /// Remove all organisms from a population.
+    void ClearPop(Population & pop) {
+      for (PopIterator pos = pop.begin(); pos != pop.end(); ++pos) ClearOrgAt(pos);
+    }
+
     /// Resize a population while clearing all of the organisms in it.
-    void EmptyPop(Population & pop, size_t new_size);
+    void EmptyPop(Population & pop, size_t new_size=0) {
+      ClearPop(pop);
+      MABEBase::ResizePop(pop, new_size);
+    }
+
+    void CopyPop(const Population & from_pop, Population & to_pop) {
+      EmptyPop(to_pop, from_pop.GetSize()); // Clear all current orgs in the to_pop and resize.
+      for (size_t pos=0; pos < from_pop.GetSize(); ++pos) {
+        if (from_pop.IsEmpty(pos)) continue;
+        InjectAt(from_pop[pos], to_pop.IteratorAt(pos));
+      }
+    }
 
     /// Return a ramdom position from a desginated population.
     OrgPosition GetRandomPos(Population & pop) {
@@ -580,7 +600,13 @@ namespace mabe {
   {
     // Setup "Population" as a type in the config file.
     auto pop_init_fun = [this](const std::string & name) { return &AddPopulation(name); };
-    auto pop_copy_fun = DefaultCopyFun<Population>();
+    auto pop_copy_fun = [this](const EmplodeType & from, EmplodeType & to) {
+      emp::Ptr<const Population> from_pop = dynamic_cast<const Population *>(&from);
+      emp::Ptr<Population> to_pop = dynamic_cast<Population *>(&to);
+      if (!from_pop || !to_pop) return false; // Wrong type!
+      CopyPop(*from_pop, *to_pop);            // Do the actual copy.
+      return true;
+    };
     auto & pop_type = config.AddType<Population>("Population", "Collection of organisms",
                                                  pop_init_fun, pop_copy_fun);
 
@@ -882,17 +908,6 @@ namespace mabe {
     AddOrgAt(new_org, target_pos, ppos);
 
     return target_pos;
-  }
-
-
-  /// Resize a population while clearing all of the organisms in it.
-  void MABE::EmptyPop(Population & pop, size_t new_size) {
-    // Clean up any organisms in the population.
-    for (PopIterator pos = pop.begin(); pos != pop.end(); ++pos) {
-      ClearOrgAt(pos);
-    }
-
-    MABEBase::ResizePop(pop, new_size);
   }
 
 
