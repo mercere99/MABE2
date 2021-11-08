@@ -290,8 +290,8 @@ namespace mabe {
       return emp::Has(pos_map, (Population *) &pop);
     }
 
-    bool HasPosition(OrgPosition & pos) const {
-      auto info_it = pos_map.find(pos.PopPtr());
+    bool HasPosition(const OrgPosition & pos) const {
+      auto info_it = pos_map.find(pos.PopPtr().ConstCast<Population>());
       return info_it != pos_map.end() &&
              (info_it->second.full_pop || info_it->second.pos_set.Has(pos.Pos()));
     }
@@ -368,6 +368,9 @@ namespace mabe {
     ConstCollectionIterator begin() const { return ConstCollectionIterator(this); }
     ConstCollectionIterator end() const { return ConstCollectionIterator(this, nullptr); }
 
+    /// Remove all entries from a collection.
+    Collection & Clear() { pos_map.clear(); return *this; }
+
     /// Add a Population to this collection.
     template <typename... Ts>
     Collection & Insert(Population & pop, Ts &&... extras) {
@@ -415,6 +418,13 @@ namespace mabe {
 
     /// Base case...
     Collection & Insert() { return *this; }
+
+    /// Set this collection to be exactly the provided items.
+    template <typename... Ts>
+    Collection & Set(Ts &&...args) {
+      Clear();
+      return Insert( std::forward<Ts>(args)... );
+    }
 
     // @CAO: Add:
     // * Remove()  - works with position or population (or another collection?)
