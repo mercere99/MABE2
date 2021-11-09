@@ -39,6 +39,7 @@ namespace emplode {
   class Symbol_Function;
   class Symbol_Object;
   class Symbol_Scope;
+  class TypeInfo;
 
   class Symbol {
   protected:
@@ -143,6 +144,7 @@ namespace emplode {
 
     virtual emp::Ptr<EmplodeType> GetObjectPtr() { return nullptr; }
     virtual emp::Ptr<const EmplodeType> GetObjectPtr() const { return nullptr; }
+    virtual emp::Ptr<const TypeInfo> GetTypeInfoPtr() const { return nullptr; }
 
     /// A generic As() function that will call the appropriate converter.
     template <typename T>
