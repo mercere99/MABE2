@@ -56,12 +56,6 @@ namespace mabe {
       // Head allocate 
       if(include_h_alloc){
         func_h_alloc = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){
-          //std::cout << "HAlloc!" << std::endl;
-          //std::cout << "Working genome: " << hw.GetString() << std::endl;
-          //std::cout << "IP: " << hw.inst_ptr;
-          //std::cout << " RH: " << hw.read_head;
-          //std::cout << " WH: " << hw.write_head;
-          //std::cout << std::endl;
           hw.genome_working.resize(hw.genome.size() * 2, hw.genome_working[0]);
           hw.regs[0] = hw.genome.size();
         };

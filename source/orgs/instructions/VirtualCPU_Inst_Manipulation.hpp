@@ -78,11 +78,20 @@ namespace mabe {
       // Swap 
       {
         func_swap = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
-          size_t idx_1 = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
-          size_t idx_2 = hw.GetComplementIdx(idx_1);
-          data_t tmp = hw.regs[idx_1];
-          hw.regs[idx_1] = hw.regs[idx_2];
-          hw.regs[idx_2] = tmp;
+          if(hw.expanded_nop_args){
+            size_t idx_1 = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
+            size_t idx_2 = inst.nop_vec.size() < 2 ? hw.GetComplementIdx(idx_1) : inst.nop_vec[1];
+            data_t tmp = hw.regs[idx_1];
+            hw.regs[idx_1] = hw.regs[idx_2];
+            hw.regs[idx_2] = tmp;
+          }
+          else {
+            size_t idx_1 = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
+            size_t idx_2 = hw.GetComplementIdx(idx_1);
+            data_t tmp = hw.regs[idx_1];
+            hw.regs[idx_1] = hw.regs[idx_2];
+            hw.regs[idx_2] = tmp;
+          }
         };
         Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
             "Swap", func_swap);
@@ -91,15 +100,16 @@ namespace mabe {
       // Move head 
       {
         func_mov_head = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
-          if(!inst.nop_vec.empty()){
-            if(inst.nop_vec[0] == 0)
-              hw.SetIP(hw.flow_head - 1);
-            else if(inst.nop_vec[0] == 1)
-              hw.SetRH(hw.flow_head);
-            else if(inst.nop_vec[0] == 2)
-              hw.SetWH(hw.flow_head);
+          if(hw.expanded_nop_args){
+            size_t dest_idx = hw.flow_head;
+            if(inst.nop_vec.size() >= 2) dest_idx = hw.GetModdedHead(inst.nop_vec[1]);
+            if(!inst.nop_vec.empty()) hw.SetModdedHead(inst.nop_vec[0], dest_idx);
+            else hw.SetIP(dest_idx);
           }
-          else hw.SetIP(hw.flow_head);
+          else{
+            if(!inst.nop_vec.empty()) hw.SetModdedHead(inst.nop_vec[0], hw.flow_head);
+            else hw.SetIP(hw.flow_head);
+          }
         };
         Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
             "MovHead", func_mov_head);
@@ -108,15 +118,16 @@ namespace mabe {
       // Jump head 
       {
         func_jmp_head = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
-          if(!inst.nop_vec.empty()){
-            if(inst.nop_vec[0] == 0)
-              hw.AdvanceIP(hw.regs[2]);
-            else if(inst.nop_vec[0] == 1)
-              hw.AdvanceRH(hw.regs[2]);
-            else if(inst.nop_vec[0] == 2)
-              hw.AdvanceWH(hw.regs[2]);
+          if(hw.expanded_nop_args){
+            size_t jump_dist = hw.regs[1];
+            if(inst.nop_vec.size() >= 2) jump_dist = hw.regs[inst.nop_vec[1]];
+            if(!inst.nop_vec.empty()) hw.AdvanceModdedHead(inst.nop_vec[0], jump_dist);
+            else hw.AdvanceIP(jump_dist);
           }
-          else hw.AdvanceIP(hw.regs[2]);
+          else{
+            if(!inst.nop_vec.empty()) hw.AdvanceModdedHead(inst.nop_vec[0], hw.regs[2]);
+            else hw.AdvanceIP(hw.regs[2]);
+          }
         };
         Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
             "JumpHead", func_jmp_head);
@@ -125,15 +136,14 @@ namespace mabe {
       // Get head  
       {
         func_get_head = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
-          if(inst.nop_vec.empty())
-            hw.regs[2] = hw.inst_ptr;
+          if(hw.expanded_nop_args){
+            size_t head_val = inst.nop_vec.empty() ? hw.inst_ptr : hw.GetModdedHead(inst.nop_vec[0]);
+            if(inst.nop_vec.size() < 2) hw.regs[2] = head_val;
+            else hw.regs[inst.nop_vec[1]] = head_val;
+          }
           else{
-            if(inst.nop_vec[0] == 0)
-              hw.regs[2] = hw.inst_ptr;
-            else if(inst.nop_vec[0] == 1)
-              hw.regs[2] = hw.read_head;
-            else if(inst.nop_vec[0] == 2)
-              hw.regs[2] = hw.write_head;
+            if(inst.nop_vec.empty()) hw.regs[2] = hw.inst_ptr;
+            else hw.regs[2] = hw.GetModdedHead(inst.nop_vec[0]);
           }
         };
         Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
