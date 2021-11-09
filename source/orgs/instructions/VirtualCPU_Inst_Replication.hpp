@@ -56,6 +56,12 @@ namespace mabe {
       // Head allocate 
       if(include_h_alloc){
         func_h_alloc = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){
+          //std::cout << "HAlloc!" << std::endl;
+          //std::cout << "Working genome: " << hw.GetString() << std::endl;
+          //std::cout << "IP: " << hw.inst_ptr;
+          //std::cout << " RH: " << hw.read_head;
+          //std::cout << " WH: " << hw.write_head;
+          //std::cout << std::endl;
           hw.genome_working.resize(hw.genome.size() * 2, hw.genome_working[0]);
           hw.regs[0] = hw.genome.size();
         };
@@ -73,7 +79,6 @@ namespace mabe {
             offspring_genome = hw.genome_working;
             offspring_genome.resize(0);
             offspring_genome.resize(hw.genome_working.size() - hw.read_head, hw.genome_working[0]); 
-            //std::cout << hw.read_head << " " << hw.genome_working.size() << std::endl;
             std::copy(
                 hw.genome_working.begin() + hw.read_head, 
                 hw.genome_working.end(),
@@ -119,10 +124,9 @@ namespace mabe {
             hw.flow_head = hw.inst_ptr + 1;
           }
           else{
-            hw.regs[1] = res;
+            hw.regs[1] = res + 1;
             hw.regs[2] = inst.nop_vec.size();
-            hw.flow_head = hw.inst_ptr + res + inst.nop_vec.size();
-            while(hw.flow_head >= hw.genome_working.size()) hw.flow_head -= hw.genome_working.size();
+            hw.SetFH(hw.inst_ptr + res + inst.nop_vec.size() + 1);
           }
         };
         Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(

@@ -130,8 +130,8 @@ namespace mabe {
         };
         Action& action = 
             action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
-                "IfNEqu",func_if_n_equ);
-        action.data.AddVar<int>("inst_id", 3);
+                "MoveHeadIfNEqu",func_if_n_equ);
+        action.data.AddVar<int>("inst_id", 40);
       }
     }
 

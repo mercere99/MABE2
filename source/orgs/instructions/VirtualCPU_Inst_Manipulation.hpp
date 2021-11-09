@@ -5,6 +5,7 @@
  *
  *  @file  VirtualCPU_Inst_Manipulation.hpp
  *  @brief Provides manipulation instructions to a population of VirtualCPUOrgs.
+ *
  * 
  */
 
@@ -107,8 +108,12 @@ namespace mabe {
             else hw.SetIP(dest_idx);
           }
           else{
-            if(!inst.nop_vec.empty()) hw.SetModdedHead(inst.nop_vec[0], hw.flow_head);
-            else hw.SetIP(hw.flow_head);
+            if(!inst.nop_vec.empty()){
+              // IP is a special case because it auto advances!
+              if(inst.nop_vec[0] % 4 == 0) hw.SetIP(hw.flow_head - 1);
+              else hw.SetModdedHead(inst.nop_vec[0], hw.flow_head);
+            }
+            else hw.SetIP(hw.flow_head - 1);
           }
         };
         Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
