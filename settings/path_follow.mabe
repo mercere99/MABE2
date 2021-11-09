@@ -80,7 +80,7 @@ VirtualCPUOrg avida_org {       // Organism consisting of Avida instructions.
   child_merit_name = "child_merit";// Name of variable corresponding to the organism's task performance that will be used to calculate CPU cylces given to offspring.
   inititial_merit = 0.01;       // Initial value for merit (task performance)
   verbose = 0;
-  initial_genome_filename = "ancestor.org";// File that contains the gennome used to initialize organisms.
+  initial_genome_filename = "ancestor_extended.org";// File that contains the gennome used to initialize organisms.
   expanded_nop_args = 1;        // If true, some instructions (e.g., math) will use multiple nops to fully define the registers used
 }
 
