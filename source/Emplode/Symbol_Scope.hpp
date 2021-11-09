@@ -19,6 +19,7 @@
 #include "Symbol.hpp"
 #include "Symbol_Function.hpp"
 #include "Symbol_Linked.hpp"
+#include "TypeInfo.hpp"
 
 namespace emplode {
 
@@ -181,7 +182,8 @@ namespace emplode {
     Symbol_Object & AddObject(
       const std::string & name,
       const std::string & desc,
-      emp::Ptr<EmplodeType> obj_ptr=nullptr,
+      emp::Ptr<EmplodeType> obj_ptr,
+      TypeInfo & type_info,
       bool obj_owned=false
     );
 
