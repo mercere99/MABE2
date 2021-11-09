@@ -130,10 +130,11 @@ namespace emplode {
       emp::Ptr<EmplodeType> new_obj = type_info.MakeObj(var_name);
  
       // Setup a scope for this new type, linking the object to it.
-      Symbol_Object & new_obj_symbol = scope.AddObject(var_name, type_desc, new_obj, is_config_owned);
+      Symbol_Object & new_obj_symbol =
+        scope.AddObject(var_name, type_desc, new_obj, type_info, is_config_owned);
 
       // Let the new object know about its scope.
-      new_obj->Setup(new_obj_symbol, type_info);
+      new_obj->Setup(new_obj_symbol);
 
       return new_obj_symbol;
     }
