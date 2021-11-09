@@ -66,6 +66,7 @@ EvalPathFollow path_follow {      // Evaluate organisms on their ability to foll
   score_trait = "child_merit";    // Which trait stores path following performance?
   state_trait = "state";          // Which trait stores organisms' path follow state?
   map_filenames = "test_map.txt"; // List of map files to load, separated by semicolons(;)
+  randomize_cues = 1;           // If true, cues are assigned random values in for each new path
 }
 VirtualCPUOrg avida_org {       // Organism consisting of Avida instructions.
   mut_prob = 0.01;              // Probability of each instruction mutating on reproduction.

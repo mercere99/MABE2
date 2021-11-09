@@ -62,6 +62,8 @@ namespace mabe {
     emp::vector<emp::MVector> start_dir_vec;
     emp::vector<size_t> path_length_vec; 
     size_t max_steps = 100;
+    emp::Ptr<emp::Random> rand_ptr; 
+    bool randomize_cues = true;
   public: 
     using path_follow_decision_func_t = std::function< size_t(size_t tile) >;
     void LoadMap(const std::string& filename){
@@ -163,6 +165,19 @@ namespace mabe {
       state.cur_dir = start_dir_vec[state.cur_map_idx];
       state.raw_score = 0;
       state.normalized_score = 0;
+      if(randomize_cues){
+        state.forward_val = rand_ptr->GetUInt();
+        state.right_val = rand_ptr->GetUInt();
+        while(state.right_val == state.forward_val) state.right_val = rand_ptr->GetUInt();
+        state.left_val = rand_ptr->GetUInt();
+        while(state.left_val == state.forward_val || state.left_val == state.right_val)
+            state.left_val = rand_ptr->GetUInt();
+        state.empty_val = rand_ptr->GetUInt();
+        while(state.empty_val == state.forward_val || 
+            state.empty_val == state.right_val || 
+            state.empty_val == state.left_val)
+            state.empty_val = rand_ptr->GetUInt();
+      }
     }
 
     double GetCurrentPosScore(PathFollowState& state){
@@ -240,6 +255,10 @@ namespace mabe {
       return 0;
     }
 
+    void InitRandom(emp::Random& _rand, bool _randomize_cues){
+      rand_ptr = &_rand;
+      randomize_cues = _randomize_cues;
+    }
     double EvalTrial(path_follow_decision_func_t& decision_func, size_t map_idx, 
         bool verbose = false){
       emp::Matrix<Tile>& cur_map = tile_map_vec[map_idx];
@@ -317,6 +336,7 @@ namespace mabe {
     std::string map_filenames="";              ///< ;-separated list map filenames to load.
     PathFollowEvaluator evaluator;
     size_t pop_id = 0;
+    bool randomize_cues = true;
     std::function<void(VirtualCPUOrg&, const VirtualCPUOrg::inst_t&)> func_move;
     std::function<void(VirtualCPUOrg&, const VirtualCPUOrg::inst_t&)> func_rotate_right;
     std::function<void(VirtualCPUOrg&, const VirtualCPUOrg::inst_t&)> func_rotate_left;
@@ -340,6 +360,8 @@ namespace mabe {
       LinkVar(state_trait, "state_trait", "Which trait stores organisms' path follow state?");
       LinkVar(map_filenames, "map_filenames", 
           "List of map files to load, separated by semicolons(;)");
+      LinkVar(randomize_cues, "randomize_cues", "If true, cues are assigned random values in for "
+          "each new path");
     }
 
     void SetupInstructions(){
@@ -399,6 +421,7 @@ namespace mabe {
       AddSharedTrait<double>(score_trait, "Path following score", 0.0);
       AddOwnedTrait<PathFollowState>(state_trait, "Organism's path follow state", { }); 
       evaluator.LoadAllMaps(map_filenames);
+      evaluator.InitRandom(control.GetRandom(), randomize_cues);
       SetupInstructions();
     }
   };
