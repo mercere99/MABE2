@@ -22,6 +22,7 @@ namespace mabe {
     Collection target_collect;
     int pop_id = 0;
     size_t num_nops = 3;
+    bool include_nop_x = false;
     std::function<void(VirtualCPUOrg&, const VirtualCPUOrg::inst_t&)> func_nop;
 
   public:
@@ -35,6 +36,7 @@ namespace mabe {
     void SetupConfig() override {
        LinkPop(pop_id, "target_pop", "Population(s) to manage.");
        LinkVar(num_nops, "num_nops", "Number of nops to include.");
+       LinkVar(include_nop_x, "include_nop_x", "Include the special case NopX?");
     }
 
     void SetupFuncs(){
@@ -112,6 +114,12 @@ namespace mabe {
         Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
             "NopL", func_nop);
         action.data.AddVar<int>("inst_id", 11);
+      }
+      // Special case: Nop X
+      if(include_nop_x){
+        Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
+            "NopX", func_nop);
+        action.data.AddVar<int>("inst_id", 50);
       }
     }
 

@@ -32,6 +32,7 @@ SchedulerProbabilistic scheduler { // Rations out updates to organisms based on 
 VirtualCPU_Inst_Nop inst_lib_nop { // Nop instructions for VirtualCPUOrg
   target_pop = "main_pop";      // Population(s) to manage.
   num_nops = 6;                 // Number of nops to include.
+  include_nop_x = 0;            // Include the special case NopX?
 }
 VirtualCPU_Inst_Math inst_lib_math { // Math instructions for VirtualCPUOrg
   target_pop = "main_pop";      // Population(s) to manage.
