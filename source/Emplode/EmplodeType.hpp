@@ -24,12 +24,7 @@ namespace emplode {
   // Base class for types that we want to be used for scripting.
   class EmplodeType {
   protected:
-    emp::Ptr<Symbol_Scope> symbol_ptr;
-    emp::Ptr<TypeInfo> type_info_ptr;
-
-    // Some special, internal variables associated with each object.
-    bool _active=true;       ///< Should this object be used in the current run?
-    std::string _desc="";    ///< Special description for this object.
+    emp::Ptr<Symbol_Scope> symbol_ptr = nullptr;
 
   public:
     /// Setup the TYPE of object in the config.  This is a stub class, but any new class derived from
@@ -58,16 +53,9 @@ namespace emplode {
       return *symbol_ptr.DynamicCast<const Symbol_Scope>();
     }
 
-    const TypeInfo & GetTypeInfo() const { return *type_info_ptr; }
-
     /// Setup an instance of a new EmplodeType object; provide it with its symbol and type information.    
-    void Setup(Symbol_Object & in_symbol, TypeInfo & _info) {
+    void Setup(Symbol_Object & in_symbol) {
       symbol_ptr = &in_symbol;
-      type_info_ptr = &_info;
-
-      // Link standard internal variables for this object.
-      LinkVar(_active, "_active", "Should we activate this module? (0=off, 1=on)", true);
-      LinkVar(_desc,   "_desc",   "Special description for those object.", true);
 
       // Link specialized variable for the derived type.
       SetupConfig();
@@ -75,7 +63,7 @@ namespace emplode {
       // Load in any member function for this object into the object.
       using symbol_ptr_t = emp::Ptr<Symbol>;
       using member_fun_t = std::function<symbol_ptr_t(const emp::vector<symbol_ptr_t> &)>;
-      const auto & member_map = type_info_ptr->GetMemberFunctions();
+      const auto & member_map = symbol_ptr->GetTypeInfoPtr()->GetMemberFunctions();
 
       // std::cout << "Loading member functions for '" << in_symbol.GetName() << "'; "
       //           << member_map.size() << " found."
