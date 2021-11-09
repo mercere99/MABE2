@@ -23,6 +23,7 @@ namespace emplode {
   protected:
     ///< Point to associated object and track ownership
     emp::Ptr<EmplodeType> obj_ptr = nullptr;
+    emp::Ptr<TypeInfo> type_info_ptr = nullptr;
     bool obj_owned = false;
 
   public:
@@ -30,8 +31,10 @@ namespace emplode {
                   const std::string & _desc,
                   emp::Ptr<Symbol_Scope> _scope,
                   emp::Ptr<EmplodeType> _obj,
+                  TypeInfo & _type_info,
                   bool _owned)
-      : Symbol_Scope(_name, _desc, _scope), obj_ptr(_obj), obj_owned(_owned) { }
+      : Symbol_Scope(_name, _desc, _scope)
+      , obj_ptr(_obj), type_info_ptr(&_type_info), obj_owned(_owned) { }
 
     Symbol_Object(const Symbol_Object & in) : Symbol_Scope(in) {       
       // Copy the internal object.
@@ -55,11 +58,12 @@ namespace emplode {
 
     emp::Ptr<EmplodeType> GetObjectPtr() override { return obj_ptr; }  
     emp::Ptr<const EmplodeType> GetObjectPtr() const override { return obj_ptr; }  
+    emp::Ptr<const TypeInfo> GetTypeInfoPtr() const override { return type_info_ptr; }
 
     bool IsObject() const override { return true; }
     emp::TypeID GetObjectType() {
-      if (obj_ptr.IsNull()) return emp::GetTypeID<void>();
-      return obj_ptr->GetTypeInfo().GetTypeID();
+      if (type_info_ptr.IsNull()) return emp::GetTypeID<void>();
+      return type_info_ptr->GetTypeID();
     }
 
     /// Set this symbol to be a correctly-typed scope pointer.
@@ -80,7 +84,7 @@ namespace emplode {
       const Symbol_Object & in_object = in.AsObject();
 
       // If typeinfo knows how to make this copy, let it.
-      if (obj_ptr->GetTypeInfo().CopyObj(*in_object.obj_ptr, *obj_ptr)) return true;
+      if (type_info_ptr->CopyObj(*in_object.obj_ptr, *obj_ptr)) return true;
 
       // Otherwise use the default copy method for the object.
       return obj_ptr->CopyValue(*in_object.obj_ptr);
@@ -95,9 +99,10 @@ namespace emplode {
     const std::string & name,
     const std::string & desc,
     emp::Ptr<EmplodeType> obj_ptr,
+    TypeInfo & type_info,
     bool obj_owned
   ) {
-    return Add<Symbol_Object>(name, desc, this, obj_ptr, obj_owned);
+    return Add<Symbol_Object>(name, desc, this, obj_ptr, type_info, obj_owned);
   }
 
 }
