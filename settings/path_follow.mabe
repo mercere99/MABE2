@@ -45,6 +45,9 @@ VirtualCPU_Inst_IO inst_lib_io { // IO instructions for VirtualCPUOrg
 VirtualCPU_Inst_Flow inst_lib_flow { // Flow control instructions for VirtualCPUOrg
   target_pop = "main_pop";      // Population(s) to manage.
 }
+VirtualCPU_Inst_Label inst_lib_label { // Label control instructions for VirtualCPUOrg
+  target_pop = "main_pop";      // Population(s) to manage.
+}
 VirtualCPU_Inst_Manipulation inst_lib_manip { // Manipulation instructions for VirtualCPUOrg
   target_pop = "main_pop";      // Population(s) to manage.
 }
@@ -76,6 +79,7 @@ VirtualCPUOrg avida_org {       // Organism consisting of Avida instructions.
   inititial_merit = 0.01;       // Initial value for merit (task performance)
   verbose = 0;
   initial_genome_filename = "ancestor.org";// File that contains the gennome used to initialize organisms.
+  expanded_nop_args = 1;        // If true, some instructions (e.g., math) will use multiple nops to fully define the registers used
 }
 
 @start(0) print("\n\nStarting run\n");

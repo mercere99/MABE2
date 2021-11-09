@@ -55,5 +55,6 @@
 #include "orgs/instructions/VirtualCPU_Inst_Math.hpp"
 #include "orgs/instructions/VirtualCPU_Inst_IO.hpp"
 #include "orgs/instructions/VirtualCPU_Inst_Flow.hpp"
+#include "orgs/instructions/VirtualCPU_Inst_Label.hpp"
 #include "orgs/instructions/VirtualCPU_Inst_Manipulation.hpp"
 #include "orgs/instructions/VirtualCPU_Inst_Replication.hpp"

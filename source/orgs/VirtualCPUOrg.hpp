@@ -53,6 +53,7 @@ namespace mabe {
       double initial_merit = 0;
       bool verbose = false;
       std::string initial_genome_filename = "ancestor.org";
+      bool expanded_nop_args = false;
 
       // Internal use
       emp::Binomial mut_dist;            ///< Distribution of number of mutations to occur.
@@ -129,6 +130,7 @@ namespace mabe {
         //PushInst("NopA");    // 48
         //PushInst("NopB");    // 49
       }
+      expanded_nop_args = SharedData().expanded_nop_args;
       Organism::SetTrait<std::string>(SharedData().genome_name, GetString());
       Organism::SetTrait<double>(SharedData().merit_name, SharedData().initial_merit); 
       Organism::SetTrait<double>(SharedData().child_merit_name, SharedData().initial_merit); 
@@ -162,6 +164,7 @@ namespace mabe {
       offspring->genome_working = offspring->genome;
       offspring->ResetHardware();
       offspring->Organism::SetTrait<std::string>(SharedData().genome_name, offspring->GetString());
+      offspring->expanded_nop_args = SharedData().expanded_nop_args;
       return offspring;
     }
 
@@ -212,6 +215,9 @@ namespace mabe {
                       "If true, print execution info of organisms");
       GetManager().LinkVar(SharedData().initial_genome_filename, "initial_genome_filename",
                       "File that contains the gennome used to initialize organisms.");
+      GetManager().LinkVar(SharedData().expanded_nop_args, "expanded_nop_args",
+                      "If true, some instructions (e.g., math) will use multiple nops to fully "
+                      "define the registers used");
     }
 
     /// Setup this organism type with the traits it need to track.

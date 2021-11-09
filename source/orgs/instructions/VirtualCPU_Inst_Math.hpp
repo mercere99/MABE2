@@ -86,8 +86,17 @@ namespace mabe {
       // Add 
       {
         func_add = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
-          size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
-          hw.regs[idx] = hw.regs[1] + hw.regs[2];
+          if(hw.expanded_nop_args){
+            size_t idx_res = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
+            size_t idx_op_1 = inst.nop_vec.size() < 2 ? idx_res : inst.nop_vec[1];
+            size_t idx_op_2 = inst.nop_vec.size() < 3 ? hw.GetComplementIdx(idx_op_1) : inst.nop_vec[2];
+            hw.regs[idx_res] = hw.regs[idx_op_1] + hw.regs[idx_op_2];
+          }
+          else{
+            size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
+            size_t idx_2 = hw.GetComplementIdx(idx);
+            hw.regs[idx] = hw.regs[idx] + hw.regs[idx_2];
+          }
         };
         Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
             "Add", func_add);
@@ -96,8 +105,17 @@ namespace mabe {
       // Sub 
       {
         func_sub = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
-          size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
-          hw.regs[idx] = hw.regs[1] - hw.regs[2];
+          if(hw.expanded_nop_args){
+            size_t idx_res = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
+            size_t idx_op_1 = inst.nop_vec.size() < 2 ? idx_res : inst.nop_vec[1];
+            size_t idx_op_2 = inst.nop_vec.size() < 3 ? hw.GetComplementIdx(idx_op_1) : inst.nop_vec[2];
+            hw.regs[idx_res] = hw.regs[idx_op_1] - hw.regs[idx_op_2];
+          }
+          else{
+            size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
+            size_t idx_2 = hw.GetComplementIdx(idx);
+            hw.regs[idx] = hw.regs[idx] - hw.regs[idx_2];
+          }
         };
         Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
             "Sub", func_sub);
@@ -106,8 +124,19 @@ namespace mabe {
       // NAND 
       {
         func_nand = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
+          if(hw.expanded_nop_args){
+            size_t idx_res = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
+            size_t idx_op_1 = inst.nop_vec.size() < 2 ? idx_res : inst.nop_vec[1];
+            size_t idx_op_2 = inst.nop_vec.size() < 3 ? hw.GetComplementIdx(idx_op_1) : inst.nop_vec[2];
+            hw.regs[idx_res] = ~(hw.regs[idx_op_1] & hw.regs[idx_op_2]);
+          }
+          else{
+            size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
+            size_t idx_2 = hw.GetComplementIdx(idx);
+            hw.regs[idx] = hw.regs[idx] + hw.regs[idx_2];
+            hw.regs[idx] = ~(hw.regs[idx] & hw.regs[idx_2]);
+          }
           size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
-          hw.regs[idx] = ~(hw.regs[1] & hw.regs[2]);
         };
         Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
             "Nand", func_nand);

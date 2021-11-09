@@ -138,6 +138,7 @@ namespace mabe {
       // Repro 
       if(include_repro){
         func_repro = [this](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){
+          if(hw.inst_ptr > 0.75 * hw.genome_working.size()){
             OrgPosition& org_pos = hw.GetTrait<OrgPosition>(org_pos_trait);
             VirtualCPUOrg::genome_t& offspring_genome = hw.GetTrait<VirtualCPUOrg::genome_t>(
                 "offspring_genome");
@@ -149,6 +150,7 @@ namespace mabe {
             hw.ResetHardware();
             hw.inst_ptr = hw.genome_working.size() - 1;
             control.Replicate(org_pos, *org_pos.PopPtr());
+          }
         };
         Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
             "Repro", func_repro);
