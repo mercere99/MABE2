@@ -93,8 +93,15 @@ namespace emplode {
       // Construct a unique name for the new object.
       std::string out_name = emp::to_string(GetName(), "__", (size_t) out_obj);
 
-      return emp::NewPtr<Symbol_Object>(out_name, GetDesc(), out_scope, out_obj,
-                                        *type_info_ptr, obj_owned);
+      // Build the new Symbol_Object.
+      auto out = emp::NewPtr<Symbol_Object>(out_name, GetDesc(), out_scope, out_obj,
+                                            *type_info_ptr, obj_owned);
+
+      // Copy over all of the internal symbols.
+      for (auto [name, ptr] : symbol_table) { out->symbol_table[name] = ptr->Clone(); }
+      // @CAO: Will linkages be in place?
+
+      return out;
     }
   };
 
