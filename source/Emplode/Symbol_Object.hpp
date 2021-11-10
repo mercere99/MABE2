@@ -35,14 +35,8 @@ namespace emplode {
                   bool _owned)
       : Symbol_Scope(_name, _desc, _scope)
       , obj_ptr(_obj), type_info_ptr(&_type_info), obj_owned(_owned) { }
-
-    Symbol_Object(const Symbol_Object & in) : Symbol_Scope(in) {       
-      // Copy the internal object.
-      // @CAO MUST DO THIS!!!!!!!!!!!!!!!!!!!!!
-
-      // Copy all defined variables/scopes/functions
-      for (auto [name, ptr] : symbol_table) { symbol_table[name] = ptr->Clone(); }
-    }
+      
+    Symbol_Object(const Symbol_Object & in) = delete;
     Symbol_Object(Symbol_Object && in)
       : Symbol_Scope(std::move(in)), obj_ptr(in.obj_ptr), obj_owned(in.obj_owned)
     {
@@ -91,7 +85,17 @@ namespace emplode {
     }
 
     /// Make a copy of this scope and all of the entries inside it.
-    emp::Ptr<Symbol> Clone() const override { return emp::NewPtr<Symbol_Object>(*this); }
+    emp::Ptr<Symbol> Clone() const override {
+      emp::Ptr<EmplodeType> out_obj = type_info_ptr->MakeObj(); // Create an initial object.
+      type_info_ptr->CopyObj(*obj_ptr, *out_obj);               // Copy this object.
+      emp::Ptr<Symbol_Scope> out_scope = nullptr;               // Unknown scope?
+
+      // Construct a unique name for the new object.
+      std::string out_name = emp::to_string(GetName(), "__", (size_t) out_obj);
+
+      return emp::NewPtr<Symbol_Object>(out_name, GetDesc(), out_scope, out_obj,
+                                        *type_info_ptr, obj_owned);
+    }
   };
 
   // Definition needed to add an object to an existing scope.
