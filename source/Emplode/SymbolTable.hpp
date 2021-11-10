@@ -165,7 +165,8 @@ namespace emplode {
     }
 
 
-    emp::Ptr<Symbol_Object> MakeTempObjSymbol(emp::TypeID type_id) override {
+    emp::Ptr<Symbol_Object> MakeTempObjSymbol(emp::TypeID type_id,
+                                              emp::Ptr<EmplodeType> value_ptr=nullptr) override {
       TypeInfo & type_info = *typeid_map[type_id];
       emp_assert(type_info.GetOwned(),
                  "Only symbol-owned types can be temporary since they are deleted dynamically.",
@@ -174,13 +175,14 @@ namespace emplode {
       // Use the TypeInfo associated with the provided type name to build an instance.
       emp::Ptr<EmplodeType> new_obj = type_info.MakeObj("__Temp");
       auto new_symbol = emp::NewPtr<Symbol_Object>("__Temp", "", nullptr, new_obj, type_info, true);
-      new_symbol->SetTemporary();
 
-      // Setup the new object with its symbol.
-      new_obj->Setup(*new_symbol);
+      new_symbol->SetTemporary();                              // Mark new symbol to be deleted.
+      new_obj->Setup(*new_symbol);                             // Setup new object with its symbol.
+      if (value_ptr) type_info.CopyObj(*value_ptr, *new_obj);  // Copy value in, if we have one.
 
       return new_symbol;
     }
+
 
     /// Create a new type of event that can be used in the scripting language.
     Events & AddEventType(const std::string & name) {

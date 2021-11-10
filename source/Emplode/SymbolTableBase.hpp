@@ -16,6 +16,7 @@
 #include "emp/base/Ptr.hpp"
 #include "emp/base/vector.hpp"
 #include "emp/datastructs/tuple_utils.hpp"
+#include "emp/debug/debug.hpp"
 #include "emp/meta/FunInfo.hpp"
 #include "emp/meta/ValPack.hpp"
 
@@ -32,14 +33,15 @@ namespace emplode {
     using symbol_vector_t = emp::vector<symbol_ptr_t>;
     using target_t = symbol_ptr_t( const symbol_vector_t & );
 
-    // Use EmplodeTools::MakeTempSymbol(value) to quickly allocate a temporary symbol with a
-    // given value.  NOTE: Caller is responsible for deleting the created symbol!
-    virtual emp::Ptr<Symbol_Object> MakeTempObjSymbol(emp::TypeID type_id) = 0;
+    // Quickly allocate a temporary symbol with a given value.
+    // NOTE: Caller is responsible for deleting the created symbol!
+    virtual emp::Ptr<Symbol_Object>
+    MakeTempObjSymbol(emp::TypeID type_id, emp::Ptr<EmplodeType> value_ptr=nullptr) = 0;
 
     template <typename T>
     auto MakeTempSymbol(T value) {
       if constexpr (std::is_base_of<EmplodeType, T>()) {
-        return MakeTempObjSymbol(emp::GetTypeID<T>());
+        return MakeTempObjSymbol(emp::GetTypeID<T>(), &value);
       } else {
         auto out_symbol = emp::NewPtr<Symbol_Var<T>>("__Temp", value, "", nullptr);
         out_symbol->SetTemporary();
@@ -59,9 +61,13 @@ namespace emplode {
     }
 
     template <typename RETURN_T>
-    decltype(auto) ConvertReturn( RETURN_T && return_value ) {
+    decltype(auto) ConvertReturn( const std::string & fun_name, RETURN_T && return_value ) {
       constexpr bool is_ref = std::is_lvalue_reference<RETURN_T>();
       using base_t = std::remove_reference_t<RETURN_T>;
+
+      // if (fun_name == "INJECT") {
+      //   emp_debug("INJECT! Return type=", emp::GetTypeID<RETURN_T>());
+      // }
 
       // If a return value is already a symbol pointer, just pass it through.
       if constexpr (std::is_same<RETURN_T, symbol_ptr_t>()) {
@@ -86,7 +92,7 @@ namespace emplode {
 
       // For now these are the only legal return type; raise error otherwise!
       else {
-        emp::ShowType<RETURN_T>{};
+        std::cerr << "Failed to convert return type for function " << fun_name << std::endl;
         static_assert(emp::dependent_false<RETURN_T>(),
                       "Invalid return value in Symbol_Function::SetFunction()");
       }
@@ -103,7 +109,7 @@ namespace emplode {
       static auto ConvertFun([[maybe_unused]] const std::string & name, FUN_T fun, SymbolTableBase & st) {
         return [name=name,fun=fun,&st]([[maybe_unused]] const symbol_vector_t & args) {
           emp_assert(args.size() == 0, "Too many arguments (expected 0)", name, args.size());
-          return st.ConvertReturn( fun() );
+          return st.ConvertReturn( name, fun() );
         };
       }
 
@@ -123,7 +129,7 @@ namespace emplode {
           // just pass it along.
           if constexpr (sizeof...(PARAM_Ts) == 0 &&
                         std::is_same_v<PARAM1_T, const symbol_vector_t &>) {
-            return st.ConvertReturn( fun(args) );
+            return st.ConvertReturn( name, fun(args) );
           }
 
           // Otherwise make sure we have the correct arguments.
@@ -137,8 +143,10 @@ namespace emplode {
             }
             //@CAO should collect file position information for the above errors.
 
-            return st.ConvertReturn( fun(args[0]->As<PARAM1_T>(),
-                                     args[INDEX_VALS+1]->template As<PARAM_Ts>()...) );
+            return st.ConvertReturn(
+              name,
+              fun(args[0]->As<PARAM1_T>(), args[INDEX_VALS+1]->template As<PARAM_Ts>()...)
+            );
           }
         };      
       }
@@ -169,14 +177,14 @@ namespace emplode {
             }
             //@CAO should collect file position information for the above errors.
 
-            return st.ConvertReturn( fun(*typed_ptr) );
+            return st.ConvertReturn( name, fun(*typed_ptr) );
           }
 
           // If this function already takes a const symbol_vector_t & as its only extra parameter,
           // just pass it along.
           else if constexpr (sizeof...(PARAM_Ts) == 1 &&
                         std::is_same_v<typename info_t::template arg_t<1>, const symbol_vector_t &>) {
-            return st.ConvertReturn( fun(*typed_ptr, args) );
+            return st.ConvertReturn( name, fun(*typed_ptr, args) );
           }
 
           // Otherwise make sure we have the correct arguments.
@@ -190,7 +198,7 @@ namespace emplode {
             }
             //@CAO should collect file position information for the above errors.
 
-            return st.ConvertReturn( fun(*typed_ptr, args[INDEX_VALS]->template As<PARAM_Ts>()...) );
+            return st.ConvertReturn( name, fun(*typed_ptr, args[INDEX_VALS]->template As<PARAM_Ts>()...) );
           }
         };
       }
