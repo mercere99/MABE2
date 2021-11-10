@@ -44,8 +44,6 @@
 
 namespace mabe {
 
-  using namespace emplode::EmplodeTools;
-
   ///  @brief The main MABE controller class
   ///
   ///  The MABE controller class manages interactions between all modules,
@@ -538,9 +536,6 @@ namespace mabe {
 
     // Loop through each module to update its signals.
     for (emp::Ptr<ModuleBase> mod_ptr : modules) {
-      // If a module is deactivated, don't use it's signals.
-      if (mod_ptr->_active == false) continue;
-
       // For the current module, loop through all of the signals.
       for (size_t sig_id = 0; sig_id < sig_ptrs.size(); sig_id++) {
         if (mod_ptr->has_signal[sig_id]) sig_ptrs[sig_id]->push_back(mod_ptr);
@@ -610,6 +605,9 @@ namespace mabe {
     auto & pop_type = config.AddType<Population>("Population", "Collection of organisms",
                                                  pop_init_fun, pop_copy_fun);
 
+    // Setup "Collection" as another config type.
+    auto & collect_type = config.AddType<Collection>("OrgList", "Collection of organism pointers");
+
     // 'INJECT' allows a user to add an organism to a population.
     std::function<int(Population &, const std::string &, size_t)> inject_fun =
       [this](Population & pop, const std::string & org_type_name, size_t count) {
@@ -619,49 +617,6 @@ namespace mabe {
     pop_type.AddMemberFunction("INJECT", inject_fun,
       "Inject organisms into population (args: org_name, org_count).");
 
-
-    // Setup "Collection" as another config type.
-    auto & collect_type = config.AddType<Collection>("OrgList", "Collection of organism pointers");
-    collect_type.AddMemberFunction("ADD_COLLECT",
-      [](Collection & collect, Collection & in) -> Collection&
-        { return collect.Insert(in); },
-      "Merge another collection into this one."
-    );
-    collect_type.AddMemberFunction("ADD_ORG",
-      [](Collection & collect, Population & pop, size_t id) -> Collection&
-        { return collect.Insert(pop.IteratorAt(id)); },
-      "Add a single position to this collection."
-    );
-    collect_type.AddMemberFunction("ADD_POP",
-      [](Collection & collect, Population & pop) -> Collection& { return collect.Insert(pop); },
-      "Add a whole population to this collection."
-    );
-    collect_type.AddMemberFunction("CLEAR",
-      [](Collection & collect) -> Collection& { return collect.Clear(); },
-      "Remove all entries from this collection."
-    );
-    collect_type.AddMemberFunction("HAS_ORG",
-      [](Collection & collect, Population & pop, size_t id)
-        { return collect.HasPosition(pop.IteratorAt(id)); },
-      "Is the specified org position in this collection?"
-    );
-    collect_type.AddMemberFunction("HAS_POP",
-      [](Collection & collect, Population & pop) { return collect.HasPopulation(pop); },
-      "Is the specified population in this collection?"
-    );
-    collect_type.AddMemberFunction("SET_ORG",
-      [](Collection & collect, Population & pop, size_t id) -> Collection&
-        { return collect.Set(pop.IteratorAt(id)); },
-      "Set this collection to be a single position."
-    );
-    collect_type.AddMemberFunction("SET_POP",
-      [](Collection & collect, Population & pop) -> Collection& { return collect.Set(pop); },
-      "Set this collection to be a whole population."
-    );
-    collect_type.AddMemberFunction("SIZE",
-      [](Collection & collect) { return collect.GetSize(); },
-      "Identify how many positions are in this collection."
-    );
 
     // Setup all known modules as available types in the config file.
     for (auto & mod : GetModuleInfo()) {

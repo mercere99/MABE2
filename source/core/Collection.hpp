@@ -246,6 +246,49 @@ namespace mabe {
     using iterator_t = CollectionIterator;
     using const_iterator_t = ConstCollectionIterator;
 
+    static void InitType(emplode::TypeInfo & info) {
+      info.AddMemberFunction("ADD_COLLECT",
+        [](Collection & collect, Collection & in) -> Collection&
+          { return collect.Insert(in); },
+        "Merge another collection into this one."
+      );
+      info.AddMemberFunction("ADD_ORG",
+        [](Collection & collect, Population & pop, size_t id) -> Collection&
+          { return collect.Insert(pop.IteratorAt(id)); },
+        "Add a single position to this collection."
+      );
+      info.AddMemberFunction("ADD_POP",
+        [](Collection & collect, Population & pop) -> Collection& { return collect.Insert(pop); },
+        "Add a whole population to this collection."
+      );
+      info.AddMemberFunction("CLEAR",
+        [](Collection & collect) -> Collection& { return collect.Clear(); },
+        "Remove all entries from this collection."
+      );
+      info.AddMemberFunction("HAS_ORG",
+        [](Collection & collect, Population & pop, size_t id)
+          { return collect.HasPosition(pop.IteratorAt(id)); },
+        "Is the specified org position in this collection?"
+      );
+      info.AddMemberFunction("HAS_POP",
+        [](Collection & collect, Population & pop) { return collect.HasPopulation(pop); },
+        "Is the specified population in this collection?"
+      );
+      info.AddMemberFunction("SET_ORG",
+        [](Collection & collect, Population & pop, size_t id) -> Collection&
+          { return collect.Set(pop.IteratorAt(id)); },
+        "Set this collection to be a single position."
+      );
+      info.AddMemberFunction("SET_POP",
+        [](Collection & collect, Population & pop) -> Collection& { return collect.Set(pop); },
+        "Set this collection to be a whole population."
+      );
+      info.AddMemberFunction("SIZE",
+        [](Collection & collect) { return collect.GetSize(); },
+        "Identify how many positions are in this collection."
+      );
+    }
+
     /// Calculate the total number of positions represented in this collection.
     size_t GetSize() const noexcept override {
       size_t count = 0;
