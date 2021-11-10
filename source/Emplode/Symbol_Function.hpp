@@ -19,7 +19,7 @@
 #include "emp/meta/ValPack.hpp"
 
 #include "Symbol.hpp"
-#include "EmplodeTools.hpp"
+#include "SymbolTableBase.hpp"
 
 namespace emplode {
 
@@ -27,31 +27,29 @@ namespace emplode {
   private:
     using this_t = Symbol_Function;
     using symbol_ptr_t = emp::Ptr<Symbol>;
-    using fun_t = std::function< symbol_ptr_t( const emp::vector<symbol_ptr_t> & ) >;
-    fun_t fun;
-    bool numeric_return = false;
-    bool string_return = false;
+    using fun_t = symbol_ptr_t( const emp::vector<symbol_ptr_t> & );
+    using std_fun_t = std::function< fun_t >;
+
+    std_fun_t fun;            // Unified-form function.
+    emp::TypeID return_type;  // Native return type for original function.
     // size_t arg_count;
 
   public:
-    template <typename FUN_T>
     Symbol_Function(const std::string & _name,
-                    FUN_T _fun,
+                    std_fun_t _fun,
                     const std::string & _desc,
-                    emp::Ptr<Symbol_Scope> _scope)
-      : Symbol(_name, _desc, _scope), fun(EmplodeTools::WrapFunction(_name, _fun))
+                    emp::Ptr<Symbol_Scope> _scope,
+                    emp::TypeID _ret_type)
+      : Symbol(_name, _desc, _scope), fun(_fun), return_type(_ret_type)
     {
-      using return_t = typename emp::FunInfo<FUN_T>::return_t;
-      numeric_return = std::is_scalar_v<return_t>;
-      string_return = std::is_same<std::string, return_t>();
     }
 
     Symbol_Function(const Symbol_Function &) = default;
     emp::Ptr<Symbol> Clone() const override { return emp::NewPtr<this_t>(*this); }
 
     bool IsFunction() const override { return true; }
-    bool HasNumericReturn() const override { return numeric_return; }
-    bool HasStringReturn() const override { return string_return; }
+    bool HasNumericReturn() const override { return return_type.IsArithmetic(); }
+    bool HasStringReturn() const override { return return_type.IsType<std::string>(); }
 
     /// Set this symbol to be a correctly-typed scope pointer.
     emp::Ptr<Symbol_Function> AsFunctionPtr() override { return this; }
@@ -66,8 +64,7 @@ namespace emplode {
 
       const Symbol_Function & in_fun = in.AsFunction();
       fun = in_fun.fun;
-      numeric_return = in_fun.numeric_return;
-      string_return = in_fun.string_return;
+      return_type = in_fun.return_type;
 
       return true;
     }
