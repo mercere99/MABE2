@@ -60,6 +60,7 @@ namespace emplode {
     size_t GetIndex() const { return pos.GetIndex(); }  ///< Return index in token stream.
     int GetLine() const { return (int) pos->line_id; }
     size_t GetTokenSize() const { return pos.IsValid() ? pos->lexeme.size() : 0; }
+    SymbolTable & GetSymbolTable() { return *symbol_table; }
     Symbol_Scope & GetScope() {
       emp_assert(scope_stack.size() && scope_stack.back() != nullptr);
       return *scope_stack.back();
@@ -240,6 +241,7 @@ namespace emplode {
     [[nodiscard]] emp::Ptr<ASTNode_Block> ParseStatementList(ParseState & state) {
       Debug("Running ParseStatementList(", state.AsString(), ")");
       auto cur_block = emp::NewPtr<ASTNode_Block>(state.GetScope(), state.GetLine());
+      cur_block->SetSymbolTable(state.GetSymbolTable());
       while (state.IsValid() && state.AsChar() != '}') {
         // Parse each statement in the file.
         emp::Ptr<ASTNode> statement_node = ParseStatement(state);
