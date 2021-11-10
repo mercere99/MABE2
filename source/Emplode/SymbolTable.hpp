@@ -23,26 +23,33 @@
 
 #include "Events.hpp"
 #include "Symbol_Scope.hpp"
+#include "SymbolTableBase.hpp"
 
 
 namespace emplode {
 
-  class SymbolTable {
+  class SymbolTable : public SymbolTableBase {
   protected:
-    Symbol_Scope root_scope;                                      ///< All variables from the root level.
-    std::map<std::string, Events> events_map;                     ///< A map of names to event groups.
-    std::unordered_map<std::string, emp::Ptr<TypeInfo>> type_map; ///< All types available in the script.
-    emp::StreamManager file_map;                                     ///< Track all file streams by name.
+    Symbol_Scope root_scope;                                        ///< Outermost (global) scope.
+    std::map<std::string, Events> events_map;                       ///< Events, lookup by name.
+    std::unordered_map<std::string, emp::Ptr<TypeInfo>> type_map;   ///< Types, lookup by name.
+    std::unordered_map<emp::TypeID, emp::Ptr<TypeInfo>> typeid_map; ///< Types, lookup by TypeID.
+    emp::StreamManager file_map;                                    ///< File streams by name.
 
   public:
     SymbolTable(const std::string & name)
     : root_scope(name, "Global scope", nullptr) {
       // Initialize the type map.
-      type_map["INVALID"] = emp::NewPtr<TypeInfo>( 0, "/*ERROR*/", "Error, Invalid type!" );
-      type_map["Void"] = emp::NewPtr<TypeInfo>( 1, "Void", "Non-type variable; no value" );
-      type_map["Value"] = emp::NewPtr<TypeInfo>( 2, "Value", "Numeric variable" );
-      type_map["String"] = emp::NewPtr<TypeInfo>( 3, "String", "String variable" );
-      type_map["Struct"] = emp::NewPtr<TypeInfo>( 4, "Struct", "User-made structure" );
+      type_map["INVALID"] = emp::NewPtr<TypeInfo>( *this, 0, "/*ERROR*/", "Error, Invalid type!" );
+      type_map["Void"] = emp::NewPtr<TypeInfo>( *this, 1, "Void", "Non-type variable; no value" );
+      type_map["Value"] = emp::NewPtr<TypeInfo>( *this, 2, "Value", "Numeric variable" );
+      type_map["String"] = emp::NewPtr<TypeInfo>( *this, 3, "String", "String variable" );
+      type_map["Struct"] = emp::NewPtr<TypeInfo>( *this, 4, "Struct", "User-made structure" );
+
+      // Those types 
+      typeid_map[emp::GetTypeID<void>()] = type_map["Void"];
+      typeid_map[emp::GetTypeID<double>()] = type_map["Value"];
+      typeid_map[emp::GetTypeID<std::string>()] = type_map["String"];      
 
       file_map.SetOutputDefaultFile();  // Stream manager should default to 'file' output.
     }
@@ -58,6 +65,7 @@ namespace emplode {
 
     bool HasEvent(const std::string & name) const { return emp::Has(events_map, name); }
     bool HasType(const std::string & name) const { return emp::Has(type_map, name); }
+    bool HasTypeID(emp::TypeID id) const { return emp::Has(typeid_map, id); }
 
     /// To add a built-in function (at the root level) provide it with a name and description.
     /// As long as the function only requires types known to the config system, it should be
@@ -65,7 +73,10 @@ namespace emplode {
     /// vector of ASTNode pointers, but may return any known type.
     template <typename FUN_T>
     void AddFunction(const std::string & name, FUN_T fun, const std::string & desc) {
-      root_scope.AddBuiltinFunction(name, fun, desc);
+      auto emplode_fun = WrapFunction(name, fun);
+      using return_t = typename emp::FunInfo<FUN_T>::return_t;
+      emp::TypeID return_id = emp::GetTypeID<return_t>();
+      root_scope.AddBuiltinFunction(name, emplode_fun, desc, return_id);
     }
 
     /// To add a type, provide the type name (that can be referred to in a script) and a function
@@ -82,10 +93,12 @@ namespace emplode {
     ) {
       emp_assert(!emp::Has(type_map, type_name), type_name, "Type already exists!");
       size_t index = type_map.size();
-      auto info_ptr = emp::NewPtr<TypeInfo>( index, type_name, desc,
+      auto info_ptr = emp::NewPtr<TypeInfo>( *this, index, type_name, desc,
                                              init_fun, copy_fun, is_config_owned );
       info_ptr->LinkType(type_id);
       type_map[type_name] = info_ptr;
+      typeid_map[type_id] = info_ptr;
+
       return *type_map[type_name];
     }
 
@@ -112,17 +125,17 @@ namespace emplode {
     template <typename OBJECT_T>
     TypeInfo & AddType(const std::string & type_name, const std::string & desc) {
       auto init_fun = [](const std::string & /*name*/){ return emp::NewPtr<OBJECT_T>(); };
-      auto copy_fun = EmplodeTools::DefaultCopyFun<OBJECT_T>();
+      auto copy_fun = DefaultCopyFun<OBJECT_T>();
       return AddType<OBJECT_T>(type_name, desc, init_fun, copy_fun, true);
     }
 
-    Symbol_Object &  MakeObjSymbol(
-      const std::string & type_name,
+    /// Make a new Symbol_Object using the provided TypeInfo, variable name, and scope.
+    Symbol_Object & MakeObjSymbol(
+      TypeInfo & type_info,
       const std::string & var_name,
       Symbol_Scope & scope
     ) {
       // Retrieve the information about the requested type.
-      TypeInfo & type_info = *type_map[type_name];
       const std::string & type_desc = type_info.GetDesc();
       const bool is_config_owned = type_info.GetOwned();
 
@@ -139,6 +152,35 @@ namespace emplode {
       return new_obj_symbol;
     }
 
+    /// Make a new Symbol_Object using the provided type name, variable name, and scope.
+    Symbol_Object & MakeObjSymbol(const std::string & type_name, const std::string & var_name,
+                                   Symbol_Scope & scope) {
+      return MakeObjSymbol(*type_map[type_name], var_name, scope);
+    }
+
+    /// Make a new Symbol_Object using the provided TypeID, variable name, and scope.
+    Symbol_Object & MakeObjSymbol(emp::TypeID type_id, const std::string & var_name,
+                                   Symbol_Scope & scope) {
+      return MakeObjSymbol(*typeid_map[type_id], var_name, scope);
+    }
+
+
+    emp::Ptr<Symbol_Object> MakeTempObjSymbol(emp::TypeID type_id) override {
+      TypeInfo & type_info = *typeid_map[type_id];
+      emp_assert(type_info.GetOwned(),
+                 "Only symbol-owned types can be temporary since they are deleted dynamically.",
+                 type_info.GetTypeName());
+
+      // Use the TypeInfo associated with the provided type name to build an instance.
+      emp::Ptr<EmplodeType> new_obj = type_info.MakeObj("__Temp");
+      auto new_symbol = emp::NewPtr<Symbol_Object>("__Temp", "", nullptr, new_obj, type_info, true);
+      new_symbol->SetTemporary();
+
+      // Setup the new object with its symbol.
+      new_obj->Setup(*new_symbol);
+
+      return new_symbol;
+    }
 
     /// Create a new type of event that can be used in the scripting language.
     Events & AddEventType(const std::string & name) {
