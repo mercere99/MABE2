@@ -18,7 +18,7 @@
 #include "Symbol.hpp"
 #include "Symbol_Scope.hpp"
 #include "Symbol_Object.hpp"
-#include "EmplodeTools.hpp"
+#include "SymbolTableBase.hpp"
 
 namespace emplode {
 
@@ -57,6 +57,7 @@ namespace emplode {
     node_ptr_t GetParent() { return parent; }
     void SetParent(node_ptr_t in_parent) { parent = in_parent; }
     virtual emp::Ptr<Symbol_Scope> GetScope() { return parent ? parent->GetScope() : nullptr; }
+    virtual SymbolTableBase & GetSymbolTable() { return parent->GetSymbolTable(); }
 
     virtual symbol_ptr_t Process() = 0;
 
@@ -83,7 +84,10 @@ namespace emplode {
     size_t GetNumChildren() const override { return children.size(); }
     node_ptr_t GetChild(size_t id) override { return children[id]; }
 
-    void AddChild(node_ptr_t child) { children.push_back(child); }
+    void AddChild(node_ptr_t child) {
+      children.push_back(child);
+      child->SetParent(this);
+    }
   };
 
   /// An ASTNode representing a leaf in the tree (i.e., a variable or literal)
@@ -145,6 +149,7 @@ namespace emplode {
   class ASTNode_Block : public ASTNode_Internal {
   protected:
     emp::Ptr<Symbol_Scope> scope_ptr;
+    emp::Ptr<SymbolTableBase> symbol_table = nullptr;
 
   public:
     ASTNode_Block(Symbol_Scope & in_scope, int in_line=-1) : scope_ptr(&in_scope) {
@@ -152,6 +157,12 @@ namespace emplode {
     }
 
     emp::Ptr<Symbol_Scope> GetScope()  override { return scope_ptr; }
+
+    SymbolTableBase & GetSymbolTable() override {
+      if (symbol_table) return *symbol_table;
+      return parent->GetSymbolTable();
+    }
+    void SetSymbolTable(SymbolTableBase & _st) { symbol_table = &_st; }
 
     symbol_ptr_t Process() override {
       for (auto node : children) {
@@ -189,7 +200,7 @@ namespace emplode {
       symbol_ptr_t input_symbol = children[0]->Process();     // Process child to get input symbol
       double output_value = fun(input_symbol->AsDouble());    // Run the function to get ouput value
       if (input_symbol->IsTemporary()) input_symbol.Delete(); // If we are done with input; delete!
-      return EmplodeTools::MakeTempSymbol(output_value);
+      return GetSymbolTable().MakeTempSymbol(output_value);
     }
 
     void Write(std::ostream & os, const std::string & offset) const override { 
@@ -221,7 +232,7 @@ namespace emplode {
       auto out_val = fun(in1->As<ARG1_T>(), in2->As<ARG2_T>()); // Run function; get ouput
       if (in1->IsTemporary()) in1.Delete();                   // If we are done with in1; delete!
       if (in2->IsTemporary()) in2.Delete();                   // If we are done with in2; delete!
-      return EmplodeTools::MakeTempSymbol(out_val);
+      return GetSymbolTable().MakeTempSymbol(out_val);
     }
 
     void Write(std::ostream & os, const std::string & offset) const override { 
