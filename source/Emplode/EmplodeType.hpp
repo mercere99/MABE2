@@ -73,7 +73,8 @@ namespace emplode {
         member_fun_t linked_fun = [this, &member_info](const emp::vector<symbol_ptr_t> & args){
           return member_info.fun(*this, args);
         };
-        symbol_ptr->AddFunction(member_info.name, linked_fun, member_info.desc).SetBuiltin();
+        symbol_ptr->AddFunction(member_info.name, linked_fun,
+                                member_info.desc, member_info.return_type).SetBuiltin();
 
         // std::cout << "Adding member function '" << member_info.name << "' to object '"
         //           << symbol_ptr->GetName() << "'." << std::endl;
