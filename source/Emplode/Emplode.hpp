@@ -186,7 +186,7 @@ namespace emplode {
       auto df_init = [this](const std::string & name) {
         return emp::NewPtr<DataFile>(name, symbol_table.GetFileManager());
       };
-      auto df_copy = EmplodeTools::DefaultCopyFun<DataFile>();
+      auto df_copy = symbol_table.DefaultCopyFun<DataFile>();
       auto & df_type = AddType<DataFile>("DataFile", "Manage CSV-style date file output.",
                                          df_init, df_copy, true);
       df_type.AddMemberFunction(
@@ -280,8 +280,15 @@ namespace emplode {
       tokens.push_back(lexer.ToToken(";"));                 // Ensure a semi-colon at end.
       pos_t pos = tokens.begin();                           // Start are beginning of stream.
       ParseState state{pos, symbol_table, symbol_table.GetRootScope(), lexer};
-      auto cur_block = parser.ParseStatement(state);        // Convert tokens to AST
-      auto result_ptr = cur_block->Process();               // Process AST to get result symbol.
+      auto cur_expr = parser.ParseStatement(state);         // Convert tokens to AST
+
+      // Now place the expression in a temporary block.
+      auto cur_block = emp::NewPtr<ASTNode_Block>(symbol_table.GetRootScope(), 0);
+      cur_block->SetSymbolTable(state.GetSymbolTable());
+      cur_block->AddChild(cur_expr);
+
+      // Process just the expressions so that we can get a result from it.
+      auto result_ptr = cur_expr->Process();                // Process AST to get result symbol.
       std::string result = "";                              // Default result to an empty string.
       if (result_ptr) {
         result = result_ptr->AsString();                    // Convert result to output string.
