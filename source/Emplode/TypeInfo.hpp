@@ -18,7 +18,7 @@
 #include "emp/tools/string_utils.hpp"
 
 #include "Symbol.hpp"
-#include "EmplodeTools.hpp"
+#include "SymbolTableBase.hpp"
 
 namespace emplode {
 
@@ -30,9 +30,11 @@ namespace emplode {
     std::string name;
     std::string desc;
     fun_t fun;
+    emp::TypeID return_type;
 
-    MemberFunInfo(const std::string & in_name, const std::string & in_desc, fun_t in_fun)
-      : name(in_name), desc(in_desc), fun(in_fun) {}
+    MemberFunInfo(const std::string & in_name, const std::string & in_desc,
+                  fun_t in_fun, emp::TypeID in_rtype)
+      : name(in_name), desc(in_desc), fun(in_fun), return_type(in_rtype) {}
   };
 
   // TypeInfo tracks a particular type to be used in the configuration langauge.
@@ -40,6 +42,8 @@ namespace emplode {
   private:
     using init_fun_t = std::function<emp::Ptr<EmplodeType> (const std::string &)>;
     using copy_fun_t = std::function<bool (const EmplodeType &, EmplodeType &)>;
+
+    SymbolTableBase & symbol_table; // Which symbol table are we part of?
 
     size_t index;
     std::string type_name;
@@ -54,16 +58,16 @@ namespace emplode {
 
   public:
     // Constructor to allow a simple new configuration type
-    TypeInfo(size_t _id, const std::string & _name, const std::string & _desc)
-      : index(_id), type_name(_name), desc(_desc)
+    TypeInfo(SymbolTableBase & _st, size_t _id, const std::string & _name, const std::string & _desc)
+      : symbol_table(_st), index(_id), type_name(_name), desc(_desc)
     {
       emp_assert(type_name != "");
     }
 
     // Constructor to allow a new configuration type whose objects require initialization.
-    TypeInfo(size_t _id, const std::string & _name, const std::string & _desc,
+    TypeInfo(SymbolTableBase & _st, size_t _id, const std::string & _name, const std::string & _desc,
              init_fun_t _init, copy_fun_t _copy, bool _config_owned=false)
-      : index(_id), type_name(_name), desc(_desc),
+      : symbol_table(_st), index(_id), type_name(_name), desc(_desc),
         init_fun(_init), copy_fun(_copy), config_owned(_config_owned)
     {
       emp_assert(type_name != "");
@@ -76,7 +80,7 @@ namespace emplode {
     bool GetOwned() const { return config_owned; }
     const emp::vector<MemberFunInfo> & GetMemberFunctions() const { return member_funs; }
 
-    emp::Ptr<EmplodeType> MakeObj(const std::string & name) const {
+    emp::Ptr<EmplodeType> MakeObj(const std::string & name="__temp__") const {
       emp_assert(init_fun, "No initialization function exists for type.", type_name);
       return init_fun(name);
     }
@@ -102,10 +106,11 @@ namespace emplode {
       //           << std::endl;
 
       // ----- Transform this function into one that TypeInfo can make use of ----
-      MemberFunInfo::fun_t member_fun = EmplodeTools::WrapMemberFunction(type_id, name, fun);
+      MemberFunInfo::fun_t member_fun = symbol_table.WrapMemberFunction(type_id, name, fun);
 
       // Add this member function to the library we are building.
-      member_funs.emplace_back(name, desc, member_fun);
+      using return_t = typename emp::FunInfo<FUN_T>::return_t;
+      member_funs.emplace_back(name, desc, member_fun, emp::GetTypeID<return_t>());
     }
   };
 
