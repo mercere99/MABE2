@@ -189,18 +189,16 @@ namespace emplode {
 
     /// Add a new user-defined function.
     template <typename FUN_T>
-    Symbol_Function & AddFunction(const std::string & name,
-                              FUN_T fun,
-                              const std::string & desc) {
-      return Add<Symbol_Function>(name, fun, desc, this);
+    Symbol_Function & AddFunction(const std::string & name,  FUN_T fun,
+                                  const std::string & desc,  emp::TypeID return_type) {
+      return Add<Symbol_Function>(name, fun, desc, this, return_type);
     }
 
     /// Add a new function that is a standard part of the scripting language.
     template <typename FUN_T>
-    Symbol_Function & AddBuiltinFunction(const std::string & name,
-                                        FUN_T fun,
-                                        const std::string & desc) {
-      return AddBuiltin<Symbol_Function>(name, fun, desc, this);
+    Symbol_Function & AddBuiltinFunction(const std::string & name,  FUN_T fun,
+                                         const std::string & desc,  emp::TypeID return_type) {
+      return AddBuiltin<Symbol_Function>(name, fun, desc, this, return_type);
     }
 
     /// Write out all of the parameters contained in this scope to the provided stream.
