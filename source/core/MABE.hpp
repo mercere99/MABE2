@@ -65,7 +65,7 @@ namespace mabe {
     ErrorManager error_man;      ///< Object to manage warnings and errors.
 
     // Setup helper types.
-    using trait_equation_t = std::function<double(emp::DataMap &)>;
+    using trait_equation_t = std::function<double(const Organism &)>;
     using trait_summary_t = std::function<std::string(const Collection &)>;
     using symbol_ptr_t = emp::Ptr<emplode::Symbol>;
 
@@ -218,23 +218,21 @@ namespace mabe {
       SwapOrgs(from_pos, to_pos);
     }
 
-    /// Inject a copy of the provided organism and return the position it was placed in;
-    /// if more than one is added, return the position of the final injection.
-    OrgPosition Inject(Population & pop, const Organism & org, size_t copy_count=1);
+    /// Inject one or more copies of an organism and return the positions they were placed in.
+    Collection Inject(Population & pop, const Organism & org, size_t copy_count=1);
 
     /// Inject this specific instance of an organism and turn over the pointer to be managed
-    /// by MABE.  Teturn the position the organism was placed in.
+    /// by MABE.  Return the position the organism was placed in.
     OrgPosition InjectInstance(Population & pop, emp::Ptr<Organism> org_ptr);
     
 
-    /// Add an organsim of a specified type to the world (provide the type name and the
-    /// MABE controller will create instances of it.)  Returns the position of the last
-    /// organism placed.
-    OrgPosition Inject(Population & pop, const std::string & type_name, size_t copy_count=1);
+    /// Add one or more organisms of a specified type (provide the type name; the MABE controller
+    /// will create instances of it.)  Returns the positions the organisms were placed.
+    Collection Inject(Population & pop, const std::string & type_name, size_t copy_count=1);
 
     /// Add an organism of a specified type and population (provide names of both and they
     /// will be properly setup.)
-    OrgPosition InjectByName(const std::string & pop_name,
+    Collection InjectByName(const std::string & pop_name,
                              const std::string & type_name, 
                              size_t copy_count=1);
 
@@ -351,7 +349,8 @@ namespace mabe {
     /// enties in there, returning the result.
 
     trait_equation_t BuildTraitEquation(const std::string & equation) {
-      return dm_parser.BuildMathFunction(org_data_map, equation);
+      auto dm_fun = dm_parser.BuildMathFunction(org_data_map, equation);
+      return [dm_fun](const Organism & org){ return dm_fun(org.GetDataMap()); };
     }
 
     /// Scan a provided equation and return the names of all traits used in that equation.
@@ -364,7 +363,9 @@ namespace mabe {
     /// trait_name from each, aggregating those values based on the trait_filter and returning
     /// the result as a string.
 
-    trait_summary_t BuildTraitSummary(const std::string & trait_name, std::string trait_filter);
+  template <typename FROM_T=Collection, typename TO_T=std::string>
+  std::function<TO_T(const FROM_T &)> 
+    BuildTraitSummary(const std::string & trait_fun, std::string trait_filter);
 
     // Handler for printing trait data
     void OutputTraitData(std::ostream & os,
@@ -608,14 +609,21 @@ namespace mabe {
     // Setup "Collection" as another config type.
     auto & collect_type = config.AddType<Collection>("OrgList", "Collection of organism pointers");
 
-    // 'INJECT' allows a user to add an organism to a population.
-    std::function<int(Population &, const std::string &, size_t)> inject_fun =
+    // 'INJECT' allows a user to add an organism to a population; returns collection of added orgs.
+    std::function<Collection(Population &, const std::string &, size_t)> inject_fun =
       [this](Population & pop, const std::string & org_type_name, size_t count) {
-        Inject(pop, org_type_name, count);
-        return 0;
+        return Inject(pop, org_type_name, count);
       };
     pop_type.AddMemberFunction("INJECT", inject_fun,
-      "Inject organisms into population (args: org_name, org_count).");
+      "Inject organisms into population.  Args: org_name, org_count.  Return: OrgList of injected orgs.");
+
+    std::function<double(Population &, const std::string &)> ave_trait_fun =
+      [this](Population & pop, const std::string & trait_equation) {
+        auto trait_fun = BuildTraitSummary(trait_equation, "mean");
+        return emp::from_string<double>(trait_fun( Collection(pop) ));
+      };
+    pop_type.AddMemberFunction("CALC_MEAN", ave_trait_fun,
+      "Determine the average value of a trait (or equation) in the Population.");
 
 
     // Setup all known modules as available types in the config file.
@@ -797,21 +805,22 @@ namespace mabe {
 
   /// Inject a copy of the provided organism and return the position it was placed in;
   /// if more than one is added, return the position of the final injection.
-  OrgPosition MABE::Inject(Population & pop, const Organism & org, size_t copy_count) {
+  Collection MABE::Inject(Population & pop, const Organism & org, size_t copy_count) {
     emp_assert(org.GetDataMap().SameLayout(org_data_map));
-    OrgPosition pos;
+    Collection placement_set;
     for (size_t i = 0; i < copy_count; i++) {
       emp::Ptr<Organism> inject_org = org.CloneOrganism();
       on_inject_ready_sig.Trigger(*inject_org, pop);
-      pos = FindInjectPosition(pop, *inject_org);
+      OrgPosition pos = FindInjectPosition(pop, *inject_org);
       if (pos.IsValid()) {
         AddOrgAt( inject_org, pos);
+        placement_set.Insert(pos);
       } else {
         inject_org.Delete();          
         error_man.AddError("Invalid position; failed to inject organism ", i, "!");
       }
     }
-    return pos;
+    return placement_set;
   }
 
   /// Inject this specific instance of an organism and turn over the pointer to be managed
@@ -832,24 +841,26 @@ namespace mabe {
   /// Add an organsim of a specified type to the world (provide the type name and the
   /// MABE controller will create instances of it.)  Returns the position of the last
   /// organism placed.
-  OrgPosition MABE::Inject(Population & pop, const std::string & type_name, size_t copy_count) {
+  Collection MABE::Inject(Population & pop, const std::string & type_name, size_t copy_count) {
     Verbose("Injecting ", copy_count, " orgs of type '", type_name,
             "' into population ", pop.GetID());
 
-    auto & org_manager = GetModule(type_name);    // Look up type of organism.
-    OrgPosition pos;                              // Place to save injection position.
-    for (size_t i = 0; i < copy_count; i++) {     // Loop through, injecting each instance.
+    auto & org_manager = GetModule(type_name);            // Look up type of organism.
+    Collection placement_set;                             // Track set of positions placed.
+    for (size_t i = 0; i < copy_count; i++) {             // Loop through, injecting each instance.
       auto org_ptr = org_manager.Make<Organism>(random);  // ...Build an org of this type.
-      pos = InjectInstance(pop, org_ptr);         // ...Inject it into the population.
+      OrgPosition pos = InjectInstance(pop, org_ptr);     // ...Inject it into the population.
+      placement_set.Insert(pos);                          // ...Record the position.
     }
-    return pos;                                   // Return last position injected.
+
+    return placement_set;                                 // Return last position injected.
   }
 
   /// Add an organism of a specified type and population (provide names of both and they
   /// will be properly setup.)
-  OrgPosition MABE::InjectByName(const std::string & pop_name,
-                                 const std::string & type_name, 
-                                 size_t copy_count) {      
+  Collection MABE::InjectByName(const std::string & pop_name,
+                                const std::string & type_name, 
+                                size_t copy_count) {      
     int pop_id = GetPopID(pop_name);
     if (pop_id == -1) {
       error_man.AddError("Invalid population name used in inject: ",
@@ -858,8 +869,7 @@ namespace mabe {
                          "copy_count=", copy_count);
     }
     Population & pop = GetPopulation(pop_id);
-    OrgPosition pos = Inject(pop, type_name, copy_count); // Inject a copy of the organism.
-    return pos;                                           // Return last position injected.
+    return Inject(pop, type_name, copy_count); // Inject the organisms.
   }
 
   /// Give birth to one or more offspring; return position of last placed.
@@ -953,44 +963,68 @@ namespace mabe {
   ///   entropy     : Return the Shannon entropy of this value.
   ///   :trait      : Return the mutual information with another provided trait.
 
-  MABE::trait_summary_t MABE::BuildTraitSummary(
-    const std::string & trait_name,
+  template <typename FROM_T, typename TO_T>
+  std::function<TO_T(const FROM_T &)> MABE::BuildTraitSummary(
+    const std::string & trait_fun,
     std::string trait_filter
   ) {
+    static_assert( std::is_same<FROM_T,Collection>() ||  std::is_same<FROM_T,Population>(),
+                   "BuildTraitSummary FROM_T must be Collection or Population." );
+    static_assert( std::is_same<TO_T,double>() ||  std::is_same<TO_T,std::string>(),
+                   "BuildTraitSummary TO_T must be double or std::string." );
+
     // The trait input has two components:
-    // (1) the trait NAME and
-    // (2) (optionally) how to calculate the trait SUMMARY, such as min, max, ave, etc.
+    // (1) the trait (or trait function) and
+    // (2) how to calculate the trait SUMMARY, such as min, max, ave, etc.
 
-    // Everything before the first colon is the trait name.
-    size_t trait_id = org_data_map.GetID(trait_name);
-    emp::TypeID trait_type = org_data_map.GetType(trait_id);
-    const bool is_numeric = trait_type.IsArithmetic();
+    // If we have a single trait, we may want to use a string type.
+    if (emp::is_identifier(trait_fun)           // If we have a single trait...
+        && org_data_map.HasName(trait_fun)      // ...and it's in the data map...
+        && !org_data_map.IsNumeric(trait_fun)   // ...and it's not numeric...
+    ) {
+      size_t trait_id = org_data_map.GetID(trait_fun);
+      emp::TypeID result_type = org_data_map.GetType(trait_id);
 
-    auto get_double_fun = [trait_id, trait_type](const Organism & org) {
-      return org.GetTraitAsDouble(trait_id, trait_type);
-    };
-    auto get_string_fun = [trait_id, trait_type](const Organism & org) {
-      return emp::to_literal( org.GetTraitAsString(trait_id, trait_type) );
-    };
+      auto get_fun = [trait_id, result_type](const Organism & org) {
+        return emp::to_literal( org.GetTraitAsString(trait_id, result_type) );
+      };
+      auto fun = emp::BuildCollectFun<std::string, Collection>(trait_filter, get_fun);
 
-    // Return the number of times a specific value was found.
-    if (trait_filter[0] == '=') {
-      // @CAO: DO THIS!
-      trait_filter.erase(0,1); // Erase the '=' and we are left with the string to match.
+      // Go through all combinations of TO/FROM to return the correct types.
+      if constexpr (std::is_same<FROM_T,Population>() && std::is_same<TO_T,double>()) {
+        return [fun](const FROM_T & p){ return emp::from_string<double>(fun( Collection(p) )); };
+      }
+      else if constexpr (std::is_same<FROM_T,Collection>() && std::is_same<TO_T,double>()) {
+        return [fun](const FROM_T & c){ return emp::from_string<double>(fun(c)); };
+      }
+      else if constexpr (std::is_same<FROM_T,Population>() && std::is_same<TO_T,std::string>()) {
+        return [fun](const FROM_T & p){ return fun( Collection(p) ); };
+      }
+      else return fun;
     }
 
-    // Otherwise pass along to the BuildCollectFun with the correct type...
-    auto result = is_numeric
-                ? emp::BuildCollectFun<double,      Collection>(trait_filter, get_double_fun)
-                : emp::BuildCollectFun<std::string, Collection>(trait_filter, get_string_fun);
+    // If we made it here, we are numeric.
+    auto get_fun = BuildTraitEquation(trait_fun);
+    auto fun = emp::BuildCollectFun<double, Collection>(trait_filter, get_fun);
 
-    // If we made it past the 'if' statements, we don't know this aggregation type.
-    if (!result) {
-      error_man.AddError("Unknown trait filter '", trait_filter, "' for trait '", trait_name, "'.");
+    // If we don't have a fun, we weren't able to build an aggregation function.
+    if (!fun) {
+      error_man.AddError("Unknown trait filter '", trait_filter, "' for trait '", trait_fun, "'.");
       return [](const Collection &){ return std::string("Error! Unknown trait function"); };
     }
 
-    return result;
+    // Go through all combinations of TO/FROM to return the correct types.
+    // @CAO need to adjust BuildCollectFun so that it returns correct type; not always string.
+    if constexpr (std::is_same<FROM_T,Population>() && std::is_same<TO_T,double>()) {
+      return [fun](const Population & p){ return emp::from_string<double>(fun( Collection(p) )); };
+    }
+    else if constexpr (std::is_same<FROM_T,Collection>() && std::is_same<TO_T,double>()) {
+      return [fun](const Collection & c){ return emp::from_string<double>(fun(c)); };
+    }
+    else if constexpr (std::is_same<FROM_T,Population>() && std::is_same<TO_T,std::string>()) {
+      return [fun](const Population & p){ return fun( Collection(p) ); };
+    }
+    else return fun;
   }
 
   // Handler for printing trait data
