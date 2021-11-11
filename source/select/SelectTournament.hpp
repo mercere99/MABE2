@@ -72,13 +72,13 @@ namespace mabe {
         // Find a random organism in the population and call it "best"
         size_t best_id = random.GetUInt(N);
         while (select_pop[best_id].IsEmpty()) best_id = random.GetUInt(N);
-        double best_fit = fit_fun(select_pop[best_id].GetDataMap());
+        double best_fit = fit_fun(select_pop[best_id]);
 
         // Loop through other organisms for the rest of the tournament size, and pick best.
         for (size_t test=1; test < tourny_size; test++) {
           size_t test_id = random.GetUInt(N);
           while (select_pop[test_id].IsEmpty()) test_id = random.GetUInt(N);
-          double test_fit = fit_fun(select_pop[test_id].GetDataMap());          
+          double test_fit = fit_fun(select_pop[test_id]);          
           if (test_fit > best_fit) {
             best_id = test_id;
             best_fit = test_fit;
