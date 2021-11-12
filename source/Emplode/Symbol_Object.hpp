@@ -66,8 +66,10 @@ namespace emplode {
 
     bool CopyValue(const Symbol & in) override {
       if (in.IsObject() == false) {
-          std::cerr << "Trying to assign `" << in.GetName() << "' to '" << GetName()
-                    << "', but " << in.GetName() << " is not an Object." << std::endl;
+        std::cerr << "Trying to assign `" << in.GetName() << "' to '" << GetName()
+                  << "', but " << in.GetName() << " is not an Object." << std::endl;
+        std::cerr << "Target: " << in.DebugString() << std::endl;
+        emp_error("Assignment failed.");
         return false;   // Mis-matched types; failed to copy.
       }
 
