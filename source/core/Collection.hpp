@@ -441,7 +441,8 @@ namespace mabe {
     /// Add a const Population to this collection.
     template <typename... Ts>
     Collection & Insert(const Population & pop, Ts &&... extras) {
-      pos_map[&pop].full_pop = true;
+      emp::Ptr<const Population> pop_ptr = &pop;
+      pos_map[pop_ptr.ConstCast<Population>()].full_pop = true;
       return Insert( std::forward<Ts>(extras)... );  // Insert anything else provided.
     }
 
