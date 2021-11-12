@@ -192,7 +192,7 @@ namespace emplode {
     }
 
     Symbol & SetMin(double min) { range.SetLower(min); return *this; }
-    Symbol & SetMax(double max) { range.SetLower(max); return *this; }
+    Symbol & SetMax(double max) { range.SetUpper(max); return *this; }
 
     // Try to copy another config symbol into this one; return true if successful.
     virtual bool CopyValue(const Symbol & ) { return false; }
@@ -241,6 +241,29 @@ namespace emplode {
       WriteDesc(os, comment_offset, cur_line.size());
 
       return *this;
+    }
+
+    // Generate a string with information about this symbol.
+    std::string DebugString() const {
+      std::string out = emp::to_string(
+        "Symbol '", GetName(),
+        "' type=", GetTypename(),
+        " scope=", scope ? scope.Cast<Symbol>()->GetName() : "[none]");
+
+      if (IsTemporary()) out += " TEMPORARY";
+      if (IsBuiltin()) out += " BUILTIN";
+      if (IsError()) out += " ERROR";
+      if (IsNumeric()) out += " Numeric";
+      if (IsString()) out += " String";
+      if (IsFunction()) out += " Function";
+      if (IsObject()) out += " Object";
+      if (IsScope()) out += " Scope";
+      if (IsLocal()) out += " Local";
+      if (IsFunction()) out += " Function";
+      if (HasNumericReturn()) out += " (numeric return)";
+      if (HasStringReturn()) out += " (string return)";
+
+      return out;
     }
 
   };
