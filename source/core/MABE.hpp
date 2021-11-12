@@ -360,12 +360,22 @@ namespace mabe {
     }
 
     /// Build a function to scan a collection of organisms, reading the value for the given
-    /// trait_name from each, aggregating those values based on the trait_filter and returning
-    /// the result as a string.
+    /// trait function from each, aggregating those values based on the trait_filter and returning
+    /// the result as a string.  Output is a function in the form:  TO_T(const FROM_T &)
+    template <typename FROM_T=Collection, typename TO_T=std::string>
+    std::function<TO_T(const FROM_T &)> 
+      BuildTraitSummary(const std::string & trait_fun, std::string trait_filter);
 
-  template <typename FROM_T=Collection, typename TO_T=std::string>
-  std::function<TO_T(const FROM_T &)> 
-    BuildTraitSummary(const std::string & trait_fun, std::string trait_filter);
+    /// Build a function that takes a trait equation, builds it, and runs it on a container.
+    /// Output is a function in the form:  TO_T(const FROM_T &, trait_equation)
+    template <typename FROM_T=Collection, typename TO_T=std::string> 
+    auto BuildTraitFunction(const std::string & fun_type) {
+      return [this,fun_type](FROM_T & pop, const std::string & trait_equation) {
+        auto trait_fun = BuildTraitSummary<FROM_T,TO_T>(trait_equation, fun_type);
+        return trait_fun(pop);
+      };
+    }
+
 
     // Handler for printing trait data
     void OutputTraitData(std::ostream & os,
@@ -617,14 +627,55 @@ namespace mabe {
     pop_type.AddMemberFunction("INJECT", inject_fun,
       "Inject organisms into population.  Args: org_name, org_count.  Return: OrgList of injected orgs.");
 
-    std::function<double(Population &, const std::string &)> ave_trait_fun =
-      [this](Population & pop, const std::string & trait_equation) {
-        auto trait_fun = BuildTraitSummary(trait_equation, "mean");
-        return emp::from_string<double>(trait_fun( Collection(pop) ));
-      };
-    pop_type.AddMemberFunction("CALC_MEAN", ave_trait_fun,
-      "Determine the average value of a trait (or equation) in the Population.");
+    pop_type.AddMemberFunction("CALC_RICHNESS", BuildTraitFunction<Population,double>("richness"),
+      "Count the number of distinct values of a trait (or equation).");
+    pop_type.AddMemberFunction("CALC_MODE", BuildTraitFunction<Population,std::string>("mode"),
+      "Identify the most common value of a trait (or equation).");
+    pop_type.AddMemberFunction("CALC_MEAN", BuildTraitFunction<Population,double>("mean"),
+      "Calculate the average value of a trait (or equation).");
+    pop_type.AddMemberFunction("CALC_MIN", BuildTraitFunction<Population,double>("min"),
+      "Find the smallest value of a trait (or equation).");
+    pop_type.AddMemberFunction("CALC_MAX", BuildTraitFunction<Population,double>("max"),
+      "Find the largest value of a trait (or equation).");
+    pop_type.AddMemberFunction("ID_MIN", BuildTraitFunction<Population,double>("min_id"),
+      "Find the index of the smallest value of a trait (or equation).");
+    pop_type.AddMemberFunction("ID_MAX", BuildTraitFunction<Population,double>("max_id"),
+      "Find the index of the largest value of a trait (or equation).");
+    pop_type.AddMemberFunction("CALC_MEDIAN", BuildTraitFunction<Population,double>("median"),
+      "Find the 50-percentile value of a trait (or equation).");
+    pop_type.AddMemberFunction("CALC_VARIANCE", BuildTraitFunction<Population,double>("variance"),
+      "Find the variance of the distribution of values of a trait (or equation).");
+    pop_type.AddMemberFunction("CALC_STDDEV", BuildTraitFunction<Population,double>("stddev"),
+      "Find the variance of the distribution of values of a trait (or equation).");
+    pop_type.AddMemberFunction("CALC_SUM", BuildTraitFunction<Population,double>("sum"),
+      "Add up the total value of a trait (or equation).");
+    pop_type.AddMemberFunction("CALC_ENTROPY", BuildTraitFunction<Population,double>("entropy"),
+      "Determine the entropy of values for a trait (or equation).");
 
+    collect_type.AddMemberFunction("CALC_RICHNESS", BuildTraitFunction<Collection,double>("richness"),
+      "Count the number of distinct values of a trait (or equation).");
+    collect_type.AddMemberFunction("CALC_MODE", BuildTraitFunction<Collection,std::string>("mode"),
+      "Identify the most common value of a trait (or equation).");
+    collect_type.AddMemberFunction("CALC_MEAN", BuildTraitFunction<Collection,double>("mean"),
+      "Calculate the average value of a trait (or equation).");
+    collect_type.AddMemberFunction("CALC_MIN", BuildTraitFunction<Collection,double>("min"),
+      "Find the smallest value of a trait (or equation).");
+    collect_type.AddMemberFunction("CALC_MAX", BuildTraitFunction<Collection,double>("max"),
+      "Find the largest value of a trait (or equation).");
+    collect_type.AddMemberFunction("ID_MIN", BuildTraitFunction<Collection,double>("min_id"),
+      "Find the index of the smallest value of a trait (or equation).");
+    collect_type.AddMemberFunction("ID_MAX", BuildTraitFunction<Collection,double>("max_id"),
+      "Find the index of the largest value of a trait (or equation).");
+    collect_type.AddMemberFunction("CALC_MEDIAN", BuildTraitFunction<Collection,double>("median"),
+      "Find the 50-percentile value of a trait (or equation).");
+    collect_type.AddMemberFunction("CALC_VARIANCE", BuildTraitFunction<Collection,double>("variance"),
+      "Find the variance of the distribution of values of a trait (or equation).");
+    collect_type.AddMemberFunction("CALC_STDDEV", BuildTraitFunction<Collection,double>("stddev"),
+      "Find the variance of the distribution of values of a trait (or equation).");
+    collect_type.AddMemberFunction("CALC_SUM", BuildTraitFunction<Collection,double>("sum"),
+      "Add up the total value of a trait (or equation).");
+    collect_type.AddMemberFunction("CALC_ENTROPY", BuildTraitFunction<Collection,double>("entropy"),
+      "Determine the entropy of values for a trait (or equation).");
 
     // Setup all known modules as available types in the config file.
     for (auto & mod : GetModuleInfo()) {
@@ -1010,7 +1061,7 @@ namespace mabe {
     // If we don't have a fun, we weren't able to build an aggregation function.
     if (!fun) {
       error_man.AddError("Unknown trait filter '", trait_filter, "' for trait '", trait_fun, "'.");
-      return [](const Collection &){ return std::string("Error! Unknown trait function"); };
+      return [](const FROM_T &){ return TO_T(); };
     }
 
     // Go through all combinations of TO/FROM to return the correct types.
