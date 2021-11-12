@@ -7,19 +7,19 @@ LEVEL MAP:
 Symbol            - []
 Lexer             - []
 
-EmplodeTools      - [Symbol]
+SymbolTableBase   - [Symbol]
 
-TypeInfo          - [Symbol,EmplodeTools] Basic information for a user-defined type.
+TypeInfo          - [Symbol,SymbolTableBase] Basic information for a user-defined type.
 Symbol_Function   - [Symbol]
 Symbol_Linked     - [Symbol]
 
-Symbol_Scope      - [Symbol,Symbol_Function,Symbol_Linked]
+Symbol_Scope      - [Symbol,Symbol_Function,Symbol_Linked,TypeInfo]
 
 EmplodeType       - [Symbol_Scope,TypeInfo]
 
 Symbol_Object     - [Symbol_Scope,EmplodeType]
 
-AST               - [Symbol_Object,Symbol,EmplodeTools]
+AST               - [Symbol_Object,Symbol,SymbolTableBase]
 
 Events            - [AST]
 DataFile          - [EmplodeType]
