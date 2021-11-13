@@ -17,7 +17,6 @@
 
 // Interface Modules
 #include "interface/CommandLine.hpp"
-#include "interface/FileOutput.hpp"
 
 // Placement Modules
 #include "placement/GrowthPlacement.hpp"
@@ -27,10 +26,6 @@
 #include "select/SelectLexicase.hpp"
 #include "select/SelectRoulette.hpp"
 #include "select/SelectTournament.hpp"
-
-// Other schema
-#include "schema/MovePopulation.hpp"
-#include "schema/Mutate.hpp"
 
 // Organism Types
 #include "orgs/AvidaGPOrg.hpp"
