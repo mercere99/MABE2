@@ -19,7 +19,6 @@
 #include "interface/CommandLine.hpp"
 
 // Placement Modules
-#include "placement/GrowthPlacement.hpp"
 
 // Selection Modules
 #include "select/SelectElite.hpp"
