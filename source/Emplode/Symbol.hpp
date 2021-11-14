@@ -122,8 +122,8 @@ namespace emplode {
     Symbol & SetTemporary(bool in=true) { is_temporary = in; return *this; }
     Symbol & SetBuiltin(bool in=true) { is_builtin = in; return *this; }
 
-    virtual double AsDouble() const { emp_assert(false); return 0.0; }
-    virtual std::string AsString() const { emp_assert(false); return ""; }
+    virtual double AsDouble() const { return std::nan("NaN"); }
+    virtual std::string AsString() const { return "[[__INVALID SYMBOL CONVERSION__]]"; }
 
     virtual Symbol & SetValue(double in) { (void) in; emp_assert(false, in); return *this; }
     virtual Symbol & SetString(const std::string & in) { (void) in; emp_assert(false, in); return *this; }
