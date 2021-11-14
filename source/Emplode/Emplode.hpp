@@ -200,6 +200,13 @@ namespace emplode {
         },
         "Add a column to the associated DataFile.  Args: title, string to execute for result"
       );
+      df_type.AddMemberFunction(
+        "ADD_SETUP",
+        [exec_fun](DataFile & file, std::string cmd){
+          return file.AddSetup( [exec_fun,cmd](){ exec_fun(cmd); });
+        },
+        "Add a command to be run each time before columns are output."
+      );
     }
 
     // Prevent copy or move since we are using lambdas that capture 'this'
