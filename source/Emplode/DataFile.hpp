@@ -26,10 +26,11 @@ namespace emplode {
   /// dynamically.
   class DataFile : public EmplodeType {
   private:
-    using fun_t = std::function<std::string()>;
+    using data_fun_t = std::function<std::string()>;
+    using setup_fun_t = std::function<void()>;
     struct ColumnInfo {
       std::string header;
-      fun_t fun;
+      data_fun_t fun;
     };
 
     std::string name="";                 ///< Unique name for this object.
@@ -37,6 +38,7 @@ namespace emplode {
 
     std::string filename;                ///< Name of output file.
     emp::vector<ColumnInfo> cols;        ///< Data about columns maintainted.
+    emp::vector<setup_fun_t> setup;      ///< Commands to run before writing columns.
 
   public:
     DataFile() = delete;
@@ -51,20 +53,28 @@ namespace emplode {
 
     // Setup member functions associated with population.
     static void InitType(TypeInfo & info) {
-      auto fun_num_cols = [](DataFile & target) { return target.cols.size(); };
-      info.AddMemberFunction("NUM_COLS", fun_num_cols, "Return the number of columns in this file.");
-      info.AddMemberFunction("WRITE", [](DataFile & target) { return target.Write(); },
-                             "Add on the next line of data.");
+      info.AddMemberFunction("NUM_COLS",
+        [](DataFile & df) { return df.cols.size(); },
+        "Return the number of columns in this file.");
+      info.AddMemberFunction("WRITE",
+        [](DataFile & df) { return df.Write(); },
+        "Add on the next line of data.");
     }
 
     void SetupConfig() override {
       LinkVar(filename, "filename", "Name to use for this file.");
     }
 
-    size_t AddColumn(const std::string & header, fun_t fun) {
+    size_t AddColumn(const std::string & header, data_fun_t fun) {
       size_t col_id = cols.size();
       cols.push_back(ColumnInfo{header,fun});
       return col_id;
+    }
+
+    size_t AddSetup(setup_fun_t fun) {
+      size_t setup_id = setup.size();
+      setup.push_back(fun);
+      return setup_id;
     }
 
     size_t Write() {
@@ -79,6 +89,9 @@ namespace emplode {
         }
         file << '\n';
       }
+
+      // Do any setup for the columns.
+      for (auto fun : setup) fun();
 
       // Now print out each entry.
       for (size_t i = 0; i < cols.size(); ++i) {
