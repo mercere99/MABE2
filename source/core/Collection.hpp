@@ -302,6 +302,10 @@ namespace mabe {
       return count;
     }
 
+    iterator_t IteratorAt(size_t org_id) { return iterator_t(*this, org_id); }
+    const_iterator_t IteratorAt(size_t org_id) const { return const_iterator_t(*this, org_id); }
+    const_iterator_t ConstIteratorAt(size_t org_id) const { return IteratorAt(org_id); }
+
     Organism & At(size_t org_id) override {
       for (auto [pop_ptr, pop_info] : pos_map) {
         if (org_id < pop_info.GetSize(pop_ptr)) {
@@ -544,19 +548,20 @@ namespace mabe {
     }
 
     /// Produce a new collection limited to living organisms.
-    Collection GetAlive() {
+    Collection GetAlive() const {
       Collection out(*this);
       out.RemoveEmpty();
       return out;
     }
 
     /// Merge this collection with another collection.
-    Collection & operator |= (const Collection & collection2) {
-      return Insert(collection2);
-    }
+    Collection & operator|= (const Collection & in) { return Insert(in); }
+    
+    /// Shortcut to insert anything into this collection.
+    template <typename T> Collection & operator+= (const T & in) { return Insert(in); }
 
     /// Reduce to the intersection with another collection.
-    Collection & operator &= (const Collection & in_collection) {
+    Collection & operator&= (const Collection & in_collection) {
       auto cur_it = pos_map.begin();
       auto in_it = in_collection.pos_map.begin();
 
@@ -618,7 +623,7 @@ namespace mabe {
     *this = collection_ptr->end();
   }
 
-  /// Constructor where you can optionally supply population pointer and position.
+  /// Constructor where you can optionally supply collection pointer and position.
   template <typename DERIVED_T, typename ORG_T, typename COLLECTION_T>
   CollectionIterator_Interface<DERIVED_T, ORG_T, COLLECTION_T>
     ::CollectionIterator_Interface(emp::Ptr<COLLECTION_T> _col, size_t _pos)
@@ -628,13 +633,24 @@ namespace mabe {
     if (base_t::IsValid() == false) IncPosition();
   }
 
-  /// Constructor where you can optionally supply population pointer and position.
+  /// Constructor where you can optionally supply collection pointer and position.
   template <typename DERIVED_T, typename ORG_T, typename COLLECTION_T>
   CollectionIterator_Interface<DERIVED_T, ORG_T, COLLECTION_T>
     ::CollectionIterator_Interface(emp::Ptr<COLLECTION_T> _col, emp::Ptr<Population> pop, size_t _pos)
     : base_t(pop, _pos), collection_ptr(_col)
   {
   }
+
+  /// Constructor where you supply a collection reference and optional position.
+  template <typename DERIVED_T, typename ORG_T, typename COLLECTION_T>
+  CollectionIterator_Interface<DERIVED_T, ORG_T, COLLECTION_T>
+    ::CollectionIterator_Interface(COLLECTION_T & _col, size_t _pos)
+    : base_t(_col.GetFirstPop(), _pos), collection_ptr(&_col)
+  {
+    // Make sure that this iterator is actually valid.  If not, move to next position.
+    if (base_t::IsValid() == false) IncPosition();
+  }
+
 }
 
 #endif
