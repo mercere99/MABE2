@@ -331,7 +331,8 @@ namespace mabe {
   struct ModuleInfo {
     std::string name;
     std::string desc;
-    std::function<emp::Ptr<EmplodeType>(MABE &, const std::string &)> init_fun;
+    std::function<emp::Ptr<EmplodeType>(MABE &, const std::string &)> obj_init_fun;
+    std::function<void(emplode::TypeInfo &)> type_init_fun;
     emp::TypeID type_id;
     bool operator<(const ModuleInfo & in) const { return name < in.name; }
   };

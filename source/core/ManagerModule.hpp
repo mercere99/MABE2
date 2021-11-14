@@ -117,9 +117,10 @@ namespace mabe {
       ModuleInfo new_info;
       new_info.name = type_name;
       new_info.desc = desc;
-      new_info.init_fun = [desc](MABE & control, const std::string & name) -> emp::Ptr<EmplodeType> {
+      new_info.obj_init_fun = [desc](MABE & control, const std::string & name) -> emp::Ptr<EmplodeType> {
         return &control.AddModule<MODULE_T>(name, desc);
       };
+      new_info.type_init_fun = [](emplode::TypeInfo & info){ MODULE_T::InitType(info); };
       GetModuleInfo().insert(new_info);
     }
   };
