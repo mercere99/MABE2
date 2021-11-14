@@ -247,20 +247,21 @@ namespace mabe {
     /// Give birth to one or more offspring; return position of last placed.
     /// Triggers 'before repro' signal on parent (once) and 'offspring ready' on each offspring.
     /// Regular signal triggers occur in AddOrgAt.
-    OrgPosition DoBirth(const Organism & org,
-                        OrgPosition ppos,
-                        Population & target_pop,
-                        size_t birth_count=1,
-                        bool do_mutations=true);
+    Collection DoBirth(const Organism & org,
+                       OrgPosition ppos,
+                       Population & target_pop,
+                       size_t birth_count=1,
+                       bool do_mutations=true);
 
-    OrgPosition DoBirth(const Organism & org,
-                        OrgPosition ppos,
-                        OrgPosition target_pos,
-                        bool do_mutations=true);
+    Collection DoBirth(const Organism & org,
+                       OrgPosition ppos,
+                       OrgPosition target_pos,
+                       bool do_mutations=true);
 
 
-    /// A shortcut to DoBirth where only the parent position needs to be supplied.
-    OrgPosition Replicate(OrgPosition ppos, Population & target_pop,
+    /// A shortcut to DoBirth where only the parent position needs to be supplied;
+    /// Return all offspring placed.
+    Collection Replicate(OrgPosition ppos, Population & target_pop,
                           size_t birth_count=1, bool do_mutations=true) {
       return DoBirth(*ppos, ppos, target_pop, birth_count, do_mutations);
     }
@@ -283,6 +284,9 @@ namespace mabe {
         InjectAt(from_pop[pos], to_pop.IteratorAt(pos));
       }
     }
+
+    /// Move all organisms from one population to another.
+    void MoveOrgs(Population & from_pop, Population & to_pop, bool reset_to);
 
     /// Return a ramdom position from a desginated population.
     OrgPosition GetRandomPos(Population & pop) {
@@ -626,7 +630,12 @@ namespace mabe {
       };
     pop_type.AddMemberFunction("INJECT", inject_fun,
       "Inject organisms into population.  Args: org_name, org_count.  Return: OrgList of injected orgs.");
+    pop_type.AddMemberFunction("REPLACE_WITH",
+      [this](Population & to_pop, Population & from_pop){ MoveOrgs(from_pop, to_pop, true); return 0; },
+      "Move all organisms organisms from another population, removing current orgs." );
 
+    pop_type.AddMemberFunction("TRAIT", BuildTraitFunction<Population,std::string>("0"),
+      "Return the value of the provided trait for the first organism");
     pop_type.AddMemberFunction("CALC_RICHNESS", BuildTraitFunction<Population,double>("richness"),
       "Count the number of distinct values of a trait (or equation).");
     pop_type.AddMemberFunction("CALC_MODE", BuildTraitFunction<Population,std::string>("mode"),
@@ -651,7 +660,21 @@ namespace mabe {
       "Add up the total value of a trait (or equation).");
     pop_type.AddMemberFunction("CALC_ENTROPY", BuildTraitFunction<Population,double>("entropy"),
       "Determine the entropy of values for a trait (or equation).");
+    pop_type.AddMemberFunction("FIND_MIN",
+      [this](Population & pop, const std::string & trait_equation) -> Collection {
+        auto trait_fun = BuildTraitSummary<Population,double>(trait_equation, "min_id");
+        return pop.IteratorAt(trait_fun(pop)).AsPosition();
+      },
+      "Produce OrgList with just the org with the minimum value of the provided function.");
+    pop_type.AddMemberFunction("FIND_MAX",
+      [this](Population & pop, const std::string & trait_equation) -> Collection {
+        auto trait_fun = BuildTraitSummary<Population,double>(trait_equation, "max_id");
+        return pop.IteratorAt(trait_fun(pop)).AsPosition();
+      },
+      "Produce OrgList with just the org with the minimum value of the provided function.");
 
+    collect_type.AddMemberFunction("TRAIT", BuildTraitFunction<Collection,std::string>("0"),
+      "Return the value of the provided trait for the first organism");
     collect_type.AddMemberFunction("CALC_RICHNESS", BuildTraitFunction<Collection,double>("richness"),
       "Count the number of distinct values of a trait (or equation).");
     collect_type.AddMemberFunction("CALC_MODE", BuildTraitFunction<Collection,std::string>("mode"),
@@ -676,13 +699,26 @@ namespace mabe {
       "Add up the total value of a trait (or equation).");
     collect_type.AddMemberFunction("CALC_ENTROPY", BuildTraitFunction<Collection,double>("entropy"),
       "Determine the entropy of values for a trait (or equation).");
+    collect_type.AddMemberFunction("FIND_MIN",
+      [this](Collection & collect, const std::string & trait_equation) -> Collection {
+        auto trait_fun = BuildTraitSummary<Collection,double>(trait_equation, "min_id");
+        return collect.IteratorAt(trait_fun(collect)).AsPosition();
+      },
+      "Produce OrgList with just the org with the minimum value of the provided function.");
+    collect_type.AddMemberFunction("FIND_MAX",
+      [this](Collection & collect, const std::string & trait_equation) -> Collection {
+        auto trait_fun = BuildTraitSummary<Collection,double>(trait_equation, "max_id");
+        return collect.IteratorAt(trait_fun(collect)).AsPosition();
+      },
+      "Produce OrgList with just the org with the minimum value of the provided function.");
 
     // Setup all known modules as available types in the config file.
     for (auto & mod : GetModuleInfo()) {
       auto mod_init_fun = [this,&mod](const std::string & name) -> emp::Ptr<emplode::EmplodeType> {
-        return mod.init_fun(*this,name);
+        return mod.obj_init_fun(*this,name);
       };
-      config.AddType(mod.name, mod.desc, mod_init_fun, nullptr, mod.type_id);
+      auto & type_info = config.AddType(mod.name, mod.desc, mod_init_fun, nullptr, mod.type_id);
+      mod.type_init_fun(type_info);  // Setup functions for this module.
     }
 
 
@@ -926,16 +962,17 @@ namespace mabe {
   /// Give birth to one or more offspring; return position of last placed.
   /// Triggers 'before repro' signal on parent (once) and 'offspring ready' on each offspring.
   /// Regular signal triggers occur in AddOrgAt.
-  OrgPosition MABE::DoBirth(const Organism & org,
-                      OrgPosition ppos,
-                      Population & target_pop,
-                      size_t birth_count,
-                      bool do_mutations) {
-    emp_assert(org.IsEmpty() == false);  // Empty cells cannot reproduce.
-    before_repro_sig.Trigger(ppos);
-    OrgPosition pos;                                      // Position of each offspring placed.
+  Collection MABE::DoBirth(const Organism & org,
+                           OrgPosition ppos,
+                           Population & target_pop,
+                           size_t birth_count,
+                           bool do_mutations) {
+    emp_assert(org.IsEmpty() == false);             // Empty cells cannot reproduce.
+    before_repro_sig.Trigger(ppos);                 // Signal reproduction event.
+    OrgPosition pos;                                // Position of each offspring placed.
     emp::Ptr<Organism> new_org;
-    for (size_t i = 0; i < birth_count; i++) {            // Loop through offspring, adding each
+    Collection birth_list;                          // Track positions of all offspring.
+    for (size_t i = 0; i < birth_count; i++) {      // Loop through offspring, adding each
       new_org = do_mutations ? org.MakeOffspringOrganism(random) : org.CloneOrganism();
 
       // Alert modules that offspring is ready, then find its birth position.
@@ -943,16 +980,19 @@ namespace mabe {
       pos = FindBirthPosition(target_pop, *new_org, ppos);
 
       // If this placement is valid, do so.  Otherwise delete the organism.
-      if (pos.IsValid()) AddOrgAt(new_org, pos, ppos);
+      if (pos.IsValid()) {
+        AddOrgAt(new_org, pos, ppos);
+        birth_list.Insert(pos);
+      }
       else new_org.Delete();
     }
-    return pos;
+    return birth_list;
   }
 
-  OrgPosition MABE::DoBirth(const Organism & org,
-                      OrgPosition ppos,
-                      OrgPosition target_pos,
-                      bool do_mutations) {
+  Collection MABE::DoBirth(const Organism & org,
+                           OrgPosition ppos,
+                           OrgPosition target_pos,
+                           bool do_mutations) {
     emp_assert(org.IsEmpty() == false);  // Empty cells cannot reproduce.
     emp_assert(target_pos.IsValid());    // Target positions must already be valid.
 
@@ -965,6 +1005,22 @@ namespace mabe {
     return target_pos;
   }
 
+  void MABE::MoveOrgs(Population & from_pop, Population & to_pop, bool reset_to) {
+    // Get the starting point for the new organisms to ove to.
+    Population::iterator_t it_to = reset_to ? to_pop.begin() : to_pop.end();
+
+    // Prepare the "to" population before moving the new organisms in.
+    if (reset_to) EmptyPop(to_pop, from_pop.GetSize());   // Clear out the population.
+    else ResizePop(to_pop, to_pop.GetSize() + from_pop.GetSize());
+
+    // Move the organisms over
+    for (auto it_from = from_pop.begin(); it_from != from_pop.end(); ++it_from, ++it_to) {
+      if (it_from.IsOccupied()) MoveOrg(it_from, it_to);
+    }
+
+    // Clear out the from population now that we're done with it.
+    EmptyPop(from_pop, 0);
+  }
 
   /// Return a ramdom position from a desginated population with a living organism in it.
   OrgPosition MABE::GetRandomOrgPos(Population & pop) {
