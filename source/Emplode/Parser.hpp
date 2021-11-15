@@ -80,7 +80,6 @@ namespace emplode {
 
     bool IsID() const { return pos && lexer->IsID(*pos); }
     bool IsNumber() const { return pos && lexer->IsNumber(*pos); }
-    bool IsChar() const { return pos && lexer->IsChar(*pos); }
     bool IsString() const { return pos && lexer->IsString(*pos); }
     bool IsDots() const { return pos && lexer->IsDots(*pos); }
 
@@ -326,18 +325,11 @@ namespace emplode {
       return MakeTempLeaf(value);                                 // Return temporary Symbol.
     }
 
-    // A literal char should be converted to its ASCII value.
-    if (state.IsChar()) {
-      Debug("...value is a char: ", state.AsLexeme());
-      char lit_char = emp::from_literal_char(state.UseLexeme());  // Convert the literal char.
-      return MakeTempLeaf((double) lit_char);                     // Return temporary Symbol.
-    }
-
     // A literal string should be converted to a regular string and used.
     if (state.IsString()) {
       Debug("...value is a string: ", state.AsLexeme());
-      std::string str = emp::from_literal_string(state.UseLexeme()); // Convert the literal string.
-      return MakeTempLeaf(str);                                      // Return temporary Symbol.
+      std::string str = emp::from_literal_string(state.UseLexeme(), "\"'`"); // Convert literal string.
+      return MakeTempLeaf(str);                                              // Return temporary Symbol.
     }
 
     // If we have an open parenthesis, process everything inside into a single value...
