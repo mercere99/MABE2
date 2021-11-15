@@ -93,6 +93,10 @@ namespace mabe {
 
     emp::Ptr<Organism> empty_org = nullptr; ///< Organism to fill in empty cells (does have data map!)
 
+    std::function<OrgPosition(Organism &, OrgPosition)> place_birth_fun;
+    std::function<OrgPosition(Organism &)> place_inject_fun;
+    std::function<OrgPosition(OrgPosition)> find_neighbor_fun;
+
   public:
     using iterator_t = PopIterator;
     using const_iterator_t = ConstPopIterator;
@@ -127,6 +131,10 @@ namespace mabe {
     void SetName(const std::string & in_name) { name = in_name; }
     void SetID(int in_id) noexcept { pop_id = in_id; }
 
+    template <typename FUN_T> void SetPlaceBirthFun(FUN_T fun) { place_birth_fun = fun; }
+    template <typename FUN_T> void SetPlaceInjectFun(FUN_T fun) { place_inject_fun = fun; }
+    template <typename FUN_T> void SetFindNeighborFun(FUN_T fun) { find_neighbor_fun = fun; }
+
     Organism & operator[](size_t org_id) { return *(orgs[org_id]); }
     const Organism & operator[](size_t org_id) const { return *(orgs[org_id]); }
     Organism & At(size_t org_id) override { return *(orgs[org_id]); }
@@ -139,6 +147,10 @@ namespace mabe {
 
     iterator_t IteratorAt(size_t pos) { return iterator_t(this, pos); }
     const_iterator_t ConstIteratorAt(size_t pos) const { return const_iterator_t(this, pos); }
+
+    OrgPosition PlaceBirth(Organism & org, OrgPosition ppos) { return place_birth_fun(org, ppos); }
+    OrgPosition PlaceInject(Organism & org) { return place_inject_fun(org); }
+    OrgPosition FindNeighbor(OrgPosition pos) { return find_neighbor_fun(pos); }
 
   private:  // ---== To be used by friend class MABEBase only! ==---
 
