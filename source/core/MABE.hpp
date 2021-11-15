@@ -183,19 +183,6 @@ namespace mabe {
     /// Update MABE a specified number of time steps.
     void DoRun(size_t num_updates);
 
-    // -- World Structure --
-
-    OrgPosition FindBirthPosition(Population & pop, Organism & offspring, OrgPosition ppos) {
-      return do_place_birth_sig.FindPosition(pop, offspring, ppos);
-    }
-    OrgPosition FindInjectPosition(Population & pop, Organism & new_org) {
-      return do_place_inject_sig.FindPosition(pop, new_org);
-    }
-    OrgPosition FindNeighbor(OrgPosition pos) {
-      return do_find_neighbor_sig.FindPosition(pos);
-    }
-
-
     // --- Population Management ---
 
     size_t GetNumPopulations() const { return pops.size(); }
@@ -417,9 +404,6 @@ namespace mabe {
     bool BeforeExit_IsTriggered(mod_ptr_t mod) { return before_exit_sig.cur_mod == mod; };
     bool TraceEval_IsTriggered(mod_ptr_t mod) { return trace_eval_sig.cur_mod == mod; };
     bool OnHelp_IsTriggered(mod_ptr_t mod) { return on_help_sig.cur_mod == mod; };
-    bool DoPlaceBirth_IsTriggered(mod_ptr_t mod) { return do_place_birth_sig.cur_mod == mod; };
-    bool DoPlaceInject_IsTriggered(mod_ptr_t mod) { return do_place_inject_sig.cur_mod == mod; };
-    bool DoFindNeighbor_IsTriggered(mod_ptr_t mod) { return do_find_neighbor_sig.cur_mod == mod; };
   };
 
 
@@ -633,6 +617,9 @@ namespace mabe {
     pop_type.AddMemberFunction("REPLACE_WITH",
       [this](Population & to_pop, Population & from_pop){ MoveOrgs(from_pop, to_pop, true); return 0; },
       "Move all organisms organisms from another population, removing current orgs." );
+    pop_type.AddMemberFunction("APPEND",
+      [this](Population & to_pop, Population & from_pop){ MoveOrgs(from_pop, to_pop, false); return 0; },
+      "Move all organisms organisms from another population, adding after current orgs." );
 
     pop_type.AddMemberFunction("TRAIT", BuildTraitFunction<Population,std::string>("0"),
       "Return the value of the provided trait for the first organism");
@@ -729,11 +716,8 @@ namespace mabe {
     Deprecate("print", "PRINT");
 
     // Add other built-in functions to the config file.
-
-    // 'EXIT' terminates a run gracefully.
-    std::function<int()> exit_fun = [this](){ exit_now = true; return 0; };
-    config.AddFunction("EXIT", exit_fun, "Exit from this MABE run.");
-
+    config.AddFunction("EXIT", [this](){ exit_now = true; return 0; }, "Exit from this MABE run.");
+    config.AddFunction("GET_UPDATE", [this](){ return GetUpdate(); }, "Get current update.");
 
     std::function<std::string(const std::string &)> preprocess_fun =
       [this](const std::string & str) { return Preprocess(str); };
@@ -878,7 +862,21 @@ namespace mabe {
     emp::Ptr<Population> new_pop =
       emp::NewPtr<Population>(name, cur_pop_id, pop_size, empty_org); // Create new population.
     pops.push_back(new_pop);                                          // Record new population.
-    return *new_pop;                                                  // Return new population.
+
+    // Setup default functions for the new population.
+    new_pop->SetPlaceBirthFun( [this,new_pop](Organism & /*org*/, OrgPosition /*ppos*/) {
+      return PushEmpty(*new_pop);
+    });
+    new_pop->SetPlaceInjectFun( [this,new_pop](Organism & /*org*/) {
+      return PushEmpty(*new_pop);
+    });
+    new_pop->SetFindNeighborFun( [this,new_pop](OrgPosition pos) {
+      if (pos.IsInPop(*new_pop)) return OrgPosition(); // Wrong pop!  No neighbor.
+      // Return a random org since no structure to population.
+      return OrgPosition(new_pop, GetRandom().GetUInt(new_pop->GetSize()));
+    });
+
+    return *new_pop;
   }
 
   /// If GetPopulation() is called without an ID, return the current population or create one.
@@ -898,7 +896,7 @@ namespace mabe {
     for (size_t i = 0; i < copy_count; i++) {
       emp::Ptr<Organism> inject_org = org.CloneOrganism();
       on_inject_ready_sig.Trigger(*inject_org, pop);
-      OrgPosition pos = FindInjectPosition(pop, *inject_org);
+      OrgPosition pos = pop.PlaceInject(*inject_org);
       if (pos.IsValid()) {
         AddOrgAt( inject_org, pos);
         placement_set.Insert(pos);
@@ -915,7 +913,7 @@ namespace mabe {
   OrgPosition MABE::InjectInstance(Population & pop, emp::Ptr<Organism> org_ptr) {
     emp_assert(org_ptr->GetDataMap().SameLayout(org_data_map));
     on_inject_ready_sig.Trigger(*org_ptr, pop);
-    OrgPosition pos = FindInjectPosition(pop, *org_ptr);
+    OrgPosition pos = pop.PlaceInject(*org_ptr);
     if (pos.IsValid()) AddOrgAt( org_ptr, pos);
     else {
       org_ptr.Delete();          
@@ -977,7 +975,7 @@ namespace mabe {
 
       // Alert modules that offspring is ready, then find its birth position.
       on_offspring_ready_sig.Trigger(*new_org, ppos, target_pop);
-      pos = FindBirthPosition(target_pop, *new_org, ppos);
+      pos = target_pop.PlaceBirth(*new_org, ppos);
 
       // If this placement is valid, do so.  Otherwise delete the organism.
       if (pos.IsValid()) {
