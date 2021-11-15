@@ -77,13 +77,6 @@ namespace mabe {
     // TraceEval()
     SigListener<ModuleBase,void,Organism &,std::ostream&> trace_eval_sig;
 
-    // OrgPosition DoPlaceBirth(Population & target_pop, Organism & offspring, OrgPosition parent_position);
-    SigListener<ModuleBase, OrgPosition, Population &, Organism &, OrgPosition> do_place_birth_sig;
-    // OrgPosition DoPlaceInject(Population & target_pop, Organism & new_organism)
-    SigListener<ModuleBase, OrgPosition, Population &, Organism &> do_place_inject_sig;
-    // OrgPosition DoFindNeighbor(OrgPosition target_organism) {
-    SigListener<ModuleBase, OrgPosition, OrgPosition> do_find_neighbor_sig;
-
     /// If a module fails to use a signal, we never check it again UNLESS we are explicitly
     /// told to rescan the signals (perhaps because new functionality was enabled.)
     bool rescan_signals = true;
@@ -109,9 +102,6 @@ namespace mabe {
     , before_exit_sig("before_exit", ModuleBase::SIG_BeforeExit, &ModuleBase::BeforeExit, sig_ptrs)
     , on_help_sig("on_help", ModuleBase::SIG_OnHelp, &ModuleBase::OnHelp, sig_ptrs)
     , trace_eval_sig("trace_eval", ModuleBase::SIG_TraceEval, &ModuleBase::TraceEval, sig_ptrs)
-    , do_place_birth_sig("do_place_birth", ModuleBase::SIG_DoPlaceBirth, &ModuleBase::DoPlaceBirth, sig_ptrs)
-    , do_place_inject_sig("do_place_inject", ModuleBase::SIG_DoPlaceInject, &ModuleBase::DoPlaceInject, sig_ptrs)
-    , do_find_neighbor_sig("do_find_neighbor", ModuleBase::SIG_DoFindNeighbor, &ModuleBase::DoFindNeighbor, sig_ptrs)
     { ;  }
 
   public:

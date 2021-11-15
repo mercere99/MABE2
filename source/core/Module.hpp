@@ -341,39 +341,6 @@ namespace mabe {
     }
 
 
-    // Functions to be called based on actions that need to happen.  Each of these returns a
-    // viable result or an invalid object if need to pass on to the next module.  Modules will
-    // be queried in order until one of them returns a valid result.
-
-    // Function: Place a new organism about to be born.
-    // Args: Population to place in, Organism to place, position of parent
-    // Return: Position to place offspring or an invalid position if failed.
-
-    OrgPosition DoPlaceBirth(Population &, Organism &, OrgPosition) override {
-      has_signal[SIG_DoPlaceBirth] = false;
-      control.RescanSignals();
-      return OrgPosition();
-    }
-
-    // Function: Place a new organism about to be injected.
-    // Args: Population to place in, Organism that will be placed.
-    // Return: Position to place injected organism, or an invalid position if failed.
-
-    OrgPosition DoPlaceInject(Population &, Organism &) override {
-      has_signal[SIG_DoPlaceInject] = false;
-      control.RescanSignals();
-      return OrgPosition();
-    }
-
-    // Function: Find a random neighbor to a designated position.
-    // Args: Position to find neighbor of, position found.
-
-    OrgPosition DoFindNeighbor(OrgPosition) override {
-      has_signal[SIG_DoFindNeighbor] = false;
-      control.RescanSignals();
-      return OrgPosition();
-    }
-
     /// Turn off all signals in this function.
     void Deactivate() override {
       has_signal.Clear();
@@ -405,9 +372,6 @@ namespace mabe {
     bool BeforeExit_IsTriggered() override { return control.BeforeExit_IsTriggered(this); };
     bool OnHelp_IsTriggered() override { return control.OnHelp_IsTriggered(this); };
     bool TraceEval_IsTriggered() override { return control.TraceEval_IsTriggered(this); };
-    bool DoPlaceBirth_IsTriggered() override { return control.DoPlaceBirth_IsTriggered(this); };
-    bool DoPlaceInject_IsTriggered() override { return control.DoPlaceInject_IsTriggered(this); };
-    bool DoFindNeighbor_IsTriggered() override { return control.DoFindNeighbor_IsTriggered(this); };
 
     bool OK() const override { return true; }
   };

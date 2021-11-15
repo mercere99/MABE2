@@ -59,14 +59,6 @@
  *     TraceEval(Organism & org, ostream & out_stream)
  *       : Print a trace of the evaluation of an organism.
  *     ...
- * 
- *    - Various Do* functions run in modules until one of them returns a valid answer.
- *     DoPlaceBirth(Population & target_pop, Organism & offspring, OrgPosition parent_pos)
- *       : Place a new offspring about to be born.
- *     DoPlaceInject(Population & pop, Organism & new_org)
- *       : Place a new offspring about to be injected.
- *     DoFindNeighbor(OrgPosition target_pos)
- *       : Find a random neighbor to a designated position.
  */
 
 #ifndef MABE_MODULE_BASE_H
@@ -150,9 +142,6 @@ namespace mabe {
       SIG_BeforeExit,
       SIG_OnHelp,
       SIG_TraceEval,
-      SIG_DoPlaceBirth,
-      SIG_DoPlaceInject,
-      SIG_DoFindNeighbor,
       NUM_SIGNALS,
       SIG_UNKNOWN
     };
@@ -272,10 +261,6 @@ namespace mabe {
     virtual void OnHelp() = 0;
     virtual void TraceEval(Organism &, std::ostream &) = 0;
 
-    virtual OrgPosition DoPlaceBirth(Population &, Organism &, OrgPosition) = 0;
-    virtual OrgPosition DoPlaceInject(Population &, Organism &) = 0;
-    virtual OrgPosition DoFindNeighbor(OrgPosition) = 0;
-
     virtual void Deactivate() = 0;  ///< Turn off all signals in this function.
     virtual void Activate() = 0;    ///< Turn on all signals in this function.
 
@@ -298,10 +283,6 @@ namespace mabe {
     virtual bool BeforeExit_IsTriggered() = 0;
     virtual bool OnHelp_IsTriggered() = 0;
     virtual bool TraceEval_IsTriggered() = 0;
-
-    virtual bool DoPlaceBirth_IsTriggered() = 0;
-    virtual bool DoPlaceInject_IsTriggered() = 0;
-    virtual bool DoFindNeighbor_IsTriggered() = 0;
 
     virtual bool OK() const = 0;  // For debugging purposes only.
 
