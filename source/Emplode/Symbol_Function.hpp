@@ -47,6 +47,8 @@ namespace emplode {
     Symbol_Function(const Symbol_Function &) = default;
     emp::Ptr<Symbol> Clone() const override { return emp::NewPtr<this_t>(*this); }
 
+    std::string GetTypename() const override { return "[Symbol_Function]"; }
+
     bool IsFunction() const override { return true; }
     bool HasNumericReturn() const override { return return_type.IsArithmetic(); }
     bool HasStringReturn() const override { return return_type.IsType<std::string>(); }

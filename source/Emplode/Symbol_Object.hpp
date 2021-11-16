@@ -54,8 +54,12 @@ namespace emplode {
     emp::Ptr<const EmplodeType> GetObjectPtr() const override { return obj_ptr; }  
     emp::Ptr<const TypeInfo> GetTypeInfoPtr() const override { return type_info_ptr; }
 
+    std::string GetTypename() const override {
+      return emp::to_string("[Symbol_Object:", GetObjectType(), "]");
+    }
+
     bool IsObject() const override { return true; }
-    emp::TypeID GetObjectType() {
+    emp::TypeID GetObjectType() const override {
       if (type_info_ptr.IsNull()) return emp::GetTypeID<void>();
       return type_info_ptr->GetTypeID();
     }

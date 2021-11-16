@@ -31,8 +31,8 @@ namespace emplode {
     Symbol_Linked(const this_t &) = default;
 
     std::string GetTypename() const override {
-      if constexpr (std::is_scalar_v<T>) return "Value";
-      else return "Unknown";
+      if constexpr (std::is_scalar_v<T>) return "[LinkedValue]";
+      else return "[Error:InvalidLinkedType]";
     }
 
     emp::Ptr<Symbol> Clone() const override { return emp::NewPtr<this_t>(*this); }
@@ -66,7 +66,7 @@ namespace emplode {
       : Symbol(in_name, std::forward<ARGS>(args)...), var(in_var) { ; }
     Symbol_Linked(const this_t &) = default;
 
-    std::string GetTypename() const override { return "String"; }
+    std::string GetTypename() const override { return "[LinkedString]"; }
 
     emp::Ptr<Symbol> Clone() const override { return emp::NewPtr<this_t>(*this); }
 
@@ -101,7 +101,7 @@ namespace emplode {
     { ; }
     Symbol_LinkedFunctions(const this_t &) = default;
 
-    std::string GetTypename() const override { return "[[Function]]"; }
+    std::string GetTypename() const override { return "[Symbol_LinkedFunctions]"; }
 
     emp::Ptr<Symbol> Clone() const override { return emp::NewPtr<this_t>(*this); }
 
