@@ -1,0 +1,206 @@
+EMP_TRACK_MEM: Pointer tracking is active!
+Loading file(s): 'Packing.mabe'
+random_seed = 4000
+Update:0
+Max fitness = 2
+Update:1  main_pop:1000  next_pop:0, fitness:max=2, fitness:mean=0.097
+Max fitness = 2
+Update:2  main_pop:1000  next_pop:0, fitness:max=2, fitness:mean=0.422
+Max fitness = 2
+Update:3  main_pop:1000  next_pop:0, fitness:max=2, fitness:mean=1.042
+Max fitness = 3
+Update:4  main_pop:1000  next_pop:0, fitness:max=3, fitness:mean=1.422
+Max fitness = 3
+Update:5  main_pop:1000  next_pop:0, fitness:max=3, fitness:mean=1.877
+Max fitness = 3
+Update:6  main_pop:1000  next_pop:0, fitness:max=3, fitness:mean=2.053
+Max fitness = 3
+Update:7  main_pop:1000  next_pop:0, fitness:max=3, fitness:mean=2.249
+Max fitness = 3
+Update:8  main_pop:1000  next_pop:0, fitness:max=3, fitness:mean=2.587
+Max fitness = 4
+Update:9  main_pop:1000  next_pop:0, fitness:max=4, fitness:mean=2.877
+Max fitness = 4
+Update:10  main_pop:1000  next_pop:0, fitness:max=4, fitness:mean=3.001
+Max fitness = 5
+Update:11  main_pop:1000  next_pop:0, fitness:max=5, fitness:mean=3.081
+Max fitness = 5
+Update:12  main_pop:1000  next_pop:0, fitness:max=5, fitness:mean=3.226
+Max fitness = 5
+Update:13  main_pop:1000  next_pop:0, fitness:max=5, fitness:mean=3.442
+Max fitness = 5
+Update:14  main_pop:1000  next_pop:0, fitness:max=5, fitness:mean=3.751
+Max fitness = 5
+Update:15  main_pop:1000  next_pop:0, fitness:max=5, fitness:mean=4.06
+Max fitness = 5
+Update:16  main_pop:1000  next_pop:0, fitness:max=5, fitness:mean=4.263
+Max fitness = 5
+Update:17  main_pop:1000  next_pop:0, fitness:max=5, fitness:mean=4.461
+Max fitness = 5
+Update:18  main_pop:1000  next_pop:0, fitness:max=5, fitness:mean=4.562
+Max fitness = 5
+Update:19  main_pop:1000  next_pop:0, fitness:max=5, fitness:mean=4.722
+Max fitness = 5
+Update:20  main_pop:1000  next_pop:0, fitness:max=5, fitness:mean=4.838
+Max fitness = 5
+Update:21  main_pop:1000  next_pop:0, fitness:max=5, fitness:mean=4.892
+Max fitness = 5
+Update:22  main_pop:1000  next_pop:0, fitness:max=5, fitness:mean=4.869
+Max fitness = 5
+Update:23  main_pop:1000  next_pop:0, fitness:max=5, fitness:mean=4.901
+Max fitness = 5
+Update:24  main_pop:1000  next_pop:0, fitness:max=5, fitness:mean=4.911
+Max fitness = 6
+Update:25  main_pop:1000  next_pop:0, fitness:max=6, fitness:mean=4.905
+Max fitness = 6
+Update:26  main_pop:1000  next_pop:0, fitness:max=6, fitness:mean=4.907
+Max fitness = 6
+Update:27  main_pop:1000  next_pop:0, fitness:max=6, fitness:mean=4.946
+Max fitness = 6
+Update:28  main_pop:1000  next_pop:0, fitness:max=6, fitness:mean=4.935
+Max fitness = 6
+Update:29  main_pop:1000  next_pop:0, fitness:max=6, fitness:mean=4.977
+Max fitness = 6
+Update:30  main_pop:1000  next_pop:0, fitness:max=6, fitness:mean=5.03
+Max fitness = 6
+Update:31  main_pop:1000  next_pop:0, fitness:max=6, fitness:mean=5.062
+Max fitness = 6
+Update:32  main_pop:1000  next_pop:0, fitness:max=6, fitness:mean=5.237
+Max fitness = 7
+Update:33  main_pop:1000  next_pop:0, fitness:max=7, fitness:mean=5.354
+Max fitness = 7
+Update:34  main_pop:1000  next_pop:0, fitness:max=7, fitness:mean=5.449
+Max fitness = 7
+Update:35  main_pop:1000  next_pop:0, fitness:max=7, fitness:mean=5.559
+Max fitness = 7
+Update:36  main_pop:1000  next_pop:0, fitness:max=7, fitness:mean=5.685
+Max fitness = 7
+Update:37  main_pop:1000  next_pop:0, fitness:max=7, fitness:mean=5.709
+Max fitness = 7
+Update:38  main_pop:1000  next_pop:0, fitness:max=7, fitness:mean=5.83
+Max fitness = 7
+Update:39  main_pop:1000  next_pop:0, fitness:max=7, fitness:mean=5.898
+Max fitness = 7
+Update:40  main_pop:1000  next_pop:0, fitness:max=7, fitness:mean=5.98
+Max fitness = 7
+Update:41  main_pop:1000  next_pop:0, fitness:max=7, fitness:mean=6.039
+Max fitness = 7
+Update:42  main_pop:1000  next_pop:0, fitness:max=7, fitness:mean=6.14
+Max fitness = 7
+Update:43  main_pop:1000  next_pop:0, fitness:max=7, fitness:mean=6.202
+Max fitness = 7
+Update:44  main_pop:1000  next_pop:0, fitness:max=7, fitness:mean=6.322
+Max fitness = 7
+Update:45  main_pop:1000  next_pop:0, fitness:max=7, fitness:mean=6.444
+Max fitness = 7
+Update:46  main_pop:1000  next_pop:0, fitness:max=7, fitness:mean=6.436
+Max fitness = 7
+Update:47  main_pop:1000  next_pop:0, fitness:max=7, fitness:mean=6.461
+Max fitness = 7
+Update:48  main_pop:1000  next_pop:0, fitness:max=7, fitness:mean=6.536
+Max fitness = 7
+Update:49  main_pop:1000  next_pop:0, fitness:max=7, fitness:mean=6.568
+Max fitness = 7
+Update:50  main_pop:1000  next_pop:0, fitness:max=7, fitness:mean=6.618
+Max fitness = 7
+Update:51  main_pop:1000  next_pop:0, fitness:max=7, fitness:mean=6.679
+Max fitness = 7
+Update:52  main_pop:1000  next_pop:0, fitness:max=7, fitness:mean=6.654
+Max fitness = 7
+Update:53  main_pop:1000  next_pop:0, fitness:max=7, fitness:mean=6.625
+Max fitness = 7
+Update:54  main_pop:1000  next_pop:0, fitness:max=7, fitness:mean=6.608
+Max fitness = 7
+Update:55  main_pop:1000  next_pop:0, fitness:max=7, fitness:mean=6.571
+Max fitness = 7
+Update:56  main_pop:1000  next_pop:0, fitness:max=7, fitness:mean=6.544
+Max fitness = 8
+Update:57  main_pop:1000  next_pop:0, fitness:max=8, fitness:mean=6.546
+Max fitness = 7
+Update:58  main_pop:1000  next_pop:0, fitness:max=7, fitness:mean=6.587
+Max fitness = 8
+Update:59  main_pop:1000  next_pop:0, fitness:max=8, fitness:mean=6.645
+Max fitness = 8
+Update:60  main_pop:1000  next_pop:0, fitness:max=8, fitness:mean=6.677
+Max fitness = 8
+Update:61  main_pop:1000  next_pop:0, fitness:max=8, fitness:mean=6.747
+Max fitness = 8
+Update:62  main_pop:1000  next_pop:0, fitness:max=8, fitness:mean=6.65
+Max fitness = 8
+Update:63  main_pop:1000  next_pop:0, fitness:max=8, fitness:mean=6.644
+Max fitness = 8
+Update:64  main_pop:1000  next_pop:0, fitness:max=8, fitness:mean=6.627
+Max fitness = 8
+Update:65  main_pop:1000  next_pop:0, fitness:max=8, fitness:mean=6.632
+Max fitness = 8
+Update:66  main_pop:1000  next_pop:0, fitness:max=8, fitness:mean=6.655
+Max fitness = 8
+Update:67  main_pop:1000  next_pop:0, fitness:max=8, fitness:mean=6.552
+Max fitness = 8
+Update:68  main_pop:1000  next_pop:0, fitness:max=8, fitness:mean=6.513
+Max fitness = 8
+Update:69  main_pop:1000  next_pop:0, fitness:max=8, fitness:mean=6.565
+Max fitness = 8
+Update:70  main_pop:1000  next_pop:0, fitness:max=8, fitness:mean=6.604
+Max fitness = 8
+Update:71  main_pop:1000  next_pop:0, fitness:max=8, fitness:mean=6.633
+Max fitness = 8
+Update:72  main_pop:1000  next_pop:0, fitness:max=8, fitness:mean=6.699
+Max fitness = 8
+Update:73  main_pop:1000  next_pop:0, fitness:max=8, fitness:mean=6.732
+Max fitness = 8
+Update:74  main_pop:1000  next_pop:0, fitness:max=8, fitness:mean=6.871
+Max fitness = 8
+Update:75  main_pop:1000  next_pop:0, fitness:max=8, fitness:mean=6.917
+Max fitness = 8
+Update:76  main_pop:1000  next_pop:0, fitness:max=8, fitness:mean=7.006
+Max fitness = 8
+Update:77  main_pop:1000  next_pop:0, fitness:max=8, fitness:mean=7.037
+Max fitness = 8
+Update:78  main_pop:1000  next_pop:0, fitness:max=8, fitness:mean=7.069
+Max fitness = 8
+Update:79  main_pop:1000  next_pop:0, fitness:max=8, fitness:mean=7.026
+Max fitness = 8
+Update:80  main_pop:1000  next_pop:0, fitness:max=8, fitness:mean=7.127
+Max fitness = 8
+Update:81  main_pop:1000  next_pop:0, fitness:max=8, fitness:mean=7.257
+Max fitness = 8
+Update:82  main_pop:1000  next_pop:0, fitness:max=8, fitness:mean=7.346
+Max fitness = 8
+Update:83  main_pop:1000  next_pop:0, fitness:max=8, fitness:mean=7.347
+Max fitness = 8
+Update:84  main_pop:1000  next_pop:0, fitness:max=8, fitness:mean=7.392
+Max fitness = 8
+Update:85  main_pop:1000  next_pop:0, fitness:max=8, fitness:mean=7.329
+Max fitness = 8
+Update:86  main_pop:1000  next_pop:0, fitness:max=8, fitness:mean=7.264
+Max fitness = 8
+Update:87  main_pop:1000  next_pop:0, fitness:max=8, fitness:mean=7.247
+Max fitness = 8
+Update:88  main_pop:1000  next_pop:0, fitness:max=8, fitness:mean=7.082
+Max fitness = 8
+Update:89  main_pop:1000  next_pop:0, fitness:max=8, fitness:mean=7.096
+Max fitness = 8
+Update:90  main_pop:1000  next_pop:0, fitness:max=8, fitness:mean=7.187
+Max fitness = 8
+Update:91  main_pop:1000  next_pop:0, fitness:max=8, fitness:mean=7.205
+Max fitness = 8
+Update:92  main_pop:1000  next_pop:0, fitness:max=8, fitness:mean=7.274
+Max fitness = 8
+Update:93  main_pop:1000  next_pop:0, fitness:max=8, fitness:mean=7.24
+Max fitness = 8
+Update:94  main_pop:1000  next_pop:0, fitness:max=8, fitness:mean=7.252
+Max fitness = 8
+Update:95  main_pop:1000  next_pop:0, fitness:max=8, fitness:mean=7.254
+Max fitness = 8
+Update:96  main_pop:1000  next_pop:0, fitness:max=8, fitness:mean=7.293
+Max fitness = 8
+Update:97  main_pop:1000  next_pop:0, fitness:max=8, fitness:mean=7.32
+Max fitness = 8
+Update:98  main_pop:1000  next_pop:0, fitness:max=8, fitness:mean=7.314
+Max fitness = 8
+Update:99  main_pop:1000  next_pop:0, fitness:max=8, fitness:mean=7.29
+Max fitness = 8
+==> Exiting.
+EMP_TRACK_MEM: No memory leaks found!
+ 405021 pointers found; all have been cleaned up fully.

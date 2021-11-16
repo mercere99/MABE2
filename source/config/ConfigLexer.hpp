@@ -1,10 +1,11 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019-2020.
+ *  @date 2019-2021.
  *
  *  @file  ConfigLexer.hpp
- *  @brief A Lexer that tokenizes MABE config files.
+ *  @brief A Lexer used to tokenize MABE config files.
+ *  @note Status: BETA
  **/
 
 #ifndef MABE_CONFIG_LEXER_H
@@ -34,12 +35,12 @@ namespace mabe {
       token_identifier = AddToken("Identifier", "[a-zA-Z_][a-zA-Z0-9_]*");
       token_number = AddToken("Literal Number", "[0-9]+(\\.[0-9]+)?");
       token_string = AddToken("Literal String", "\\\"([^\"\\\\]|\\\\.)*\\\"");
-      token_char = AddToken("Literal Character", "'([^'\n\\\\]|\\\\.)+'");
+      token_char = AddToken("Literal Character", "'([^'\n\\\\]|\\\\.)'");
       token_dots = AddToken("Dots", "\".\"+");
 
       /// Symbol tokens should have least priority.  They include any solitary character not listed
       /// above, or pre-specified multi-character groups.
-      token_symbol = AddToken("Symbol", ".|\"::\"|\"==\"|\"!=\"|\"<=\"|\">=\"|\"->\"|\"&&\"|\"||\"|\"<<\"|\">>\"|\"++\"|\"--\"");
+      token_symbol = AddToken("Symbol", ".|\"::\"|\"==\"|\"!=\"|\"<=\"|\">=\"|\"->\"|\"&&\"|\"||\"|\"<<\"|\">>\"|\"++\"|\"--\"|\"**\"");
     }
 
     bool IsID(const emp::Token token) const noexcept { return token.token_id == token_identifier; }

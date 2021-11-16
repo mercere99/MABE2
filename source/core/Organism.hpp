@@ -9,7 +9,7 @@
  *
  *  All organism types or organism component types (e.g., brains or genomes) that can be
  *  individually configured in MABE must have mabe::OrgType as its ultimate base class.  A helper
- *  template mabe::OrganismTeplate<ORG_T> is derived from mabe::OrgType and should be used as
+ *  template mabe::OrganismTemplate<ORG_T> is derived from mabe::OrgType and should be used as
  *  the more immeidate base class for any user-defined organism types.  Providing this template
  *  with your new organism type as ORG_T will setup type-specific return values for ease of use.
  *
@@ -83,7 +83,7 @@ namespace mabe {
 
 
 
-    // -- Also deal with some depricated functionality... --
+    // -- Also deal with some deprecated functionality... --
 
     [[deprecated("Use OrgType::HasTrait() instead of OrgType::HasVar()")]]
     bool HasVar(const std::string & name) const { return HasTrait(name); }

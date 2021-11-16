@@ -15,6 +15,9 @@
 
 #include "emp/base/Ptr.hpp"
 #include "emp/base/vector.hpp"
+#include "emp/base/array.hpp"
+
+#include "OrgIterator.hpp"
 
 namespace mabe {
 

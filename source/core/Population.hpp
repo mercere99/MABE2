@@ -153,7 +153,7 @@ namespace mabe {
     iterator_t IteratorAt(size_t pos) { return iterator_t(this, pos); }
     const_iterator_t ConstIteratorAt(size_t pos) const { return const_iterator_t(this, pos); }
 
-    /// Required SetupConfig function; for now population don't have any config optons.
+    /// Required SetupConfig function; for now population don't have any config options.
     void SetupConfig() override { }
 
   private:  // ---== To be used by friend class MABEBase only! ==---
@@ -204,39 +204,41 @@ namespace mabe {
   public:
     // ------ DEBUG FUNCTIONS ------
     bool OK() const {
-      // We will usually have a handful of popoulations; assume error if we have more than a billion.
+      // We may have a handful of populations, but assume error if we have more than a billion.
       if (pop_id > 1000000000) {
         std::cout << "WARNING: Invalid Population ID (pop_id = " << pop_id << ")" << std::endl;
         return false;
       }
 
+      // We should never have more living organisms than slots in the population.
       if (num_orgs > orgs.size()) {
         std::cout << "ERROR: Population " << pop_id << " size is " << orgs.size()
                   << " but num_orgs = " << num_orgs << std::endl;
         return false;
       }
 
+      // Scan through the population and make sure every position is valid.
       size_t org_count = 0;
       for (size_t pos = 0; pos < orgs.size(); pos++) {
-        // No vector positions should be NULL (though they may have an empty organism)
+        // No vector positions should be NULL (use EmptyOrganism instead)
         if (orgs[pos].IsNull()) {
           std::cout << "ERROR: Population " << pop_id << " as position " << pos
                     << " has null pointer instead of an organism." << std::endl;
           return false;
         }
 
-        // Double check the organism count.
+        // Count the number of living (non-empty) organisms as we go.
         if (!orgs[pos]->IsEmpty()) org_count++;
       }
 
-      // Make sure we counted the correct number of organims in the population.
+      // Make sure we counted the correct number of organisms in the population.
       if (num_orgs != org_count) {
           std::cout << "ERROR: Population " << pop_id << " has num_orgs = " << num_orgs
                     << ", but audit counts " << org_count << " orgs." << std::endl;
           return false;
       }
 
-      // @CAO: Check if num_orgs > max_orgs?
+      // @CAO: If we have a cap on the population size, make sure we haven't crossed it?
 
       return true;
     }

@@ -1,0 +1,16 @@
+EMP_TRACK_MEM: Pointer tracking is active!
+Loading file(s): 'Mancala.mabe'
+random_seed = 3000
+Update:0
+Update:1  main_pop:200  next_pop:0, fitness:max=-48, fitness:mean=-425.07
+Update:2  main_pop:200  next_pop:0, fitness:max=-68, fitness:mean=-450.57
+Update:3  main_pop:200  next_pop:0, fitness:max=-112, fitness:mean=-385.46
+Update:4  main_pop:200  next_pop:0, fitness:max=-126, fitness:mean=-486.87
+Update:5  main_pop:200  next_pop:0, fitness:max=-96, fitness:mean=-432.44
+Update:6  main_pop:200  next_pop:0, fitness:max=-80, fitness:mean=-476.14
+Update:7  main_pop:200  next_pop:0, fitness:max=-66, fitness:mean=-472.15
+Update:8  main_pop:200  next_pop:0, fitness:max=-148, fitness:mean=-489.89
+Update:9  main_pop:200  next_pop:0, fitness:max=-300, fitness:mean=-561.13
+==> Exiting.
+EMP_TRACK_MEM: No memory leaks found!
+ 5024 pointers found; all have been cleaned up fully.

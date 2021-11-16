@@ -9,7 +9,7 @@
  *  Organisms in MABE are stored in indexed collections (typically Population objects).
  *  This class allows you to refer to the position of an organism and step through sets of organisms.
  * 
- *  An OrgIterator_Interface sets up all of the virutal functions in all iterators.
+ *  An OrgIterator_Interface sets up all of the virtual functions in all iterators.
  *
  *  @todo Add a reverse iterator.
  *  @todo Fix operator-- which can go off of the beginning of the world.

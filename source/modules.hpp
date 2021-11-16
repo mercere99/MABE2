@@ -24,6 +24,7 @@
 #include "evaluate/callable/EvalTaskNor.hpp"
 #include "evaluate/callable/EvalTaskXor.hpp"
 #include "evaluate/callable/EvalTaskEqu.hpp"
+#include "evaluate/static/EvalPacking.hpp"
 
 // Interface Modules
 #include "interface/CommandLine.hpp"

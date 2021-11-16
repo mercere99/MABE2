@@ -64,7 +64,7 @@ namespace mabe {
         // Make sure this organism has its bit sequence ready for us to access.
         org.GenerateOutput();
 
-        // Count the number of ones in the bit sequence.
+        // Count the number of contiguous ones at the start of the bit sequence.
         const emp::BitVector & bits = org.GetTrait<emp::BitVector>(bits_trait);
         int road_length = 0.0;
         for (size_t i = 0; i < bits.size(); i++) {
@@ -87,7 +87,7 @@ namespace mabe {
     }
   };
 
-  MABE_REGISTER_MODULE(EvalRoyalRoad, "Evaluate bitstrings by counting ones (or zeros).");
+  MABE_REGISTER_MODULE(EvalRoyalRoad, "Evaluate bitstrings by counting the number of 'bricks' in the Royal Road'");
 }
 
 #endif

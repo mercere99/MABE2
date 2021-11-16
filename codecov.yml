@@ -1,0 +1,4 @@
+fixes:
+  - "tests/coverage_source/::tests/unit/"  # move path
+ignore:
+  - "source/third-party"  # ignore folders and all its contents

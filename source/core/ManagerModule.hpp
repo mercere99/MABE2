@@ -4,7 +4,7 @@
  *  @date 2021.
  *
  *  @file  ManagerModule.hpp
- *  @brief Base module to manage a selection of objects that share a common configiguration.
+ *  @brief Base module to manage a selection of objects that share a common configuration.
  */
 
 #ifndef MABE_MANAGER_MODULE_H
@@ -47,7 +47,7 @@ namespace mabe {
 
 
   /// @param MANAGED_T the type of object type being managed.
-  /// @param BASE_T the base type being mnagaed.
+  /// @param BASE_T the base type being managed.
   template <typename MANAGED_T, typename BASE_T>
   class ManagerModule : public Module {
     /// Allow managed products to access private shared data in their own manager only.
