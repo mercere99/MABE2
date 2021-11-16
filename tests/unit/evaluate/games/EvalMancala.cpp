@@ -16,7 +16,7 @@
 #include "evaluate/games/EvalMancala.hpp"
 
 
-TEST_CASE("EvalMancala_Placeholder", "[evaluate/static]"){
+TEST_CASE("EvalMancala_Placeholder", "[evaluate/games]"){
   {
   }
 }
