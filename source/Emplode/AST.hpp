@@ -264,11 +264,6 @@ namespace emplode {
       symbol_ptr_t lhs = children[0]->Process();  // Determine the left-hand-side value.
       symbol_ptr_t rhs = children[1]->Process();  // Determine the right-hand-side value.
 
-      if (lhs->IsObject() && lhs->AsObject().GetObjectType().GetName() == "mabe::Population") {
-        std::cout << "BREAKPOINT!" << std::endl;
-        //emp_error("BREAKPOINT! line=", line_id);
-      }
-
       // @CAO Should make sure that lhs is properly assignable.
       bool success = lhs->CopyValue(*rhs);
       if (!success) {

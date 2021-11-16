@@ -139,6 +139,9 @@ namespace mabe {
     bool IsEmpty() const { return IsValid() && OrgPtr()->IsEmpty(); }
     bool IsOccupied() const { return IsValid() && !OrgPtr()->IsEmpty(); }
 
+    /// Is this position in the specified population?
+    bool IsInPop(const Population & pop) const { return ConstPopPtr() == &pop; }
+
     /// Advance iterator to the next non-empty cell in the world.
     DERIVED_T & operator++() { IncPosition(); return AsDerived(); }
 

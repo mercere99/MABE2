@@ -129,7 +129,7 @@ namespace emplode {
       return AddType<OBJECT_T>(type_name, desc, init_fun, copy_fun, true);
     }
 
-    /// Make a new Symbol_Object using the provided TypeInfo, variable name, and scope.
+    /// Make a new Symbol_Object using the provided *TypeInfo*, variable name, and scope.
     Symbol_Object & MakeObjSymbol(
       TypeInfo & type_info,
       const std::string & var_name,
@@ -152,13 +152,13 @@ namespace emplode {
       return new_obj_symbol;
     }
 
-    /// Make a new Symbol_Object using the provided type name, variable name, and scope.
+    /// Make a new Symbol_Object using the provided type NAME, variable name, and scope.
     Symbol_Object & MakeObjSymbol(const std::string & type_name, const std::string & var_name,
                                    Symbol_Scope & scope) {
       return MakeObjSymbol(*type_map[type_name], var_name, scope);
     }
 
-    /// Make a new Symbol_Object using the provided TypeID, variable name, and scope.
+    /// Make a new Symbol_Object using the provided *TypeID*, variable name, and scope.
     Symbol_Object & MakeObjSymbol(emp::TypeID type_id, const std::string & var_name,
                                    Symbol_Scope & scope) {
       return MakeObjSymbol(*typeid_map[type_id], var_name, scope);
