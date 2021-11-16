@@ -1,0 +1,386 @@
+EMP_TRACK_MEM: Pointer tracking is active!
+Loading file(s): 'path_follow.mabe'
+Loading map: copy_test_map.txt
+........................................
+........................................
+........................................
+........................................
+........................................
+...X....................................
+...+....................................
+...+....................................
+...+....................................
+...+....................................
+...R++++L...............................
+........+...............................
+........+...............................
+........+...............................
+........+...............................
+...>++++L...............................
+........................................
+........................................
+........................................
+........................................
+........................................
+........................................
+........................................
+........................................
+........................................
+........................................
+........................................
+........................................
+........................................
+........................................
+........................................
+........................................
+........................................
+........................................
+........................................
+........................................
+........................................
+........................................
+........................................
+........................................
+Map is 40x40, with 20 tiles!
+Found 39 external functions!
+ sg-sense sg-rotate-r sg-rotate-l sg-move-back Repro GetHead MovHead ShiftL JumpHead Add Dec Nand Inc sg-move NopF SwapStk NopE ShiftR SetFlow SearchLabelDirectF Swap SearchSeqDirectS NopC NopB NopD SearchLabelDirectS IfNEqu SearchLabelDirectB NopA IO IfLabel IfLess MoveHeadIfNEqu SearchSeqDirectF Label Push Sub SearchSeqDirectB Pop
+Found 1 external functions with name: sg-sense!
+Added instruction: sg-sense
+Found 1 external functions with name: sg-rotate-r!
+Added instruction: sg-rotate-r
+Found 1 external functions with name: sg-rotate-l!
+Added instruction: sg-rotate-l
+Found 1 external functions with name: sg-move-back!
+Added instruction: sg-move-back
+Found 1 external functions with name: Repro!
+Added instruction: Repro
+Found 1 external functions with name: GetHead!
+Added instruction: GetHead
+Found 1 external functions with name: MovHead!
+Added instruction: MovHead
+Found 1 external functions with name: ShiftL!
+Added instruction: ShiftL
+Found 1 external functions with name: JumpHead!
+Added instruction: JumpHead
+Found 1 external functions with name: Add!
+Added instruction: Add
+Found 1 external functions with name: Dec!
+Added instruction: Dec
+Found 1 external functions with name: Nand!
+Added instruction: Nand
+Found 1 external functions with name: Inc!
+Added instruction: Inc
+Found 1 external functions with name: sg-move!
+Added instruction: sg-move
+Found 1 external functions with name: NopF!
+Added instruction: NopF
+Found 1 external functions with name: SwapStk!
+Added instruction: SwapStk
+Found 1 external functions with name: NopE!
+Added instruction: NopE
+Found 1 external functions with name: ShiftR!
+Added instruction: ShiftR
+Found 1 external functions with name: SetFlow!
+Added instruction: SetFlow
+Found 1 external functions with name: SearchLabelDirectF!
+Added instruction: SearchLabelDirectF
+Found 1 external functions with name: Swap!
+Added instruction: Swap
+Found 1 external functions with name: SearchSeqDirectS!
+Added instruction: SearchSeqDirectS
+Found 1 external functions with name: NopC!
+Added instruction: NopC
+Found 1 external functions with name: NopB!
+Added instruction: NopB
+Found 1 external functions with name: NopD!
+Added instruction: NopD
+Found 1 external functions with name: SearchLabelDirectS!
+Added instruction: SearchLabelDirectS
+Found 1 external functions with name: IfNEqu!
+Added instruction: IfNEqu
+Found 1 external functions with name: SearchLabelDirectB!
+Added instruction: SearchLabelDirectB
+Found 1 external functions with name: NopA!
+Added instruction: NopA
+Found 1 external functions with name: IO!
+Added instruction: IO
+Found 1 external functions with name: IfLabel!
+Added instruction: IfLabel
+Found 1 external functions with name: IfLess!
+Added instruction: IfLess
+Found 1 external functions with name: MoveHeadIfNEqu!
+Added instruction: MoveHeadIfNEqu
+Found 1 external functions with name: SearchSeqDirectF!
+Added instruction: SearchSeqDirectF
+Found 1 external functions with name: Label!
+Added instruction: Label
+Found 1 external functions with name: Push!
+Added instruction: Push
+Found 1 external functions with name: Sub!
+Added instruction: Sub
+Found 1 external functions with name: SearchSeqDirectB!
+Added instruction: SearchSeqDirectB
+Found 1 external functions with name: Pop!
+Added instruction: Pop
+
+
+Starting run
+random_seed = 128
+Original genome:
+[0]
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing Repro
+Modified genome:
+[50]cccccccccccccccccccccccccccccccccccccccccccccccccx
+Update:0
+Expanding registers! Nops: 6
+Total weight: 0.01
+Update:1  main_pop:1  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
+Total weight: 0.02
+Update:2  main_pop:2  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
+Total weight: 0.02
+Update:3  main_pop:2  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
+Total weight: 0.04
+Update:4  main_pop:4  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
+Total weight: 0.04
+Update:5  main_pop:4  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
+Total weight: 0.07
+Update:6  main_pop:7  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
+Total weight: 0.08
+Update:7  main_pop:8  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
+Total weight: 0.15
+Update:8  main_pop:15  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
+Total weight: 0.18
+Update:9  main_pop:18  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
+Total weight: 0.3
+Update:10  main_pop:30  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
+Total weight: 0.36
+Update:11  main_pop:36  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
+Total weight: 0.56
+Update:12  main_pop:56  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
+Total weight: 0.71
+Update:13  main_pop:71  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
+Total weight: 1.12
+Update:14  main_pop:112  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
+Total weight: 1.5
+Update:15  main_pop:150  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.00993333, child_merit:max=0.01
+Total weight: 2.27
+Update:16  main_pop:229  next_pop:0, merit:mean=0.00991266, merit:max=0.01, child_merit:mean=0.00991266, child_merit:max=0.01
+Total weight: 5.27
+Update:17  main_pop:340  next_pop:0, merit:mean=0.0155, merit:max=0.25, child_merit:mean=0.0143529, child_merit:max=0.25
+Total weight: 9.54
+Update:18  main_pop:360  next_pop:0, merit:mean=0.0265, merit:max=0.25, child_merit:mean=0.0120556, child_merit:max=0.1
+Total weight: 4.62
+Update:19  main_pop:360  next_pop:0, merit:mean=0.0128333, merit:max=0.2, child_merit:mean=0.00925, child_merit:max=0.05
+Total weight: 3.18
+Update:20  main_pop:360  next_pop:0, merit:mean=0.00883333, merit:max=0.2, child_merit:mean=0.0100278, child_merit:max=0.1
+Total weight: 4.22
+Update:21  main_pop:360  next_pop:0, merit:mean=0.0117222, merit:max=0.2, child_merit:mean=0.01225, child_merit:max=0.25
+Total weight: 6.24
+Update:22  main_pop:360  next_pop:0, merit:mean=0.0173333, merit:max=0.25, child_merit:mean=0.0107222, child_merit:max=0.15
+Total weight: 3.88
+Update:23  main_pop:360  next_pop:0, merit:mean=0.0107778, merit:max=0.15, child_merit:mean=0.00994444, child_merit:max=0.05
+Total weight: 4.67
+Update:24  main_pop:360  next_pop:0, merit:mean=0.0129722, merit:max=0.25, child_merit:mean=0.0095, child_merit:max=0.05
+Total weight: 5.44
+Update:25  main_pop:360  next_pop:0, merit:mean=0.0151111, merit:max=0.2, child_merit:mean=0.00947222, child_merit:max=0.05
+Total weight: 2.98
+Update:26  main_pop:360  next_pop:0, merit:mean=0.00827778, merit:max=0.1, child_merit:mean=0.00994444, child_merit:max=0.05
+Total weight: 13.08
+Update:27  main_pop:360  next_pop:0, merit:mean=0.0363333, merit:max=0.25, child_merit:mean=0.0170833, child_merit:max=0.2
+Total weight: 3.91
+Update:28  main_pop:360  next_pop:0, merit:mean=0.0108611, merit:max=0.25, child_merit:mean=0.00927778, child_merit:max=0.01
+Total weight: 6.31
+Update:29  main_pop:360  next_pop:0, merit:mean=0.0175278, merit:max=0.25, child_merit:mean=0.0118889, child_merit:max=0.25
+Total weight: 1.98
+Update:30  main_pop:360  next_pop:0, merit:mean=0.0055, merit:max=0.2, child_merit:mean=0.00977778, child_merit:max=0.01
+Total weight: 3.41
+Update:31  main_pop:360  next_pop:0, merit:mean=0.00947222, merit:max=0.01, child_merit:mean=0.00997222, child_merit:max=0.01
+Total weight: 3.59
+Update:32  main_pop:360  next_pop:0, merit:mean=0.00997222, merit:max=0.01, child_merit:mean=0.00994444, child_merit:max=0.01
+Total weight: 6.67
+Update:33  main_pop:360  next_pop:0, merit:mean=0.0185278, merit:max=0.25, child_merit:mean=0.0103333, child_merit:max=0.2
+Total weight: 3.59
+Update:34  main_pop:360  next_pop:0, merit:mean=0.00997222, merit:max=0.05, child_merit:mean=0.00994444, child_merit:max=0.01
+Total weight: 3.39
+Update:35  main_pop:360  next_pop:0, merit:mean=0.00941667, merit:max=0.05, child_merit:mean=0.00994444, child_merit:max=0.01
+Total weight: 3.6
+Update:36  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
+Total weight: 3.6
+Update:37  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
+Total weight: 3.6
+Update:38  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
+Total weight: 3.6
+Update:39  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
+Total weight: 3.6
+Update:40  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.00997222, child_merit:max=0.01
+Total weight: 3.6
+Update:41  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
+Total weight: 3.6
+Update:42  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
+Total weight: 3.59
+Update:43  main_pop:360  next_pop:0, merit:mean=0.00997222, merit:max=0.01, child_merit:mean=0.00994444, child_merit:max=0.01
+Total weight: 3.6
+Update:44  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.00997222, child_merit:max=0.01
+Total weight: 6.04
+Update:45  main_pop:360  next_pop:0, merit:mean=0.0167778, merit:max=0.2, child_merit:mean=0.0136667, child_merit:max=0.1
+Total weight: 3.6
+Update:46  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
+Total weight: 4.83
+Update:47  main_pop:360  next_pop:0, merit:mean=0.0134167, merit:max=0.25, child_merit:mean=0.00966667, child_merit:max=0.05
+Total weight: 3.6
+Update:48  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
+Total weight: 3.6
+Update:49  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
+Total weight: 3.6
+Update:50  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
+Total weight: 3.6
+Update:51  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.00997222, child_merit:max=0.01
+Total weight: 3.6
+Update:52  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
+Total weight: 3.6
+Update:53  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
+Total weight: 3.6
+Update:54  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
+Total weight: 3.6
+Update:55  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
+Total weight: 3.6
+Update:56  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.00997222, child_merit:max=0.01
+Total weight: 3.6
+Update:57  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
+Total weight: 3.6
+Update:58  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.00997222, child_merit:max=0.01
+Total weight: 3.6
+Update:59  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.00997222, child_merit:max=0.01
+Total weight: 3.6
+Update:60  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
+Total weight: 3.6
+Update:61  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.00997222, child_merit:max=0.01
+Total weight: 3.58
+Update:62  main_pop:360  next_pop:0, merit:mean=0.00994444, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
+Total weight: 3.6
+Update:63  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.0106389, child_merit:max=0.25
+Total weight: 3.6
+Update:64  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.00997222, child_merit:max=0.01
+Total weight: 3.6
+Update:65  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.00994444, child_merit:max=0.01
+Total weight: 3.59
+Update:66  main_pop:360  next_pop:0, merit:mean=0.00997222, merit:max=0.01, child_merit:mean=0.00997222, child_merit:max=0.01
+Total weight: 3.53
+Update:67  main_pop:360  next_pop:0, merit:mean=0.00980556, merit:max=0.01, child_merit:mean=0.00997222, child_merit:max=0.01
+Total weight: 6.66
+Update:68  main_pop:360  next_pop:0, merit:mean=0.0185, merit:max=0.25, child_merit:mean=0.0100833, child_merit:max=0.15
+Total weight: 3.58
+Update:69  main_pop:360  next_pop:0, merit:mean=0.00994444, merit:max=0.01, child_merit:mean=0.00997222, child_merit:max=0.01
+Total weight: 3.6
+Update:70  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
+Total weight: 3.59
+Update:71  main_pop:360  next_pop:0, merit:mean=0.00997222, merit:max=0.01, child_merit:mean=0.00997222, child_merit:max=0.01
+Total weight: 3.6
+Update:72  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
+Total weight: 3.6
+Update:73  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.00997222, child_merit:max=0.01
+Total weight: 3.59
+Update:74  main_pop:360  next_pop:0, merit:mean=0.00997222, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
+Total weight: 3.6
+Update:75  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
+Total weight: 3.6
+Update:76  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
+Total weight: 5.57
+Update:77  main_pop:360  next_pop:0, merit:mean=0.0154722, merit:max=0.25, child_merit:mean=0.00944444, child_merit:max=0.05
+Total weight: 4.12
+Update:78  main_pop:360  next_pop:0, merit:mean=0.0114722, merit:max=0.25, child_merit:mean=0.0108611, child_merit:max=0.15
+Total weight: 3.6
+Update:79  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
+Total weight: 3.63
+Update:80  main_pop:360  next_pop:0, merit:mean=0.0100833, merit:max=0.05, child_merit:mean=0.0100833, child_merit:max=0.05
+Total weight: 3.59
+Update:81  main_pop:360  next_pop:0, merit:mean=0.00997222, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
+Total weight: 3.6
+Update:82  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.00997222, child_merit:max=0.01
+Total weight: 3.6
+Update:83  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
+Total weight: 3.6
+Update:84  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.00997222, child_merit:max=0.01
+Total weight: 3.59
+Update:85  main_pop:360  next_pop:0, merit:mean=0.00997222, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
+Total weight: 3.6
+Update:86  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.0101111, child_merit:max=0.05
+Total weight: 3.6
+Update:87  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.00994444, child_merit:max=0.01
+Total weight: 3.54
+Update:88  main_pop:360  next_pop:0, merit:mean=0.00983333, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
+Total weight: 3.6
+Update:89  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
+Total weight: 3.6
+Update:90  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
+Total weight: 3.59
+Update:91  main_pop:360  next_pop:0, merit:mean=0.00997222, merit:max=0.01, child_merit:mean=0.00994444, child_merit:max=0.01
+Total weight: 3.86
+Update:92  main_pop:360  next_pop:0, merit:mean=0.0107222, merit:max=0.25, child_merit:mean=0.00961111, child_merit:max=0.01
+Total weight: 3.6
+Update:93  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
+Total weight: 3.6
+Update:94  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
+Total weight: 3.59
+Update:95  main_pop:360  next_pop:0, merit:mean=0.00997222, merit:max=0.01, child_merit:mean=0.00997222, child_merit:max=0.01
+Total weight: 3.58
+Update:96  main_pop:360  next_pop:0, merit:mean=0.00994444, merit:max=0.01, child_merit:mean=0.0100556, child_merit:max=0.05
+Total weight: 3.6
+Update:97  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.00997222, child_merit:max=0.01
+Total weight: 5.81
+Update:98  main_pop:360  next_pop:0, merit:mean=0.0161389, merit:max=0.25, child_merit:mean=0.00936111, child_merit:max=0.05
+Total weight: 3.6
+Update:99  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.00997222, child_merit:max=0.01
+Total weight: 3.6
+==> Exiting.
+EMP_TRACK_MEM: No memory leaks found!
+ 479179 pointers found; all have been cleaned up fully.

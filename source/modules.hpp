@@ -51,6 +51,7 @@
 //#include "orgs/GenericAvidaOrg.hpp"
 #include "orgs/BitsOrg.hpp"
 #include "orgs/ValsOrg.hpp"
+//#include "orgs/AvidaGPOrg.hpp"
 #include "orgs/VirtualCPUOrg.hpp"
 #include "orgs/instructions/VirtualCPU_Inst_Nop.hpp"
 #include "orgs/instructions/VirtualCPU_Inst_Math.hpp"

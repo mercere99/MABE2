@@ -203,4 +203,4 @@ Update:99  main_pop:1000  next_pop:0, fitness:max=75.7317, fitness:mean=75.7063
 Max fitness = 75.7317
 ==> Exiting.
 EMP_TRACK_MEM: No memory leaks found!
- 10705610 pointers found; all have been cleaned up fully.
+ 10705631 pointers found; all have been cleaned up fully.

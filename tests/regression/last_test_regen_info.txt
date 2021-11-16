@@ -1,10 +1,10 @@
 Latest commit at time of last regeneration:
-commit d26f2570c44e8cd61ce010a66905d3e6b79733b9
-Merge: f594cee 1f09f27
+commit eb9026c1c69d308ac4543237e655de4694735b4c
 Author: Austin Ferguson <ferguson.austin.j@gmail.com>
-Date:   Thu Oct 7 21:38:31 2021 -0400
+Date:   Tue Nov 16 11:33:10 2021 -0500
 
+    Update logic9 config and Empirical submodule
  
  
 Time of last regeneration:
-Thu 07 Oct 2021 10:04:33 PM EDT
+Tue 16 Nov 2021 02:08:51 PM EST

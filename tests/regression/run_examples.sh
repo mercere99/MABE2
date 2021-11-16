@@ -1,8 +1,7 @@
 BUILD_DIR="../../build"
-SETTINGS_DIR="."
 
-MABE_FILES=`ls ${SETTINGS_DIR} | grep .mabe`
 THIS_DIR=`pwd`
+MABE_FILES=`ls ${THIS_DIR} | grep .mabe$`
 
 cd ${BUILD_DIR}
 make clean
@@ -17,7 +16,8 @@ do
   mkdir ${DIR} -p
   cd ${DIR}
   cp ../../${BUILD_DIR}/MABE ./
-  cp ../../${SETTINGS_DIR}/${filename} ./
+  cp ${THIS_DIR}/${filename} ./
+  cp ${THIS_DIR}/copy* ./
   ./MABE -f ${filename} > terminal_output.txt
 
   # Check generated data against expected data

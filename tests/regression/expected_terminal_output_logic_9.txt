@@ -1,0 +1,320 @@
+EMP_TRACK_MEM: Pointer tracking is active!
+Loading file(s): 'logic_9.mabe'
+Found 27 external functions!
+ HSearch HCopy HDivide JumpHead SwapStk Push Pop MoveHeadIfNEqu SetFlow GetHead IfLabel NopA HAlloc NopB NopC Sub Swap Inc Nand Add ShiftR Dec IfNEqu MovHead IfLess ShiftL IO
+Found 1 external functions with name: HSearch!
+Added instruction: HSearch
+Found 1 external functions with name: HCopy!
+Added instruction: HCopy
+Found 1 external functions with name: HDivide!
+Added instruction: HDivide
+Found 1 external functions with name: JumpHead!
+Added instruction: JumpHead
+Found 1 external functions with name: SwapStk!
+Added instruction: SwapStk
+Found 1 external functions with name: Push!
+Added instruction: Push
+Found 1 external functions with name: Pop!
+Added instruction: Pop
+Found 1 external functions with name: MoveHeadIfNEqu!
+Added instruction: MoveHeadIfNEqu
+Found 1 external functions with name: SetFlow!
+Added instruction: SetFlow
+Found 1 external functions with name: GetHead!
+Added instruction: GetHead
+Found 1 external functions with name: IfLabel!
+Added instruction: IfLabel
+Found 1 external functions with name: NopA!
+Added instruction: NopA
+Found 1 external functions with name: HAlloc!
+Added instruction: HAlloc
+Found 1 external functions with name: NopB!
+Added instruction: NopB
+Found 1 external functions with name: NopC!
+Added instruction: NopC
+Found 1 external functions with name: Sub!
+Added instruction: Sub
+Found 1 external functions with name: Swap!
+Added instruction: Swap
+Found 1 external functions with name: Inc!
+Added instruction: Inc
+Found 1 external functions with name: Nand!
+Added instruction: Nand
+Found 1 external functions with name: Add!
+Added instruction: Add
+Found 1 external functions with name: ShiftR!
+Added instruction: ShiftR
+Found 1 external functions with name: Dec!
+Added instruction: Dec
+Found 1 external functions with name: IfNEqu!
+Added instruction: IfNEqu
+Found 1 external functions with name: MovHead!
+Added instruction: MovHead
+Found 1 external functions with name: IfLess!
+Added instruction: IfLess
+Found 1 external functions with name: ShiftL!
+Added instruction: ShiftL
+Found 10 external functions with name: IO!
+Added instruction: IO
+
+
+Starting run
+random_seed = 19
+Original genome:
+[0]
+Pushing HAlloc
+Pushing HSearch
+Pushing NopC
+Pushing NopA
+Pushing MovHead
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing NopC
+Pushing HSearch
+Pushing HCopy
+Pushing IfLabel
+Pushing NopC
+Pushing NopA
+Pushing HDivide
+Pushing MovHead
+Pushing NopA
+Pushing NopB
+Modified genome:
+[50]wzcagcccccccccccccccccccccccccccccccccccczvfcaxgab
+Update:0
+Expanding registers! Nops: 3
+Total weight: 2
+Update:1  main_pop:1  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 2
+Update:2  main_pop:1  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 2
+Update:3  main_pop:1  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 2
+Update:4  main_pop:1  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 2
+Update:5  main_pop:1  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 2
+Update:6  main_pop:1  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 4
+Update:7  main_pop:2  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 4
+Update:8  main_pop:2  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 4
+Update:9  main_pop:2  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 4
+Update:10  main_pop:2  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 4
+Update:11  main_pop:2  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 4
+Update:12  main_pop:2  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 6
+Update:13  main_pop:3  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 8
+Update:14  main_pop:4  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 8
+Update:15  main_pop:4  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 8
+Update:16  main_pop:4  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 8
+Update:17  main_pop:4  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 8
+Update:18  main_pop:4  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 8
+Update:19  main_pop:4  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 12
+Update:20  main_pop:6  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 16
+Update:21  main_pop:8  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 16
+Update:22  main_pop:8  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 16
+Update:23  main_pop:8  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 16
+Update:24  main_pop:8  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 16
+Update:25  main_pop:8  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 16
+Update:26  main_pop:8  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 26
+Update:27  main_pop:13  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 30
+Update:28  main_pop:15  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 30
+Update:29  main_pop:15  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 30
+Update:30  main_pop:15  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 30
+Update:31  main_pop:15  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 30
+Update:32  main_pop:15  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 40
+Update:33  main_pop:20  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 54
+Update:34  main_pop:27  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 58
+Update:35  main_pop:29  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 58
+Update:36  main_pop:29  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 58
+Update:37  main_pop:29  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 58
+Update:38  main_pop:29  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 62
+Update:39  main_pop:31  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 84
+Update:40  main_pop:42  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 106
+Update:41  main_pop:53  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 112
+Update:42  main_pop:56  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 114
+Update:43  main_pop:57  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 114
+Update:44  main_pop:57  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 116
+Update:45  main_pop:58  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 132
+Update:46  main_pop:66  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 176
+Update:47  main_pop:88  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 204
+Update:48  main_pop:102  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 218
+Update:49  main_pop:109  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 220
+Update:50  main_pop:110  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 220
+Update:51  main_pop:110  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 228
+Update:52  main_pop:114  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 292
+Update:53  main_pop:146  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 358
+Update:54  main_pop:179  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 402
+Update:55  main_pop:201  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 424
+Update:56  main_pop:212  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 430
+Update:57  main_pop:215  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 436
+Update:58  main_pop:218  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 470
+Update:59  main_pop:235  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 588
+Update:60  main_pop:294  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 712
+Update:61  main_pop:356  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 720
+Update:62  main_pop:360  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 720
+Update:63  main_pop:360  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 720
+Update:64  main_pop:360  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 720
+Update:65  main_pop:360  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 720
+Update:66  main_pop:360  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 720
+Update:67  main_pop:360  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 720
+Update:68  main_pop:360  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 720
+Update:69  main_pop:360  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 720
+Update:70  main_pop:360  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 720
+Update:71  main_pop:360  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 720
+Update:72  main_pop:360  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 720
+Update:73  main_pop:360  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 720
+Update:74  main_pop:360  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 720
+Update:75  main_pop:360  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 720
+Update:76  main_pop:360  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 720
+Update:77  main_pop:360  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 720
+Update:78  main_pop:360  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 720
+Update:79  main_pop:360  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 720
+Update:80  main_pop:360  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 720
+Update:81  main_pop:360  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 720
+Update:82  main_pop:360  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 720
+Update:83  main_pop:360  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 720
+Update:84  main_pop:360  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 720
+Update:85  main_pop:360  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 720
+Update:86  main_pop:360  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 720
+Update:87  main_pop:360  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 720
+Update:88  main_pop:360  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 720
+Update:89  main_pop:360  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 720
+Update:90  main_pop:360  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 720
+Update:91  main_pop:360  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 720
+Update:92  main_pop:360  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 720
+Update:93  main_pop:360  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 720
+Update:94  main_pop:360  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 720
+Update:95  main_pop:360  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 720
+Update:96  main_pop:360  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 720
+Update:97  main_pop:360  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 720
+Update:98  main_pop:360  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 720
+Update:99  main_pop:360  next_pop:0, merit:mean=1, merit:max=1, child_merit:mean=1, child_merit:max=1, not_performed:mean=0
+Total weight: 720
+==> Exiting.
+EMP_TRACK_MEM: No memory leaks found!
+ 5571 pointers found; all have been cleaned up fully.
