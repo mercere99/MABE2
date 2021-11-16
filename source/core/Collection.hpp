@@ -293,6 +293,28 @@ namespace mabe {
       );
     }
 
+    template <typename OUT_T, typename IN_T> static OUT_T MakeRValueFrom(IN_T && in) {
+      static_assert(std::is_same<OUT_T, Collection>(),
+                    "Internal error: type mis-match for MakeRValueFrom()");
+      // using decay_T = std::decay_t<IN_T>;
+      if constexpr (std::is_same<IN_T, EmplodeType&>()) {
+        // Test if we are converting from a population!
+        emp::Ptr<EmplodeType> in_ptr = &in;
+        auto pop_ptr = in_ptr.DynamicCast<Population>();
+        if (pop_ptr) return Collection(*pop_ptr);
+
+        // Currently, no other EmplodeTypes to convert from...
+      }
+      // Conversion from string requires MABE controller...
+      // else if constexpr (std::is_same<decay_T, std::string>()) {
+      // }
+      // Cannot convert from double.
+      // else if constexpr (std::is_same<decay_T, double>()) {
+      // }
+      emp_error("Cannot convert provided input to requested RValue", emp::GetTypeID<OUT_T>());
+      return *((OUT_T *) &in);
+    }
+
     /// Calculate the total number of positions represented in this collection.
     size_t GetSize() const noexcept override {
       size_t count = 0;
