@@ -99,7 +99,7 @@ namespace emplode {
     bool IsBuiltin() const noexcept { return is_builtin; }
     Format GetFormat() const noexcept { return format; }
 
-    virtual std::string GetTypename() const { return "Unknown"; }
+    virtual std::string GetTypename() const = 0;       ///< Derived classes must provide type info.
 
     virtual bool IsNumeric() const { return false; }   ///< Is symbol any kind of number?
     virtual bool IsBool() const { return false; }      ///< Is symbol a Boolean value?
@@ -145,16 +145,26 @@ namespace emplode {
     virtual emp::Ptr<EmplodeType> GetObjectPtr() { return nullptr; }
     virtual emp::Ptr<const EmplodeType> GetObjectPtr() const { return nullptr; }
     virtual emp::Ptr<const TypeInfo> GetTypeInfoPtr() const { return nullptr; }
+    virtual emp::TypeID GetObjectType() const { return emp::GetTypeID<void>(); }
+    virtual bool HasObjectType(emp::TypeID in_type) const { return in_type == GetObjectType(); }
+    template <typename T> bool HasObjectType() const { return HasObjectType(emp::GetTypeID<T>()); }
+
+    /// Helper struct to determine the return type for As.
+    template <typename T> struct AsRT_impl { using type = T; };            // Default: T requested
+    template <typename T> struct AsRT_impl<const T &> { using type = T; }; // const ref -> value
 
     /// A generic As() function that will call the appropriate converter.
     template <typename T>
-    decltype(auto) As() {
+    auto As() -> typename AsRT_impl<T>::type {
       // If a const type is requested, non-const can be converted, so work with that.
       using decay_T = std::decay_t<T>;
-      constexpr bool is_nonconst_ref = !std::is_const_v<T> && std::is_reference_v<T>;
+      // constexpr bool is_const = std::is_const_v<T>;
+      constexpr bool is_ref = std::is_reference_v<T>;
+      // constexpr bool is_substitutable = is_const || !is_ref;
+      constexpr bool is_substitutable = !is_ref;
 
       // If we have a numeric or string request, run the appropriate conversion.
-      if constexpr (std::is_arithmetic<decay_T>() && !is_nonconst_ref) {
+      if constexpr (std::is_arithmetic<decay_T>() && is_substitutable) {
         return static_cast<T>(AsDouble());
       }
       else if constexpr (std::is_same<T, std::string>() ||
@@ -162,7 +172,7 @@ namespace emplode {
         return AsString();
       }
 
-      // If we want either a pointer or reference to the current object, return it.
+      // If we want either a pointer or reference to a Symbol object, return it.
       else if constexpr (std::is_same<decay_T, emp::Ptr<Symbol>>()) { return this; }
       else if constexpr (std::is_same<decay_T, Symbol>()) { return *this; }
 
@@ -176,10 +186,35 @@ namespace emplode {
       // If we want a user-defined type, it must be derived from EmplodeType.
       else if constexpr (std::is_base_of<EmplodeType, decay_T>()) {
         emp::Ptr<EmplodeType> obj_ptr = GetObjectPtr();
-        emp_assert(obj_ptr);   // @CAO: Should provide a user error.
-        emp::Ptr<decay_T> out_ptr = obj_ptr.DynamicCast<decay_T>();
-        emp_assert(out_ptr);   // @CAO: Should provide a user error.
-        return *out_ptr;
+        // If have an object, see what we can convert it to.
+        if (obj_ptr){
+          // First, check if this is already the correct type.
+          emp::Ptr<decay_T> typed_obj_ptr = obj_ptr.DynamicCast<decay_T>();
+
+          // If not, check if we can substitute it for another type.
+          if (!typed_obj_ptr) {
+            // If not (and we can use an r-value) build a temporary value!
+            if constexpr (is_substitutable) {
+              return decay_T::template MakeRValueFrom<decay_T>(*obj_ptr);
+            }
+
+            // If both options fail, report an error.
+            emp_error("Cannot convert symbol to target object type.  Symbol: ",
+                      DebugString(), "  Target: ", emp::GetTypeID<T>());
+          }
+
+          return *typed_obj_ptr;
+        }
+
+        // We must be trying to return an object from something other than another object.
+        if constexpr (is_substitutable) {
+          if (IsNumeric()) return decay_T::template MakeRValueFrom<decay_T>(AsDouble());
+          return decay_T::template MakeRValueFrom<decay_T>(AsString());
+        }
+
+        emp_error("Cannot convert symbol to target object type.", DebugString(), emp::GetTypeID<T>());
+        auto out = emp::NewPtr<std::remove_reference_t<decay_T>>();
+        return (T) *out;
       }
 
       // Oh no! We don't know this type...
@@ -288,7 +323,7 @@ namespace emplode {
 
     std::string GetTypename() const override {
       if constexpr (std::is_scalar_v<T>) return "Value";
-      else return "Unknown";
+      else return "Illegal type as Symbol_Var";
     }
 
     symbol_ptr_t Clone() const override { return emp::NewPtr<this_t>(*this); }
