@@ -27,6 +27,46 @@ namespace mabe {
     std::string bits_trait;
     std::string fitness_trait;
 
+  public:
+    EvalNK(mabe::MABE & control,
+           const std::string & name="EvalNK",
+           const std::string & desc="Module to evaluate bitstrings on an NK Fitness Lanscape",
+           size_t _N=100, size_t _K=3, const std::string & _btrait="bits", const std::string & _ftrait="fitness")
+      : Module(control, name, desc)
+      , N(_N), K(_K)
+      , bits_trait(_btrait)
+      , fitness_trait(_ftrait)
+    {
+      SetEvaluateMod(true);
+    }
+    ~EvalNK() { }
+
+    // Setup member functions associated with this class.
+    static void InitType(emplode::TypeInfo & info) {
+      info.AddMemberFunction("EVAL",
+                             [](EvalNK & mod, Collection list) { return mod.Evaluate(list); },
+                             "Use NK landscape to evaluate all orgs in an OrgList.");
+      info.AddMemberFunction("RESET",
+                             [](EvalNK & mod) { mod.landscape.Config(mod.N, mod.K, mod.control.GetRandom()); return 0; },
+                             "Regenerate the NK landscape with current N and K.");
+    }
+
+    void SetupConfig() override {
+      LinkVar(N, "N", "Number of bits required in output");
+      LinkVar(K, "K", "Number of bits used in each gene");
+      LinkVar(bits_trait, "bits_trait", "Which trait stores the bit sequence to evaluate?");
+      LinkVar(fitness_trait, "fitness_trait", "Which trait should we store NK fitness in?");
+    }
+
+    void SetupModule() override {
+      // Setup the traits.
+      AddRequiredTrait<emp::BitVector>(bits_trait);
+      AddOwnedTrait<double>(fitness_trait, "NK fitness value", 0.0);
+
+      // Setup the fitness landscape.
+      landscape.Config(N, K, control.GetRandom());  // Setup the fitness landscape.
+    }
+
     double Evaluate(const Collection & orgs) {
       // Loop through the population and evaluate each organism.
       double max_fitness = 0.0;
@@ -57,49 +97,6 @@ namespace mabe {
 
     // If a string is provided to Evaluate, convert it to a Collection.
     double Evaluate(const std::string & in) { return Evaluate( control.ToCollection(in) ); }
-
-  public:
-    EvalNK(mabe::MABE & control,
-           const std::string & name="EvalNK",
-           const std::string & desc="Module to evaluate bitstrings on an NK Fitness Lanscape",
-           size_t _N=100, size_t _K=3, const std::string & _btrait="bits", const std::string & _ftrait="fitness")
-      : Module(control, name, desc)
-      , N(_N), K(_K)
-      , bits_trait(_btrait)
-      , fitness_trait(_ftrait)
-    {
-      SetEvaluateMod(true);
-    }
-    ~EvalNK() { }
-
-    // Setup member functions associated with this class.
-    static void InitType(emplode::TypeInfo & info) {
-      info.AddMemberFunction("EVAL", [](EvalNK & mod, const std::string & in) { return mod.Evaluate(in); },
-                             "Use NK landscape to evaluate all orgs in a provided collection.");
-      info.AddMemberFunction("EVAL_POP", [](EvalNK & mod, Population & pop) { return mod.Evaluate(pop); },
-                             "Use NK landscape to evaluate all orgs in a Population.");
-      info.AddMemberFunction("EVAL_ORGS", [](EvalNK & mod, Collection & list) { return mod.Evaluate(list); },
-                             "Use NK landscape to evaluate all orgs in an OrgList.");
-      info.AddMemberFunction("RESET", [](EvalNK & mod) { mod.landscape.Config(mod.N, mod.K, mod.control.GetRandom()); return 0; },
-                             "Regenerate the NK landscape with current N and K.");
-    }
-
-    void SetupConfig() override {
-      LinkVar(N, "N", "Number of bits required in output");
-      LinkVar(K, "K", "Number of bits used in each gene");
-      LinkVar(bits_trait, "bits_trait", "Which trait stores the bit sequence to evaluate?");
-      LinkVar(fitness_trait, "fitness_trait", "Which trait should we store NK fitness in?");
-    }
-
-    void SetupModule() override {
-      // Setup the traits.
-      AddRequiredTrait<emp::BitVector>(bits_trait);
-      AddOwnedTrait<double>(fitness_trait, "NK fitness value", 0.0);
-
-      // Setup the fitness landscape.
-      landscape.Config(N, K, control.GetRandom());  // Setup the fitness landscape.
-    }
-
   };
 
   MABE_REGISTER_MODULE(EvalNK, "Evaluate bitstrings on an NK fitness lanscape.");
