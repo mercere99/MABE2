@@ -146,7 +146,7 @@ VirtualCPUOrg avida_org {       // Organism consisting of Avida instructions.
   expanded_nop_args = 0;        // If true, some instructions (e.g., math) will use multiple nops to fully define the registers used
 }
 
-@start(0) print("\n\nStarting run\n");
-@start(0) print("random_seed = ", random_seed, "\n");
-@start(0) inject("avida_org", "main_pop", 1);
-@update(max_gens) exit();
+@start(0) PRINT("\n\nStarting run\n");
+@start(0) PRINT("random_seed = ", random_seed, "\n");
+@start(0) INJECT("avida_org", "main_pop", 1);
+@update(max_gens) EXIT();
