@@ -35,6 +35,14 @@ namespace emplode {
       // in your own class; you are NOT overriding a virtual function.
     }
 
+    /// If you want this type to be made from another EmplodeType on the fly, build a new version
+    /// of this static member function to be called.
+    template <typename OUT_T, typename IN_T> static OUT_T MakeRValueFrom(IN_T &&) {
+      emp_error("Cannot convert provided input to requested RValue", emp::GetTypeID<OUT_T>());
+      return *((OUT_T *) nullptr);
+    }
+
+
     virtual ~EmplodeType() { }
 
     // Optional function to override to add configuration options associated with an object.
