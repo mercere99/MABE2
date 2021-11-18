@@ -114,6 +114,7 @@ namespace mabe {
   template <typename MODULE_T>
   struct ManagerModuleRegistrar {
     ManagerModuleRegistrar(const std::string & type_name, const std::string & desc) {
+      emp_assert(!emp::Has(GetModuleMap(), type_name), "Module name used multiple times.", type_name);
       ModuleInfo new_info;
       new_info.name = type_name;
       new_info.desc = desc;
@@ -121,7 +122,7 @@ namespace mabe {
         return &control.AddModule<MODULE_T>(name, desc);
       };
       new_info.type_init_fun = [](emplode::TypeInfo & info){ MODULE_T::InitType(info); };
-      GetModuleInfo().insert(new_info);
+      GetModuleMap()[type_name] = new_info;
     }
   };
 
