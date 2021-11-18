@@ -318,15 +318,15 @@ namespace mabe {
     bool operator<(const ModuleInfo & in) const { return name < in.name; }
   };
 
-  static std::set<ModuleInfo> & GetModuleInfo() {
-    static std::set<ModuleInfo> mod_type_info;
-    return mod_type_info;
+  static std::map<std::string,ModuleInfo> & GetModuleMap() {
+    static std::map<std::string,ModuleInfo> mod_type_map;
+    return mod_type_map;
   }
 
   static void PrintModuleInfo() {
-    auto & mod_info = GetModuleInfo();
-    for (auto & mod : mod_info) {
-      std::cout << mod.name << " : " << mod.desc << std::endl;
+    auto & mod_type_map = GetModuleMap();
+    for (auto & [name,mod] : mod_type_map) {
+      std::cout << name << " : " << mod.desc << std::endl;
     }
   }
 }
