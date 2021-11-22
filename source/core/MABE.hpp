@@ -65,31 +65,21 @@ namespace mabe {
     bool exit_now = false;       ///< Do we need to immediately clean up and exit the run?
     ErrorManager error_man;      ///< Object to manage warnings and errors.
 
-    // Setup helper types.
-    using trait_equation_t = std::function<double(const Organism &)>;
-    using trait_summary_t = std::function<std::string(const Collection &)>;
-    using symbol_ptr_t = emp::Ptr<emplode::Symbol>;
-
-    // Setup a cache for functions used to collect data for files.  @CAO: Move to module!
-    std::unordered_map<std::string, emp::vector<trait_summary_t>> file_fun_cache;
-
     /// Populations used; generated in the configuration file.
     emp::vector< emp::Ptr<Population> > pops;
 
     /// Organism pointer to use for all empty cells.
     emp::Ptr<Organism> empty_org = nullptr;
 
-    TraitManager<ModuleBase> trait_man;  ///< Manages which modules are allowed to use each trait.
-
     /// Trait information to be stored on each organism.  Tracks the name, type, and current
     /// value of all traits that modules associate with organisms.
     emp::DataMap org_data_map;
 
-    emp::DataMapParser dm_parser;      ///< Parser to process functions on a data map.
-
-    emp::Random random;                ///< Master random number generator
-    size_t cur_pop_id = (size_t) -1;   ///< Which population is currently active?
-    size_t update = 0;                 ///< How many times has Update() been called?
+    TraitManager<ModuleBase> trait_man; ///< Manage consistent read/write access to traits
+    emp::DataMapParser dm_parser;       ///< Parser to process functions on a data map
+    emp::Random random;                 ///< Master random number generator
+    size_t cur_pop_id = (size_t) -1;    ///< Which population is currently active?
+    size_t update = 0;                  ///< How many times has Update() been called?
 
 
     // --- Config information for command-line arguments ---
@@ -116,27 +106,15 @@ namespace mabe {
     emplode::Emplode config;                   ///< Configuration information for this run.
 
 
-    // ----------- Helper Functions -----------
-
-    /// Print information on how to run the software.
-    void ShowHelp();
-
-    /// List all of the available modules included in the current compilation.
-    void ShowModules();
-
-    /// Process all of the arguments that were passed in on the command line.
-    void ProcessArgs();
+    // ----------- Helper Functions -----------    
+    void ShowHelp();      ///< Print information on how to run the software.
+    void ShowModules();   ///< List all available modules in the current compilation.
+    void ProcessArgs();   ///< Process all arguments passed in on the command line.
 
     // -- Helper functions to be called inside of Setup() --
-
-    /// Run SetupModule() method on each module we've loaded.
-    void Setup_Modules();
-
-    /// Load organism traits that modules need to read or write and test for conflicts.
-    void Setup_Traits();
-
-    /// Link signals to the modules that implement responses to those signals.
-    void UpdateSignals();
+    void Setup_Modules(); ///< Run SetupModule() method on each module we've loaded.
+    void Setup_Traits();  ///< Load organism traits and test for module conflicts.    
+    void UpdateSignals(); ///< Link signals only to modules that respond to them.
 
     /// Find any instances of ${X} and eval the X.
     std::string Preprocess(const std::string & in_string);
@@ -149,8 +127,10 @@ namespace mabe {
     MABE(const MABE &) = delete;
     MABE(MABE &&) = delete;
     ~MABE() {
-      for (auto mod_ptr : modules) mod_ptr.Delete();    // Delete all modules.
-      for (auto pop_ptr : pops) {                       // Delete all populations.
+      before_exit_sig.Trigger();                      // Notify modules of end...
+
+      for (auto mod_ptr : modules) mod_ptr.Delete();  // Delete all modules.
+      for (auto pop_ptr : pops) {                     // Delete all populations.
         ClearPop(*pop_ptr);
         pop_ptr.Delete();
       }
@@ -172,14 +152,11 @@ namespace mabe {
     // --- Tools to setup runs ---
     bool Setup();
 
-    /// Setup an organism as a placeholder for all "empty" positions in the population.
+    /// Build a placeholder organism for "empty" positions in a Population
     template <typename EMPTY_MANAGER_T> void SetupEmpty();
 
     /// Update MABE a single time step.
-    void Update();
-
-    /// Update MABE a specified number of time steps.
-    void DoRun(size_t num_updates);
+    void Update(size_t num_updates=1);
 
     // --- Population Management ---
 
@@ -337,7 +314,7 @@ namespace mabe {
     /// Build a function to scan a single data map and run the provided equation on the
     /// enties in there, returning the result.
 
-    trait_equation_t BuildTraitEquation(std::string equation) {
+    auto BuildTraitEquation(std::string equation) {
       equation = Preprocess(equation);
       auto dm_fun = dm_parser.BuildMathFunction(org_data_map, equation);
       return [dm_fun](const Organism & org){ return dm_fun(org.GetDataMap()); };
@@ -583,8 +560,7 @@ namespace mabe {
   }
 
   void MABE::Deprecate(const std::string & old_name, const std::string & new_name) {
-    std::function<int(const emp::vector<symbol_ptr_t> &)> dep_fun =
-      [this,old_name,new_name](const emp::vector<symbol_ptr_t> &){
+    auto dep_fun = [this,old_name,new_name](const emp::vector<emp::Ptr<emplode::Symbol>> &){
         std::cerr << "Function '" << old_name << "' deprecated; use '" << new_name << "'\n";
         exit_now = true;
         return 0;      
@@ -809,27 +785,18 @@ namespace mabe {
     return (error_man.GetNumErrors() == 0);
   }
 
-  /// Update MABE a single step.
-  void MABE::Update() {
-    // When in debug mode, check the integrity of MABE each update.
-    emp_assert(OK(), update);
-
-    // If informaiton on any of the signals has changed, update them.
-    if (rescan_signals) UpdateSignals();
-
-    // Signal that a new update is about to begin.
-    before_update_sig.Trigger(update);
-
-    // Increment 'update' to start new update.
-    update++;
-
-    // Run Update on all modules...
-    on_update_sig.Trigger(update);
-
-    // Trigger any events that are supposed to occur in config at this update.
-    config.UpdateEventValue("update", update);
+  /// Update MABE world.
+  void MABE::Update(size_t num_updates) {
+    if (update == 0) config.TriggerEvents("start");
+    for (size_t ud = 0; ud < num_updates && !exit_now; ud++) {
+      emp_assert(OK(), update);                   // In debug mode, keep checking MABE integrity
+      if (rescan_signals) UpdateSignals();        // If we have reason to, update module signals
+      before_update_sig.Trigger(update);          // Signal that a new update is about to begin
+      update++;                                   // Increment 'update' to start new update
+      on_update_sig.Trigger(update);              // Signal all modules about the new update
+      config.UpdateEventValue("update", update);  // Trigger any updated-based events
+    }
   }
-
 
   /// Setup an organism as a placeholder for all "empty" positions in the population.
   template <typename EMPTY_MANAGER_T>
@@ -840,15 +807,6 @@ namespace mabe {
     empty_manager.SetBuiltIn();         // Don't write the empty manager to config.
 
     empty_org = empty_manager.template Make<Organism>();
-  }
-
-  /// Update MABE a specified number of time steps.
-  void MABE::DoRun(size_t num_updates) {
-    config.TriggerEvents("start");
-    for (size_t ud = 0; ud < num_updates && !exit_now; ud++) {
-      Update();
-    }
-    before_exit_sig.Trigger();
   }
 
   /// New populations must be given a name and an optional size.
