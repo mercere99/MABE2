@@ -1,10 +1,10 @@
-TEST_NAMES= EvalMancala
+TEST_NAMES= EvalMancala EvalPathFollow
 
 MABE_DIR= ../../../../source
 EMP_DIR= ../../../../source/third-party/empirical
 COV_DIR=../../
 CATCH_DIR= $(EMP_DIR)/third-party/Catch/single_include/catch2
-FLAGS= -std=c++17 -pthread -Wall -Wno-unused-function -Wno-unused-private-field -I$(EMP_DIR)/include/ -I$(CATCH_DIR) -I$(MABE_DIR)
+FLAGS= -std=c++17 -pthread -Wall -g -DEMP_TRACK_MEM -Wno-unused-function -Wno-unused-private-field -I$(EMP_DIR)/include/ -I$(CATCH_DIR) -I$(MABE_DIR)
 
 default: test
 

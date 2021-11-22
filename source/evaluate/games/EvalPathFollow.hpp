@@ -23,30 +23,32 @@
 #include "../../orgs/VirtualCPUOrg.hpp"
 
 #include "emp/io/File.hpp"
-#include "emp/datastructs/Matrix.hpp"
-#include "emp/math/MVector.hpp"
+//#include "emp/datastructs/Matrix.hpp"
+#include "emp/geometry/Point2D.hpp"
 
 namespace mabe {
+
+  template<typename T> 
+  struct Matrix : public emp::vector<emp::vector<T>>{ ; };
 
   struct PathFollowState{
   public:
     bool initialized = false;
     size_t cur_map_idx;
-    emp::Matrix<bool> visited_tiles;
-    emp::MVector cur_pos;
+    Matrix<bool> visited_tiles;
+    emp::Point2D<int> cur_pos;
     double raw_score;
     double normalized_score;
-    emp::MVector cur_dir;
-    uint32_t forward_val = 12;
-    uint32_t right_val = 14005;
-    uint32_t left_val = 199;
-    uint32_t empty_val = 27272;
+    emp::Point2D<int> cur_dir;
+    uint32_t forward_cue = 1;
+    uint32_t right_cue = 2;
+    uint32_t left_cue = 3;
+    uint32_t empty_cue = 4;
 
-    PathFollowState() : visited_tiles(0,0) { ; }
+    PathFollowState() : cur_pos(-1,-1) { ; }
   };
 
-  class PathFollowEvaluator{
-  protected:
+  struct PathFollowEvaluator{
     enum Tile{
       EMPTY=0,
       FORWARD,
@@ -56,25 +58,31 @@ namespace mabe {
       FINISH,
       OUT_OF_BOUNDS
     };
+
+    PathFollowEvaluator() : rand_ptr(nullptr) { ; }
     
-    emp::vector<emp::Matrix<Tile>> tile_map_vec;
-    emp::vector<emp::MVector> start_pos_vec;
-    emp::vector<emp::MVector> start_dir_vec;
+    size_t num_maps = 0;
+    emp::vector<Matrix<Tile>> tile_map_vec;
+    emp::vector<emp::Point2D<int>> start_pos_vec;
+    emp::vector<emp::Point2D<int>> start_dir_vec;
     emp::vector<size_t> path_length_vec; 
     size_t max_steps = 100;
-    emp::Ptr<emp::Random> rand_ptr; 
+    emp::Ptr<emp::Random> rand_ptr = nullptr; 
     bool randomize_cues = true;
-  public: 
-    using path_follow_decision_func_t = std::function< size_t(size_t tile) >;
     void LoadMap(const std::string& filename){
       std::cout << "Loading map: " << filename << std::endl;
       emp::File file(filename);
+      emp_assert(file.GetNumLines() > 0, "Loading empty/invalid file!");
       file.RemoveWhitespace();
       size_t num_rows = file.GetNumLines();
       size_t num_cols = file[0].size();
-      emp::Matrix<Tile> tile_map(num_rows, num_cols);
-      emp::MVector start_pos({-1,-1});
-      emp::MVector start_dir({0,0});
+      Matrix<Tile> tile_map;
+      tile_map.resize(num_rows);
+      for(size_t row_idx = 0; row_idx < num_rows; ++row_idx){
+        tile_map[row_idx].resize(num_cols);
+      }
+      emp::Point2D<int> start_pos({-1,-1});
+      emp::Point2D<int> start_dir({0,0});
       size_t path_length = 0;
       for(size_t row_idx = 0; row_idx < num_rows; ++row_idx){
         std::string & cur_line = file[row_idx];
@@ -103,31 +111,23 @@ namespace mabe {
               break;
             case '^':
               cur_tile = Tile::START;
-              start_pos[0] = col_idx;
-              start_pos[1] = row_idx;
-              start_dir[0] = 0;
-              start_dir[1] = -1;
+              start_pos.Set(row_idx, col_idx);
+              start_dir.Set(-1, 0);
               break;
             case 'v':
               cur_tile = Tile::START;
-              start_pos[0] = col_idx;
-              start_pos[1] = row_idx;
-              start_dir[0] = 0;
-              start_dir[1] = 1;
+              start_pos.Set(row_idx, col_idx);
+              start_dir.Set(1, 0);
               break;
             case '>':
               cur_tile = Tile::START;
-              start_pos[0] = col_idx;
-              start_pos[1] = row_idx;
-              start_dir[0] = 1;
-              start_dir[1] = 0;
+              start_pos.Set(row_idx, col_idx);
+              start_dir.Set(0, 1);
               break;
             case '<':
               cur_tile = Tile::START;
-              start_pos[0] = col_idx;
-              start_pos[1] = row_idx;
-              start_dir[0] = -1;
-              start_dir[1] = 0;
+              start_pos.Set(row_idx, col_idx);
+              start_dir.Set(0, -1);
               break;
             default:
               emp_error("Unexpected symbol in path following map: ", cur_line[col_idx], 
@@ -138,13 +138,14 @@ namespace mabe {
         std::cout << std::endl;
       }
       tile_map_vec.push_back(tile_map);
-      emp_assert(start_pos[0] != -1 && start_pos[1] != -1, "Map must contain START tile!"); 
+      emp_assert(start_pos.GetX() != -1 && start_pos.GetY() != -1, "Map must contain START tile!"); 
       start_pos_vec.push_back(start_pos);
-      emp_assert(start_dir[0] != 0 || start_dir[1] != 0, "Map must contain START tile!"); 
+      emp_assert(start_dir.GetX() != 0 || start_dir.GetY() != 0, "Map must contain START tile!"); 
       start_dir_vec.push_back(start_dir);
       path_length_vec.push_back(path_length);
-      std::cout << "Map is " << num_rows << "x" << num_cols << ", with " << 
-          path_length << " tiles!" << std::endl;
+      num_maps++;
+      std::cout << "Map #" << (num_maps - 1) << " is " << num_rows << "x" << num_cols << ", with " 
+        << path_length << " tiles!" << std::endl;
     }
 
     void LoadAllMaps(const std::string& map_filenames_str){
@@ -155,176 +156,121 @@ namespace mabe {
       }
     }
     
-    void InitializeState(PathFollowState& state){
+
+    void InitializeState(PathFollowState& state, bool reset_map = true){
       state.initialized = true;
-      state.cur_map_idx = 0;
-      state.visited_tiles.ExpandTo(
-          tile_map_vec[state.cur_map_idx].num_rows(), 
-          tile_map_vec[state.cur_map_idx].num_cols(), false);
+      if(reset_map) state.cur_map_idx = 0;
+      emp_assert(num_maps > state.cur_map_idx, "Cannot initialize state before loading the map!");
+      state.visited_tiles.resize(tile_map_vec[state.cur_map_idx].size()); 
+      for(size_t row_idx = 0; row_idx < tile_map_vec[state.cur_map_idx].size(); ++row_idx){
+          state.visited_tiles[row_idx].resize(
+              tile_map_vec[state.cur_map_idx][row_idx].size(),
+              false);
+      }
       state.cur_pos = start_pos_vec[state.cur_map_idx];
       state.cur_dir = start_dir_vec[state.cur_map_idx];
       state.raw_score = 0;
       state.normalized_score = 0;
       if(randomize_cues){
-        state.forward_val = rand_ptr->GetUInt();
-        state.right_val = rand_ptr->GetUInt();
-        while(state.right_val == state.forward_val) state.right_val = rand_ptr->GetUInt();
-        state.left_val = rand_ptr->GetUInt();
-        while(state.left_val == state.forward_val || state.left_val == state.right_val)
-            state.left_val = rand_ptr->GetUInt();
-        state.empty_val = rand_ptr->GetUInt();
-        while(state.empty_val == state.forward_val || 
-            state.empty_val == state.right_val || 
-            state.empty_val == state.left_val)
-            state.empty_val = rand_ptr->GetUInt();
+        emp_assert(rand_ptr.Raw() != nullptr, 
+            "PathFollowEvaluator::InitializeRandom must be called before cues can be randomized!");
+        state.forward_cue = rand_ptr->GetUInt();
+        std::cout << "If this hits I'll be surprised" << std::endl;
+        state.right_cue = rand_ptr->GetUInt();
+        while(state.right_cue == state.forward_cue) state.right_cue = rand_ptr->GetUInt();
+        state.left_cue = rand_ptr->GetUInt();
+        while(state.left_cue == state.forward_cue || state.left_cue == state.right_cue)
+            state.left_cue = rand_ptr->GetUInt();
+        state.empty_cue = rand_ptr->GetUInt();
+        while(state.empty_cue == state.forward_cue || 
+            state.empty_cue == state.right_cue || 
+            state.empty_cue == state.left_cue)
+            state.empty_cue = rand_ptr->GetUInt();
       }
     }
 
     double GetCurrentPosScore(PathFollowState& state){
       // If we're off the path, decrement score
-      if(tile_map_vec[state.cur_map_idx].Get(state.cur_pos[1], state.cur_pos[0]) == Tile::EMPTY)
-        return -1;
-      else if(tile_map_vec[state.cur_map_idx].Get(state.cur_pos[1], state.cur_pos[0]) == Tile::START)
-        return 0;
-      // On a new tile of the path, add score
-      else if(!state.visited_tiles.Get(state.cur_pos[1], state.cur_pos[0])){
-        state.visited_tiles.Set(state.cur_pos[1], state.cur_pos[0], true);
+      Tile tile = tile_map_vec[state.cur_map_idx][state.cur_pos.GetX()][state.cur_pos.GetY()];
+      if(tile == Tile::EMPTY) return -1;
+      else if(tile == Tile::START) return 0;
+      // On a new tile of the path, add score (forward, left, right, finish)
+      else if(!state.visited_tiles[state.cur_pos.GetX()][state.cur_pos.GetY()]){
         return 1;
       }
       return 0; // Otherwise we've seen this tile of the path before, do nothing
     }
 
-    double EvalMove(PathFollowState& state, double scale_factor = 1){
+    void MarkVisited(PathFollowState& state){
+        state.visited_tiles[state.cur_pos.GetX()][state.cur_pos.GetY()] =  true;
+    }
+
+    double Move(PathFollowState& state, int scale_factor = 1){
       if(!state.initialized) InitializeState(state);
-      emp::MVector new_pos = state.cur_pos + (state.cur_dir * scale_factor);
+      emp::Point2D<int> new_pos = state.cur_pos + (state.cur_dir * scale_factor);
       // Bounds check
-      if(   new_pos[0] < 0 || new_pos[0] >= tile_map_vec[state.cur_map_idx].num_rows() ||
-            new_pos[1] < 0 || new_pos[1] >= tile_map_vec[state.cur_map_idx].num_cols()){
+      if( new_pos.GetX() < 0 || new_pos.GetX() >= tile_map_vec[state.cur_map_idx].size() ||
+          new_pos.GetY() < 0 || new_pos.GetY() >= tile_map_vec[state.cur_map_idx][0].size()){
         new_pos = state.cur_pos;
       }
-      double score = 0;
-      if(state.cur_pos != new_pos){
-        score = GetCurrentPosScore(state);
-      }
+      if(state.cur_pos == new_pos) return state.normalized_score;
       state.cur_pos = new_pos;
+      double score = GetCurrentPosScore(state);
+      MarkVisited(state);
       state.raw_score += score;
-      if(state.raw_score > 0)
-        state.normalized_score = state.raw_score / path_length_vec[state.cur_map_idx];
-      else state.normalized_score = 0;
-      //std::cout << state.cur_pos << " -> " << new_pos << "; " << 
-      //    state.raw_score << " => "<< state.normalized_score << std::endl;
+      state.normalized_score = state.raw_score / path_length_vec[state.cur_map_idx];
       return state.normalized_score;
     }
     
     void RotateRight(PathFollowState& state){
       if(!state.initialized) InitializeState(state);
-        double tmp_val = state.cur_dir[0];
-        state.cur_dir[0] = -1 * state.cur_dir[1];
-        state.cur_dir[1] = tmp_val;
+        state.cur_dir = state.cur_dir.GetRot90();
+        //double tmp_val = state.cur_dir[0];
+        //state.cur_dir[0] = -1 * state.cur_dir[1];
+        //state.cur_dir[1] = tmp_val;
     }
 
     void RotateLeft(PathFollowState& state){
       if(!state.initialized) InitializeState(state);
-        double tmp_val = state.cur_dir[0];
-        state.cur_dir[0] = state.cur_dir[1];
-        state.cur_dir[1] = -1 * tmp_val;
+        state.cur_dir = state.cur_dir.GetRot270();
+        //double tmp_val = state.cur_dir[0];
+        //state.cur_dir[0] = state.cur_dir[1];
+        //state.cur_dir[1] = -1 * tmp_val;
     }
 
     uint32_t Sense(PathFollowState& state){
       if(!state.initialized) InitializeState(state);
-      switch(tile_map_vec[state.cur_map_idx].Get(state.cur_pos[1], state.cur_pos[0])){
+      switch(tile_map_vec[state.cur_map_idx][state.cur_pos.GetX()][state.cur_pos.GetY()]){
         case Tile::EMPTY:
-          return state.empty_val;
+          return state.empty_cue;
           break;
         case Tile::LEFT:
-          return state.left_val;
+          return state.left_cue;
           break;
         case Tile::RIGHT:
-          return state.right_val;
+          return state.right_cue;
           break;
         case Tile::FORWARD:
-          return state.forward_val;
+          return state.forward_cue;
           break;
         case Tile::START:
-          return state.forward_val;
+          return state.forward_cue;
+          break;
+        case Tile::FINISH:
+          return state.forward_cue;
           break;
        default:
-          return 0;
+          return state.empty_cue;
           break;
       }
-      return 0;
+      return state.empty_cue;
     }
 
-    void InitRandom(emp::Random& _rand, bool _randomize_cues){
+    void InitializeRandom(emp::Random& _rand, bool _randomize_cues){
       rand_ptr = &_rand;
       randomize_cues = _randomize_cues;
     }
-    double EvalTrial(path_follow_decision_func_t& decision_func, size_t map_idx, 
-        bool verbose = false){
-      emp::Matrix<Tile>& cur_map = tile_map_vec[map_idx];
-      emp::Matrix<bool> visited_tiles(cur_map.num_cols(), cur_map.num_rows(), false);
-      emp::MVector cur_pos = start_pos_vec[map_idx];
-      emp::MVector cur_dir = start_dir_vec[map_idx];
-      size_t cur_step = 0;
-      double score = 0;
-      bool finished = false;
-      while(!finished && cur_step < max_steps){
-        size_t cur_tile_val = (size_t)cur_map[cur_pos[0]][cur_pos[1]];
-        size_t res = decision_func(cur_tile_val);
-        switch(res){
-          case 0:
-            if (verbose) std::cout << "Do nothing" << std::endl;
-            break;
-          case 1:
-            if (verbose) std::cout << "Forward" << std::endl;
-            cur_pos += cur_dir;
-            break;
-          case 2:
-            {
-              if (verbose) std::cout << "Right" << std::endl;
-              double tmp_val = cur_dir[0];
-              cur_dir[0] = -1 * cur_dir[1];
-              cur_dir[1] = tmp_val;
-            }
-            break;
-          case 3:
-            {
-              if (verbose) std::cout << "Left" << std::endl;
-              double tmp_val = cur_dir[0];
-              cur_dir[0] = cur_dir[1];
-              cur_dir[1] = -1 * tmp_val;
-            }
-            break;
-        } 
-        if(cur_pos[0] < 0 || cur_pos[1] < 0 || 
-            cur_pos[0] >= cur_map.num_cols() || cur_pos[1] >= cur_map.num_rows()){
-          score -= 100;
-          break;
-        }
-        if(!visited_tiles[cur_pos[0]][cur_pos[1]]){
-          visited_tiles[cur_pos[0]][cur_pos[1]] = true;
-          Tile& new_tile = cur_map[cur_pos[0]][cur_pos[1]];
-          switch(new_tile){
-            case Tile::EMPTY:
-              score -= 1;
-              break;
-            case Tile::FORWARD:
-            case Tile::RIGHT:
-            case Tile::LEFT:
-              score += 2;
-              break;
-            case Tile::FINISH:
-              score += 100;
-              finished = true;
-              break;
-          }
-        }
-        cur_step++;
-      } 
-      return score; 
-    }
   };
-
 
   class EvalPathFollow : public Module {
 
@@ -366,28 +312,25 @@ namespace mabe {
 
     void SetupInstructions(){
       ActionMap& action_map = control.GetActionMap(pop_id);
-      // Move
-      {
+      { // Move
         func_move = [this](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){
-          double score = evaluator.EvalMove(hw.GetTrait<PathFollowState>(state_trait));
+          double score = evaluator.Move(hw.GetTrait<PathFollowState>(state_trait));
           hw.SetTrait<double>(score_trait, score);
         };
         Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
             "sg-move", func_move);
         action.data.AddVar<int>("inst_id", 27);
       }
-      // Move backward
-      {
+      { // Move backward
         func_move_back = [this](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){
-          double score = evaluator.EvalMove(hw.GetTrait<PathFollowState>(state_trait), -1);
+          double score = evaluator.Move(hw.GetTrait<PathFollowState>(state_trait), -1);
           hw.SetTrait<double>(score_trait, score);
         };
         Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
             "sg-move-back", func_move_back);
         action.data.AddVar<int>("inst_id", 28);
       }
-      // Rotate right 
-      {
+      { // Rotate right 
         func_rotate_right = [this](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){
           evaluator.RotateRight(hw.GetTrait<PathFollowState>(state_trait));
         };
@@ -395,8 +338,7 @@ namespace mabe {
             "sg-rotate-r", func_rotate_right);
         action.data.AddVar<int>("inst_id", 29);
       }
-      // Rotate left 
-      {
+      { // Rotate left 
         func_rotate_left = [this](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){
           evaluator.RotateLeft(hw.GetTrait<PathFollowState>(state_trait));
         };
@@ -404,8 +346,7 @@ namespace mabe {
             "sg-rotate-l", func_rotate_left);
         action.data.AddVar<int>("inst_id", 30);
       }
-      // Sense 
-      {
+      { // Sense 
         func_sense = [this](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
           uint32_t val = evaluator.Sense(hw.GetTrait<PathFollowState>(state_trait));
           size_t reg_idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
@@ -421,7 +362,7 @@ namespace mabe {
       AddSharedTrait<double>(score_trait, "Path following score", 0.0);
       AddOwnedTrait<PathFollowState>(state_trait, "Organism's path follow state", { }); 
       evaluator.LoadAllMaps(map_filenames);
-      evaluator.InitRandom(control.GetRandom(), randomize_cues);
+      evaluator.InitializeRandom(control.GetRandom(), randomize_cues);
       SetupInstructions();
     }
   };
