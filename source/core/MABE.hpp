@@ -141,8 +141,6 @@ namespace mabe {
     /// Run SetupModule() method on each module we've loaded.
     void Setup_Modules();
 
-    /// Load organism traits that modules need to read or write and test for conflicts.
-    void Setup_Traits();
 
     /// Link signals to the modules that implement responses to those signals.
     void UpdateSignals();
@@ -176,6 +174,8 @@ namespace mabe {
 
     // --- Tools to setup runs ---
     bool Setup();
+    /// Load organism traits that modules need to read or write and test for conflicts.
+    void Setup_Traits();
 
     /// Setup an organism as a placeholder for all "empty" positions in the population.
     template <typename EMPTY_MANAGER_T> void SetupEmpty();
