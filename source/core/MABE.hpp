@@ -13,8 +13,8 @@
  *  specific base class functions.  See Module.h for a full list of available signals.
  */
 
-#ifndef MABE_MABE_H
-#define MABE_MABE_H
+#ifndef MABE_MABE_HPP
+#define MABE_MABE_HPP
 
 #include <limits>
 #include <string>
@@ -369,12 +369,6 @@ namespace mabe {
       };
     }
 
-
-    // Handler for printing trait data
-    void OutputTraitData(std::ostream & os,
-                         Collection target_collect,
-                         std::string format,
-                         bool print_headers=false);
 
     // --- Manage configuration scope ---
 
@@ -754,21 +748,9 @@ namespace mabe {
     config.AddFunction("PP", preprocess_fun, "Preprocess a string (replacing any ${...} with result.)");
 
 
-    // 'WRITE' will collect data and write it to a file.
-    auto & files = config.GetSymbolTable().GetFileManager();
-    std::function<int(const std::string &, const std::string &, const std::string &)> write_fun =
-      [this,&files](const std::string & filename, const std::string & collection, std::string format) {
-        const bool file_exists = files.Has(filename);           // Is file is already setup?
-        std::ostream & file = files.GetOutputStream(filename);  // File to write to.
-        OutputTraitData(file, ToCollection(collection), format, !file_exists);
-        return 0;
-      };
-    config.AddFunction("WRITE", write_fun,
-      "Write the provided trait-based data to file; args: filename, collection, format.");
-
-
     // --- ORGANISM-BASED FUNCTIONS ---
 
+    auto & files = config.GetSymbolTable().GetFileManager();
     std::function<int(const std::string &, const std::string &, double)> trace_eval_fun =
       [this,&files](const std::string & filename, const std::string & target, double id) {
         Collection c = ToCollection(target);                   // Collection with organisms
@@ -1165,57 +1147,6 @@ namespace mabe {
     else return fun;
   }
 
-  // Handler for printing trait data
-  void MABE::OutputTraitData(std::ostream & os,
-                             Collection target_collect,
-                             std::string format,
-                             bool print_headers)
-  {
-    emp::vector<trait_summary_t> trait_functions;  ///< Summary functions to call each update.
-    emp::remove_whitespace(format);
-
-    // If we need headers, set them up!
-    if (print_headers) {
-      // Identify the contents of each column.
-      emp::vector<std::string> cols = emp::slice(format, ',');
-
-      // Print the headers into the file.
-      os << "#update";
-      for (size_t i = 0; i < cols.size(); i++) {
-        os << ", " << cols[i];
-      }
-      os << '\n';
-    }
-
-    // Pre-process the format to deal with config variables that need translating.
-    format = Preprocess(format);
-
-    // Check the cache for the functions to run; if they don't exist yet, set them up!
-    auto fun_it = file_fun_cache.find(format);
-    if (fun_it == file_fun_cache.end()) {
-      // Identify the contents of each column.
-      emp::vector<std::string> cols = emp::slice(format, ',');
-
-      // Setup a function to collect data associated with each column.
-      trait_functions.resize(cols.size());
-      for (size_t i = 0; i < cols.size(); i++) {
-        std::string trait_filter = cols[i];
-        std::string trait_name = emp::string_pop(trait_filter,':');
-        trait_functions[i] = BuildTraitSummary(trait_name, trait_filter);
-      }
-
-      // Insert the new entry into the cache and update the iterator.
-      fun_it = file_fun_cache.insert({format, trait_functions}).first;
-    }
-    else trait_functions = fun_it->second;
-
-    // And, finally, print the data!
-    os << GetUpdate();
-    for (auto & fun : trait_functions) {
-      os << ", " << fun(target_collect);
-    }
-    os << std::endl;
-  }
 
   void MABE::SetupConfig() {
     // Setup main MABE variables.
