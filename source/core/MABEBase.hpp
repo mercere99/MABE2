@@ -74,8 +74,6 @@ namespace mabe {
     SigListener<ModuleBase,void> before_exit_sig;
     // OnHelp()
     SigListener<ModuleBase,void> on_help_sig;
-    // TraceEval()
-    SigListener<ModuleBase,void,Organism &,std::ostream&> trace_eval_sig;
 
     /// If a module fails to use a signal, we never check it again UNLESS we are explicitly
     /// told to rescan the signals (perhaps because new functionality was enabled.)
@@ -101,7 +99,6 @@ namespace mabe {
     , on_warning_sig("on_warning", ModuleBase::SIG_OnWarning, &ModuleBase::OnWarning, sig_ptrs)
     , before_exit_sig("before_exit", ModuleBase::SIG_BeforeExit, &ModuleBase::BeforeExit, sig_ptrs)
     , on_help_sig("on_help", ModuleBase::SIG_OnHelp, &ModuleBase::OnHelp, sig_ptrs)
-    , trace_eval_sig("trace_eval", ModuleBase::SIG_TraceEval, &ModuleBase::TraceEval, sig_ptrs)
     { ;  }
 
   public:

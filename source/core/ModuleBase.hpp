@@ -56,8 +56,6 @@
  *       : Run immediately before MABE is about to exit.
  *     OnHelp()
  *       : Run when the --help option is called at startup.
- *     TraceEval(Organism & org, ostream & out_stream)
- *       : Print a trace of the evaluation of an organism.
  *     ...
  */
 
@@ -141,7 +139,6 @@ namespace mabe {
       SIG_OnWarning,
       SIG_BeforeExit,
       SIG_OnHelp,
-      SIG_TraceEval,
       NUM_SIGNALS,
       SIG_UNKNOWN
     };
@@ -259,7 +256,6 @@ namespace mabe {
     virtual void OnWarning(const std::string &) = 0;
     virtual void BeforeExit() = 0;
     virtual void OnHelp() = 0;
-    virtual void TraceEval(Organism &, std::ostream &) = 0;
 
     virtual void Deactivate() = 0;  ///< Turn off all signals in this function.
     virtual void Activate() = 0;    ///< Turn on all signals in this function.
@@ -282,7 +278,6 @@ namespace mabe {
     virtual bool OnWarning_IsTriggered() = 0;
     virtual bool BeforeExit_IsTriggered() = 0;
     virtual bool OnHelp_IsTriggered() = 0;
-    virtual bool TraceEval_IsTriggered() = 0;
 
     virtual bool OK() const = 0;  // For debugging purposes only.
 

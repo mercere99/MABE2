@@ -124,9 +124,6 @@ namespace mabe {
     /// List all of the available modules included in the current compilation.
     void ShowModules();
 
-    /// Ask evaluation modules to trace the execution of the provided organism.
-    void TraceEval(Organism & org, std::ostream & os) { trace_eval_sig.Trigger(org, os); }
-
     /// Process all of the arguments that were passed in on the command line.
     void ProcessArgs();
 
@@ -398,7 +395,6 @@ namespace mabe {
     bool OnError_IsTriggered(mod_ptr_t mod) { return on_error_sig.cur_mod == mod; };
     bool OnWarning_IsTriggered(mod_ptr_t mod) { return on_warning_sig.cur_mod == mod; };
     bool BeforeExit_IsTriggered(mod_ptr_t mod) { return before_exit_sig.cur_mod == mod; };
-    bool TraceEval_IsTriggered(mod_ptr_t mod) { return trace_eval_sig.cur_mod == mod; };
     bool OnHelp_IsTriggered(mod_ptr_t mod) { return on_help_sig.cur_mod == mod; };
   };
 
@@ -747,19 +743,6 @@ namespace mabe {
       [this](const std::string & str) { return Preprocess(str); };
     config.AddFunction("PP", preprocess_fun, "Preprocess a string (replacing any ${...} with result.)");
 
-
-    // --- ORGANISM-BASED FUNCTIONS ---
-
-    auto & files = config.GetSymbolTable().GetFileManager();
-    std::function<int(const std::string &, const std::string &, double)> trace_eval_fun =
-      [this,&files](const std::string & filename, const std::string & target, double id) {
-        Collection c = ToCollection(target);                   // Collection with organisms
-        Organism & org = c.At((size_t) id);                    // Specific organism to analyze.
-        std::ostream & file = files.GetOutputStream(filename); // File to write to.
-        TraceEval(org, file);
-        return 0;
-      };
-    config.AddFunction("TRACE_EVAL", trace_eval_fun, "Collect information about how evaluations are performed.");
 
     // --- TRAIT-BASED FUNCTIONS ---
 

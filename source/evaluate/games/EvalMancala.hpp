@@ -218,7 +218,7 @@ namespace mabe {
     }
 
     /// Trace the evaluation of an organism, sending output to a specified stream.
-    void TraceEval(Organism & org, std::ostream & os) override {
+    void TraceEval(Organism & org, std::ostream & os) {
       EvalGame(org, control.GetRandom(), 0, true, os);
     }
 

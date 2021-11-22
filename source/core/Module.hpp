@@ -332,14 +332,6 @@ namespace mabe {
       control.RescanSignals();
     }
 
-    // Format:  TraceEval(Organism & trace_org, std::ostream & out_stream)
-    // Trigger: Request to print a trace of the evaluation of an organism.
-    // Args:    Organism to be traces, stream to print trace to.
-    void TraceEval(Organism &, std::ostream &) override {
-      has_signal[SIG_TraceEval] = false;
-      control.RescanSignals();
-    }
-
 
     /// Turn off all signals in this function.
     void Deactivate() override {
@@ -371,7 +363,6 @@ namespace mabe {
     bool OnWarning_IsTriggered() override { return control.OnWarning_IsTriggered(this); };
     bool BeforeExit_IsTriggered() override { return control.BeforeExit_IsTriggered(this); };
     bool OnHelp_IsTriggered() override { return control.OnHelp_IsTriggered(this); };
-    bool TraceEval_IsTriggered() override { return control.TraceEval_IsTriggered(this); };
 
     bool OK() const override { return true; }
   };
