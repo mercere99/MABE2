@@ -61,6 +61,7 @@ namespace mabe {
 
     bool verbose = false;        ///< Should we output extra information during setup?
     bool show_help = false;      ///< Should we show "help" before exiting?
+    std::string help_topic="";   ///< What topic should we give help about?
     bool exit_now = false;       ///< Do we need to immediately clean up and exit the run?
     ErrorManager error_man;      ///< Object to manage warnings and errors.
 
@@ -339,7 +340,8 @@ namespace mabe {
     /// Build a function to scan a single data map and run the provided equation on the
     /// enties in there, returning the result.
 
-    trait_equation_t BuildTraitEquation(const std::string & equation) {
+    trait_equation_t BuildTraitEquation(std::string equation) {
+      equation = Preprocess(equation);
       auto dm_fun = dm_parser.BuildMathFunction(org_data_map, equation);
       return [dm_fun](const Organism & org){ return dm_fun(org.GetDataMap()); };
     }
@@ -355,7 +357,7 @@ namespace mabe {
     /// the result as a string.  Output is a function in the form:  TO_T(const FROM_T &)
     template <typename FROM_T=Collection, typename TO_T=std::string>
     std::function<TO_T(const FROM_T &)> 
-      BuildTraitSummary(const std::string & trait_fun, std::string trait_filter);
+      BuildTraitSummary(std::string trait_fun, std::string trait_filter);
 
     /// Build a function that takes a trait equation, builds it, and runs it on a container.
     /// Output is a function in the form:  TO_T(const FROM_T &, trait_equation)
@@ -413,16 +415,31 @@ namespace mabe {
 
   /// Print information on how to run the software.
   void MABE::ShowHelp() {
-    std::cout << "MABE v" << VERSION << "\n"
-              << "Usage: " << args[0] << " [options]\n"
-              << "Options:\n";
-    for (const auto & cur_arg : arg_set) {
-      std::cout << "  " << cur_arg.flag << " " << cur_arg.args
-                << " : " << cur_arg.desc << " (or " << cur_arg.name << ")"
-                << std::endl;
-    }
+    std::cout << "MABE v" << VERSION << "\n";
     on_help_sig.Trigger();
-    std::cout << "Note: Settings and files are applied in the order provided.\n";
+
+    if (help_topic == "") {
+      std::cout << "Usage: " << args[0] << " [options]\n"
+                << "Options:\n";
+      for (const auto & cur_arg : arg_set) {
+        std::cout << "  " << cur_arg.flag << " " << cur_arg.args
+                  << " : " << cur_arg.desc << " (or " << cur_arg.name << ")"
+                  << std::endl;
+      }
+    }
+    else {
+      auto & mod_map = GetModuleMap();
+      std::cout << "TOPIC: " << help_topic << std::endl;
+      if (emp::Has(mod_map, help_topic)) {
+        const auto & info = mod_map[help_topic];
+        std::cout << "--- MABE Module ---\n"
+                  << "Description: " << info.desc << "\n";
+      }
+      else {
+        std::cout << "Unknown keyword.\n";
+      }
+
+    }
     exit_now = true;
   }
 
@@ -434,8 +451,8 @@ namespace mabe {
     //   std::cout << "  " << mod_ptr->GetName() << " : " << mod_ptr->GetDesc() << "\n";
     // }          
     std::cout << "Available modules:\n";
-    for (auto & info : GetModuleInfo()) {
-      std::cout << "  " << info.name << " : " << info.desc << "\n";
+    for (auto & [type_name,mod] : GetModuleMap()) {
+      std::cout << "  " << type_name << " : " << mod.desc << "\n";
     }          
     exit_now = true;;
   }
@@ -459,7 +476,10 @@ namespace mabe {
         }
       });
     arg_set.emplace_back("--help", "-h", "              ", "Help; print command-line options for MABE",
-      [this](const emp::vector<std::string> &){ show_help = true; } );
+      [this](const emp::vector<std::string> & in){
+        show_help = true;
+        if (in.size()) help_topic = in[0];
+      });
     arg_set.emplace_back("--modules", "-m", "              ", "Module list",
       [this](const emp::vector<std::string> &){ ShowModules(); } );
     arg_set.emplace_back("--set", "-s", "[param=value] ", "Set specified parameter",
@@ -659,6 +679,16 @@ namespace mabe {
         return pop.IteratorAt(trait_fun(pop)).AsPosition();
       },
       "Produce OrgList with just the org with the minimum value of the provided function.");
+    pop_type.AddMemberFunction("FILTER",
+      [this](Population & pop, const std::string & trait_equation) -> Collection {
+        auto filter = BuildTraitEquation(trait_equation);
+        Collection out_collect;
+        for (auto it = pop.begin(); it != pop.end(); ++it) {
+          if (filter(*it)) out_collect.Insert(it);
+        }
+        return out_collect;
+      },
+      "Produce OrgList with just the orgs that pass through the filter criteria.");
 
     collect_type.AddMemberFunction("TRAIT", BuildTraitFunction<Collection,std::string>("0"),
       "Return the value of the provided trait for the first organism");
@@ -700,11 +730,11 @@ namespace mabe {
       "Produce OrgList with just the org with the minimum value of the provided function.");
 
     // Setup all known modules as available types in the config file.
-    for (auto & mod : GetModuleInfo()) {
-      auto mod_init_fun = [this,&mod](const std::string & name) -> emp::Ptr<emplode::EmplodeType> {
-        return mod.obj_init_fun(*this,name);
+    for (auto & [type_name,mod] : GetModuleMap()) {
+      auto mod_init_fun = [this,mod=&mod](const std::string & name) -> emp::Ptr<emplode::EmplodeType> {
+        return mod->obj_init_fun(*this,name);
       };
-      auto & type_info = config.AddType(mod.name, mod.desc, mod_init_fun, nullptr, mod.type_id);
+      auto & type_info = config.AddType(type_name, mod.desc, mod_init_fun, nullptr, mod.type_id);
       mod.type_init_fun(type_info);  // Setup functions for this module.
     }
 
@@ -1070,13 +1100,16 @@ namespace mabe {
 
   template <typename FROM_T, typename TO_T>
   std::function<TO_T(const FROM_T &)> MABE::BuildTraitSummary(
-    const std::string & trait_fun,
+    std::string trait_fun,
     std::string trait_filter
   ) {
     static_assert( std::is_same<FROM_T,Collection>() ||  std::is_same<FROM_T,Population>(),
                    "BuildTraitSummary FROM_T must be Collection or Population." );
     static_assert( std::is_same<TO_T,double>() ||  std::is_same<TO_T,std::string>(),
                    "BuildTraitSummary TO_T must be double or std::string." );
+
+    // Pre-process the trait function to allow for use of regular config variables.
+    trait_fun = Preprocess(trait_fun);
 
     // The trait input has two components:
     // (1) the trait (or trait function) and
