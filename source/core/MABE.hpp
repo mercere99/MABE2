@@ -46,12 +46,9 @@ namespace mabe {
 
   ///  @brief The main MABE controller class
   ///
-  ///  The MABE controller class manages interactions between all modules,
-  ///  ensures that all need components are present at startup, and triggers
-  ///  signals as needed.
-  ///
-  ///  Note that this class is derived from MABEBase, which handles all population
-  ///  manipulation and signal management.
+  ///  The MABE controller class manages interactions among modules, ensures that needed
+  ///  components are present at startup, and triggers signals as needed.  Derived from
+  ///  MABEBase, which handles all population manipulation and signal management.
 
   class MABE : public MABEBase {
   private:
@@ -78,16 +75,15 @@ namespace mabe {
     TraitManager<ModuleBase> trait_man; ///< Manage consistent read/write access to traits
     emp::DataMapParser dm_parser;       ///< Parser to process functions on a data map
     emp::Random random;                 ///< Master random number generator
-    size_t cur_pop_id = (size_t) -1;    ///< Which population is currently active?
     size_t update = 0;                  ///< How many times has Update() been called?
 
 
     // --- Config information for command-line arguments ---
     struct ArgInfo {
-      std::string name;                ///< E.g.: "help" which would be called with "--help"
-      std::string flag;                ///< E.g.: "h" which would be called with -h
-      std::string args;                ///< Type of arguments needed: E.g.: "[filename...]"
-      std::string desc;                ///< E.g.: "Print available command-line options."
+      std::string name;    ///< E.g.: "help" which would be called with "--help"
+      std::string flag;    ///< E.g.: "h" which would be called with -h
+      std::string args;    ///< Type of arguments needed: E.g.: "[filename...]"
+      std::string desc;    ///< E.g.: "Print available command-line options."
 
       /// Function to call when triggered.
       using fun_t = std::function<void(const emp::vector<std::string> &)>;
@@ -164,14 +160,9 @@ namespace mabe {
     int GetPopID(std::string_view pop_name) const {
       return emp::FindEval(pops, [pop_name](const auto & p){ return p->GetName() == pop_name; });
     }
-    const Population & GetPopulation(size_t id) const { return *pops[id]; }
     Population & GetPopulation(size_t id) { return *pops[id]; }
-
-    /// New populations must be given a name and an optional size.
+    const Population & GetPopulation(size_t id) const { return *pops[id]; }
     Population & AddPopulation(const std::string & name, size_t pop_size=0);
-
-    /// If GetPopulation() is called without an ID, return the current population or create one.
-    Population & GetPopulation();
 
     /// Move an organism from one position to another; kill anything that previously occupied
     /// the target position.
@@ -187,7 +178,6 @@ namespace mabe {
     /// by MABE.  Return the position the organism was placed in.
     OrgPosition InjectInstance(Population & pop, emp::Ptr<Organism> org_ptr);
     
-
     /// Add one or more organisms of a specified type (provide the type name; the MABE controller
     /// will create instances of it.)  Returns the positions the organisms were placed.
     Collection Inject(Population & pop, const std::string & type_name, size_t copy_count=1);
@@ -228,7 +218,7 @@ namespace mabe {
       return DoBirth(*ppos, ppos, target_pop, birth_count, do_mutations);
     }
 
-    /// Remove all organisms from a population.
+    /// Remove all organisms from a population; does not change size.
     void ClearPop(Population & pop) {
       for (PopIterator pos = pop.begin(); pos != pop.end(); ++pos) ClearOrgAt(pos);
     }
@@ -239,8 +229,9 @@ namespace mabe {
       MABEBase::ResizePop(pop, new_size);
     }
 
+    /// Copy all of the organisms into a new population (clearing orgs already there)
     void CopyPop(const Population & from_pop, Population & to_pop) {
-      EmptyPop(to_pop, from_pop.GetSize()); // Clear all current orgs in the to_pop and resize.
+      EmptyPop(to_pop, from_pop.GetSize()); 
       for (size_t pos=0; pos < from_pop.GetSize(); ++pos) {
         if (from_pop.IsEmpty(pos)) continue;
         InjectAt(from_pop[pos], to_pop.IteratorAt(pos));
@@ -268,10 +259,7 @@ namespace mabe {
 
     // --- Collection Management ---
 
-    std::string ToString(const mabe::Collection & collect) const {
-      return collect.ToString();
-    }
-
+    std::string ToString(const mabe::Collection & collect) const { return collect.ToString(); }
     Collection ToCollection(const std::string & load_str);
 
     Collection GetAlivePopulation(size_t id) {
@@ -311,17 +299,15 @@ namespace mabe {
     // --- Deal with Organism TRAITS ---
     TraitManager<ModuleBase> & GetTraitManager() { return trait_man; }
 
-    /// Build a function to scan a single data map and run the provided equation on the
-    /// enties in there, returning the result.
-
+    /// Build a function to scan a data map, run a provided equation on its entries,
+    /// and return the result.
     auto BuildTraitEquation(std::string equation) {
       equation = Preprocess(equation);
       auto dm_fun = dm_parser.BuildMathFunction(org_data_map, equation);
       return [dm_fun](const Organism & org){ return dm_fun(org.GetDataMap()); };
     }
 
-    /// Scan a provided equation and return the names of all traits used in that equation.
-
+    /// Scan an equation and return the names of all traits it is using.
     const std::set<std::string> & GetEquationTraits(const std::string & equation) {
       return dm_parser.GetNamesUsed(equation);
     }
@@ -345,15 +331,12 @@ namespace mabe {
 
 
     // --- Manage configuration scope ---
-
-    /// Setup the configuration options for MABE, including for each module.
-    void SetupConfig();
-
-    /// Sanity checks for debugging
-    bool OK();
+    
+    void SetupConfig();  ///< Setup config options for MABE, including for each module.    
+    bool OK();           ///< Sanity checks for debugging
 
 
-    // Checks for which modules are currently being triggered.
+    // Checks for which modules are actively being triggered.
     using mod_ptr_t = emp::Ptr<ModuleBase>;
     bool BeforeUpdate_IsTriggered(mod_ptr_t mod) { return before_update_sig.cur_mod == mod; };
     bool OnUpdate_IsTriggered(mod_ptr_t mod) { return on_update_sig.cur_mod == mod; };
@@ -811,12 +794,11 @@ namespace mabe {
 
   /// New populations must be given a name and an optional size.
   Population & MABE::AddPopulation(const std::string & name, size_t pop_size) {
-    cur_pop_id = (int) pops.size();                                   // Set new pop to "current"
-    emp::Ptr<Population> new_pop =
-      emp::NewPtr<Population>(name, cur_pop_id, pop_size, empty_org); // Create new population.
-    pops.push_back(new_pop);                                          // Record new population.
+    int pop_id = (int) pops.size();
+    emp::Ptr<Population> new_pop = emp::NewPtr<Population>(name, pop_id, pop_size, empty_org);
+    pops.push_back(new_pop);
 
-    // Setup default functions for the new population.
+    // Setup default placement functions for the new population.
     new_pop->SetPlaceBirthFun( [this,new_pop](Organism & /*org*/, OrgPosition /*ppos*/) {
       return PushEmpty(*new_pop);
     });
@@ -830,15 +812,6 @@ namespace mabe {
     });
 
     return *new_pop;
-  }
-
-  /// If GetPopulation() is called without an ID, return the current population or create one.
-  Population & MABE::GetPopulation() {
-    if (pops.size() == 0) {                   // If we don't have a population, add one!
-      emp_assert(cur_pop_id == (size_t) -1);  // Current population should now be default;
-      AddPopulation("main");                  // Default population is named main.
-    }
-    return *pops[cur_pop_id];
   }
 
   /// Inject a copy of the provided organism and return the position it was placed in;
