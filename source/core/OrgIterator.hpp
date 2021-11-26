@@ -35,6 +35,7 @@ namespace mabe {
     virtual std::string GetName() const { return ""; }
     virtual int GetID() const noexcept { return -1; }
     virtual size_t GetSize() const noexcept = 0;
+    virtual bool IsEmpty() const noexcept = 0;
 
     virtual Organism & At(size_t org_id) = 0;
     virtual const Organism & At(size_t org_id) const = 0;
