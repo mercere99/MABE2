@@ -173,6 +173,16 @@ namespace mabe {
         pos_set.SetAll();                   // Initially include all orgs.
         full_pop = false;                   // Record that pop is no longer officially full.
       }
+
+      bool IsEmpty(pop_ptr_t pop_ptr) {
+        if (full_pop) return pop_ptr->IsEmpty();
+        size_t cur_pos = 0;
+        while(cur_pos < pop_ptr->GetSize()) {
+          cur_pos = pos_set.FindOne(cur_pos+1);
+          if (!pop_ptr->IsEmpty()) return false;
+        }
+        return true;
+      }
     };
 
     // Link each population in the collection (by its pointer) to info about which organisms
@@ -324,6 +334,15 @@ namespace mabe {
       return count;
     }
 
+    /// Determine if there are any (living) organisms in this collection.
+    bool IsEmpty() const noexcept override {
+      // If we find an organism in any population, return false; otherwise return true.
+      for (auto [pop_ptr, pop_info] : pos_map) {
+        if (!pop_info.IsEmpty(pop_ptr)) return false;
+      }
+      return true;
+    }
+
     iterator_t IteratorAt(size_t org_id) { return iterator_t(*this, org_id); }
     const_iterator_t IteratorAt(size_t org_id) const { return const_iterator_t(*this, org_id); }
     const_iterator_t ConstIteratorAt(size_t org_id) const { return IteratorAt(org_id); }
@@ -410,6 +429,15 @@ namespace mabe {
     }
 
     const_pop_ptr_t ConstGetFirstPop() const { return GetFirstPop(); }
+
+    emp::DataLayout & GetDataLayout() {
+      emp_assert(GetFirstPop());
+      return GetFirstPop()->GetDataLayout();
+    }
+    const emp::DataLayout & GetDataLayout() const {
+      emp_assert(GetFirstPop());
+      return GetFirstPop()->GetDataLayout();
+    }
 
     template <typename T>
     void IncPosition(T & it) const {
