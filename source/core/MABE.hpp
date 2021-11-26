@@ -35,8 +35,8 @@
 
 #include "Collection.hpp"
 #include "data_collect.hpp"
-#include "ErrorManager.hpp"
 #include "MABEBase.hpp"
+#include "MABEScript.hpp"
 #include "ModuleBase.hpp"
 #include "Population.hpp"
 #include "SigListener.hpp"
@@ -55,12 +55,8 @@ namespace mabe {
     const std::string VERSION = "0.0.1";
 
     // --- Variables to handle configuration, initialization, and error reporting ---
-
-    bool verbose = false;        ///< Should we output extra information during setup?
     bool show_help = false;      ///< Should we show "help" before exiting?
     std::string help_topic="";   ///< What topic should we give help about?
-    bool exit_now = false;       ///< Do we need to immediately clean up and exit the run?
-    ErrorManager error_man;      ///< Object to manage warnings and errors.
 
     /// Populations used; generated in the configuration file.
     emp::vector< emp::Ptr<Population> > pops;
@@ -73,10 +69,6 @@ namespace mabe {
     emp::DataMap org_data_map;
 
     TraitManager<ModuleBase> trait_man; ///< Manage consistent read/write access to traits
-    emp::DataMapParser dm_parser;       ///< Parser to process functions on a data map
-    emp::Random random;                 ///< Master random number generator
-    size_t update = 0;                  ///< How many times has Update() been called?
-
 
     // --- Config information for command-line arguments ---
     struct ArgInfo {
@@ -99,24 +91,18 @@ namespace mabe {
     emp::vector<std::string> config_filenames; ///< Names of configuration files to load.
     emp::vector<std::string> config_settings;  ///< Additional config commands to run.
     std::string gen_filename;                  ///< Name of output file to generate.
-    emplode::Emplode config;                   ///< Configuration information for this run.
+    MABEScript config_script;                  ///< Configuration information for this run.
 
 
     // ----------- Helper Functions -----------    
-    void ShowHelp();      ///< Print information on how to run the software.
-    void ShowModules();   ///< List all available modules in the current compilation.
-    void ProcessArgs();   ///< Process all arguments passed in on the command line.
+    void ShowHelp();       ///< Print information on how to run the software.
+    void ShowModules();    ///< List all available modules in the current compilation.
+    void ProcessArgs();    ///< Process all arguments passed in on the command line.
 
     // -- Helper functions to be called inside of Setup() --
-    void Setup_Modules(); ///< Run SetupModule() method on each module we've loaded.
-    void Setup_Traits();  ///< Load organism traits and test for module conflicts.    
-    void UpdateSignals(); ///< Link signals only to modules that respond to them.
-
-    /// Find any instances of ${X} and eval the X.
-    std::string Preprocess(const std::string & in_string);
-
-    /// Setup a function as deprecated so we can phase it out.
-    void Deprecate(const std::string & old_name, const std::string & new_name);
+    void Setup_Modules();  ///< Run SetupModule() method on each module we've loaded.
+    void Setup_Traits();   ///< Load organism traits and test for module conflicts.    
+    void UpdateSignals();  ///< Link signals only to modules that respond to them.
 
   public:
     MABE(int argc, char* argv[]);  ///< MABE command-line constructor.
@@ -134,16 +120,13 @@ namespace mabe {
       if (empty_org) empty_org.Delete();
     }
 
-    // --- Basic accessors ---
-    emp::Random & GetRandom() { return random; }
-    size_t GetUpdate() const noexcept { return update; }
-    bool GetVerbose() const { return verbose; }
-    mabe::ErrorManager & GetErrorManager() { return error_man; }
-
     /// Output args if (and only if) we are in verbose mode.
     template <typename... Ts> void Verbose(Ts &&... args) {
       if (verbose) std::cout << emp::to_string(std::forward<Ts>(args)...) << std::endl;
     }
+
+    size_t GetRandomSeed() const override { return random.GetSeed(); }
+    void SetRandomSeed(size_t in_seed) override { random.ResetSeed(in_seed); }
 
     // --- Tools to setup runs ---
     bool Setup();
@@ -162,7 +145,7 @@ namespace mabe {
     }
     Population & GetPopulation(size_t id) { return *pops[id]; }
     const Population & GetPopulation(size_t id) const { return *pops[id]; }
-    Population & AddPopulation(const std::string & name, size_t pop_size=0);
+    Population & AddPopulation(const std::string & name, size_t pop_size=0) override;
 
     /// Move an organism from one position to another; kill anything that previously occupied
     /// the target position.
@@ -230,7 +213,7 @@ namespace mabe {
     }
 
     /// Copy all of the organisms into a new population (clearing orgs already there)
-    void CopyPop(const Population & from_pop, Population & to_pop) {
+    void CopyPop(const Population & from_pop, Population & to_pop) override {
       EmptyPop(to_pop, from_pop.GetSize()); 
       for (size_t pos=0; pos < from_pop.GetSize(); ++pos) {
         if (from_pop.IsEmpty(pos)) continue;
@@ -239,7 +222,7 @@ namespace mabe {
     }
 
     /// Move all organisms from one population to another.
-    void MoveOrgs(Population & from_pop, Population & to_pop, bool reset_to);
+    void MoveOrgs(Population & from_pop, Population & to_pop, bool reset_to) override;
 
     /// Return a ramdom position from a desginated population.
     OrgPosition GetRandomPos(Population & pop) {
@@ -299,42 +282,15 @@ namespace mabe {
     // --- Deal with Organism TRAITS ---
     TraitManager<ModuleBase> & GetTraitManager() { return trait_man; }
 
-    /// Build a function to scan a data map, run a provided equation on its entries,
-    /// and return the result.
-    auto BuildTraitEquation(std::string equation) {
-      equation = Preprocess(equation);
-      auto dm_fun = dm_parser.BuildMathFunction(org_data_map, equation);
-      return [dm_fun](const Organism & org){ return dm_fun(org.GetDataMap()); };
+    auto BuildTraitEquation(const emp::DataLayout & data_layout, const std::string & equation) {
+      return config_script.BuildTraitEquation(data_layout, equation);
     }
 
-    /// Scan an equation and return the names of all traits it is using.
     const std::set<std::string> & GetEquationTraits(const std::string & equation) {
-      return dm_parser.GetNamesUsed(equation);
+      return config_script.GetEquationTraits(equation);
     }
 
-    /// Build a function to scan a collection of organisms, reading the value for the given
-    /// trait function from each, aggregating those values based on the trait_filter and returning
-    /// the result as a string.  Output is a function in the form:  TO_T(const FROM_T &)
-    template <typename FROM_T=Collection, typename TO_T=std::string>
-    std::function<TO_T(const FROM_T &)> 
-      BuildTraitSummary(std::string trait_fun, std::string trait_filter);
-
-    /// Build a function that takes a trait equation, builds it, and runs it on a container.
-    /// Output is a function in the form:  TO_T(const FROM_T &, trait_equation)
-    template <typename FROM_T=Collection, typename TO_T=std::string> 
-    auto BuildTraitFunction(const std::string & fun_type) {
-      return [this,fun_type](FROM_T & pop, const std::string & trait_equation) {
-        auto trait_fun = BuildTraitSummary<FROM_T,TO_T>(trait_equation, fun_type);
-        return trait_fun(pop);
-      };
-    }
-
-
-    // --- Manage configuration scope ---
-    
-    void SetupConfig();  ///< Setup config options for MABE, including for each module.    
     bool OK();           ///< Sanity checks for debugging
-
 
     // Checks for which modules are actively being triggered.
     using mod_ptr_t = emp::Ptr<ModuleBase>;
@@ -419,7 +375,7 @@ namespace mabe {
           // MABE config files can be generated FROM a *.gen file, typically creating a *.mabe
           // file.  If output file is *.gen assume an error. (for now; override should be allowed)
           if (in[0].size() > 4 && in[0].substr(in[0].size()-4) == ".gen") {
-            error_man.AddError("Error: generated file ", in[0], " not allowed to be *.gen; typically should end in *.mabe.");
+            AddError("Error: generated file ", in[0], " not allowed to be *.gen; typically should end in *.mabe.");
             exit_now = true;
           }
           else gen_filename = in[0];
@@ -515,219 +471,37 @@ namespace mabe {
     rescan_signals = false;
   }
 
-  /// Find any instances of ${X} and eval the X.
-  std::string MABE::Preprocess(const std::string & in_string) {
-    std::string out_string = in_string;
-
-    // Seek out instances of "${" to indicate the start of pre-processing.
-    for (size_t i = 0; i < out_string.size(); ++i) {
-      if (out_string[i] != '$') continue;   // Replacement tag must start with a '$'.
-      if (out_string.size() <= i+2) break;  // Not enough room for a replacement tag.
-      if (out_string[i+1] == '$') {         // Compress two $$ into on $
-        out_string.erase(i,1);
-        continue;
-      }
-      if (out_string[i+1] != '{') continue; // Eval must be surrounded by braces.
-
-      // If we made it this far, we have a starting match!
-      size_t end_pos = emp::find_paren_match(out_string, i+1, '{', '}', false);
-      if (end_pos == i+1) return out_string;  // No end brace found!  @CAO -- exception here?
-      const std::string replacement_text =
-        config.Execute(emp::view_string_range(out_string, i+2, end_pos));
-      out_string.replace(i, end_pos-i+1, replacement_text);
-
-      i += replacement_text.size(); // Continue from the end point...
-    }
-
-    return out_string;
-  }
-
-  void MABE::Deprecate(const std::string & old_name, const std::string & new_name) {
-    auto dep_fun = [this,old_name,new_name](const emp::vector<emp::Ptr<emplode::Symbol>> &){
-        std::cerr << "Function '" << old_name << "' deprecated; use '" << new_name << "'\n";
-        exit_now = true;
-        return 0;      
-      };
-
-    config.AddFunction(old_name, dep_fun, std::string("Deprecated.  Use: ") + new_name);
-  }
 
   // ---------------- PUBLIC MEMBER FUNCTIONS -----------------
 
 
   MABE::MABE(int argc, char* argv[])
-    : error_man( [this](const std::string & msg){ on_error_sig.Trigger(msg); },
-                 [this](const std::string & msg){ on_warning_sig.Trigger(msg); } )
-    , trait_man(error_man)
+    : trait_man(GetErrorManager())
     , args(emp::cl::args_to_strings(argc, argv))
+    , config_script(*this)
   {
-    // Setup "Population" as a type in the config file.
-    auto pop_init_fun = [this](const std::string & name) { return &AddPopulation(name); };
-    auto pop_copy_fun = [this](const EmplodeType & from, EmplodeType & to) {
-      emp::Ptr<const Population> from_pop = dynamic_cast<const Population *>(&from);
-      emp::Ptr<Population> to_pop = dynamic_cast<Population *>(&to);
-      if (!from_pop || !to_pop) return false; // Wrong type!
-      CopyPop(*from_pop, *to_pop);            // Do the actual copy.
-      return true;
-    };
-    auto & pop_type = config.AddType<Population>("Population", "Collection of organisms",
-                                                 pop_init_fun, pop_copy_fun);
-
-    // Setup "Collection" as another config type.
-    auto & collect_type = config.AddType<Collection>("OrgList", "Collection of organism pointers");
+    // Updates to scripting language that require full controller functionality.
 
     // 'INJECT' allows a user to add an organism to a population; returns collection of added orgs.
+    emplode::TypeInfo & pop_type = config_script.GetType("Population");
     std::function<Collection(Population &, const std::string &, size_t)> inject_fun =
       [this](Population & pop, const std::string & org_type_name, size_t count) {
         return Inject(pop, org_type_name, count);
       };
     pop_type.AddMemberFunction("INJECT", inject_fun,
-      "Inject organisms into population.  Args: org_name, org_count.  Return: OrgList of injected orgs.");
-    pop_type.AddMemberFunction("REPLACE_WITH",
-      [this](Population & to_pop, Population & from_pop){ MoveOrgs(from_pop, to_pop, true); return 0; },
-      "Move all organisms organisms from another population, removing current orgs." );
-    pop_type.AddMemberFunction("APPEND",
-      [this](Population & to_pop, Population & from_pop){ MoveOrgs(from_pop, to_pop, false); return 0; },
-      "Move all organisms organisms from another population, adding after current orgs." );
-
-    pop_type.AddMemberFunction("TRAIT", BuildTraitFunction<Population,std::string>("0"),
-      "Return the value of the provided trait for the first organism");
-    pop_type.AddMemberFunction("CALC_RICHNESS", BuildTraitFunction<Population,double>("richness"),
-      "Count the number of distinct values of a trait (or equation).");
-    pop_type.AddMemberFunction("CALC_MODE", BuildTraitFunction<Population,std::string>("mode"),
-      "Identify the most common value of a trait (or equation).");
-    pop_type.AddMemberFunction("CALC_MEAN", BuildTraitFunction<Population,double>("mean"),
-      "Calculate the average value of a trait (or equation).");
-    pop_type.AddMemberFunction("CALC_MIN", BuildTraitFunction<Population,double>("min"),
-      "Find the smallest value of a trait (or equation).");
-    pop_type.AddMemberFunction("CALC_MAX", BuildTraitFunction<Population,double>("max"),
-      "Find the largest value of a trait (or equation).");
-    pop_type.AddMemberFunction("ID_MIN", BuildTraitFunction<Population,double>("min_id"),
-      "Find the index of the smallest value of a trait (or equation).");
-    pop_type.AddMemberFunction("ID_MAX", BuildTraitFunction<Population,double>("max_id"),
-      "Find the index of the largest value of a trait (or equation).");
-    pop_type.AddMemberFunction("CALC_MEDIAN", BuildTraitFunction<Population,double>("median"),
-      "Find the 50-percentile value of a trait (or equation).");
-    pop_type.AddMemberFunction("CALC_VARIANCE", BuildTraitFunction<Population,double>("variance"),
-      "Find the variance of the distribution of values of a trait (or equation).");
-    pop_type.AddMemberFunction("CALC_STDDEV", BuildTraitFunction<Population,double>("stddev"),
-      "Find the variance of the distribution of values of a trait (or equation).");
-    pop_type.AddMemberFunction("CALC_SUM", BuildTraitFunction<Population,double>("sum"),
-      "Add up the total value of a trait (or equation).");
-    pop_type.AddMemberFunction("CALC_ENTROPY", BuildTraitFunction<Population,double>("entropy"),
-      "Determine the entropy of values for a trait (or equation).");
-    pop_type.AddMemberFunction("FIND_MIN",
-      [this](Population & pop, const std::string & trait_equation) -> Collection {
-        auto trait_fun = BuildTraitSummary<Population,double>(trait_equation, "min_id");
-        return pop.IteratorAt(trait_fun(pop)).AsPosition();
-      },
-      "Produce OrgList with just the org with the minimum value of the provided function.");
-    pop_type.AddMemberFunction("FIND_MAX",
-      [this](Population & pop, const std::string & trait_equation) -> Collection {
-        auto trait_fun = BuildTraitSummary<Population,double>(trait_equation, "max_id");
-        return pop.IteratorAt(trait_fun(pop)).AsPosition();
-      },
-      "Produce OrgList with just the org with the minimum value of the provided function.");
-    pop_type.AddMemberFunction("FILTER",
-      [this](Population & pop, const std::string & trait_equation) -> Collection {
-        auto filter = BuildTraitEquation(trait_equation);
-        Collection out_collect;
-        for (auto it = pop.begin(); it != pop.end(); ++it) {
-          if (filter(*it)) out_collect.Insert(it);
-        }
-        return out_collect;
-      },
-      "Produce OrgList with just the orgs that pass through the filter criteria.");
-
-    collect_type.AddMemberFunction("TRAIT", BuildTraitFunction<Collection,std::string>("0"),
-      "Return the value of the provided trait for the first organism");
-    collect_type.AddMemberFunction("CALC_RICHNESS", BuildTraitFunction<Collection,double>("richness"),
-      "Count the number of distinct values of a trait (or equation).");
-    collect_type.AddMemberFunction("CALC_MODE", BuildTraitFunction<Collection,std::string>("mode"),
-      "Identify the most common value of a trait (or equation).");
-    collect_type.AddMemberFunction("CALC_MEAN", BuildTraitFunction<Collection,double>("mean"),
-      "Calculate the average value of a trait (or equation).");
-    collect_type.AddMemberFunction("CALC_MIN", BuildTraitFunction<Collection,double>("min"),
-      "Find the smallest value of a trait (or equation).");
-    collect_type.AddMemberFunction("CALC_MAX", BuildTraitFunction<Collection,double>("max"),
-      "Find the largest value of a trait (or equation).");
-    collect_type.AddMemberFunction("ID_MIN", BuildTraitFunction<Collection,double>("min_id"),
-      "Find the index of the smallest value of a trait (or equation).");
-    collect_type.AddMemberFunction("ID_MAX", BuildTraitFunction<Collection,double>("max_id"),
-      "Find the index of the largest value of a trait (or equation).");
-    collect_type.AddMemberFunction("CALC_MEDIAN", BuildTraitFunction<Collection,double>("median"),
-      "Find the 50-percentile value of a trait (or equation).");
-    collect_type.AddMemberFunction("CALC_VARIANCE", BuildTraitFunction<Collection,double>("variance"),
-      "Find the variance of the distribution of values of a trait (or equation).");
-    collect_type.AddMemberFunction("CALC_STDDEV", BuildTraitFunction<Collection,double>("stddev"),
-      "Find the variance of the distribution of values of a trait (or equation).");
-    collect_type.AddMemberFunction("CALC_SUM", BuildTraitFunction<Collection,double>("sum"),
-      "Add up the total value of a trait (or equation).");
-    collect_type.AddMemberFunction("CALC_ENTROPY", BuildTraitFunction<Collection,double>("entropy"),
-      "Determine the entropy of values for a trait (or equation).");
-    collect_type.AddMemberFunction("FIND_MIN",
-      [this](Collection & collect, const std::string & trait_equation) -> Collection {
-        auto trait_fun = BuildTraitSummary<Collection,double>(trait_equation, "min_id");
-        return collect.IteratorAt(trait_fun(collect)).AsPosition();
-      },
-      "Produce OrgList with just the org with the minimum value of the provided function.");
-    collect_type.AddMemberFunction("FIND_MAX",
-      [this](Collection & collect, const std::string & trait_equation) -> Collection {
-        auto trait_fun = BuildTraitSummary<Collection,double>(trait_equation, "max_id");
-        return collect.IteratorAt(trait_fun(collect)).AsPosition();
-      },
-      "Produce OrgList with just the org with the minimum value of the provided function.");
+      "Inject organisms into population.  Args: org_name, org_count; Return: OrgList of injected orgs.");
 
     // Setup all known modules as available types in the config file.
     for (auto & [type_name,mod] : GetModuleMap()) {
       auto mod_init_fun = [this,mod=&mod](const std::string & name) -> emp::Ptr<emplode::EmplodeType> {
         return mod->obj_init_fun(*this,name);
       };
-      auto & type_info = config.AddType(type_name, mod.desc, mod_init_fun, nullptr, mod.type_id);
+      auto & type_info = config_script.AddType(type_name, mod.desc, mod_init_fun, nullptr, mod.type_id);
       mod.type_init_fun(type_info);  // Setup functions for this module.
     }
-
-
-    // ------ DEPRECATED FUNCTION NAMES ------
-    Deprecate("EVAL", "EXEC");
-    Deprecate("exit", "EXIT");
-    Deprecate("inject", "INJECT");
-    Deprecate("print", "PRINT");
-
-    // Add other built-in functions to the config file.
-    config.AddFunction("EXIT", [this](){ exit_now = true; return 0; }, "Exit from this MABE run.");
-    config.AddFunction("GET_UPDATE", [this](){ return GetUpdate(); }, "Get current update.");
-
-    std::function<std::string(const std::string &)> preprocess_fun =
-      [this](const std::string & str) { return Preprocess(str); };
-    config.AddFunction("PP", preprocess_fun, "Preprocess a string (replacing any ${...} with result.)");
-
-
-    // --- TRAIT-BASED FUNCTIONS ---
-
-    std::function<std::string(const std::string &, std::string)> trait_string_fun =
-      [this](const std::string & target, std::string trait_filter) {
-        std::string trait_name = emp::string_pop(trait_filter,':');
-        auto fun = BuildTraitSummary(trait_name, trait_filter);
-        return fun( ToCollection(target) );
-      };
-    config.AddFunction("TRAIT_STRING", trait_string_fun, "Collect information about a specified trait.");
-
-    std::function<double(const std::string &, std::string)> trait_value_fun =
-      [this](const std::string & target, std::string trait_filter) {
-        std::string trait_name = emp::string_pop(trait_filter,':');
-        auto fun = BuildTraitSummary(trait_name, trait_filter);
-        return emp::from_string<double>(fun( ToCollection(target) ));
-      };
-    config.AddFunction("TRAIT_VALUE", trait_value_fun, "Collect information about a specified trait.");
-
-    // Add in built-in event triggers; these are used to indicate when events should happen.
-    config.AddEventType("start");   // Triggered at the beginning of a run.
-    config.AddEventType("update");  // Tested every update.
   }
 
   bool MABE::Setup() {
-    SetupConfig();                   // Load all of the parameters needed by modules, etc.
     ProcessArgs();                   // Deal with command-line inputs.
 
     // Sometimes command-line arguments will require an immediate exit (such as after '--help')
@@ -736,18 +510,18 @@ namespace mabe {
     // If configuration filenames have been specified, load each of them in order.
     if (config_filenames.size()) {
       std::cout << "Loading file(s): " << emp::to_quoted_list(config_filenames) << std::endl;
-      config.Load(config_filenames);   // Load files
+      config_script.Load(config_filenames);   // Load files
     }
 
     if (config_settings.size()) {
       std::cout << "Loading command-line settings." << std::endl;
-      config.LoadStatements(config_settings, "command-line settings");      
+      config_script.LoadStatements(config_settings, "command-line settings");      
     }
 
     // If we are writing a file, do so and then exit.
     if (gen_filename != "") {
       std::cout << "Generating file '" << gen_filename << "'." << std::endl;
-      config.Write(gen_filename);
+      config_script.Write(gen_filename);
       exit_now = true;
     }
 
@@ -762,22 +536,19 @@ namespace mabe {
 
     UpdateSignals();        // Setup the appropriate modules to be linked with each signal.
 
-    error_man.Activate();
-
-    // Only return success if there were no errors.
-    return (error_man.GetNumErrors() == 0);
+    return SetupBase();     // Call Setup on MABEBase (which is tracking and will report errors)
   }
 
   /// Update MABE world.
   void MABE::Update(size_t num_updates) {
-    if (update == 0) config.TriggerEvents("start");
+    if (update == 0) config_script.TriggerEvents("start");
     for (size_t ud = 0; ud < num_updates && !exit_now; ud++) {
       emp_assert(OK(), update);                   // In debug mode, keep checking MABE integrity
       if (rescan_signals) UpdateSignals();        // If we have reason to, update module signals
       before_update_sig.Trigger(update);          // Signal that a new update is about to begin
       update++;                                   // Increment 'update' to start new update
       on_update_sig.Trigger(update);              // Signal all modules about the new update
-      config.UpdateEventValue("update", update);  // Trigger any updated-based events
+      config_script.UpdateEventValue("update", update);  // Trigger any updated-based events
     }
   }
 
@@ -828,7 +599,7 @@ namespace mabe {
         placement_set.Insert(pos);
       } else {
         inject_org.Delete();          
-        error_man.AddError("Invalid position; failed to inject organism ", i, "!");
+        AddError("Invalid position; failed to inject organism ", i, "!");
       }
     }
     return placement_set;
@@ -843,7 +614,7 @@ namespace mabe {
     if (pos.IsValid()) AddOrgAt( org_ptr, pos);
     else {
       org_ptr.Delete();          
-      error_man.AddError("Invalid position; failed to inject organism!");
+      AddError("Invalid position; failed to inject organism!");
     }
     return pos;
   }
@@ -874,10 +645,10 @@ namespace mabe {
                                 size_t copy_count) {      
     int pop_id = GetPopID(pop_name);
     if (pop_id == -1) {
-      error_man.AddError("Invalid population name used in inject: ",
-                         "org_type= '", type_name, "'; ",
-                         "pop_name= '", pop_name, "'; ",
-                         "copy_count=", copy_count);
+      AddError("Invalid population name used in inject: ",
+               "org_type= '", type_name, "'; ",
+               "pop_name= '", pop_name, "'; ",
+               "copy_count=", copy_count);
     }
     Population & pop = GetPopulation(pop_id);
     return Inject(pop, type_name, copy_count); // Inject the organisms.
@@ -962,115 +733,11 @@ namespace mabe {
     auto slices = emp::view_slices(load_str, ',');
     for (auto name : slices) {
       int pop_id = GetPopID(name);
-      if (pop_id == -1) error_man.AddError("Unknown population: ", name);
+      if (pop_id == -1) AddError("Unknown population: ", name);
       else out.Insert(GetPopulation(pop_id));
     }
     return out;
   }
-
-
-  /// Build a function to scan a collection of organisms, reading the value for the given
-  /// trait_name from each, aggregating those values based on the trait_filter and returning
-  /// the result as a string.
-  ///
-  ///  trait_filter option are:
-  ///   <none>      : Default to the value of the trait for the first organism in the collection.
-  ///   [ID]        : Value of this trait for the organism at the given index of the collection.
-  ///   [OP][VALUE] : Count how often this value has the [OP] relationship with [VALUE].
-  ///                  [OP] can be ==, !=, <, >, <=, or >=
-  ///                  [VALUE] can be any numeric value
-  ///   [OP][TRAIT] : Count how often this trait has the [OP] relationship with [TRAIT]
-  ///                  [OP] can be ==, !=, <, >, <=, or >=
-  ///                  [TRAIT] can be any other trait name
-  ///   unique      : Return the number of distinct value for this trait (alias="richness").
-  ///   mode        : Return the most common value in this collection (aliases="dom","dominant").
-  ///   min         : Return the smallest value of this trait present.
-  ///   max         : Return the largest value of this trait present.
-  ///   ave         : Return the average value of this trait (alias="mean").
-  ///   median      : Return the median value of this trait.
-  ///   variance    : Return the variance of this trait.
-  ///   stddev      : Return the standard deviation of this trait.
-  ///   sum         : Return the summation of all values of this trait (alias="total")
-  ///   entropy     : Return the Shannon entropy of this value.
-  ///   :trait      : Return the mutual information with another provided trait.
-
-  template <typename FROM_T, typename TO_T>
-  std::function<TO_T(const FROM_T &)> MABE::BuildTraitSummary(
-    std::string trait_fun,
-    std::string trait_filter
-  ) {
-    static_assert( std::is_same<FROM_T,Collection>() ||  std::is_same<FROM_T,Population>(),
-                   "BuildTraitSummary FROM_T must be Collection or Population." );
-    static_assert( std::is_same<TO_T,double>() ||  std::is_same<TO_T,std::string>(),
-                   "BuildTraitSummary TO_T must be double or std::string." );
-
-    // Pre-process the trait function to allow for use of regular config variables.
-    trait_fun = Preprocess(trait_fun);
-
-    // The trait input has two components:
-    // (1) the trait (or trait function) and
-    // (2) how to calculate the trait SUMMARY, such as min, max, ave, etc.
-
-    // If we have a single trait, we may want to use a string type.
-    if (emp::is_identifier(trait_fun)           // If we have a single trait...
-        && org_data_map.HasName(trait_fun)      // ...and it's in the data map...
-        && !org_data_map.IsNumeric(trait_fun)   // ...and it's not numeric...
-    ) {
-      size_t trait_id = org_data_map.GetID(trait_fun);
-      emp::TypeID result_type = org_data_map.GetType(trait_id);
-
-      auto get_fun = [trait_id, result_type](const Organism & org) {
-        return emp::to_literal( org.GetTraitAsString(trait_id, result_type) );
-      };
-      auto fun = emp::BuildCollectFun<std::string, Collection>(trait_filter, get_fun);
-
-      // Go through all combinations of TO/FROM to return the correct types.
-      if constexpr (std::is_same<FROM_T,Population>() && std::is_same<TO_T,double>()) {
-        return [fun](const FROM_T & p){ return emp::from_string<double>(fun( Collection(p) )); };
-      }
-      else if constexpr (std::is_same<FROM_T,Collection>() && std::is_same<TO_T,double>()) {
-        return [fun](const FROM_T & c){ return emp::from_string<double>(fun(c)); };
-      }
-      else if constexpr (std::is_same<FROM_T,Population>() && std::is_same<TO_T,std::string>()) {
-        return [fun](const FROM_T & p){ return fun( Collection(p) ); };
-      }
-      else return fun;
-    }
-
-    // If we made it here, we are numeric.
-    auto get_fun = BuildTraitEquation(trait_fun);
-    auto fun = emp::BuildCollectFun<double, Collection>(trait_filter, get_fun);
-
-    // If we don't have a fun, we weren't able to build an aggregation function.
-    if (!fun) {
-      error_man.AddError("Unknown trait filter '", trait_filter, "' for trait '", trait_fun, "'.");
-      return [](const FROM_T &){ return TO_T(); };
-    }
-
-    // Go through all combinations of TO/FROM to return the correct types.
-    // @CAO need to adjust BuildCollectFun so that it returns correct type; not always string.
-    if constexpr (std::is_same<FROM_T,Population>() && std::is_same<TO_T,double>()) {
-      return [fun](const Population & p){ return emp::from_string<double>(fun( Collection(p) )); };
-    }
-    else if constexpr (std::is_same<FROM_T,Collection>() && std::is_same<TO_T,double>()) {
-      return [fun](const Collection & c){ return emp::from_string<double>(fun(c)); };
-    }
-    else if constexpr (std::is_same<FROM_T,Population>() && std::is_same<TO_T,std::string>()) {
-      return [fun](const Population & p){ return fun( Collection(p) ); };
-    }
-    else return fun;
-  }
-
-
-  void MABE::SetupConfig() {
-    // Setup main MABE variables.
-    auto & root_scope = config.GetSymbolTable().GetRootScope();
-    root_scope.LinkFuns<int>("random_seed",
-                             [this](){ return random.GetSeed(); },
-                             [this](int seed){ random.ResetSeed(seed); },
-                             "Seed for random number generator; use 0 to base on time.");
-  }
-
 
   bool MABE::OK() {
     bool result = true;
@@ -1078,7 +745,6 @@ namespace mabe {
     for (auto pop_ptr : pops) result &= pop_ptr->OK();    // Ensure populations are okay.
     return result;
   }
-
 
 }
 
