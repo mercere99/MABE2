@@ -86,12 +86,16 @@ namespace mabe {
   class Population : public OrgContainer {
     friend class MABEBase;
   private:
-    std::string name="";                    ///< Unique name for this population.
-    size_t pop_id = (size_t) -1;            ///< Position in world of this population.
-    emp::vector<emp::Ptr<Organism>> orgs;   ///< Info on all organisms in this population.
-    size_t num_orgs = 0;                    ///< How many living organisms are in this population?
+    std::string name="";                   ///< Unique name for this population.
+    size_t pop_id = (size_t) -1;           ///< Position in world of this population.
+    emp::vector<emp::Ptr<Organism>> orgs;  ///< Info on all organisms in this population.
+    size_t num_orgs = 0;                   ///< How many LIVING organisms are in this population?
 
-    emp::Ptr<Organism> empty_org = nullptr; ///< Organism to fill in empty cells (does have data map!)
+    /// Pointer to layout used in data maps of orgs.
+    emp::Ptr<emp::DataLayout> data_layout_ptr = nullptr; 
+
+    /// Organism to fill in empty cells (does have data map!)
+    emp::Ptr<Organism> empty_org = nullptr; 
 
     std::function<OrgPosition(Organism &, OrgPosition)> place_birth_fun;
     std::function<OrgPosition(Organism &)> place_inject_fun;
@@ -123,6 +127,17 @@ namespace mabe {
     int GetID() const noexcept override { return pop_id; }
     size_t GetSize() const noexcept override { return orgs.size(); }
     size_t GetNumOrgs() const noexcept { return num_orgs; }
+    bool IsEmpty() const noexcept override { return num_orgs == 0; }
+
+    bool HasDataLayout() const { return data_layout_ptr; }
+    emp::DataLayout & GetDataLayout() noexcept { 
+      emp_assert(HasDataLayout());
+      return *data_layout_ptr;
+    }
+    const emp::DataLayout & GetDataLayout() const noexcept {
+      emp_assert(HasDataLayout());
+      return *data_layout_ptr;
+    }
 
     bool IsValid(size_t pos) const { return pos < orgs.size(); }
     bool IsEmpty(size_t pos) const { return IsValid(pos) && orgs[pos]->IsEmpty(); }
@@ -160,6 +175,9 @@ namespace mabe {
       emp_assert(!org_ptr->IsEmpty());  // Use ExtractOrg if you want to make a cell empty.
       orgs[pos] = org_ptr;
       org_ptr->SetPopulation(*this);
+      if (!data_layout_ptr) data_layout_ptr = &org_ptr->GetDataMap().GetLayout();
+      // @CAO If an organism with the wrong data map type is added, should throw a USER error.
+      emp_assert( &org_ptr->GetDataMap().GetLayout() == data_layout_ptr );
       num_orgs++;
     }
 
