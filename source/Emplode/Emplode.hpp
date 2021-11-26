@@ -231,6 +231,14 @@ namespace emplode {
       return symbol_table.AddType<EXTRA_Ts...>( std::forward<ARG_Ts>(args)... );
     }
 
+    TypeInfo & GetType(const std::string & type_name) {
+      return symbol_table.GetType(type_name);
+    }
+
+    const TypeInfo & GetType(const std::string & type_name) const {
+      return symbol_table.GetType(type_name);
+    }
+
     /// To add a built-in function (at the root level) provide it with a name and description.
     /// As long as the function only requires types known to the config system, it should be
     /// converted properly.  For a variadic function, the provided function must take a
