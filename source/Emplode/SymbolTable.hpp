@@ -67,6 +67,18 @@ namespace emplode {
     bool HasType(const std::string & name) const { return emp::Has(type_map, name); }
     bool HasTypeID(emp::TypeID id) const { return emp::Has(typeid_map, id); }
 
+    TypeInfo & GetType(const std::string & type_name) {
+      auto type_it = type_map.find(type_name);
+      emp_assert(type_it != type_map.end(), "Type name not found in symbol table.", type_name);
+      return *(type_it->second);
+    }
+
+    const TypeInfo & GetType(const std::string & type_name) const {
+      auto type_it = type_map.find(type_name);
+      emp_assert(type_it != type_map.end(), "Type name not found in symbol table.", type_name);
+      return *(type_it->second);
+    }
+
     /// To add a built-in function (at the root level) provide it with a name and description.
     /// As long as the function only requires types known to the config system, it should be
     /// converted properly.  For a variadic function, the provided function must take a
