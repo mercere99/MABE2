@@ -16,6 +16,7 @@
 #include "emp/base/Ptr.hpp"
 #include "emp/base/vector.hpp"
 
+#include "ErrorManager.hpp"
 #include "ModuleBase.hpp"
 #include "Population.hpp"
 #include "SigListener.hpp"
@@ -29,6 +30,12 @@ namespace mabe {
 
   class MABEBase {
   protected:
+    ErrorManager error_man;  ///< Manage warnings and errors that occur.
+    bool exit_now=false;     ///< Do we need to immediately clean up and exit the run?
+    emp::Random random;      ///< Master random number generator
+    size_t update = 0;       ///< How many times has Update() been called?
+    bool verbose = false;    ///< Should we output extra information during setup?
+
     /// Maintain a master array of pointers to all SigListeners.
     using sig_base_t = SigListenerBase<ModuleBase>;
     emp::array< emp::Ptr<sig_base_t>, (size_t) ModuleBase::NUM_SIGNALS > sig_ptrs;
@@ -81,7 +88,9 @@ namespace mabe {
 
     // Protected constructor so that base class cannot be instantiated except from derived class.
     MABEBase()
-    : before_update_sig("before_update", ModuleBase::SIG_BeforeUpdate, &ModuleBase::BeforeUpdate, sig_ptrs)
+    : error_man( [this](const std::string & msg){ on_error_sig.Trigger(msg); },
+                 [this](const std::string & msg){ on_warning_sig.Trigger(msg); } )
+    , before_update_sig("before_update", ModuleBase::SIG_BeforeUpdate, &ModuleBase::BeforeUpdate, sig_ptrs)
     , on_update_sig("on_update", ModuleBase::SIG_OnUpdate, &ModuleBase::OnUpdate, sig_ptrs)
     , before_repro_sig("before_repro", ModuleBase::SIG_BeforeRepro, &ModuleBase::BeforeRepro, sig_ptrs)
     , on_offspring_ready_sig("on_offspring_ready", ModuleBase::SIG_OnOffspringReady, &ModuleBase::OnOffspringReady, sig_ptrs)
@@ -102,6 +111,31 @@ namespace mabe {
     { ;  }
 
   public:
+    virtual ~MABEBase() { }
+
+    bool SetupBase() {
+      error_man.Activate();
+      return (error_man.GetNumErrors() == 0);  // Only return success if there were no errors.
+    }
+
+    // --- Basic accessors ---
+    emp::Random & GetRandom() { return random; }
+    size_t GetUpdate() const noexcept { return update; }
+    bool GetVerbose() const { return verbose; }
+
+    /// Provide an interface for reporting warnings.
+    template <typename... Ts>
+    void AddWarning(Ts &&... args) { error_man.AddWarning(std::forward<Ts>(args)...); }
+
+    /// Provide an interface for reporting errors.
+    template <typename... Ts>
+    void AddError(Ts &&... args) { error_man.AddError(std::forward<Ts>(args)...); }
+
+    /// Access the full error manager.
+    ErrorManager & GetErrorManager() { return error_man; }
+
+    /// Trigger exit from run.
+    void RequestExit() { exit_now = true; }
 
     /// Setup signals to be rescanned; call this if any signal is updated in a module.
     void RescanSignals() { rescan_signals = true; }
@@ -167,6 +201,13 @@ namespace mabe {
       on_pop_resize_sig.Trigger(pop, pop.GetSize()-1);
       return it;
     }
+
+    // Interface function for MABEScript
+    virtual size_t GetRandomSeed() const = 0;
+    virtual void SetRandomSeed(size_t in_seed) = 0;
+    virtual Population & AddPopulation(const std::string & name, size_t pop_size=0) = 0;
+    virtual void CopyPop(const Population & from_pop, Population & to_pop) = 0;
+    virtual void MoveOrgs(Population & from_pop, Population & to_pop, bool reset_to) = 0;
   };
 }
 
