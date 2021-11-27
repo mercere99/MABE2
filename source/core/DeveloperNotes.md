@@ -19,6 +19,8 @@ Organism.hpp        - Information about a single agent; ModuleBase is interface 
 OrgIterator.hpp     - Tools for identifying organism locations and stepping through sets of them.
 Population.hpp      - Collection of Organisms (some of which could be EmptyOrganisms)
 Collection.hpp      - A more flexible collection of organisms or whole populations for manipulation.
+MABEBase.hpp        - Handles restricted core MABE functionality and provides interface to MABEScript
+MABEScript.hpp      - Builds on Emplode to provide the full MABE scripting language.
 MABE.hpp            - Main controller object; manipulates Populations and Organisms
 Module.hpp          - Modify main MABE controller functions.
 FactoryModule.hpp   - Framework to build specialty modules that manage other config objects.
