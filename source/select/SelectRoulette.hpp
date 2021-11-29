@@ -20,11 +20,32 @@ namespace mabe {
   /// Add roulette selection with the current population.
   class SelectRoulette : public Module {
   private:
-    std::string fitness_trait="fitness";  ///< Which trait should we select on?
-    size_t select_count=1;                ///< How many times to run roulette?
-    size_t copy_count=1;                  ///< How many copies of each should we make?
-    int select_pop_id = 0;                ///< Which population are we selecting from?
-    int birth_pop_id = 1;                 ///< Which population should births go into?
+    std::string fit_equation;    ///< Which equation should we select on?
+
+    Collection Select(Population & select_pop, Population & birth_pop, size_t num_births) {
+      if (select_pop.GetID() == birth_pop.GetID()) {
+        AddError("Birth_pop and select_pop must be different.");
+        return;
+      }
+
+      auto fit_fun = control.BuildTraitEquation(select_pop, fit_equation);
+
+      emp::IndexMap fit_map(select_pop.GetSize(), 0.0);
+      for (size_t org_pos = 0; org_pos < select_pop.GetSize(); org_pos++) {
+        if (select_pop.IsEmpty(org_pos)) continue;
+        fit_map[org_pos] = fit_fun(select_pop[org_pos]);
+      }
+
+      // Loop through picking IDs proportional to fitness_trait, replicating each
+      emp::Random & random = control.GetRandom();
+      Collection placement_list;
+      for (size_t birth_id = 0; birth_id < num_births; birth_id++) {
+        size_t org_id = fit_map.Index( random.GetDouble(fit_map.GetWeight()) );
+        placement+list += control.Replicate(select_pop.IteratorAt(org_id), birth_pop);
+      }
+
+      return placement_list;
+    }
 
   public:
     SelectRoulette(
@@ -37,39 +58,24 @@ namespace mabe {
     } 
     ~SelectRoulette() { }
 
+    // Setup member functions associated with this class.
+    static void InitType(emplode::TypeInfo & info) {
+      info.AddMemberFunction(
+        "SELECT",
+        [](SelectRoulette & mod, Population & from, Population & to, double count) {
+          return mod.Select(from,to,count);
+        },
+        "Perform roulette selection on the provided organisms.");
+    }
+
     void SetupConfig() override {
-      LinkPop(select_pop_id, "select_pop", "Which population should we select parents from?");
-      LinkPop(birth_pop_id, "birth_pop", "Which population should births go into?");
-      LinkVar(select_count, "select_count", "How many organisms should we choose to replicate?");
-      LinkVar(copy_count, "copy_count", "Number of copies to make of replicated organisms");
-      LinkVar(fitness_trait, "fitness_trait", "Which trait provides the fitness value to use?");
+      LinkVar(fit_equation, "fitness_fun", "Function used as fitness for selection?");
     }
 
     void SetupModule() override {
-      AddRequiredTrait<double>(fitness_trait);  ///< The fitness trait must be set by another module.
+      AddRequiredEquation(fit_equation);   // The fitness traits must be set by another module.
     }
 
-    void OnUpdate(size_t /* update */) override {
-      if (select_pop_id == birth_pop_id) {
-        AddError("For now, birth_pop and select_pop must be different.");
-        return;
-      }
-
-      Population & select_pop = control.GetPopulation(select_pop_id);
-      emp::IndexMap fit_map(select_pop.GetSize(), 0.0);
-      for (size_t org_pos = 0; org_pos < select_pop.GetSize(); org_pos++) {
-        if (select_pop.IsEmpty(org_pos)) continue;
-        fit_map[org_pos] = select_pop[org_pos].GetTrait<double>(fitness_trait);
-      }
-
-      // Loop through picking IDs proportional to fitness_trait, replicating each
-      Population & birth_pop = control.GetPopulation(birth_pop_id);
-      emp::Random & random = control.GetRandom();
-      for (size_t num_reps = 0; num_reps < select_count; num_reps++) {
-        size_t org_id = fit_map.Index( random.GetDouble(fit_map.GetWeight()) );
-        control.Replicate(select_pop.IteratorAt(org_id), birth_pop, copy_count);
-      }
-    }
   };
 
   MABE_REGISTER_MODULE(SelectRoulette, "Randomly choose organisms to replicate weighted by fitness.");
