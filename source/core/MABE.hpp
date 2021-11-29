@@ -282,8 +282,15 @@ namespace mabe {
     // --- Deal with Organism TRAITS ---
     TraitManager<ModuleBase> & GetTraitManager() { return trait_man; }
 
+    /// Build a lambda function that takes an organism applied the provided equation to it.
+    /// (The provided data layout must match that or the organisms.)
     auto BuildTraitEquation(const emp::DataLayout & data_layout, const std::string & equation) {
       return config_script.BuildTraitEquation(data_layout, equation);
+    }
+
+    /// Build a trait equations for organisms in a given population.
+    auto BuildTraitEquation(const Population & pop, const std::string & equation) {
+      return BuildTraitEquation(pop.GetDataLayout(), equation);
     }
 
     const std::set<std::string> & GetEquationTraits(const std::string & equation) {
