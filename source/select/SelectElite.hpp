@@ -24,7 +24,7 @@ namespace mabe {
     size_t top_count=1;          ///< Top how-many should we select?
 
     Collection Select(Population & select_pop, Population & birth_pop, size_t num_births) {
-      auto fit_fun = control.BuildTraitEquation(fit_equation);
+      auto fit_fun = control.BuildTraitEquation(select_pop, fit_equation);
 
       // Construct a map of all IDs to their associated fitness values.
       emp::valsort_map<OrgPosition, double> id_fit_map;  // @CAO: Better to use a heap?
@@ -70,7 +70,7 @@ namespace mabe {
     }
 
     void SetupModule() override {
-      AddRequiredEquation(fit_equation); ///< The fitness traits must be set by another module.
+      AddRequiredEquation(fit_equation);   // The fitness traits must be set by another module.
     }
   };
 

@@ -31,7 +31,7 @@ namespace mabe {
       }
 
       // Setup the fitness function - redo this each time in case it changes.
-      auto fit_fun = control.BuildTraitEquation(fit_equation);
+      auto fit_fun = control.BuildTraitEquation(select_pop, fit_equation);
 
       // Track where all organisms are placed.
       Collection placement_list;
