@@ -44,10 +44,23 @@ max_file.ADD_COLUMN( "Genome", "best_org.TRAIT('bits')" );
 
 // Actions to perform every update.
 @update(0,1) {
+  // @update(Value update) {
+  // IF ([10:10].HAS(update)) EXIT();
+
   eval_nk.EVAL(main_pop);
+  Value mode_fit = main_pop.CALC_MODE("fitness");
+  OrgList list_less = main_pop.FILTER("fitness < ${mode_fit}");
+  OrgList list_equ  = main_pop.FILTER("fitness == ${mode_fit}");
+  OrgList list_gtr  = main_pop.FILTER("fitness > ${mode_fit}");
   PRINT("UD:", GET_UPDATE(),
-        " Main pop size=", main_pop.SIZE(),
-        " Max Fitness=", main_pop.CALC_MAX("fitness"));
+        "  MainPopSize=", main_pop.SIZE(),
+        "  AveFitness=", main_pop.CALC_MEAN("fitness"),
+        "  MaxFitness=", main_pop.CALC_MAX("fitness"),
+        "  ModeFitness=", mode_fit,
+        "\nMODE_LESS=", list_less.SIZE(),
+        "  MODE_EQU=", list_equ.SIZE(),
+        "  MODE_GTR=", list_gtr.SIZE(),
+       );
   fit_file.WRITE();
   max_file.WRITE();
 
