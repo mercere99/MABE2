@@ -24,8 +24,8 @@ namespace mabe {
 
     Collection Select(Population & select_pop, Population & birth_pop, size_t num_births) {
       if (select_pop.GetID() == birth_pop.GetID()) {
-        AddError("Birth_pop and select_pop must be different.");
-        return;
+        AddError("SelectRoulette currently requires birth_pop and select_pop to be different.");
+        return Collection{};
       }
 
       auto fit_fun = control.BuildTraitEquation(select_pop, fit_equation);
@@ -41,7 +41,7 @@ namespace mabe {
       Collection placement_list;
       for (size_t birth_id = 0; birth_id < num_births; birth_id++) {
         size_t org_id = fit_map.Index( random.GetDouble(fit_map.GetWeight()) );
-        placement+list += control.Replicate(select_pop.IteratorAt(org_id), birth_pop);
+        placement_list += control.Replicate(select_pop.IteratorAt(org_id), birth_pop);
       }
 
       return placement_list;
