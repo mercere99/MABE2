@@ -16,7 +16,6 @@
 #include "evaluate/static/EvalRoyalRoad.hpp"
 
 // Interface Modules
-#include "interface/CommandLine.hpp"
 
 // Placement Modules
 
