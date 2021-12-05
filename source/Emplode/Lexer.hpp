@@ -17,11 +17,12 @@ namespace emplode {
 
   class Lexer : public emp::Lexer {
   private:
-    int token_identifier = -1;        ///< Token id for identifiers
-    int token_number = -1;            ///< Token id for literal numbers
-    int token_string = -1;            ///< Token id for literal strings
-    int token_dots = -1;              ///< Token id for a series of dots (...)
-    int token_symbol = -1;            ///< Token id for other symbols
+    int token_keyword = -1;        ///< Token id for "IF", "WHILE", and other keywords
+    int token_identifier = -1;     ///< Token id for identifiers
+    int token_number = -1;         ///< Token id for literal numbers
+    int token_string = -1;         ///< Token id for literal strings
+    int token_dots = -1;           ///< Token id for a series of dots (...)
+    int token_symbol = -1;         ///< Token id for other symbols
 
   public:
     Lexer() {
@@ -29,6 +30,14 @@ namespace emplode {
       IgnoreToken("Whitespace", "[ \t\n\r]+");
       IgnoreToken("//-Comments", "//.*");
       IgnoreToken("/*...*/-Comments", "/[*]([^*]|([*]+[^*/]))*[*]+/");
+
+      // Keywords have top priority, especially over identifiers.   Most are simply reserved words.
+      token_keyword = AddToken("Keyword",
+        "(AND)|(AUTO)|(BREAK)|(CASE)|(CAST)|(CATCH)|(CLASS)|(CONST)|(CONTINUE)|(DEBUG)"
+        "|(DEFAULT)|(DEFINE)|(DELETE)|(DO)|(ELSE)|(EVENT)|(FALSE)|(FOR)|(FOREACH)"
+        "|(FUN)|(GOTO)|(IF)|(INCLUDE)|(MUTABLE)|(NAMESPACE)|(NEW)|(OR)|(PRIVATE)"
+        "|(PROTECTED)|(PUBLIC)|(RETURN)|(STATIC)|(SWITCH)|(TEMPLATE)|(THIS)"
+        "|(THROW)|(TRIGGER)|(TRUE)|(TRY)|(TYPE)|(UNION)|(USING)|(WHILE)|(YIELD)");
 
       // Meaningful tokens have next priority.
       token_identifier = AddToken("Identifier", "[a-zA-Z_][a-zA-Z0-9_]*");
