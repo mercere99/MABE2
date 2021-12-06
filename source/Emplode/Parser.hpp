@@ -170,11 +170,8 @@ namespace emplode {
       return *out_symbol;
     }
 
-    Symbol_StringVar & AddStringVar(const std::string & name, const std::string & desc) {
-      return GetScope().AddStringVar(name, desc);
-    }
-    Symbol_DoubleVar & AddValueVar(const std::string & name, const std::string & desc) {
-      return GetScope().AddValueVar(name, desc);
+    Symbol_Var & AddLocalVar(const std::string & name, const std::string & desc) {
+      return GetScope().AddLocalVar(name, desc);
     }
     Symbol_Scope & AddScope(const std::string & name, const std::string & desc) {
       return GetScope().AddScope(name, desc);
@@ -491,15 +488,8 @@ namespace emplode {
     state.RequireID("Type name '", type_name, "' must be followed by variable to declare.");
     std::string var_name = state.UseLexeme();
 
-    if (type_name == "String") {
-      return state.AddStringVar(var_name, "Local string variable.");
-    }
-    else if (type_name == "Value") {
-      return state.AddValueVar(var_name, "Local value variable.");
-    }
-    else if (type_name == "Struct") {
-      return state.AddScope(var_name, "Local struct");
-    }
+    if (type_name == "Var") return state.AddLocalVar(var_name, "Local variable.");
+    else if (type_name == "Struct") return state.AddScope(var_name, "Local struct");
 
     // Otherwise we have an object of a custom type to add.
     Debug("Building object '", var_name, "' of type '", type_name, "'");
