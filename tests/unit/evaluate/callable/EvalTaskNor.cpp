@@ -3,8 +3,8 @@
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
  *  @date 2019-2021.
  *
- *  @file EvalTaskAnd.cpp 
- *  @brief Test file for the AND boolean logic task that is called via IO instruction
+ *  @file EvalTaskNor.cpp 
+ *  @brief Test file for the NOR boolean logic task that is called via IO instruction
  */
 
 // [X] Constructor
@@ -22,23 +22,24 @@
 // Empirical tools
 #include "emp/base/assert.hpp"
 // MABE
-#include "evaluate/callable/EvalTaskAnd.hpp"
+#include "evaluate/callable/EvalTaskNor.hpp"
 
-TEST_CASE("EvalTaskAnd", "[evaluate/callable]"){
+TEST_CASE("EvalTaskNor", "[evaluate/callable]"){
   using org_t = mabe::VirtualCPUOrg;
   using inst_t = mabe::VirtualCPUOrg::inst_t;
   using data_t = mabe::VirtualCPUOrg::data_t;
 
   mabe::MABE control = mabe::MABE(0, NULL);
   control.AddPopulation("fake pop"); 
-  mabe::EvalTaskAnd task(control);
+  mabe::EvalTaskNor task(control);
 
   // Test evaluation on easy numbers
-  CHECK(task.CheckTwoArg(0, 0, 1));
-  CHECK(task.CheckTwoArg(0, 2, 1));
-  CHECK(task.CheckTwoArg(1, 3, 1));
-  CHECK(task.CheckTwoArg(1, 5, 1));
-  CHECK(task.CheckTwoArg(1, 5, 3));
+  CHECK(task.CheckTwoArg(~0, 0, 0));
+  CHECK(task.CheckTwoArg(~1, 0, 1));
+  CHECK(task.CheckTwoArg(~3, 2, 1));
+  CHECK(task.CheckTwoArg(~3, 3, 1));
+  CHECK(task.CheckTwoArg(~5, 5, 1));
+  CHECK(task.CheckTwoArg(~7, 5, 3));
 
   // Create a more complicated testing environment
   mabe::OrganismManager<mabe::VirtualCPUOrg> org_manager(control, "test_manager");
@@ -46,7 +47,7 @@ TEST_CASE("EvalTaskAnd", "[evaluate/callable]"){
   org_manager.AddSharedTrait<emp::vector<data_t>>("input", "input vector", emp::vector<data_t>());
   org_manager.AddSharedTrait<emp::vector<data_t>>("output", "output vector", emp::vector<data_t>());
   org_manager.AddSharedTrait<double>("merit", "merit score", 0);
-  task.AddOwnedTrait<bool>("and_performed", "Was and performed?", false);
+  task.AddOwnedTrait<bool>("nor_performed", "Was and performed?", false);
   control.Setup_Traits();
   control.GetTraitManager().Lock();
   mabe::VirtualCPUOrg org(org_manager);
@@ -73,15 +74,15 @@ TEST_CASE("EvalTaskAnd", "[evaluate/callable]"){
   output_vec.push_back(127);
   action.function_vec[0].Call<void, mabe::VirtualCPUOrg&, const inst_t&>(org, inst);
   CHECK(org.GetTrait<double>("merit") == 0);
-  CHECK(!org.GetTrait<bool>("and_performed"));
+  CHECK(!org.GetTrait<bool>("nor_performed"));
   // Correct answer -> reward
-  output_vec.push_back(35); // 127 AND 35 = 35
+  output_vec.push_back(~127); // 127 NOR 35 = NOT 127 
   action.function_vec[0].Call<void, mabe::VirtualCPUOrg&, const inst_t&>(org, inst);
   CHECK(org.GetTrait<double>("merit") == 1);
-  CHECK(org.GetTrait<bool>("and_performed"));
+  CHECK(org.GetTrait<bool>("nor_performed"));
   // Repeated answer -> no reward
-  output_vec.push_back(12); // 127 AND 12 = 12
+  output_vec.push_back(~47); // 35 NOR 12 = NOT 47
   action.function_vec[0].Call<void, mabe::VirtualCPUOrg&, const inst_t&>(org, inst);
   CHECK(org.GetTrait<double>("merit") == 1);
-  CHECK(org.GetTrait<bool>("and_performed"));
+  CHECK(org.GetTrait<bool>("nor_performed"));
 }

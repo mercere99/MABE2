@@ -1,4 +1,4 @@
-TEST_NAMES= EvalTaskAnd
+TEST_NAMES= EvalTaskNot EvalTaskAnd EvalTaskOr EvalTaskNand EvalTaskXor EvalTaskNor EvalTaskAndnot EvalTaskOrnot EvalTaskEqu
 
 MABE_DIR= ../../../../source
 EMP_DIR= ../../../../source/third-party/empirical
