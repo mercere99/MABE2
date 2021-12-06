@@ -135,13 +135,13 @@ namespace emplode {
 
   // Helper functions for making temporary leaves.
   emp::Ptr<ASTNode_Leaf> MakeTempLeaf(double val) {
-    auto out_ptr = emp::NewPtr<Symbol_DoubleVar>("", val, "Temporary double", nullptr);
+    auto out_ptr = emp::NewPtr<Symbol_Var>("__Temp", val, "Temporary double", nullptr);
     out_ptr->SetTemporary();
     return emp::NewPtr<ASTNode_Leaf>(out_ptr);
   }
 
   emp::Ptr<ASTNode_Leaf> MakeTempLeaf(const std::string & val) {
-    auto out_ptr = emp::NewPtr<Symbol_StringVar>("", val, "Temporary string", nullptr);
+    auto out_ptr = emp::NewPtr<Symbol_Var>("__Temp", val, "Temporary string", nullptr);
     out_ptr->SetTemporary();
     return emp::NewPtr<ASTNode_Leaf>(out_ptr);
   }

@@ -166,13 +166,8 @@ namespace emplode {
     }
 
     /// Add an internal variable of type String.
-    Symbol_StringVar & AddStringVar(const std::string & name, const std::string & desc) {
-      return Add<Symbol_StringVar>(name, "", desc, this);
-    }
-
-    /// Add an internal variable of type Value.
-    Symbol_DoubleVar & AddValueVar(const std::string & name, const std::string & desc) {
-      return Add<Symbol_DoubleVar>(name, 0.0, desc, this);
+    Symbol_Var & AddLocalVar(const std::string & name, const std::string & desc) {
+      return Add<Symbol_Var>(name, 0.0, desc, this);
     }
 
     /// Add an internal scope inside of this one.

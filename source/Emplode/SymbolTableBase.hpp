@@ -43,7 +43,7 @@ namespace emplode {
       if constexpr (std::is_base_of<EmplodeType, T>()) {
         return MakeTempObjSymbol(emp::GetTypeID<T>(), &value);
       } else {
-        auto out_symbol = emp::NewPtr<Symbol_Var<T>>("__Temp", value, "", nullptr);
+        auto out_symbol = emp::NewPtr<Symbol_Var>("__Temp", value, "", nullptr);
         out_symbol->SetTemporary();
         return out_symbol;
       }

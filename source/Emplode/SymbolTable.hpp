@@ -42,14 +42,13 @@ namespace emplode {
       // Initialize the type map.
       type_map["INVALID"] = emp::NewPtr<TypeInfo>( *this, 0, "/*ERROR*/", "Error, Invalid type!" );
       type_map["Void"] = emp::NewPtr<TypeInfo>( *this, 1, "Void", "Non-type variable; no value" );
-      type_map["Value"] = emp::NewPtr<TypeInfo>( *this, 2, "Value", "Numeric variable" );
-      type_map["String"] = emp::NewPtr<TypeInfo>( *this, 3, "String", "String variable" );
-      type_map["Struct"] = emp::NewPtr<TypeInfo>( *this, 4, "Struct", "User-made structure" );
+      type_map["Var"] = emp::NewPtr<TypeInfo>( *this, 2, "Var", "Numeric or String variable" );
+      type_map["Struct"] = emp::NewPtr<TypeInfo>( *this, 3, "Struct", "User-made structure" );
 
       // Those types 
       typeid_map[emp::GetTypeID<void>()] = type_map["Void"];
-      typeid_map[emp::GetTypeID<double>()] = type_map["Value"];
-      typeid_map[emp::GetTypeID<std::string>()] = type_map["String"];      
+      typeid_map[emp::GetTypeID<double>()] = type_map["Var"];
+      typeid_map[emp::GetTypeID<std::string>()] = type_map["Var"];      
 
       file_map.SetOutputDefaultFile();  // Stream manager should default to 'file' output.
     }
