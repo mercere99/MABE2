@@ -229,7 +229,12 @@ namespace emplode {
                                                      emp::Ptr<ASTNode> value2);
 
     /// Calculate a full expression found in a token sequence, using the provided scope.
-    [[nodiscard]] emp::Ptr<ASTNode> ParseExpression(ParseState & state, size_t prec_limit=1000);
+    /// @param state The current start of the parser and input stream
+    /// @param decl_ok Can this expression begin with a declaration of a variable?
+    /// @param prec_limit What is the highest precedence that expression should process?
+    [[nodiscard]] emp::Ptr<ASTNode> ParseExpression(ParseState & state,
+                                                    bool decl_ok=false,
+                                                    size_t prec_limit=1000);
 
     /// Parse the declaration of a variable and return the newly created Symbol
     Symbol & ParseDeclaration(ParseState & state);
@@ -435,11 +440,33 @@ namespace emplode {
   }
                                       
 
-  // Calculate an expression in the provided scope.
-  emp::Ptr<ASTNode> Parser::ParseExpression(ParseState & state, size_t prec_limit) {
-    Debug("Running ParseExpression(", state.AsString(), ", limit=", prec_limit, ")");
+  /// Calculate a full expression found in a token sequence, using the provided scope.
+  /// @param state The current start of the parser and input stream
+  /// @param decl_ok Can this expression begin with a declaration of a variable?
+  /// @param prec_limit What is the highest precedence that expression should process?
 
-    // @CAO Should test for unary operators at the beginning of an expression.
+  emp::Ptr<ASTNode> Parser::ParseExpression(ParseState & state, bool decl_ok, size_t prec_limit) {
+    Debug("Running ParseExpression(", state.AsString(), ", decl_ok=", decl_ok, ", limit=", prec_limit, ")");
+
+    // Allow this statement to be a declaration if it begins with a type.
+    if (decl_ok && state.IsType()) {
+      Symbol & new_symbol = ParseDeclaration(state);
+  
+      // If this symbol is a new scope, it can be populated now either directly (in braces)
+      // or indirectly (with an assignment)
+      if (new_symbol.IsScope()) {
+        if (state.UseIfChar('{')) {
+          state.PushScope(new_symbol.AsScope());
+          emp::Ptr<ASTNode> out_node = ParseStatementList(state);
+          state.PopScope();
+          state.UseRequiredChar('}', "Expected scope '", new_symbol.GetName(), "' to end with a '}'.");
+          return out_node;
+        }
+      }      
+
+      // Otherwise rewind so that the new variable can be used to start an expression.
+      --state;
+    }
 
     /// Process a value (and possibly more!)
     emp::Ptr<ASTNode> cur_node = ParseValue(state);
@@ -469,7 +496,7 @@ namespace emplode {
 
       // Otherwise we must have a binary math operation.
       else {
-        emp::Ptr<ASTNode> node2 = ParseExpression(state, precedence_map[op]);
+        emp::Ptr<ASTNode> node2 = ParseExpression(state, false, precedence_map[op]);
         cur_node = ProcessOperation(op_token, cur_node, node2);
       }
 
@@ -562,36 +589,8 @@ namespace emplode {
       }
     }
 
-    // Allow this statement to be a declaration if it begins with a type.
-    if (state.IsType()) {
-      Symbol & new_symbol = ParseDeclaration(state);
-  
-      // If the next symbol is a ';' this is a declaration without an assignment.
-      if (state.UseIfChar(';')) return nullptr;  // We are done!
-
-      // If this symbol is a new scope, it can be populated now either directly (with in braces)
-      // or indirectly (with and assignment)
-      if (new_symbol.IsScope()) {
-        if (state.UseIfChar('{')) {
-          state.PushScope(new_symbol.AsScope());
-          emp::Ptr<ASTNode> out_node = ParseStatementList(state);
-          state.PopScope();
-          state.UseRequiredChar('}', "Expected scope '", new_symbol.GetName(), "' to end with a '}'.");
-          return out_node;
-        }
-
-        state.RequireChar('=', "Expected scope '", new_symbol.GetName(),
-                     "' definition to start with a '{' or '='; found ''", state.AsLexeme(), "'.");
-        
-      }      
-
-      // Otherwise rewind so that the new variable can be used to start an expression.
-      --state;
-    }
-
-
-    // If we made it here, remainder should be an expression.
-    emp::Ptr<ASTNode> out_node = ParseExpression(state);
+    // If we made it here, remainder should be an expression; it may begin with a declaration.
+    emp::Ptr<ASTNode> out_node = ParseExpression(state, true);
 
     // Expressions must end in a semi-colon.
     state.UseRequiredChar(';', "Expected ';' at the end of a statement; found: ", state.AsLexeme());
