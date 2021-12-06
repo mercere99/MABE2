@@ -46,9 +46,6 @@ namespace emplode {
     }
 
     bool IsNumeric() const override { return std::is_scalar_v<T>; }
-    bool IsBool() const override { return std::is_same<bool, T>(); }
-    bool IsInt() const override { return std::is_same<int, T>(); }
-    bool IsDouble() const override { return std::is_same<double, T>(); }
 
     bool CopyValue(const Symbol & in) override { var = in.AsDouble(); return true; }
   };
@@ -114,9 +111,6 @@ namespace emplode {
     }
 
     bool IsNumeric() const override { return std::is_scalar_v<T>; }
-    bool IsBool() const override { return std::is_same<bool, T>(); }
-    bool IsInt() const override { return std::is_same<int, T>(); }
-    bool IsDouble() const override { return std::is_same<double, T>(); }
     bool IsString() const override { return std::is_same<std::string, T>(); }
 
     bool CopyValue(const Symbol & in) override { SetString( in.AsString() ); return true; }

@@ -102,9 +102,6 @@ namespace emplode {
     virtual std::string GetTypename() const = 0;       ///< Derived classes must provide type info.
 
     virtual bool IsNumeric() const { return false; }   ///< Is symbol any kind of number?
-    virtual bool IsBool() const { return false; }      ///< Is symbol a Boolean value?
-    virtual bool IsDouble() const { return false; }    ///< Is symbol a floting point value?
-    virtual bool IsInt() const { return false; }       ///< Is symbol a integer value?
     virtual bool IsString() const { return false; }    ///< Is symbol a string?
 
     virtual bool IsError() const { return false; }     ///< Does symbol flag an error?
@@ -337,10 +334,6 @@ namespace emplode {
     }
 
     bool IsNumeric() const override { return std::is_scalar_v<T>; }
-    bool IsBool() const override { return std::is_same<bool, T>(); }
-    bool IsInt() const override { return std::is_same<int, T>(); }
-    bool IsDouble() const override { return std::is_same<double, T>(); }
-
     bool IsLocal() const override { return true; }
 
     bool CopyValue(const Symbol & in) override { SetValue(in.AsDouble()); return true; }
