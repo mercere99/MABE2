@@ -300,74 +300,57 @@ namespace emplode {
 
   };
 
-  /// A generic version of a symbol for an internally maintained variable.
-  template <typename T>
+  /// A symbol for an internally maintained variable.
   class Symbol_Var : public Symbol {
   private:
-    T value = 0;
+    double num_value = 0.0;
+    std::string str_value = "";
+    bool is_num = true;
   public:
-    static_assert(std::is_arithmetic<T>(), "Symbol_Var must use std::string or arithmetic values.");
-
-    using this_t = Symbol_Var<T>;
-
-    template <typename... ARGS>
     Symbol_Var(const std::string & in_name,
-                    T default_val,
-                    const std::string & in_desc="",
-                    emp::Ptr<Symbol_Scope> in_scope=nullptr)
-      : Symbol(in_name, in_desc, in_scope), value(default_val) { ; }
-    Symbol_Var(const Symbol_Var<T> &) = default;
+               double default_val,
+               const std::string & in_desc="",
+               emp::Ptr<Symbol_Scope> in_scope=nullptr)
+      : Symbol(in_name, in_desc, in_scope), num_value(default_val), is_num(true) { ; }
+    Symbol_Var(const std::string & in_name,
+               const std::string & default_val,
+               const std::string & in_desc="",
+               emp::Ptr<Symbol_Scope> in_scope=nullptr)
+      : Symbol(in_name, in_desc, in_scope), str_value(default_val), is_num(false) { ; }
+    Symbol_Var(const Symbol_Var &) = default;
 
-    std::string GetTypename() const override {
-      if constexpr (std::is_scalar_v<T>) return "Value";
-      else return "Illegal type as Symbol_Var";
+    std::string GetTypename() const override { return "Var"; }
+
+    symbol_ptr_t Clone() const override { return emp::NewPtr<Symbol_Var>(*this); }
+
+    double AsDouble() const override {
+      return is_num ? num_value : emp::from_string<double>(str_value);
     }
-
-    symbol_ptr_t Clone() const override { return emp::NewPtr<this_t>(*this); }
-
-    double AsDouble() const override { return (double) value; }
-    std::string AsString() const override { return emp::to_string(value); }
-    Symbol & SetValue(double in) override { value = (T) in; return *this; }
+    std::string AsString() const override {
+      return is_num ? emp::to_string(num_value) : str_value;
+    }
+    Symbol & SetValue(double in) override {
+      num_value = in;
+      is_num = true;
+      return *this;
+    }
     Symbol & SetString(const std::string & in) override {
-      value = emp::from_string<T>(in);
+      str_value = in;
+      is_num = false;
       return *this;
     }
 
-    bool IsNumeric() const override { return std::is_scalar_v<T>; }
+    bool IsNumeric() const override { return is_num; }
+    bool IsString() const override { return !is_num; }
     bool IsLocal() const override { return true; }
 
-    bool CopyValue(const Symbol & in) override { SetValue(in.AsDouble()); return true; }
+    bool CopyValue(const Symbol & in) override {
+      if (in.IsNumeric()) SetValue(in.AsDouble());
+      else SetString(in.AsString());
+      return true;
+    }
   };
-  using Symbol_DoubleVar = Symbol_Var<double>;
 
-  /// Symbol as a temporary variable of type STRING.
-  template<>
-  class Symbol_Var<std::string> : public Symbol {
-  private:
-    std::string value;
-  public:
-    using this_t = Symbol_Var<std::string>;
-
-    template <typename... ARGS>
-    Symbol_Var(const std::string & in_name, const std::string & in_val, ARGS &&... args)
-      : Symbol(in_name, std::forward<ARGS>(args)...), value(in_val) { ; }
-    Symbol_Var(const Symbol_Var<std::string> &) = default;
-
-    std::string GetTypename() const override { return "String"; }
-
-    symbol_ptr_t Clone() const override { return emp::NewPtr<this_t>(*this); }
-
-    double AsDouble() const override { return emp::from_string<double>(value); }
-    std::string AsString() const override { return value; }
-    Symbol & SetValue(double in) override { value = emp::to_string(in); return *this; }
-    Symbol & SetString(const std::string & in) override { value = in; return *this; }
-
-    bool IsString() const override { return true; }
-    bool IsLocal() const override { return true; }
-
-    bool CopyValue(const Symbol & in) override { value = in.AsString(); return true; }
-  };
-  using Symbol_StringVar = Symbol_Var<std::string>;
 
   /// A Symbol to transmit an error due to invalid parsing.
   /// The description provides the error and the IsError() flag is set to true.
