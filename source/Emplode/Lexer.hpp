@@ -33,9 +33,11 @@ namespace emplode {
 
       // Keywords have top priority, especially over identifiers.   Most are simply reserved words.
       token_keyword = AddToken("Keyword",
-        "(AND)|(AUTO)|(BREAK)|(CASE)|(CAST)|(CATCH)|(CLASS)|(CONST)|(CONTINUE)|(DEBUG)"
-        "|(DEFAULT)|(DEFINE)|(DELETE)|(DO)|(ELSE)|(EVENT)|(FALSE)|(FOR)|(FOREACH)"
-        "|(FUN)|(GOTO)|(IF)|(INCLUDE)|(MUTABLE)|(NAMESPACE)|(NEW)|(OR)|(PRIVATE)"
+        "(ELSE)|(IF)"
+        // Reserved keywords below.
+        "|(AND)|(AUTO)|(BREAK)|(CASE)|(CAST)|(CATCH)|(CLASS)|(CONST)|(CONTINUE)|(DEBUG)"
+        "|(DEFAULT)|(DEFINE)|(DELETE)|(DO)|(EVENT)|(FALSE)|(FOR)|(FOREACH)"
+        "|(FUN)|(GOTO)|(INCLUDE)|(MUTABLE)|(NAMESPACE)|(NEW)|(OR)|(PRIVATE)"
         "|(PROTECTED)|(PUBLIC)|(RETURN)|(STATIC)|(SWITCH)|(TEMPLATE)|(THIS)"
         "|(THROW)|(TRIGGER)|(TRUE)|(TRY)|(TYPE)|(UNION)|(USING)|(WHILE)|(YIELD)");
 
@@ -50,6 +52,7 @@ namespace emplode {
       token_symbol = AddToken("Symbol", ".|\"::\"|\"==\"|\"!=\"|\"<=\"|\">=\"|\"->\"|\"&&\"|\"||\"|\"<<\"|\">>\"|\"++\"|\"--\"|\"**\"");
     }
 
+    bool IsKeyword(const emp::Token token) const noexcept { return token.token_id == token_keyword; }
     bool IsID(const emp::Token token) const noexcept { return token.token_id == token_identifier; }
     bool IsNumber(const emp::Token token) const noexcept { return token.token_id == token_number; }
     bool IsString(const emp::Token token) const noexcept { return token.token_id == token_string; }
