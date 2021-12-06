@@ -78,6 +78,7 @@ namespace emplode {
                             "']");
     }
 
+    bool IsKeyword() const { return pos && lexer->IsKeyword(*pos); }    
     bool IsID() const { return pos && lexer->IsID(*pos); }
     bool IsNumber() const { return pos && lexer->IsNumber(*pos); }
     bool IsString() const { return pos && lexer->IsString(*pos); }
@@ -100,6 +101,13 @@ namespace emplode {
       const std::string & out = AsLexeme();
       pos++;
       return out;
+    }
+
+    /// Return whether the current token is the specified lexeme; if so also advance token stream.
+    bool UseIfLexeme(const std::string & test_str) {
+      if (AsLexeme() != test_str) return false;
+      ++pos;
+      return true;
     }
 
     /// Return whether the current token is the specified char; if so also advance token stream.
@@ -548,6 +556,21 @@ namespace emplode {
 
     // Allow event definitions if a statement begins with an '@'
     if (state.AsChar() == '@') return ParseEvent(state);
+
+    // Allow select commands that are only possible at the full statement level (not expressions)
+    if (state.IsKeyword()) {
+      size_t keyword_line = state.GetLine();
+
+      if (state.UseIfLexeme("IF")) {
+        state.UseRequiredChar('(', "Expected '(' to begin IF test condition.");
+        emp::Ptr<ASTNode> test_node = ParseExpression(state);
+        state.UseRequiredChar(')', "Expected ')' to end IF test condition.");
+        emp::Ptr<ASTNode> true_node = ParseStatement(state);
+        emp::Ptr<ASTNode> else_node = nullptr;
+        if (state.UseIfLexeme("ELSE")) else_node = ParseStatement(state);
+        return emp::NewPtr<ASTNode_If>(test_node, true_node, else_node, keyword_line);
+      }
+    }
 
     // Allow this statement to be a declaration if it begins with a type.
     if (state.IsType()) {
