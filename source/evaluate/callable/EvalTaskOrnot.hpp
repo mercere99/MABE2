@@ -28,7 +28,7 @@ namespace mabe {
     ~EvalTaskOrnot() { }
 
     
-    bool CheckTwoArg(data_t& output, data_t& input_a, data_t& input_b){
+    bool CheckTwoArg(const data_t& output, const data_t& input_a, const data_t& input_b){
       return (output == (input_a | ~input_b)) || (output == (input_b | ~input_a));
     }
   };

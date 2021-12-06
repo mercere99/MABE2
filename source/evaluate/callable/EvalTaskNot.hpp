@@ -24,7 +24,7 @@ namespace mabe {
                   const std::string & desc="Evaluate organism on NOT logic task")
       : EvalTaskBase(control, name, "not", 1, desc){;}
 
-    bool CheckOneArg(data_t& output, data_t& input){
+    bool CheckOneArg(const data_t& output, const data_t& input){
       return output == ~input;
     }
   };

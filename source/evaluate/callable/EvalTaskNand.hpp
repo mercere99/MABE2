@@ -24,7 +24,7 @@ namespace mabe {
                   const std::string & desc="Evaluate organism on NAND logic task")
       : EvalTaskBase(control, name, "nand", 2, desc){;}
 
-    bool CheckTwoArg(data_t& output, data_t& input_a, data_t& input_b){
+    bool CheckTwoArg(const data_t& output, const data_t& input_a, const data_t& input_b){
       return output == ~(input_a & input_b);
     }
   };

@@ -56,11 +56,11 @@ namespace mabe {
       LinkVar(is_multiplicative, "is_multiplicative", "Should reward be multiplied (true) or added(false) to current score?");
     }
    
-    virtual bool CheckOneArg(data_t& output, data_t& input){
+    virtual bool CheckOneArg(const data_t& output, const data_t& input){
       emp_error("Derived EvalTask class did not define CheckOneArg");
     }; 
 
-    virtual bool CheckTwoArg(data_t& output, data_t& input_a, data_t& input_b){ 
+    virtual bool CheckTwoArg(const data_t& output, const data_t& input_a, const data_t& input_b){ 
       emp_error("Derived EvalTask class did not define CheckOneArg");
     }
 
