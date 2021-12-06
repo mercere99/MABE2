@@ -290,12 +290,12 @@ namespace emplode {
 
     // Load the provided statement and run it.
     std::string Execute(std::string_view statement, emp::Ptr<Symbol_Scope> scope=nullptr) {
-      if (!scope) scope = &symbol_table.GetRootScope();     // Default scope to root level.
+      if (!scope) scope = &symbol_table.GetRootScope();        // Default scope to root level.
       auto tokens = lexer.Tokenize(statement, "eval command"); // Convert to a TokenStream.
-      tokens.push_back(lexer.ToToken(";"));                 // Ensure a semi-colon at end.
-      pos_t pos = tokens.begin();                           // Start are beginning of stream.
+      tokens.push_back(lexer.ToToken(";"));                    // Ensure a semi-colon at end.
+      pos_t pos = tokens.begin();                              // Start are beginning of stream.
       ParseState state{pos, symbol_table, symbol_table.GetRootScope(), lexer};
-      auto cur_expr = parser.ParseStatement(state);         // Convert tokens to AST
+      auto cur_expr = parser.ParseStatement(state);            // Convert tokens to AST
 
       // Now place the expression in a temporary block.
       auto cur_block = emp::NewPtr<ASTNode_Block>(symbol_table.GetRootScope(), 0);
