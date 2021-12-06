@@ -273,11 +273,45 @@ namespace emplode {
       if (rhs->IsTemporary()) rhs.Delete();
       return lhs;
     }
+  };
+
+  class ASTNode_If : public ASTNode_Internal {
+  public:
+    ASTNode_If(node_ptr_t test, node_ptr_t true_node, node_ptr_t else_node, int _line=-1) {
+      AddChild(test);
+      AddChild(true_node);
+      if (else_node) AddChild(else_node);
+      line_id = _line;
+    }
+
+    symbol_ptr_t Process() override {
+      symbol_ptr_t test = children[0]->Process();  // Determine the left-hand-side value.
+
+      // Handle TRUE
+      if (test->AsDouble() != 0.0) {
+        symbol_ptr_t result = children[1]->Process();
+        if (result && result->IsTemporary()) result.Delete();
+      }
+
+      // Handle FALSE
+      else if (children.size() > 2) {
+        symbol_ptr_t result = children[2]->Process();
+        if (result && result->IsTemporary()) result.Delete();
+      }
+      
+      if (test->IsTemporary()) test.Delete();
+      return nullptr;
+    }
 
     void Write(std::ostream & os, const std::string & offset) const override { 
+      os << "IF (";
       children[0]->Write(os, offset);
-      os << " = ";
+      os << ") ";
       children[1]->Write(os, offset);
+      if (children.size() > 2) {
+        os << "\n" << offset << "ELSE ";
+        children[2]->Write(os, offset);
+      }
     }
   };
 
