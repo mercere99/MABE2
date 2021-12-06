@@ -242,6 +242,9 @@ namespace emplode {
     /// Parse an event description.
     emp::Ptr<ASTNode> ParseEvent(ParseState & state);
 
+    /// Parse a specialty keyword statement (such as IF, WHILE, etc)
+    emp::Ptr<ASTNode> ParseKeywordStatement(ParseState & state);
+
     /// Parse the next input in the specified Struct.  A statement can be a variable declaration,
     /// an expression, or an event.
     [[nodiscard]] emp::Ptr<ASTNode> ParseStatement(ParseState & state);
@@ -556,6 +559,35 @@ namespace emplode {
     return emp::NewPtr<ASTNode_Event>(event_name, action, args, setup_event, start_token.line_id);
   }
 
+  /// Parse a specialty keyword statement (such as IF, WHILE, etc)
+  emp::Ptr<ASTNode> Parser::ParseKeywordStatement(ParseState & state) {
+    size_t keyword_line = state.GetLine();
+
+    if (state.UseIfLexeme("IF")) {
+      state.UseRequiredChar('(', "Expected '(' to begin IF test condition.");
+      emp::Ptr<ASTNode> test_node = ParseExpression(state);
+      state.UseRequiredChar(')', "Expected ')' to end IF test condition.");
+      emp::Ptr<ASTNode> true_node = ParseStatement(state);
+      emp::Ptr<ASTNode> else_node = nullptr;
+      if (state.UseIfLexeme("ELSE")) else_node = ParseStatement(state);
+      return emp::NewPtr<ASTNode_If>(test_node, true_node, else_node, keyword_line);
+    }
+
+
+    // If we made it this far, we have an error.  Identify and deal with it!
+
+    if (state.UseIfLexeme("ELSE")) {
+      state.Error("'ELSE' must be preceded by an 'IF' statement.");
+    }
+
+    // Unimplemented keyword!
+    else {
+      state.Error("Keyword '", state.AsLexeme(), "' not yet implemented.");
+    }
+
+    return nullptr;
+  }
+
   // Process the next input in the specified Struct.
   emp::Ptr<ASTNode> Parser::ParseStatement(ParseState & state) {
     Debug("Running ParseStatement(", state.AsString(), ")");
@@ -575,19 +607,7 @@ namespace emplode {
     if (state.AsChar() == '@') return ParseEvent(state);
 
     // Allow select commands that are only possible at the full statement level (not expressions)
-    if (state.IsKeyword()) {
-      size_t keyword_line = state.GetLine();
-
-      if (state.UseIfLexeme("IF")) {
-        state.UseRequiredChar('(', "Expected '(' to begin IF test condition.");
-        emp::Ptr<ASTNode> test_node = ParseExpression(state);
-        state.UseRequiredChar(')', "Expected ')' to end IF test condition.");
-        emp::Ptr<ASTNode> true_node = ParseStatement(state);
-        emp::Ptr<ASTNode> else_node = nullptr;
-        if (state.UseIfLexeme("ELSE")) else_node = ParseStatement(state);
-        return emp::NewPtr<ASTNode_If>(test_node, true_node, else_node, keyword_line);
-      }
-    }
+    if (state.IsKeyword()) return ParseKeywordStatement(state);
 
     // If we made it here, remainder should be an expression; it may begin with a declaration.
     emp::Ptr<ASTNode> out_node = ParseExpression(state, true);
