@@ -60,23 +60,19 @@ namespace emplode {
       };
     }
 
-    template <typename RETURN_T>
-    decltype(auto) ConvertReturn( const std::string & fun_name, RETURN_T && return_value ) {
-      constexpr bool is_ref = std::is_lvalue_reference<RETURN_T>();
-      using base_t = std::remove_reference_t<RETURN_T>;
-
-      // if (fun_name == "INJECT") {
-      //   emp_debug("INJECT! Return type=", emp::GetTypeID<RETURN_T>());
-      // }
+    template <typename T>
+    decltype(auto) ValueToSymbol( T && return_value, const std::string & location ) {
+      constexpr bool is_ref = std::is_lvalue_reference<T>();
+      using base_t = std::remove_reference_t<T>;
 
       // If a return value is already a symbol pointer, just pass it through.
-      if constexpr (std::is_same<RETURN_T, symbol_ptr_t>()) {
+      if constexpr (std::is_same<T, symbol_ptr_t>()) {
         return return_value;
       }
 
       // If a return value is a basic type, wrap it in a temporary symbol
-      else if constexpr (std::is_same<RETURN_T, std::string>() ||
-                        std::is_arithmetic<RETURN_T>()) {
+      else if constexpr (std::is_same<T, std::string>() ||
+                        std::is_arithmetic<T>()) {
         return MakeTempSymbol(return_value);
       }
 
@@ -92,8 +88,8 @@ namespace emplode {
 
       // For now these are the only legal return type; raise error otherwise!
       else {
-        std::cerr << "Failed to convert return type for function " << fun_name << std::endl;
-        static_assert(emp::dependent_false<RETURN_T>(),
+        std::cerr << "Failed to convert return type in " << location << std::endl;
+        static_assert(emp::dependent_false<T>(),
                       "Invalid return value in Symbol_Function::SetFunction()");
       }
     }
@@ -109,7 +105,7 @@ namespace emplode {
       static auto ConvertFun([[maybe_unused]] const std::string & name, FUN_T fun, SymbolTableBase & st) {
         return [name=name,fun=fun,&st]([[maybe_unused]] const symbol_vector_t & args) {
           emp_assert(args.size() == 0, "Too many arguments (expected 0)", name, args.size());
-          return st.ConvertReturn( name, fun() );
+          return st.ValueToSymbol( fun(), name );
         };
       }
 
@@ -129,7 +125,7 @@ namespace emplode {
           // just pass it along.
           if constexpr (sizeof...(PARAM_Ts) == 0 &&
                         std::is_same_v<PARAM1_T, const symbol_vector_t &>) {
-            return st.ConvertReturn( name, fun(args) );
+            return st.ValueToSymbol( fun(args), name );
           }
 
           // Otherwise make sure we have the correct arguments.
@@ -143,9 +139,9 @@ namespace emplode {
             }
             //@CAO should collect file position information for the above errors.
 
-            return st.ConvertReturn(
-              name,
-              fun(args[0]->As<PARAM1_T>(), args[INDEX_VALS+1]->template As<PARAM_Ts>()...)
+            return st.ValueToSymbol(
+              fun(args[0]->As<PARAM1_T>(), args[INDEX_VALS+1]->template As<PARAM_Ts>()...),
+              name
             );
           }
         };      
@@ -177,14 +173,14 @@ namespace emplode {
             }
             //@CAO should collect file position information for the above errors.
 
-            return st.ConvertReturn( name, fun(*typed_ptr) );
+            return st.ValueToSymbol( fun(*typed_ptr), name );
           }
 
           // If this function already takes a const symbol_vector_t & as its only extra parameter,
           // just pass it along.
           else if constexpr (sizeof...(PARAM_Ts) == 1 &&
                         std::is_same_v<typename info_t::template arg_t<1>, const symbol_vector_t &>) {
-            return st.ConvertReturn( name, fun(*typed_ptr, args) );
+            return st.ValueToSymbol( fun(*typed_ptr, args), name );
           }
 
           // Otherwise make sure we have the correct arguments.
@@ -198,7 +194,7 @@ namespace emplode {
             }
             //@CAO should collect file position information for the above errors.
 
-            return st.ConvertReturn( name, fun(*typed_ptr, args[INDEX_VALS]->template As<PARAM_Ts>()...) );
+            return st.ValueToSymbol( fun(*typed_ptr, args[INDEX_VALS]->template As<PARAM_Ts>()...), name );
           }
         };
       }
