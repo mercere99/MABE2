@@ -134,6 +134,7 @@ namespace mabe {
       Organism::SetTrait<std::string>(SharedData().genome_name, GetString());
       Organism::SetTrait<double>(SharedData().merit_name, SharedData().initial_merit); 
       Organism::SetTrait<double>(SharedData().child_merit_name, SharedData().initial_merit); 
+      base_t::Initialize(); // MABE's proto organisms means we need to re-initialize the org
       CurateNops();
       std::cout << "Modified genome:" << std::endl;
       std::cout << GetString() << std::endl;

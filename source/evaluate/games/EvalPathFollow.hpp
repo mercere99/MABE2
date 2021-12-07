@@ -175,7 +175,6 @@ namespace mabe {
         emp_assert(rand_ptr.Raw() != nullptr, 
             "PathFollowEvaluator::InitializeRandom must be called before cues can be randomized!");
         state.forward_cue = rand_ptr->GetUInt();
-        std::cout << "If this hits I'll be surprised" << std::endl;
         state.right_cue = rand_ptr->GetUInt();
         while(state.right_cue == state.forward_cue) state.right_cue = rand_ptr->GetUInt();
         state.left_cue = rand_ptr->GetUInt();

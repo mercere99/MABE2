@@ -62,7 +62,7 @@ namespace mabe {
           //std::cout << " RH: " << hw.read_head;
           //std::cout << " WH: " << hw.write_head;
           //std::cout << std::endl;
-          hw.genome_working.resize(hw.genome.size() * 2, hw.genome_working[0]);
+          hw.genome_working.resize(hw.genome.size() * 2, 0);
           hw.regs[0] = hw.genome.size();
         };
         Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
@@ -77,13 +77,13 @@ namespace mabe {
             VirtualCPUOrg::genome_t& offspring_genome = hw.GetTrait<VirtualCPUOrg::genome_t>(
                 "offspring_genome");
             offspring_genome = hw.genome_working;
-            offspring_genome.resize(0);
+            offspring_genome.resize(0,0);
             offspring_genome.resize(hw.genome_working.size() - hw.read_head, hw.genome_working[0]); 
             std::copy(
                 hw.genome_working.begin() + hw.read_head, 
                 hw.genome_working.end(),
                 offspring_genome.begin());
-            hw.genome_working.resize(hw.read_head);
+            hw.genome_working.resize(hw.read_head, 0);
             hw.ResetHardware();
             hw.inst_ptr = hw.genome_working.size() - 1;
             control.Replicate(org_pos, *org_pos.PopPtr());
