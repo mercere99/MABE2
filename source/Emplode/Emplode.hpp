@@ -81,7 +81,7 @@
 #include "AST.hpp"
 #include "DataFile.hpp"
 #include "EmplodeType.hpp"
-#include "Events.hpp"
+#include "EventManager.hpp"
 #include "Lexer.hpp"
 #include "Parser.hpp"
 #include "Symbol_Function.hpp"
@@ -216,15 +216,13 @@ namespace emplode {
     Emplode & operator=(Emplode &&) = delete;
 
     /// Create a new type of event that can be used in the scripting language.
-    Events & AddEventType(const std::string & name) { return symbol_table.AddEventType(name); }
+    bool AddSignal(const std::string & name) { return symbol_table.AddSignal(name); }
 
-    /// Indicate the an event trigger value has been updated; trigger associated events.
-    void UpdateEventValue(const std::string & name, double new_value) {
-      symbol_table.UpdateEventValue(name, new_value);
+    /// Trigger all actions linked to a signal.
+    template <typename... ARG_Ts>
+    void Trigger(const std::string & name, ARG_Ts... args) {
+      symbol_table.Trigger(name, std::forward<ARG_Ts>(args)...);
     }
-
-    /// Trigger all events of a type (ignoring trigger values)
-    void TriggerEvents(const std::string & name) { symbol_table.TriggerEvents(name); }
 
     template <typename... EXTRA_Ts, typename... ARG_Ts>
     TypeInfo & AddType(ARG_Ts &&... args) {
