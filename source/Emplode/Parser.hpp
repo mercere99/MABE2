@@ -84,7 +84,7 @@ namespace emplode {
     bool IsString() const { return pos && lexer->IsString(*pos); }
     bool IsDots() const { return pos && lexer->IsDots(*pos); }
 
-    bool IsEvent() const { return symbol_table->HasEvent(AsLexeme()); }
+    bool IsSignal() const { return symbol_table->HasSignal(AsLexeme()); }
     bool IsType() const { return symbol_table->HasType(AsLexeme()); }
 
     /// Convert the current state to a character; use \0 if cur token is not a symbol.
@@ -182,7 +182,7 @@ namespace emplode {
 
     /// Add an instance of an event with an action that should be triggered.
     template <typename... Ts>
-    void AddEvent(Ts &&... args) { symbol_table->AddEvent(std::forward<Ts>(args)...); }
+    void AddAction(Ts &&... args) { symbol_table->AddAction(std::forward<Ts>(args)...); }
   };
 
 
@@ -530,33 +530,29 @@ namespace emplode {
   emp::Ptr<ASTNode> Parser::ParseEvent(ParseState & state) {
     emp::Token start_token = state.AsToken();
     state.UseRequiredChar('@', "All event declarations must being with an '@'.");
-    state.RequireID("Events must start by specifying event name.");
-    const std::string & event_name = state.UseLexeme();
-    state.UseRequiredChar('(', "Expected parentheses after '", event_name, "' for args.");
+    state.RequireID("Events must start by specifying signal name.");
+    const std::string & trigger_name = state.UseLexeme();
+    state.UseRequiredChar('(', "Expected parentheses after '", trigger_name, "' for args.");
 
     emp::vector<emp::Ptr<ASTNode>> args;
     while (state.AsChar() != ')') {
-      args.push_back( ParseExpression(state) );
+      args.push_back( ParseExpression(state, true) );
       state.UseIfChar(',');                     // Skip comma if next (does allow trailing comma)
     }
     state.UseRequiredChar(')', "Event args must end in a ')'");
 
-    emp::Ptr<ASTNode> action = ParseStatement(state);
+    auto action_block = emp::NewPtr<ASTNode_Block>(state.GetScope(), state.GetLine());
+    action_block->SetSymbolTable(state.GetSymbolTable());
+    emp::Ptr<ASTNode> action_node = ParseStatement(state);
 
-    Debug("Building event '", event_name, "' with args ", args);
+    // If the action statement is real, add it to the action block.
+    if (!action_node.IsNull()) action_block->AddChild( action_node );
 
-    auto setup_event =
-    [state, event_name](emp::Ptr<ASTNode> action, const emp::vector<emp::Ptr<Symbol>> & args) mutable
-    {
-      state.AddEvent(
-        event_name, action,
-        (args.size() > 0) ? args[0]->AsDouble() : 0.0,
-        (args.size() > 1) ? args[1]->AsDouble() : 0.0,
-        (args.size() > 2) ? args[2]->AsDouble() : -1.0
-      );
-    };
+    Debug("Building event '", trigger_name, "' with args ", args);
 
-    return emp::NewPtr<ASTNode_Event>(event_name, action, args, setup_event, start_token.line_id);
+    state.AddAction(trigger_name, args, action_block, start_token.line_id);
+
+    return nullptr;
   }
 
   /// Parse a specialty keyword statement (such as IF, WHILE, etc)
@@ -576,14 +572,8 @@ namespace emplode {
 
     // If we made it this far, we have an error.  Identify and deal with it!
 
-    if (state.UseIfLexeme("ELSE")) {
-      state.Error("'ELSE' must be preceded by an 'IF' statement.");
-    }
-
-    // Unimplemented keyword!
-    else {
-      state.Error("Keyword '", state.AsLexeme(), "' not yet implemented.");
-    }
+    if (state.UseIfLexeme("ELSE")) state.Error("'ELSE' must be preceded by an 'IF' statement.");
+    else state.Error("Keyword '", state.AsLexeme(), "' not yet implemented.");
 
     return nullptr;
   }
