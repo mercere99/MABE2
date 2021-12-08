@@ -36,9 +36,9 @@ namespace emplode {
         "(ELSE)|(IF)"
         // Reserved keywords below.
         "|(AND)|(AUTO)|(BREAK)|(CASE)|(CAST)|(CATCH)|(CLASS)|(CONST)|(CONTINUE)|(DEBUG)"
-        "|(DEFAULT)|(DEFINE)|(DELETE)|(DO)|(EVENT)|(FALSE)|(FOR)|(FOREACH)"
-        "|(FUN)|(GOTO)|(INCLUDE)|(MUTABLE)|(NAMESPACE)|(NEW)|(OR)|(PRIVATE)"
-        "|(PROTECTED)|(PUBLIC)|(RETURN)|(STATIC)|(SWITCH)|(TEMPLATE)|(THIS)"
+        "|(DEFAULT)|(DEFINE)|(DELETE)|(DO)|(EVENT)|(EVERY)|(FALSE)|(FOR)|(FOREACH)"
+        "|(FUNCTION)|(GOTO)|(IN)|(INCLUDE)|(MUTABLE)|(NAMESPACE)|(NEW)|(OR)|(PRIVATE)"
+        "|(PROTECTED)|(PUBLIC)|(RETURN)|(SIGNAL)|(STATIC)|(SWITCH)|(TEMPLATE)|(THIS)"
         "|(THROW)|(TRIGGER)|(TRUE)|(TRY)|(TYPE)|(UNION)|(USING)|(WHILE)|(YIELD)");
 
       // Meaningful tokens have next priority.
