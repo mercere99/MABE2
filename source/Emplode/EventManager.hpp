@@ -40,7 +40,7 @@ namespace emplode {
     using symbol_vec_t = emp::vector<symbol_ptr_t>;
     using node_ptr_t = emp::Ptr<ASTNode>;
     using node_vec_t = emp::vector< node_ptr_t >;
-    class Event;
+    struct Event;
 
     std::unordered_map<std::string, emp::Ptr<Event>> event_map;
     SymbolTableBase & symbol_table;
@@ -55,9 +55,9 @@ namespace emplode {
       : signal_name(_signal), params(_params), action(_action), def_line(_line) { }
       ~Action() { }
 
-      void Trigger(node_vec_t args, size_t trigger_line) {
+      void Trigger(const symbol_vec_t & args) {
         if (args.size() < params.size()) {
-          std::cerr << "ERROR (line " << trigger_line << "): Trigger for signal '" << signal_name
+          std::cerr << "ERROR: Trigger for signal '" << signal_name
                     << "' (defined on " << def_line << ") called with " << args.size()
                     << " arguments, but " << params.size() << " parameters need values."
                     << std::endl;
@@ -67,7 +67,6 @@ namespace emplode {
         // Setup all of the parameters.
         for (size_t param_id = 0; param_id < params.size(); ++param_id) {
           symbol_ptr_t param_sym = params[param_id]->Process();
-          symbol_ptr_t arg_sym = args[param_id]->Process();
 
           if (param_sym->IsTemporary()) {
             std::cerr << "ERROR (line " << def_line << "): parameter " << param_id
@@ -75,26 +74,24 @@ namespace emplode {
             exit(1);
           }
 
-          bool success = param_sym->CopyValue(*arg_sym);
+          bool success = param_sym->CopyValue(*args[param_id]);
           if (!success) {
-            std::cerr << "ERROR (line " << trigger_line << "): setting action parameter '"
+            std::cerr << "ERROR: setting action parameter '"
                       << param_sym->GetName() << "' failed" << std::endl;
             exit(1);
           }
-
-          if (arg_sym->IsTemporary()) arg_sym.Delete(); // If we are done with arg; delete!
         }
 
         // Once all of the parameter values are in place, run the action!
-        symbol_ptr_t result = action.Process();
+        symbol_ptr_t result = action->Process();
         if (result && result->IsTemporary()) result.Delete();
       }
 
-      void Write(const std::string & command, std::ostream & os) const {
+      void Write(std::ostream & os) const {
         os << "@" << signal_name << "(";
         // @CAO: Write out parameters...      
         os << ") ";
-        ast_action->Write(os);
+        action->Write(os);
         os << ";\n";
       }
     };
@@ -104,14 +101,22 @@ namespace emplode {
       size_t num_params;
       emp::vector<emp::Ptr<Action>> actions;
 
-      Event(const std::string & _name) : signal_name(_name) { }
+      Event(const std::string & _name, size_t _params)
+        : signal_name(_name), num_params(_params) { }
       ~Event() { for (auto ptr : actions) ptr.Delete(); }
 
-      void Trigger(node_vec_t args, size_t trigger_line) {
+      void Trigger(symbol_vec_t args) {
         for (emp::Ptr<Action> action : actions) {
-          action->Trigger(args, trigger_line);
+          action->Trigger(args);
         }
       }
+
+      void Write(std::ostream & os) const {
+        for (emp::Ptr<Action> action : actions) {
+          action->Write(os);
+        }
+      }
+      
     };
 
   public:
@@ -123,11 +128,15 @@ namespace emplode {
       }
     }
 
+    bool HasSignal(const std::string & signal_name) const {
+      return emp::Has(event_map, signal_name);
+    }
+
     bool AddSignal(const std::string & signal_name, size_t num_params) {
-      if (emp::Has(event_map, signal_name)) {
-        // @CAO: Report an error!
-        return false;
-      }
+      std::cerr << "DEBUG: Adding new signal '" << signal_name << "'." << std::endl;
+
+      // @CAO Needs to become a user-level error!
+      emp_assert(!emp::Has(event_map, signal_name), "Signal reused!", signal_name);
 
       event_map[signal_name] = emp::NewPtr<Event>(signal_name, num_params);
 
@@ -141,30 +150,38 @@ namespace emplode {
       node_ptr_t action,                ///< Abstract syntax tree to run when triggered
       size_t def_line                   ///< What file line was this defined on?
     ) {
+      std::cerr << "DEBUG: Adding an action onto '" << signal_name << "'." << std::endl;
+
       // @CAO Needs to become a user-level error!
       emp_assert(emp::Has(event_map, signal_name), "Unknown signal used!", signal_name);
 
       auto action_ptr = emp::NewPtr<Action>(signal_name, params, action, def_line);
-      event_map[signal_name].actions.push_back(action_ptr);
+      event_map[signal_name]->actions.push_back(action_ptr);
 
       return true;
     }
 
     template <typename... ARG_TS>
-    bool Trigger(const std::string & signal_name, size_t trigger_line, ARG_TS... args) {
+    bool Trigger(const std::string & signal_name, ARG_TS... args) {
       // @CAO Make into user-level error.
       emp_assert(emp::Has(event_map, signal_name), "Unknown signal being triggered!", signal_name);
 
-      symbol_vec_t symbol_args = { symbol_table.ValueToSymbol(args)... };
-      event_map[signal_name]->Trigger(symbol_args, trigger_line);
+      const std::string location = emp::to_string("trigger of ", signal_name);
+      symbol_vec_t symbol_args = { symbol_table.ValueToSymbol(args, location)... };
+      event_map[signal_name]->Trigger(symbol_args);
+
+      // Now that all of the actions have been run, clean up the symbol_args.
+      for (auto symbol_ptr : symbol_args) {
+        if (symbol_ptr->IsTemporary()) symbol_ptr.Delete();
+      }
 
       return true;
     }
 
     /// Print all of the events being tracked here.
-    void Write(const std::string & command, std::ostream & os) const {
-      for (const auto & x : queue) {
-        x.second->Write(command, os);
+    void Write(std::ostream & os) const {
+      for (auto [name, ptr] : event_map) {
+        ptr->Write(os);
       }
     }
   };
