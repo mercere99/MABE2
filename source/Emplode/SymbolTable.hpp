@@ -21,7 +21,7 @@
 #include "emp/io/StreamManager.hpp"
 #include "emp/meta/TypeID.hpp"
 
-#include "Events.hpp"
+#include "EventManager.hpp"
 #include "Symbol_Scope.hpp"
 #include "SymbolTableBase.hpp"
 
@@ -31,14 +31,14 @@ namespace emplode {
   class SymbolTable : public SymbolTableBase {
   protected:
     Symbol_Scope root_scope;                                        ///< Outermost (global) scope.
-    std::map<std::string, Events> events_map;                       ///< Events, lookup by name.
+    EventManager event_manager;                                     ///< Event setup & tracking
     std::unordered_map<std::string, emp::Ptr<TypeInfo>> type_map;   ///< Types, lookup by name.
     std::unordered_map<emp::TypeID, emp::Ptr<TypeInfo>> typeid_map; ///< Types, lookup by TypeID.
     emp::StreamManager file_map;                                    ///< File streams by name.
 
   public:
     SymbolTable(const std::string & name)
-    : root_scope(name, "Global scope", nullptr) {
+    : root_scope(name, "Global scope", nullptr), event_manager(*this) {
       // Initialize the type map.
       type_map["INVALID"] = emp::NewPtr<TypeInfo>( *this, 0, "/*ERROR*/", "Error, Invalid type!" );
       type_map["Void"] = emp::NewPtr<TypeInfo>( *this, 1, "Void", "Non-type variable; no value" );
@@ -62,7 +62,7 @@ namespace emplode {
     const Symbol_Scope & GetRootScope() const { return root_scope; }
     emp::StreamManager & GetFileManager() { return file_map; }
 
-    bool HasEvent(const std::string & name) const { return emp::Has(events_map, name); }
+    bool HasSignal(const std::string & name) const { return event_manager.HasSignal(name); }
     bool HasType(const std::string & name) const { return emp::Has(type_map, name); }
     bool HasTypeID(emp::TypeID id) const { return emp::Has(typeid_map, id); }
 
@@ -196,38 +196,29 @@ namespace emplode {
 
 
     /// Create a new type of event that can be used in the scripting language.
-    Events & AddEventType(const std::string & name) {
-      emp_assert(!HasEvent(name), "Event type already exists!", name);
-      return events_map[name];
+    bool AddSignal(const std::string & name, size_t num_params=0) {
+      return event_manager.AddSignal(name, num_params);
     }
 
     /// Add an instance of an event with an action that should be triggered.
-    void AddEvent(const std::string & name, emp::Ptr<ASTNode> action,
-                  double first=0.0, double repeat=0.0, double max=-1.0) {
-      emp_assert(HasEvent(name), name);
-      // Debug ("Adding event instance for '", name, "' (", first, ":", repeat, ":", max, ")");
-      events_map[name].AddEvent(action, first, repeat, max);
-    }
-
-    /// Indicate the an event trigger value has been updated; trigger associated events.
-    void UpdateEventValue(const std::string & name, double new_value) {
-      emp_assert(HasEvent(name), name);
-      // Debug("Uppdating event value '", name, "' to ", new_value);
-      events_map[name].UpdateValue(new_value);
+    bool AddAction(
+      const std::string & name,
+      emp::vector< emp::Ptr<ASTNode> > params,
+      emp::Ptr<ASTNode_Block> action,
+      size_t def_line
+    ) {
+      action->SetSymbolTable(*this);
+      return event_manager.AddAction(name, params, action, def_line);
     }
 
     /// Trigger all events of a type (ignoring trigger values)
-    void TriggerEvents(const std::string & name) {
-      emp_assert(HasEvent(name), name);
-      events_map[name].TriggerAll();
+    template <typename... ARG_Ts>
+    bool Trigger(const std::string & signal_name, ARG_Ts... args) {
+      return event_manager.Trigger(signal_name, std::forward<ARG_Ts>(args)...);
     }
 
     /// Print all of the events to the provided stream.
-    void PrintEvents(std::ostream & os) const {
-      for (const auto & x : events_map) {
-        x.second.Write(x.first, os);
-      }
-    }
+    void PrintEvents(std::ostream & os) const { event_manager.Write(os); }
 
   };
 
