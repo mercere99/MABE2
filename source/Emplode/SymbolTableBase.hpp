@@ -61,36 +61,36 @@ namespace emplode {
     }
 
     template <typename T>
-    decltype(auto) ValueToSymbol( T && return_value, const std::string & location ) {
+    decltype(auto) ValueToSymbol( T && value, const std::string & location ) {
       constexpr bool is_ref = std::is_lvalue_reference<T>();
       using base_t = std::remove_reference_t<T>;
 
       // If a return value is already a symbol pointer, just pass it through.
       if constexpr (std::is_same<T, symbol_ptr_t>()) {
-        return return_value;
+        return value;
       }
 
       // If a return value is a basic type, wrap it in a temporary symbol
-      else if constexpr (std::is_same<T, std::string>() ||
-                        std::is_arithmetic<T>()) {
-        return MakeTempSymbol(return_value);
+      else if constexpr (std::is_same<base_t, std::string>() ||
+                         std::is_arithmetic<base_t>()) {
+        return MakeTempSymbol(value);
       }
 
-      // If a return value is a REFERENCE to an Emplode type, return its Symbol_Object.
+      // If a value is a REFERENCE to an Emplode type, return its Symbol_Object.
       else if constexpr (is_ref && std::is_base_of<EmplodeType, base_t>()) {
-        return return_value.AsScope().AsObject();
+        return value.AsScope().AsObject();
       }
 
       // If a return value is an Emplode type VALUE, build a temporary symbol for it.
       else if constexpr (!is_ref && std::is_base_of<EmplodeType, base_t>()) {
-        return MakeTempSymbol(return_value);
+        return MakeTempSymbol(value);
       }
 
       // For now these are the only legal return type; raise error otherwise!
       else {
         std::cerr << "Failed to convert return type in " << location << std::endl;
         static_assert(emp::dependent_false<T>(),
-                      "Invalid return value in Symbol_Function::SetFunction()");
+                      "Invalid conversion of value to emplode::Symbol");
       }
     }
 
