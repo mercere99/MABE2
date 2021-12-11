@@ -548,14 +548,14 @@ namespace mabe {
 
   /// Update MABE world.
   void MABE::Update(size_t num_updates) {
-    if (update == 0) config_script.TriggerEvents("start");
+    if (update == 0) config_script.Trigger("START");
     for (size_t ud = 0; ud < num_updates && !exit_now; ud++) {
-      emp_assert(OK(), update);                   // In debug mode, keep checking MABE integrity
-      if (rescan_signals) UpdateSignals();        // If we have reason to, update module signals
-      before_update_sig.Trigger(update);          // Signal that a new update is about to begin
-      update++;                                   // Increment 'update' to start new update
-      on_update_sig.Trigger(update);              // Signal all modules about the new update
-      config_script.UpdateEventValue("update", update);  // Trigger any updated-based events
+      emp_assert(OK(), update);                 // In debug mode, keep checking MABE integrity
+      if (rescan_signals) UpdateSignals();      // If we have reason to, update module signals
+      before_update_sig.Trigger(update);        // Signal that a new update is about to begin
+      update++;                                 // Increment 'update' to start new update
+      on_update_sig.Trigger(update);            // Signal all modules about the new update
+      config_script.Trigger("UPDATE", update);  // Trigger any updated-based events
     }
   }
 
