@@ -51,6 +51,7 @@ namespace emplode {
 
     virtual bool IsLeaf() const { return false; }
     virtual bool IsInternal() const { return false; }
+    virtual bool IsBlock() const { return false; }
 
     virtual size_t GetNumChildren() const { return 0; }
     virtual node_ptr_t GetChild(size_t /* id */) { emp_assert(false); return nullptr; }
@@ -156,7 +157,9 @@ namespace emplode {
       line_id = in_line;
     }
 
-    emp::Ptr<Symbol_Scope> GetScope()  override { return scope_ptr; }
+    bool IsBlock() const override { return true; }
+
+    emp::Ptr<Symbol_Scope> GetScope() override { return scope_ptr; }
 
     SymbolTableBase & GetSymbolTable() override {
       if (symbol_table) return *symbol_table;
