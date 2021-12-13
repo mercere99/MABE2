@@ -338,8 +338,8 @@ namespace mabe {
       AddFunction("PP", preprocess_fun, "Preprocess a string (replacing any ${...} with result.)");
 
       // Add in built-in event triggers; these are used to indicate when events should happen.
-      AddEventType("start");   // Triggered at the beginning of a run.
-      AddEventType("update");  // Tested every update.
+      AddSignal("START");   // Triggered at the beginning of a run.
+      AddSignal("UPDATE");  // Tested every update.
     }
 
 
