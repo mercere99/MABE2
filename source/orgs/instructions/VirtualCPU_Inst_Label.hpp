@@ -53,7 +53,7 @@ namespace mabe {
       // SearchLabelDirectS 
       {
         func_search_label_direct_s = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){ 
-          hw.flow_head = hw.FindMarkedLabel(false, false); 
+          hw.flow_head = hw.FindLabel(false, false); 
         };
         Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
             "SearchLabelDirectS", func_search_label_direct_s);
@@ -62,7 +62,7 @@ namespace mabe {
       // SearchLabelDirectF 
       {
         func_search_label_direct_f = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){ 
-          hw.flow_head = hw.FindMarkedLabel(true, false); 
+          hw.flow_head = hw.FindLabel(true, false); 
         };
         Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
             "SearchLabelDirectF", func_search_label_direct_f);
@@ -71,7 +71,7 @@ namespace mabe {
       // SearchLabelDirectB 
       {
         func_search_label_direct_b = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){ 
-          hw.flow_head = hw.FindMarkedLabel(true, true); 
+          hw.flow_head = hw.FindLabel(true, true); 
         };
         Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
             "SearchLabelDirectB", func_search_label_direct_b);
@@ -80,7 +80,7 @@ namespace mabe {
       // SearchSeqDirectS 
       {
         func_search_seq_direct_s = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){ 
-          hw.flow_head = hw.FindSequence(false, false); 
+          hw.flow_head = hw.FindNopSequence(false, false); 
         };
         Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
             "SearchSeqDirectS", func_search_seq_direct_s);
@@ -89,7 +89,7 @@ namespace mabe {
       // SearchSeqDirectF 
       {
         func_search_seq_direct_f = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){ 
-          hw.flow_head = hw.FindSequence(true, false); 
+          hw.flow_head = hw.FindNopSequence(true, false); 
         };
         Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
             "SearchSeqDirectF", func_search_seq_direct_f);
@@ -98,7 +98,7 @@ namespace mabe {
       // SearchSeqDirectB 
       {
         func_search_seq_direct_b = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){ 
-          hw.flow_head = hw.FindSequence(true, true); 
+          hw.flow_head = hw.FindNopSequence(true, true); 
         };
         Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
             "SearchSeqDirectB", func_search_seq_direct_b);

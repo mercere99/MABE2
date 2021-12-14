@@ -89,12 +89,12 @@ namespace mabe {
           if(hw.expanded_nop_args){
             size_t idx_res = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
             size_t idx_op_1 = inst.nop_vec.size() < 2 ? idx_res : inst.nop_vec[1];
-            size_t idx_op_2 = inst.nop_vec.size() < 3 ? hw.GetComplementIdx(idx_op_1) : inst.nop_vec[2];
+            size_t idx_op_2 = inst.nop_vec.size() < 3 ? hw.GetComplementNop(idx_op_1) : inst.nop_vec[2];
             hw.regs[idx_res] = hw.regs[idx_op_1] + hw.regs[idx_op_2];
           }
           else{
             size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
-            size_t idx_2 = hw.GetComplementIdx(idx);
+            size_t idx_2 = hw.GetComplementNop(idx);
             hw.regs[idx] = hw.regs[idx] + hw.regs[idx_2];
           }
         };
@@ -108,12 +108,12 @@ namespace mabe {
           if(hw.expanded_nop_args){
             size_t idx_res = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
             size_t idx_op_1 = inst.nop_vec.size() < 2 ? idx_res : inst.nop_vec[1];
-            size_t idx_op_2 = inst.nop_vec.size() < 3 ? hw.GetComplementIdx(idx_op_1) : inst.nop_vec[2];
+            size_t idx_op_2 = inst.nop_vec.size() < 3 ? hw.GetComplementNop(idx_op_1) : inst.nop_vec[2];
             hw.regs[idx_res] = hw.regs[idx_op_1] - hw.regs[idx_op_2];
           }
           else{
             size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
-            size_t idx_2 = hw.GetComplementIdx(idx);
+            size_t idx_2 = hw.GetComplementNop(idx);
             hw.regs[idx] = hw.regs[idx] - hw.regs[idx_2];
           }
         };
@@ -127,12 +127,12 @@ namespace mabe {
           if(hw.expanded_nop_args){
             size_t idx_res = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
             size_t idx_op_1 = inst.nop_vec.size() < 2 ? idx_res : inst.nop_vec[1];
-            size_t idx_op_2 = inst.nop_vec.size() < 3 ? hw.GetComplementIdx(idx_op_1) : inst.nop_vec[2];
+            size_t idx_op_2 = inst.nop_vec.size() < 3 ? hw.GetComplementNop(idx_op_1) : inst.nop_vec[2];
             hw.regs[idx_res] = ~(hw.regs[idx_op_1] & hw.regs[idx_op_2]);
           }
           else{
             size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
-            size_t idx_2 = hw.GetComplementIdx(idx);
+            size_t idx_2 = hw.GetComplementNop(idx);
             hw.regs[idx] = hw.regs[idx] + hw.regs[idx_2];
             hw.regs[idx] = ~(hw.regs[idx] & hw.regs[idx_2]);
           }

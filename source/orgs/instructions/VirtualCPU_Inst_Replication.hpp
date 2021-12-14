@@ -117,16 +117,16 @@ namespace mabe {
       // Head search 
       if(include_h_search){
         func_h_search = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
-          int res = hw.FindComplementLabel(inst.nop_vec, hw.inst_ptr);
-          if(res == -1){ // Fail
+          int res =hw.FindNopSequence(hw.GetComplementNopSequence(inst.nop_vec), hw.inst_ptr);
+          if(inst.nop_vec.size() == 0 || res == hw.inst_ptr){
             hw.regs[1] = 0;
             hw.regs[2] = 0;
-            hw.flow_head = hw.inst_ptr + 1;
+            hw.SetFH(hw.inst_ptr + 1);
           }
           else{
-            hw.regs[1] = res + 1;
+            hw.regs[1] = (res - hw.inst_ptr) > 0 ? res - hw.inst_ptr : res + hw.genome_working.size() - res + hw.inst_ptr;
             hw.regs[2] = inst.nop_vec.size();
-            hw.SetFH(hw.inst_ptr + res + inst.nop_vec.size() + 1);
+            hw.SetFH(res + inst.nop_vec.size() + 1);
           }
         };
         Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(

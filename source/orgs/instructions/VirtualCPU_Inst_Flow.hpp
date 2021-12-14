@@ -45,14 +45,14 @@ namespace mabe {
         func_if_n_equ = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
           if(hw.expanded_nop_args){
             size_t idx_op_1 = inst.nop_vec.size() < 1 ? 1 : inst.nop_vec[0];
-            size_t idx_op_2 = inst.nop_vec.size() < 2 ? hw.GetComplementIdx(idx_op_1) : inst.nop_vec[1];
+            size_t idx_op_2 = inst.nop_vec.size() < 2 ? hw.GetComplementNop(idx_op_1) : inst.nop_vec[1];
             if(hw.regs[idx_op_1] == hw.regs[idx_op_2])
               hw.AdvanceIP(1);
             hw.AdvanceIP(inst.nop_vec.size()); 
            }
           else{
             size_t idx_1 = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
-            size_t idx_2 = hw.GetComplementIdx(idx_1);
+            size_t idx_2 = hw.GetComplementNop(idx_1);
             if(hw.regs[idx_1] == hw.regs[idx_2])
               hw.AdvanceIP(1);
             if(inst.nop_vec.size()) hw.AdvanceIP(1); 
@@ -68,14 +68,14 @@ namespace mabe {
         func_if_less = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
           if(hw.expanded_nop_args){
             size_t idx_op_1 = inst.nop_vec.size() < 1 ? 1 : inst.nop_vec[0];
-            size_t idx_op_2 = inst.nop_vec.size() < 2 ? hw.GetComplementIdx(idx_op_1) : inst.nop_vec[1];
+            size_t idx_op_2 = inst.nop_vec.size() < 2 ? hw.GetComplementNop(idx_op_1) : inst.nop_vec[1];
             if(hw.regs[idx_op_1] >= hw.regs[idx_op_2])
               hw.AdvanceIP(1);
             hw.AdvanceIP(inst.nop_vec.size()); 
           }
           else{
             size_t idx_1 = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
-            size_t idx_2 = hw.GetComplementIdx(idx_1);
+            size_t idx_2 = hw.GetComplementNop(idx_1);
             if(hw.regs[idx_1] >= hw.regs[idx_2])
               hw.AdvanceIP(1);
             if(inst.nop_vec.size()) hw.AdvanceIP(1); 
@@ -89,7 +89,7 @@ namespace mabe {
       {
         func_if_label = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
           hw.AdvanceIP(inst.nop_vec.size());
-          if(!hw.CheckIfLastCopiedComplement(inst.nop_vec)) hw.AdvanceIP();
+          if(!hw.CheckIfLastCopied(hw.GetComplementNopSequence(inst.nop_vec))) hw.AdvanceIP();
         };
         Action& action = action_map.AddFunc<void, VirtualCPUOrg&,const VirtualCPUOrg::inst_t&>(
             "IfLabel",func_if_label);
@@ -100,7 +100,7 @@ namespace mabe {
         func_mov_head_if_n_equ = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
           if(hw.expanded_nop_args){
             size_t idx_op_1 = inst.nop_vec.size() < 1 ? 1 : inst.nop_vec[0];
-            size_t idx_op_2 = inst.nop_vec.size() < 2 ? hw.GetComplementIdx(idx_op_1) : inst.nop_vec[1];
+            size_t idx_op_2 = inst.nop_vec.size() < 2 ? hw.GetComplementNop(idx_op_1) : inst.nop_vec[1];
             size_t idx_mov_head = inst.nop_vec.size() < 3 ? 0 : inst.nop_vec[2];
             size_t idx_target_head = inst.nop_vec.size() < 3 ? 3 : inst.nop_vec[2];
             if(hw.regs[idx_op_1] != hw.regs[idx_op_2]){
@@ -119,11 +119,11 @@ namespace mabe {
           }
           else{
             size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
-            size_t idx_2 = hw.GetComplementIdx(idx);
+            size_t idx_2 = hw.GetComplementNop(idx);
             if(hw.regs[idx] != hw.regs[idx_2]) hw.inst_ptr = hw.flow_head; 
           }
           //size_t idx_1 = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
-          //size_t idx_2 = hw.GetComplementIdx(idx_1);
+          //size_t idx_2 = hw.GetComplementNop(idx_1);
           //if(hw.regs[idx_1] == hw.regs[idx_2])
           //  hw.AdvanceIP(1);
           //if(inst.nop_vec.size()) hw.AdvanceIP(1); 

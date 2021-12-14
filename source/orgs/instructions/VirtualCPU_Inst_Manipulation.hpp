@@ -81,14 +81,14 @@ namespace mabe {
         func_swap = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
           if(hw.expanded_nop_args){
             size_t idx_1 = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
-            size_t idx_2 = inst.nop_vec.size() < 2 ? hw.GetComplementIdx(idx_1) : inst.nop_vec[1];
+            size_t idx_2 = inst.nop_vec.size() < 2 ? hw.GetComplementNop(idx_1) : inst.nop_vec[1];
             data_t tmp = hw.regs[idx_1];
             hw.regs[idx_1] = hw.regs[idx_2];
             hw.regs[idx_2] = tmp;
           }
           else {
             size_t idx_1 = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
-            size_t idx_2 = hw.GetComplementIdx(idx_1);
+            size_t idx_2 = hw.GetComplementNop(idx_1);
             data_t tmp = hw.regs[idx_1];
             hw.regs[idx_1] = hw.regs[idx_2];
             hw.regs[idx_2] = tmp;
