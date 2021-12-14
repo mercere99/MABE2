@@ -67,7 +67,7 @@ namespace mabe {
 
       if (num_muts == 0) return 0;
       if (num_muts == 1) {
-        const size_t pos = random.GetUInt(GetSize());
+        const size_t pos = random.GetUInt(GetGenomeSize());
         RandomizeInst(pos, random);
         return 1;
       }
@@ -75,7 +75,7 @@ namespace mabe {
       // Only remaining option is num_muts > 1.
       emp::BitVector mut_sites(genome.size());
       for (size_t i = 0; i < num_muts; i++) {
-        const size_t pos = random.GetUInt(GetSize());
+        const size_t pos = random.GetUInt(GetGenomeSize());
         if (mut_sites[pos]) { --i; continue; }  // Duplicate position; try again.
         RandomizeInst(pos, random);
       }
@@ -83,7 +83,7 @@ namespace mabe {
     }
 
     void Randomize(emp::Random & random) override {
-      for (size_t pos = 0; pos < GetSize(); pos++) {
+      for (size_t pos = 0; pos < GetGenomeSize(); pos++) {
         RandomizeInst(pos, random);
       }
       Organism::SetTrait<std::string>(SharedData().genome_name, GetGenomeString());
@@ -192,7 +192,7 @@ namespace mabe {
     void SetupConfig() override {
       GetManager().LinkVar(SharedData().mut_prob, "mut_prob",
                       "Probability of each instruction mutating on reproduction.");
-      GetManager().LinkFuns<size_t>([this](){ return GetSize(); },
+      GetManager().LinkFuns<size_t>([this](){ return GetGenomeSize(); },
                        [this](const size_t & N){ Reset(); /*PushDefaultInst(N);*/ },
                        "N", "Initial number of instructions in genome");
       GetManager().LinkVar(SharedData().init_random, "init_random",
@@ -227,7 +227,7 @@ namespace mabe {
       SharedData().mut_dist.Setup(SharedData().mut_prob, 20);
 
       // Setup the default vector to indicate mutation positions.
-      SharedData().mut_sites.Resize(GetSize());
+      SharedData().mut_sites.Resize(GetGenomeSize());
 
       // Setup the input and output traits.
       GetManager().AddRequiredTrait<emp::vector<data_t>>(SharedData().input_name);
