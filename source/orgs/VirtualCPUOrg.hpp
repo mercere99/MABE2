@@ -62,8 +62,8 @@ namespace mabe {
 
     size_t Mutate(emp::Random & random) override {
       emp::Binomial mut_dist(SharedData().mut_prob, genome.size());
-      //const size_t num_muts = SharedData().mut_dist.PickRandom(random);
-      const size_t num_muts = mut_dist.PickRandom(random);
+      const size_t num_muts = SharedData().mut_dist.PickRandom(random);
+      //const size_t num_muts = mut_dist.PickRandom(random);
 
       if (num_muts == 0) return 0;
       if (num_muts == 1) {
@@ -86,12 +86,12 @@ namespace mabe {
       for (size_t pos = 0; pos < GetSize(); pos++) {
         RandomizeInst(pos, random);
       }
-      Organism::SetTrait<std::string>(SharedData().genome_name, GetString());
+      Organism::SetTrait<std::string>(SharedData().genome_name, GetGenomeString());
     }
 
     void Initialize(emp::Random & random) override {
       std::cout << "Original genome:" << std::endl;
-      std::cout << GetString() << std::endl;
+      std::cout << GetGenomeString() << std::endl;
       constexpr bool start_with_not = false;
       if (SharedData().init_random) Randomize(random);
       else{
@@ -131,13 +131,13 @@ namespace mabe {
         //PushInst("NopB");    // 49
       }
       expanded_nop_args = SharedData().expanded_nop_args;
-      Organism::SetTrait<std::string>(SharedData().genome_name, GetString());
+      Organism::SetTrait<std::string>(SharedData().genome_name, GetGenomeString());
       Organism::SetTrait<double>(SharedData().merit_name, SharedData().initial_merit); 
       Organism::SetTrait<double>(SharedData().child_merit_name, SharedData().initial_merit); 
       base_t::Initialize(); // MABE's proto organisms means we need to re-initialize the org
       CurateNops();
       std::cout << "Modified genome:" << std::endl;
-      std::cout << GetString() << std::endl;
+      std::cout << GetGenomeString() << std::endl;
     }
     
     emp::Ptr<Organism> MakeOffspringOrganism(emp::Random & random) const {
@@ -147,7 +147,7 @@ namespace mabe {
       offspring->SetTrait<double>(SharedData().child_merit_name, SharedData().initial_merit); 
       offspring.DynamicCast<VirtualCPUOrg>()->CurateNops();
       offspring.DynamicCast<VirtualCPUOrg>()->Organism::SetTrait<std::string>(
-          SharedData().genome_name, offspring.DynamicCast<VirtualCPUOrg>()->GetString());
+          SharedData().genome_name, offspring.DynamicCast<VirtualCPUOrg>()->GetGenomeString());
       return offspring;
     }
     
@@ -164,7 +164,7 @@ namespace mabe {
       offspring->SetTrait<double>(SharedData().child_merit_name, SharedData().initial_merit); 
       offspring->genome_working = offspring->genome;
       offspring->ResetHardware();
-      offspring->Organism::SetTrait<std::string>(SharedData().genome_name, offspring->GetString());
+      offspring->Organism::SetTrait<std::string>(SharedData().genome_name, offspring->GetGenomeString());
       offspring->expanded_nop_args = SharedData().expanded_nop_args;
       return offspring;
     }
