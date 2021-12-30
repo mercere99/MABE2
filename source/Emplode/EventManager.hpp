@@ -53,7 +53,10 @@ namespace emplode {
 
       Action(const std::string & _signal, node_vec_t _params, node_ptr_t _action, size_t _line)
       : signal_name(_signal), params(_params), action(_action), def_line(_line) { }
-      ~Action() { }
+      ~Action() {
+        for (auto x : params) x.Delete();
+        action.Delete();
+      }
 
       void Trigger(const symbol_vec_t & args) {
         if (args.size() < params.size()) {
