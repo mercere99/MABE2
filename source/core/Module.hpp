@@ -39,7 +39,7 @@ namespace mabe {
   class Module : public ModuleBase {
   public:
     Module(MABE & in_control, const std::string & in_name, const std::string & in_desc="")
-      : ModuleBase(in_control, in_name, in_desc) { error_man = &control.GetErrorManager(); }
+      : ModuleBase(in_control, in_name, in_desc) { }
     Module(const Module &) = delete;
     Module(Module &&) = delete;
 
@@ -60,7 +60,9 @@ namespace mabe {
       std::function<void(std::string)> set_fun =
         [this,&var](const std::string & name){
           var = control.GetPopID(name);
-          if (var == -1) AddError("Trying to access population '", name, "'; does not exist.");
+          if (var == -1) {
+            emp::notify::Error("Trying to access population '", name, "'; does not exist.");
+          }
         };
 
       return AsScope().LinkFuns<std::string>(name, get_fun, set_fun, desc);
@@ -95,7 +97,7 @@ namespace mabe {
       std::function<void(std::string)> set_fun =
         [this,&var](const std::string & name){
           var = control.GetModuleID(name);
-          if (var == -1) AddError("Trying to access module '", name, "'; does not exist.");
+          if (var == -1) emp::notify::Error("Trying to access module '", name, "'; does not exist.");
         };
 
       return AsScope().LinkFuns<std::string>(name, get_fun, set_fun, desc);
@@ -302,22 +304,6 @@ namespace mabe {
       control.RescanSignals();
     }
 
-    // Format:  OnError(const std::string & msg)
-    // Trigger: An error has occurred and the user should be notified.
-    // Args:    Message associated with this error.
-    void OnError(const std::string &) override {
-      has_signal[SIG_OnError] = false;
-      control.RescanSignals();
-    }
-
-    // Format:  OnWarning(const std::string & msg)
-    // Trigger: A atypical condition has occurred and the user should be notified.
-    // Args:    Message associated with this warning.
-    void OnWarning(const std::string &) override {
-      has_signal[SIG_OnWarning] = false;
-      control.RescanSignals();
-    }
-
     // Format:  BeforeExit()
     // Trigger: Run immediately before MABE is about to exit.
     void BeforeExit() override {
@@ -359,8 +345,6 @@ namespace mabe {
     bool OnSwap_IsTriggered() override { return control.OnSwap_IsTriggered(this); };
     bool BeforePopResize_IsTriggered() override { return control.BeforePopResize_IsTriggered(this); };
     bool OnPopResize_IsTriggered() override { return control.OnPopResize_IsTriggered(this); };
-    bool OnError_IsTriggered() override { return control.OnError_IsTriggered(this); };
-    bool OnWarning_IsTriggered() override { return control.OnWarning_IsTriggered(this); };
     bool BeforeExit_IsTriggered() override { return control.BeforeExit_IsTriggered(this); };
     bool OnHelp_IsTriggered() override { return control.OnHelp_IsTriggered(this); };
 

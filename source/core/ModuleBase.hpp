@@ -48,10 +48,6 @@
  *       : Full population is about to be resized.
  *     OnPopResize(Population & pop, size_t old_size)
  *       : Full population has just been resized.
- *     OnError(const std::string & msg)
- *       : An error has occurred and the user should be notified.
- *     OnWarning(const std::string & msg)
- *       : A atypical condition has occurred and the user should be notified.
  *     BeforeExit()
  *       : Run immediately before MABE is about to exit.
  *     OnHelp()
@@ -66,6 +62,7 @@
 #include <string>
 
 #include "emp/base/map.hpp"
+#include "emp/base/notify.hpp"
 #include "emp/base/Ptr.hpp"
 #include "emp/base/vector.hpp"
 #include "emp/datastructs/map_utils.hpp"
@@ -73,7 +70,6 @@
 
 #include "../Emplode/Emplode.hpp"
 
-#include "ErrorManager.hpp"
 #include "TraitInfo.hpp"
 
 namespace mabe {
@@ -94,12 +90,9 @@ namespace mabe {
     mabe::MABE & control;      ///< Reference to main mabe controller using module
     bool is_builtin=false;     ///< Is this a built-in module not for config?
 
-    emp::Ptr<mabe::ErrorManager> error_man = nullptr;   ///< Redirection for errors.
-
     /// Informative tags about this module.  Expected tags include:
     ///   "Analyze"     : Makes measurements on the population.
     ///   "Archive"     : Store specific types of data.
-    ///   "ErrorHandle" : Deals with errors as they occur and need to be reported.
     ///   "Evaluate"    : Examines organisms and annotates the data map.
     ///   "Interface"   : Provides mechanisms for the user to interact with the world.
     ///   "ManageOrgs"  : Manages a type of organism in the world.
@@ -135,8 +128,6 @@ namespace mabe {
       SIG_OnSwap,
       SIG_BeforePopResize,
       SIG_OnPopResize,
-      SIG_OnError,
-      SIG_OnWarning,
       SIG_BeforeExit,
       SIG_OnHelp,
       NUM_SIGNALS,
@@ -146,15 +137,6 @@ namespace mabe {
   protected:
     // Setup a BitSet to track if this module has each signal implemented.
     emp::BitSet<NUM_SIGNALS> has_signal;
-
-    // ---- Helper functions ----
-
-    /// All internal errors should be processed through AddError(...)
-    template <typename... Ts>
-    void AddError(Ts &&... args) {
-      error_man->AddError(std::forward<Ts>(args)...);
-    }
-
 
     // Core implementation for ManagerModule functionality.
     virtual emp::Ptr<OrgType> CloneObject_impl(const OrgType &) {
@@ -203,7 +185,6 @@ namespace mabe {
     void SetBuiltIn(bool _in=true) { is_builtin = _in; }
 
     bool IsAnalyzeMod() const { return emp::Has(action_tags, "Analyze"); }
-    bool IsErrorHandleMod() const { return emp::Has(action_tags, "ErrorHandle"); }
     bool IsEvaluateMod() const { return emp::Has(action_tags, "Evaluate"); }
     bool IsInterfaceMod() const { return emp::Has(action_tags, "Interface"); }
     bool IsManageMod() const { return emp::Has(action_tags, "ManageOrgs"); }
@@ -219,7 +200,6 @@ namespace mabe {
     }
 
     ModuleBase & SetAnalyzeMod(bool in=true) { return SetActionTag("Analyze", in); }
-    ModuleBase & SetErrorHandleMod(bool in=true) { return SetActionTag("ErrorHandle", in); }
     ModuleBase & SetEvaluateMod(bool in=true) { return SetActionTag("Evaluate", in); }
     ModuleBase & SetInterfaceMod(bool in=true) { return SetActionTag("Interface", in); }
     ModuleBase & SetManageMod(bool in=true) { return SetActionTag("ManageOrgs", in); }
@@ -252,8 +232,6 @@ namespace mabe {
     virtual void OnSwap(OrgPosition, OrgPosition) = 0;
     virtual void BeforePopResize(Population &, size_t) = 0;
     virtual void OnPopResize(Population &, size_t) = 0;
-    virtual void OnError(const std::string &) = 0;
-    virtual void OnWarning(const std::string &) = 0;
     virtual void BeforeExit() = 0;
     virtual void OnHelp() = 0;
 
@@ -274,8 +252,6 @@ namespace mabe {
     virtual bool OnSwap_IsTriggered() = 0;
     virtual bool BeforePopResize_IsTriggered() = 0;
     virtual bool OnPopResize_IsTriggered() = 0;
-    virtual bool OnError_IsTriggered() = 0;
-    virtual bool OnWarning_IsTriggered() = 0;
     virtual bool BeforeExit_IsTriggered() = 0;
     virtual bool OnHelp_IsTriggered() = 0;
 
