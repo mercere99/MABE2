@@ -13,10 +13,10 @@
 #include <string>
 
 #include "emp/base/array.hpp"
+#include "emp/base/notify.hpp"
 #include "emp/base/Ptr.hpp"
 #include "emp/base/vector.hpp"
 
-#include "ErrorManager.hpp"
 #include "ModuleBase.hpp"
 #include "Population.hpp"
 #include "SigListener.hpp"
@@ -30,7 +30,6 @@ namespace mabe {
 
   class MABEBase {
   protected:
-    ErrorManager error_man;  ///< Manage warnings and errors that occur.
     bool exit_now=false;     ///< Do we need to immediately clean up and exit the run?
     emp::Random random;      ///< Master random number generator
     size_t update = 0;       ///< How many times has Update() been called?
@@ -73,10 +72,6 @@ namespace mabe {
     SigListener<ModuleBase,void,Population &,size_t> before_pop_resize_sig;
     // OnPopResize(Population & pop, size_t old_size)
     SigListener<ModuleBase,void,Population &,size_t> on_pop_resize_sig;
-    // OnError(const std::string & msg)
-    SigListener<ModuleBase,void,const std::string &> on_error_sig;
-    // OnWarning(const std::string & msg)
-    SigListener<ModuleBase,void,const std::string &> on_warning_sig;
     // BeforeExit()
     SigListener<ModuleBase,void> before_exit_sig;
     // OnHelp()
@@ -88,9 +83,7 @@ namespace mabe {
 
     // Protected constructor so that base class cannot be instantiated except from derived class.
     MABEBase()
-    : error_man( [this](const std::string & msg){ on_error_sig.Trigger(msg); },
-                 [this](const std::string & msg){ on_warning_sig.Trigger(msg); } )
-    , before_update_sig("before_update", ModuleBase::SIG_BeforeUpdate, &ModuleBase::BeforeUpdate, sig_ptrs)
+    : before_update_sig("before_update", ModuleBase::SIG_BeforeUpdate, &ModuleBase::BeforeUpdate, sig_ptrs)
     , on_update_sig("on_update", ModuleBase::SIG_OnUpdate, &ModuleBase::OnUpdate, sig_ptrs)
     , before_repro_sig("before_repro", ModuleBase::SIG_BeforeRepro, &ModuleBase::BeforeRepro, sig_ptrs)
     , on_offspring_ready_sig("on_offspring_ready", ModuleBase::SIG_OnOffspringReady, &ModuleBase::OnOffspringReady, sig_ptrs)
@@ -104,8 +97,6 @@ namespace mabe {
     , on_swap_sig("on_swap", ModuleBase::SIG_OnSwap, &ModuleBase::OnSwap, sig_ptrs)
     , before_pop_resize_sig("before_pop_resize", ModuleBase::SIG_BeforePopResize, &ModuleBase::BeforePopResize, sig_ptrs)
     , on_pop_resize_sig("on_pop_resize", ModuleBase::SIG_OnPopResize, &ModuleBase::OnPopResize, sig_ptrs)
-    , on_error_sig("on_error", ModuleBase::SIG_OnError, &ModuleBase::OnError, sig_ptrs)
-    , on_warning_sig("on_warning", ModuleBase::SIG_OnWarning, &ModuleBase::OnWarning, sig_ptrs)
     , before_exit_sig("before_exit", ModuleBase::SIG_BeforeExit, &ModuleBase::BeforeExit, sig_ptrs)
     , on_help_sig("on_help", ModuleBase::SIG_OnHelp, &ModuleBase::OnHelp, sig_ptrs)
     { ;  }
@@ -113,26 +104,14 @@ namespace mabe {
   public:
     virtual ~MABEBase() { }
 
-    bool SetupBase() {
-      error_man.Activate();
-      return (error_man.GetNumErrors() == 0);  // Only return success if there were no errors.
+    void SetupBase() {
+      emp::notify::Unpause();
     }
 
     // --- Basic accessors ---
     emp::Random & GetRandom() { return random; }
     size_t GetUpdate() const noexcept { return update; }
     bool GetVerbose() const { return verbose; }
-
-    /// Provide an interface for reporting warnings.
-    template <typename... Ts>
-    void AddWarning(Ts &&... args) { error_man.AddWarning(std::forward<Ts>(args)...); }
-
-    /// Provide an interface for reporting errors.
-    template <typename... Ts>
-    void AddError(Ts &&... args) { error_man.AddError(std::forward<Ts>(args)...); }
-
-    /// Access the full error manager.
-    ErrorManager & GetErrorManager() { return error_man; }
 
     /// Trigger exit from run.
     void RequestExit() { exit_now = true; }
