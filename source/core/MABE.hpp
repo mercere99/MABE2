@@ -23,6 +23,7 @@
 #include "emp/base/array.hpp"
 #include "emp/base/Ptr.hpp"
 #include "emp/base/vector.hpp"
+#include "emp/base/notify.hpp"
 #include "emp/config/command_line.hpp"
 #include "emp/control/Signal.hpp"
 #include "emp/data/DataMap.hpp"
@@ -315,8 +316,6 @@ namespace mabe {
     bool OnSwap_IsTriggered(mod_ptr_t mod) { return on_swap_sig.cur_mod == mod; };
     bool BeforePopResize_IsTriggered(mod_ptr_t mod) { return before_pop_resize_sig.cur_mod == mod; };
     bool OnPopResize_IsTriggered(mod_ptr_t mod) { return on_pop_resize_sig.cur_mod == mod; };
-    bool OnError_IsTriggered(mod_ptr_t mod) { return on_error_sig.cur_mod == mod; };
-    bool OnWarning_IsTriggered(mod_ptr_t mod) { return on_warning_sig.cur_mod == mod; };
     bool BeforeExit_IsTriggered(mod_ptr_t mod) { return before_exit_sig.cur_mod == mod; };
     bool OnHelp_IsTriggered(mod_ptr_t mod) { return on_help_sig.cur_mod == mod; };
   };
@@ -382,7 +381,8 @@ namespace mabe {
           // MABE config files can be generated FROM a *.gen file, typically creating a *.mabe
           // file.  If output file is *.gen assume an error. (for now; override should be allowed)
           if (in[0].size() > 4 && in[0].substr(in[0].size()-4) == ".gen") {
-            AddError("Error: generated file ", in[0], " not allowed to be *.gen; typically should end in *.mabe.");
+            emp::notify::Error("Generated file ", in[0],
+                               " not allowed to be *.gen; typically should end in *.mabe.");
             exit_now = true;
           }
           else gen_filename = in[0];
@@ -429,7 +429,7 @@ namespace mabe {
         }
       }
       if (found == false) {
-        std::cout << "Error: unknown command line argument '" << args[pos] << "'." << std::endl;
+        emp::notify::Message("Error: unknown command line argument '", args[pos], "'.");
         show_help = true;
         break;
       }
@@ -483,8 +483,7 @@ namespace mabe {
 
 
   MABE::MABE(int argc, char* argv[])
-    : trait_man(GetErrorManager())
-    , args(emp::cl::args_to_strings(argc, argv))
+    : args(emp::cl::args_to_strings(argc, argv))
     , config_script(*this)
   {
     // Updates to scripting language that require full controller functionality.
@@ -538,12 +537,12 @@ namespace mabe {
     // Allow traits to be linked.
     trait_man.Unlock();
 
-    Setup_Modules();        // Run SetupModule() on each module for linking traits or other setup.
-    Setup_Traits();         // Make sure module traits do not clash.
+    Setup_Modules();    // Run SetupModule() on each module for linking traits or other setup.
+    Setup_Traits();     // Make sure module traits do not clash.
+    UpdateSignals();    // Setup the appropriate modules to be linked with each signal.
+    SetupBase();        // Call Setup on MABEBase (which will report errors)
 
-    UpdateSignals();        // Setup the appropriate modules to be linked with each signal.
-
-    return SetupBase();     // Call Setup on MABEBase (which is tracking and will report errors)
+    return true;
   }
 
   /// Update MABE world.
@@ -606,7 +605,7 @@ namespace mabe {
         placement_set.Insert(pos);
       } else {
         inject_org.Delete();          
-        AddError("Invalid position; failed to inject organism ", i, "!");
+        emp::notify::Error("Invalid position; failed to inject organism ", i, "!");
       }
     }
     return placement_set;
@@ -621,7 +620,7 @@ namespace mabe {
     if (pos.IsValid()) AddOrgAt( org_ptr, pos);
     else {
       org_ptr.Delete();          
-      AddError("Invalid position; failed to inject organism!");
+      emp::notify::Error("Invalid position; failed to inject organism!");
     }
     return pos;
   }
@@ -652,10 +651,10 @@ namespace mabe {
                                 size_t copy_count) {      
     int pop_id = GetPopID(pop_name);
     if (pop_id == -1) {
-      AddError("Invalid population name used in inject: ",
-               "org_type= '", type_name, "'; ",
-               "pop_name= '", pop_name, "'; ",
-               "copy_count=", copy_count);
+      emp::notify::Error("Invalid population name used in inject: ",
+                         "org_type= '", type_name, "'; ",
+                         "pop_name= '", pop_name, "'; ",
+                         "copy_count=", copy_count);
     }
     Population & pop = GetPopulation(pop_id);
     return Inject(pop, type_name, copy_count); // Inject the organisms.
@@ -740,7 +739,7 @@ namespace mabe {
     auto slices = emp::view_slices(load_str, ',');
     for (auto name : slices) {
       int pop_id = GetPopID(name);
-      if (pop_id == -1) AddError("Unknown population: ", name);
+      if (pop_id == -1) emp::notify::Error("Unknown population: ", name);
       else out.Insert(GetPopulation(pop_id));
     }
     return out;
