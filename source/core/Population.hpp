@@ -176,8 +176,11 @@ namespace mabe {
       orgs[pos] = org_ptr;
       org_ptr->SetPopulation(*this);
       if (!data_layout_ptr) data_layout_ptr = &org_ptr->GetDataMap().GetLayout();
-      // @CAO If an organism with the wrong data map type is added, should throw a USER error.
-      emp_assert( &org_ptr->GetDataMap().GetLayout() == data_layout_ptr );
+
+      if ( &org_ptr->GetDataMap().GetLayout() != data_layout_ptr ) {
+        emp::notify::Error("Trying to insert an organism into population '", name,
+                           "' with the incorrect trait set.");
+      }
       num_orgs++;
     }
 

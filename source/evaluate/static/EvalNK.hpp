@@ -76,9 +76,9 @@ namespace mabe {
         org.GenerateOutput();
         const auto & bits = org.GetTrait<emp::BitVector>(bits_trait);
         if (bits.size() != N) {
-          AddError("Org returns ", bits.size(), " bits, but ",
-                   N, " bits needed for NK landscape.",
-                   "\nOrg: ", org.ToString());
+          emp::notify::Error("Org returns ", bits.size(), " bits, but ",
+                             N, " bits needed for NK landscape.",
+                             "\nOrg: ", org.ToString());
         }
         double fitness = landscape.GetFitness(bits);
         org.SetTrait<double>(fitness_trait, fitness);

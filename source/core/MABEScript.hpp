@@ -27,7 +27,6 @@
 
 #include "Collection.hpp"
 #include "data_collect.hpp"
-#include "ErrorManager.hpp"
 #include "MABEBase.hpp"
 #include "ModuleBase.hpp"
 #include "Population.hpp"
@@ -158,7 +157,7 @@ namespace mabe {
 
       // If we don't have a fun, we weren't able to build an aggregation function.
       if (!fun) {
-        control.AddError("Unknown trait filter '", mode, "' for trait '", trait_fun, "'.");
+        emp::notify::Error("Unknown trait filter '", mode, "' for trait '", trait_fun, "'.");
         return [](const FROM_T &){ return TO_T(); };
       }
 

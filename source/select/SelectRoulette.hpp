@@ -24,7 +24,7 @@ namespace mabe {
 
     Collection Select(Population & select_pop, Population & birth_pop, size_t num_births) {
       if (select_pop.GetID() == birth_pop.GetID()) {
-        AddError("SelectRoulette currently requires birth_pop and select_pop to be different.");
+        emp::notify::Error("SelectRoulette currently requires birth_pop and select_pop to be different.");
         return Collection{};
       }
 

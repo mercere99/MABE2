@@ -358,8 +358,7 @@ namespace mabe {
         org_id -= pop_info.GetSize(pop_ptr);
       }
 
-      // @CAO Should report error to user!
-      emp_error("Trying to find org id out of range for a collection.");
+      emp::notify::Error("Trying to find org id out of range for a collection.");
       return pos_map.begin()->first->At(0); // Return the first organism since out of range.
     }
 
@@ -372,8 +371,7 @@ namespace mabe {
         org_id -= pop_info.GetSize(pop_ptr);
       }
 
-      // @CAO Should report error to user!
-      emp_error("Trying to find org id out of range for a collection.");
+      emp::notify::Error("Trying to find org id out of range for a collection.");
       return pos_map.begin()->first->At(0); // Return the first organism since out of range.
     }
 

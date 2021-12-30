@@ -33,7 +33,7 @@ namespace mabe {
 
     Collection Select(Population & select_pop, Population & birth_pop, size_t num_births) {
       if (num_births > 1 && select_pop.GetID() == birth_pop.GetID()) {
-        AddError("SelectLexicase requires birth_pop and select_pop to be different if selecting multiple organisms.");
+        emp::notify::Error("SelectLexicase requires birth_pop and select_pop to be different if selecting multiple organisms.");
         return Collection();
       }
 
