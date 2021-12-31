@@ -124,6 +124,8 @@ namespace emplode {
 
     virtual Symbol & SetValue(double in) { (void) in; emp_assert(false, in); return *this; }
     virtual Symbol & SetString(const std::string & in) { (void) in; emp_assert(false, in); return *this; }
+    Symbol & operator=(double in) { return SetValue(in); }
+    Symbol & operator=(const std::string & in) { return SetString(in); }
 
     virtual emp::Ptr<Symbol_Function> AsFunctionPtr() { return nullptr; }
     virtual emp::Ptr<const Symbol_Function> AsFunctionPtr() const { return nullptr; }
@@ -308,16 +310,26 @@ namespace emplode {
     bool is_num = true;
   public:
     Symbol_Var(const std::string & in_name,
-               double default_val,
+               double in_val,
                const std::string & in_desc="",
                emp::Ptr<Symbol_Scope> in_scope=nullptr)
-      : Symbol(in_name, in_desc, in_scope), num_value(default_val), is_num(true) { ; }
+      : Symbol(in_name, in_desc, in_scope), num_value(in_val), is_num(true) {}
     Symbol_Var(const std::string & in_name,
-               const std::string & default_val,
+               const std::string & in_val,
                const std::string & in_desc="",
                emp::Ptr<Symbol_Scope> in_scope=nullptr)
-      : Symbol(in_name, in_desc, in_scope), str_value(default_val), is_num(false) { ; }
+      : Symbol(in_name, in_desc, in_scope), str_value(in_val), is_num(false) {}
+    Symbol_Var(const std::string & in_name,
+               const Symbol_Var & in_val,
+               const std::string & in_desc="",
+               emp::Ptr<Symbol_Scope> in_scope=nullptr)
+      : Symbol(in_name, in_desc, in_scope)
+      , num_value(in_val.num_value), str_value(in_val.str_value), is_num(in_val.is_num) {}
     Symbol_Var(const Symbol_Var &) = default;
+    Symbol_Var(double _val)
+      : Symbol("__Auto__", "", nullptr), num_value(_val), is_num(true) {}
+    Symbol_Var(const std::string & _val)
+      : Symbol("__Auto__", "", nullptr), str_value(_val), is_num(false) {}
 
     std::string GetTypename() const override { return "Var"; }
 
