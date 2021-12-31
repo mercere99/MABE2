@@ -61,7 +61,7 @@ namespace emplode {
     }
 
     template <typename T>
-    decltype(auto) ValueToSymbol( T && value, const std::string & location ) {
+    symbol_ptr_t ValueToSymbol( T && value, const std::string & location ) {
       constexpr bool is_ref = std::is_lvalue_reference<T>();
       using base_t = std::remove_reference_t<T>;
 
@@ -72,7 +72,8 @@ namespace emplode {
 
       // If a return value is a basic type, wrap it in a temporary symbol
       else if constexpr (std::is_same<base_t, std::string>() ||
-                         std::is_arithmetic<base_t>()) {
+                         std::is_arithmetic<base_t>() ||
+                         std::is_same<base_t, emplode::Symbol_Var>()) {
         return MakeTempSymbol(value);
       }
 
