@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of Emplode, currently within https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019-2021.
+ *  @date 2019-2022.
  *
  *  @file  Symbol.hpp
  *  @brief Manages a single configuration entry (e.g., variables + base for scopes and functions).
@@ -27,6 +27,7 @@
 #include "emp/base/assert.hpp"
 #include "emp/base/Ptr.hpp"
 #include "emp/base/vector.hpp"
+#include "emp/data/Datum.hpp"
 #include "emp/math/Range.hpp"
 #include "emp/meta/meta.hpp"
 #include "emp/meta/TypeID.hpp"
@@ -121,6 +122,7 @@ namespace emplode {
 
     virtual double AsDouble() const { return std::nan("NaN"); }
     virtual std::string AsString() const { return "[[__INVALID SYMBOL CONVERSION__]]"; }
+    virtual void Print(std::ostream & os) const { os << AsString(); }
 
     virtual Symbol & SetValue(double in) { (void) in; emp_assert(false, in); return *this; }
     virtual Symbol & SetString(const std::string & in) { (void) in; emp_assert(false, in); return *this; }
@@ -305,55 +307,39 @@ namespace emplode {
   /// A symbol for an internally maintained variable.
   class Symbol_Var : public Symbol {
   private:
-    double num_value = 0.0;
-    std::string str_value = "";
-    bool is_num = true;
+    emp::Datum value;
+
+    using scope_ptr_t = emp::Ptr<Symbol_Scope>;
   public:
-    Symbol_Var(const std::string & in_name,
-               double in_val,
-               const std::string & in_desc="",
-               emp::Ptr<Symbol_Scope> in_scope=nullptr)
-      : Symbol(in_name, in_desc, in_scope), num_value(in_val), is_num(true) {}
-    Symbol_Var(const std::string & in_name,
-               const std::string & in_val,
-               const std::string & in_desc="",
-               emp::Ptr<Symbol_Scope> in_scope=nullptr)
-      : Symbol(in_name, in_desc, in_scope), str_value(in_val), is_num(false) {}
-    Symbol_Var(const std::string & in_name,
-               const Symbol_Var & in_val,
-               const std::string & in_desc="",
-               emp::Ptr<Symbol_Scope> in_scope=nullptr)
-      : Symbol(in_name, in_desc, in_scope)
-      , num_value(in_val.num_value), str_value(in_val.str_value), is_num(in_val.is_num) {}
+    Symbol_Var(const std::string & _n, double _v,              const std::string & _d="", scope_ptr_t _s=nullptr)
+      : Symbol(_n, _d, _s), value(_v) {}
+    Symbol_Var(const std::string & _n, const std::string & _v, const std::string & _d="", scope_ptr_t _s=nullptr)
+      : Symbol(_n, _d, _s), value(_v) {}
+    Symbol_Var(const std::string & _n, const emp::Datum & _v,  const std::string & _d="", scope_ptr_t _s=nullptr)
+      : Symbol(_n, _d, _s), value(_v) {}
+    Symbol_Var(const std::string & _n, const Symbol_Var & _v,  const std::string & _d="", scope_ptr_t _s=nullptr)
+      : Symbol(_n, _d, _s), value(_v.value) {}
+
     Symbol_Var(const Symbol_Var &) = default;
-    Symbol_Var(double _val)
-      : Symbol("__Auto__", "", nullptr), num_value(_val), is_num(true) {}
-    Symbol_Var(const std::string & _val)
-      : Symbol("__Auto__", "", nullptr), str_value(_val), is_num(false) {}
+    Symbol_Var(double _val)              : Symbol("__Auto__", "", nullptr), value(_val) {}
+    Symbol_Var(const std::string & _val) : Symbol("__Auto__", "", nullptr), value(_val) {}
+    Symbol_Var(const emp::Datum & _val)  : Symbol("__Auto__", "", nullptr), value(_val) {}
 
     std::string GetTypename() const override { return "Var"; }
 
     symbol_ptr_t Clone() const override { return emp::NewPtr<Symbol_Var>(*this); }
 
-    double AsDouble() const override {
-      return is_num ? num_value : emp::from_string<double>(str_value);
+    double AsDouble() const override { return value.AsDouble(); }
+    std::string AsString() const override { return value.AsString(); }
+    void Print(std::ostream & os) const override {
+      if (value.IsDouble()) os << value.NativeDouble();
+      else os << value.NativeString();
     }
-    std::string AsString() const override {
-      return is_num ? emp::to_string(num_value) : str_value;
-    }
-    Symbol & SetValue(double in) override {
-      num_value = in;
-      is_num = true;
-      return *this;
-    }
-    Symbol & SetString(const std::string & in) override {
-      str_value = in;
-      is_num = false;
-      return *this;
-    }
+    Symbol & SetValue(double in) override { value = in; return *this; }
+    Symbol & SetString(const std::string & in) override { value = in; return *this; }
 
-    bool IsNumeric() const override { return is_num; }
-    bool IsString() const override { return !is_num; }
+    bool IsNumeric() const override { return value.IsDouble(); }
+    bool IsString() const override { return value.IsString(); }
     bool IsLocal() const override { return true; }
 
     bool CopyValue(const Symbol & in) override {
