@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of Emplode, currently within https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2021.
+ *  @date 2021-2022.
  *
  *  @file  SymbolTableBase.hpp
  *  @brief Tools for working with Symbol objects, especially for wrapping functions.
@@ -73,6 +73,7 @@ namespace emplode {
       // If a return value is a basic type, wrap it in a temporary symbol
       else if constexpr (std::is_same<base_t, std::string>() ||
                          std::is_arithmetic<base_t>() ||
+                         std::is_same<base_t, emp::Datum>() ||
                          std::is_same<base_t, emplode::Symbol_Var>()) {
         return MakeTempSymbol(value);
       }
