@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of Emplode, currently within https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019-2021.
+ *  @date 2019-2022.
  *
  *  @file  Emplode.hpp
  *  @brief Manages all configuration with Emplode language.
@@ -75,6 +75,8 @@
 
 #include "emp/base/assert.hpp"
 #include "emp/base/map.hpp"
+#include "emp/base/notify.hpp"
+#include "emp/data/Datum.hpp"
 #include "emp/meta/TypeID.hpp"
 #include "emp/tools/string_utils.hpp"
 
@@ -130,7 +132,7 @@ namespace emplode {
 
       // 'PRINT' is a simple debugging command to output the value of a variable.
       auto print_fun = [](const emp::vector<emp::Ptr<Symbol>> & args) {
-          for (auto entry_ptr : args) std::cout << entry_ptr->AsString();
+          for (auto entry_ptr : args) entry_ptr->Print(std::cout);
           std::cout << std::endl;
           return 0;
         };
@@ -286,8 +288,8 @@ namespace emplode {
       ast_root.AddChild(cur_block);
     }
 
-    // Load the provided statement and run it.
-    std::string Execute(std::string_view statement, emp::Ptr<Symbol_Scope> scope=nullptr) {
+    // Load the provided statement, run it, and return the resulting value.
+    emp::Datum Execute(std::string_view statement, emp::Ptr<Symbol_Scope> scope=nullptr) {
       if (!scope) scope = &symbol_table.GetRootScope();        // Default scope to root level.
       auto tokens = lexer.Tokenize(statement, "eval command"); // Convert to a TokenStream.
       tokens.push_back(lexer.ToToken(";"));                    // Ensure a semi-colon at end.
@@ -302,10 +304,11 @@ namespace emplode {
 
       // Process just the expressions so that we can get a result from it.
       auto result_ptr = cur_expr->Process();                // Process AST to get result symbol.
-      std::string result = "";                              // Default result to an empty string.
+      emp::Datum result;
       if (result_ptr) {
-        result = result_ptr->AsString();                    // Convert result to output string.
-        if (result_ptr->IsTemporary()) result_ptr.Delete(); // Delete the result symbol if done.
+        if (result_ptr->IsNumeric()) result = result_ptr->AsDouble(); // Result is numeric output.
+        else result = result_ptr->AsString();                         // Result is string output.
+        if (result_ptr->IsTemporary()) result_ptr.Delete();           // Delete temp result symbol.
       }
       cur_block.Delete();                                   // Delete the temporary AST.
       return result;                                        // Return the result string.
