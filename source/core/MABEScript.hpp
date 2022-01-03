@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2021.
+ *  @date 2021-2022.
  *
  *  @file  MABEScript.hpp
  *  @brief Customized Emplode scripting language instance for MABE runs.
@@ -44,12 +44,17 @@ namespace mabe {
 
     using Symbol_Var = emplode::Symbol_Var;
 
+    struct PreprocessResults {
+      std::string result;         // Updated string
+      emp::vector<double> values; // Numerical values kept aside, if preserve_nums=true;
+    };
+
   public:
     /// Build a function to scan a data map, run a provided equation on its entries,
     /// and return the result.
     auto BuildTraitEquation(const emp::DataLayout & data_layout, std::string equation) {
-      equation = Preprocess(equation);
-      auto dm_fun = dm_parser.BuildMathFunction(data_layout, equation);
+      auto pp_equ = Preprocess(equation, true);
+      auto dm_fun = dm_parser.BuildMathFunction(data_layout, pp_equ.result, pp_equ.values);
       return [dm_fun](const Organism & org){ return dm_fun(org.GetDataMap()); };
     }
 
@@ -59,29 +64,43 @@ namespace mabe {
     }
 
     /// Find any instances of ${X} and eval the X.
-    std::string Preprocess(const std::string & in_string) {
-      std::string out_string = in_string;
+    PreprocessResults Preprocess(const std::string & in_string, bool preserve_nums=false) {
+      PreprocessResults pp_out;
+      pp_out.result = in_string;
 
       // Seek out instances of "${" to indicate the start of pre-processing.
-      for (size_t i = 0; i < out_string.size(); ++i) {
-        if (out_string[i] != '$') continue;   // Replacement tag must start with a '$'.
-        if (out_string.size() <= i+2) break;  // Not enough room for a replacement tag.
-        if (out_string[i+1] == '$') {         // Compress two $$ into one $
-          out_string.erase(i,1);
+      for (size_t i = 0; i < pp_out.result.size(); ++i) {
+        if (pp_out.result[i] != '$') continue;   // Replacement tag must start with a '$'.
+        if (pp_out.result.size() <= i+2) break;  // Not enough room for a replacement tag.
+        if (pp_out.result[i+1] == '$') {         // Compress two $$ into one $
+          pp_out.result.erase(i,1);
           continue;
         }
-        if (out_string[i+1] != '{') continue; // Eval must be surrounded by braces.
+        if (pp_out.result[i+1] != '{') continue; // Eval must be surrounded by braces.
 
         // If we made it this far, we have a starting match!
-        size_t end_pos = emp::find_paren_match(out_string, i+1, '{', '}', false);
-        if (end_pos == i+1) return out_string;  // No end brace found!  @CAO -- exception here?
-        const std::string new_text = Execute(emp::view_string_range(out_string, i+2, end_pos));
-        out_string.replace(i, end_pos-i+1, new_text);
-
-        i += new_text.size(); // Continue from the end point...
+        size_t end_pos = emp::find_paren_match(pp_out.result, i+1, '{', '}', false);
+        if (end_pos == i+1) {
+          emp::notify::Warning("In pre-processing:\n  '", in_string,
+                               "',\nfound '${' with no matching '}'.");
+          return pp_out; // Stop where we are... No end brace found!
+        }
+        emp::Datum replacement = Execute(emp::view_string_range(pp_out.result, i+2, end_pos));
+        // Test if we should drop the replacement results directly in-line.
+        if (!preserve_nums || replacement.IsString()) {
+          std::string new_str = replacement.AsString();   // Get new text.
+          pp_out.result.replace(i, end_pos-i+1, new_str); // Put into place.
+          i += new_str.size();                            // Continue at the next position...
+        }
+        else { // Replacement is numerical and needs to be preserved...
+          std::string new_str = emp::to_string("$",pp_out.values.size()); // Generate the '$#'
+          pp_out.result.replace(i, end_pos-i+1, new_str);                 // Put it in place.
+          pp_out.values.push_back(replacement.NativeDouble());            // Store associated value
+          i += new_str.size();                                            // Find continue pos
+        }
       }
 
-      return out_string;
+      return pp_out;
     }
 
 
@@ -119,7 +138,7 @@ namespace mabe {
                     "BuildTraitSummary FROM_T must be Collection or Population." );
 
       // Pre-process the trait function to allow for use of regular config variables.
-      trait_fun = Preprocess(trait_fun);
+      trait_fun = Preprocess(trait_fun).result;
 
       // The trait input has two components:
       // (1) the trait (or trait function) and
@@ -319,7 +338,7 @@ namespace mabe {
       AddFunction("GET_VERBOSE", [this](){ return control.GetVerbose(); }, "Has the verbose flag been set?");
 
       std::function<std::string(const std::string &)> preprocess_fun =
-        [this](const std::string & str) { return Preprocess(str); };
+        [this](const std::string & str) { return Preprocess(str).result; };
       AddFunction("PP", preprocess_fun, "Preprocess a string (replacing any ${...} with result.)");
 
       // Add in built-in event triggers; these are used to indicate when events should happen.
