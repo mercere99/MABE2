@@ -1,4 +1,4 @@
-TEST_NAMES= AvidaGPOrg BitsOrg ValsOrg
+TEST_NAMES= AvidaGPOrg BitsOrg ValsOrg VirtualCPUOrg
 # Missing files: SimpleProgramOrg 
 
 MABE_DIR= ../../../source/

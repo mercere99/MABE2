@@ -41,10 +41,10 @@ namespace mabe {
 
     struct ManagerData : public Organism::ManagerData {
       // Configuration variables
-      double mut_prob = 0.01;              ///< Probability of each bit mutating on reproduction.
-      size_t init_length = 100;            ///< Length of new organisms.
-      bool init_random = true;             ///< Should we randomize ancestor?  (false = all zeros)
-      size_t eval_time = 500;              ///< How long should the CPU be given on each evaluate?
+      double mut_prob = 0.01;     ///< Probability of each bit mutating on reproduction.
+      size_t init_length = 100;   ///< Length of new organisms.
+      bool init_random = true;    ///< Should we randomize ancestor?  (false = all zeros)
+      size_t eval_time = 500;     ///< How long should the CPU be given on each evaluate?
       std::string input_name = "input";    ///< Name of trait that should be used load input values
       std::string output_name = "output";  ///< Name of trait that should be used store output values
       std::string merit_name = "merit";    ///< Name of trait that stores an organism's fitness 
@@ -61,7 +61,7 @@ namespace mabe {
     };
 
     size_t Mutate(emp::Random & random) override {
-      emp::Binomial mut_dist(SharedData().mut_prob, genome.size());
+      //emp::Binomial mut_dist(SharedData().mut_prob, genome.size());
       const size_t num_muts = SharedData().mut_dist.PickRandom(random);
       //const size_t num_muts = mut_dist.PickRandom(random);
 
@@ -77,7 +77,10 @@ namespace mabe {
       for (size_t i = 0; i < num_muts; i++) {
         const size_t pos = random.GetUInt(GetGenomeSize());
         if (mut_sites[pos]) { --i; continue; }  // Duplicate position; try again.
+        mut_sites[pos] = true;
+        size_t old_inst_idx = genome[pos].idx;
         RandomizeInst(pos, random);
+        while(genome[pos].idx == old_inst_idx) RandomizeInst(pos, random);
       }
       return num_muts;
     }
@@ -89,78 +92,40 @@ namespace mabe {
       Organism::SetTrait<std::string>(SharedData().genome_name, GetGenomeString());
     }
 
-    void Initialize(emp::Random & random) override {
-      std::cout << "Original genome:" << std::endl;
-      std::cout << GetGenomeString() << std::endl;
-      constexpr bool start_with_not = false;
-      if (SharedData().init_random) Randomize(random);
-      else{
-        Load(SharedData().initial_genome_filename);
-        //std::cout << "Filling genome!" << std::endl;
-        //for(size_t i = 0; i < 49; i++) PushInst("NopC");   
-        //PushInst("Repro");
-        //PushInst("HAlloc");  // 0  
-        //PushInst("HSearch"); // 1
-        //PushInst("NopC");    // 2
-        //PushInst("NopA");    // 3
-        //PushInst("MovHead"); // 4
-        //if constexpr(!start_with_not){
-        //  for(size_t i = 0; i < (50 - 14); i++) PushInst("NopC");   
-        //}
-        //else{
-        //  for(size_t i = 0; i < (50 - 24); i++) PushInst("NopC");   
-        //  PushInst("IO");
-        //  PushInst("NopB");
-        //  PushInst("Push");
-        //  PushInst("NopB");
-        //  PushInst("Pop");
-        //  PushInst("NopC");
-        //  PushInst("Nand");
-        //  PushInst("NopB");
-        //  PushInst("IO");
-        //  PushInst("NopB");
-        //}
-        //PushInst("HSearch"); // 41
-        //PushInst("HCopy");   // 42
-        //PushInst("IfLabel"); // 43
-        //PushInst("NopC");    // 44
-        //PushInst("NopA");    // 45
-        //PushInst("HDivide"); // 46
-        //PushInst("MovHead"); // 47
-        //PushInst("NopA");    // 48
-        //PushInst("NopB");    // 49
+    void FillRandom(size_t length, emp::Random & random){
+      for (size_t pos = GetGenomeSize(); pos < length; pos++) {
+        PushRandomInst(random);
       }
+    }
+
+    void Initialize(emp::Random & random) override {
+      emp_assert(GetGenomeSize() == 0, "Cannot initialize VirtualCPUOrg twice");
+      if (SharedData().init_random) FillRandom(SharedData().init_length, random);
+      else Load(SharedData().initial_genome_filename);
       expanded_nop_args = SharedData().expanded_nop_args;
       Organism::SetTrait<std::string>(SharedData().genome_name, GetGenomeString());
       Organism::SetTrait<double>(SharedData().merit_name, SharedData().initial_merit); 
       Organism::SetTrait<double>(SharedData().child_merit_name, SharedData().initial_merit); 
       base_t::Initialize(); // MABE's proto organisms means we need to re-initialize the org
       CurateNops();
-      std::cout << "Modified genome:" << std::endl;
-      std::cout << GetGenomeString() << std::endl;
     }
     
     emp::Ptr<Organism> MakeOffspringOrganism(emp::Random & random) const {
-      emp::Ptr<Organism> offspring = CloneOrganism();
+      auto offspring = OrgType::Clone().DynamicCast<VirtualCPUOrg>();
       offspring->Mutate(random);
       offspring->SetTrait<double>(SharedData().merit_name, GetTrait<double>(SharedData().child_merit_name)); 
       offspring->SetTrait<double>(SharedData().child_merit_name, SharedData().initial_merit); 
-      offspring.DynamicCast<VirtualCPUOrg>()->CurateNops();
-      offspring.DynamicCast<VirtualCPUOrg>()->Organism::SetTrait<std::string>(
-          SharedData().genome_name, offspring.DynamicCast<VirtualCPUOrg>()->GetGenomeString());
+      offspring->CurateNops();
+      offspring->Organism::SetTrait<std::string>(
+          SharedData().genome_name, offspring->GetGenomeString());
+      offspring.DynamicCast<VirtualCPUOrg>()->ResetHardware();
       return offspring;
     }
     
     virtual emp::Ptr<Organism> CloneOrganism() const {
       auto offspring = OrgType::Clone().DynamicCast<VirtualCPUOrg>();
-      //std::cout << 
-      //  GetTrait<OrgPosition>("org_pos").Pos() << 
-      //  ConvertGenome(genome_working) << 
-      //  " -> " << 
-      //  ConvertGenome(GetTrait<genome_t>("offspring_genome")) << 
-      //  std::endl; 
-      offspring->genome = GetTrait<genome_t>("offspring_genome");
-      offspring->SetTrait<double>(SharedData().merit_name, GetTrait<double>(SharedData().child_merit_name)); 
+      offspring->genome = genome;
+      offspring->SetTrait<double>(SharedData().merit_name, GetTrait<double>(SharedData().merit_name)); 
       offspring->SetTrait<double>(SharedData().child_merit_name, SharedData().initial_merit); 
       offspring->genome_working = offspring->genome;
       offspring->ResetHardware();
@@ -223,12 +188,7 @@ namespace mabe {
 
     /// Setup this organism type with the traits it need to track.
     void SetupModule() override {
-      // Setup the mutation distribution.
-      SharedData().mut_dist.Setup(SharedData().mut_prob, 20);
-
-      // Setup the default vector to indicate mutation positions.
-      SharedData().mut_sites.Resize(GetGenomeSize());
-
+      SetupMutationDistribution();
       // Setup the input and output traits.
       GetManager().AddRequiredTrait<emp::vector<data_t>>(SharedData().input_name);
       GetManager().AddSharedTrait(SharedData().output_name,
@@ -245,10 +205,7 @@ namespace mabe {
     }
 
     void SetupInstLib(){
-      LoadExternalInstructions();
-    }
-
-    void LoadExternalInstructions(){
+      // Load external instructions that were added in the config file
       inst_lib_t& inst_lib = GetInstLib();
       ActionMap& action_map = GetManager().GetControl().GetActionMap(0);
       std::unordered_map<std::string, mabe::Action>& typed_action_map =
@@ -292,6 +249,19 @@ namespace mabe {
         sstr << c;
       }
       return sstr.str();
+    }
+
+    void SetupMutationDistribution(){
+      // Setup the mutation distribution.
+      // Setup the default vector to indicate mutation positions.
+      if(GetGenomeSize() != 0){
+        SharedData().mut_dist.Setup(SharedData().mut_prob, GetGenomeSize());
+        SharedData().mut_sites.Resize(GetGenomeSize());
+      }
+      else{
+        SharedData().mut_dist.Setup(SharedData().mut_prob, SharedData().init_length);
+        SharedData().mut_sites.Resize(SharedData().init_length);
+      }
     }
   };
 

@@ -23,10 +23,10 @@ namespace mabe {
   public: 
     using data_t = VirtualCPUOrg::data_t;
   private:
-    Collection target_collect;
+    //Collection target_collect;
     int pop_id = 0;
     std::string input_name = "input";
-    std::string output_name = "input";
+    std::string output_name = "output";
     std::string input_idx_name = "input_idx";
     size_t num_inputs = 3;
     std::function<void(VirtualCPUOrg&, const VirtualCPUOrg::inst_t&)> func_input;
@@ -35,8 +35,8 @@ namespace mabe {
     VirtualCPU_Inst_IO(mabe::MABE & control,
                     const std::string & name="VirtualCPU_Inst_IO",
                     const std::string & desc="IO instructions for VirtualCPUOrg population")
-      : Module(control, name, desc), 
-        target_collect(control.GetPopulation(1),control.GetPopulation(0)){;}
+      : Module(control, name, desc){ ; }
+        //target_collect(control.GetPopulation(1),control.GetPopulation(0)){;}
 
     ~VirtualCPU_Inst_IO() {;}
 
@@ -78,7 +78,7 @@ namespace mabe {
     void SetupModule() override {
       AddOwnedTrait<emp::vector<data_t>>(input_name, "VirtualCPUOrg inputs", {} );
       AddOwnedTrait<size_t>(input_idx_name, "Index of next input", 0 );
-      AddOwnedTrait<emp::vector<data_t>>(output_name, "VirtualCPUOrg outputs", {} );
+      AddSharedTrait<emp::vector<data_t>>(output_name, "VirtualCPUOrg outputs", {} );
       SetupFuncs();
     }
   };

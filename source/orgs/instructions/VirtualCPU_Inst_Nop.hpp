@@ -19,7 +19,7 @@ namespace mabe {
 
   class VirtualCPU_Inst_Nop : public Module {
   private:
-    Collection target_collect;
+    //Collection target_collect;
     int pop_id = 0;
     size_t num_nops = 3;
     bool include_nop_x = false;
@@ -29,8 +29,8 @@ namespace mabe {
     VirtualCPU_Inst_Nop(mabe::MABE & control,
                     const std::string & name="VirtualCPU_Inst_Nop",
                     const std::string & desc="Nop instructions for VirtualCPUOrg population")
-      : Module(control, name, desc), 
-        target_collect(control.GetPopulation(1),control.GetPopulation(0)){;}
+      : Module(control, name, desc) {;} 
+        //target_collect(control.GetPopulation(1), control.GetPopulation(0)){;}
     ~VirtualCPU_Inst_Nop() { }
 
     void SetupConfig() override {
@@ -40,7 +40,7 @@ namespace mabe {
     }
 
     void SetupFuncs(){
-      emp_assert(num_nops < 12, "Code only supports twelve normal NOP instructions currently");
+      emp_assert(num_nops < 12,"Code only supports twelve normal NOP instructions currently");
       ActionMap& action_map = control.GetActionMap(pop_id);
       func_nop = [](VirtualCPUOrg& /*hw*/, const VirtualCPUOrg::inst_t& /*inst*/){ ; };
       // Nop A

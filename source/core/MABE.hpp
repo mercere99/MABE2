@@ -343,6 +343,11 @@ namespace mabe {
     // --- Deal with Organism TRAITS ---
     TraitManager<ModuleBase> & GetTraitManager() { return trait_man; }
 
+
+    /// Return the DataMap for organisms
+    emp::DataMap GetOrganismDataMap(){
+      return org_data_map;
+    }
     /// Build a function to scan a single data map and run the provided equation on the
     /// enties in there, returning the result.
 
