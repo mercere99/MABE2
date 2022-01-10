@@ -1,10 +1,10 @@
 Latest commit at time of last regeneration:
-commit eb9026c1c69d308ac4543237e655de4694735b4c
+commit 7d63e6cfd4ee715b3331b130da52b6b3d82edf53
 Author: Austin Ferguson <ferguson.austin.j@gmail.com>
-Date:   Tue Nov 16 11:33:10 2021 -0500
+Date:   Mon Jan 10 15:12:54 2022 -0500
 
-    Update logic9 config and Empirical submodule
+    Update Empirical submodule to include TypeID fix
  
  
 Time of last regeneration:
-Tue 16 Nov 2021 02:08:51 PM EST
+Mon Jan 10 03:13:40 PM EST 2022

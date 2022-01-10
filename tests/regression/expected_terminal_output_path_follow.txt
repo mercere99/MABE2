@@ -41,7 +41,7 @@ Loading map: copy_test_map.txt
 ........................................
 ........................................
 ........................................
-Map is 40x40, with 20 tiles!
+Map #0 is 40x40, with 20 tiles!
 Found 39 external functions!
  sg-sense sg-rotate-r sg-rotate-l sg-move-back Repro GetHead MovHead ShiftL JumpHead Add Dec Nand Inc sg-move NopF SwapStk NopE ShiftR SetFlow SearchLabelDirectF Swap SearchSeqDirectS NopC NopB NopD SearchLabelDirectS IfNEqu SearchLabelDirectB NopA IO IfLabel IfLess MoveHeadIfNEqu SearchSeqDirectF Label Push Sub SearchSeqDirectB Pop
 Found 1 external functions with name: sg-sense!
@@ -126,62 +126,7 @@ Added instruction: Pop
 
 Starting run
 random_seed = 128
-Original genome:
-[0]
-Pushing NopC
-Pushing NopC
-Pushing NopC
-Pushing NopC
-Pushing NopC
-Pushing NopC
-Pushing NopC
-Pushing NopC
-Pushing NopC
-Pushing NopC
-Pushing NopC
-Pushing NopC
-Pushing NopC
-Pushing NopC
-Pushing NopC
-Pushing NopC
-Pushing NopC
-Pushing NopC
-Pushing NopC
-Pushing NopC
-Pushing NopC
-Pushing NopC
-Pushing NopC
-Pushing NopC
-Pushing NopC
-Pushing NopC
-Pushing NopC
-Pushing NopC
-Pushing NopC
-Pushing NopC
-Pushing NopC
-Pushing NopC
-Pushing NopC
-Pushing NopC
-Pushing NopC
-Pushing NopC
-Pushing NopC
-Pushing NopC
-Pushing NopC
-Pushing NopC
-Pushing NopC
-Pushing NopC
-Pushing NopC
-Pushing NopC
-Pushing NopC
-Pushing NopC
-Pushing NopC
-Pushing NopC
-Pushing NopC
-Pushing Repro
-Modified genome:
-[50]cccccccccccccccccccccccccccccccccccccccccccccccccx
 Update:0
-Expanding registers! Nops: 6
 Total weight: 0.01
 Update:1  main_pop:1  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
 Total weight: 0.02
@@ -192,195 +137,195 @@ Total weight: 0.04
 Update:4  main_pop:4  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
 Total weight: 0.04
 Update:5  main_pop:4  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
-Total weight: 0.07
-Update:6  main_pop:7  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
 Total weight: 0.08
-Update:7  main_pop:8  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
-Total weight: 0.15
-Update:8  main_pop:15  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
-Total weight: 0.18
-Update:9  main_pop:18  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
-Total weight: 0.3
-Update:10  main_pop:30  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
-Total weight: 0.36
-Update:11  main_pop:36  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
-Total weight: 0.56
-Update:12  main_pop:56  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
-Total weight: 0.71
-Update:13  main_pop:71  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
-Total weight: 1.12
-Update:14  main_pop:112  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
-Total weight: 1.5
-Update:15  main_pop:150  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.00993333, child_merit:max=0.01
-Total weight: 2.27
-Update:16  main_pop:229  next_pop:0, merit:mean=0.00991266, merit:max=0.01, child_merit:mean=0.00991266, child_merit:max=0.01
-Total weight: 5.27
-Update:17  main_pop:340  next_pop:0, merit:mean=0.0155, merit:max=0.25, child_merit:mean=0.0143529, child_merit:max=0.25
-Total weight: 9.54
-Update:18  main_pop:360  next_pop:0, merit:mean=0.0265, merit:max=0.25, child_merit:mean=0.0120556, child_merit:max=0.1
-Total weight: 4.62
-Update:19  main_pop:360  next_pop:0, merit:mean=0.0128333, merit:max=0.2, child_merit:mean=0.00925, child_merit:max=0.05
-Total weight: 3.18
-Update:20  main_pop:360  next_pop:0, merit:mean=0.00883333, merit:max=0.2, child_merit:mean=0.0100278, child_merit:max=0.1
-Total weight: 4.22
-Update:21  main_pop:360  next_pop:0, merit:mean=0.0117222, merit:max=0.2, child_merit:mean=0.01225, child_merit:max=0.25
-Total weight: 6.24
-Update:22  main_pop:360  next_pop:0, merit:mean=0.0173333, merit:max=0.25, child_merit:mean=0.0107222, child_merit:max=0.15
-Total weight: 3.88
-Update:23  main_pop:360  next_pop:0, merit:mean=0.0107778, merit:max=0.15, child_merit:mean=0.00994444, child_merit:max=0.05
-Total weight: 4.67
-Update:24  main_pop:360  next_pop:0, merit:mean=0.0129722, merit:max=0.25, child_merit:mean=0.0095, child_merit:max=0.05
-Total weight: 5.44
-Update:25  main_pop:360  next_pop:0, merit:mean=0.0151111, merit:max=0.2, child_merit:mean=0.00947222, child_merit:max=0.05
-Total weight: 2.98
-Update:26  main_pop:360  next_pop:0, merit:mean=0.00827778, merit:max=0.1, child_merit:mean=0.00994444, child_merit:max=0.05
-Total weight: 13.08
-Update:27  main_pop:360  next_pop:0, merit:mean=0.0363333, merit:max=0.25, child_merit:mean=0.0170833, child_merit:max=0.2
-Total weight: 3.91
-Update:28  main_pop:360  next_pop:0, merit:mean=0.0108611, merit:max=0.25, child_merit:mean=0.00927778, child_merit:max=0.01
-Total weight: 6.31
-Update:29  main_pop:360  next_pop:0, merit:mean=0.0175278, merit:max=0.25, child_merit:mean=0.0118889, child_merit:max=0.25
-Total weight: 1.98
-Update:30  main_pop:360  next_pop:0, merit:mean=0.0055, merit:max=0.2, child_merit:mean=0.00977778, child_merit:max=0.01
-Total weight: 3.41
-Update:31  main_pop:360  next_pop:0, merit:mean=0.00947222, merit:max=0.01, child_merit:mean=0.00997222, child_merit:max=0.01
-Total weight: 3.59
-Update:32  main_pop:360  next_pop:0, merit:mean=0.00997222, merit:max=0.01, child_merit:mean=0.00994444, child_merit:max=0.01
-Total weight: 6.67
-Update:33  main_pop:360  next_pop:0, merit:mean=0.0185278, merit:max=0.25, child_merit:mean=0.0103333, child_merit:max=0.2
-Total weight: 3.59
-Update:34  main_pop:360  next_pop:0, merit:mean=0.00997222, merit:max=0.05, child_merit:mean=0.00994444, child_merit:max=0.01
-Total weight: 3.39
-Update:35  main_pop:360  next_pop:0, merit:mean=0.00941667, merit:max=0.05, child_merit:mean=0.00994444, child_merit:max=0.01
-Total weight: 3.6
-Update:36  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
-Total weight: 3.6
-Update:37  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
-Total weight: 3.6
-Update:38  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
-Total weight: 3.6
-Update:39  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
-Total weight: 3.6
-Update:40  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.00997222, child_merit:max=0.01
-Total weight: 3.6
-Update:41  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
-Total weight: 3.6
-Update:42  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
-Total weight: 3.59
-Update:43  main_pop:360  next_pop:0, merit:mean=0.00997222, merit:max=0.01, child_merit:mean=0.00994444, child_merit:max=0.01
-Total weight: 3.6
-Update:44  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.00997222, child_merit:max=0.01
-Total weight: 6.04
-Update:45  main_pop:360  next_pop:0, merit:mean=0.0167778, merit:max=0.2, child_merit:mean=0.0136667, child_merit:max=0.1
-Total weight: 3.6
-Update:46  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
-Total weight: 4.83
-Update:47  main_pop:360  next_pop:0, merit:mean=0.0134167, merit:max=0.25, child_merit:mean=0.00966667, child_merit:max=0.05
-Total weight: 3.6
-Update:48  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
-Total weight: 3.6
-Update:49  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
-Total weight: 3.6
-Update:50  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
-Total weight: 3.6
-Update:51  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.00997222, child_merit:max=0.01
-Total weight: 3.6
-Update:52  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
-Total weight: 3.6
-Update:53  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
-Total weight: 3.6
-Update:54  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
-Total weight: 3.6
-Update:55  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
-Total weight: 3.6
-Update:56  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.00997222, child_merit:max=0.01
-Total weight: 3.6
-Update:57  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
-Total weight: 3.6
-Update:58  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.00997222, child_merit:max=0.01
-Total weight: 3.6
-Update:59  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.00997222, child_merit:max=0.01
-Total weight: 3.6
-Update:60  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
-Total weight: 3.6
-Update:61  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.00997222, child_merit:max=0.01
-Total weight: 3.58
-Update:62  main_pop:360  next_pop:0, merit:mean=0.00994444, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
-Total weight: 3.6
-Update:63  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.0106389, child_merit:max=0.25
-Total weight: 3.6
-Update:64  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.00997222, child_merit:max=0.01
-Total weight: 3.6
-Update:65  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.00994444, child_merit:max=0.01
-Total weight: 3.59
-Update:66  main_pop:360  next_pop:0, merit:mean=0.00997222, merit:max=0.01, child_merit:mean=0.00997222, child_merit:max=0.01
-Total weight: 3.53
-Update:67  main_pop:360  next_pop:0, merit:mean=0.00980556, merit:max=0.01, child_merit:mean=0.00997222, child_merit:max=0.01
-Total weight: 6.66
-Update:68  main_pop:360  next_pop:0, merit:mean=0.0185, merit:max=0.25, child_merit:mean=0.0100833, child_merit:max=0.15
-Total weight: 3.58
-Update:69  main_pop:360  next_pop:0, merit:mean=0.00994444, merit:max=0.01, child_merit:mean=0.00997222, child_merit:max=0.01
-Total weight: 3.6
-Update:70  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
-Total weight: 3.59
-Update:71  main_pop:360  next_pop:0, merit:mean=0.00997222, merit:max=0.01, child_merit:mean=0.00997222, child_merit:max=0.01
-Total weight: 3.6
-Update:72  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
-Total weight: 3.6
-Update:73  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.00997222, child_merit:max=0.01
-Total weight: 3.59
-Update:74  main_pop:360  next_pop:0, merit:mean=0.00997222, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
-Total weight: 3.6
-Update:75  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
-Total weight: 3.6
-Update:76  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
-Total weight: 5.57
-Update:77  main_pop:360  next_pop:0, merit:mean=0.0154722, merit:max=0.25, child_merit:mean=0.00944444, child_merit:max=0.05
-Total weight: 4.12
-Update:78  main_pop:360  next_pop:0, merit:mean=0.0114722, merit:max=0.25, child_merit:mean=0.0108611, child_merit:max=0.15
-Total weight: 3.6
-Update:79  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
-Total weight: 3.63
-Update:80  main_pop:360  next_pop:0, merit:mean=0.0100833, merit:max=0.05, child_merit:mean=0.0100833, child_merit:max=0.05
-Total weight: 3.59
-Update:81  main_pop:360  next_pop:0, merit:mean=0.00997222, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
-Total weight: 3.6
-Update:82  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.00997222, child_merit:max=0.01
-Total weight: 3.6
-Update:83  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
-Total weight: 3.6
-Update:84  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.00997222, child_merit:max=0.01
-Total weight: 3.59
-Update:85  main_pop:360  next_pop:0, merit:mean=0.00997222, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
-Total weight: 3.6
-Update:86  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.0101111, child_merit:max=0.05
-Total weight: 3.6
-Update:87  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.00994444, child_merit:max=0.01
-Total weight: 3.54
-Update:88  main_pop:360  next_pop:0, merit:mean=0.00983333, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
-Total weight: 3.6
-Update:89  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
-Total weight: 3.6
-Update:90  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
-Total weight: 3.59
-Update:91  main_pop:360  next_pop:0, merit:mean=0.00997222, merit:max=0.01, child_merit:mean=0.00994444, child_merit:max=0.01
-Total weight: 3.86
-Update:92  main_pop:360  next_pop:0, merit:mean=0.0107222, merit:max=0.25, child_merit:mean=0.00961111, child_merit:max=0.01
-Total weight: 3.6
-Update:93  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
-Total weight: 3.6
-Update:94  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
-Total weight: 3.59
-Update:95  main_pop:360  next_pop:0, merit:mean=0.00997222, merit:max=0.01, child_merit:mean=0.00997222, child_merit:max=0.01
-Total weight: 3.58
-Update:96  main_pop:360  next_pop:0, merit:mean=0.00994444, merit:max=0.01, child_merit:mean=0.0100556, child_merit:max=0.05
-Total weight: 3.6
-Update:97  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.00997222, child_merit:max=0.01
-Total weight: 5.81
-Update:98  main_pop:360  next_pop:0, merit:mean=0.0161389, merit:max=0.25, child_merit:mean=0.00936111, child_merit:max=0.05
-Total weight: 3.6
-Update:99  main_pop:360  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.00997222, child_merit:max=0.01
-Total weight: 3.6
+Update:6  main_pop:8  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.01, child_merit:max=0.01
+Total weight: 0.08
+Update:7  main_pop:8  next_pop:0, merit:mean=0.01, merit:max=0.01, child_merit:mean=0.0025, child_merit:max=0.01
+Total weight: 0.08
+Update:8  main_pop:14  next_pop:0, merit:mean=0.00571429, merit:max=0.01, child_merit:mean=0.00571429, child_merit:max=0.01
+Total weight: 0.04
+Update:9  main_pop:21  next_pop:0, merit:mean=0.00190476, merit:max=0.01, child_merit:mean=0.0047619, child_merit:max=0.01
+Total weight: -0.05
+Update:10  main_pop:28  next_pop:0, merit:mean=-0.00178571, merit:max=0.01, child_merit:mean=0.00428571, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:11  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:12  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:13  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:14  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:15  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:16  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:17  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:18  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:19  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:20  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:21  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:22  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:23  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:24  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:25  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:26  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:27  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:28  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:29  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:30  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:31  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:32  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:33  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:34  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:35  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:36  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:37  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:38  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:39  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:40  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:41  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:42  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:43  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:44  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:45  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:46  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:47  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:48  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:49  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:50  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:51  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:52  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:53  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:54  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:55  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:56  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:57  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:58  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:59  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:60  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:61  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:62  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:63  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:64  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:65  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:66  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:67  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:68  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:69  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:70  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:71  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:72  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:73  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:74  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:75  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:76  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:77  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:78  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:79  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:80  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:81  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:82  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:83  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:84  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:85  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:86  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:87  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:88  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:89  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:90  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:91  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:92  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:93  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:94  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:95  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:96  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:97  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:98  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
+Update:99  main_pop:33  next_pop:0, merit:mean=-3.15404e-19, merit:max=0.01, child_merit:mean=0.00030303, child_merit:max=0.01
+Total weight: 1.38778e-17
 ==> Exiting.
 EMP_TRACK_MEM: No memory leaks found!
- 479179 pointers found; all have been cleaned up fully.
+ 1788 pointers found; all have been cleaned up fully.
