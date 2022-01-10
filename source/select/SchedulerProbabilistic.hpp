@@ -12,7 +12,7 @@
 
 #include "../core/MABE.hpp"
 #include "../core/Module.hpp"
-#include "emp/datastructs/IndexMap.hpp"
+#include "emp/datastructs/UnorderedIndexMap.hpp"
 
 namespace mabe {
 
@@ -22,7 +22,7 @@ namespace mabe {
     std::string trait;       ///< Which trait should we select on?
     double avg_updates;      ///< How many updates should organisms receive on average?
     int pop_id = 0;   ///< Which population are we selecting from?
-    emp::IndexMap weight_map;
+    emp::UnorderedIndexMap weight_map;
     double base_value = 1;
     double merit_scale_factor = 1;
   public:
