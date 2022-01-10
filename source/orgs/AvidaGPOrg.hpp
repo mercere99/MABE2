@@ -135,31 +135,59 @@ namespace mabe {
 
     void SetupInstLib(){
       emp::AvidaGP::inst_lib_t& inst_lib = GetInstLib();
-      inst_lib.AddInst("Inc", emp::AvidaGP::inst_lib_t::Inst_Inc, 1, "Increment value in reg Arg1");
-      inst_lib.AddInst("Dec", emp::AvidaGP::inst_lib_t::Inst_Dec, 1, "Decrement value in reg Arg1");
-      inst_lib.AddInst("Not", emp::AvidaGP::inst_lib_t::Inst_Not, 1, "Logically toggle value in reg Arg1");
-      inst_lib.AddInst("SetReg", emp::AvidaGP::inst_lib_t::Inst_SetReg, 2, "Set reg Arg1 to numerical value Arg2");
-      inst_lib.AddInst("Add", emp::AvidaGP::inst_lib_t::Inst_Add, 3, "regs: Arg3 = Arg1 + Arg2");
-      inst_lib.AddInst("Sub", emp::AvidaGP::inst_lib_t::Inst_Sub, 3, "regs: Arg3 = Arg1 - Arg2");
-      inst_lib.AddInst("Mult", emp::AvidaGP::inst_lib_t::Inst_Mult, 3, "regs: Arg3 = Arg1 * Arg2");
-      inst_lib.AddInst("Div", emp::AvidaGP::inst_lib_t::Inst_Div, 3, "regs: Arg3 = Arg1 / Arg2");
-      inst_lib.AddInst("Mod", emp::AvidaGP::inst_lib_t::Inst_Mod, 3, "regs: Arg3 = Arg1 % Arg2");
-      inst_lib.AddInst("TestEqu", emp::AvidaGP::inst_lib_t::Inst_TestEqu, 3, "regs: Arg3 = (Arg1 == Arg2)");
-      inst_lib.AddInst("TestNEqu", emp::AvidaGP::inst_lib_t::Inst_TestNEqu, 3, "regs: Arg3 = (Arg1 != Arg2)");
-      inst_lib.AddInst("TestLess", emp::AvidaGP::inst_lib_t::Inst_TestLess, 3, "regs: Arg3 = (Arg1 < Arg2)");
-      inst_lib.AddInst("If", emp::AvidaGP::inst_lib_t::Inst_If, 2, "If reg Arg1 != 0, scope -> Arg2; else skip scope", emp::ScopeType::BASIC, 1);
-      inst_lib.AddInst("While", emp::AvidaGP::inst_lib_t::Inst_While, 2, "Until reg Arg1 != 0, repeat scope Arg2; else skip", emp::ScopeType::LOOP, 1);
-      inst_lib.AddInst("Countdown", emp::AvidaGP::inst_lib_t::Inst_Countdown, 2, "Countdown reg Arg1 to zero; scope to Arg2", emp::ScopeType::LOOP, 1);
-      inst_lib.AddInst("Break", emp::AvidaGP::inst_lib_t::Inst_Break, 1, "Break out of scope Arg1");
-      inst_lib.AddInst("Scope", emp::AvidaGP::inst_lib_t::Inst_Scope, 1, "Enter scope Arg1", emp::ScopeType::BASIC, 0);
-      inst_lib.AddInst("Define", emp::AvidaGP::inst_lib_t::Inst_Define, 2, "Build function Arg1 in scope Arg2", emp::ScopeType::FUNCTION, 1);
-      inst_lib.AddInst("Call", emp::AvidaGP::inst_lib_t::Inst_Call, 1, "Call previously defined function Arg1");
-      inst_lib.AddInst("Push", emp::AvidaGP::inst_lib_t::Inst_Push, 2, "Push reg Arg1 onto stack Arg2");
-      inst_lib.AddInst("Pop", emp::AvidaGP::inst_lib_t::Inst_Pop, 2, "Pop stack Arg1 into reg Arg2");
-      inst_lib.AddInst("Input", emp::AvidaGP::inst_lib_t::Inst_Input, 2, "Pull next value from input Arg1 into reg Arg2");
-      inst_lib.AddInst("Output", emp::AvidaGP::inst_lib_t::Inst_Output, 2, "Push reg Arg1 into output Arg2");
-      inst_lib.AddInst("CopyVal", emp::AvidaGP::inst_lib_t::Inst_CopyVal, 2, "Copy reg Arg1 into reg Arg2");
-      inst_lib.AddInst("ScopeReg", emp::AvidaGP::inst_lib_t::Inst_ScopeReg, 1, "Backup reg Arg1; restore at end of scope");
+      size_t inst_id = 0;
+      inst_lib.AddInst("Inc", emp::AvidaGP::inst_lib_t::Inst_Inc, 1, 
+          "Increment value in reg Arg1", inst_id++);
+      inst_lib.AddInst("Dec", emp::AvidaGP::inst_lib_t::Inst_Dec, 1, 
+          "Decrement value in reg Arg1", inst_id++);
+      inst_lib.AddInst("Not", emp::AvidaGP::inst_lib_t::Inst_Not, 1, 
+          "Logically toggle value in reg Arg1", inst_id++);
+      inst_lib.AddInst("SetReg", emp::AvidaGP::inst_lib_t::Inst_SetReg, 2, 
+          "Set reg Arg1 to numerical value Arg2", inst_id++);
+      inst_lib.AddInst("Add", emp::AvidaGP::inst_lib_t::Inst_Add, 3,
+          "regs: Arg3 = Arg1 + Arg2", inst_id++);
+      inst_lib.AddInst("Sub", emp::AvidaGP::inst_lib_t::Inst_Sub, 3,
+          "regs: Arg3 = Arg1 - Arg2", inst_id++);
+      inst_lib.AddInst("Mult", emp::AvidaGP::inst_lib_t::Inst_Mult, 3,
+          "regs: Arg3 = Arg1 * Arg2", inst_id++);
+      inst_lib.AddInst("Div", emp::AvidaGP::inst_lib_t::Inst_Div, 3,
+          "regs: Arg3 = Arg1 / Arg2", inst_id++);
+      inst_lib.AddInst("Mod", emp::AvidaGP::inst_lib_t::Inst_Mod, 3,
+          "regs: Arg3 = Arg1 % Arg2", inst_id++);
+      inst_lib.AddInst("TestEqu", emp::AvidaGP::inst_lib_t::Inst_TestEqu, 3,
+          "regs: Arg3 = (Arg1 == Arg2)", inst_id++);
+      inst_lib.AddInst("TestNEqu", emp::AvidaGP::inst_lib_t::Inst_TestNEqu, 3,
+          "regs: Arg3 = (Arg1 != Arg2)", inst_id++);
+      inst_lib.AddInst("TestLess", emp::AvidaGP::inst_lib_t::Inst_TestLess, 3,
+          "regs: Arg3 = (Arg1 < Arg2)", inst_id++);
+      inst_lib.AddInst("If", emp::AvidaGP::inst_lib_t::Inst_If, 2,
+          "If reg Arg1 != 0, scope -> Arg2; else skip scope", inst_id++, 
+          emp::ScopeType::BASIC, 1);
+      inst_lib.AddInst("While", emp::AvidaGP::inst_lib_t::Inst_While, 2,
+          "Until reg Arg1 != 0, repeat scope Arg2; else skip", inst_id++, 
+          emp::ScopeType::LOOP, 1);
+      inst_lib.AddInst("Countdown", emp::AvidaGP::inst_lib_t::Inst_Countdown, 2,
+          "Countdown reg Arg1 to zero; scope to Arg2", inst_id++, emp::ScopeType::LOOP, 1);
+      inst_lib.AddInst("Break", emp::AvidaGP::inst_lib_t::Inst_Break, 1,
+          "Break out of scope Arg1");
+      inst_lib.AddInst("Scope", emp::AvidaGP::inst_lib_t::Inst_Scope, 1,
+          "Enter scope Arg1", inst_id++, emp::ScopeType::BASIC, 0);
+      inst_lib.AddInst("Define", emp::AvidaGP::inst_lib_t::Inst_Define, 2,
+          "Build function Arg1 in scope Arg2", inst_id++, emp::ScopeType::FUNCTION, 1);
+      inst_lib.AddInst("Call", emp::AvidaGP::inst_lib_t::Inst_Call, 1,
+          "Call previously defined function Arg1");
+      inst_lib.AddInst("Push", emp::AvidaGP::inst_lib_t::Inst_Push, 2,
+          "Push reg Arg1 onto stack Arg2");
+      inst_lib.AddInst("Pop", emp::AvidaGP::inst_lib_t::Inst_Pop, 2,
+          "Pop stack Arg1 into reg Arg2");
+      inst_lib.AddInst("Input", emp::AvidaGP::inst_lib_t::Inst_Input, 2,
+          "Pull next value from input Arg1 into reg Arg2");
+      inst_lib.AddInst("Output", emp::AvidaGP::inst_lib_t::Inst_Output, 2, 
+          "Push reg Arg1 into output Arg2");
+      inst_lib.AddInst("CopyVal", emp::AvidaGP::inst_lib_t::Inst_CopyVal, 2, 
+          "Copy reg Arg1 into reg Arg2");
+      inst_lib.AddInst("ScopeReg", emp::AvidaGP::inst_lib_t::Inst_ScopeReg, 1, 
+          "Backup reg Arg1; restore at end of scope");
 
       for (size_t i = 0; i < emp::AvidaGP::CPU_SIZE; i++) {
         GetInstLib().AddArg(emp::to_string((int)i), i);                   // Args can be called by value
@@ -169,21 +197,21 @@ namespace mabe {
     }
 
     void LoadExternalInstructions(){
-      emp::AvidaGP::inst_lib_t& inst_lib = GetInstLib();
-      ActionMap& action_map = GetManager().GetControl().GetActionMap(0);
-      emp::vector<mabe::Action>& action_vec = action_map.GetFuncs<void,emp::AvidaGP&>();
-      std::cout << "Found " << action_vec.size() << " external functions!" << std::endl;
-      for(size_t action_idx = 0; action_idx < action_vec.size(); ++action_idx){
-        emp::AnyFunction& func = action_vec[action_idx].function;
-        inst_lib.AddInst(
-            action_vec[action_idx].name,
-            [&func](emp::AvidaGP& org, const emp::AvidaGP::inst_t& inst){
-              func.Call<void, emp::AvidaGP&>(org);
-            },
-            0, 
-            "test");
-        std::cout << "Added instruction: " << action_vec[action_idx].name << std::endl;
-      }
+      //emp::AvidaGP::inst_lib_t& inst_lib = GetInstLib();
+      //ActionMap& action_map = GetManager().GetControl().GetActionMap(0);
+      //emp::vector<mabe::Action>& action_vec = action_map.GetFuncs<void,emp::AvidaGP&>();
+      //std::cout << "Found " << action_vec.size() << " external functions!" << std::endl;
+      //for(size_t action_idx = 0; action_idx < action_vec.size(); ++action_idx){
+      //  emp::AnyFunction& func = action_vec[action_idx].function;
+      //  inst_lib.AddInst(
+      //      action_vec[action_idx].name,
+      //      [&func](emp::AvidaGP& org, const emp::AvidaGP::inst_t& inst){
+      //        func.Call<void, emp::AvidaGP&>(org);
+      //      },
+      //      0, 
+      //      "test");
+      //  std::cout << "Added instruction: " << action_vec[action_idx].name << std::endl;
+      //}
     }
 
   };

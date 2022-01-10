@@ -11,7 +11,7 @@
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
 // MABE
-#include "orgs/AvidaGPOrg.hpp"
+//#include "orgs/AvidaGPOrg.hpp"
 
 
 TEST_CASE("AvidaGPOrg_Placeholder", "[core]"){ ; }
