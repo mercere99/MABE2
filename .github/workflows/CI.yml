@@ -2,7 +2,7 @@ name: C/C++ CI
 
 on:
   push:
-    branches: [master, auto_testing, waves_tests]
+    branches: [master, auto_testing, waves_tests, avida, avida_merge]
   pull_request:
     branches: [master, auto_testing]
 
