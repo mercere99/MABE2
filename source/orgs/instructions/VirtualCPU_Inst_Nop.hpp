@@ -21,11 +21,11 @@ namespace mabe {
   private:
     //Collection target_collect;
     int pop_id = 0;
-    size_t num_nops = 3;
-    bool include_nop_x = false;
     std::function<void(VirtualCPUOrg&, const VirtualCPUOrg::inst_t&)> func_nop;
 
   public:
+    size_t num_nops = 3;
+    bool include_nop_x = false;
     VirtualCPU_Inst_Nop(mabe::MABE & control,
                     const std::string & name="VirtualCPU_Inst_Nop",
                     const std::string & desc="Nop instructions for VirtualCPUOrg population")
@@ -40,80 +40,15 @@ namespace mabe {
     }
 
     void SetupFuncs(){
-      emp_assert(num_nops < 12,"Code only supports twelve normal NOP instructions currently");
+      emp_assert(num_nops <= 23,"Code only supports 23 normal NOP instructions currently");
       ActionMap& action_map = control.GetActionMap(pop_id);
       func_nop = [](VirtualCPUOrg& /*hw*/, const VirtualCPUOrg::inst_t& /*inst*/){ ; };
-      // Nop A
-      if(num_nops >= 1){
+      // Add the appropriate amount of nops
+      for(size_t i = 0; i < num_nops; i++){
+        std::string s = "Nop";
         Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
-            "NopA", func_nop);
-        action.data.AddVar<int>("inst_id", 0);
-      }
-      // Nop B
-      if(num_nops >= 2){
-        Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
-            "NopB", func_nop);
-        action.data.AddVar<int>("inst_id", 1);
-      }
-      // Nop C
-      if(num_nops >= 3){
-        Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
-            "NopC", func_nop);
-        action.data.AddVar<int>("inst_id", 2);
-      }
-      // Nop D
-      if(num_nops >= 4){
-        Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
-            "NopD", func_nop);
-        action.data.AddVar<int>("inst_id", 3);
-      }
-      // Nop E
-      if(num_nops >= 5){
-        Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
-            "NopE", func_nop);
-        action.data.AddVar<int>("inst_id", 4);
-      }
-      // Nop F
-      if(num_nops >= 6){
-        Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
-            "NopF", func_nop);
-        action.data.AddVar<int>("inst_id", 5);
-      }
-      // Nop G
-      if(num_nops >= 7){
-        Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
-            "NopG", func_nop);
-        action.data.AddVar<int>("inst_id", 6);
-      }
-      // Nop H
-      if(num_nops >= 8){
-        Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
-            "NopH", func_nop);
-        action.data.AddVar<int>("inst_id", 7);
-      }
-      // Nop I
-      if(num_nops >= 9){
-        Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
-            "NopI", func_nop);
-        action.data.AddVar<int>("inst_id", 8);
-      }
-      // Nop J
-      if(num_nops >= 10){
-        Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
-            "NopJ", func_nop);
-        action.data.AddVar<int>("inst_id", 9);
-      }
-      // Nop K
-      if(num_nops >= 11){
-        Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
-            "NopK", func_nop);
-        action.data.AddVar<int>("inst_id", 10);
-      }
-      // Nop L
-      if(num_nops >= 12){
-        Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
-            "NopL", func_nop);
-        action.data.AddVar<int>("inst_id", 11);
+            s + (char)('A' + i), func_nop);
+        action.data.AddVar<int>("inst_id", i);
       }
       // Special case: Nop X
       if(include_nop_x){

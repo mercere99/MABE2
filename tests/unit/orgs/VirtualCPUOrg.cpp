@@ -17,11 +17,8 @@
 
 //
 // TODO
-//  [ ] GenerateOutput
-//    [ ] ???
 //  [ ] SetupConfig
 //    [ ] ???
-//  [ ] ProcessStep calls VCPU Process
 //
 //  Called in various other test cases
 //  [X] SetupModule
@@ -31,7 +28,7 @@
 //  [X] SetupInstLib
 //    [X] All expected instructions appear in inst. lib.
 
-TEST_CASE("VirtualCPUOrg_Placeholder", "[core]"){
+TEST_CASE("VirtualCPUOrg_Main", "[core]"){
   // Initialize the instruction library, which only needs done once
   mabe::MABE control(0, nullptr);
   control.GetRandom().ResetSeed(100);
