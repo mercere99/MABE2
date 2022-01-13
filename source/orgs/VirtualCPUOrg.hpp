@@ -143,9 +143,6 @@ namespace mabe {
 
       // Run the code.
       Process(SharedData().eval_time, SharedData().verbose);
-
-      // Store the results.
-      Organism::SetTrait<emp::vector<data_t>>(SharedData().output_name, emp::ToVector( GetOutputs() ));
     }
 
     static inst_lib_t& GetInstLib(){
@@ -239,16 +236,6 @@ namespace mabe {
     bool ProcessStep() override { 
       Process(1, SharedData().verbose);
       return true; 
-    }
-
-    static std::string ConvertGenome(const genome_t& genome){
-      std::stringstream sstr;
-      sstr << "[" << genome.size() << "]";
-      for(size_t idx = 0; idx < genome.size(); idx++){
-        unsigned char c = 'a' + genome[idx].id;
-        sstr << c;
-      }
-      return sstr.str();
     }
 
     void SetupMutationDistribution(){

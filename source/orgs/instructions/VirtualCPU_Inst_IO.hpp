@@ -61,13 +61,15 @@ namespace mabe {
                 (data_t)(std::numeric_limits<data_t>::max() * control.GetRandom().GetDouble()) );
           }
         }
-        // Load input into register
         size_t reg_idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
+        // Output current register value
         output_vec.push_back(hw.regs[reg_idx]);
+        // Load input into register
         hw.regs[reg_idx] = input_vec[input_idx];
         // Advance stored index
         input_idx++;
         if(input_idx >= num_inputs) input_idx = 0;
+        if(!inst.nop_vec.empty()) hw.AdvanceIP(1);
       };
 
       Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(

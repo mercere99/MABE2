@@ -305,4 +305,55 @@ TEST_CASE("VirtualCPUOrg_Placeholder", "[core]"){
     CHECK(child_org_2->inst_ptr == 0); 
     child_org_2.Delete();
   }
+  { // ProcessStep 
+    control.GetRandom().ResetSeed(106);
+    mabe::OrganismManager<mabe::VirtualCPUOrg> manager(control, "name", "desc");
+    mabe::VirtualCPUOrg org(manager);
+    org.SharedData().mut_prob = 0.01;
+    org.SharedData().init_random = false;
+    org.SharedData().initial_genome_filename = "org_nops.org";
+    org.SetupMutationDistribution();
+    emp::DataMap data_map = control.GetOrganismDataMap();
+    control.GetTraitManager().RegisterAll(data_map);
+    data_map.LockLayout();          
+    org.SetDataMap(data_map);
+    org.Initialize(control.GetRandom());
+    CHECK(org.inst_ptr == 0);
+    org.ProcessStep();
+    CHECK(org.inst_ptr == 1);
+    org.ProcessStep();
+    CHECK(org.inst_ptr == 2);
+  }
+  { // GenerateOutput 
+    control.GetRandom().ResetSeed(107);
+    mabe::OrganismManager<mabe::VirtualCPUOrg> manager(control, "name", "desc");
+    mabe::VirtualCPUOrg org(manager);
+    org.SharedData().mut_prob = 0.01;
+    org.SharedData().eval_time = 6;
+    org.SharedData().init_random = false;
+    org.SharedData().initial_genome_filename = "org_io_test.org";
+    org.SharedData().verbose = true;
+    org.SetupMutationDistribution();
+    emp::DataMap data_map = control.GetOrganismDataMap();
+    control.GetTraitManager().RegisterAll(data_map);
+    data_map.LockLayout();          
+    org.SetDataMap(data_map);
+    org.CountNops();
+    org.Initialize(control.GetRandom());
+    org.GenerateOutput();
+    emp::vector<uint32_t>& output_vec = org.GetTrait<emp::vector<uint32_t>>(
+        org.SharedData().output_name);
+    //std::cout << org.SharedData().output_name << std::endl;
+    //for(size_t idx = 0; idx < output_vec.size(); ++idx){
+    //  if(idx != 0) std::cout << ", ";
+    //  std::cout << output_vec[idx];
+    //}
+    CHECK(output_vec.size() == 6);
+    CHECK(output_vec[0] == 0);
+    CHECK(output_vec[1] == 1);
+    CHECK(output_vec[2] == 2);
+    CHECK(output_vec[3] == 2634983619);
+    CHECK(output_vec[4] == 1250306466);
+    CHECK(output_vec[5] == 2036905506);
+  }
 }
