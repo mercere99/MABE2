@@ -25,6 +25,7 @@
 #include <type_traits>
 
 #include "emp/base/assert.hpp"
+#include "emp/base/error.hpp"
 #include "emp/base/Ptr.hpp"
 #include "emp/base/vector.hpp"
 #include "emp/data/Datum.hpp"
