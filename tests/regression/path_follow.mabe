@@ -1,57 +1,46 @@
-random_seed = 128;                // Seed for random number generator; use 0 to base on time.
+random_seed = 256;              // Seed for random number generator; use 0 to base on time.
 Population main_pop;            // Collection of organisms
-Population next_pop;            // Collection of organisms
-Value pop_size = 360;          // Local value variable.
-Value max_gens = 100;          // Local value variable.
-Value do_multiply = 1;          // Local value variable.
-CommandLine cl {                // Handle basic I/O on the command line.
-  format = "merit:mean, merit:max, child_merit:mean, child_merit:max";// Column format to use in the file.
-  target = "main_pop";          // Which population(s) should we print from?
-}
-FileOutput output_file {        // Output collected data into a specified file.
-  filename = "output.csv";      // Name of file for output data.
-  format = "merit:max,merit:mean,merit:0,child_merit:max,child_merit:mean,genome:0,genome:1";// Column format to use in the file.
-  target = "main_pop";          // Which population(s) should we print from?
-  output_updates = "0:1";       // Which updates should we output data?
-}
+Var pop_size = 360;            // Local value variable.
+Var max_gens = 100;            // Local value variable.
+Var do_multiply = 1;            // Local value variable.
 MaxSizePlacement place_max_size { // Grow population to a given size then maintain
-  target = "main_pop";          // Population(s) to manage.
-  max_pop_size = pop_size;          // Maximum size of the population.
-}
+  target = "main_pop";            // Population(s) to manage.
+  max_pop_size = pop_size;        // Maximum size of the population.
+};
 AnnotatePlacement pos_annotater { // Store org's position as trait on placement.
   target = "main_pop";          // Population(s) to manage.
   pos_trait = "org_pos";        // Name of trait that will hold organism's position
-}
+};
 SchedulerProbabilistic scheduler { // Rations out updates to organisms based on a specified attribute, using a method akin to roulette wheel selection.
   pop = "main_pop";             // Which population should we select parents from?
   avg_updates = 30;             // How many updates should organism receive on average?
   trait = "merit";              // Which trait provides the fitness value to use?
   base_value = 0;               // What value should the scheduler use for organisms that have performed no tasks?
   merit_scale_factor = 1;       // How should the scheduler scale merit?
-}
+};
 VirtualCPU_Inst_Nop inst_lib_nop { // Nop instructions for VirtualCPUOrg
   target_pop = "main_pop";      // Population(s) to manage.
   num_nops = 6;                 // Number of nops to include.
   include_nop_x = 0;            // Include the special case NopX?
-}
+};
 VirtualCPU_Inst_Math inst_lib_math { // Math instructions for VirtualCPUOrg
   target_pop = "main_pop";      // Population(s) to manage.
-}
+};
 VirtualCPU_Inst_IO inst_lib_io { // IO instructions for VirtualCPUOrg
   target_pop = "main_pop";      // Population(s) to manage.
   input_name = "input";         // Name of variable to store inputs
   output_name = "output";       // Name of variable to store outputs
   input_idx_name = "input_idx"; // Index of next input to be loaded
-}
+};
 VirtualCPU_Inst_Flow inst_lib_flow { // Flow control instructions for VirtualCPUOrg
   target_pop = "main_pop";      // Population(s) to manage.
-}
+};
 VirtualCPU_Inst_Label inst_lib_label { // Label control instructions for VirtualCPUOrg
   target_pop = "main_pop";      // Population(s) to manage.
-}
+};
 VirtualCPU_Inst_Manipulation inst_lib_manip { // Manipulation instructions for VirtualCPUOrg
   target_pop = "main_pop";      // Population(s) to manage.
-}
+};
 VirtualCPU_Inst_Replication inst_lib_repl { // Replication instructions for VirtualCPUOrg
   target_pop = "main_pop";      // Population(s) to manage.
   pos_trait = "org_pos";        // Name of trait that holds organism's position
@@ -60,14 +49,14 @@ VirtualCPU_Inst_Replication inst_lib_repl { // Replication instructions for Virt
   include_h_copy = 0;           // Do we include the 'h_copy' instruction?
   include_h_search = 0;         // Do we include the 'h_search' instruction?
   include_repro = 1;            // Do we include the 'repro' instruction?
-}
+};
 EvalPathFollow path_follow {      // Evaluate organisms on their ability to follow a path.
   target = "main_pop";            // Which population(s) should we evaluate?
   score_trait = "child_merit";    // Which trait stores path following performance?
   state_trait = "state";          // Which trait stores organisms' path follow state?
   map_filenames = "copy_test_map.txt"; // List of map files to load, separated by semicolons(;)
   randomize_cues = 1;           // If true, cues are assigned random values in for each new path
-}
+};
 VirtualCPUOrg avida_org {       // Organism consisting of Avida instructions.
   mut_prob = 0.01;              // Probability of each instruction mutating on reproduction.
   N = 0;                        // Initial number of instructions in genome
@@ -82,9 +71,35 @@ VirtualCPUOrg avida_org {       // Organism consisting of Avida instructions.
   verbose = 0;
   initial_genome_filename = "copy_ancestor_extended.org";// File that contains the gennome used to initialize organisms.
   expanded_nop_args = 1;        // If true, some instructions (e.g., math) will use multiple nops to fully define the registers used
-}
+};
 
-@start(0) PRINT("\n\nStarting run\n");
-@start(0) PRINT("random_seed = ", random_seed, "\n");
-@start(0) INJECT("avida_org", "main_pop", 1);
-@update(max_gens) EXIT();
+Var dominant_genome;
+DataFile fit_file { filename="fitness.csv"; };
+fit_file.ADD_SETUP("dominant_genome = main_pop.CALC_MODE('genome')" );
+fit_file.ADD_COLUMN("merit_mean",       "main_pop.CALC_MEAN('child_merit')" );
+fit_file.ADD_COLUMN("merit_max",        "main_pop.CALC_MAX('child_merit')" );
+fit_file.ADD_COLUMN("dominant_genome",  "dominant_genome" );
+
+DataFile max_file { filename="max_org.csv"; };
+OrgList best_org;
+max_file.ADD_SETUP("best_org = main_pop.FIND_MAX('child_merit')" );
+max_file.ADD_COLUMN("merit",       "best_org.TRAIT('child_merit')" );
+max_file.ADD_COLUMN("merit_given", "best_org.TRAIT('merit')" );
+
+@START() {
+  PRINT("random_seed = ", random_seed, "\n");  // Print seed at run start.
+  main_pop.INJECT("avida_org", 1);             // Inject ancestor organism 
+};;
+
+@UPDATE(Var ud) {
+  scheduler.SCHEDULE();
+  PRINT("UD:", GET_UPDATE(),
+        "  pop_size=", main_pop.SIZE(),
+        "  merit_mean=", main_pop.CALC_MEAN("child_merit"),
+        "  merit_max=", main_pop.CALC_MAX("child_merit")
+       );
+  fit_file.WRITE();
+  max_file.WRITE();
+};;
+
+@UPDATE(Var ud2) IF (ud2 == max_gens) EXIT();

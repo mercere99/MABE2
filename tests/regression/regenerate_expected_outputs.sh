@@ -24,7 +24,7 @@ do
 
   # Copy output files back to this directory
   cp ./terminal_output.txt ${THIS_DIR}/expected_terminal_output_${NAME}.txt
-  cp ./output.csv ${THIS_DIR}/expected_csv_output_${NAME}.csv
+  #cp ./output.csv ${THIS_DIR}/expected_csv_output_${NAME}.csv
 
   cd ${THIS_DIR} 
 done

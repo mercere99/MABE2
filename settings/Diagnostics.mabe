@@ -72,9 +72,3 @@ ValsOrg vals_org {              // Organism consisting of a series of N floating
 };
 
 @UPDATE(Var ud2) IF (ud2 == num_gens) EXIT();
-
-// @update(10, 10) output("output.csv", "main_pop", "fitness:max,fitness:max_id,fitness:mean,genome:0");
-// @update(10, 10) output("output.csv", "main_pop", "fitness:max,fitness:max_id,fitness:mean,genome:$fitness:max_id");
-// @update(10, 10) output("output.csv", "main_pop", "fitness:max,fitness:max_id,fitness:mean,genome:$1");
-// @update(10, 10) output("output.csv", "main_pop", "fitness:max,best=fitness:max_id,fitness:mean,genome:$best");
-// @update(10, 10) output("output.csv", "main_pop", "fitness:max,fitness:mean,genome:$best|best=fitness:max_id");

@@ -1,206 +1,106 @@
 EMP_TRACK_MEM: Pointer tracking is active!
 Loading file(s): 'RoyalRoad.mabe'
 random_seed = 5000
-Update:0
-Max fitness = 0
-Update:1  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:2  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:3  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:4  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:5  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:6  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:7  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:8  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:9  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:10  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:11  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:12  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:13  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:14  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:15  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:16  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:17  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:18  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:19  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:20  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:21  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:22  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:23  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:24  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:25  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:26  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:27  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:28  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:29  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:30  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:31  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:32  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:33  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:34  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:35  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:36  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:37  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:38  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:39  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:40  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:41  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:42  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:43  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:44  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:45  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:46  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:47  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:48  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:49  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:50  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:51  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:52  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:53  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:54  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:55  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:56  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:57  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:58  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:59  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:60  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:61  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:62  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:63  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:64  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:65  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:66  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:67  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:68  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:69  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:70  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:71  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:72  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:73  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:74  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:75  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:76  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:77  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:78  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:79  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:80  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:81  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:82  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:83  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:84  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:85  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:86  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:87  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:88  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:89  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:90  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:91  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:92  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:93  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:94  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:95  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:96  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:97  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:98  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-Update:99  main_pop:200  next_pop:0, fitness:max=0, fitness:mean=0
-Max fitness = 0
-==> Exiting.
+
+UD:1  MainPopSize=200  AveFitness=0  MaxFitness=0
+UD:2  MainPopSize=200  AveFitness=-0.0075  MaxFitness=0
+UD:3  MainPopSize=200  AveFitness=0  MaxFitness=0
+UD:4  MainPopSize=200  AveFitness=-0.01  MaxFitness=0
+UD:5  MainPopSize=200  AveFitness=-0.0075  MaxFitness=0
+UD:6  MainPopSize=200  AveFitness=0  MaxFitness=0
+UD:7  MainPopSize=200  AveFitness=-0.005  MaxFitness=0
+UD:8  MainPopSize=200  AveFitness=-0.0075  MaxFitness=0
+UD:9  MainPopSize=200  AveFitness=-0.0075  MaxFitness=0
+UD:10  MainPopSize=200  AveFitness=-0.01  MaxFitness=0
+UD:11  MainPopSize=200  AveFitness=-0.0025  MaxFitness=0
+UD:12  MainPopSize=200  AveFitness=0  MaxFitness=0
+UD:13  MainPopSize=200  AveFitness=0  MaxFitness=0
+UD:14  MainPopSize=200  AveFitness=-0.005  MaxFitness=0
+UD:15  MainPopSize=200  AveFitness=-0.0125  MaxFitness=0
+UD:16  MainPopSize=200  AveFitness=-0.0025  MaxFitness=0
+UD:17  MainPopSize=200  AveFitness=0  MaxFitness=0
+UD:18  MainPopSize=200  AveFitness=-0.0025  MaxFitness=0
+UD:19  MainPopSize=200  AveFitness=-0.0075  MaxFitness=0
+UD:20  MainPopSize=200  AveFitness=-0.01  MaxFitness=0
+UD:21  MainPopSize=200  AveFitness=-0.005  MaxFitness=0
+UD:22  MainPopSize=200  AveFitness=-0.0025  MaxFitness=0
+UD:23  MainPopSize=200  AveFitness=0  MaxFitness=0
+UD:24  MainPopSize=200  AveFitness=-0.0025  MaxFitness=0
+UD:25  MainPopSize=200  AveFitness=-0.0075  MaxFitness=0
+UD:26  MainPopSize=200  AveFitness=0  MaxFitness=0
+UD:27  MainPopSize=200  AveFitness=-0.0025  MaxFitness=0
+UD:28  MainPopSize=200  AveFitness=-0.0075  MaxFitness=0
+UD:29  MainPopSize=200  AveFitness=-0.005  MaxFitness=0
+UD:30  MainPopSize=200  AveFitness=-0.0025  MaxFitness=0
+UD:31  MainPopSize=200  AveFitness=-0.0125  MaxFitness=0
+UD:32  MainPopSize=200  AveFitness=-0.005  MaxFitness=0
+UD:33  MainPopSize=200  AveFitness=0  MaxFitness=0
+UD:34  MainPopSize=200  AveFitness=-0.005  MaxFitness=0
+UD:35  MainPopSize=200  AveFitness=-0.0025  MaxFitness=0
+UD:36  MainPopSize=200  AveFitness=-0.0025  MaxFitness=0
+UD:37  MainPopSize=200  AveFitness=-0.0075  MaxFitness=0
+UD:38  MainPopSize=200  AveFitness=-0.01  MaxFitness=0
+UD:39  MainPopSize=200  AveFitness=-0.01  MaxFitness=0
+UD:40  MainPopSize=200  AveFitness=-0.0075  MaxFitness=0
+UD:41  MainPopSize=200  AveFitness=-0.005  MaxFitness=0
+UD:42  MainPopSize=200  AveFitness=-0.0025  MaxFitness=0
+UD:43  MainPopSize=200  AveFitness=-0.0125  MaxFitness=0
+UD:44  MainPopSize=200  AveFitness=0  MaxFitness=0
+UD:45  MainPopSize=200  AveFitness=-0.01  MaxFitness=0
+UD:46  MainPopSize=200  AveFitness=-0.015  MaxFitness=0
+UD:47  MainPopSize=200  AveFitness=-0.0075  MaxFitness=0
+UD:48  MainPopSize=200  AveFitness=-0.0125  MaxFitness=0
+UD:49  MainPopSize=200  AveFitness=-0.0025  MaxFitness=0
+UD:50  MainPopSize=200  AveFitness=-0.0075  MaxFitness=0
+UD:51  MainPopSize=200  AveFitness=0  MaxFitness=0
+UD:52  MainPopSize=200  AveFitness=-0.0125  MaxFitness=0
+UD:53  MainPopSize=200  AveFitness=-0.0075  MaxFitness=0
+UD:54  MainPopSize=200  AveFitness=-0.0075  MaxFitness=0
+UD:55  MainPopSize=200  AveFitness=-0.0025  MaxFitness=0
+UD:56  MainPopSize=200  AveFitness=-0.0025  MaxFitness=0
+UD:57  MainPopSize=200  AveFitness=-0.0025  MaxFitness=0
+UD:58  MainPopSize=200  AveFitness=0  MaxFitness=0
+UD:59  MainPopSize=200  AveFitness=-0.0025  MaxFitness=0
+UD:60  MainPopSize=200  AveFitness=-0.005  MaxFitness=0
+UD:61  MainPopSize=200  AveFitness=-0.0075  MaxFitness=0
+UD:62  MainPopSize=200  AveFitness=-0.005  MaxFitness=0
+UD:63  MainPopSize=200  AveFitness=-0.01  MaxFitness=0
+UD:64  MainPopSize=200  AveFitness=-0.0125  MaxFitness=0
+UD:65  MainPopSize=200  AveFitness=-0.0075  MaxFitness=0
+UD:66  MainPopSize=200  AveFitness=-0.0025  MaxFitness=0
+UD:67  MainPopSize=200  AveFitness=0  MaxFitness=0
+UD:68  MainPopSize=200  AveFitness=-0.0025  MaxFitness=0
+UD:69  MainPopSize=200  AveFitness=-0.0325  MaxFitness=0
+UD:70  MainPopSize=200  AveFitness=-0.015  MaxFitness=0
+UD:71  MainPopSize=200  AveFitness=-0.005  MaxFitness=0
+UD:72  MainPopSize=200  AveFitness=-0.0175  MaxFitness=0
+UD:73  MainPopSize=200  AveFitness=0  MaxFitness=0
+UD:74  MainPopSize=200  AveFitness=-0.01  MaxFitness=0
+UD:75  MainPopSize=200  AveFitness=-0.01  MaxFitness=0
+UD:76  MainPopSize=200  AveFitness=-0.005  MaxFitness=0
+UD:77  MainPopSize=200  AveFitness=-0.005  MaxFitness=0
+UD:78  MainPopSize=200  AveFitness=-0.0025  MaxFitness=0
+UD:79  MainPopSize=200  AveFitness=0  MaxFitness=0
+UD:80  MainPopSize=200  AveFitness=-0.0025  MaxFitness=0
+UD:81  MainPopSize=200  AveFitness=0  MaxFitness=0
+UD:82  MainPopSize=200  AveFitness=-0.015  MaxFitness=0
+UD:83  MainPopSize=200  AveFitness=-0.01  MaxFitness=0
+UD:84  MainPopSize=200  AveFitness=-0.0075  MaxFitness=0
+UD:85  MainPopSize=200  AveFitness=-0.015  MaxFitness=0
+UD:86  MainPopSize=200  AveFitness=-0.005  MaxFitness=0
+UD:87  MainPopSize=200  AveFitness=-0.0125  MaxFitness=0
+UD:88  MainPopSize=200  AveFitness=-0.0075  MaxFitness=0
+UD:89  MainPopSize=200  AveFitness=0  MaxFitness=0
+UD:90  MainPopSize=200  AveFitness=0  MaxFitness=0
+UD:91  MainPopSize=200  AveFitness=-0.0075  MaxFitness=0
+UD:92  MainPopSize=200  AveFitness=-0.0025  MaxFitness=0
+UD:93  MainPopSize=200  AveFitness=-0.0075  MaxFitness=0
+UD:94  MainPopSize=200  AveFitness=-0.005  MaxFitness=0
+UD:95  MainPopSize=200  AveFitness=-0.005  MaxFitness=0
+UD:96  MainPopSize=200  AveFitness=-0.015  MaxFitness=0
+UD:97  MainPopSize=200  AveFitness=-0.0025  MaxFitness=0
+UD:98  MainPopSize=200  AveFitness=-0.0075  MaxFitness=0
+UD:99  MainPopSize=200  AveFitness=-0.01  MaxFitness=0
+UD:100  MainPopSize=200  AveFitness=0  MaxFitness=0
 EMP_TRACK_MEM: No memory leaks found!
- 82220 pointers found; all have been cleaned up fully.
+ 129791 pointers found; all have been cleaned up fully.

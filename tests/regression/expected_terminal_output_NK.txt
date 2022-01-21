@@ -1,206 +1,206 @@
 EMP_TRACK_MEM: Pointer tracking is active!
 Loading file(s): 'NK.mabe'
 random_seed = 1000
-Update:0
-Max fitness = 58.132
-Update:1  main_pop:1000  next_pop:0, fitness:max=58.132, fitness:mean=54.5952
-Max fitness = 59.9972
-Update:2  main_pop:1000  next_pop:0, fitness:max=59.9972, fitness:mean=57.0182
-Max fitness = 61.2745
-Update:3  main_pop:1000  next_pop:0, fitness:max=61.2745, fitness:mean=58.5894
-Max fitness = 61.4537
-Update:4  main_pop:1000  next_pop:0, fitness:max=61.4537, fitness:mean=59.8133
-Max fitness = 64.0169
-Update:5  main_pop:1000  next_pop:0, fitness:max=64.0169, fitness:mean=60.9415
-Max fitness = 64.3654
-Update:6  main_pop:1000  next_pop:0, fitness:max=64.3654, fitness:mean=62.0315
-Max fitness = 64.7913
-Update:7  main_pop:1000  next_pop:0, fitness:max=64.7913, fitness:mean=63.0748
-Max fitness = 65.8107
-Update:8  main_pop:1000  next_pop:0, fitness:max=65.8107, fitness:mean=64.0195
-Max fitness = 67.1924
-Update:9  main_pop:1000  next_pop:0, fitness:max=67.1924, fitness:mean=64.9568
-Max fitness = 67.6798
-Update:10  main_pop:1000  next_pop:0, fitness:max=67.6798, fitness:mean=65.982
-Max fitness = 68.4832
-Update:11  main_pop:1000  next_pop:0, fitness:max=68.4832, fitness:mean=66.8277
-Max fitness = 69.3031
-Update:12  main_pop:1000  next_pop:0, fitness:max=69.3031, fitness:mean=67.5354
-Max fitness = 70.0583
-Update:13  main_pop:1000  next_pop:0, fitness:max=70.0583, fitness:mean=68.2199
-Max fitness = 70.166
-Update:14  main_pop:1000  next_pop:0, fitness:max=70.166, fitness:mean=68.9051
-Max fitness = 70.8387
-Update:15  main_pop:1000  next_pop:0, fitness:max=70.8387, fitness:mean=69.5053
-Max fitness = 71.3017
-Update:16  main_pop:1000  next_pop:0, fitness:max=71.3017, fitness:mean=70.0366
-Max fitness = 71.3017
-Update:17  main_pop:1000  next_pop:0, fitness:max=71.3017, fitness:mean=70.4561
-Max fitness = 71.694
-Update:18  main_pop:1000  next_pop:0, fitness:max=71.694, fitness:mean=70.8418
-Max fitness = 72.0821
-Update:19  main_pop:1000  next_pop:0, fitness:max=72.0821, fitness:mean=71.1536
-Max fitness = 72.3776
-Update:20  main_pop:1000  next_pop:0, fitness:max=72.3776, fitness:mean=71.4572
-Max fitness = 72.3776
-Update:21  main_pop:1000  next_pop:0, fitness:max=72.3776, fitness:mean=71.7415
-Max fitness = 72.9079
-Update:22  main_pop:1000  next_pop:0, fitness:max=72.9079, fitness:mean=72.0408
-Max fitness = 72.9815
-Update:23  main_pop:1000  next_pop:0, fitness:max=72.9815, fitness:mean=72.3052
-Max fitness = 73.1508
-Update:24  main_pop:1000  next_pop:0, fitness:max=73.1508, fitness:mean=72.5025
-Max fitness = 73.2369
-Update:25  main_pop:1000  next_pop:0, fitness:max=73.2369, fitness:mean=72.7506
-Max fitness = 73.3105
-Update:26  main_pop:1000  next_pop:0, fitness:max=73.3105, fitness:mean=72.9387
-Max fitness = 73.5546
-Update:27  main_pop:1000  next_pop:0, fitness:max=73.5546, fitness:mean=73.091
-Max fitness = 73.6912
-Update:28  main_pop:1000  next_pop:0, fitness:max=73.6912, fitness:mean=73.1985
-Max fitness = 73.8328
-Update:29  main_pop:1000  next_pop:0, fitness:max=73.8328, fitness:mean=73.3339
-Max fitness = 73.8328
-Update:30  main_pop:1000  next_pop:0, fitness:max=73.8328, fitness:mean=73.4768
-Max fitness = 73.9437
-Update:31  main_pop:1000  next_pop:0, fitness:max=73.9437, fitness:mean=73.5943
-Max fitness = 73.9437
-Update:32  main_pop:1000  next_pop:0, fitness:max=73.9437, fitness:mean=73.7232
-Max fitness = 74.095
-Update:33  main_pop:1000  next_pop:0, fitness:max=74.095, fitness:mean=73.8155
-Max fitness = 74.1818
-Update:34  main_pop:1000  next_pop:0, fitness:max=74.1818, fitness:mean=73.9053
-Max fitness = 74.1818
-Update:35  main_pop:1000  next_pop:0, fitness:max=74.1818, fitness:mean=73.9813
-Max fitness = 74.3707
-Update:36  main_pop:1000  next_pop:0, fitness:max=74.3707, fitness:mean=74.0608
-Max fitness = 74.3707
-Update:37  main_pop:1000  next_pop:0, fitness:max=74.3707, fitness:mean=74.1324
-Max fitness = 74.3707
-Update:38  main_pop:1000  next_pop:0, fitness:max=74.3707, fitness:mean=74.1714
-Max fitness = 74.4285
-Update:39  main_pop:1000  next_pop:0, fitness:max=74.4285, fitness:mean=74.2464
-Max fitness = 74.4285
-Update:40  main_pop:1000  next_pop:0, fitness:max=74.4285, fitness:mean=74.2969
-Max fitness = 74.4285
-Update:41  main_pop:1000  next_pop:0, fitness:max=74.4285, fitness:mean=74.3535
-Max fitness = 74.4285
-Update:42  main_pop:1000  next_pop:0, fitness:max=74.4285, fitness:mean=74.372
-Max fitness = 74.4285
-Update:43  main_pop:1000  next_pop:0, fitness:max=74.4285, fitness:mean=74.3915
-Max fitness = 74.4285
-Update:44  main_pop:1000  next_pop:0, fitness:max=74.4285, fitness:mean=74.4019
-Max fitness = 74.4285
-Update:45  main_pop:1000  next_pop:0, fitness:max=74.4285, fitness:mean=74.404
-Max fitness = 74.4285
-Update:46  main_pop:1000  next_pop:0, fitness:max=74.4285, fitness:mean=74.4055
-Max fitness = 74.4285
-Update:47  main_pop:1000  next_pop:0, fitness:max=74.4285, fitness:mean=74.3999
-Max fitness = 74.4285
-Update:48  main_pop:1000  next_pop:0, fitness:max=74.4285, fitness:mean=74.411
-Max fitness = 74.4285
-Update:49  main_pop:1000  next_pop:0, fitness:max=74.4285, fitness:mean=74.4099
-Max fitness = 74.4285
-Update:50  main_pop:1000  next_pop:0, fitness:max=74.4285, fitness:mean=74.4017
-Max fitness = 74.5764
-Update:51  main_pop:1000  next_pop:0, fitness:max=74.5764, fitness:mean=74.4105
-Max fitness = 74.5764
-Update:52  main_pop:1000  next_pop:0, fitness:max=74.5764, fitness:mean=74.4111
-Max fitness = 74.5764
-Update:53  main_pop:1000  next_pop:0, fitness:max=74.5764, fitness:mean=74.4402
-Max fitness = 74.5764
-Update:54  main_pop:1000  next_pop:0, fitness:max=74.5764, fitness:mean=74.468
-Max fitness = 74.5764
-Update:55  main_pop:1000  next_pop:0, fitness:max=74.5764, fitness:mean=74.5159
-Max fitness = 74.7339
-Update:56  main_pop:1000  next_pop:0, fitness:max=74.7339, fitness:mean=74.5341
-Max fitness = 74.7339
-Update:57  main_pop:1000  next_pop:0, fitness:max=74.7339, fitness:mean=74.5522
-Max fitness = 75.2863
-Update:58  main_pop:1000  next_pop:0, fitness:max=75.2863, fitness:mean=74.558
-Max fitness = 75.2863
-Update:59  main_pop:1000  next_pop:0, fitness:max=75.2863, fitness:mean=74.5818
-Max fitness = 75.2863
-Update:60  main_pop:1000  next_pop:0, fitness:max=75.2863, fitness:mean=74.6438
-Max fitness = 75.2863
-Update:61  main_pop:1000  next_pop:0, fitness:max=75.2863, fitness:mean=74.7715
-Max fitness = 75.3952
-Update:62  main_pop:1000  next_pop:0, fitness:max=75.3952, fitness:mean=74.9587
-Max fitness = 75.3952
-Update:63  main_pop:1000  next_pop:0, fitness:max=75.3952, fitness:mean=75.1281
-Max fitness = 75.3952
-Update:64  main_pop:1000  next_pop:0, fitness:max=75.3952, fitness:mean=75.2673
-Max fitness = 75.3952
-Update:65  main_pop:1000  next_pop:0, fitness:max=75.3952, fitness:mean=75.3315
-Max fitness = 75.3952
-Update:66  main_pop:1000  next_pop:0, fitness:max=75.3952, fitness:mean=75.3556
-Max fitness = 75.3952
-Update:67  main_pop:1000  next_pop:0, fitness:max=75.3952, fitness:mean=75.362
-Max fitness = 75.3952
-Update:68  main_pop:1000  next_pop:0, fitness:max=75.3952, fitness:mean=75.3778
-Max fitness = 75.3952
-Update:69  main_pop:1000  next_pop:0, fitness:max=75.3952, fitness:mean=75.3769
-Max fitness = 75.3952
-Update:70  main_pop:1000  next_pop:0, fitness:max=75.3952, fitness:mean=75.3806
-Max fitness = 75.3952
-Update:71  main_pop:1000  next_pop:0, fitness:max=75.3952, fitness:mean=75.3735
-Max fitness = 75.3952
-Update:72  main_pop:1000  next_pop:0, fitness:max=75.3952, fitness:mean=75.3774
-Max fitness = 75.3952
-Update:73  main_pop:1000  next_pop:0, fitness:max=75.3952, fitness:mean=75.3809
-Max fitness = 75.3952
-Update:74  main_pop:1000  next_pop:0, fitness:max=75.3952, fitness:mean=75.3735
-Max fitness = 75.564
-Update:75  main_pop:1000  next_pop:0, fitness:max=75.564, fitness:mean=75.3666
-Max fitness = 75.564
-Update:76  main_pop:1000  next_pop:0, fitness:max=75.564, fitness:mean=75.3837
-Max fitness = 75.564
-Update:77  main_pop:1000  next_pop:0, fitness:max=75.564, fitness:mean=75.375
-Max fitness = 75.7317
-Update:78  main_pop:1000  next_pop:0, fitness:max=75.7317, fitness:mean=75.3915
-Max fitness = 75.7317
-Update:79  main_pop:1000  next_pop:0, fitness:max=75.7317, fitness:mean=75.453
-Max fitness = 75.7317
-Update:80  main_pop:1000  next_pop:0, fitness:max=75.7317, fitness:mean=75.5245
-Max fitness = 75.7317
-Update:81  main_pop:1000  next_pop:0, fitness:max=75.7317, fitness:mean=75.5791
-Max fitness = 75.7317
-Update:82  main_pop:1000  next_pop:0, fitness:max=75.7317, fitness:mean=75.6277
-Max fitness = 75.7317
-Update:83  main_pop:1000  next_pop:0, fitness:max=75.7317, fitness:mean=75.6891
-Max fitness = 75.7317
-Update:84  main_pop:1000  next_pop:0, fitness:max=75.7317, fitness:mean=75.7033
-Max fitness = 75.7317
-Update:85  main_pop:1000  next_pop:0, fitness:max=75.7317, fitness:mean=75.7048
-Max fitness = 75.7317
-Update:86  main_pop:1000  next_pop:0, fitness:max=75.7317, fitness:mean=75.7041
-Max fitness = 75.7317
-Update:87  main_pop:1000  next_pop:0, fitness:max=75.7317, fitness:mean=75.7128
-Max fitness = 75.7317
-Update:88  main_pop:1000  next_pop:0, fitness:max=75.7317, fitness:mean=75.7094
-Max fitness = 75.7317
-Update:89  main_pop:1000  next_pop:0, fitness:max=75.7317, fitness:mean=75.7124
-Max fitness = 75.7317
-Update:90  main_pop:1000  next_pop:0, fitness:max=75.7317, fitness:mean=75.6989
-Max fitness = 75.7317
-Update:91  main_pop:1000  next_pop:0, fitness:max=75.7317, fitness:mean=75.7197
-Max fitness = 75.7317
-Update:92  main_pop:1000  next_pop:0, fitness:max=75.7317, fitness:mean=75.6964
-Max fitness = 75.7317
-Update:93  main_pop:1000  next_pop:0, fitness:max=75.7317, fitness:mean=75.7079
-Max fitness = 75.7317
-Update:94  main_pop:1000  next_pop:0, fitness:max=75.7317, fitness:mean=75.7143
-Max fitness = 75.7317
-Update:95  main_pop:1000  next_pop:0, fitness:max=75.7317, fitness:mean=75.7124
-Max fitness = 75.7317
-Update:96  main_pop:1000  next_pop:0, fitness:max=75.7317, fitness:mean=75.7078
-Max fitness = 75.7317
-Update:97  main_pop:1000  next_pop:0, fitness:max=75.7317, fitness:mean=75.7167
-Max fitness = 75.7317
-Update:98  main_pop:1000  next_pop:0, fitness:max=75.7317, fitness:mean=75.7171
-Max fitness = 75.7317
-Update:99  main_pop:1000  next_pop:0, fitness:max=75.7317, fitness:mean=75.7063
-Max fitness = 75.7317
-==> Exiting.
+
+UD:1  MainPopSize=1000  AveFitness=50.7556  MaxFitness=58.132  ModeFitness=41.6004
+MODE_LESS=0  MODE_EQU=1  MODE_GTR=999
+UD:2  MainPopSize=1000  AveFitness=54.4388  MaxFitness=59.9972  ModeFitness=55.9365
+MODE_LESS=778  MODE_EQU=6  MODE_GTR=216
+UD:3  MainPopSize=1000  AveFitness=56.6941  MaxFitness=61.2745  ModeFitness=58.0151
+MODE_LESS=850  MODE_EQU=14  MODE_GTR=136
+UD:4  MainPopSize=1000  AveFitness=58.005  MaxFitness=62.9566  ModeFitness=58.132
+MODE_LESS=533  MODE_EQU=20  MODE_GTR=447
+UD:5  MainPopSize=1000  AveFitness=59.0557  MaxFitness=64.3521  ModeFitness=59.5998
+MODE_LESS=681  MODE_EQU=12  MODE_GTR=307
+UD:6  MainPopSize=1000  AveFitness=60.0638  MaxFitness=64.3521  ModeFitness=61.2745
+MODE_LESS=838  MODE_EQU=19  MODE_GTR=143
+UD:7  MainPopSize=1000  AveFitness=61.2247  MaxFitness=65.3753  ModeFitness=61.2745
+MODE_LESS=488  MODE_EQU=14  MODE_GTR=498
+UD:8  MainPopSize=1000  AveFitness=62.4206  MaxFitness=65.3753  ModeFitness=64.3521
+MODE_LESS=923  MODE_EQU=34  MODE_GTR=43
+UD:9  MainPopSize=1000  AveFitness=63.4395  MaxFitness=66.0557  ModeFitness=64.3521
+MODE_LESS=762  MODE_EQU=59  MODE_GTR=179
+UD:10  MainPopSize=1000  AveFitness=64.1193  MaxFitness=67.2861  ModeFitness=64.3521
+MODE_LESS=482  MODE_EQU=46  MODE_GTR=472
+UD:11  MainPopSize=1000  AveFitness=64.6978  MaxFitness=67.9565  ModeFitness=65.3753
+MODE_LESS=728  MODE_EQU=13  MODE_GTR=259
+UD:12  MainPopSize=1000  AveFitness=65.1985  MaxFitness=67.9565  ModeFitness=65.7148
+MODE_LESS=644  MODE_EQU=15  MODE_GTR=341
+UD:13  MainPopSize=1000  AveFitness=65.8068  MaxFitness=68.705  ModeFitness=67.8053
+MODE_LESS=974  MODE_EQU=15  MODE_GTR=11
+UD:14  MainPopSize=1000  AveFitness=66.3919  MaxFitness=68.8959  ModeFitness=67.8053
+MODE_LESS=907  MODE_EQU=39  MODE_GTR=54
+UD:15  MainPopSize=1000  AveFitness=66.8809  MaxFitness=69.2823  ModeFitness=67.8053
+MODE_LESS=768  MODE_EQU=69  MODE_GTR=163
+UD:16  MainPopSize=1000  AveFitness=67.2676  MaxFitness=69.3899  ModeFitness=67.8053
+MODE_LESS=595  MODE_EQU=55  MODE_GTR=350
+UD:17  MainPopSize=1000  AveFitness=67.699  MaxFitness=69.7468  ModeFitness=68.705
+MODE_LESS=820  MODE_EQU=41  MODE_GTR=139
+UD:18  MainPopSize=1000  AveFitness=68.0296  MaxFitness=70.5407  ModeFitness=68.705
+MODE_LESS=639  MODE_EQU=38  MODE_GTR=323
+UD:19  MainPopSize=1000  AveFitness=68.2666  MaxFitness=70.5407  ModeFitness=69.2823
+MODE_LESS=844  MODE_EQU=40  MODE_GTR=116
+UD:20  MainPopSize=1000  AveFitness=68.5878  MaxFitness=70.935  ModeFitness=69.2823
+MODE_LESS=667  MODE_EQU=43  MODE_GTR=290
+UD:21  MainPopSize=1000  AveFitness=68.9347  MaxFitness=71.8095  ModeFitness=70.5407
+MODE_LESS=964  MODE_EQU=22  MODE_GTR=14
+UD:22  MainPopSize=1000  AveFitness=69.1955  MaxFitness=71.8095  ModeFitness=70.5407
+MODE_LESS=909  MODE_EQU=49  MODE_GTR=42
+UD:23  MainPopSize=1000  AveFitness=69.541  MaxFitness=71.8319  ModeFitness=70.5407
+MODE_LESS=779  MODE_EQU=94  MODE_GTR=127
+UD:24  MainPopSize=1000  AveFitness=69.7752  MaxFitness=71.9915  ModeFitness=70.5407
+MODE_LESS=637  MODE_EQU=76  MODE_GTR=287
+UD:25  MainPopSize=1000  AveFitness=70.17  MaxFitness=72.3205  ModeFitness=70.935
+MODE_LESS=714  MODE_EQU=36  MODE_GTR=250
+UD:26  MainPopSize=1000  AveFitness=70.4988  MaxFitness=72.3205  ModeFitness=71.8095
+MODE_LESS=873  MODE_EQU=56  MODE_GTR=71
+UD:27  MainPopSize=1000  AveFitness=70.7472  MaxFitness=72.441  ModeFitness=71.8095
+MODE_LESS=744  MODE_EQU=99  MODE_GTR=157
+UD:28  MainPopSize=1000  AveFitness=71.0021  MaxFitness=72.4757  ModeFitness=71.8319
+MODE_LESS=697  MODE_EQU=99  MODE_GTR=204
+UD:29  MainPopSize=1000  AveFitness=71.0722  MaxFitness=72.7699  ModeFitness=72.3205
+MODE_LESS=918  MODE_EQU=54  MODE_GTR=28
+UD:30  MainPopSize=1000  AveFitness=71.2757  MaxFitness=72.7699  ModeFitness=72.3205
+MODE_LESS=826  MODE_EQU=98  MODE_GTR=76
+UD:31  MainPopSize=1000  AveFitness=71.3237  MaxFitness=72.8228  ModeFitness=72.3205
+MODE_LESS=707  MODE_EQU=116  MODE_GTR=177
+UD:32  MainPopSize=1000  AveFitness=71.4767  MaxFitness=72.879  ModeFitness=72.441
+MODE_LESS=773  MODE_EQU=94  MODE_GTR=133
+UD:33  MainPopSize=1000  AveFitness=71.5822  MaxFitness=72.879  ModeFitness=72.441
+MODE_LESS=653  MODE_EQU=85  MODE_GTR=262
+UD:34  MainPopSize=1000  AveFitness=71.6265  MaxFitness=73.0178  ModeFitness=72.7699
+MODE_LESS=829  MODE_EQU=112  MODE_GTR=59
+UD:35  MainPopSize=1000  AveFitness=71.7105  MaxFitness=73.0708  ModeFitness=72.7699
+MODE_LESS=720  MODE_EQU=120  MODE_GTR=160
+UD:36  MainPopSize=1000  AveFitness=71.8086  MaxFitness=73.0708  ModeFitness=72.8228
+MODE_LESS=747  MODE_EQU=111  MODE_GTR=142
+UD:37  MainPopSize=1000  AveFitness=71.846  MaxFitness=73.0708  ModeFitness=72.879
+MODE_LESS=784  MODE_EQU=162  MODE_GTR=54
+UD:38  MainPopSize=1000  AveFitness=71.9275  MaxFitness=73.551  ModeFitness=72.879
+MODE_LESS=676  MODE_EQU=176  MODE_GTR=148
+UD:39  MainPopSize=1000  AveFitness=71.9259  MaxFitness=73.551  ModeFitness=72.879
+MODE_LESS=649  MODE_EQU=108  MODE_GTR=243
+UD:40  MainPopSize=1000  AveFitness=71.9793  MaxFitness=73.551  ModeFitness=73.0178
+MODE_LESS=772  MODE_EQU=93  MODE_GTR=135
+UD:41  MainPopSize=1000  AveFitness=72.07  MaxFitness=73.5517  ModeFitness=73.0708
+MODE_LESS=769  MODE_EQU=118  MODE_GTR=113
+UD:42  MainPopSize=1000  AveFitness=72.1397  MaxFitness=73.5857  ModeFitness=73.0708
+MODE_LESS=687  MODE_EQU=112  MODE_GTR=201
+UD:43  MainPopSize=1000  AveFitness=72.2297  MaxFitness=73.8519  ModeFitness=73.551
+MODE_LESS=901  MODE_EQU=79  MODE_GTR=20
+UD:44  MainPopSize=1000  AveFitness=72.395  MaxFitness=73.8519  ModeFitness=73.551
+MODE_LESS=816  MODE_EQU=134  MODE_GTR=50
+UD:45  MainPopSize=1000  AveFitness=72.5028  MaxFitness=73.8519  ModeFitness=73.551
+MODE_LESS=726  MODE_EQU=163  MODE_GTR=111
+UD:46  MainPopSize=1000  AveFitness=72.547  MaxFitness=73.919  ModeFitness=73.551
+MODE_LESS=652  MODE_EQU=122  MODE_GTR=226
+UD:47  MainPopSize=1000  AveFitness=72.5938  MaxFitness=73.9305  ModeFitness=73.6601
+MODE_LESS=803  MODE_EQU=69  MODE_GTR=128
+UD:48  MainPopSize=1000  AveFitness=72.7115  MaxFitness=73.961  ModeFitness=73.8519
+MODE_LESS=891  MODE_EQU=83  MODE_GTR=26
+UD:49  MainPopSize=1000  AveFitness=72.7681  MaxFitness=74.0626  ModeFitness=73.8519
+MODE_LESS=775  MODE_EQU=150  MODE_GTR=75
+UD:50  MainPopSize=1000  AveFitness=72.8141  MaxFitness=74.408  ModeFitness=73.8519
+MODE_LESS=658  MODE_EQU=162  MODE_GTR=180
+UD:51  MainPopSize=1000  AveFitness=72.8818  MaxFitness=74.4631  ModeFitness=73.8519
+MODE_LESS=618  MODE_EQU=70  MODE_GTR=312
+UD:52  MainPopSize=1000  AveFitness=72.9445  MaxFitness=74.4631  ModeFitness=73.9305
+MODE_LESS=717  MODE_EQU=75  MODE_GTR=208
+UD:53  MainPopSize=1000  AveFitness=73.0119  MaxFitness=74.4631  ModeFitness=73.961
+MODE_LESS=730  MODE_EQU=83  MODE_GTR=187
+UD:54  MainPopSize=1000  AveFitness=73.0733  MaxFitness=74.4631  ModeFitness=74.0626
+MODE_LESS=766  MODE_EQU=128  MODE_GTR=106
+UD:55  MainPopSize=1000  AveFitness=73.136  MaxFitness=74.4932  ModeFitness=74.0626
+MODE_LESS=684  MODE_EQU=106  MODE_GTR=210
+UD:56  MainPopSize=1000  AveFitness=73.2211  MaxFitness=74.4932  ModeFitness=74.4631
+MODE_LESS=934  MODE_EQU=60  MODE_GTR=6
+UD:57  MainPopSize=1000  AveFitness=73.3577  MaxFitness=74.4932  ModeFitness=74.4631
+MODE_LESS=856  MODE_EQU=122  MODE_GTR=22
+UD:58  MainPopSize=1000  AveFitness=73.323  MaxFitness=74.4932  ModeFitness=74.4631
+MODE_LESS=773  MODE_EQU=170  MODE_GTR=57
+UD:59  MainPopSize=1000  AveFitness=73.4102  MaxFitness=74.4932  ModeFitness=74.4631
+MODE_LESS=690  MODE_EQU=178  MODE_GTR=132
+UD:60  MainPopSize=1000  AveFitness=73.3783  MaxFitness=74.5194  ModeFitness=74.4932
+MODE_LESS=859  MODE_EQU=139  MODE_GTR=2
+UD:61  MainPopSize=1000  AveFitness=73.4627  MaxFitness=74.5194  ModeFitness=74.4932
+MODE_LESS=736  MODE_EQU=254  MODE_GTR=10
+UD:62  MainPopSize=1000  AveFitness=73.3171  MaxFitness=74.5194  ModeFitness=74.4932
+MODE_LESS=715  MODE_EQU=259  MODE_GTR=26
+UD:63  MainPopSize=1000  AveFitness=73.3965  MaxFitness=74.5899  ModeFitness=74.4932
+MODE_LESS=678  MODE_EQU=259  MODE_GTR=63
+UD:64  MainPopSize=1000  AveFitness=73.4445  MaxFitness=74.5899  ModeFitness=74.4932
+MODE_LESS=638  MODE_EQU=210  MODE_GTR=152
+UD:65  MainPopSize=1000  AveFitness=73.4432  MaxFitness=74.5899  ModeFitness=74.5194
+MODE_LESS=751  MODE_EQU=248  MODE_GTR=1
+UD:66  MainPopSize=1000  AveFitness=73.4699  MaxFitness=74.5899  ModeFitness=74.5194
+MODE_LESS=683  MODE_EQU=313  MODE_GTR=4
+UD:67  MainPopSize=1000  AveFitness=73.4661  MaxFitness=74.5899  ModeFitness=74.5194
+MODE_LESS=657  MODE_EQU=332  MODE_GTR=11
+UD:68  MainPopSize=1000  AveFitness=73.48  MaxFitness=74.6162  ModeFitness=74.5194
+MODE_LESS=665  MODE_EQU=299  MODE_GTR=36
+UD:69  MainPopSize=1000  AveFitness=73.4546  MaxFitness=74.6162  ModeFitness=74.5194
+MODE_LESS=641  MODE_EQU=257  MODE_GTR=102
+UD:70  MainPopSize=1000  AveFitness=73.5257  MaxFitness=74.7225  ModeFitness=74.5899
+MODE_LESS=805  MODE_EQU=171  MODE_GTR=24
+UD:71  MainPopSize=1000  AveFitness=73.5692  MaxFitness=74.7972  ModeFitness=74.5899
+MODE_LESS=697  MODE_EQU=239  MODE_GTR=64
+UD:72  MainPopSize=1000  AveFitness=73.5169  MaxFitness=74.7972  ModeFitness=74.5899
+MODE_LESS=655  MODE_EQU=203  MODE_GTR=142
+UD:73  MainPopSize=1000  AveFitness=73.5514  MaxFitness=74.7972  ModeFitness=74.6162
+MODE_LESS=753  MODE_EQU=201  MODE_GTR=46
+UD:74  MainPopSize=1000  AveFitness=73.5621  MaxFitness=74.7972  ModeFitness=74.6162
+MODE_LESS=675  MODE_EQU=205  MODE_GTR=120
+UD:75  MainPopSize=1000  AveFitness=73.6318  MaxFitness=74.9035  ModeFitness=74.6162
+MODE_LESS=630  MODE_EQU=132  MODE_GTR=238
+UD:76  MainPopSize=1000  AveFitness=73.6468  MaxFitness=74.9035  ModeFitness=74.7225
+MODE_LESS=760  MODE_EQU=134  MODE_GTR=106
+UD:77  MainPopSize=1000  AveFitness=73.7061  MaxFitness=74.9297  ModeFitness=74.7972
+MODE_LESS=794  MODE_EQU=169  MODE_GTR=37
+UD:78  MainPopSize=1000  AveFitness=73.7472  MaxFitness=74.9297  ModeFitness=74.7972
+MODE_LESS=693  MODE_EQU=218  MODE_GTR=89
+UD:79  MainPopSize=1000  AveFitness=73.7271  MaxFitness=74.9297  ModeFitness=74.7972
+MODE_LESS=660  MODE_EQU=148  MODE_GTR=192
+UD:80  MainPopSize=1000  AveFitness=73.7902  MaxFitness=74.9297  ModeFitness=74.9035
+MODE_LESS=798  MODE_EQU=191  MODE_GTR=11
+UD:81  MainPopSize=1000  AveFitness=73.8291  MaxFitness=74.9297  ModeFitness=74.9035
+MODE_LESS=695  MODE_EQU=274  MODE_GTR=31
+UD:82  MainPopSize=1000  AveFitness=73.8485  MaxFitness=74.9297  ModeFitness=74.9035
+MODE_LESS=645  MODE_EQU=280  MODE_GTR=75
+UD:83  MainPopSize=1000  AveFitness=73.8659  MaxFitness=74.9297  ModeFitness=74.9035
+MODE_LESS=655  MODE_EQU=187  MODE_GTR=158
+UD:84  MainPopSize=1000  AveFitness=73.861  MaxFitness=74.9297  ModeFitness=74.9297
+MODE_LESS=756  MODE_EQU=244  MODE_GTR=0
+UD:85  MainPopSize=1000  AveFitness=73.9021  MaxFitness=74.9297  ModeFitness=74.9297
+MODE_LESS=675  MODE_EQU=325  MODE_GTR=0
+UD:86  MainPopSize=1000  AveFitness=73.9075  MaxFitness=74.9297  ModeFitness=74.9297
+MODE_LESS=666  MODE_EQU=334  MODE_GTR=0
+UD:87  MainPopSize=1000  AveFitness=73.9187  MaxFitness=74.9297  ModeFitness=74.9297
+MODE_LESS=649  MODE_EQU=351  MODE_GTR=0
+UD:88  MainPopSize=1000  AveFitness=73.8621  MaxFitness=74.9297  ModeFitness=74.9297
+MODE_LESS=675  MODE_EQU=325  MODE_GTR=0
+UD:89  MainPopSize=1000  AveFitness=73.8816  MaxFitness=74.9297  ModeFitness=74.9297
+MODE_LESS=660  MODE_EQU=340  MODE_GTR=0
+UD:90  MainPopSize=1000  AveFitness=73.8547  MaxFitness=74.9297  ModeFitness=74.9297
+MODE_LESS=665  MODE_EQU=335  MODE_GTR=0
+UD:91  MainPopSize=1000  AveFitness=73.9201  MaxFitness=74.9297  ModeFitness=74.9297
+MODE_LESS=652  MODE_EQU=348  MODE_GTR=0
+UD:92  MainPopSize=1000  AveFitness=73.9536  MaxFitness=74.9297  ModeFitness=74.9297
+MODE_LESS=642  MODE_EQU=358  MODE_GTR=0
+UD:93  MainPopSize=1000  AveFitness=73.8699  MaxFitness=74.9297  ModeFitness=74.9297
+MODE_LESS=632  MODE_EQU=368  MODE_GTR=0
+UD:94  MainPopSize=1000  AveFitness=73.8463  MaxFitness=74.9297  ModeFitness=74.9297
+MODE_LESS=690  MODE_EQU=310  MODE_GTR=0
+UD:95  MainPopSize=1000  AveFitness=73.9487  MaxFitness=74.9297  ModeFitness=74.9297
+MODE_LESS=633  MODE_EQU=367  MODE_GTR=0
+UD:96  MainPopSize=1000  AveFitness=73.8896  MaxFitness=74.9297  ModeFitness=74.9297
+MODE_LESS=640  MODE_EQU=360  MODE_GTR=0
+UD:97  MainPopSize=1000  AveFitness=73.9256  MaxFitness=74.9297  ModeFitness=74.9297
+MODE_LESS=660  MODE_EQU=340  MODE_GTR=0
+UD:98  MainPopSize=1000  AveFitness=73.8416  MaxFitness=74.9297  ModeFitness=74.9297
+MODE_LESS=668  MODE_EQU=332  MODE_GTR=0
+UD:99  MainPopSize=1000  AveFitness=73.8721  MaxFitness=74.9297  ModeFitness=74.9297
+MODE_LESS=660  MODE_EQU=340  MODE_GTR=0
+UD:100  MainPopSize=1000  AveFitness=73.8446  MaxFitness=74.9297  ModeFitness=74.9297
+MODE_LESS=670  MODE_EQU=330  MODE_GTR=0
 EMP_TRACK_MEM: No memory leaks found!
- 10705631 pointers found; all have been cleaned up fully.
+ 10935960 pointers found; all have been cleaned up fully.
