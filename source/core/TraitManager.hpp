@@ -18,6 +18,7 @@
 #include <unordered_map>
 
 #include "emp/base/Ptr.hpp"
+#include "emp/base/notify.hpp"
 
 #include "TraitInfo.hpp"
 #include "ErrorManager.hpp"

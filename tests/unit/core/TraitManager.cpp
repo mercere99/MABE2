@@ -25,19 +25,11 @@
 //              std::cout << "Error: "/"Warning: ";
 // NOTE: Even if an error is thrown, the traitmap still updates with the new trait
 
-
 TEST_CASE("TraitManager_Locks", "[core]"){
   { 
     //  [SETUP]
     // Create the TraitInfo to be tested (TraitInfo is abstract so we must make a TypedTraitInfo)
-    auto error_func = [](const std::string & s){
-      std::cout << "Error: ";
-    }; 
-    auto warning_func = [](const std::string & s){
-      std::cout << "Warning: ";
-    }; 
-    mabe::ErrorManager error_man(error_func, warning_func);
-    mabe::TraitManager<mabe::ModuleBase> trait_man(error_man);
+    mabe::TraitManager<mabe::ModuleBase> trait_man;
 
     //  [BEGIN TESTS]
     // Make sure GetLocked returns true by default 
@@ -69,21 +61,19 @@ TEST_CASE("TraitManager_Basic", "[core]"){
     bool has_error_been_thrown = false;
     bool has_warning_been_thrown = false; 
     std::string error_message = ""; 
+    emp::notify::GetData().GetHandler(emp::notify::Type::ERROR).Clear();
+    emp::notify::GetData().GetHandler(emp::notify::Type::ERROR).Add(
+        [&has_error_been_thrown, &error_message](emp::notify::id_arg_t, emp::notify::message_arg_t msg, emp::notify::except_data_t){
+          std::cout << "Caught error: " << msg << std::endl << std::endl;
+          has_error_been_thrown = true;
+          std::stringstream sstr; 
+          sstr << msg;
+          error_message = sstr.str();
+          return true;
+        }
+    );
 
-    // Setup an ErrorManager
-    auto error_func = [&has_error_been_thrown, &error_message](const std::string & s){
-      std::cout << "Error: ";
-      has_error_been_thrown = true;
-      error_message = s;  
-    }; 
-    auto warning_func = [&has_warning_been_thrown](const std::string & s){
-      std::cout << "Warning: ";
-      has_warning_been_thrown = true; 
-    }; 
-    
-    mabe::ErrorManager error_man(error_func, warning_func);
-    error_man.Activate(); 
-    mabe::TraitManager<mabe::ModuleBase> trait_man(error_man);
+    mabe::TraitManager<mabe::ModuleBase> trait_man;
 
     //  [BEGIN TESTS]
     // Check that traitmap begins as empty
@@ -144,26 +134,24 @@ TEST_CASE("TraitManager_AddTrait", "[core]"){
 
   // Setup a TraitManager
   // Use bools to tell if an error has been thrown 
-  bool has_error_been_thrown = false; 
-  //bool has_error_been_thrown2 = false;
+  bool has_error_been_thrown = false;
   bool has_warning_been_thrown = false; 
   std::string error_message = ""; 
-
-  auto error_func = [&has_error_been_thrown, &error_message](const std::string & s){
-    std::cout << "Error: ";
-    has_error_been_thrown = true;
-    error_message = s; 
-  };
-  auto warning_func = [&has_warning_been_thrown](const std::string & s){
-    std::cout << "Warning: ";
-    has_warning_been_thrown = true; 
-  }; 
+  emp::notify::GetData().GetHandler(emp::notify::Type::ERROR).Clear();
+  emp::notify::GetData().GetHandler(emp::notify::Type::ERROR).Add(
+      [&has_error_been_thrown, &error_message](emp::notify::id_arg_t, emp::notify::message_arg_t msg, emp::notify::except_data_t){
+        std::cout << "Caught error: " << msg << std::endl << std::endl;
+        has_error_been_thrown = true;
+        std::stringstream sstr; 
+        sstr << msg;
+        error_message = sstr.str();
+        return true;
+      }
+  );
 
   { 
     //  [FINISH SETUP]
-    mabe::ErrorManager error_man(error_func, warning_func);
-    error_man.Activate(); 
-    mabe::TraitManager<mabe::ModuleBase> trait_man(error_man); 
+    mabe::TraitManager<mabe::ModuleBase> trait_man; 
     trait_man.Unlock();  
 
     //  [BEGIN TESTS]
@@ -193,9 +181,7 @@ TEST_CASE("TraitManager_AddTrait", "[core]"){
 
   {
     //  [FINISH SETUP]
-    mabe::ErrorManager error_man(error_func, warning_func);
-    error_man.Activate(); 
-    mabe::TraitManager<mabe::ModuleBase> trait_man(error_man);
+    mabe::TraitManager<mabe::ModuleBase> trait_man;
     trait_man.Unlock();
 
     // Make sure re-used variables are reset 
@@ -271,36 +257,28 @@ TEST_CASE("TraitManager_Verify", "[core]") {
 
   // Setup a TraitManager
   // Use bools to tell if an error has been thrown 
-  bool has_error_been_thrown = false; 
-  bool has_error_been_thrown2 = false; 
+  bool has_error_been_thrown = false;
   bool has_warning_been_thrown = false; 
   std::string error_message = ""; 
-
-  auto error_func = [&has_error_been_thrown, &error_message](const std::string & s){
-    std::cout << "Error: ";
-    has_error_been_thrown = true;
-    error_message = s; 
-  }; 
-  auto error_func2 = [&has_error_been_thrown2, &error_message](const std::string & s){
-    std::cout << "Error: ";
-    has_error_been_thrown2 = true;
-    error_message = s; 
-  }; 
-  auto warning_func = [&has_warning_been_thrown](const std::string & s){
-    std::cout << "Warning: ";
-    has_warning_been_thrown = true; 
-  };
+  emp::notify::GetData().GetHandler(emp::notify::Type::ERROR).Clear();
+  emp::notify::GetData().GetHandler(emp::notify::Type::ERROR).Add(
+      [&has_error_been_thrown, &error_message](emp::notify::id_arg_t, emp::notify::message_arg_t msg, emp::notify::except_data_t){
+        std::cout << "Caught error: " << msg << std::endl << std::endl;
+        has_error_been_thrown = true;
+        std::stringstream sstr; 
+        sstr << msg;
+        error_message = sstr.str();
+        return true;
+      }
+  );
 
   { 
     //  [FINISH SETUP]
-    mabe::ErrorManager error_man(error_func, warning_func);
-    error_man.Activate(); 
-    mabe::TraitManager<mabe::ModuleBase> trait_man(error_man);
+    mabe::TraitManager<mabe::ModuleBase> trait_man;
     trait_man.Unlock(); 
 
     // Make sure re-used variables are reset
     has_error_been_thrown = false; 
-    has_error_been_thrown2 = false; 
     error_message = ""; 
 
     //  [BEGIN TESTS] 
@@ -368,18 +346,13 @@ TEST_CASE("TraitManager_Verify", "[core]") {
  
   {
     //  [FINISH SETUP]
-    mabe::ErrorManager error_man(error_func, warning_func);
-    mabe::ErrorManager error_man2(error_func2, warning_func); 
-    error_man.Activate(); 
-    error_man2.Activate();
-    mabe::TraitManager<mabe::ModuleBase> trait_man(error_man);
-    mabe::TraitManager<mabe::ModuleBase> trait_man2(error_man2);
+    mabe::TraitManager<mabe::ModuleBase> trait_man;
+    mabe::TraitManager<mabe::ModuleBase> trait_man2;
     trait_man.Unlock(); 
     trait_man2.Unlock();
 
     // Make sure re-used variables are reset 
     has_error_been_thrown = false;  
-    has_error_been_thrown2 = false; 
     error_message = ""; 
 
     //  [BEGIN TESTS] 
@@ -400,12 +373,13 @@ TEST_CASE("TraitManager_Verify", "[core]") {
     CHECK_FALSE(has_warning_been_thrown); 
     CHECK(error_message == "Multiple modules declaring ownership of trait 'trait_i': EvalNK and EvalNK.\n[Suggestion: if traits are supposed to be distinct, prepend names with a\n module-specific prefix.  Otherwise modules should be edited to change trait\n to be SHARED (and all can modify) or have all but one shift to REQUIRED.]");
 
-    // ------------------------ Must be done with new Manager to avoid earlier error
+    has_error_been_thrown = false;
+    error_message = "";
 
     //Create a new OWNED trait
     trait_man2.AddTrait<int>(&nk_mod, mabe::TraitInfo::Access::OWNED, "trait_j", "a trait", 7); 
     CHECK(trait_man2.GetSize() == 1); 
-    CHECK_FALSE(has_error_been_thrown2); 
+    CHECK_FALSE(has_error_been_thrown); 
     CHECK_FALSE(has_warning_been_thrown); 
 
     // Check Verify throws error if another module tries GENERATING it
@@ -413,25 +387,20 @@ TEST_CASE("TraitManager_Verify", "[core]") {
     trait_man2.AddTrait<int>(&nk2_mod, mabe::TraitInfo::Access::GENERATED, "trait_j", "a trait", 7); 
     CHECK(trait_man2.GetSize() == 1); 
     trait_man2.Verify(true); 
-    CHECK(has_error_been_thrown2); 
+    CHECK(has_error_been_thrown); 
     CHECK_FALSE(has_warning_been_thrown);
     CHECK(error_message == "Multiple modules declaring ownership of trait 'trait_j': EvalNK and EvalNK.\n[Suggestion: if traits are supposed to be distinct, prepend names with a\n module-specific prefix.  Otherwise modules should be edited to change trait\n to be SHARED (and all can modify) or have all but one shift to REQUIRED.]");
   }
 
   {
     //  [FINISH SETUP]
-    mabe::ErrorManager error_man(error_func, warning_func);
-    mabe::ErrorManager error_man2(error_func2, warning_func); 
-    error_man.Activate(); 
-    error_man2.Activate();
-    mabe::TraitManager<mabe::ModuleBase> trait_man(error_man);
-    mabe::TraitManager<mabe::ModuleBase> trait_man2(error_man2);
+    mabe::TraitManager<mabe::ModuleBase> trait_man;
+    mabe::TraitManager<mabe::ModuleBase> trait_man2;
     trait_man.Unlock(); 
     trait_man2.Unlock();
 
     // Make sure re-used variables are reset 
     has_error_been_thrown = false;  
-    has_error_been_thrown2 = false; 
     error_message = ""; 
 
     //  [BEGIN TESTS]
@@ -461,49 +430,45 @@ TEST_CASE("TraitManager_Verify", "[core]") {
     CHECK_FALSE(has_warning_been_thrown); 
     CHECK(error_message == "Multiple modules declaring ownership of trait 'trait_k': EvalNK and EvalNK.\n[Suggestion: if traits are supposed to be distinct, prepend names with a\n module-specific prefix.  Otherwise modules should be edited to change trait\n to be SHARED (and all can modify) or have all but one shift to REQUIRED.]");
 
-    // ------------------------ Must be done with new Manager to avoid earlier error
+    has_error_been_thrown = false;
+    error_message = "";
 
     //Create a new GENERATED trait
     trait_man2.AddTrait<int>(&nk_mod, mabe::TraitInfo::Access::GENERATED, "trait_l", "a trait", 7); 
     CHECK(trait_man2.GetSize() == 1); 
-    CHECK_FALSE(has_error_been_thrown2); 
+    CHECK_FALSE(has_error_been_thrown); 
     CHECK_FALSE(has_warning_been_thrown); 
 
     // Add a module that REQUIRES the GENERATED one
     trait_man2.AddTrait<int>(&nk2_mod, mabe::TraitInfo::Access::REQUIRED, "trait_l", "a trait", 7); 
     CHECK(trait_man2.GetSize() == 1); 
-    CHECK_FALSE(has_error_been_thrown2); 
+    CHECK_FALSE(has_error_been_thrown); 
     CHECK_FALSE(has_warning_been_thrown); 
 
     // Check Verify doesn't throw error because no other module tries to OWN or GENERATE 
     trait_man2.Verify(true); 
-    CHECK_FALSE(has_error_been_thrown2); 
+    CHECK_FALSE(has_error_been_thrown); 
     CHECK_FALSE(has_warning_been_thrown); 
 
     // Check Verify throws error if another module tries GENERATING it
     trait_man2.AddTrait<int>(&nk2_mod, mabe::TraitInfo::Access::GENERATED, "trait_l", "a trait", 7); 
     CHECK(trait_man2.GetSize() == 1); 
     trait_man2.Verify(true); 
-    CHECK(has_error_been_thrown2); 
+    CHECK(has_error_been_thrown); 
     CHECK_FALSE(has_warning_been_thrown);
     CHECK(error_message == "Multiple modules declaring ownership of trait 'trait_l': EvalNK and EvalNK.\n[Suggestion: if traits are supposed to be distinct, prepend names with a\n module-specific prefix.  Otherwise modules should be edited to change trait\n to be SHARED (and all can modify) or have all but one shift to REQUIRED.]");
   }
   
   {
     //  [FINISH SETUP]
-    mabe::ErrorManager error_man(error_func, warning_func);
-    mabe::ErrorManager error_man2(error_func2, warning_func); 
-    error_man.Activate(); 
-    error_man2.Activate();
-    mabe::TraitManager<mabe::ModuleBase> trait_man(error_man);
-    mabe::TraitManager<mabe::ModuleBase> trait_man2(error_man2);
+    mabe::TraitManager<mabe::ModuleBase> trait_man;
+    mabe::TraitManager<mabe::ModuleBase> trait_man2;
     trait_man.Unlock(); 
     trait_man2.Unlock();
 
     // Setup a TraitManager
     // Reset re-used variables 
     has_error_been_thrown = false; 
-    has_error_been_thrown2 = false; 
     error_message = ""; 
 
     //  [BEGIN TESTS] 
@@ -542,26 +507,26 @@ TEST_CASE("TraitManager_Verify", "[core]") {
     // Add a private trait
     trait_man2.AddTrait<int>(&nk_mod, mabe::TraitInfo::Access::PRIVATE, "trait_i", "a trait", 7); 
     CHECK(trait_man2.GetSize() == 1); 
-    CHECK_FALSE(has_error_been_thrown2); 
+    CHECK_FALSE(has_error_been_thrown); 
     CHECK_FALSE(has_warning_been_thrown); 
 
     // Verify should succeed
     trait_man2.Verify(true); 
-    CHECK_FALSE(has_error_been_thrown2);
+    CHECK_FALSE(has_error_been_thrown);
     CHECK_FALSE(has_warning_been_thrown); 
 
     // Add another module that accesses it
     trait_man2.AddTrait<int>(&nk2_mod, mabe::TraitInfo::Access::OPTIONAL, "trait_i", "a trait", 7); 
     CHECK(trait_man2.GetSize() == 1); 
-    CHECK_FALSE(has_error_been_thrown2); 
+    CHECK_FALSE(has_error_been_thrown); 
     CHECK_FALSE(has_warning_been_thrown); 
 
     // Verify should fail
     // Check correct error message prints
     trait_man2.Verify(true); 
-    CHECK(has_error_been_thrown2);
+    CHECK(has_error_been_thrown);
     CHECK_FALSE(has_warning_been_thrown); 
-    CHECK(error_message == "Trait 'trait_i' is private in module 'EvalNK'; should not be used by other modules.\n[Suggestion: if traits are supposed to be distinct, prepend private name with\n a module-specific prefix.  Otherwise module needs to be edited to not\n have trait private.]");
+    CHECK(error_message == "Trait 'trait_i' is private in module 'EvalNK'; should not be used by other modules.\n[Suggestion: if traits are supposed to be distinct, prepend private name with a\n module-specific prefix.  Otherwise module needs to be edited to not have\n trait private.]");
 
     //Another module also tries to claim that it's private
     // TODO
@@ -569,18 +534,13 @@ TEST_CASE("TraitManager_Verify", "[core]") {
     
   {
     //  [FINISH SETUP]
-    mabe::ErrorManager error_man(error_func, warning_func);
-    mabe::ErrorManager error_man2(error_func2, warning_func); 
-    error_man.Activate(); 
-    error_man2.Activate();
-    mabe::TraitManager<mabe::ModuleBase> trait_man(error_man);
-    mabe::TraitManager<mabe::ModuleBase> trait_man2(error_man2);
+    mabe::TraitManager<mabe::ModuleBase> trait_man;
+    mabe::TraitManager<mabe::ModuleBase> trait_man2;
     trait_man.Unlock(); 
     trait_man2.Unlock();  
 
     // Reset re-used variables 
     has_error_been_thrown = false; 
-    has_error_been_thrown2 = false; 
     error_message = "";  
 
     //  [BEGIN TESTS] 
@@ -607,23 +567,24 @@ TEST_CASE("TraitManager_Verify", "[core]") {
     CHECK_FALSE(has_warning_been_thrown); 
     CHECK(error_message == "Trait 'trait_l' is fully OWNED by module 'EvalNK'; it cannot be SHARED (written to) by other modules:EvalNK[Suggestion: if traits are supposed to be distinct, prepend private name with a\n module-specific prefix.  Otherwise module needs to be edited to make trait\n SHARED or have all but one shift to REQUIRED.]");
     
-    // ----------------------------------- Use new Manager to avoid error carry-over
+    has_error_been_thrown = false;
+    error_message = "";
 
     // Crate a GENERATED trait that also is REQUIRED
     trait_man2.AddTrait<int>(&nk_mod, mabe::TraitInfo::Access::GENERATED, "trait_i", "a trait", 7); 
     CHECK(trait_man2.GetSize() == 1);  
-    CHECK_FALSE(has_error_been_thrown2); 
+    CHECK_FALSE(has_error_been_thrown); 
     CHECK_FALSE(has_warning_been_thrown);
 
 
     trait_man2.AddTrait<int>(&nk2_mod, mabe::TraitInfo::Access::REQUIRED, "trait_i", "a trait", 7); 
     CHECK(trait_man2.GetSize() == 1);   
-    CHECK_FALSE(has_error_been_thrown2); 
+    CHECK_FALSE(has_error_been_thrown); 
     CHECK_FALSE(has_warning_been_thrown);
 
     // Verify should succeed
     trait_man2.Verify(true); 
-    CHECK_FALSE(has_error_been_thrown2); 
+    CHECK_FALSE(has_error_been_thrown); 
     CHECK_FALSE(has_warning_been_thrown); 
     
 
@@ -634,7 +595,7 @@ TEST_CASE("TraitManager_Verify", "[core]") {
     
     // Verify should fail -- fix this check to also provide instructions for if it does the thing we say it should
     /*trait_man2.Verify(true); // << THIS SIGABORTS?
-    CHECK(has_error_been_thrown2); 
+    CHECK(has_error_been_thrown); 
     CHECK_FALSE(has_warning_been_thrown); */
     
   }

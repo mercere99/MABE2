@@ -15,6 +15,7 @@
 #define EMPLODE_SYMBOL_SCOPE_HPP
 
 #include "emp/base/map.hpp"
+#include "emp/datastructs/map_utils.hpp"
 
 #include "Symbol.hpp"
 #include "Symbol_Function.hpp"
