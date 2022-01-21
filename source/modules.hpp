@@ -28,6 +28,7 @@
 // Selection Modules
 #include "select/SelectElite.hpp"
 #include "select/SelectTournament.hpp"
+#include "select/SelectFitnessSharing.hpp"
 #include "select/SelectLexicase.hpp"
 
 // Other schema
