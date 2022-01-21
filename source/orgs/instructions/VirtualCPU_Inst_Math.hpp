@@ -19,7 +19,6 @@ namespace mabe {
 
   class VirtualCPU_Inst_Math : public Module {
   private:
-    Collection target_collect;
     int pop_id = 0;
     std::function<void(VirtualCPUOrg&, const VirtualCPUOrg::inst_t&)> func_inc;
     std::function<void(VirtualCPUOrg&, const VirtualCPUOrg::inst_t&)> func_dec;
@@ -33,8 +32,7 @@ namespace mabe {
     VirtualCPU_Inst_Math(mabe::MABE & control,
                     const std::string & name="VirtualCPU_Inst_Math",
                     const std::string & desc="Math instructions for VirtualCPUOrg population")
-      : Module(control, name, desc), 
-        target_collect(control.GetPopulation(1),control.GetPopulation(0)){;}
+      : Module(control, name, desc){;}
     ~VirtualCPU_Inst_Math() { }
 
     void SetupConfig() override {

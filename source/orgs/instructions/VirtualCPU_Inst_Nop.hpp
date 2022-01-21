@@ -19,7 +19,6 @@ namespace mabe {
 
   class VirtualCPU_Inst_Nop : public Module {
   private:
-    //Collection target_collect;
     int pop_id = 0;
     std::function<void(VirtualCPUOrg&, const VirtualCPUOrg::inst_t&)> func_nop;
 
@@ -30,7 +29,6 @@ namespace mabe {
                     const std::string & name="VirtualCPU_Inst_Nop",
                     const std::string & desc="Nop instructions for VirtualCPUOrg population")
       : Module(control, name, desc) {;} 
-        //target_collect(control.GetPopulation(1), control.GetPopulation(0)){;}
     ~VirtualCPU_Inst_Nop() { }
 
     void SetupConfig() override {

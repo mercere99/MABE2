@@ -29,8 +29,6 @@
 #include "emp/datastructs/map_utils.hpp"
 #include "emp/datastructs/reference_vector.hpp"
 
-#include "../config/Config.hpp"
-
 #include "MABE.hpp"
 #include "ModuleBase.hpp"
 #include "Population.hpp"
@@ -41,17 +39,17 @@ namespace mabe {
   class Module : public ModuleBase {
   public:
     Module(MABE & in_control, const std::string & in_name, const std::string & in_desc="")
-      : ModuleBase(in_control, in_name, in_desc) { error_man = &control.GetErrorManager(); }
+      : ModuleBase(in_control, in_name, in_desc) { }
     Module(const Module &) = delete;
     Module(Module &&) = delete;
 
   protected:
 
     // Specialized configuration links for MABE-specific modules.
-    // (Other ways of linking variable to config file are in ConfigType.h)
+    // (Other ways of linking variable to config file are in EmplodeType.h)
 
     /// Link a single population to a parameter by name.
-    ConfigEntry_LinkedFunctions<std::string> & LinkPop(
+    emplode::Symbol_LinkedFunctions<std::string> & LinkPop(
       int & var,
       const std::string & name,
       const std::string & desc
@@ -62,14 +60,16 @@ namespace mabe {
       std::function<void(std::string)> set_fun =
         [this,&var](const std::string & name){
           var = control.GetPopID(name);
-          if (var == -1) AddError("Trying to access population '", name, "'; does not exist.");
+          if (var == -1) {
+            emp::notify::Error("Trying to access population '", name, "'; does not exist.");
+          }
         };
 
-      return GetScope().LinkFuns<std::string>(name, get_fun, set_fun, desc);
+      return AsScope().LinkFuns<std::string>(name, get_fun, set_fun, desc);
     }
 
     /// Link one or more populations (or portions of a population) to a parameter.
-    ConfigEntry_LinkedFunctions<std::string> & LinkCollection(
+    emplode::Symbol_LinkedFunctions<std::string> & LinkCollection(
       mabe::Collection & var,
       const std::string & name,
       const std::string & desc
@@ -82,11 +82,11 @@ namespace mabe {
           var = control.ToCollection(load_str);
         };
 
-      return GetScope().LinkFuns<std::string>(name, get_fun, set_fun, desc);
+      return AsScope().LinkFuns<std::string>(name, get_fun, set_fun, desc);
     }
 
     /// Link another module to this one, by name (track using int ID)
-    ConfigEntry_LinkedFunctions<std::string> & LinkModule(
+    emplode::Symbol_LinkedFunctions<std::string> & LinkModule(
       int & var,
       const std::string & name,
       const std::string & desc
@@ -97,14 +97,14 @@ namespace mabe {
       std::function<void(std::string)> set_fun =
         [this,&var](const std::string & name){
           var = control.GetModuleID(name);
-          if (var == -1) AddError("Trying to access module '", name, "'; does not exist.");
+          if (var == -1) emp::notify::Error("Trying to access module '", name, "'; does not exist.");
         };
 
-      return GetScope().LinkFuns<std::string>(name, get_fun, set_fun, desc);
+      return AsScope().LinkFuns<std::string>(name, get_fun, set_fun, desc);
     }
 
     /// Link a range of values with a start, stop, and step.
-    ConfigEntry_LinkedFunctions<std::string> & LinkRange(
+    emplode::Symbol_LinkedFunctions<std::string> & LinkRange(
       int & start_var,
       int & step_var,
       int & stop_var,
@@ -125,7 +125,7 @@ namespace mabe {
           stop_var = name.size() ? emp::from_string<int>(name) : -1; // -1 indicates no stop.
         };
 
-      return GetScope().LinkFuns<std::string>(name, get_fun, set_fun, desc);
+      return AsScope().LinkFuns<std::string>(name, get_fun, set_fun, desc);
     }
   public:
 
@@ -304,22 +304,6 @@ namespace mabe {
       control.RescanSignals();
     }
 
-    // Format:  OnError(const std::string & msg)
-    // Trigger: An error has occurred and the user should be notified.
-    // Args:    Message associated with this error.
-    void OnError(const std::string &) override {
-      has_signal[SIG_OnError] = false;
-      control.RescanSignals();
-    }
-
-    // Format:  OnWarning(const std::string & msg)
-    // Trigger: A atypical condition has occurred and the user should be notified.
-    // Args:    Message associated with this warning.
-    void OnWarning(const std::string &) override {
-      has_signal[SIG_OnWarning] = false;
-      control.RescanSignals();
-    }
-
     // Format:  BeforeExit()
     // Trigger: Run immediately before MABE is about to exit.
     void BeforeExit() override {
@@ -332,46 +316,6 @@ namespace mabe {
     void OnHelp() override {
       has_signal[SIG_OnHelp] = false;
       control.RescanSignals();
-    }
-
-    // Format:  TraceEval(Organism & trace_org, std::ostream & out_stream)
-    // Trigger: Request to print a trace of the evaluation of an organism.
-    // Args:    Organism to be traces, stream to print trace to.
-    void TraceEval(Organism &, std::ostream &) override {
-      has_signal[SIG_TraceEval] = false;
-      control.RescanSignals();
-    }
-
-    // Functions to be called based on actions that need to happen.  Each of these returns a
-    // viable result or an invalid object if need to pass on to the next module.  Modules will
-    // be queried in order until one of them returns a valid result.
-
-    // Function: Place a new organism about to be born.
-    // Args: Organism that will be placed, position of parent, population to place.
-    // Return: Position to place offspring or an invalid position if failed.
-
-    OrgPosition DoPlaceBirth(Organism &, OrgPosition, Population &) override {
-      has_signal[SIG_DoPlaceBirth] = false;
-      control.RescanSignals();
-      return OrgPosition();
-    }
-
-    // Function: Place a new organism about to be injected.
-    // Args: Organism that will be placed, position to place.
-
-    OrgPosition DoPlaceInject(Organism &, Population &) override {
-      has_signal[SIG_DoPlaceInject] = false;
-      control.RescanSignals();
-      return OrgPosition();
-    }
-
-    // Function: Find a random neighbor to a designated position.
-    // Args: Position to find neighbor of, position found.
-
-    OrgPosition DoFindNeighbor(OrgPosition) override {
-      has_signal[SIG_DoFindNeighbor] = false;
-      control.RescanSignals();
-      return OrgPosition();
     }
 
     /// Turn off all signals in this function.
@@ -400,27 +344,26 @@ namespace mabe {
     bool OnSwap_IsTriggered() override { return control.OnSwap_IsTriggered(this); };
     bool BeforePopResize_IsTriggered() override { return control.BeforePopResize_IsTriggered(this); };
     bool OnPopResize_IsTriggered() override { return control.OnPopResize_IsTriggered(this); };
-    bool OnError_IsTriggered() override { return control.OnError_IsTriggered(this); };
-    bool OnWarning_IsTriggered() override { return control.OnWarning_IsTriggered(this); };
     bool BeforeExit_IsTriggered() override { return control.BeforeExit_IsTriggered(this); };
     bool OnHelp_IsTriggered() override { return control.OnHelp_IsTriggered(this); };
-    bool TraceEval_IsTriggered() override { return control.TraceEval_IsTriggered(this); };
-    bool DoPlaceBirth_IsTriggered() override { return control.DoPlaceBirth_IsTriggered(this); };
-    bool DoPlaceInject_IsTriggered() override { return control.DoPlaceInject_IsTriggered(this); };
-    bool DoFindNeighbor_IsTriggered() override { return control.DoFindNeighbor_IsTriggered(this); };
+
+    bool OK() const override { return true; }
   };
 
   /// Build a class that will automatically register modules when created (globally)
   template <typename T>
   struct ModuleRegistrar {
     ModuleRegistrar(const std::string & type_name, const std::string & desc) {
+      emp_assert(!emp::Has(GetModuleMap(), type_name), "Module name used multiple times.", type_name);
       ModuleInfo new_info;
       new_info.name = type_name;
       new_info.desc = desc;
-      new_info.init_fun = [desc](MABE & control, const std::string & name) -> ConfigType & {
-        return control.AddModule<T>(name, desc);
+      new_info.obj_init_fun = [desc](MABE & control, const std::string & name) -> emp::Ptr<EmplodeType> {
+        return &control.AddModule<T>(name, desc);
       };
-      GetModuleInfo().insert(new_info);
+      new_info.type_init_fun = [](emplode::TypeInfo & info){ T::InitType(info); };
+      new_info.type_id = emp::GetTypeID<T>();
+      GetModuleMap()[type_name] = new_info;
     }
   };
 

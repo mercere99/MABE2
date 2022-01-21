@@ -24,7 +24,7 @@ namespace mabe {
     AnnotatePlacement(mabe::MABE & control,
                     const std::string & name="AnnotatePlacement",
                     const std::string & desc="Store org's position as trait on placement.")
-      : Module(control, name, desc), target_collect(control.GetPopulation(1),control.GetPopulation(0))
+      : Module(control, name, desc), target_collect(control.GetPopulation(0))
     {
       SetPlacementMod(true);
     }

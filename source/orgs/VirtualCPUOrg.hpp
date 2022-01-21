@@ -228,6 +228,9 @@ namespace mabe {
             },
             action.num_args, 
             "test", 
+            emp::ScopeType::NONE, // No scope type, but must provide
+            (size_t) -1,          // 
+            std::unordered_set<std::string>(),
             action.data.Get<int>("inst_id"));
         std::cout << "Added instruction: " << action.name << std::endl;
       }

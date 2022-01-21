@@ -6,7 +6,6 @@
  *  @file  RandomReplacement.h
  *  @brief Each birth replace a random organism in the population, keeping a constant size
  *
- *   
  *  When a birth occurs, the child is placed over an existing organism at random.
  *  This keeps the population size constant assuming there are no other deaths
  * 
@@ -41,18 +40,26 @@ namespace mabe {
     }
 
     void SetupModule() override {
-      // For now, nothing here.
+      Population& pop = control.GetPopulation(0);
+      pop.SetPlaceBirthFun( 
+        [this, &pop](Organism & /*org*/, OrgPosition ppos) {
+          return PlaceBirth(ppos, pop);
+        }
+      );
+      pop.SetPlaceInjectFun( 
+        [this, &pop](Organism & /*org*/){
+          return PlaceInject(pop);
+        }
+      );
     }
 
-    OrgPosition DoPlaceBirth(Organism & /* org */, OrgPosition  ppos,
-                             Population & target_pop) override
-    {
+    OrgPosition PlaceBirth(OrgPosition ppos, Population & target_pop) {
       // If the current position is monitored, return a random place in the population.
       if (target_collect.HasPopulation(target_pop)) {
         OrgPosition new_pos = 
             OrgPosition(target_pop, control.GetRandom().GetUInt(target_pop.GetSize()));
         while(new_pos == ppos)
-          new_pos = OrgPosition(target_pop, control.GetRandom().GetUInt(target_pop.GetSize()));
+          new_pos =OrgPosition(target_pop, control.GetRandom().GetUInt(target_pop.GetSize()));
         return new_pos;
       }
 
@@ -60,24 +67,11 @@ namespace mabe {
       return OrgPosition();      
     }
 
-    // Injections always go into the active population.
-    OrgPosition DoPlaceInject(Organism & org, Population & target_pop) override {
+    OrgPosition PlaceInject(Population & target_pop) {
       // If inject is going to a monitored population, place it in a new, empty cell!
       if (target_collect.HasPopulation(target_pop)) return control.PushEmpty(target_pop);
 
       // Otherwise, don't place!
-      return OrgPosition();      
-    }
-
-    OrgPosition DoFindNeighbor(OrgPosition pos) override {
-      emp::Ptr<Population> pop_ptr = pos.PopPtr();
-
-      // If the current position is monitored, return a random place in the population.
-      if (target_collect.HasPosition(pos)) {
-        return OrgPosition(pop_ptr, control.GetRandom().GetUInt(pop_ptr->GetSize()));
-      }
-
-      // Otherwise, don't find a legal place!
       return OrgPosition();      
     }
 

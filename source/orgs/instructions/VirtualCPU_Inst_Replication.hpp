@@ -19,7 +19,6 @@ namespace mabe {
 
   class VirtualCPU_Inst_Replication : public Module {
   private:
-    Collection target_collect;
     int pop_id = 0;
     std::string org_pos_trait = "org_pos";
     std::function<void(VirtualCPUOrg&, const VirtualCPUOrg::inst_t&)> func_h_alloc;
@@ -37,8 +36,7 @@ namespace mabe {
     VirtualCPU_Inst_Replication(mabe::MABE & control,
                     const std::string & name="VirtualCPU_Inst_Replication",
                     const std::string & desc="Replication instructions for VirtualCPUOrg population")
-      : Module(control, name, desc), 
-        target_collect(control.GetPopulation(1),control.GetPopulation(0)){;}
+      : Module(control, name, desc) {;}
     ~VirtualCPU_Inst_Replication() { }
 
     void SetupConfig() override {
@@ -57,7 +55,7 @@ namespace mabe {
       if(include_h_alloc){
         func_h_alloc = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){
           //std::cout << "HAlloc!" << std::endl;
-          //std::cout << "Working genome: " << hw.GetString() << std::endl;
+          //std::cout << "Working genome: " << hw.GetWorkingGenomeString() << std::endl;
           //std::cout << "IP: " << hw.inst_ptr;
           //std::cout << " RH: " << hw.read_head;
           //std::cout << " WH: " << hw.write_head;
@@ -86,7 +84,7 @@ namespace mabe {
                 offspring_genome.begin());
             hw.genome_working.resize(hw.read_head, hw.GetDefaultInst());
             hw.ResetHardware();
-            hw.inst_ptr = hw.genome_working.size() - 1;
+            hw.inst_ptr = hw.genome.size() - 1;
             control.Replicate(org_pos, *org_pos.PopPtr());
           }
         };

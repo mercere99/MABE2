@@ -29,8 +29,6 @@ namespace mabe {
 
   class EvalPacking : public Module {
   private:
-    Collection target_collect;
-
     std::string bits_trait;
     std::string fitness_trait;
 
@@ -41,21 +39,19 @@ namespace mabe {
     EvalPacking(mabe::MABE & control,
         const std::string & name="EvalPacking",
         const std::string & desc="Evaluate bitstrings by counting correctly packed bricks.")
-      : Module(control, name, desc)
-      , target_collect(control.GetPopulation(0))
-      , bits_trait("bits")
-      , fitness_trait("fitness")
+      : Module(control, name, desc) , bits_trait("bits") , fitness_trait("fitness")
     {
       SetEvaluateMod(true);
     }
     ~EvalPacking() { }
 
     void SetupConfig() override {
-      LinkCollection(target_collect, "target", "Which population(s) should we evaluate?");
       LinkVar(bits_trait, "bits_trait", "Which trait stores the bit sequence to evaluate?");
-      LinkVar(fitness_trait, "fitness_trait", "Which trait should we store package fitness in?");
+      LinkVar(fitness_trait, "fitness_trait", 
+          "Which trait should we store package fitness in?");
       LinkVar(package_size, "package_size", "Number of ones to form a single package.");
-      LinkVar(padding_size, "padding_size", "Minimum nubmer of zeros to surround packages of ones.");
+      LinkVar(padding_size, "padding_size", 
+          "Minimum nubmer of zeros to surround packages of ones.");
     }
 
     void SetupModule() override {
@@ -67,7 +63,7 @@ namespace mabe {
     //    bits: a BitVector comprised of the bits_traits of an organism
     //    num_zeros: the number of zeros to use as padding (private)
     //    num_ones: the number of ones to use as the package size (private)
-    double Evaluate(const emp::BitVector& bits, size_t num_zeros, size_t num_ones) {
+    double EvaluateOrg(const emp::BitVector& bits, size_t num_zeros, size_t num_ones) {
       // Keep track of fitness of organism
       double fitness = 0.0; 
 
@@ -131,18 +127,19 @@ namespace mabe {
       // Return calculated fitness for the organism (the number of packages)
       return fitness; 
     }
-
-    void OnUpdate(size_t /* update */) override {
+  
+    // Evaluate all the orgs in a collection, return the max fitness
+    double Evaluate(Collection orgs) {
       // Loop through the population and evaluate each organism.
       double max_fitness = 0.0;
-      mabe::Collection alive_collect( target_collect.GetAlive() );
+      mabe::Collection alive_collect( orgs.GetAlive() );
       for (Organism & org : alive_collect) {        
         // Make sure this organism has its bit sequence ready for us to access.
         org.GenerateOutput();
         // Get the bits_traits of the orgnism.
         const emp::BitVector & bits = org.GetVar<emp::BitVector>(bits_trait);
         // Evaluate the fitness of the orgnism
-        double fitness = Evaluate(bits, padding_size, package_size); 
+        double fitness = EvaluateOrg(bits, padding_size, package_size); 
         // Set the fitness_trait for the organism
         org.SetVar<double>(fitness_trait, fitness);
         // Update the max_fitness if applicable
@@ -150,9 +147,18 @@ namespace mabe {
           max_fitness = fitness;
         }
       }
-      // Print maximum fitness to date for each organism
-      std::cout << "Max " << fitness_trait << " = " << max_fitness << std::endl;
+      return max_fitness;
     }
+
+    // Setup member functions associated with this class.
+    static void InitType(emplode::TypeInfo & info) {
+      info.AddMemberFunction("EVAL",
+                              [](EvalPacking & mod, Collection list) { 
+                                return mod.Evaluate(list); 
+                              },
+                             "Evaluate all orgs in an OrgList on the packing problem.");
+    }
+
   };
 
   MABE_REGISTER_MODULE(EvalPacking, "Evaluate bitstrings by counting correctly packed packages.");

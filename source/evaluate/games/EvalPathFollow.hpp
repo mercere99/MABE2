@@ -156,7 +156,6 @@ namespace mabe {
       }
     }
     
-
     void InitializeState(PathFollowState& state, bool reset_map = true){
       state.initialized = true;
       if(reset_map) state.cur_map_idx = 0;

@@ -17,7 +17,6 @@
 #include <unordered_map>
 #include "emp/base/assert.hpp"
 #include "emp/base/vector.hpp"
-#include "emp/hardware/AvidaGP.hpp"
 #include "emp/functional/AnyFunction.hpp"
 #include "emp/meta/TypePack.hpp"
 #include "emp/data/DataMap.hpp"

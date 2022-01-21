@@ -19,7 +19,6 @@ namespace mabe {
 
   class VirtualCPU_Inst_Label : public Module {
   private:
-    Collection target_collect;
     int pop_id = 0;
     std::function<void(VirtualCPUOrg&, const VirtualCPUOrg::inst_t&)> func_label;
     std::function<void(VirtualCPUOrg&, const VirtualCPUOrg::inst_t&)> func_search_label_direct_s;
@@ -33,8 +32,7 @@ namespace mabe {
     VirtualCPU_Inst_Label(mabe::MABE & control,
                     const std::string & name="VirtualCPU_Inst_Label",
                     const std::string & desc="Label control instructions for VirtualCPUOrg population")
-      : Module(control, name, desc), 
-        target_collect(control.GetPopulation(1),control.GetPopulation(0)){;}
+      : Module(control, name, desc) {;}
     ~VirtualCPU_Inst_Label() { }
 
     void SetupConfig() override {

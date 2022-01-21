@@ -124,6 +124,7 @@ namespace mabe {
     /// Information about a single population in this collection.
     struct PopInfo {
       bool full_pop = false;   ///< Should we use the full population?
+      bool is_mutable = false; ///< Are we allowed to change this population?
       emp::BitVector pos_set;  ///< Which positions are we using for this population?
 
       /// Identify how many positions we have.
@@ -167,10 +168,20 @@ namespace mabe {
 
       /// Shift this population to using the pos_set.
       void RemoveFull(pop_ptr_t pop_ptr) {
-        if (!full_pop) return;
-          pos_set.Resize(pop_ptr->GetSize());
-          pos_set.SetAll();
-          full_pop = false;
+        if (!full_pop) return;              // Already not a full population.
+        pos_set.Resize(pop_ptr->GetSize()); // Resize position set to have room for all positions.
+        pos_set.SetAll();                   // Initially include all orgs.
+        full_pop = false;                   // Record that pop is no longer officially full.
+      }
+
+      bool IsEmpty(pop_ptr_t pop_ptr) {
+        if (full_pop) return pop_ptr->IsEmpty();
+        size_t cur_pos = 0;
+        while(cur_pos < pop_ptr->GetSize()) {
+          cur_pos = pos_set.FindOne(cur_pos+1);
+          if (!pop_ptr->IsEmpty()) return false;
+        }
+        return true;
       }
     };
 
@@ -236,6 +247,9 @@ namespace mabe {
     Collection(Population & pop, Ts &&... extras) { Insert( pop, std::forward<Ts>(extras)... ); }
 
     template <typename... Ts>
+    Collection(const Population & pop, Ts &&... extras) { Insert( pop, std::forward<Ts>(extras)... ); }
+
+    template <typename... Ts>
     Collection(OrgPosition pos, Ts &&... extras) { Insert( pos, std::forward<Ts>(extras)... ); }
 
     ~Collection() { }
@@ -246,6 +260,71 @@ namespace mabe {
     using iterator_t = CollectionIterator;
     using const_iterator_t = ConstCollectionIterator;
 
+    static void InitType(emplode::TypeInfo & info) {
+      info.AddMemberFunction("ADD_COLLECT",
+        [](Collection & collect, Collection & in) -> Collection&
+          { return collect.Insert(in); },
+        "Merge another collection into this one."
+      );
+      info.AddMemberFunction("ADD_ORG",
+        [](Collection & collect, Population & pop, size_t id) -> Collection&
+          { return collect.Insert(pop.IteratorAt(id)); },
+        "Add a single position to this collection."
+      );
+      info.AddMemberFunction("ADD_POP",
+        [](Collection & collect, Population & pop) -> Collection& { return collect.Insert(pop); },
+        "Add a whole population to this collection."
+      );
+      info.AddMemberFunction("CLEAR",
+        [](Collection & collect) -> Collection& { return collect.Clear(); },
+        "Remove all entries from this collection."
+      );
+      info.AddMemberFunction("HAS_ORG",
+        [](Collection & collect, Population & pop, size_t id)
+          { return collect.HasPosition(pop.IteratorAt(id)); },
+        "Is the specified org position in this collection?"
+      );
+      info.AddMemberFunction("HAS_POP",
+        [](Collection & collect, Population & pop) { return collect.HasPopulation(pop); },
+        "Is the specified population in this collection?"
+      );
+      info.AddMemberFunction("SET_ORG",
+        [](Collection & collect, Population & pop, size_t id) -> Collection&
+          { return collect.Set(pop.IteratorAt(id)); },
+        "Set this collection to be a single position."
+      );
+      info.AddMemberFunction("SET_POP",
+        [](Collection & collect, Population & pop) -> Collection& { return collect.Set(pop); },
+        "Set this collection to be a whole population."
+      );
+      info.AddMemberFunction("SIZE",
+        [](Collection & collect) { return collect.GetSize(); },
+        "Identify how many positions are in this collection."
+      );
+    }
+
+    template <typename OUT_T, typename IN_T> static OUT_T MakeRValueFrom(IN_T && in) {
+      static_assert(std::is_same<OUT_T, Collection>(),
+                    "Internal error: type mis-match for MakeRValueFrom()");
+      // using decay_T = std::decay_t<IN_T>;
+      if constexpr (std::is_same<IN_T, EmplodeType&>()) {
+        // Test if we are converting from a population!
+        emp::Ptr<EmplodeType> in_ptr = &in;
+        auto pop_ptr = in_ptr.DynamicCast<Population>();
+        if (pop_ptr) return Collection(*pop_ptr);
+
+        // Currently, no other EmplodeTypes to convert from...
+      }
+      // Conversion from string requires MABE controller...
+      // else if constexpr (std::is_same<decay_T, std::string>()) {
+      // }
+      // Cannot convert from double.
+      // else if constexpr (std::is_same<decay_T, double>()) {
+      // }
+      emp_error("Cannot convert provided input to requested RValue", emp::GetTypeID<OUT_T>());
+      return *((OUT_T *) &in);
+    }
+
     /// Calculate the total number of positions represented in this collection.
     size_t GetSize() const noexcept override {
       size_t count = 0;
@@ -255,17 +334,31 @@ namespace mabe {
       return count;
     }
 
+    /// Determine if there are any (living) organisms in this collection.
+    bool IsEmpty() const noexcept override {
+      // If we find an organism in any population, return false; otherwise return true.
+      for (auto [pop_ptr, pop_info] : pos_map) {
+        if (!pop_info.IsEmpty(pop_ptr)) return false;
+      }
+      return true;
+    }
+
+    iterator_t IteratorAt(size_t org_id) { return iterator_t(*this, org_id); }
+    const_iterator_t IteratorAt(size_t org_id) const { return const_iterator_t(*this, org_id); }
+    const_iterator_t ConstIteratorAt(size_t org_id) const { return IteratorAt(org_id); }
+
     Organism & At(size_t org_id) override {
       for (auto [pop_ptr, pop_info] : pos_map) {
         if (org_id < pop_info.GetSize(pop_ptr)) {
           size_t pos = pop_info.GetPos(org_id);
+          emp_assert(pop_info.is_mutable == true,
+            "Cannot use At() for const population in Collection; try ConstAt() or use const iterator.");
           return pop_ptr->At(pos);
         }
         org_id -= pop_info.GetSize(pop_ptr);
       }
 
-      // @CAO Should report error to user!
-      emp_error("Trying to find org id out of range for a collection.");
+      emp::notify::Error("Trying to find org id out of range for a collection.");
       return pos_map.begin()->first->At(0); // Return the first organism since out of range.
     }
 
@@ -278,10 +371,12 @@ namespace mabe {
         org_id -= pop_info.GetSize(pop_ptr);
       }
 
-      // @CAO Should report error to user!
-      emp_error("Trying to find org id out of range for a collection.");
+      emp::notify::Error("Trying to find org id out of range for a collection.");
       return pos_map.begin()->first->At(0); // Return the first organism since out of range.
     }
+
+    // Always return a constant organism.
+    const Organism & ConstAt(size_t org_id) const { return At(org_id); }
 
     Organism & operator[](size_t org_id) { return At(org_id); }
     const Organism & operator[](size_t org_id) const { return At(org_id); }
@@ -290,8 +385,8 @@ namespace mabe {
       return emp::Has(pos_map, (Population *) &pop);
     }
 
-    bool HasPosition(OrgPosition & pos) const {
-      auto info_it = pos_map.find(pos.PopPtr());
+    bool HasPosition(const OrgPosition & pos) const {
+      auto info_it = pos_map.find(pos.PopPtr().ConstCast<Population>());
       return info_it != pos_map.end() &&
              (info_it->second.full_pop || info_it->second.pos_set.Has(pos.Pos()));
     }
@@ -321,12 +416,25 @@ namespace mabe {
 
     pop_ptr_t GetFirstPop() {
       if (pos_map.size() == 0) return nullptr;
-      else return pos_map.begin()->first;
+      emp_assert(pos_map.begin()->second.is_mutable == true,
+        "Cannot use GetFirstPop() for const Population in Collection; try ConstGetFirstPop().");
+      return pos_map.begin()->first;
     }
 
     const_pop_ptr_t GetFirstPop() const {
       if (pos_map.size() == 0) return nullptr;
       else return pos_map.begin()->first;
+    }
+
+    const_pop_ptr_t ConstGetFirstPop() const { return GetFirstPop(); }
+
+    emp::DataLayout & GetDataLayout() {
+      emp_assert(GetFirstPop());
+      return GetFirstPop()->GetDataLayout();
+    }
+    const emp::DataLayout & GetDataLayout() const {
+      emp_assert(GetFirstPop());
+      return GetFirstPop()->GetDataLayout();
     }
 
     template <typename T>
@@ -367,19 +475,54 @@ namespace mabe {
     CollectionIterator end() { return CollectionIterator(this, nullptr); }
     ConstCollectionIterator begin() const { return ConstCollectionIterator(this); }
     ConstCollectionIterator end() const { return ConstCollectionIterator(this, nullptr); }
+    ConstCollectionIterator cbegin() const { return ConstCollectionIterator(this); }
+    ConstCollectionIterator cend() const { return ConstCollectionIterator(this, nullptr); }
+
+    /// Remove all entries from a collection.
+    Collection & Clear() { pos_map.clear(); return *this; }
 
     /// Add a Population to this collection.
     template <typename... Ts>
     Collection & Insert(Population & pop, Ts &&... extras) {
-      pos_map[&pop].full_pop = true;
-      return Insert( std::forward<Ts>(extras)... );
+      PopInfo & pop_info = pos_map[&pop];
+      pop_info.full_pop = true;
+      pop_info.is_mutable = true;
+      return Insert( std::forward<Ts>(extras)... );  // Insert anything else provided.
+    }
+
+    /// Add a const Population to this collection.
+    template <typename... Ts>
+    Collection & Insert(const Population & pop, Ts &&... extras) {
+      emp::Ptr<const Population> pop_ptr = &pop;
+      pos_map[pop_ptr.ConstCast<Population>()].full_pop = true;
+      return Insert( std::forward<Ts>(extras)... );  // Insert anything else provided.
     }
 
     /// Add an organism (by position!)
     template <typename... Ts>
     Collection & Insert(OrgPosition pos, Ts &&... extras) {
-      pos_map[pos.PopPtr()].InsertPos(pos.Pos());
-      return Insert( std::forward<Ts>(extras)... );
+      PopInfo & pop_info = pos_map[pos.PopPtr()];
+      pop_info.InsertPos(pos.Pos());
+      pop_info.is_mutable = true;
+      return Insert( std::forward<Ts>(extras)... );  // Insert anything else provided.
+    }
+
+    /// Add a const organism (by position!)
+    template <typename... Ts>
+    Collection & Insert(ConstOrgPosition pos, Ts &&... extras) {
+      PopInfo & pop_info = pos_map[pos.PopPtr()];
+      pop_info.InsertPos(pos.Pos());
+      return Insert( std::forward<Ts>(extras)... );  // Insert anything else provided.
+    }
+
+    template <typename... Ts>
+    Collection & Insert(PopIterator pi, Ts &&... extras) { 
+      return Insert( pi.AsPosition(), std::forward<Ts>(extras)... );
+    }
+
+    template <typename... Ts>
+    Collection & Insert(ConstPopIterator pi, Ts &&... extras) { 
+      return Insert( pi.AsPosition(), std::forward<Ts>(extras)... );
     }
 
     /// Add a whole other collection.
@@ -388,17 +531,20 @@ namespace mabe {
       for (auto & [pop_ptr, in_pop_info] : in_collection.pos_map) {
         PopInfo & pop_info = pos_map[pop_ptr];
 
-        if (pop_info.full_pop) continue;  // This population is already full.
+        // If the incoming collection has mutable access to a population, this one should too.
+        if (in_pop_info.is_mutable) pop_info.is_mutable = true;
+
+        // If we already have a full population, we are done!.
+        if (pop_info.full_pop) continue;
 
         // If we're adding a full population, do so.
         if (in_pop_info.full_pop) { pop_info.full_pop = true; continue; }
 
         // Otherwise add just the entries we need to.
-
         emp::BitVector & pos_set = pop_info.pos_set;
         emp::BitVector in_pos_set = in_pop_info.pos_set;
 
-        // First, make sure both position sets are the same size.
+        // Make sure both position sets are the size of the larger one.
         if (in_pos_set.GetSize() < pos_set.GetSize()) {
           in_pos_set.Resize(pos_set.GetSize());
         }
@@ -406,15 +552,22 @@ namespace mabe {
           pos_set.Resize(in_pos_set.GetSize());
         }
 
-        // Use 'OR' to join the sets.
+        // Use 'OR' to find the union of the sets.
         pos_set |= in_pos_set;
       }
 
-      return Insert( std::forward<Ts>(extras)... );
+      return Insert( std::forward<Ts>(extras)... );  // Insert anything else provided.
     }
 
-    /// Base case...
+    /// Base case... nothing left to insert.
     Collection & Insert() { return *this; }
+
+    /// Set this collection to be exactly the provided items.
+    template <typename... Ts>
+    Collection & Set(Ts &&...args) {
+      Clear();
+      return Insert( std::forward<Ts>(args)... );
+    }
 
     // @CAO: Add:
     // * Remove()  - works with position or population (or another collection?)
@@ -443,19 +596,20 @@ namespace mabe {
     }
 
     /// Produce a new collection limited to living organisms.
-    Collection GetAlive() {
+    Collection GetAlive() const {
       Collection out(*this);
       out.RemoveEmpty();
       return out;
     }
 
     /// Merge this collection with another collection.
-    Collection & operator |= (const Collection & collection2) {
-      return Insert(collection2);
-    }
+    Collection & operator|= (const Collection & in) { return Insert(in); }
+    
+    /// Shortcut to insert anything into this collection.
+    template <typename T> Collection & operator+= (const T & in) { return Insert(in); }
 
     /// Reduce to the intersection with another collection.
-    Collection & operator &= (const Collection & in_collection) {
+    Collection & operator&= (const Collection & in_collection) {
       auto cur_it = pos_map.begin();
       auto in_it = in_collection.pos_map.begin();
 
@@ -467,7 +621,7 @@ namespace mabe {
         // If the current iterator is smaller, delete the current population (not in intersection)
         if (cur_it->first < in_it->first) { cur_it = pos_map.erase(cur_it); continue; }
 
-        // Otherwise populations must be the same!  If second pop is full, keep first as is!
+        // Otherwise populations must be the same!  If 'in' pop is full, keep this one as is!
         if (!in_it->second.full_pop) {
           cur_it->second.RemoveFull(cur_it->first);         // Shift first pop to individuals
           cur_it->second.pos_set &= in_it->second.pos_set;  // Now pick out the intersection.
@@ -484,6 +638,7 @@ namespace mabe {
       return *this;
     }
 
+    static std::string EMPGetTypeName() { return "mabe::Collection"; }
   };
 
   // -------------------------------------------------------
@@ -516,7 +671,7 @@ namespace mabe {
     *this = collection_ptr->end();
   }
 
-  /// Constructor where you can optionally supply population pointer and position.
+  /// Constructor where you can optionally supply collection pointer and position.
   template <typename DERIVED_T, typename ORG_T, typename COLLECTION_T>
   CollectionIterator_Interface<DERIVED_T, ORG_T, COLLECTION_T>
     ::CollectionIterator_Interface(emp::Ptr<COLLECTION_T> _col, size_t _pos)
@@ -526,13 +681,24 @@ namespace mabe {
     if (base_t::IsValid() == false) IncPosition();
   }
 
-  /// Constructor where you can optionally supply population pointer and position.
+  /// Constructor where you can optionally supply collection pointer and position.
   template <typename DERIVED_T, typename ORG_T, typename COLLECTION_T>
   CollectionIterator_Interface<DERIVED_T, ORG_T, COLLECTION_T>
     ::CollectionIterator_Interface(emp::Ptr<COLLECTION_T> _col, emp::Ptr<Population> pop, size_t _pos)
     : base_t(pop, _pos), collection_ptr(_col)
   {
   }
+
+  /// Constructor where you supply a collection reference and optional position.
+  template <typename DERIVED_T, typename ORG_T, typename COLLECTION_T>
+  CollectionIterator_Interface<DERIVED_T, ORG_T, COLLECTION_T>
+    ::CollectionIterator_Interface(COLLECTION_T & _col, size_t _pos)
+    : base_t(_col.GetFirstPop(), _pos), collection_ptr(&_col)
+  {
+    // Make sure that this iterator is actually valid.  If not, move to next position.
+    if (base_t::IsValid() == false) IncPosition();
+  }
+
 }
 
 #endif

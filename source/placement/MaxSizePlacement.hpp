@@ -31,7 +31,7 @@ namespace mabe {
     MaxSizePlacement(mabe::MABE & control,
                     const std::string & name="MaxSizePlacement",
                     const std::string & desc="Module to place new organisms over random organisms.")
-      : Module(control, name, desc), target_collect(control.GetPopulation(1))
+      : Module(control, name, desc), target_collect(control.GetPopulation(0))
     {
       SetPlacementMod(true);
     }
@@ -43,12 +43,20 @@ namespace mabe {
     }
 
     void SetupModule() override {
-      // For now, nothing here.
+      Population& pop = control.GetPopulation(0);
+      pop.SetPlaceBirthFun( 
+        [this, &pop](Organism & /*org*/, OrgPosition ppos) {
+          return PlaceBirth(ppos, pop);
+        }
+      );
+      pop.SetPlaceInjectFun( 
+        [this, &pop](Organism & /*org*/){
+          return PlaceInject(pop);
+        }
+      );
     }
 
-    OrgPosition DoPlaceBirth(Organism & /* org */, OrgPosition  ppos,
-                             Population & target_pop) override
-    {
+    OrgPosition PlaceBirth(OrgPosition ppos, Population & target_pop) {
       // If the current position is monitored, return a random place in the population.
       if (target_collect.HasPopulation(target_pop)) {
         if(target_collect.GetSize() < max_pop_size) return control.PushEmpty(target_pop);
@@ -65,23 +73,14 @@ namespace mabe {
       return OrgPosition();      
     }
 
-    // Injections always go into the active population.
-    OrgPosition DoPlaceInject(Organism & org, Population & target_pop) override {
-      // If inject is going to a monitored population, place it in a new, empty cell!
-      if (target_collect.HasPopulation(target_pop)) return control.PushEmpty(target_pop);
-
-      // Otherwise, don't place!
-      return OrgPosition();      
-    }
-
-    OrgPosition DoFindNeighbor(OrgPosition pos) override {
-      emp::Ptr<Population> pop_ptr = pos.PopPtr();
-
+    OrgPosition PlaceInject(Population & target_pop) {
       // If the current position is monitored, return a random place in the population.
-      if (target_collect.HasPosition(pos)) {
-        return OrgPosition(pop_ptr, control.GetRandom().GetUInt(pop_ptr->GetSize()));
+      if (target_collect.HasPopulation(target_pop)) {
+        if(target_collect.GetSize() < max_pop_size) return control.PushEmpty(target_pop);
+        else{
+          return OrgPosition(target_pop, control.GetRandom().GetUInt(target_pop.GetSize()));
+        }
       }
-
       // Otherwise, don't find a legal place!
       return OrgPosition();      
     }

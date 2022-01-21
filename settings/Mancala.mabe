@@ -1,19 +1,10 @@
 random_seed = 1;                // Seed for random number generator; use 0 to base on time.
 Population main_pop;            // Collection of organisms
 Population next_pop;            // Collection of organisms
-Value pop_size = 200;           // Local value variable.
-CommandLine cl {                // Handle basic I/O on the command line.
-  target = "main_pop";          // Which population should we print stats about?
-  format = "fitness:max,fitness:mean"; // Column format to use in the file.
-}
-FileOutput output {             // Output collected data into a specified file.
-  filename = "output.csv";      // Name of file for output data.
-  format = "fitness:max,fitness:mean"; // Column format to use in the file.
-  target = "main_pop";          // Which population(s) should we print from?
-  output_updates = "0:1";       // Which updates should we output data?
-}
-EvalMancala eval {              // Evaluate organisms on their ability to play Mancala.
-  target = "main_pop";          // Which population(s) should we evaluate?
+Var pop_size = 200;             // Constant population size 
+Var num_gens = 1000;            // Number of generations to run 
+
+EvalMancala eval_mancala {      // Evaluate organisms on their ability to play Mancala.
   input_trait = "input";        // Into which trait should input values be placed?
   output_trait = "output";      // Out of which trait should output values be read?
   scoreA_trait = "scoreA";      // Trait to save score for this player.
@@ -24,23 +15,12 @@ EvalMancala eval {              // Evaluate organisms on their ability to play M
                                 //  random: Always choose a random, legal move.
                                 //  ai: Human supplied (but not very good) AI
                                 //  random_org: Pick another random organism from collection.
-}
+};
 SelectTournament select_t {     // Select the top fitness organisms from random subgroups for replication.
-  select_pop = "main_pop";      // Which population should we select parents from?
-  birth_pop = "next_pop";       // Which population should births go into?
   tournament_size = 7;          // Number of orgs in each tournament
-  num_tournaments = pop_size;   // Number of tournaments to run
-  fitness_fun = "fitness";    // Which trait provides the fitness value to use?
-}
+  fitness_fun = "fitness";      // Which trait provides the fitness value to use?
+};
 
-GrowthPlacement place_next {    // Always append births to the end of a population.
-  target = "main_pop,next_pop"; // Population(s) to manage.
-}
-MovePopulation sync_gen {       // Move organisms from one population to another.
-  from_pop = "next_pop";        // Population to move organisms from.
-  to_pop = "main_pop";          // Population to move organisms into.
-  reset_to = 1;                 // Should we erase organisms at the destination?
-}
 AvidaGPOrg avida_org {          // Organism consisting of Avida instructions.
   mut_prob = 0.01;              // Probability of each instruction mutating on reproduction.
   N = 50;                       // Initial number of instructions in genome
@@ -48,9 +28,32 @@ AvidaGPOrg avida_org {          // Organism consisting of Avida instructions.
   eval_time = 200;              // How many CPU cycles should we give organisms to run?
   input_name = "input";         // Where to find inputs
   output_name = "output";       // Where to write outputs
-}
+};
 
-@start(0) PRINT("random_seed = ", random_seed, "\n");
-@start(0) INJECT("avida_org", "main_pop", pop_size);
-@update(1000) EXIT();
-@update(10,10) TRACE_EVAL("output.dat", "main_pop", 0);
+@START() {
+  PRINT("random_seed = ", random_seed, "\n");  // Print seed at run start.
+  main_pop.INJECT("avida_org", pop_size);       // Inject starting population.
+};
+
+// Actions to perform every update.
+
+// @UPDATE(Var ud IN [100:100]) OrgList altruists = main_pop.FILTER("altruism > 0");
+// @BEFOREDIVIDE(OrgList parent IN altruists) PRINT("Altruist Birth!");
+
+@UPDATE(Var ud) {
+  // @UPDATE(Var update) {
+  // IF ([10:10].HAS(update)) EXIT();
+  // IF (update == 1000) EXIT;
+
+  eval_mancala.EVAL(main_pop);
+  PRINT("UD:", GET_UPDATE(),
+        "  MainPopSize=", main_pop.SIZE(),
+        "  AveFitness=", main_pop.CALC_MEAN("fitness"),
+        "  MaxFitness=", main_pop.CALC_MAX("fitness")
+       );
+
+  OrgList tourny_offspring = select_t.SELECT(main_pop, next_pop, pop_size);
+  main_pop.REPLACE_WITH(next_pop);
+};
+
+@UPDATE(Var ud2) IF (ud2 == num_gens) EXIT();

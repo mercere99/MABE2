@@ -12,8 +12,6 @@
 
 #include "emp/meta/TypeID.hpp"
 
-#include "../config/Config.hpp"
-
 #include "MABE.hpp"
 #include "Module.hpp"
 
@@ -118,13 +116,15 @@ namespace mabe {
   template <typename MODULE_T>
   struct ManagerModuleRegistrar {
     ManagerModuleRegistrar(const std::string & type_name, const std::string & desc) {
+      emp_assert(!emp::Has(GetModuleMap(), type_name), "Module name used multiple times.", type_name);
       ModuleInfo new_info;
       new_info.name = type_name;
       new_info.desc = desc;
-      new_info.init_fun = [desc](MABE & control, const std::string & name) -> ConfigType & {
-        return control.AddModule<MODULE_T>(name, desc);
+      new_info.obj_init_fun = [desc](MABE & control, const std::string & name) -> emp::Ptr<EmplodeType> {
+        return &control.AddModule<MODULE_T>(name, desc);
       };
-      GetModuleInfo().insert(new_info);
+      new_info.type_init_fun = [](emplode::TypeInfo & info){ MODULE_T::InitType(info); };
+      GetModuleMap()[type_name] = new_info;
     }
   };
 

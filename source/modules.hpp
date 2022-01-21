@@ -26,32 +26,22 @@
 #include "evaluate/callable/EvalTaskEqu.hpp"
 #include "evaluate/static/EvalPacking.hpp"
 
-// Interface Modules
-#include "interface/CommandLine.hpp"
-#include "interface/FileOutput.hpp"
-
 // Placement Modules
-#include "placement/GrowthPlacement.hpp"
 #include "placement/AnnotatePlacement.hpp"
 #include "placement/RandomReplacement.hpp"
 #include "placement/MaxSizePlacement.hpp"
 
 // Selection Modules
 #include "select/SelectElite.hpp"
-#include "select/SelectTournament.hpp"
 #include "select/SelectLexicase.hpp"
 #include "select/SchedulerProbabilistic.hpp"
-
-// Other schema
-#include "schema/MovePopulation.hpp"
-#include "schema/Mutate.hpp"
+#include "select/SelectRoulette.hpp"
+#include "select/SelectTournament.hpp"
 
 // Organism Types
-//#include "orgs/AvidaGPOrg.hpp"
-//#include "orgs/GenericAvidaOrg.hpp"
 #include "orgs/BitsOrg.hpp"
 #include "orgs/ValsOrg.hpp"
-//#include "orgs/AvidaGPOrg.hpp"
+#include "orgs/AvidaGPOrg.hpp"
 #include "orgs/VirtualCPUOrg.hpp"
 #include "orgs/instructions/VirtualCPU_Inst_Nop.hpp"
 #include "orgs/instructions/VirtualCPU_Inst_Math.hpp"

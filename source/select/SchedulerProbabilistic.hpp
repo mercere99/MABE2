@@ -51,16 +51,26 @@ namespace mabe {
       AddRequiredTrait<double>(trait); ///< The fitness trait must be set by another module.
     }
 
+    // Setup member functions associated with this class.
+    static void InitType(emplode::TypeInfo & info) {
+      info.AddMemberFunction(
+        "SCHEDULE",
+        [](SchedulerProbabilistic & mod) {
+          return mod.Schedule();
+        },
+        "Perform one round of scheduling");
+    }
+
     /// Ration out updates to members of the population
-    void OnUpdate(size_t /*update*/) override {
+    double Schedule() {
       // Grab the variables we'll use over and over
       emp::Random & random = control.GetRandom();
       Population & pop = control.GetPopulation(pop_id);
       const size_t N = pop.GetSize();
       // Make sure the population isn't empty
       if (pop.GetNumOrgs() == 0) {
-        control.GetErrorManager().AddError("Trying to schedule an empty population.");
-        return;
+        emp::notify::Error("Trying to schedule an empty population.");
+        return 0;
       }
       if(weight_map.GetSize() == 0) weight_map.Resize(N, 1);
       size_t selected_idx;
@@ -74,7 +84,11 @@ namespace mabe {
           selected_idx = random.GetUInt(pop.GetSize()); 
         pop[selected_idx].ProcessStep();
       }
-      std::cout << "Total weight: " << total_weight << std::endl;
+      return total_weight;
+    }
+
+    void OnUpdate(size_t /*update*/) override {
+      //Schedule();
     }
  
     void OnPlacement(OrgPosition placement_pos){

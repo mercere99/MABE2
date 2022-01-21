@@ -19,8 +19,6 @@ namespace mabe {
 
   class EvalMancala : public Module {
   private:
-    Collection target_collect;                  ///< Which organisms should we evaluate?
-
     std::string input_trait = "input";          ///< Trait to put input values.
     std::string output_trait = "output";        ///< Trait to find output values.
     std::string scoreA_trait = "scoreA";        ///< Trait for this player's game results.
@@ -43,14 +41,19 @@ namespace mabe {
                 const std::string & name="EvalMancala",
                 const std::string & desc="Evaluate organisms by having them play Mancala.")
       : Module(control, name, desc)
-      , target_collect(control.GetPopulation(0))
     {
       SetEvaluateMod(true);
     }
     ~EvalMancala() { }
 
+    // Setup member functions associated with this class.
+    static void InitType(emplode::TypeInfo & info) {
+      info.AddMemberFunction("EVAL",
+                             [](EvalMancala & mod, Collection list) { return mod.Evaluate(list); },
+                             "Evaluate organism's ability to play the game Mancala.");
+    }
+
     void SetupConfig() override {
-      LinkCollection(target_collect, "target", "Which population(s) should we evaluate?");
       LinkVar(input_trait, "input_trait", "Into which trait should input values be placed?");
       LinkVar(output_trait, "output_trait", "Out of which trait should output values be read?");
       LinkVar(scoreA_trait, "scoreA_trait", "Trait to save score for this player.");
@@ -218,24 +221,21 @@ namespace mabe {
     }
 
     /// Trace the evaluation of an organism, sending output to a specified stream.
-    void TraceEval(Organism & org, std::ostream & os) override {
+    void TraceEval(Organism & org, std::ostream & os) {
       EvalGame(org, control.GetRandom(), 0, true, os);
     }
 
-    void OnUpdate(size_t ud) override {
-      control.Verbose("UD ", ud, ": Running EvalMancala::OnUpdate()");
-
-      emp_assert(control.GetNumPopulations() >= 1);
-
+    double Evaluate(const Collection & orgs) {
       // Determine the type of competitions to perform.
       // ==> @CAO: For the moment, just doing a random opponent!!
 
       // Loop through the living organisms in the target collection to evaluate each.
-      mabe::Collection alive_collect( target_collect.GetAlive() );
+      mabe::Collection alive_collect( orgs.GetAlive() );
 
       control.Verbose(" - ", alive_collect.GetSize(), " organisms found.");
 
       size_t org_count = 0;
+      double max_fitness = 0.0;
       for (Organism & org : alive_collect) {
         control.Verbose("...eval org #", org_count++);
         double & scoreA = org.GetTrait<double>(scoreA_trait);
@@ -253,8 +253,18 @@ namespace mabe {
         scoreB += results.scoreB;
         num_errors += results.num_errors;
         fitness += results.CalcFitness();
+
+        if (fitness > max_fitness) max_fitness = fitness;
       }
+
+      return max_fitness;
     }
+
+    // If a population is provided to Evaluate, first convert it to a Collection.
+    double Evaluate(Population & pop) { return Evaluate( Collection(pop) ); }
+
+    // If a string is provided to Evaluate, convert it to a Collection.
+    double Evaluate(const std::string & in) { return Evaluate( control.ToCollection(in) ); }
   };
 
   MABE_REGISTER_MODULE(EvalMancala, "Evaluate organisms on their ability to play Mancala.");

@@ -13,6 +13,7 @@
 #include <string>
 
 #include "emp/base/array.hpp"
+#include "emp/base/notify.hpp"
 #include "emp/base/Ptr.hpp"
 #include "emp/base/vector.hpp"
 
@@ -29,6 +30,11 @@ namespace mabe {
 
   class MABEBase {
   protected:
+    bool exit_now=false;     ///< Do we need to immediately clean up and exit the run?
+    emp::Random random;      ///< Master random number generator
+    size_t update = 0;       ///< How many times has Update() been called?
+    bool verbose = false;    ///< Should we output extra information during setup?
+
     /// Maintain a master array of pointers to all SigListeners.
     using sig_base_t = SigListenerBase<ModuleBase>;
     emp::array< emp::Ptr<sig_base_t>, (size_t) ModuleBase::NUM_SIGNALS > sig_ptrs;
@@ -66,23 +72,10 @@ namespace mabe {
     SigListener<ModuleBase,void,Population &,size_t> before_pop_resize_sig;
     // OnPopResize(Population & pop, size_t old_size)
     SigListener<ModuleBase,void,Population &,size_t> on_pop_resize_sig;
-    // OnError(const std::string & msg)
-    SigListener<ModuleBase,void,const std::string &> on_error_sig;
-    // OnWarning(const std::string & msg)
-    SigListener<ModuleBase,void,const std::string &> on_warning_sig;
     // BeforeExit()
     SigListener<ModuleBase,void> before_exit_sig;
     // OnHelp()
     SigListener<ModuleBase,void> on_help_sig;
-    // TraceEval()
-    SigListener<ModuleBase,void,Organism &,std::ostream&> trace_eval_sig;
-
-    // OrgPosition DoPlaceBirth(Organism & offspring, OrgPosition parent_position, Population & target_pop);
-    SigListener<ModuleBase, OrgPosition, Organism &, OrgPosition, Population &> do_place_birth_sig;
-    // OrgPosition DoPlaceInject(Organism & new_organism)
-    SigListener<ModuleBase, OrgPosition, Organism &, Population &> do_place_inject_sig;
-    // OrgPosition DoFindNeighbor(OrgPosition target_organism) {
-    SigListener<ModuleBase, OrgPosition, OrgPosition> do_find_neighbor_sig;
 
     /// If a module fails to use a signal, we never check it again UNLESS we are explicitly
     /// told to rescan the signals (perhaps because new functionality was enabled.)
@@ -104,17 +97,24 @@ namespace mabe {
     , on_swap_sig("on_swap", ModuleBase::SIG_OnSwap, &ModuleBase::OnSwap, sig_ptrs)
     , before_pop_resize_sig("before_pop_resize", ModuleBase::SIG_BeforePopResize, &ModuleBase::BeforePopResize, sig_ptrs)
     , on_pop_resize_sig("on_pop_resize", ModuleBase::SIG_OnPopResize, &ModuleBase::OnPopResize, sig_ptrs)
-    , on_error_sig("on_error", ModuleBase::SIG_OnError, &ModuleBase::OnError, sig_ptrs)
-    , on_warning_sig("on_warning", ModuleBase::SIG_OnWarning, &ModuleBase::OnWarning, sig_ptrs)
     , before_exit_sig("before_exit", ModuleBase::SIG_BeforeExit, &ModuleBase::BeforeExit, sig_ptrs)
     , on_help_sig("on_help", ModuleBase::SIG_OnHelp, &ModuleBase::OnHelp, sig_ptrs)
-    , trace_eval_sig("trace_eval", ModuleBase::SIG_TraceEval, &ModuleBase::TraceEval, sig_ptrs)
-    , do_place_birth_sig("do_place_birth", ModuleBase::SIG_DoPlaceBirth, &ModuleBase::DoPlaceBirth, sig_ptrs)
-    , do_place_inject_sig("do_place_inject", ModuleBase::SIG_DoPlaceInject, &ModuleBase::DoPlaceInject, sig_ptrs)
-    , do_find_neighbor_sig("do_find_neighbor", ModuleBase::SIG_DoFindNeighbor, &ModuleBase::DoFindNeighbor, sig_ptrs)
     { ;  }
 
   public:
+    virtual ~MABEBase() { }
+
+    void SetupBase() {
+      emp::notify::Unpause();
+    }
+
+    // --- Basic accessors ---
+    emp::Random & GetRandom() { return random; }
+    size_t GetUpdate() const noexcept { return update; }
+    bool GetVerbose() const { return verbose; }
+
+    /// Trigger exit from run.
+    void RequestExit() { exit_now = true; }
 
     /// Setup signals to be rescanned; call this if any signal is updated in a module.
     void RescanSignals() { rescan_signals = true; }
@@ -124,22 +124,23 @@ namespace mabe {
     /// @param[in] pos is the position to perform the insertion.
     /// @param[in] ppos is the parent position (required if it exists; not used with inject).
     void AddOrgAt(emp::Ptr<Organism> org_ptr, OrgPosition pos, OrgPosition ppos=OrgPosition()) {
-      emp_assert(org_ptr);  // Must have a non-null organism to insert.
-      before_placement_sig.Trigger(*org_ptr, pos, ppos);
-      ClearOrgAt(pos);      // Clear out any organism already in this position.
-      pos.PopPtr()->SetOrg(pos.Pos(), org_ptr);  // Put the new organism in place.
-      on_placement_sig.Trigger(pos);
+      emp_assert(org_ptr);                               // Must have a non-null organism to insert.
+      before_placement_sig.Trigger(*org_ptr, pos, ppos); // Notify listerners org is about to be placed.
+      ClearOrgAt(pos);                                   // Clear any organism already in this position.
+      pos.PopPtr()->SetOrg(pos.Pos(), org_ptr);          // Put the new organism in place.
+      on_placement_sig.Trigger(pos);                     // Notify listeners org has been placed.
     }
 
     /// All permanent deletion of organisms from a population should come through here.
     /// If the relevant position is already empty, nothing happens.
+    /// After the position is cleared, caller must replace (possibly with an empty org) or resize away.
     /// @param[in] pos is the position to perform the deletion.
     void ClearOrgAt(OrgPosition pos) {
       emp_assert(pos.IsValid());
-      if (pos.IsEmpty()) return; // Nothing to remove!
+      if (pos.IsEmpty()) return;                    // Already empty? Nothing to remove!
 
-      before_death_sig.Trigger(pos);
-      pos.PopPtr()->ExtractOrg(pos.Pos()).Delete();
+      before_death_sig.Trigger(pos);                // Send signal of current organism dying.
+      pos.Pop().ExtractOrg(pos.Pos()).Delete();     // Delete current organism.
     }
 
     /// All movement of organisms from one population position to another should come through here.
@@ -179,6 +180,13 @@ namespace mabe {
       on_pop_resize_sig.Trigger(pop, pop.GetSize()-1);
       return it;
     }
+
+    // Interface function for MABEScript
+    virtual size_t GetRandomSeed() const = 0;
+    virtual void SetRandomSeed(size_t in_seed) = 0;
+    virtual Population & AddPopulation(const std::string & name, size_t pop_size=0) = 0;
+    virtual void CopyPop(const Population & from_pop, Population & to_pop) = 0;
+    virtual void MoveOrgs(Population & from_pop, Population & to_pop, bool reset_to) = 0;
   };
 }
 

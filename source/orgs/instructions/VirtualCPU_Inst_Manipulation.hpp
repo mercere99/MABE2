@@ -22,7 +22,6 @@ namespace mabe {
   public: 
     using data_t = VirtualCPUOrg::data_t;
   private:
-    Collection target_collect;
     int pop_id = 0;
     std::function<void(VirtualCPUOrg&, const VirtualCPUOrg::inst_t&)> func_pop;
     std::function<void(VirtualCPUOrg&, const VirtualCPUOrg::inst_t&)> func_push;
@@ -37,8 +36,7 @@ namespace mabe {
     VirtualCPU_Inst_Manipulation(mabe::MABE & control,
                     const std::string & name="VirtualCPU_Inst_Manipulation",
                     const std::string & desc="Manipulation instructions for VirtualCPUOrg population")
-      : Module(control, name, desc), 
-        target_collect(control.GetPopulation(1),control.GetPopulation(0)){;}
+      : Module(control, name, desc) {;}
     ~VirtualCPU_Inst_Manipulation() { }
 
     void SetupConfig() override {

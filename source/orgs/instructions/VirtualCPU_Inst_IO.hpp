@@ -23,7 +23,6 @@ namespace mabe {
   public: 
     using data_t = VirtualCPUOrg::data_t;
   private:
-    //Collection target_collect;
     int pop_id = 0;
     std::string input_name = "input";
     std::string output_name = "output";
@@ -36,7 +35,6 @@ namespace mabe {
                     const std::string & name="VirtualCPU_Inst_IO",
                     const std::string & desc="IO instructions for VirtualCPUOrg population")
       : Module(control, name, desc){ ; }
-        //target_collect(control.GetPopulation(1),control.GetPopulation(0)){;}
 
     ~VirtualCPU_Inst_IO() {;}
 

@@ -19,7 +19,6 @@ namespace mabe {
 
   class VirtualCPU_Inst_Flow : public Module {
   private:
-    Collection target_collect;
     int pop_id = 0;
     std::function<void(VirtualCPUOrg&, const VirtualCPUOrg::inst_t&)> func_if_n_equ;
     std::function<void(VirtualCPUOrg&, const VirtualCPUOrg::inst_t&)> func_if_less;
@@ -30,8 +29,7 @@ namespace mabe {
     VirtualCPU_Inst_Flow(mabe::MABE & control,
                     const std::string & name="VirtualCPU_Inst_Flow",
                     const std::string & desc="Flow control instructions for VirtualCPUOrg population")
-      : Module(control, name, desc), 
-        target_collect(control.GetPopulation(1),control.GetPopulation(0)){;}
+      : Module(control, name, desc) {;}
     ~VirtualCPU_Inst_Flow() { }
 
     void SetupConfig() override {

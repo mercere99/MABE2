@@ -48,25 +48,11 @@
  *       : Full population is about to be resized.
  *     OnPopResize(Population & pop, size_t old_size)
  *       : Full population has just been resized.
- *     OnError(const std::string & msg)
- *       : An error has occurred and the user should be notified.
- *     OnWarning(const std::string & msg)
- *       : A atypical condition has occurred and the user should be notified.
  *     BeforeExit()
  *       : Run immediately before MABE is about to exit.
  *     OnHelp()
  *       : Run when the --help option is called at startup.
- *     TraceEval(Organism & org, ostream & out_stream)
- *       : Print a trace of the evaluation of an organism.
  *     ...
- * 
- *    - Various Do* functions run in modules until one of them returns a valid answer.
- *     DoPlaceBirth(Organism & offspring, OrgPosition parent_pos, Population & target_pop)
- *       : Place a new offspring about to be born.
- *     DoPlaceInject(Organism & new_org, Population & pop)
- *       : Place a new offspring about to be injected.
- *     DoFindNeighbor(OrgPosition target_pos)
- *       : Find a random neighbor to a designated position.
  */
 
 #ifndef MABE_MODULE_BASE_H
@@ -76,14 +62,14 @@
 #include <string>
 
 #include "emp/base/map.hpp"
+#include "emp/base/notify.hpp"
 #include "emp/base/Ptr.hpp"
 #include "emp/base/vector.hpp"
 #include "emp/datastructs/map_utils.hpp"
 #include "emp/datastructs/reference_vector.hpp"
 
-#include "../config/Config.hpp"
+#include "../Emplode/Emplode.hpp"
 
-#include "ErrorManager.hpp"
 #include "TraitInfo.hpp"
 
 namespace mabe {
@@ -94,7 +80,9 @@ namespace mabe {
   class OrgPosition;
   class Population;
 
-  class ModuleBase : public mabe::ConfigType {
+  using emplode::EmplodeType;
+
+  class ModuleBase : public EmplodeType {
     friend MABE;
   protected:
     std::string name;          ///< Unique name for this module.
@@ -102,12 +90,9 @@ namespace mabe {
     mabe::MABE & control;      ///< Reference to main mabe controller using module
     bool is_builtin=false;     ///< Is this a built-in module not for config?
 
-    emp::Ptr<mabe::ErrorManager> error_man = nullptr;   ///< Redirection for errors.
-
     /// Informative tags about this module.  Expected tags include:
     ///   "Analyze"     : Makes measurements on the population.
     ///   "Archive"     : Store specific types of data.
-    ///   "ErrorHandle" : Deals with errors as they occur and need to be reported.
     ///   "Evaluate"    : Examines organisms and annotates the data map.
     ///   "Interface"   : Provides mechanisms for the user to interact with the world.
     ///   "ManageOrgs"  : Manages a type of organism in the world.
@@ -143,14 +128,8 @@ namespace mabe {
       SIG_OnSwap,
       SIG_BeforePopResize,
       SIG_OnPopResize,
-      SIG_OnError,
-      SIG_OnWarning,
       SIG_BeforeExit,
       SIG_OnHelp,
-      SIG_TraceEval,
-      SIG_DoPlaceBirth,
-      SIG_DoPlaceInject,
-      SIG_DoFindNeighbor,
       NUM_SIGNALS,
       SIG_UNKNOWN
     };
@@ -158,15 +137,6 @@ namespace mabe {
   protected:
     // Setup a BitSet to track if this module has each signal implemented.
     emp::BitSet<NUM_SIGNALS> has_signal;
-
-    // ---- Helper functions ----
-
-    /// All internal errors should be processed through AddError(...)
-    template <typename... Ts>
-    void AddError(Ts &&... args) {
-      error_man->AddError(std::forward<Ts>(args)...);
-    }
-
 
     // Core implementation for ManagerModule functionality.
     virtual emp::Ptr<OrgType> CloneObject_impl(const OrgType &) {
@@ -199,6 +169,12 @@ namespace mabe {
       for (auto & x : trait_map) x.second.Delete();
     }
 
+    /// By DEFAULT modules do not do anything extra when copying themselves.
+    bool CopyValue(const EmplodeType &) override { return true; }
+
+    /// By DEFAULT modules do not do anything to setup configurations.
+    void SetupConfig() override { }
+
     const std::string & GetName() const noexcept { return name; }
     const std::string & GetDesc() const noexcept { return desc; }
 
@@ -209,7 +185,6 @@ namespace mabe {
     void SetBuiltIn(bool _in=true) { is_builtin = _in; }
 
     bool IsAnalyzeMod() const { return emp::Has(action_tags, "Analyze"); }
-    bool IsErrorHandleMod() const { return emp::Has(action_tags, "ErrorHandle"); }
     bool IsEvaluateMod() const { return emp::Has(action_tags, "Evaluate"); }
     bool IsInterfaceMod() const { return emp::Has(action_tags, "Interface"); }
     bool IsManageMod() const { return emp::Has(action_tags, "ManageOrgs"); }
@@ -225,7 +200,6 @@ namespace mabe {
     }
 
     ModuleBase & SetAnalyzeMod(bool in=true) { return SetActionTag("Analyze", in); }
-    ModuleBase & SetErrorHandleMod(bool in=true) { return SetActionTag("ErrorHandle", in); }
     ModuleBase & SetEvaluateMod(bool in=true) { return SetActionTag("Evaluate", in); }
     ModuleBase & SetInterfaceMod(bool in=true) { return SetActionTag("Interface", in); }
     ModuleBase & SetManageMod(bool in=true) { return SetActionTag("ManageOrgs", in); }
@@ -258,15 +232,8 @@ namespace mabe {
     virtual void OnSwap(OrgPosition, OrgPosition) = 0;
     virtual void BeforePopResize(Population &, size_t) = 0;
     virtual void OnPopResize(Population &, size_t) = 0;
-    virtual void OnError(const std::string &) = 0;
-    virtual void OnWarning(const std::string &) = 0;
     virtual void BeforeExit() = 0;
     virtual void OnHelp() = 0;
-    virtual void TraceEval(Organism &, std::ostream &) = 0;
-
-    virtual OrgPosition DoPlaceBirth(Organism &, OrgPosition, Population &) = 0;
-    virtual OrgPosition DoPlaceInject(Organism &, Population &) = 0;
-    virtual OrgPosition DoFindNeighbor(OrgPosition) = 0;
 
     virtual void Deactivate() = 0;  ///< Turn off all signals in this function.
     virtual void Activate() = 0;    ///< Turn on all signals in this function.
@@ -285,15 +252,10 @@ namespace mabe {
     virtual bool OnSwap_IsTriggered() = 0;
     virtual bool BeforePopResize_IsTriggered() = 0;
     virtual bool OnPopResize_IsTriggered() = 0;
-    virtual bool OnError_IsTriggered() = 0;
-    virtual bool OnWarning_IsTriggered() = 0;
     virtual bool BeforeExit_IsTriggered() = 0;
     virtual bool OnHelp_IsTriggered() = 0;
-    virtual bool TraceEval_IsTriggered() = 0;
 
-    virtual bool DoPlaceBirth_IsTriggered() = 0;
-    virtual bool DoPlaceInject_IsTriggered() = 0;
-    virtual bool DoFindNeighbor_IsTriggered() = 0;
+    virtual bool OK() const = 0;  // For debugging purposes only.
 
     // ---=== Specialty Functions for Organism Managers ===---
     virtual emp::TypeID GetObjType() const {
@@ -316,26 +278,26 @@ namespace mabe {
     emp::Ptr<OBJ_T> Make(emp::Random & random) {
       return Make_impl(random).template DynamicCast<OBJ_T>();
     }
-
-    virtual void SetupConfig() { }
   };
 
   struct ModuleInfo {
     std::string name;
     std::string desc;
-    std::function<ConfigType & (MABE &, const std::string &)> init_fun;
+    std::function<emp::Ptr<EmplodeType>(MABE &, const std::string &)> obj_init_fun;
+    std::function<void(emplode::TypeInfo &)> type_init_fun;
+    emp::TypeID type_id;
     bool operator<(const ModuleInfo & in) const { return name < in.name; }
   };
 
-  static std::set<ModuleInfo> & GetModuleInfo() {
-    static std::set<ModuleInfo> mod_type_info;
-    return mod_type_info;
+  static std::map<std::string,ModuleInfo> & GetModuleMap() {
+    static std::map<std::string,ModuleInfo> mod_type_map;
+    return mod_type_map;
   }
 
   static void PrintModuleInfo() {
-    auto & mod_info = GetModuleInfo();
-    for (auto & mod : mod_info) {
-      std::cout << mod.name << " : " << mod.desc << std::endl;
+    auto & mod_type_map = GetModuleMap();
+    for (auto & [name,mod] : mod_type_map) {
+      std::cout << name << " : " << mod.desc << std::endl;
     }
   }
 }
