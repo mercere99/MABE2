@@ -1,4 +1,4 @@
-TEST_NAMES= SelectElite SelectLexicase SelectLexicase2 SelectTournament SelectWith 
+TEST_NAMES= SelectElite SelectLexicase SelectLexicase2 SelectRoulette SelectTournament SelectWith 
 
 MABE_DIR= ../../../source/
 EMP_DIR= ../../../source/third-party/empirical

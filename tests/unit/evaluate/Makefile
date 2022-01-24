@@ -1,4 +1,4 @@
-DIR_NAMES= games static  
+DIR_NAMES= games static callable 
 
 default: test
 

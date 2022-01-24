@@ -3,7 +3,7 @@
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
  *  @date 2019-2021.
  *
- *  @file  FileOutput.cpp
+ *  @file  SelectRoulette.cpp
  *  @brief TODO. Currently this is a placeholder so codecov will see the untested source code
  */
 
@@ -11,7 +11,7 @@
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
 // MABE
-#include "interface/FileOutput.hpp"
+#include "select/SelectRoulette.hpp"
 
 
-TEST_CASE("FileOutput_Placeholder", "[core]"){ ; }
+TEST_CASE("SelectRoulette_Placeholder", "[core]"){ ; }

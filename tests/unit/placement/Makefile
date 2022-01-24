@@ -1,4 +1,4 @@
-TEST_NAMES= GrowthPlacement 
+TEST_NAMES= AnnotatePlacement MaxSizePlacement RandomReplacement
 
 MABE_DIR= ../../../source/
 EMP_DIR= ../../../source/third-party/empirical

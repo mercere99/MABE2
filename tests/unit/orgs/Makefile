@@ -1,5 +1,4 @@
 TEST_NAMES= AvidaGPOrg BitsOrg ValsOrg VirtualCPUOrg
-# Missing files: SimpleProgramOrg 
 
 MABE_DIR= ../../../source/
 EMP_DIR= ../../../source/third-party/empirical

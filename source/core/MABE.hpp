@@ -105,7 +105,6 @@ namespace mabe {
     /// Setup a function as deprecated so we can phase it out.
     void Deprecate(const std::string & old_name, const std::string & new_name);
     void Setup_Modules();  ///< Run SetupModule() method on each module we've loaded.
-    void Setup_Traits();   ///< Load organism traits and test for module conflicts.    
     void UpdateSignals();  ///< Link signals only to modules that respond to them.
 
   public:
@@ -300,6 +299,8 @@ namespace mabe {
     {
       return config_script.BuildTraitEquation(data_layout, equation);
     }
+    
+    void Setup_Traits();   ///< Load organism traits and test for module conflicts.    
 
     /// Build a trait equations for organisms in a given population.
     auto BuildTraitEquation(const Population & pop, const std::string & equation) {
