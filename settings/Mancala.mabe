@@ -1,19 +1,19 @@
-random_seed = 1;                // Seed for random number generator; use 0 to base on time.
+random_seed = 2;                // Seed for random number generator; use 0 to base on time.
 Population main_pop;            // Collection of organisms
 Population next_pop;            // Collection of organisms
-Value pop_size = 200;           // Local value variable.
-CommandLine cl {                // Handle basic I/O on the command line.
-  target = "main_pop";          // Which population should we print stats about?
-  format = "fitness:max,fitness:mean"; // Column format to use in the file.
-}
-FileOutput output {             // Output collected data into a specified file.
-  filename = "output.csv";      // Name of file for output data.
-  format = "fitness:max,fitness:mean"; // Column format to use in the file.
-  target = "main_pop";          // Which population(s) should we print from?
-  output_updates = "0:1";       // Which updates should we output data?
-}
+Var pop_size = 200;           // Local value variable.
+
+
+AvidaGPOrg avida_org {          // Organism consisting of Avida instructions.
+  mut_prob = 0.01;              // Probability of each instruction mutating on reproduction.
+  N = 50;                       // Initial number of instructions in genome
+  init_random = 1;              // Should we randomize ancestor?  (0 = "blank" default)
+  eval_time = 200;              // How many CPU cycles should we give organisms to run?
+  input_name = "input";         // Where to find inputs
+  output_name = "output";       // Where to write outputs
+};
+
 EvalMancala eval {              // Evaluate organisms on their ability to play Mancala.
-  target = "main_pop";          // Which population(s) should we evaluate?
   input_trait = "input";        // Into which trait should input values be placed?
   output_trait = "output";      // Out of which trait should output values be read?
   scoreA_trait = "scoreA";      // Trait to save score for this player.
@@ -24,33 +24,46 @@ EvalMancala eval {              // Evaluate organisms on their ability to play M
                                 //  random: Always choose a random, legal move.
                                 //  ai: Human supplied (but not very good) AI
                                 //  random_org: Pick another random organism from collection.
-}
-SelectTournament select_t {     // Select the top fitness organisms from random subgroups for replication.
-  select_pop = "main_pop";      // Which population should we select parents from?
-  birth_pop = "next_pop";       // Which population should births go into?
+};
+
+SelectTournament select {       // Select top fitness orgs from random subgroups for replication.
   tournament_size = 7;          // Number of orgs in each tournament
-  num_tournaments = pop_size;   // Number of tournaments to run
-  fitness_trait = "fitness";    // Which trait provides the fitness value to use?
-}
+  fitness_fun = "scoreA - scoreB - num_errors*10";  // How should we calculate fitness?
+};
 
-GrowthPlacement place_next {    // Always append births to the end of a population.
-  target = "main_pop,next_pop"; // Population(s) to manage.
-}
-MovePopulation sync_gen {       // Move organisms from one population to another.
-  from_pop = "next_pop";        // Population to move organisms from.
-  to_pop = "main_pop";          // Population to move organisms into.
-  reset_to = 1;                 // Should we erase organisms at the destination?
-}
-AvidaGPOrg avida_org {          // Organism consisting of Avida instructions.
-  mut_prob = 0.01;              // Probability of each instruction mutating on reproduction.
-  N = 50;                       // Initial number of instructions in genome
-  init_random = 1;              // Should we randomize ancestor?  (0 = "blank" default)
-  eval_time = 200;              // How many CPU cycles should we give organisms to run?
-  input_name = "input";         // Where to find inputs
-  output_name = "output";       // Where to write outputs
-}
+DataFile fit_file { filename="fitness.csv"; };
+fit_file.ADD_COLUMN( "Average Fitness", "main_pop.CALC_MEAN('fitness')" );
+fit_file.ADD_COLUMN( "Maximum Fitness", "main_pop.CALC_MAX('fitness')" );
+fit_file.ADD_COLUMN( "Dominant Fitness", "main_pop.CALC_MODE('fitness')" );
 
-@start(0) PRINT("random_seed = ", random_seed, "\n");
-@start(0) INJECT("avida_org", "main_pop", pop_size);
-@update(1000) EXIT();
-@update(10,10) TRACE_EVAL("output.dat", "main_pop", 0);
+
+@START() {
+  PRINT("random_seed = ", random_seed, "\n");  // Print seed at run start.
+  main_pop.INJECT("avida_org", pop_size);      // Inject starting population.
+};
+
+@UPDATE(Var ud) {
+  IF (ud == 300) EXIT();
+  PRINT("UPDATE: ", ud);
+
+  eval.EVAL(main_pop);
+  Var mode_fit = main_pop.CALC_MODE("fitness");
+  OrgList list_less = main_pop.FILTER("fitness < ${mode_fit}");
+  OrgList list_equ  = main_pop.FILTER("fitness == ${mode_fit}");
+  OrgList list_gtr  = main_pop.FILTER("fitness > ${mode_fit}");
+  PRINT("MainPopSize=", main_pop.SIZE(),
+        "  AveFitness=", main_pop.CALC_MEAN("fitness"),
+        "  MaxFitness=", main_pop.CALC_MAX("fitness"),
+        "  ModeFitness=", mode_fit,
+        "\nMODE_LESS=", list_less.SIZE(),
+        "  MODE_EQU=", list_equ.SIZE(),
+        "  MODE_GTR=", list_gtr.SIZE(),
+       );
+  fit_file.WRITE();
+  // max_file.WRITE();
+
+  OrgList offspring = select.SELECT(main_pop, next_pop, pop_size);
+  main_pop.REPLACE_WITH(next_pop);
+};
+
+// @update(10,10) TRACE_EVAL("output.dat", "main_pop", 0);
