@@ -120,8 +120,13 @@ namespace emplode {
       static_assert( sizeof...(PARAM_Ts) == sizeof...(INDEX_VALS),
                     "Need one index for each parameter." );
 
+      // Stand-alone function (with at least one argument)...
       template <typename FUN_T>
       static auto ConvertFun(const std::string & name, FUN_T fun, SymbolTableBase & st) {        
+        using info_t = emp::FunInfo<FUN_T>;
+        static_assert(!std::is_same<typename info_t::return_t, void>(),
+                      "Currently Emplode functions must provide a return value.");
+
         return [name=name,fun=fun,&st](const symbol_vector_t & args) {
           // If this function already takes a const symbol_vector_t & as its only parameter,
           // just pass it along.
@@ -149,9 +154,12 @@ namespace emplode {
         };      
       }
 
+      // Member function (with at least one argument)...
       template <typename FUN_T>
       static auto ConvertMemberFun(const std::string & name, FUN_T fun, SymbolTableBase & st) {  
         using info_t = emp::FunInfo<FUN_T>;
+        static_assert(!std::is_same<typename info_t::return_t, void>(),
+                      "Currently Emplode functions must provide a return value.");
 
         static_assert(std::is_reference_v<PARAM1_T>,
                       "First parameter for supplied member functions must be reference to object");
