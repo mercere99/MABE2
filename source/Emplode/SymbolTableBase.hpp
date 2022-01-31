@@ -30,8 +30,8 @@ namespace emplode {
     virtual ~SymbolTableBase() { }
 
     using symbol_ptr_t = emp::Ptr<Symbol>;
-    using symbol_vector_t = emp::vector<symbol_ptr_t>;
-    using target_t = symbol_ptr_t( const symbol_vector_t & );
+    using symbol_vector_t = const emp::vector<symbol_ptr_t> &;
+    using target_t = symbol_ptr_t( symbol_vector_t );
 
     // Quickly allocate a temporary symbol with a given value.
     // NOTE: Caller is responsible for deleting the created symbol!
@@ -104,8 +104,11 @@ namespace emplode {
     struct WrapFunction_impl<RETURN_T(), emp::ValPack<>> {
 
       template <typename FUN_T>
+      static constexpr int ParamCount(bool=false) { return 0; }
+
+      template <typename FUN_T>
       static auto ConvertFun([[maybe_unused]] const std::string & name, FUN_T fun, SymbolTableBase & st) {
-        return [name=name,fun=fun,&st]([[maybe_unused]] const symbol_vector_t & args) {
+        return [name=name,fun=fun,&st]([[maybe_unused]] symbol_vector_t args) {
           emp_assert(args.size() == 0, "Too many arguments (expected 0)", name, args.size());
           return st.ValueToSymbol( fun(), name );
         };
@@ -120,6 +123,31 @@ namespace emplode {
       static_assert( sizeof...(PARAM_Ts) == sizeof...(INDEX_VALS),
                     "Need one index for each parameter." );
 
+      // How many parameters can this function have? -1 means any number!
+      template <typename FUN_T>
+      static constexpr int ParamCount(bool is_member=false) {
+        using info_t = emp::FunInfo<FUN_T>;
+
+        // If we have a member function, first arg is the object called from.
+        if (is_member) {
+          // How many parameters could the function have as a member function?
+          if constexpr (sizeof...(PARAM_Ts) == 0) return 0;
+          else if constexpr (sizeof...(PARAM_Ts) == 1) {
+            using arg1_t = typename info_t::template arg_t<1>;
+            if constexpr (std::is_same_v<arg1_t, symbol_vector_t>) return -1;             
+          }
+          else return sizeof...(PARAM_Ts);
+        }        
+        else {  // Not a member function; all arguments are fair game.
+          if constexpr (sizeof...(PARAM_Ts) == 0) {
+            if (std::is_same_v<PARAM1_T, symbol_vector_t>) return -1;
+            return 1;
+          }
+          else return 1 + sizeof...(PARAM_Ts);
+        }
+      }
+
+
       // Stand-alone function (with at least one argument)...
       template <typename FUN_T>
       static auto ConvertFun(const std::string & name, FUN_T fun, SymbolTableBase & st) {        
@@ -127,11 +155,11 @@ namespace emplode {
         static_assert(!std::is_same<typename info_t::return_t, void>(),
                       "Currently Emplode functions must provide a return value.");
 
-        return [name=name,fun=fun,&st](const symbol_vector_t & args) {
-          // If this function already takes a const symbol_vector_t & as its only parameter,
+        return [name=name,fun=fun,&st](symbol_vector_t args) {
+          // If this function already takes a symbol_vector_t as its only parameter,
           // just pass it along.
           if constexpr (sizeof...(PARAM_Ts) == 0 &&
-                        std::is_same_v<PARAM1_T, const symbol_vector_t &>) {
+                        std::is_same_v<PARAM1_T, symbol_vector_t>) {
             return st.ValueToSymbol( fun(args), name );
           }
 
@@ -168,7 +196,7 @@ namespace emplode {
         static_assert(info_t::num_args == sizeof...(PARAM_Ts) + 1,
                       "PARAM_Ts must match the extra arguments in member function.");
 
-        return [name=name,fun=fun,&st](EmplodeType & obj, const symbol_vector_t & args) -> decltype(auto) {
+        return [name=name,fun=fun,&st](EmplodeType & obj, symbol_vector_t args) -> decltype(auto) {
           // Make sure the correct object type is used for first argument.
           emp::Ptr<EmplodeType> obj_ptr(&obj);
           auto typed_ptr = obj_ptr.DynamicCast<std::remove_reference_t<PARAM1_T>>();
@@ -186,10 +214,10 @@ namespace emplode {
             return st.ValueToSymbol( fun(*typed_ptr), name );
           }
 
-          // If this function already takes a const symbol_vector_t & as its only extra parameter,
+          // If this function already takes a symbol_vector_t as its only extra parameter,
           // just pass it along.
           else if constexpr (sizeof...(PARAM_Ts) == 1 &&
-                        std::is_same_v<typename info_t::template arg_t<1>, const symbol_vector_t &>) {
+                        std::is_same_v<typename info_t::template arg_t<1>, symbol_vector_t>) {
             return st.ValueToSymbol( fun(*typed_ptr, args), name );
           }
 
