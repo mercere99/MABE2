@@ -277,30 +277,6 @@ namespace emplode {
       return helper_t::ConvertMemberFun(name, fun, *this);
     }
 
-    // Determine how many parameters a function has (-1 means any number can be accepted.)
-    template <typename FUN_T>
-    auto CountFunParams(FUN_T fun) {
-      using info_t = emp::FunInfo<FUN_T>;
-      using fun_t = typename info_t::fun_t;
-      if constexpr (info_t::num_args != 1) return info_t::num_args;
-      else {
-        using index_t = emp::ValPackCount<info_t::num_args-1>;
-        return WrapFunction_impl<fun_t, index_t>::template ParamCount<FUN_T>();
-      }
-    }
-
-    // Determine how many parameters a MEMBER function has (-1 means any number can be accepted.)
-    template <typename FUN_T>
-    auto CountMemberFunParams(FUN_T fun) {
-      using info_t = emp::FunInfo<FUN_T>;
-      using fun_t = typename info_t::fun_t;
-      if constexpr (info_t::num_args != 2) return info_t::num_args - 1;
-      else {
-        using index_t = emp::ValPackCount<info_t::num_args-1>;
-        return WrapFunction_impl<fun_t, index_t>::template ParamCount<FUN_T>(true);
-      }
-    }
-
   };
 
 }
