@@ -60,7 +60,7 @@ namespace emplode {
     virtual emp::Ptr<Symbol_Scope> GetScope() { return parent ? parent->GetScope() : nullptr; }
     virtual SymbolTableBase & GetSymbolTable() { return parent->GetSymbolTable(); }
 
-    virtual symbol_ptr_t Process() = 0;
+    virtual symbol_ptr_t Process(bool /*verbose*/=false) = 0;
 
     virtual void Write(std::ostream & /* os */=std::cout,
                        const std::string & /* offset */="") const { }
@@ -117,7 +117,7 @@ namespace emplode {
 
     bool IsLeaf() const override { return true; }
 
-    symbol_ptr_t Process() override { return symbol_ptr; };
+    symbol_ptr_t Process(bool /*verbose*/=false) override { return symbol_ptr; };
 
     void Write(std::ostream & os, const std::string &) const override {
       // If this is a variable, print the variable name,
@@ -167,9 +167,9 @@ namespace emplode {
     }
     void SetSymbolTable(SymbolTableBase & _st) { symbol_table = &_st; }
 
-    symbol_ptr_t Process() override {
+    symbol_ptr_t Process(bool verbose=false) override {
       for (auto node : children) {
-        symbol_ptr_t out = node->Process();
+        symbol_ptr_t out = node->Process(verbose);
         if (out && out->IsTemporary()) out.Delete();
       }
       return nullptr;
@@ -198,9 +198,10 @@ namespace emplode {
 
     void SetFun(std::function< double(double) > _fun) { fun = _fun; }
 
-    symbol_ptr_t Process() override {
+    symbol_ptr_t Process(bool verbose=false) override {
       emp_assert(children.size() == 1);
-      symbol_ptr_t input_symbol = children[0]->Process();     // Process child to get input symbol
+      symbol_ptr_t input_symbol =
+        children[0]->Process(verbose);                        // Process child to get input symbol
       double output_value = fun(input_symbol->AsDouble());    // Run the function to get ouput value
       if (input_symbol->IsTemporary()) input_symbol.Delete(); // If we are done with input; delete!
       return GetSymbolTable().MakeTempSymbol(output_value);
@@ -228,10 +229,10 @@ namespace emplode {
 
     void SetFun(std::function< RETURN_T(ARG1_T, ARG2_T) > _fun) { fun = _fun; }
 
-    symbol_ptr_t Process() override {
+    symbol_ptr_t Process(bool verbose=false) override {
       emp_assert(children.size() == 2);
-      symbol_ptr_t in1 = children[0]->Process();               // Process 1st child to input symbol
-      symbol_ptr_t in2 = children[1]->Process();               // Process 2nd child to input symbol
+      symbol_ptr_t in1 = children[0]->Process(verbose);       // Process 1st child to input symbol
+      symbol_ptr_t in2 = children[1]->Process(verbose);       // Process 2nd child to input symbol
       auto out_val = fun(in1->As<ARG1_T>(), in2->As<ARG2_T>()); // Run function; get ouput
       if (in1->IsTemporary()) in1.Delete();                   // If we are done with in1; delete!
       if (in2->IsTemporary()) in2.Delete();                   // If we are done with in2; delete!
@@ -262,10 +263,10 @@ namespace emplode {
     bool HasNumericReturn() const override { return children[0]->HasNumericReturn(); }
     bool HasStringReturn() const override { return children[0]->HasStringReturn(); }
 
-    symbol_ptr_t Process() override {
+    symbol_ptr_t Process(bool verbose=false) override {
       emp_assert(children.size() == 2);
-      symbol_ptr_t lhs = children[0]->Process();  // Determine the left-hand-side value.
-      symbol_ptr_t rhs = children[1]->Process();  // Determine the right-hand-side value.
+      symbol_ptr_t lhs = children[0]->Process(verbose);  // Determine the left-hand-side value.
+      symbol_ptr_t rhs = children[1]->Process(verbose);  // Determine the right-hand-side value.
 
       // @CAO Should make sure that lhs is properly assignable.
       bool success = lhs->CopyValue(*rhs);
@@ -287,18 +288,18 @@ namespace emplode {
       line_id = _line;
     }
 
-    symbol_ptr_t Process() override {
-      symbol_ptr_t test = children[0]->Process();  // Determine the left-hand-side value.
+    symbol_ptr_t Process(bool verbose=false) override {
+      symbol_ptr_t test = children[0]->Process(verbose);  // Determine the left-hand-side value.
 
       // Handle TRUE
       if (test->AsDouble() != 0.0) {
-        symbol_ptr_t result = children[1]->Process();
+        symbol_ptr_t result = children[1]->Process(verbose);
         if (result && result->IsTemporary()) result.Delete();
       }
 
       // Handle FALSE
       else if (children.size() > 2) {
-        symbol_ptr_t result = children[2]->Process();
+        symbol_ptr_t result = children[2]->Process(verbose);
         if (result && result->IsTemporary()) result.Delete();
       }
       
@@ -332,15 +333,21 @@ namespace emplode {
     // @CAO Technically, one function can return another, so we should check
     // HasNumericReturn() and HasStringReturn() on return values... but hard to implement.
 
-    symbol_ptr_t Process() override {
+    symbol_ptr_t Process(bool verbose=false) override {
       emp_assert(children.size() >= 1);
-      symbol_ptr_t fun = children[0]->Process();
+      symbol_ptr_t fun = children[0]->Process(verbose);
 
       // Collect all arguments and call
       symbol_vector_t args;
       for (size_t i = 1; i < children.size(); i++) {
-        args.push_back(children[i]->Process());
+        args.push_back(children[i]->Process(verbose));
       }
+
+      if (verbose) {
+        emp::notify::Message("AST: Calling function '", fun->GetName(),
+                             " with ", args.size(), " arguments.");
+      }
+
       symbol_ptr_t result = fun->Call(args);
 
       // Cleanup and return
@@ -379,11 +386,11 @@ namespace emplode {
       line_id = _line;
     }
 
-    symbol_ptr_t Process() override {
+    symbol_ptr_t Process(bool verbose=false) override {
       emp_assert(children.size() >= 1);
       symbol_vector_t arg_entries;
       for (size_t id = 1; id < children.size(); id++) {
-        arg_entries.push_back( children[id]->Process() );
+        arg_entries.push_back( children[id]->Process(verbose) );
       }
       setup_event(children[0], arg_entries);
       return nullptr;
