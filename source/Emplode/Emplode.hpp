@@ -132,7 +132,6 @@ namespace emplode {
 
       // 'PRINT' is a simple debugging command to output the value of a variable.
       auto print_fun = [](const emp::vector<emp::Ptr<Symbol>> & args) {
-        emp_debug("In PRINT_FUN with ", args.size(), " args!");
         for (auto entry_ptr : args) entry_ptr->Print(std::cout);
         std::cout << std::endl;
         return 0;
