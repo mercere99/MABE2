@@ -184,18 +184,33 @@ namespace emplode {
       bool obj_owned=false
     );
 
+    template <typename FUN_T>
+    int constexpr CountParams() {
+      using info_t = emp::FunInfo<FUN_T>;
+
+      // If we have a single argument and it's a vector of symbols, assume variable args.
+      if constexpr (info_t::num_args == 1) {
+        using arg_t = typename info_t::template arg_t<0>;
+        if constexpr (std::is_same_v<arg_t, const emp::vector<symbol_ptr_t> &>) {
+          return -1;
+        }             
+      }
+
+      return info_t::num_args;
+    }
+
     /// Add a new user-defined function.
     template <typename FUN_T>
     Symbol_Function & AddFunction(const std::string & name,  FUN_T fun,
                                   const std::string & desc,  emp::TypeID return_type) {
-      return Add<Symbol_Function>(name, fun, desc, this, return_type);
+      return Add<Symbol_Function>(name, fun, desc, this, CountParams<FUN_T>(), return_type);
     }
 
     /// Add a new function that is a standard part of the scripting language.
     template <typename FUN_T>
     Symbol_Function & AddBuiltinFunction(const std::string & name,  FUN_T fun,
                                          const std::string & desc,  emp::TypeID return_type) {
-      return AddBuiltin<Symbol_Function>(name, fun, desc, this, return_type);
+      return AddBuiltin<Symbol_Function>(name, fun, desc, this, CountParams<FUN_T>(), return_type);
     }
 
     /// Write out all of the parameters contained in this scope to the provided stream.
