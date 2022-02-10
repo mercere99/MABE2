@@ -548,7 +548,9 @@ namespace mabe {
   /// Update MABE world.
   void MABE::Update(size_t num_updates) {
     if (update == 0) config_script.Trigger("START");
-    for (size_t ud = 0; ud < num_updates && !exit_now; ud++) {
+
+    const size_t target_update = update + num_updates;
+    while (update < target_update && !exit_now) {
       emp_assert(OK(), update);                 // In debug mode, keep checking MABE integrity
       if (rescan_signals) UpdateSignals();      // If we have reason to, update module signals
       before_update_sig.Trigger(update);        // Signal that a new update is about to begin
