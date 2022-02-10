@@ -84,7 +84,7 @@ namespace emplode {
 
       // Find the correct overloads...
       for (auto & x : overloads) {
-        if (x.num_params == -1 || x.num_params == args.size()) return x.fun(args);
+        if (x.num_params == -1 || x.num_params == (int) args.size()) return x.fun(args);
       }
 
       std::string msg =

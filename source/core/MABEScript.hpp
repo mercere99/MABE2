@@ -269,7 +269,7 @@ namespace mabe {
             BuildTraitSummary<Population>(trait_equation, "max_id", pop.GetDataLayout());
           return pop.IteratorAt(trait_fun(pop)).AsPosition();
         },
-        "Produce OrgList with just the org with the minimum value of the provided function.");
+        "Produce OrgList with just the org with the maximum value of the provided function.");
       pop_type.AddMemberFunction("FILTER",
         [this](Population & pop, const std::string & trait_equation) -> Collection {
           Collection out_collect;

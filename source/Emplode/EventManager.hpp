@@ -86,7 +86,7 @@ namespace emplode {
         }
 
         // Once all of the parameter values are in place, run the action!
-        symbol_ptr_t result = action->Process(true);
+        symbol_ptr_t result = action->Process();
         if (result && result->IsTemporary()) result.Delete();
       }
 
