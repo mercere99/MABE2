@@ -3,7 +3,7 @@
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
  *  @date 2022.
  *
- *  @file  SummaryOrg.hpp
+ *  @file  BitSummaryOrg.hpp
  *  @brief An organism consisting of bit counts, but not orderings.
  *  @note Status: ALPHA
  * 
@@ -24,18 +24,18 @@
 
 namespace mabe {
 
-  class SummaryOrg : public OrganismTemplate<SummaryOrg> {
+  class BitSummaryOrg : public OrganismTemplate<BitSummaryOrg> {
   protected:
     size_t num_ones = 0;
 
   public:
-    SummaryOrg(OrganismManager<SummaryOrg> & _manager)
-      : OrganismTemplate<SummaryOrg>(_manager) { }
-    SummaryOrg(const SummaryOrg &) = default;
-    SummaryOrg(SummaryOrg &&) = default;
-    SummaryOrg(const emp::BitVector & in, OrganismManager<SummaryOrg> & _manager)
-      : OrganismTemplate<SummaryOrg>(_manager), num_ones(in.CountOnes()) { }
-    ~SummaryOrg() { ; }
+    BitSummaryOrg(OrganismManager<BitSummaryOrg> & _manager)
+      : OrganismTemplate<BitSummaryOrg>(_manager) { }
+    BitSummaryOrg(const BitSummaryOrg &) = default;
+    BitSummaryOrg(BitSummaryOrg &&) = default;
+    BitSummaryOrg(const emp::BitVector & in, OrganismManager<BitSummaryOrg> & _manager)
+      : OrganismTemplate<BitSummaryOrg>(_manager), num_ones(in.CountOnes()) { }
+    ~BitSummaryOrg() { ; }
 
     struct ManagerData : public Organism::ManagerData {
       size_t num_bits = 100;                 ///< How many bits are in the genome.
@@ -103,7 +103,7 @@ namespace mabe {
     }
   };
 
-  MABE_REGISTER_ORG_TYPE(SummaryOrg, "Organism consisting of a summary series of N bits.");
+  MABE_REGISTER_ORG_TYPE(BitSummaryOrg, "Organism consisting of a summary series of N bits.");
 }
 
 #endif
