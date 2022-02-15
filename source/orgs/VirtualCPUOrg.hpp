@@ -28,9 +28,11 @@ namespace mabe {
 
   public: 
     using base_t = emp::VirtualCPU<VirtualCPUOrg>;
+    using this_t = VirtualCPUOrg;
     using typename base_t::genome_t;
     using typename base_t::inst_lib_t;
     using typename base_t::data_t;
+    using inst_func_t = std::function<void(this_t&, const this_t::inst_t&)>;
 
   public:
     VirtualCPUOrg(OrganismManager<VirtualCPUOrg> & _manager)
