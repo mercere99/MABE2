@@ -100,7 +100,7 @@ namespace mabe {
             size_t idx_op_1 = inst.nop_vec.size() < 1 ? 1 : inst.nop_vec[0];
             size_t idx_op_2 = inst.nop_vec.size() < 2 ? hw.GetComplementNop(idx_op_1) : inst.nop_vec[1];
             size_t idx_mov_head = inst.nop_vec.size() < 3 ? 0 : inst.nop_vec[2];
-            size_t idx_target_head = inst.nop_vec.size() < 3 ? 3 : inst.nop_vec[2];
+            size_t idx_target_head = inst.nop_vec.size() < 4 ? 3 : inst.nop_vec[2];
             if(hw.regs[idx_op_1] != hw.regs[idx_op_2]){
               size_t target_head_val = hw.inst_ptr;
               const size_t target_mod = idx_target_head % 4;
