@@ -223,8 +223,11 @@ namespace mabe {
       std::cout << std::endl;
       for(auto it = typed_action_map.begin(); it != typed_action_map.end(); it++){
         mabe::Action& action = it->second; 
+        unsigned char c = 'a' + action.data.Get<int>("inst_id");
+        if(action.data.Get<int>("inst_id") > 25) c = 'A' + action.data.Get<int>("inst_id") - 26;
         std::cout << "Found " << action.function_vec.size() << 
-            " external functions with name: " << action.name << "!" << std::endl;
+            " external functions with name: " << action.name << "!" <<
+            " (" << c << ")" << std::endl;
         inst_lib.AddInst(
             action.name,
             //func,
