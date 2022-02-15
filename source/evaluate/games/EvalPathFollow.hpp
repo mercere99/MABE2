@@ -267,6 +267,7 @@ namespace mabe {
   };
 
   class EvalPathFollow : public Module {
+    using inst_func_t = VirtualCPUOrg::inst_func_t;
 
   private:
     Collection target_collect;                  ///< Which organisms should we evaluate?
@@ -277,11 +278,6 @@ namespace mabe {
     PathFollowEvaluator evaluator;
     size_t pop_id = 0;
     bool randomize_cues = true;
-    std::function<void(VirtualCPUOrg&, const VirtualCPUOrg::inst_t&)> func_move;
-    std::function<void(VirtualCPUOrg&, const VirtualCPUOrg::inst_t&)> func_rotate_right;
-    std::function<void(VirtualCPUOrg&, const VirtualCPUOrg::inst_t&)> func_rotate_left;
-    std::function<void(VirtualCPUOrg&, const VirtualCPUOrg::inst_t&)> func_sense;
-    std::function<void(VirtualCPUOrg&, const VirtualCPUOrg::inst_t&)> func_move_back;
 
   public:
     EvalPathFollow(mabe::MABE & control,
@@ -306,18 +302,16 @@ namespace mabe {
 
     void SetupInstructions(){
       ActionMap& action_map = control.GetActionMap(pop_id);
-      // TODO: make std::functions auto and then forget about them
       { // Move
-        func_move = [this](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){
+        inst_func_t func_move = [this](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){
           double score = evaluator.Move(hw.GetTrait<PathFollowState>(state_trait));
           hw.SetTrait<double>(score_trait, score);
         };
-        Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
-            "sg-move", func_move);
+        Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>("sg-move", func_move);
         action.data.AddVar<int>("inst_id", 27);
       }
       { // Move backward
-        func_move_back = [this](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){
+        inst_func_t func_move_back = [this](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){
           double score = evaluator.Move(hw.GetTrait<PathFollowState>(state_trait), -1);
           hw.SetTrait<double>(score_trait, score);
         };
@@ -326,7 +320,7 @@ namespace mabe {
         action.data.AddVar<int>("inst_id", 28);
       }
       { // Rotate right 
-        func_rotate_right = [this](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){
+        inst_func_t func_rotate_right = [this](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){
           evaluator.RotateRight(hw.GetTrait<PathFollowState>(state_trait));
         };
         Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
@@ -334,7 +328,7 @@ namespace mabe {
         action.data.AddVar<int>("inst_id", 29);
       }
       { // Rotate left 
-        func_rotate_left = [this](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){
+        inst_func_t func_rotate_left = [this](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){
           evaluator.RotateLeft(hw.GetTrait<PathFollowState>(state_trait));
         };
         Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
@@ -342,7 +336,7 @@ namespace mabe {
         action.data.AddVar<int>("inst_id", 30);
       }
       { // Sense 
-        func_sense = [this](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
+        inst_func_t func_sense = [this](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
           uint32_t val = evaluator.Sense(hw.GetTrait<PathFollowState>(state_trait));
           size_t reg_idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
           hw.regs[reg_idx] = val;
