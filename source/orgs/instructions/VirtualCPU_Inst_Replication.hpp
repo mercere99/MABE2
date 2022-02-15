@@ -18,14 +18,10 @@
 namespace mabe {
 
   class VirtualCPU_Inst_Replication : public Module {
+    using inst_func_t = VirtualCPUOrg::inst_func_t;
   private:
     int pop_id = 0;
     std::string org_pos_trait = "org_pos";
-    std::function<void(VirtualCPUOrg&, const VirtualCPUOrg::inst_t&)> func_h_alloc;
-    std::function<void(VirtualCPUOrg&, const VirtualCPUOrg::inst_t&)> func_h_divide;
-    std::function<void(VirtualCPUOrg&, const VirtualCPUOrg::inst_t&)> func_h_copy;
-    std::function<void(VirtualCPUOrg&, const VirtualCPUOrg::inst_t&)> func_h_search;
-    std::function<void(VirtualCPUOrg&, const VirtualCPUOrg::inst_t&)> func_repro;
     bool include_h_alloc = true;
     bool include_h_divide = true;
     bool include_h_copy = true;
@@ -53,7 +49,7 @@ namespace mabe {
       ActionMap& action_map = control.GetActionMap(pop_id);
       // Head allocate 
       if(include_h_alloc){
-        func_h_alloc = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){
+        inst_func_t func_h_alloc = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){
           //std::cout << "HAlloc!" << std::endl;
           //std::cout << "Working genome: " << hw.GetWorkingGenomeString() << std::endl;
           //std::cout << "IP: " << hw.inst_ptr;
@@ -69,7 +65,7 @@ namespace mabe {
       }
       // Head divide 
       if(include_h_divide){
-        func_h_divide = [this](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){
+        inst_func_t func_h_divide = [this](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){
           if(hw.read_head >= hw.genome.size() && hw.copied_inst_id_vec.size() >= hw.genome_working.size() / 2){
             OrgPosition& org_pos = hw.GetTrait<OrgPosition>(org_pos_trait);
             VirtualCPUOrg::genome_t& offspring_genome = hw.GetTrait<VirtualCPUOrg::genome_t>(
@@ -94,7 +90,7 @@ namespace mabe {
       }
       // Head copy 
       if(include_h_copy){
-        func_h_copy = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){
+        inst_func_t func_h_copy = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){
           //std::cout << "Copy!" << std::endl;
           //std::cout << "Working genome: " << hw.GetString() << std::endl;
           //std::cout << "IP: " << hw.inst_ptr;
@@ -115,7 +111,7 @@ namespace mabe {
       }
       // Head search 
       if(include_h_search){
-        func_h_search = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
+        inst_func_t func_h_search = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
           int res =hw.FindNopSequence(hw.GetComplementNopSequence(inst.nop_vec), hw.inst_ptr);
           if(inst.nop_vec.size() == 0 || res == hw.inst_ptr){
             hw.regs[1] = 0;
@@ -134,8 +130,9 @@ namespace mabe {
       }
       // Repro 
       if(include_repro){
-        func_repro = [this](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){
-          if(hw.inst_ptr > 0.75 * hw.genome_working.size() && hw.num_insts_executed > 0.75 * hw.genome_working.size()){
+        inst_func_t func_repro = [this](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){
+          if(hw.inst_ptr > 0.75 * hw.genome_working.size() && 
+              hw.num_insts_executed > 0.75 * hw.genome_working.size()){
             OrgPosition& org_pos = hw.GetTrait<OrgPosition>(org_pos_trait);
             VirtualCPUOrg::genome_t& offspring_genome = hw.GetTrait<VirtualCPUOrg::genome_t>(
                 "offspring_genome");
@@ -144,7 +141,7 @@ namespace mabe {
                 hw.genome_working.begin(), 
                 hw.genome_working.end(),
                 offspring_genome.begin());
-            hw.ResetHardware();
+            for(size_t i = 0; i < 1000; ++i) hw.ResetHardware();
             hw.inst_ptr = hw.genome_working.size() - 1;
             control.Replicate(org_pos, *org_pos.PopPtr());
           }
