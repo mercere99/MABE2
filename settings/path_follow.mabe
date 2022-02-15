@@ -1,7 +1,7 @@
 random_seed = 0;                // Seed for random number generator; use 0 to base on time.
 Population main_pop;            // Collection of organisms
-Var pop_size = 3600;            // Local value variable.
-Var max_gens = 1000;            // Local value variable.
+Var pop_size = 3600;               // Local value variable.
+Var max_gens = 100;              // Local value variable.
 Var do_multiply = 1;            // Local value variable.
 MaxSizePlacement place_max_size { // Grow population to a given size then maintain
   target = "main_pop";            // Population(s) to manage.
@@ -15,8 +15,8 @@ SchedulerProbabilistic scheduler { // Rations out updates to organisms based on 
   pop = "main_pop";             // Which population should we select parents from?
   avg_updates = 30;             // How many updates should organism receive on average?
   trait = "merit";              // Which trait provides the fitness value to use?
-  base_value = 0;               // What value should the scheduler use for organisms that have performed no tasks?
-  merit_scale_factor = 1;       // How should the scheduler scale merit?
+  base_value = 1;               // What value should the scheduler use for organisms that have performed no tasks?
+  merit_scale_factor = 2;       // How should the scheduler scale merit?
 };
 VirtualCPU_Inst_Nop inst_lib_nop { // Nop instructions for VirtualCPUOrg
   target_pop = "main_pop";      // Population(s) to manage.
@@ -85,6 +85,7 @@ OrgList best_org;
 max_file.ADD_SETUP("best_org = main_pop.FIND_MAX('child_merit')" );
 max_file.ADD_COLUMN("merit",       "best_org.TRAIT('child_merit')" );
 max_file.ADD_COLUMN("merit_given", "best_org.TRAIT('merit')" );
+max_file.ADD_COLUMN("gen", "best_org.TRAIT('generation')" );
 
 @START() {
   PRINT("random_seed = ", random_seed, "\n");  // Print seed at run start.
@@ -96,7 +97,9 @@ max_file.ADD_COLUMN("merit_given", "best_org.TRAIT('merit')" );
   PRINT("UD:", GET_UPDATE(),
         "  pop_size=", main_pop.SIZE(),
         "  merit_mean=", main_pop.CALC_MEAN("child_merit"),
-        "  merit_max=", main_pop.CALC_MAX("child_merit")
+        "  merit_max=", main_pop.CALC_MAX("child_merit"),
+        "  gen_mean=", main_pop.CALC_MEAN("generation"),
+        "  gen_max=", main_pop.CALC_MAX("generation")
        );
   fit_file.WRITE();
   max_file.WRITE();

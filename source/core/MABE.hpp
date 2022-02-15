@@ -114,11 +114,11 @@ namespace mabe {
     ~MABE() {
       before_exit_sig.Trigger();                      // Notify modules of end...
 
-      for (auto mod_ptr : modules) mod_ptr.Delete();  // Delete all modules.
       for (auto pop_ptr : pops) {                     // Delete all populations.
         ClearPop(*pop_ptr);
         pop_ptr.Delete();
       }
+      for (auto mod_ptr : modules) mod_ptr.Delete();  // Delete all modules.
       // Delete the empty organism AFTER clearing the populations, so it's not still used.
       if (empty_org) empty_org.Delete();
     }
@@ -310,6 +310,8 @@ namespace mabe {
     const std::set<std::string> & GetEquationTraits(const std::string & equation) {
       return config_script.GetEquationTraits(equation);
     }
+
+    MABEScript& GetConfigScript(){ return config_script; }
 
     bool OK();           ///< Sanity checks for debugging
 

@@ -50,6 +50,7 @@ namespace mabe {
       std::string merit_name = "merit";    ///< Name of trait that stores an organism's fitness 
       std::string genome_name = "genome";    ///< Name of trait that stores an organism's fitness 
       std::string child_merit_name = "child_merit"; 
+      std::string generation_name = "generation"; 
       double initial_merit = 0;
       bool verbose = false;
       std::string initial_genome_filename = "ancestor.org";
@@ -106,6 +107,7 @@ namespace mabe {
       Organism::SetTrait<std::string>(SharedData().genome_name, GetGenomeString());
       Organism::SetTrait<double>(SharedData().merit_name, SharedData().initial_merit); 
       Organism::SetTrait<double>(SharedData().child_merit_name, SharedData().initial_merit); 
+      Organism::SetTrait<size_t>(SharedData().generation_name, 0); 
       base_t::Initialize(); // MABE's proto organisms means we need to re-initialize the org
       CurateNops();
     }
@@ -115,6 +117,8 @@ namespace mabe {
       offspring->Mutate(random);
       offspring->SetTrait<double>(SharedData().merit_name, GetTrait<double>(SharedData().child_merit_name)); 
       offspring->SetTrait<double>(SharedData().child_merit_name, SharedData().initial_merit); 
+      offspring->SetTrait<size_t>(SharedData().generation_name, 
+          GetTrait<size_t>(SharedData().generation_name) + 1); 
       offspring->CurateNops();
       offspring->Organism::SetTrait<std::string>(
           SharedData().genome_name, offspring->GetGenomeString());
@@ -172,6 +176,9 @@ namespace mabe {
       GetManager().LinkVar(SharedData().child_merit_name, "child_merit_name",
                       "Name of variable corresponding to the organism's task performance that"
                       " will be used to calculate CPU cylces given to offspring.");
+      GetManager().LinkVar(SharedData().generation_name, "generation_name",
+                      "Name of variable corresponding to the organism's generation. "
+                      "When an organism replicates, the child's gen. is the parent's gen +1");
       GetManager().LinkVar(SharedData().initial_merit, "inititial_merit",
                       "Initial value for merit (task performance)");
       GetManager().LinkVar(SharedData().verbose, "verbose",
@@ -198,6 +205,7 @@ namespace mabe {
       GetManager().AddOwnedTrait<std::string>(SharedData().genome_name, "Organism's genome", "[None]");
       GetManager().AddSharedTrait<genome_t>("offspring_genome", "Latest genome copied", { } );
       GetManager().AddSharedTrait<genome_t>("passed_genome", "Genome as passed from parent", { } );
+      GetManager().AddOwnedTrait<size_t>(SharedData().generation_name, "Organism's generation", 0);
       SetupInstLib();
     }
 

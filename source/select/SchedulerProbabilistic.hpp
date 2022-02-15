@@ -74,17 +74,16 @@ namespace mabe {
       }
       if(weight_map.GetSize() == 0) weight_map.Resize(N, 1);
       size_t selected_idx;
-      double total_weight = weight_map.GetWeight();
       // Dole out updates
       for(size_t i = 0; i < N * avg_updates; ++i){
-        total_weight = weight_map.GetWeight();
-        if(total_weight > 0)
+        const double total_weight = weight_map.GetWeight();
+        if(total_weight > 0.0){ // TODO: cap to max weight
           selected_idx = weight_map.Index(random.GetDouble() * total_weight);
-        else
-          selected_idx = random.GetUInt(pop.GetSize()); 
+        }
+        else selected_idx = random.GetUInt(pop.GetSize()); 
         pop[selected_idx].ProcessStep();
       }
-      return total_weight;
+      return weight_map.GetWeight();
     }
 
     void OnUpdate(size_t /*update*/) override {

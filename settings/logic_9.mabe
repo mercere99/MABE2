@@ -135,9 +135,9 @@ VirtualCPUOrg avida_org {       // Organism consisting of Avida instructions.
   expanded_nop_args = 0;        // If true, some instructions (e.g., math) will use multiple nops to fully define the registers used
 };
 
-Var dominant_genome;
+//Var dominant_genome;
 DataFile fit_file { filename="fitness.csv"; };
-fit_file.ADD_SETUP("dominant_genome = main_pop.CALC_MODE('genome')" );
+//fit_file.ADD_SETUP("dominant_genome = main_pop.CALC_MODE('genome')" );
 fit_file.ADD_COLUMN("merit_mean",       "main_pop.CALC_MEAN('child_merit')" );
 fit_file.ADD_COLUMN("merit_max",        "main_pop.CALC_MAX('child_merit')" );
 fit_file.ADD_COLUMN("not_frac",         "main_pop.CALC_MEAN('not_performed')" );
@@ -172,14 +172,17 @@ max_file.ADD_COLUMN("equ",         "best_org.TRAIT('equ_performed')" );
   main_pop.INJECT("avida_org", 1);             // Inject ancestor organism 
 };
 
+Var dominant_genome;
 @UPDATE(Var ud) {
   scheduler.SCHEDULE();
+  dominant_genome = main_pop.CALC_MODE("genome");
   PRINT("UD:", GET_UPDATE(),
         "  pop_size=", main_pop.SIZE(),
         "  merit_mean=", main_pop.CALC_MEAN("child_merit"),
         "  merit_max=", main_pop.CALC_MAX("child_merit"),
         "  not_frac=", main_pop.CALC_MEAN("not_performed"),
-        "  nand_frac=", main_pop.CALC_MEAN("nand_performed")
+        "  nand_frac=", main_pop.CALC_MEAN("nand_performed"),
+        "  dominant_genome=", dominant_genome 
        );
   fit_file.WRITE();
   max_file.WRITE();
