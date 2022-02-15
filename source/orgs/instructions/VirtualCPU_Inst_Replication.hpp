@@ -135,7 +135,7 @@ namespace mabe {
       // Repro 
       if(include_repro){
         func_repro = [this](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){
-          if(hw.inst_ptr > 0.75 * hw.genome_working.size()){
+          if(hw.inst_ptr > 0.75 * hw.genome_working.size() && hw.num_insts_executed > 0.75 * hw.genome_working.size()){
             OrgPosition& org_pos = hw.GetTrait<OrgPosition>(org_pos_trait);
             VirtualCPUOrg::genome_t& offspring_genome = hw.GetTrait<VirtualCPUOrg::genome_t>(
                 "offspring_genome");
