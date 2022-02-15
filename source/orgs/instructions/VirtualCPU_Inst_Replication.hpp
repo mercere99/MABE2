@@ -141,7 +141,7 @@ namespace mabe {
                 hw.genome_working.begin(), 
                 hw.genome_working.end(),
                 offspring_genome.begin());
-            for(size_t i = 0; i < 1000; ++i) hw.ResetHardware();
+            hw.ResetHardware();
             hw.inst_ptr = hw.genome_working.size() - 1;
             control.Replicate(org_pos, *org_pos.PopPtr());
           }
