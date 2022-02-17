@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2021.
+ *  @date 2021-2022.
  *
  *  @file  EvalDiagnostic.hpp
  *  @brief MABE Evaluation module for counting the number of ones (or zeros) in an output.
@@ -63,11 +63,11 @@ namespace mabe {
       LinkVar(scores_trait, "scores_trait", "Which trait should we store revised scores in?");
       LinkVar(total_trait, "total_trait", "Which trait should we store the total score in?");
       LinkMenu(diagnostic_id, "diagnostic", "Which Diagnostic should we use?",
-               EXPLOIT, "exploit", "All values must independently optimize to the max.",
-               STRUCT_EXPLOIT, "struct_exploit", "Values must decrease from begining AND optimize.",
-               EXPLORE, "explore", "Only count max value and decreasing values after it.",
-               DIVERSITY, "diversity", "Only count max value; all others must be low.",
-               WEAK_DIVERSITY, "weak_diversity", "Only count max value; all others locked at zero."
+               EXPLOIT,        "exploit",        "Fitness = sum of all values",
+               STRUCT_EXPLOIT, "struct_exploit", "Fitness = sum of descending values from start",
+               EXPLORE,        "explore",        "Fitness = sum of descending values from max",
+               DIVERSITY,      "diversity",      "Fitness = max value minus all others",
+               WEAK_DIVERSITY, "weak_diversity", "Fitness = max value"
       );
     }
 
