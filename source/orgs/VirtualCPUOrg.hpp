@@ -22,6 +22,12 @@
 
 namespace mabe {
 
+  /// \brief A wrapper of the emp::VirtualCPU class to be used in MABE
+  ///
+  /// A wrapper class for emp::VirtualCPU that makes it a MABE module. 
+  /// Every population in Avida has an associated ActionMap, and it is through this ActionMap
+  /// that VCPUOrgs load their instructions. This allows the end user to compose the 
+  /// instruction set in the MABE configuration file.  
   class VirtualCPUOrg : 
     public OrganismTemplate<VirtualCPUOrg>, 
     public emp::VirtualCPU<VirtualCPUOrg> {
@@ -41,32 +47,47 @@ namespace mabe {
     VirtualCPUOrg(VirtualCPUOrg &&) = default;
     ~VirtualCPUOrg() { ; }
 
+    /// \brief A simple struct containing all variables shared among all VirtualCPUOrgs. 
+    ///
+    /// This struct contains all the variables that are shared among all VirtualCPUOrgs.
+    /// This includes all the configuration variables, as well as internal variables (e.g., 
+    /// variables used in calculating mutations)
     struct ManagerData : public Organism::ManagerData {
       // Configuration variables
       double mut_prob = 0.01;     ///< Probability of each bit mutating on reproduction.
       size_t init_length = 100;   ///< Length of new organisms.
       bool init_random = true;    ///< Should we randomize ancestor?  (false = all zeros)
       size_t eval_time = 500;     ///< How long should the CPU be given on each evaluate?
-      std::string input_name = "input";    ///< Name of trait that should be used load input values
-      std::string output_name = "output";  ///< Name of trait that should be used store output values
-      std::string merit_name = "merit";    ///< Name of trait that stores an organism's fitness 
-      std::string genome_name = "genome";    ///< Name of trait that stores an organism's fitness 
-      std::string child_merit_name = "child_merit"; 
-      std::string generation_name = "generation"; 
-      double initial_merit = 0;
-      bool verbose = false;
-      std::string initial_genome_filename = "ancestor.org";
-      bool expanded_nop_args = false;
-
+      std::string input_name = "input";   /**< Name of trait that should be used to 
+                                               load input values */
+      std::string output_name = "output"; /**< Name of trait that should be used to store 
+                                               output values */
+      std::string merit_name = "merit";   /**< Name of trait that stores the merit of an org 
+                                               as it was passed from its parent */ 
+      std::string genome_name = "genome"; ///< Name of trait that stores an org's genome 
+      std::string child_merit_name = "child_merit"; /**< Name of the trait that stores an 
+                                                         org's merit during its lifetime. This
+                                                         is then passed to its offspring */
+      std::string generation_name = "generation";  /**<  Name of the trait that store's the 
+                                                         org's generation */
+      double initial_merit = 0; ///< Merit that the ancestor starts with
+      bool verbose = false;     ///< Flag that indicates whether to print additional info
+      std::string initial_genome_filename = "ancestor.org"; /**< If init_random is false, this
+                                                                 indicates a file that 
+                                                                 contains the ancestor's 
+                                                                 genome */
+      bool expanded_nop_args = false; /**< Flag that indicates whether to use the "expanded
+                                           nop" syntax. If true, instructions like and can 
+                                           take up to three nops to specify all three of the 
+                                           following: a + b = c */
       // Internal use
-      emp::Binomial mut_dist;            ///< Distribution of number of mutations to occur.
-      emp::BitVector mut_sites;            ///< A pre-allocated vector for mutation sites. 
+      emp::Binomial mut_dist;         ///< Distribution of number of mutations to occur.
+      emp::BitVector mut_sites;       ///< A pre-allocated vector for mutation sites. 
     };
 
+    /// Mutates (in place) the current organism. Currently only supports point mutations.
     size_t Mutate(emp::Random & random) override {
-      //emp::Binomial mut_dist(SharedData().mut_prob, genome.size());
       const size_t num_muts = SharedData().mut_dist.PickRandom(random);
-      //const size_t num_muts = mut_dist.PickRandom(random);
 
       if (num_muts == 0) return 0;
       if (num_muts == 1) {
@@ -74,7 +95,6 @@ namespace mabe {
         RandomizeInst(pos, random);
         return 1;
       }
-
       // Only remaining option is num_muts > 1.
       emp::BitVector mut_sites(genome.size());
       for (size_t i = 0; i < num_muts; i++) {
@@ -88,6 +108,7 @@ namespace mabe {
       return num_muts;
     }
 
+    /// Randomizes (in place) the organism's genome. Does not add new instructions.
     void Randomize(emp::Random & random) override {
       for (size_t pos = 0; pos < GetGenomeSize(); pos++) {
         RandomizeInst(pos, random);
@@ -95,16 +116,20 @@ namespace mabe {
       Organism::SetTrait<std::string>(SharedData().genome_name, GetGenomeString());
     }
 
+    /// Adds pads the organism's genome out to the specified length with random instructions.
     void FillRandom(size_t length, emp::Random & random){
       for (size_t pos = GetGenomeSize(); pos < length; pos++) {
         PushRandomInst(random);
       }
     }
 
+    /// Creates an ancestral organism and loads in values from configuration file
     void Initialize(emp::Random & random) override {
       emp_assert(GetGenomeSize() == 0, "Cannot initialize VirtualCPUOrg twice");
+      // Create the ancestor, either randomly or from a genome file
       if (SharedData().init_random) FillRandom(SharedData().init_length, random);
       else Load(SharedData().initial_genome_filename);
+      // Update values based on configuration variables
       expanded_nop_args = SharedData().expanded_nop_args;
       Organism::SetTrait<std::string>(SharedData().genome_name, GetGenomeString());
       Organism::SetTrait<double>(SharedData().merit_name, SharedData().initial_merit); 
@@ -114,9 +139,12 @@ namespace mabe {
       CurateNops();
     }
     
+    /// Creates an offspring organism using the configuration file's mutation rate.
     emp::Ptr<Organism> MakeOffspringOrganism(emp::Random & random) const {
+      // Create and mutate
       auto offspring = OrgType::Clone().DynamicCast<VirtualCPUOrg>();
       offspring->Mutate(random);
+      // Initialize all necessary traits and ready hardware
       offspring->SetTrait<double>(SharedData().merit_name, GetTrait<double>(SharedData().child_merit_name)); 
       offspring->SetTrait<double>(SharedData().child_merit_name, SharedData().initial_merit); 
       offspring->SetTrait<size_t>(SharedData().generation_name, 
@@ -128,6 +156,7 @@ namespace mabe {
       return offspring;
     }
     
+    /// Creates an identical organism with no mutations and with the same merit
     virtual emp::Ptr<Organism> CloneOrganism() const {
       auto offspring = OrgType::Clone().DynamicCast<VirtualCPUOrg>();
       offspring->genome = genome;
@@ -140,7 +169,8 @@ namespace mabe {
       return offspring;
     }
 
-    /// Put the output values in the correct output position.
+    /// Load inputs and run the organism for a number of steps specified in the configuration
+    /// file. Any generated outputs will be stored in the organism's output trait.
     void GenerateOutput() override {
       ResetHardware();
 
@@ -151,12 +181,13 @@ namespace mabe {
       Process(SharedData().eval_time, SharedData().verbose);
     }
 
+    /// Returns a reference to the instruction library of the organism
     static inst_lib_t& GetInstLib(){
       static inst_lib_t inst_lib;
       return inst_lib;
     }
 
-    /// Setup this organism type to be able to load from config.
+    /// Setup configuration options for this organism type
     void SetupConfig() override {
       GetManager().LinkVar(SharedData().mut_prob, "mut_prob",
                       "Probability of each instruction mutating on reproduction.");
@@ -192,10 +223,10 @@ namespace mabe {
                       "define the registers used");
     }
 
-    /// Setup this organism type with the traits it need to track.
+    /// Setup this organism type with the traits it need to track and initialize 
+    /// shared variables.
     void SetupModule() override {
       SetupMutationDistribution();
-      // Setup the input and output traits.
       GetManager().AddRequiredTrait<emp::vector<data_t>>(SharedData().input_name);
       GetManager().AddSharedTrait(SharedData().output_name,
                                   "Value map output from organism.",
@@ -211,18 +242,20 @@ namespace mabe {
       SetupInstLib();
     }
 
+    /// Loads external instructions that were added via the configuration file
     void SetupInstLib(){
-      // Load external instructions that were added in the config file
       inst_lib_t& inst_lib = GetInstLib();
+      // All instructions are stored in the populations ActionMap
       ActionMap& action_map = GetManager().GetControl().GetActionMap(0);
       std::unordered_map<std::string, mabe::Action>& typed_action_map =
         action_map.GetFuncs<void, VirtualCPUOrg&, const inst_t&>();
+      // Print the number of instructions found and each of their names
       std::cout << "Found " << typed_action_map.size() << " external functions!" << std::endl;
-
       for(auto it = typed_action_map.begin(); it != typed_action_map.end(); it++){
         std::cout << " " << it->first;
       }
       std::cout << std::endl;
+      // Iterate over each instruction that was found, and add it to the instruction library
       for(auto it = typed_action_map.begin(); it != typed_action_map.end(); it++){
         mabe::Action& action = it->second; 
         unsigned char c = 'a' + action.data.Get<int>("inst_id");
@@ -249,23 +282,25 @@ namespace mabe {
       }
     }
 
+    /// Processes a single instruction
     bool ProcessStep() override { 
       Process(1, SharedData().verbose);
       return true; 
     }
 
+    /// Initializes the mutational distribution variables to match the genome size (either 
+    /// current size or projected sizes)
     void SetupMutationDistribution(){
-      // Setup the mutation distribution.
-      // Setup the default vector to indicate mutation positions.
-      if(GetGenomeSize() != 0){
+      if(GetGenomeSize() != 0){ // If we have a genome size, use it!
         SharedData().mut_dist.Setup(SharedData().mut_prob, GetGenomeSize());
         SharedData().mut_sites.Resize(GetGenomeSize());
       }
-      else{
+      else{ // Otherwise, use the genome size set in the configuration file
         SharedData().mut_dist.Setup(SharedData().mut_prob, SharedData().init_length);
         SharedData().mut_sites.Resize(SharedData().init_length);
       }
     }
+
   };
 
   MABE_REGISTER_ORG_TYPE(VirtualCPUOrg, "Organism consisting of Avida instructions.");
