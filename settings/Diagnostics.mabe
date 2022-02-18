@@ -56,32 +56,55 @@ SelectTournament select_t {     // Replicate top fitness organisms from random s
 SelectLexicase select_l {       // Shuffle traits each time an organism is chose for replication.
   fitness_traits = "scores";    // Which traits provide the fitness values to use?
   epsilon = 0.0;                // Range from max value to be preserved? (fraction of max)
-  num_births = pop_size;        // Number of offspring organisms to produce
+  sample_traits = 0;            // How many traits should be sampled each generation? (0 = off)
 };
 
-GrowthPlacement place_next {    // Always append births to the end of a population.
-  target = "main_pop,next_pop"; // Population(s) to manage.
+DataFile fit_file { filename="fitness.csv"; };
+fit_file.ADD_COLUMN( "Average Fitness", "main_pop.CALC_MEAN('fitness')" );
+fit_file.ADD_COLUMN( "Maximum Fitness", "main_pop.CALC_MAX('fitness')" );
+fit_file.ADD_COLUMN( "Dominant Fitness", "main_pop.CALC_MODE('fitness')" );
+
+DataFile max_file { filename="max_org.csv"; };
+OrgList best_org;
+max_file.ADD_SETUP( "best_org = main_pop.FIND_MAX('fitness')" );
+max_file.ADD_COLUMN( "Fitness", "best_org.TRAIT('fitness')" );
+max_file.ADD_COLUMN( "Genome", "best_org.TRAIT('vals')" );
+max_file.ADD_COLUMN( "Scores", "best_org.TRAIT('scores')" );
+
+
+@START() {
+  PRINT("Beginning DIAGNOSTICS!\nMain config options:");
+  PRINT(" Diagnostic:       '", diagnostics.diagnostic, "'");
+  PRINT(" Num org values:   ", num_vals);
+  PRINT(" Mut Probability:  ", vals_org.mut_prob);
+  PRINT(" Mut Size:         ", vals_org.mut_size);
+  PRINT(" Population size:  ", pop_size);
+  PRINT(" Random seed:      ", random_seed, "\n");
+  PRINT(" Num Generations:  ", num_gens, "\n");
+  
+  main_pop.INJECT("vals_org", pop_size);       // Inject starting population.
 }
-MovePopulation sync_gen {       // Move organisms from one population to another.
-  from_pop = "next_pop";        // Population to move organisms from.
-  to_pop = "main_pop";          // Population to move organisms into.
-  reset_to = 1;                 // Should we erase organisms at the destination?
+
+// Actions to perform every update.
+
+@UPDATE(Var ud) {
+  IF (ud == num_gens) EXIT();
+
+  diagnostics.EVAL(main_pop);
+
+  IF (ud % print_step == 0) {
+     PRINT("UD:", GET_UPDATE(),
+           "  MainPopSize=", main_pop.SIZE(),
+           "  AveFitness=", main_pop.CALC_MEAN("fitness"),
+           "  MaxFitness=", main_pop.CALC_MAX("fitness"),
+     );
+     fit_file.WRITE();
+     max_file.WRITE();
+  }
+
+  // select_e.SELECT(main_pop, next_pop, pop_size);
+  // select_r.SELECT(main_pop, next_pop, pop_size);
+  // select_l.SELECT(main_pop, next_pop, pop_size);
+  select_t.SELECT(main_pop, next_pop, pop_size);
+  main_pop.REPLACE_WITH(next_pop);
 }
-
-@start() PRINT("random_seed = ", random_seed, "\n");
-@start() main_pop.INJECT("vals_org", pop_size);
-@update(num_gens) EXIT();
-
-Value best_id;
-@update(10, 10) {
-  best_id = TRAIT_VALUE("main_pop", "fitness:max_id");
-  WRITE("output.csv", "main_pop", "fitness:max,fitness:max_id,fitness:mean,vals:${best_id},scores:${best_id}");
-}
-
-@update(5) PRINT("Popsize = ", SIZE("main_pop"), ", ", SIZE("next_pop"), "\n");
-
-// @update(10, 10) output("output.csv", "main_pop", "fitness:max,fitness:max_id,fitness:mean,genome:0");
-// @update(10, 10) output("output.csv", "main_pop", "fitness:max,fitness:max_id,fitness:mean,genome:$fitness:max_id");
-// @update(10, 10) output("output.csv", "main_pop", "fitness:max,fitness:max_id,fitness:mean,genome:$1");
-// @update(10, 10) output("output.csv", "main_pop", "fitness:max,best=fitness:max_id,fitness:mean,genome:$best");
-// @update(10, 10) output("output.csv", "main_pop", "fitness:max,fitness:mean,genome:$best|best=fitness:max_id");
