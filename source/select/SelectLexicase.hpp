@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2021.
+ *  @date 2021-2022.
  *
  *  @file  SelectLexicase.hpp
  *  @brief MABE module to enable Lexicase selection
@@ -140,6 +140,16 @@ namespace mabe {
       SetSelectMod(true);    ///< Mark this module as a selection module.
     }
     ~SelectLexicase() { }
+
+    // Setup member functions associated with this class.
+    static void InitType(emplode::TypeInfo & info) {
+      info.AddMemberFunction(
+        "SELECT",
+        [](SelectLexicase & mod, Population & from, Population & to, double count) {
+          return mod.Select(from,to,count);
+        },
+        "Perform lexicase selection on the identified population.");
+    }
 
     void SetupConfig() override {
       LinkVar(trait_inputs, "fitness_traits", "Which traits provide the fitness values to use?");
