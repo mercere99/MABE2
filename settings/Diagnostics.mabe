@@ -1,76 +1,14 @@
 random_seed = 1;                // Seed for random number generator; use 0 to base on time.
-Value pop_size = 512;
-Value num_gens = 50000;
+Var num_vals = 100;
+Var pop_size = 512;
+Var num_gens = 50000;
+Var print_step = 100;           // Interval for printing...
 
 Population main_pop;
 Population next_pop;
 
-CommandLine cl {                // Handle basic I/O on the command line.
-  target = "main_pop";          // Which population should we print stats about?
-  format = "fitness:max,fitness:mean,fitness:min,fitness";  // Column format.
-} 
-
-EvalDiagnostic eval_diagnostics { // Evaluate set of values with a specified diagnostic problem.
-  target = "main_pop";          // Which population(s) should we evaluate?
-  vals_trait = "vals";          // Which trait stores the values to evaluate?
-  scores_trait = "scores";      // Which trait should we store revised scores in?
-  total_trait = "fitness";      // Which trait should we store the total score in?
-  diagnostic = "explore";       // Which Diagnostic should we use?
-                                // "exploit": All values must independently optimize to the max.
-                                // "struct_exploit": Values must decrease from begining AND optimize.
-                                // "explore": Only count max value and decreasing values after it.
-                                // "diversity": Only count max value; all others must be low.
-                                // "weak_diversity": Only count max value; all others locked at zero.
-}
-
-SelectRoulette select_r {          // Choose the top fitness organisms for replication.
-  _active = 1;                  // Should we activate this module? (0=off, 1=on)
-  _desc = "";                   // Special description for those object.
-  select_pop = "main_pop";      // Which population should we select parents from?
-  birth_pop = "next_pop";       // Which population should births go into?
-  select_count = pop_size;      // Number of top-fitness orgs to be replicated
-  copy_count = 1;               // Number of copies to make of replicated organisms
-  fitness_trait = "fitness";    // Which trait provides the fitness value to use?
-}
-
-SelectElite select_e {          // Choose the top fitness organisms for replication.
-  _active = 0;                  // Should we activate this module? (0=off, 1=on)
-  _desc = "";                   // Special description for those object.
-  select_pop = "main_pop";      // Which population should we select parents from?
-  birth_pop = "next_pop";       // Which population should births go into?
-  top_count = pop_size;         // Number of top-fitness orgs to be replicated
-  copy_count = 1;               // Number of copies to make of replicated organisms
-  fitness_trait = "fitness";    // Which trait provides the fitness value to use?
-}
-SelectTournament select_t {     // Select the top fitness organisms from random subgroups for replication.
-  _active = 0;                  // Should we activate this module? (0=off, 1=on)
-  _desc = "";                   // Special description for those object.
-  select_pop = "main_pop";      // Which population should we select parents from?
-  birth_pop = "next_pop";       // Which population should births go into?
-  tournament_size = 7;          // Number of orgs in each tournament
-  num_tournaments = pop_size;   // Number of tournaments to run
-  fitness_fun = "fitness";      // Which trait provides the fitness value to use?
-}
-SelectLexicase select_l {       // Shuffle traits each time an organism is chose for replication.
-  _active = 0;                  // Should we activate this module? (0=off, 1=on)
-  _desc = "";                   // Special description for those object.
-  select_pop = "main_pop";      // Which population should we select parents from?
-  birth_pop = "next_pop";       // Which population should births go into?
-  fitness_traits = "scores";    // Which traits provide the fitness values to use?
-  epsilon = 0.0;                // Range from max value to be preserved? (fraction of max)
-  num_births = pop_size;        // Number of offspring organisms to produce
-}
-
-GrowthPlacement place_next {    // Always append births to the end of a population.
-  target = "main_pop,next_pop"; // Population(s) to manage.
-}
-MovePopulation sync_gen {       // Move organisms from one population to another.
-  from_pop = "next_pop";        // Population to move organisms from.
-  to_pop = "main_pop";          // Population to move organisms into.
-  reset_to = 1;                 // Should we erase organisms at the destination?
-}
 ValsOrg vals_org {              // Organism consisting of a series of N floating-point values.
-  N = 100;                      // Number of values in organism
+  N = num_vals;                 // Number of values in organism
   mut_prob = 0.007;             // Probability of each value mutating on reproduction.
   mut_size = 1.0;               // Standard deviation on size of mutations.
   min_value = 0;                // Lower limit for value fields.
@@ -87,6 +25,47 @@ ValsOrg vals_org {              // Organism consisting of a series of N floating
                                 // - "rebound": Make high values 'bounce' back down.
   output_name = "vals";         // Name of variable to contain set of values.
   total_name = "total";         // Name of variable to contain total of all values.
+};
+
+EvalDiagnostic diagnostics {    // Evaluate set of values with a specified diagnostic problem.
+  vals_trait = "vals";          // Which trait stores the values to evaluate?
+  scores_trait = "scores";      // Which trait should we store revised scores in?
+  total_trait = "fitness";      // Which trait should we store the total score in?
+  diagnostic = "explore";       // Which Diagnostic should we use?
+                                // "exploit": Fitness = sum of all values
+                                // "struct_exploit": Fitness = sum of descending values from start
+                                // "explore": Fitness = sum of descending values from max
+                                // "diversity": Fitness = max value minus all others
+                                // "weak_diversity": Fitness = max value
+};
+
+SelectRoulette select_r {       // Choose the top fitness organisms for replication.
+  fitness_fun = "fitness";      // Which trait provides the fitness value to use?
+};
+
+SelectElite select_e {          // Choose the top fitness organisms for replication.
+  fitness_fun = "fitness";      // Which trait provides the fitness value to use?
+  top_count = pop_size/2;       // Number of top-fitness orgs to be replicated
+};
+
+SelectTournament select_t {     // Replicate top fitness organisms from random subgroups.
+  tournament_size = 7;          // Number of orgs in each tournament
+  fitness_fun = "fitness";      // Which trait provides the fitness value to use?
+};
+
+SelectLexicase select_l {       // Shuffle traits each time an organism is chose for replication.
+  fitness_traits = "scores";    // Which traits provide the fitness values to use?
+  epsilon = 0.0;                // Range from max value to be preserved? (fraction of max)
+  num_births = pop_size;        // Number of offspring organisms to produce
+};
+
+GrowthPlacement place_next {    // Always append births to the end of a population.
+  target = "main_pop,next_pop"; // Population(s) to manage.
+}
+MovePopulation sync_gen {       // Move organisms from one population to another.
+  from_pop = "next_pop";        // Population to move organisms from.
+  to_pop = "main_pop";          // Population to move organisms into.
+  reset_to = 1;                 // Should we erase organisms at the destination?
 }
 
 @start() PRINT("random_seed = ", random_seed, "\n");
