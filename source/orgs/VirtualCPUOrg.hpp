@@ -4,8 +4,9 @@
  *  @date 2021.
  *
  *  @file  VirtualCPUOrg.hpp
- *  @brief An organism consisting of linear code.
+ *  @brief An organism consisting of a linear sequence of instructions. 
  *  @note Status: ALPHA
+ *
  */
 
 #ifndef MABE_VIRTUAL_CPU_ORGANISM_H
@@ -89,8 +90,8 @@ namespace mabe {
     size_t Mutate(emp::Random & random) override {
       const size_t num_muts = SharedData().mut_dist.PickRandom(random);
 
-      if (num_muts == 0) return 0;
-      if (num_muts == 1) {
+      if(num_muts == 0) return 0;
+      if(num_muts == 1){
         const size_t pos = random.GetUInt(GetGenomeSize());
         RandomizeInst(pos, random);
         return 1;
@@ -99,7 +100,7 @@ namespace mabe {
       emp::BitVector mut_sites(genome.size());
       for (size_t i = 0; i < num_muts; i++) {
         const size_t pos = random.GetUInt(GetGenomeSize());
-        if (mut_sites[pos]) { --i; continue; }  // Duplicate position; try again.
+        if(mut_sites[pos]){ --i; continue; } // Duplicate position; try again.
         mut_sites[pos] = true;
         size_t old_inst_idx = genome[pos].idx;
         RandomizeInst(pos, random);
@@ -127,7 +128,7 @@ namespace mabe {
     void Initialize(emp::Random & random) override {
       emp_assert(GetGenomeSize() == 0, "Cannot initialize VirtualCPUOrg twice");
       // Create the ancestor, either randomly or from a genome file
-      if (SharedData().init_random) FillRandom(SharedData().init_length, random);
+      if(SharedData().init_random) FillRandom(SharedData().init_length, random);
       else Load(SharedData().initial_genome_filename);
       // Update values based on configuration variables
       expanded_nop_args = SharedData().expanded_nop_args;
@@ -250,7 +251,7 @@ namespace mabe {
       std::unordered_map<std::string, mabe::Action>& typed_action_map =
         action_map.GetFuncs<void, VirtualCPUOrg&, const inst_t&>();
       // Print the number of instructions found and each of their names
-      std::cout << "Found " << typed_action_map.size() << " external functions!" << std::endl;
+      std::cout << "Found " << typed_action_map.size() << " external functions!";
       for(auto it = typed_action_map.begin(); it != typed_action_map.end(); it++){
         std::cout << " " << it->first;
       }
@@ -258,27 +259,35 @@ namespace mabe {
       // Iterate over each instruction that was found, and add it to the instruction library
       for(auto it = typed_action_map.begin(); it != typed_action_map.end(); it++){
         mabe::Action& action = it->second; 
+        emp_assert(action.data.HasName("inst_id"), 
+            "Instructions must provide an inst_id:", action.name);
+        emp_assert(action.data.IsType<int>("inst_id"),
+            "Instruction's inst_id must be an int!");
+        // Calculate the character associated with this instruction 
         unsigned char c = 'a' + action.data.Get<int>("inst_id");
-        if(action.data.Get<int>("inst_id") > 25) c = 'A' + action.data.Get<int>("inst_id") - 26;
+        if(action.data.Get<int>("inst_id") > 25){
+          c = 'A' + action.data.Get<int>("inst_id") - 26;
+        }
         std::cout << "Found " << action.function_vec.size() << 
             " external functions with name: " << action.name << "!" <<
             " (" << c << ")" << std::endl;
+        // Grab description
+        const std::string desc = 
+          (action.data.HasName("description") ? 
+            action.data.Get<std::string>("description") : "No description provided");
         inst_lib.AddInst(
-            action.name,
-            //func,
+            action.name,                       // Instruction name
             [&action](VirtualCPUOrg& org, const inst_t& inst){
-              //std::cout << action.name << std::endl;
               for(size_t func_idx = 0; func_idx < action.function_vec.size(); ++func_idx){
                 action.function_vec[func_idx].Call<void, VirtualCPUOrg&, const inst_t&>(org, inst);
               }
-            },
-            action.num_args, 
-            "test", 
-            emp::ScopeType::NONE, // No scope type, but must provide
-            (size_t) -1,          // 
-            std::unordered_set<std::string>(),
-            action.data.Get<int>("inst_id"));
-        std::cout << "Added instruction: " << action.name << std::endl;
+            },                                 // Function that will be executed
+            action.num_args,                   // Number of arguments
+            desc,                              // Description 
+            emp::ScopeType::NONE,              // No scope type, but must provide
+            (size_t) -1,                       // Scope arg, must provide 
+            std::unordered_set<std::string>(), // Instruction properties
+            action.data.Get<int>("inst_id"));  // Instruction ID
       }
     }
 
