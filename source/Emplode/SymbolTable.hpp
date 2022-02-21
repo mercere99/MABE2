@@ -1,12 +1,27 @@
 /**
  *  @note This file is part of Emplode, currently within https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2021.
+ *  @date 2021-2022.
  *
  *  @file  SymbolTable.hpp
  *  @brief Manages linking names to associated data in the Emplode language.
  *  @note Status: BETA
  * 
+ *  The SymbolTable maintains the links of all identifiers with values in Emplode.  It is built
+ *  upon SymbolTableBase, which handles most anonymous (temporary) symbols and wrapping of functions.
+ * 
+ *  Specifically, the symbol table keeps track of:
+ *  - The global scope for the current run; all other non-anonymous scopes can be reached from here
+ *     and symbols are stored inside of scopes.
+ *  - The event manager for all events that can be triggered.
+ *  - The current set of types available in Emplode
+ *  - The current set of files (or streams) used by Emplode
+ * 
+ *  The main member functions are:
+ *  - AddFunction()
+ *  - AddType()
+ * 
+ *  Other identifiers should be added through their individual scopes.
  */
 
 #ifndef EMPLODE_SYMBOL_TABLE_HPP
