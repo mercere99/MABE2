@@ -33,11 +33,12 @@ namespace emplode {
     using symbol_vector_t = const emp::vector<symbol_ptr_t> &;
     using target_t = symbol_ptr_t( symbol_vector_t );
 
-    // Quickly allocate a temporary symbol with a given value.
-    // NOTE: Caller is responsible for deleting the created symbol!
+    /// Allocate a temporary (unnamed) object symbol with a given value.
+    /// NOTE: Caller is responsible for deleting the created symbol!
     virtual emp::Ptr<Symbol_Object>
     MakeTempObjSymbol(emp::TypeID type_id, emp::Ptr<EmplodeType> value_ptr=nullptr) = 0;
 
+    /// Allocate a temporary symbol with the given type and value.
     template <typename T>
     auto MakeTempSymbol(T value) {
       if constexpr (std::is_base_of<EmplodeType, T>()) {
@@ -49,6 +50,8 @@ namespace emplode {
       }
     }
 
+    /// Return a function that uses a C++ object's operator=() to copy a corresponding
+    /// Emplode object.
     template <typename T>
     static auto DefaultCopyFun() {
       return [](const EmplodeType & from, EmplodeType & to) {
@@ -60,6 +63,8 @@ namespace emplode {
       };
     }
 
+    /// Take in a value of an arbitrary type and convert it to a symbol (likely temporary)
+    /// for use in performing a computation.
     template <typename T>
     symbol_ptr_t ValueToSymbol( T && value, const std::string & location ) {
       constexpr bool is_ref = std::is_lvalue_reference<T>();
@@ -97,9 +102,10 @@ namespace emplode {
     }
 
 
+    /// A generic helper class for wrapping functions (must be specialized based on argument count)
     template <typename FUN_T, typename INDEX_Ts> struct WrapFunction_impl;
 
-    // Specialization for functions with NO arguments
+    /// Specialization for functions with NO arguments
     template <typename RETURN_T>
     struct WrapFunction_impl<RETURN_T(), emp::ValPack<>> {
 
@@ -116,7 +122,7 @@ namespace emplode {
 
     };
 
-    // Specialization for functions with AT LEAST ONE argument.
+    /// Specialization for functions with AT LEAST ONE argument.
     template <typename RETURN_T, typename PARAM1_T, typename... PARAM_Ts, auto... INDEX_VALS>
     struct WrapFunction_impl<RETURN_T(PARAM1_T, PARAM_Ts...), emp::ValPack<INDEX_VALS...>> {
       using this_fun_t = RETURN_T(PARAM1_T, PARAM_Ts...);
