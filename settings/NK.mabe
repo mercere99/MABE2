@@ -8,7 +8,8 @@ Population next_pop;            // Temporary population while constructing the n
 BitsOrg bits_org {              // Organism consisting of a series of N bits.
   output_name = "bits";         // Name of variable to contain bit sequence.
   N = num_bits;                 // Number of bits in organism
-  mut_prob = 0.01;	           	// Probability of each bit mutating on reproduction.
+  mut_prob = 0.01;              // Probability of each bit mutating on reproduction.
+  init_random = 1;              // Should we randomize ancestor?  (0 = all zeros)
 };
 
 EvalNK eval_nk {                // Evaluate bitstrings on an NK fitness lanscape.
@@ -22,7 +23,7 @@ SelectElite elite {             // Choose the top fitness organisms for replicat
   top_count = 5;                // Number of top-fitness orgs to be replicated
   fitness_fun = "fitness";      // Which trait provides the fitness value to use?
 };
-SelectTournament tournament {   // Select the top fitness organisms from random subgroups for replication.
+SelectTournament tournament {   // Replicate most fit organisms from random subgroups
   tournament_size = 7;          // Number of orgs in each tournament
   fitness_fun = "fitness";      // Which trait provides the fitness value to use?
 };
