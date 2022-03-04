@@ -89,7 +89,7 @@ namespace mabe {
       while (mut_pos != -1) {
         double & cur_val = vals[mut_pos];        // Identify the next site to mutate.
         total -= cur_val;                        // Remove old value from the total.
-        cur_val += random.GetRandNormal();       // Mutate the value at the site.
+        cur_val += random.GetNormal();       // Mutate the value at the site.
         SharedData().ApplyBounds(cur_val);       // Make sure the value stays in the allowed range.
         total += cur_val;                        // Add the update value back into the total.
         mut_pos = mut_sites.FindOne(mut_pos+1);  // Move on to the next site to mutate.
