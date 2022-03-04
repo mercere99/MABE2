@@ -21,7 +21,7 @@ Symbol_Object     - [Symbol_Scope,EmplodeType]
 
 AST               - [Symbol_Object,Symbol,SymbolTableBase]
 
-Events            - [AST]
+EventManager      - [AST]
 DataFile          - [EmplodeType]
 
 SymbolTable       - [Events,Symbol_Scope]
