@@ -105,7 +105,7 @@ namespace emplode {
                                             *type_info_ptr, obj_owned);
 
       // Copy over all of the internal symbols.
-      for (auto [name, ptr] : symbol_table) { out->symbol_table[name] = ptr->Clone(); }
+      for (auto [name, ptr] : symbol_map) { out->symbol_map[name] = ptr->Clone(); }
       // @CAO: Will linkages be in place?
 
       return out;
