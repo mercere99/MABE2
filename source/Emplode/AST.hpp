@@ -289,7 +289,7 @@ namespace emplode {
     }
 
     symbol_ptr_t Process() override {
-      symbol_ptr_t test = children[0]->Process();  // Determine the left-hand-side value.
+      symbol_ptr_t test = children[0]->Process();  // Determine the state of the condition
 
       // Handle TRUE
       if (test->AsDouble() != 0.0) {
@@ -316,6 +316,41 @@ namespace emplode {
         os << "\n" << offset << "ELSE ";
         children[2]->Write(os, offset);
       }
+    }
+  };
+
+  class ASTNode_While : public ASTNode_Internal {
+  public:
+    ASTNode_While(node_ptr_t test, node_ptr_t body, int _line=-1) {
+      AddChild(test);
+      AddChild(body);
+      line_id = _line;
+    }
+
+    symbol_ptr_t Process() override {
+
+      while (true) {
+        // Determine the state of the condition
+        symbol_ptr_t test = children[0]->Process();
+        bool result = test->AsDouble();
+        if (test->IsTemporary()) test.Delete();
+
+        // Stop looping if/when the condition fails.
+        if (!result) break;
+
+        // If we made it this far, process the body.
+        symbol_ptr_t body_result = children[1]->Process();
+        if (body_result && body_result->IsTemporary()) body_result.Delete();
+      }
+
+      return nullptr;
+    }
+
+    void Write(std::ostream & os, const std::string & offset) const override { 
+      os << "WHILE (";
+      children[0]->Write(os, offset);
+      os << ") ";
+      children[1]->Write(os, offset);
     }
   };
 
