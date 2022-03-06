@@ -602,6 +602,14 @@ namespace emplode {
       return emp::NewPtr<ASTNode_If>(test_node, true_node, else_node, keyword_line);
     }
 
+    else if (state.UseIfLexeme("WHILE")) {
+      state.UseRequiredChar('(', "Expected '(' to begin IF test condition.");
+      emp::Ptr<ASTNode> test_node = ParseExpression(state);
+      state.UseRequiredChar(')', "Expected ')' to end IF test condition.");
+      emp::Ptr<ASTNode> body_node = ParseStatement(state);
+      return emp::NewPtr<ASTNode_While>(test_node, body_node, keyword_line);
+    }
+
 
     // If we made it this far, we have an error.  Identify and deal with it!
 
