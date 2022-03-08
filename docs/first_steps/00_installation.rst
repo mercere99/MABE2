@@ -2,6 +2,22 @@
 Installation
 ============
 
+Quick Installation
+==================
+
+Assuming you already have git and your compiler set up, you should be able to
+download and compile MABE by executing the following lines in your terminal:
+
+.. code-block::
+
+  git clone --recurse-submodules https://github.com/mercere99/MABE2.git
+  cd MABE2/build
+  make
+
+.. 
+
+If that doesn't work, read the rest of this page for more detail.
+
 Installing Git
 ==============
 
@@ -50,11 +66,12 @@ For more information about SSH keys, checkout `this guide <https://docs.github.c
 Once you have the URL copied to your clipboard, open your command line. 
 
 Change your current working directory to the location where you want the cloned directory. 
-Type ``git clone``, then paste the URL into your command line.
+Type ``git clone``, then paste the URL into your command line. Use the ``--recurse-submodules``
+flag to ensure that all dependencies are made available. 
 
 .. code-block::
 
-  $ git clone https://github.com/mercere99/MABE2.git
+  $ git clone --recurse-submodules https://github.com/mercere99/MABE2.git
 
 .. 
 
@@ -63,7 +80,7 @@ in your terminal:
 
 .. code-block::
 
-  $ git clone https://github.com/mercere99/MABE2.git
+  $ git clone --recurse-submodules https://github.com/mercere99/MABE2.git
   > Cloning into `MABE2`...
   > remote: Counting objects: 10, done.
   > remote: Compressing objects: 100% (8/8), done.
@@ -129,6 +146,33 @@ Windows
 The Windows Subsystem for Linux (WSL) makes it easy to run a GNU/Linux environment 
 directly on Windows. For information on installing WSL, checkout `this guide <https://docs.microsoft.com/en-us/windows/wsl/install-win10>`__.
 Once WSL is installed you can follow the same instructions as above. 
+
+
+Compiling MABE
+==============
+
+To compile MABE, go to the ``build`` sub-directory within MABE and run ``make``:
+
+.. code-block::
+
+  cd MABE2/build
+  make
+
+.. 
+
+MABE can also be compiled in debug mode, which does various additional checking to make sure
+everything is running according to plan. Debug mode will make MABE run substantially slower, so it
+is not recommended for use when you are not actively debugging, but it very helpful for identifying the
+source of errors:
+
+To compile MABE in debug mode, use the ``debug`` make target:
+
+.. code-block::
+
+  cd MABE2/build
+  make debug
+
+.. 
 
 Next Steps
 ==========
