@@ -64,6 +64,24 @@ namespace emplode {
 
     virtual void Write(std::ostream & /* os */=std::cout,
                        const std::string & /* offset */="") const { }
+
+    // Helper alternatives for Process()
+
+    /// Run process and clean up any returned symbols automatically, as needed.
+    void ProcessVoid() {
+      symbol_ptr_t out = Process();
+      if (out && out->IsTemporary()) out.Delete();
+    }
+
+    /// Run process, convert the return value to a double, and clean up the symbol if needed.
+    template <typename T>
+    T ProcessAs() {
+      symbol_ptr_t symbol_ptr = Process();                // Run process, collecting the result.
+      if (!symbol_ptr) return T();                        // Any non value will return a zero.
+      T result = symbol_ptr->As<T>();                     // Convert the result to the return type.
+      if (symbol_ptr->IsTemporary()) symbol_ptr.Delete(); // If we are done with input; delete the symbol!
+      return result;
+    }
   };
 
   /// An ASTNode representing an internal node.
@@ -168,10 +186,7 @@ namespace emplode {
     void SetSymbolTable(SymbolTableBase & _st) { symbol_table = &_st; }
 
     symbol_ptr_t Process() override {
-      for (auto node : children) {
-        symbol_ptr_t out = node->Process();
-        if (out && out->IsTemporary()) out.Delete();
-      }
+      for (auto node : children) node->ProcessVoid();
       return nullptr;
     }
 
@@ -200,11 +215,8 @@ namespace emplode {
 
     symbol_ptr_t Process() override {
       emp_assert(children.size() == 1);
-      symbol_ptr_t input_symbol =
-        children[0]->Process();                        // Process child to get input symbol
-      double output_value = fun(input_symbol->AsDouble());    // Run the function to get ouput value
-      if (input_symbol->IsTemporary()) input_symbol.Delete(); // If we are done with input; delete!
-      return GetSymbolTable().MakeTempSymbol(output_value);
+      double result = fun(children[0]->ProcessAs<double>());    // Run the function to get ouput value
+      return GetSymbolTable().MakeTempSymbol(result);
     }
 
     void Write(std::ostream & os, const std::string & offset) const override { 
@@ -231,11 +243,8 @@ namespace emplode {
 
     symbol_ptr_t Process() override {
       emp_assert(children.size() == 2);
-      symbol_ptr_t in1 = children[0]->Process();       // Process 1st child to input symbol
-      symbol_ptr_t in2 = children[1]->Process();       // Process 2nd child to input symbol
-      auto out_val = fun(in1->As<ARG1_T>(), in2->As<ARG2_T>()); // Run function; get ouput
-      if (in1->IsTemporary()) in1.Delete();                   // If we are done with in1; delete!
-      if (in2->IsTemporary()) in2.Delete();                   // If we are done with in2; delete!
+      auto out_val = fun(children[1]->template ProcessAs<ARG1_T>(),
+                         children[2]->template ProcessAs<ARG2_T>());
       return GetSymbolTable().MakeTempSymbol(out_val);
     }
 
@@ -268,8 +277,7 @@ namespace emplode {
       symbol_ptr_t lhs = children[0]->Process();  // Determine the left-hand-side value.
       symbol_ptr_t rhs = children[1]->Process();  // Determine the right-hand-side value.
 
-      // @CAO Should make sure that lhs is properly assignable.
-      bool success = lhs->CopyValue(*rhs);
+      bool success = lhs && lhs->CopyValue(*rhs);
       if (!success) {
         std::cerr << "Error: copy to '" << lhs->GetName() << "' failed" << std::endl;
         exit(1);
@@ -289,21 +297,11 @@ namespace emplode {
     }
 
     symbol_ptr_t Process() override {
-      symbol_ptr_t test = children[0]->Process();  // Determine the state of the condition
+      double test = children[0]->ProcessAs<double>();            // Determine the state of the condition
 
-      // Handle TRUE
-      if (test->AsDouble() != 0.0) {
-        symbol_ptr_t result = children[1]->Process();
-        if (result && result->IsTemporary()) result.Delete();
-      }
-
-      // Handle FALSE
-      else if (children.size() > 2) {
-        symbol_ptr_t result = children[2]->Process();
-        if (result && result->IsTemporary()) result.Delete();
-      }
+      if (test != 0.0) children[1]->ProcessVoid();               // Handle TRUE
+      else if (children.size() > 2) children[2]->ProcessVoid();  // Handle FALSE
       
-      if (test->IsTemporary()) test.Delete();
       return nullptr;
     }
 
@@ -329,18 +327,8 @@ namespace emplode {
 
     symbol_ptr_t Process() override {
 
-      while (true) {
-        // Determine the state of the condition
-        symbol_ptr_t test = children[0]->Process();
-        bool result = test->AsDouble();
-        if (test->IsTemporary()) test.Delete();
-
-        // Stop looping if/when the condition fails.
-        if (!result) break;
-
-        // If we made it this far, process the body.
-        symbol_ptr_t body_result = children[1]->Process();
-        if (body_result && body_result->IsTemporary()) body_result.Delete();
+      while (children[0]->ProcessAs<double>()) {
+        children[1]->ProcessVoid();
       }
 
       return nullptr;
