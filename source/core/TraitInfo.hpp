@@ -11,7 +11,7 @@
  *
  *  The TARGET indicates what type of object the trait should be applied to.
  *    [ORGANISM]   - Every organism in MABE must have this trait.
- *    [POPULATUON] - Collections of organsims must have this trait.
+ *    [POPULATION] - Collections of organsims must have this trait.
  *    [MODULE]     - Every module attached to MABE must have this trait.
  *    [MANAGER]    - Every OrganismManager must have this trait.
  * 
@@ -27,16 +27,16 @@
  *  (note that injected organisms always get the DEFAULT value.)
  *    [DEFAULT]    - Always initialize this trait to its default value.
  *    [FIRST]      - Initialize trait to the first parent's value (only parent for asexual runs)
- *    [AVERAGE]    - Initiialize trait to the average value of all parents.
- *    [MINIMUM]    - Initiialize trait to the minimum value of all parents.
- *    [MAXIMUM]    - Initiialize trait to the maximum value of all parents.
+ *    [AVERAGE]    - Initialize trait to the average value of all parents.
+ *    [MINIMUM]    - Initialize trait to the minimum value of all parents.
+ *    [MAXIMUM]    - Initialize trait to the maximum value of all parents.
  *
  *  The ARCHIVE method determines how many older values should be saved with each organism.
  *    [NONE]       - Only the most recent value should be tracked, no archived values.
  *    [AT_BIRTH]   - Store value of this trait was born with in "birth_(name)".
  *    [LAST_REPRO] - Store value of trait at the last reproduction in "last_(name)".
  *    [ALL_REPROS] - Store all value of trait at each reproduction event in "archive_(name)".
- *    [ALL_VALUES] - Store every value chane of trait at any time in "sequence_(name)".
+ *    [ALL_VALUES] - Store every value change of trait at any time in "sequence_(name)".
  *
  *  The SUMMARY method determines how a trait should be summarized over a collection of organisms.
  *    [[[ needs refinement... ]]]
@@ -83,7 +83,7 @@ namespace mabe {
       NUM_ACCESS   ///< How many access methods are there?
     };
 
-    /// How should this trait be initialized in a newly-born organism?
+    /// How should this trait be initialized (via inheritance) in a newly-born organism?
     /// * Injected organisms always use the default value.
     /// * Modules can moitor signals to make other changes at any time.
     enum class Init {
@@ -91,7 +91,8 @@ namespace mabe {
       FIRST,     ///< Trait is inhereted (from first parent if more than one)
       AVERAGE,   ///< Trait becomes average of all parents on birth.
       MINIMUM,   ///< Trait becomes lowest of all parents on birth.
-      MAXIMUM    ///< Trait becomes highest of all parents on birth.
+      MAXIMUM,   ///< Trait becomes highest of all parents on birth.
+      RANDOM     ///< Choose a random parent and use its value.
     };
 
     /// Which information should we store in the trait as we go?
@@ -114,7 +115,7 @@ namespace mabe {
 
     /// How should these data be summarized in groups such as whole population or phyla types
     /// (such as Genotype, Species, etc.)  Some traits shouldn't be summarized at all (IGNORE)
-    /// Otherwise the summary values can be takens as:
+    /// Otherwise the summary values can be taken as:
     enum class Summary {
       IGNORE=0,   ///< Don't include this trait in phyla records.
       AVERAGE,    ///< Average of current value of all organisms (or final value at death).

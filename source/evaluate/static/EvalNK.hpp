@@ -23,7 +23,6 @@ namespace mabe {
     size_t N;
     size_t K;    
     NKLandscape landscape;
-    mabe::Collection target_collect;
 
     std::string bits_trait;
     std::string fitness_trait;
@@ -35,7 +34,6 @@ namespace mabe {
            size_t _N=100, size_t _K=3, const std::string & _btrait="bits", const std::string & _ftrait="fitness")
       : Module(control, name, desc)
       , N(_N), K(_K)
-      , target_collect(control.GetPopulation(0))
       , bits_trait(_btrait)
       , fitness_trait(_ftrait)
     {
@@ -43,8 +41,17 @@ namespace mabe {
     }
     ~EvalNK() { }
 
+    // Setup member functions associated with this class.
+    static void InitType(emplode::TypeInfo & info) {
+      info.AddMemberFunction("EVAL",
+                             [](EvalNK & mod, Collection list) { return mod.Evaluate(list); },
+                             "Use NK landscape to evaluate all orgs in an OrgList.");
+      info.AddMemberFunction("RESET",
+                             [](EvalNK & mod) { mod.landscape.Config(mod.N, mod.K, mod.control.GetRandom()); return 0; },
+                             "Regenerate the NK landscape with current N and K.");
+    }
+
     void SetupConfig() override {
-      LinkCollection(target_collect, "target", "Which population(s) should we evaluate?");
       LinkVar(N, "N", "Number of bits required in output");
       LinkVar(K, "K", "Number of bits used in each gene");
       LinkVar(bits_trait, "bits_trait", "Which trait stores the bit sequence to evaluate?");
@@ -60,20 +67,18 @@ namespace mabe {
       landscape.Config(N, K, control.GetRandom());  // Setup the fitness landscape.
     }
 
-    void OnUpdate(size_t /* update */) override {
-      emp_assert(control.GetNumPopulations() >= 1);
-
+    double Evaluate(const Collection & orgs) {
       // Loop through the population and evaluate each organism.
       double max_fitness = 0.0;
       emp::Ptr<Organism> max_org = nullptr;
-      mabe::Collection alive_collect( target_collect.GetAlive() );
-      for (Organism & org : alive_collect) {
+      mabe::Collection alive_orgs( orgs.GetAlive() );
+      for (Organism & org : alive_orgs) {
         org.GenerateOutput();
         const auto & bits = org.GetTrait<emp::BitVector>(bits_trait);
         if (bits.size() != N) {
-          AddError("Org returns ", bits.size(), " bits, but ",
-                   N, " bits needed for NK landscape.",
-                   "\nOrg: ", org.ToString());
+          emp::notify::Error("Org returns ", bits.size(), " bits, but ",
+                             N, " bits needed for NK landscape.",
+                             "\nOrg: ", org.ToString());
         }
         double fitness = landscape.GetFitness(bits);
         org.SetTrait<double>(fitness_trait, fitness);
@@ -84,8 +89,14 @@ namespace mabe {
         }
       }
 
-      std::cout << "Max " << fitness_trait << " = " << max_fitness << std::endl;
+      return max_fitness;
     }
+
+    // If a population is provided to Evaluate, first convert it to a Collection.
+    double Evaluate(Population & pop) { return Evaluate( Collection(pop) ); }
+
+    // If a string is provided to Evaluate, convert it to a Collection.
+    double Evaluate(const std::string & in) { return Evaluate( control.ToCollection(in) ); }
   };
 
   MABE_REGISTER_MODULE(EvalNK, "Evaluate bitstrings on an NK fitness lanscape.");

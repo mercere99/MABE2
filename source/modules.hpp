@@ -13,23 +13,18 @@
 #include "evaluate/static/EvalDiagnostic.hpp"
 #include "evaluate/static/EvalMatchBits.hpp"
 #include "evaluate/static/EvalNK.hpp"
+#include "evaluate/static/EvalPacking.hpp"
 #include "evaluate/static/EvalRoyalRoad.hpp"
 
 // Interface Modules
-#include "interface/CommandLine.hpp"
-#include "interface/FileOutput.hpp"
 
 // Placement Modules
-#include "placement/GrowthPlacement.hpp"
 
 // Selection Modules
 #include "select/SelectElite.hpp"
-#include "select/SelectTournament.hpp"
 #include "select/SelectLexicase.hpp"
-
-// Other schema
-#include "schema/MovePopulation.hpp"
-#include "schema/Mutate.hpp"
+#include "select/SelectRoulette.hpp"
+#include "select/SelectTournament.hpp"
 
 // Organism Types
 #include "orgs/AvidaGPOrg.hpp"

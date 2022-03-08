@@ -20,50 +20,57 @@ namespace mabe {
   /// Add elite selection with the current population.
   class SelectElite : public Module {
   private:
-    std::string trait;       ///< Which trait should we select on?
-    size_t top_count=1;      ///< Top how-many should we select?
-    size_t copy_count=1;     ///< How many copies of each should we make?
-    int select_pop_id = 0;   ///< Which population are we selecting from?
-    int birth_pop_id = 1;    ///< Which population should births go into?
+    std::string fit_equation;    ///< Which equation should we select on?
+    size_t top_count=1;          ///< Top how-many should we select?
+
+    Collection Select(Population & select_pop, Population & birth_pop, size_t num_births) {
+      auto fit_fun = control.BuildTraitEquation(select_pop, fit_equation);
+
+      // Construct a map of all IDs to their associated fitness values.
+      emp::valsort_map<OrgPosition, double> id_fit_map;  // @CAO: Better to use a heap?
+      for (auto it = select_pop.begin(); it != select_pop.end(); it++) {
+        id_fit_map.Set(it.AsPosition(), fit_fun(*it));
+      }
+
+      // Loop through the IDs in fitness order (from highest), replicating each
+      Collection placement_list;
+      for (auto it = id_fit_map.crvbegin(); it != id_fit_map.crvend() && top_count; it++) {
+        size_t copy_count = std::ceil(((double)num_births) / (double) top_count--);
+        num_births -= copy_count;
+        placement_list += control.Replicate(it->first, birth_pop, copy_count);
+      }
+      return placement_list;
+    }
 
   public:
     SelectElite(mabe::MABE & control,
-               const std::string & name="SelectElite",
-               const std::string & desc="Module to choose the top fitness organisms for replication.",
-               const std::string & in_trait="fitness", size_t tcount=1, size_t ccount=1)
+                const std::string & name="SelectElite",
+                const std::string & desc="Module to choose the top fitness organisms for replication.",
+                const std::string & in_fit_equation="fitness", size_t tcount=1)
       : Module(control, name, desc)
-      , trait(in_trait), top_count(tcount), copy_count(ccount)
+      , fit_equation(in_fit_equation), top_count(tcount)
     {
       SetSelectMod(true);               ///< Mark this module as a selection module.
     } 
     ~SelectElite() { }
 
+    // Setup member functions associated with this class.
+    static void InitType(emplode::TypeInfo & info) {
+      info.AddMemberFunction(
+        "SELECT",
+        [](SelectElite & mod, Population & from, Population & to, double count) {
+          return mod.Select(from,to,count);
+        },
+        "Perform elite selection on the provided organisms.");
+    }
+
     void SetupConfig() override {
-      LinkPop(select_pop_id, "select_pop", "Which population should we select parents from?");
-      LinkPop(birth_pop_id, "birth_pop", "Which population should births go into?");
+      LinkVar(fit_equation, "fitness_fun", "Function used as fitness for selection?");
       LinkVar(top_count, "top_count", "Number of top-fitness orgs to be replicated");
-      LinkVar(copy_count, "copy_count", "Number of copies to make of replicated organisms");
-      LinkVar(trait, "fitness_trait", "Which trait provides the fitness value to use?");
     }
 
     void SetupModule() override {
-      AddRequiredTrait<double>(trait);  ///< The fitness trait must be set by another module.
-    }
-
-    void OnUpdate(size_t /* update */) override {
-      // Construct a map of all IDs to their associated fitness values.
-      emp::valsort_map<OrgPosition, double> id_fit_map;
-      Collection select_col = control.GetAlivePopulation(select_pop_id);
-      for (auto it = select_col.begin(); it != select_col.end(); it++) {
-        id_fit_map.Set(it.AsPosition(), it->GetTrait<double>(trait));
-      }
-
-      // Loop through the IDs in fitness order (from highest), replicating each
-      size_t num_reps = 0;
-      Population & birth_pop = control.GetPopulation(birth_pop_id);
-      for (auto it = id_fit_map.crvbegin(); it != id_fit_map.crvend() && num_reps++ < top_count; it++) {
-        control.Replicate(it->first, birth_pop, copy_count);
-      }
+      AddRequiredEquation(fit_equation);   // The fitness traits must be set by another module.
     }
   };
 

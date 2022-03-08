@@ -1,4 +1,0 @@
-==========
-Quickstart
-==========
-Quickstart coming soon.

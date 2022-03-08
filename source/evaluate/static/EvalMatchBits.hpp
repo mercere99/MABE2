@@ -23,93 +23,109 @@ namespace mabe {
 
   class EvalMatchBits : public Module {
   private:
-    int eval_pop1 = 0;
-    int eval_pop2 = 0;
+    enum Type {
+      MATCH_COUNT,
+      MISMATCH_COUNT,
+      UNKNOWN
+    };
 
     std::string bits_trait = "bits";
-    std::string fitness_trait = "bit_matches";
-    bool count_matches;   // =0 counts MISmatches, or =1 for count matches.
+    std::string score_trait = "bit_matches";
+    Type match_type = Type::MATCH_COUNT;
+    bool record_both = false;             // Save result on both organisms? (vs. first only)
+    double empty_score = 0.0;             // Score to give orgs matched with empty positions.
 
   public:
     EvalMatchBits(mabe::MABE & control,
                   const std::string & name="EvalMatchBits",
-                  const std::string & desc="Evaluate bitstrings by counting ones (or zeros).")
+                  const std::string & desc="Evaluate org bitstring by counting matches with another org's bisstring.")
       : Module(control, name, desc)
     {
       SetEvaluateMod(true);
     }
     ~EvalMatchBits() { }
 
-    void SetupConfig() override {
-      LinkPop(eval_pop1, "eval_pop1", "Population to evaluate.");
-      LinkPop(eval_pop2, "eval_pop2", "Population to compare to.");
+    // Setup member functions associated with this class.
+    static void InitType(emplode::TypeInfo & info) {
+      info.AddMemberFunction("EVAL",
+                             [](EvalMatchBits & mod, Collection list1, Collection list2) {
+                               return mod.Evaluate(list1, list2);
+                              },
+                             "Evaluate Bit Matching by comparing orgs in the two OrgLists.");
+    }
 
+    void SetupConfig() override {
       LinkVar(bits_trait, "bits_trait", "Trait storing bit sequence to evaluate.");
-      LinkVar(fitness_trait, "fitness_trait", "Trait to store fitness result.");
-      LinkVar(count_matches, "count_matches", "=0 counts MISmatches, or =1 for count matches.");
+      LinkVar(score_trait, "score_trait", "Trait to store match score result.");
+      LinkMenu(match_type, "match_type", "How should the bit sequences be compared?",
+        Type::MATCH_COUNT, "match_count", "Count bit positions with the same value.",
+        Type::MISMATCH_COUNT, "mismatch_count", "Count bit positions with the different values.");
+      LinkVar(record_both, "record_both", "Save result on both organisms? (0 -> first only)");
+      LinkVar(empty_score, "empty_score", "Score to give orgs matched again an empty position?");
     }
 
     void SetupModule() override {
       AddRequiredTrait<emp::BitVector>(bits_trait);
-      AddOwnedTrait<double>(fitness_trait, "All-ones fitness value", 0.0);
+      AddOwnedTrait<double>(score_trait, "Match score value", 0.0);
     }
 
-    void OnUpdate(size_t /* update */) override {
+    double EvaluateMatch(Organism & org1, Organism & org2) {      
+      double match_score = empty_score;
+
+      // Only calculate a real score if both organisms are non-empty.
+      if (!org1.IsEmpty() && !org2.IsEmpty()) {
+        // Make sure both organisms have bit sequences ready for us to access.
+        org1.GenerateOutput();
+        org2.GenerateOutput();
+
+        const emp::BitVector & bits1 = org1.GetTrait<emp::BitVector>(bits_trait);
+        const emp::BitVector & bits2 = org2.GetTrait<emp::BitVector>(bits_trait);
+        org1.SetTrait<double>(score_trait, match_score);
+
+        // Count the number of matches in the bit sequences.
+        switch (match_type) {
+          case Type::MATCH_COUNT:
+            match_score = (double) (bits1 ^ bits2).CountZeros();
+            break;
+          case Type::MISMATCH_COUNT:          
+            match_score = (double) (bits1 ^ bits2).CountOnes();
+            break;
+          default:
+            emp_error("Unknown match type for EvalMatchBits!");
+            match_score = -1.0;
+        }
+      }
+
+      if (!org1.IsEmpty()) {
+        org1.SetTrait<double>(score_trait, match_score);
+      }
+      if (record_both && !org2.IsEmpty()) {
+        org2.SetTrait<double>(score_trait, match_score);
+      }
+
+      return match_score;
+    }
+
+
+    double Evaluate(Collection orgs1, Collection orgs2) {
       emp_assert(control.GetNumPopulations() >= 1);
 
       // Loop through the populations and evaluate each organism pair.
       double best_match = 0.0;
-      Population & pop1 = control.GetPopulation(eval_pop1);
-      Population & pop2 = control.GetPopulation(eval_pop2);
 
-      // Loop through all organisms in the first population, matching them with the second.
-      for (size_t pos = 0; pos < pop1.GetSize(); pos++) {
-        // If the first population is empty, still check for organism in the second to score.
-        if (pop1.IsEmpty(pos)) {
-          if (pop2.IsOccupied(pos)) pop2[pos].SetTrait<double>(fitness_trait, 0.0);
-          continue;  // Skip over empty cell in first population.
-        }
+      // @CAO Should be a user-level error.
+      emp_assert (orgs1.GetSize() == orgs2.GetSize(),
+                  "EvalMatchBits::Evaluate requires two OrgLists of the same size.");
 
-        Organism & org = pop1[pos];
-
-        // If there is NO corresponding organisms in pop2, return a zero match.
-        double fitness = 0.0;
-        if (pop2.IsOccupied(pos)) {
-          // Find the corresponding organism in the compare population.
-          Organism & org2 = pop2[pos];
-
-          // Make sure both organisms have bit sequences ready for us to access.
-          org.GenerateOutput();
-          org2.GenerateOutput();
-
-          // Count the number of matches in the bit sequences.
-          const emp::BitVector & bits1 = org.GetTrait<emp::BitVector>(bits_trait);
-          const emp::BitVector & bits2 = org2.GetTrait<emp::BitVector>(bits_trait);
-
-          if (count_matches) {
-            fitness = (double) (bits1 ^ bits2).CountZeros();
-          }
-          else {
-            fitness = (double) (bits1 ^ bits2).CountOnes();
-          }
-
-          if (fitness > best_match) best_match = fitness;
-
-          // Store the count on the second organism in the fitness trait.
-          org2.SetTrait<double>(fitness_trait, fitness);
-
-        }
-
-        // Store the count on the organism in the fitness trait.
-        org.SetTrait<double>(fitness_trait, fitness);
-
+      auto it1 = orgs1.begin();
+      auto it2 = orgs2.begin();
+      while (it1 != orgs1.end()) {
+        const double match = EvaluateMatch(*it1, *it2);
+        if (match > best_match) best_match = match;
+        ++it1; ++it2;
       }
 
-      // If pop2 is bigger, make sure to mark any extra organisms as having a zero match fitness.
-      for (size_t pos = pop1.GetSize(); pos < pop2.GetSize(); pos++) {
-        if (pop2.IsOccupied(pos)) pop2[pos].SetTrait<double>(fitness_trait, 0.0);
-      }
-
+      return best_match;
     }
   };
 

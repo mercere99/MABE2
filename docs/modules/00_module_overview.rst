@@ -9,7 +9,7 @@ MABE2 implements seven types of modules: :ref:`organisms`, evaluators, `selectio
 `placement modules <01_module_types.html>`_, `schema modules <01_module_types.html>`_, `analysis modules <01_module_types.html>`_, 
 and `interface modules <01_module_types.html>`_. Modules of a given type are interchangeable, 
 so switching from one brain type to another is as simple as changing a brain type parameter. This feature allows
-users to focus their efforts specific aspects of their projecrts by only developing or modifying the modules of interest 
+users to focus their efforts specific aspects of their projects by only developing or modifying the modules of interest 
 to them, by reusing existing modules when possible, and by not requiring detailed understanding of the entirety 
 of MABE2. 
 

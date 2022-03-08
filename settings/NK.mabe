@@ -1,63 +1,78 @@
 random_seed = 0;                // Seed for random number generator; use 0 to base on time.
-Population main_pop;            // Collection of organisms
-Population next_pop;            // Collection of organisms
+Var pop_size = 1000;            // Number of organisms to evaluate in the population.
+Var num_bits = 100;             // Number of bits in each organism (and the NK landscape)
 
-Value pop_size = 1000;
-
-CommandLine cl {                // Handle basic I/O on the command line.
-  target_pop = "main_pop";      // Which population should we print stats about?
-}
-EvalNK eval_nk {                // Evaluate bitstrings on an NK fitness lanscape.
-  target = "main_pop";          // Which population should we evaluate?
-  N = 100;                      // Number of bits required in output
-  K = 3;                        // Number of bits used in each gene
-  bits_trait = "bits";          // Which trait stores the bit sequence to evaluate?
-  fitness_trait = "fitness";    // Which trait should we store NK fitness in?
-}
-
-FileOutput output {
-  filename = "output.csv";      // Name of file for output data.
-
-  // Column format to use in the file.
-  format = "fitness,fitness:richness,fitness:mode,fitness:max,fitness:mean,fitness:stddev,fitness:entropy,bits";
-  target = "main_pop";          // Which population(s) should we print from?
-  output_updates = "0:10";      // Which updates should we output data?
-}
-
-SelectElite select_e {          // Choose the top fitness organisms for replication.
-  select_pop = "main_pop";      // Which population should we select parents from?
-  birth_pop = "next_pop";       // Which population should births go into?
-  top_count = 5;                // Number of top-fitness orgs to be replicated
-  copy_count = 5;               // Number of copies to make of replicated organisms
-  fitness_trait = "fitness";    // Which trait provides the fitness value to use?
-  Value total_count = top_count * copy_count;
-}
-SelectTournament select_t {     // Select the top fitness organisms from random subgroups for replication.
-  select_pop = "main_pop";      // Which population should we select parents from?
-  birth_pop = "next_pop";       // Which population should births go into?
-  tournament_size = 7;          // Number of orgs in each tournament
-
-  num_tournaments = pop_size - select_e.total_count;  // Number of tournaments to run
-  fitness_trait = "fitness";    // Which trait provides the fitness value to use?
-}
-
-GrowthPlacement place_next {    // Always appened births to the end of a population.
-  target = "next_pop,main_pop"; // Population(s) to manage.
-}
-
-MovePopulation sync_gen {       // Move organisms from one populaiton to another.
-  from_pop = "next_pop";        // Population to move organisms from.
-  to_pop = "main_pop";          // Population to move organisms into.
-  reset_to = 1;                 // Should we erase organisms at the destination?
-}
+Population main_pop;            // Main population for managing candidate solutions.
+Population next_pop;            // Temporary population while constructing the next generation.
 
 BitsOrg bits_org {              // Organism consisting of a series of N bits.
   output_name = "bits";         // Name of variable to contain bit sequence.
-  N = eval_nk.N;                // Number of bits in organism
-  mut_prob = 0.01;		// Probability of each bit mutating on reproduction.
+  N = num_bits;                 // Number of bits in organism
+  mut_prob = 0.01;	           	// Probability of each bit mutating on reproduction.
+};
+
+EvalNK eval_nk {                // Evaluate bitstrings on an NK fitness lanscape.
+  N = num_bits;                 // Number of bits required in output
+  K = 3;                        // Number of bits used in each gene
+  bits_trait = "bits";          // Which trait stores the bit sequence to evaluate?
+  fitness_trait = "fitness";    // Which trait should we store NK fitness in?
+};
+
+SelectElite elite {             // Choose the top fitness organisms for replication.
+  top_count = 5;                // Number of top-fitness orgs to be replicated
+  fitness_fun = "fitness";      // Which trait provides the fitness value to use?
+};
+SelectTournament tournament {   // Select the top fitness organisms from random subgroups for replication.
+  tournament_size = 7;          // Number of orgs in each tournament
+  fitness_fun = "fitness";      // Which trait provides the fitness value to use?
+};
+
+DataFile fit_file { filename="fitness.csv"; };
+fit_file.ADD_COLUMN( "Average Fitness", "main_pop.CALC_MEAN('fitness')" );
+fit_file.ADD_COLUMN( "Maximum Fitness", "main_pop.CALC_MAX('fitness')" );
+fit_file.ADD_COLUMN( "Dominant Fitness", "main_pop.CALC_MODE('fitness')" );
+
+DataFile max_file { filename="max_org.csv"; };
+OrgList best_org;
+max_file.ADD_SETUP( "best_org = main_pop.FIND_MAX('fitness')" );
+max_file.ADD_COLUMN( "Fitness", "best_org.TRAIT('fitness')" );
+max_file.ADD_COLUMN( "Genome", "best_org.TRAIT('bits')" );
+
+
+@START() {
+  PRINT("random_seed = ", random_seed, "\n");  // Print seed at run start.
+  main_pop.INJECT("bits_org", pop_size);       // Inject starting population.
 }
 
-@start() print("random_seed = ", random_seed, "\n");
-@start() inject("bits_org", "main_pop", pop_size);
-@update(500) select_t.tournament_size = 4;
-@update(1000) exit();
+// Actions to perform every update.
+
+// @UPDATE(Var ud IN [100:100]) OrgList altruists = main_pop.FILTER("altruism > 0");
+// @BEFOREDIVIDE(OrgList parent IN altruists) PRINT("Altruist Birth!");
+
+@UPDATE(Var ud) {
+  IF (ud == 1000) EXIT();
+
+  eval_nk.EVAL(main_pop);
+  Var mode_fit = main_pop.CALC_MODE("fitness");
+  OrgList list_less = main_pop.FILTER("fitness < ${mode_fit}");
+  OrgList list_equ  = main_pop.FILTER("fitness == ${mode_fit}");
+  OrgList list_gtr  = main_pop.FILTER("fitness > ${mode_fit}");
+  PRINT("UD:", GET_UPDATE(),
+        "  MainPopSize=", main_pop.SIZE(),
+        "  AveFitness=", main_pop.CALC_MEAN("fitness"),
+        "  MaxFitness=", main_pop.CALC_MAX("fitness"),
+        "  ModeFitness=", mode_fit,
+        "\nMODE_LESS=", list_less.SIZE(),
+        "  MODE_EQU=", list_equ.SIZE(),
+        "  MODE_GTR=", list_gtr.SIZE(),
+       );
+  fit_file.WRITE();
+  max_file.WRITE();
+
+  OrgList elite_offspring = elite.SELECT(main_pop, next_pop, 25);
+
+  Var num_tournaments = pop_size - elite_offspring.SIZE();  // Calc number of tournaments to run
+  OrgList tourny_offspring = tournament.SELECT(main_pop, next_pop, num_tournaments);
+
+  main_pop.REPLACE_WITH(next_pop);
+}

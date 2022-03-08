@@ -9,7 +9,7 @@
  *  Organisms in MABE are stored in indexed collections (typically Population objects).
  *  This class allows you to refer to the position of an organism and step through sets of organisms.
  * 
- *  An OrgIterator_Interface sets up all of the virutal functions in all iterators.
+ *  An OrgIterator_Interface sets up all of the virtual functions in all iterators.
  *
  *  @todo Add a reverse iterator.
  *  @todo Fix operator-- which can go off of the beginning of the world.
@@ -24,19 +24,18 @@
 #include "emp/base/Ptr.hpp"
 #include "emp/base/vector.hpp"
 
-#include "../config/ConfigType.hpp"
-
 #include "Organism.hpp"
 
 namespace mabe {
 
   /// Base class for all organsim containers, including population.  
-  struct OrgContainer {
+  struct OrgContainer : public EmplodeType {
     virtual ~OrgContainer() { }
 
     virtual std::string GetName() const { return ""; }
     virtual int GetID() const noexcept { return -1; }
     virtual size_t GetSize() const noexcept = 0;
+    virtual bool IsEmpty() const noexcept = 0;
 
     virtual Organism & At(size_t org_id) = 0;
     virtual const Organism & At(size_t org_id) const = 0;
@@ -140,6 +139,9 @@ namespace mabe {
     /// Is the pointed-to cell occupied?
     bool IsEmpty() const { return IsValid() && OrgPtr()->IsEmpty(); }
     bool IsOccupied() const { return IsValid() && !OrgPtr()->IsEmpty(); }
+
+    /// Is this position in the specified population?
+    bool IsInPop(const Population & pop) const { return ConstPopPtr() == &pop; }
 
     /// Advance iterator to the next non-empty cell in the world.
     DERIVED_T & operator++() { IncPosition(); return AsDerived(); }
