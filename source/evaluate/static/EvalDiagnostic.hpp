@@ -17,8 +17,6 @@ namespace mabe {
 
   class EvalDiagnostic : public Module {
   private:
-    Collection target_collect;  // Which organisms should we evaluate?
-
     std::string vals_trait;     // Set of values to evaluate
     std::string scores_trait;   // Vector of scores for each value
     std::string total_trait;    // A single value totalling all of the scores.
@@ -43,7 +41,6 @@ namespace mabe {
                    const std::string & _strait="scores",
                    const std::string & _ttrait="total")
       : Module(control, name, desc)
-      , target_collect(control.GetPopulation(0))
       , vals_trait(_vtrait)
       , scores_trait(_strait)
       , total_trait(_ttrait)
@@ -52,8 +49,16 @@ namespace mabe {
     }
     ~EvalDiagnostic() { }
 
+    // Setup member functions associated with this class.
+    static void InitType(emplode::TypeInfo & info) {
+      info.AddMemberFunction(
+        "EVAL",
+        [](EvalDiagnostic & mod, Collection orgs) { return mod.Evaluate(orgs); },
+        "Evaluate organisms using the specified diagnostic."
+      );
+    }
+
     void SetupConfig() override {
-      LinkCollection(target_collect, "target", "Which population(s) should we evaluate?");
       LinkVar(vals_trait, "vals_trait", "Which trait stores the values to evaluate?");
       LinkVar(scores_trait, "scores_trait", "Which trait should we store revised scores in?");
       LinkVar(total_trait, "total_trait", "Which trait should we store the total score in?");
@@ -72,15 +77,13 @@ namespace mabe {
       AddOwnedTrait<double>(total_trait, "Combined score for current diagnostic.", 0.0);
     }
 
-    void OnUpdate(size_t /* update */) override {
-      emp_assert(control.GetNumPopulations() >= 1);
-
+    double Evaluate(Collection orgs) {
       // Track the organism with the highest total score.
       double max_total = 0.0;
       emp::Ptr<Organism> max_org = nullptr;
 
       // Loop through the living organisms in the target collection to evaluate each.
-      mabe::Collection alive_collect( target_collect.GetAlive() );
+      mabe::Collection alive_collect( orgs.GetAlive() );
       for (Organism & org : alive_collect) {        
         // Make sure this organism has its values ready for us to access.
         org.GenerateOutput();
@@ -162,6 +165,7 @@ namespace mabe {
           max_org = &org;
         }
       }
+      return max_total;
     }
   };
 

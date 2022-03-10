@@ -1,12 +1,11 @@
 This directory contains all of the core functionality for MABE.  This code should never be
-changed for individual experients.
+changed for individual experiments.
 
 # Layout
 
-The core components of MABE are below.  This first group are tools that have minimal internal dependancies (indicated by indentation below the requirement).
+The core components of MABE are below.  This first group are tools that have minimal internal dependencies (indicated by indentation below the requirement).
 
 data_collect.hpp    - Tools to extract data from elements in a container. 
-ErrorManager.hpp    - Track any run-time errors as they occur.
 SigListener.hpp     - Tool to trigger a specified member function on other classes when triggered.
 TraitInfo.hpp       - Specifications for module/trait interactions (on organisms, populations, etc.)
   TraitManager.hpp  - Manager for dealing with many requests for trait management.
@@ -19,8 +18,10 @@ Organism.hpp        - Information about a single agent; ModuleBase is interface 
 OrgIterator.hpp     - Tools for identifying organism locations and stepping through sets of them.
 Population.hpp      - Collection of Organisms (some of which could be EmptyOrganisms)
 Collection.hpp      - A more flexible collection of organisms or whole populations for manipulation.
-MABE.hpp            - Main contoller object; manipulates Populations and Organisms
-Module.hpp          - Modify main MABE contoller functions.
+MABEBase.hpp        - Handles restricted core MABE functionality and provides interface to MABEScript
+MABEScript.hpp      - Builds on Emplode to provide the full MABE scripting language.
+MABE.hpp            - Main controller object; manipulates Populations and Organisms
+Module.hpp          - Modify main MABE controller functions.
 FactoryModule.hpp   - Framework to build specialty modules that manage other config objects.
 OrganismManager.hpp - Specialty Module type to manage organisms with shared configuration.
 EmptyOrganism.hpp   - Specialty Organism type to represent empty cells.
@@ -36,7 +37,7 @@ A new specialty organism class must use OrganismsTemplate<ORG_T> as a base class
 
 ## Adding Modules
 
-## Adding Managed Config Types
+## Adding Managed Configuration Types
 
 
 # Core MABE Development
@@ -51,7 +52,7 @@ ModuleBase.hpp:
 * Add a description of the new signal in the comments at the top of the file.
 * Add a SIG_* id for the signal in the SignalID enum
 * Declare a virtual member function to catch the signal in the SIGNALS section.
-* Declare a virtal *_IsTriggered() to later test if we are currently reacting to signal.
+* Declare a virtual *_IsTriggered() to later test if we are currently reacting to signal.
 
 Module.hpp:
 * Override virtual function for signal (base method to mark function not used in module!)
@@ -77,5 +78,3 @@ MABE.hpp:
 * Problem to resolve: Different types of organisms will have different traits that they need to deal with.  For example, "Wolves" vs "Sheep".  Do unused values just stay at a default?  Or can we have organism categories that each have their own trait layouts?
 
 * Setup Organisms to be composed of brains, genomes, and adaptors (to be assembled during configuration).  Right now organisms must be built as a whole class, which is much less flexible.
-  
-* Update Config system to allow more generic categories.

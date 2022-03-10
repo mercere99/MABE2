@@ -51,8 +51,8 @@ namespace mabe {
       // For now, nothing here.
     }
 
-    OrgPosition DoPlaceBirth(Organism & /* org */, OrgPosition /* ppos */,
-                             Population & target_pop) override
+    OrgPosition DoPlaceBirth(Population & target_pop,
+                             Organism & /* org */, OrgPosition /* ppos */) override
     {
       // If birth is going to a monitored population, place it in a new, empty cell!
       if (target_collect.HasPopulation(target_pop)) return control.PushEmpty(target_pop);
@@ -62,7 +62,7 @@ namespace mabe {
     }
 
     // Injections always go into the active population.
-    OrgPosition DoPlaceInject(Organism & /* org */, Population & target_pop) override {
+    OrgPosition DoPlaceInject(Population & target_pop, Organism & /* org */) override {
       // If inject is going to a monitored population, place it in a new, empty cell!
       if (target_collect.HasPopulation(target_pop)) return control.PushEmpty(target_pop);
 
