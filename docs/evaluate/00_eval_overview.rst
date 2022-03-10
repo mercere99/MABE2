@@ -120,6 +120,10 @@ Example::
             // that are actually alive.
             mabe::Collection alive_orgs( orgs.GetAlive() );
 
+            // Keep track of the maximum score because
+            // Evaluate needs to return it
+            double max_score = 0.0;
+
             // Loop over all the organisms
             // (alive_orgs could be replaced with orgs if we didn't bother
             // with the filtering step above)
@@ -135,9 +139,13 @@ Example::
 
                 // Set this organisms fitness trait equal to the calculated fitness
                 org.SetTrait<double>(fitness_trait, fitness);
+
+                if (fitness > max_score) {
+                    max_score = fitness;
+                }
             }
 
-            return max_fitness;
+            return max_score;
         }
 
         // Alternate version of Evaluate that takes a Population instead of a Collection
