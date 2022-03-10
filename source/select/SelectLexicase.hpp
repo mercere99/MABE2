@@ -163,6 +163,16 @@ namespace mabe {
       trait_set.SetTraits(trait_inputs);     ///< Parse set of trait inputs passed in.
     }
 
+    // Setup member functions associated with this class.
+    static void InitType(emplode::TypeInfo & info) {
+      info.AddMemberFunction(
+        "SELECT",
+        [](SelectLexicase & mod, Population & from, Population & to, double count) {
+          return mod.Select(from,to,count);
+        },
+        "Perform lexicase selection on the provided organisms.");
+    }
+
   };
 
   MABE_REGISTER_MODULE(SelectLexicase, "Shuffle traits each time an organism is chose for replication.");
