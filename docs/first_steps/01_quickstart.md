@@ -358,6 +358,9 @@ If MABE already has all the modules you need, feel free to skip this section! Ho
 
 Since MABE is all written in C++, modules need to be written in C++ too. However, we have tried hard to protect users from having to write any particularly complicated C++ code (although that comes at the cost of MABE's internals being fairly complex - don't be intimidated if you don't understand all of the code in the core directory).
 
+Note: The following information applies to writing any type of module other than organism modules. If you want to write an organism module, see {ref}`_write_org_module`.
+
+
 Each module is its own C++ class. All modules must inherit from the Module base class. Besides that, the only thing required of modules is that they contain the following four member functions (described in more detail below):
 
 - A constructor that tells MABE what kind of module it is
@@ -368,7 +371,7 @@ Each module is its own C++ class. All modules must inherit from the Module base 
 Optionally, modules can also contain member functions that indicate things that should happen when specific events occur in MABE:
 
 - `BeforeUpdate` - Occurs when current time step (update) is ending and new one is about to start. Arguments: Update ID that is just finishing.
-- `OnUpdate` - Occurs when new time step (update) has just started. Arguments: Update ID just starting.
+- `OnUpdate` - Occurs when new time step (update) has just started. Arguments: Update ID just starting. NOTE: This is only for events where the order does not matter. If the timing of your event response matters relative to the timing of what other modules do, you should not use OnUpdate. Instead, you should use InitType to provide a method for the user to call so they can control what order things happen in.
 - `BeforeRepro` - An organism is about to reproduce. Arguments: Position of organism about to reproduce.
 - `OnOffspringReady` - Offspring is ready to be placed. Arguments: Offspring to be born, position of parent, population to place offspring in.
 - `OnInjectReady` - Organism to be injected (i.e. placed into the population without a parent) is ready to be placed. Arguments: Organism to be injected, population to inject into.
@@ -771,7 +774,12 @@ namespace mabe {
     // Trigger: New update has just started.
     // Args:    Update ID just starting.
     void OnUpdate(size_t new_update) override {
-
+        // Before you write on OnUpdate member function, think carefully
+        // about what you are doing in it. Is it just something that has
+        // to happen regularly, or is it something that could interact
+        // with other modules? If it's the latter, strongly consider making
+        // it a method (initialized in InitType), to give the user control
+        // over the order of events.
     }
 
     // Format:  BeforeRepro(OrgPosition parent_pos) 
