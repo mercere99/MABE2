@@ -153,16 +153,21 @@ namespace emplode {
   };
 
   // Helper functions for making temporary leaves.
-  emp::Ptr<ASTNode_Leaf> MakeTempLeaf(double val) {
-    auto out_ptr = emp::NewPtr<Symbol_Var>("__Temp", val, "Temporary double", nullptr);
-    out_ptr->SetTemporary();
-    return emp::NewPtr<ASTNode_Leaf>(out_ptr);
+  emp::Ptr<ASTNode_Leaf> MakeTempLeaf(double val, int line_id=-1) {
+    auto symbol_ptr = emp::NewPtr<Symbol_Var>("__Temp", val, "Temporary double", nullptr);
+    symbol_ptr->SetTemporary();
+    return emp::NewPtr<ASTNode_Leaf>(symbol_ptr, line_id);
   }
 
-  emp::Ptr<ASTNode_Leaf> MakeTempLeaf(const std::string & val) {
-    auto out_ptr = emp::NewPtr<Symbol_Var>("__Temp", val, "Temporary string", nullptr);
-    out_ptr->SetTemporary();
-    return emp::NewPtr<ASTNode_Leaf>(out_ptr);
+  emp::Ptr<ASTNode_Leaf> MakeTempLeaf(const std::string & val, int line_id=-1) {
+    auto symbol_ptr = emp::NewPtr<Symbol_Var>("__Temp", val, "Temporary string", nullptr);
+    symbol_ptr->SetTemporary();
+    return emp::NewPtr<ASTNode_Leaf>(symbol_ptr, line_id);
+  }
+
+  emp::Ptr<ASTNode_Leaf> MakeTempLeaf(Symbol_Special::Type type, int line_id=-1) {
+    auto symbol_ptr = emp::NewPtr<Symbol_Special>(type);
+    return emp::NewPtr<ASTNode_Leaf>(symbol_ptr, line_id);
   }
 
   class ASTNode_Block : public ASTNode_Internal {
