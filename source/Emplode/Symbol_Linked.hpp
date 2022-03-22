@@ -45,6 +45,8 @@ namespace emplode {
       return *this;
     }
 
+    bool HasValue() const override { return true; }
+
     bool IsNumeric() const override { return std::is_scalar_v<T>; }
 
     bool CopyValue(const Symbol & in) override { var = in.AsDouble(); return true; }
@@ -71,6 +73,8 @@ namespace emplode {
     std::string AsString() const override { return var; }
     Symbol & SetValue(double in) override { var = emp::to_string(in); return *this; }
     Symbol & SetString(const std::string & in) override { var = in; return *this; }
+
+    bool HasValue() const override { return true; }
 
     bool IsString() const override { return true; }
 
@@ -109,6 +113,8 @@ namespace emplode {
       set_fun( emp::from_string<T>(in) );
       return *this;
     }
+
+    bool HasValue() const override { return true; }
 
     bool IsNumeric() const override { return std::is_scalar_v<T>; }
     bool IsString() const override { return std::is_same<std::string, T>(); }
