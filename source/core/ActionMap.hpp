@@ -1,11 +1,15 @@
-
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019-2021.
+ *  @date 2019-2022.
  *
  *  @file  ActionMap.hpp
- *  @brief A helper class to manage the name -> function mapping of actions that organisms can take.
+ *  @brief An inter-module collection of functions that can be called by organisms. Functions are accessed by their type signature. 
+ *
+ *  Example: In Avida, we have the IO action. 
+ *  The default instruction set might create an IO action that outputs the value in the  relevant register and then inserts the next random number into the register. 
+ *  However, if we want to evaluate the output, we can have another module that adds a second function to the IO action. This function *also* gets called when the IO instruction is executed, and because order is preserved, it can evaluate the output value created by the first module.
+ *
  *  @note Status: ALPHA
 **/
 
@@ -22,82 +26,43 @@
 #include "emp/data/DataMap.hpp"
 
 namespace mabe {
-
-  /*
-  struct Action{
-    std::string name;
-    emp::AnyFunction function;
-    Action(const std::string& s, emp::AnyFunction f) : name(s), function(f) { ; }
-  };
-  class ActionMap : public std::unordered_map<emp::TypeID, emp::vector<mabe::Action>>{
-  public:
-    ActionMap() { ; }
-
-    template <typename RETURN, typename... PARAMS>
-    void AddFunc(const std::string& name, const std::function<RETURN(PARAMS...)>& in_func){
-      emp::TypeID func_type = emp::GetTypeID<RETURN(PARAMS...)>();
-      //emp::AnyFunction any_func(in_func); 
-      if(this->find(func_type) == this->end()){
-        this->insert({func_type, emp::vector<mabe::Action>()});
-      }
-      emp::vector<Action>& action_vec = this->at(func_type);
-      action_vec.emplace_back(name, emp::AnyFunction());
-      action_vec[action_vec.size() - 1].function.Set(in_func);
-      std::cout << "Stored: " << func_type.GetName() << std::endl;
-      std::cout << "State of action vec after store:" << std::endl;
-      std::cout << "[";
-      for(Action& a : this->at(func_type)){
-        std::cout << " " << a.name;
-      }
-      std::cout << "]" << std::endl;;
-    }
     
-    template <typename RETURN, typename... PARAMS>
-    emp::vector<mabe::Action>&  GetFuncs(){
-      emp::TypeID func_type = emp::GetTypeID<RETURN(PARAMS...)>();
-      std::cout << "Fetching: " << func_type.GetName() << std::endl;
-      return this->at(func_type);
-    }
-  };
-  */
-    
+  /// \brief Container for the basic information of an "action" - a collection of related functions. 
+  /// Actions are kept simple yet extendable. Modules can pass extra information through the datamap, but it is completely optional.  
   struct Action{
-    std::string name;
-    emp::vector<emp::AnyFunction> function_vec;
-    size_t num_args;
-    emp::DataMap data;
-    Action(const std::string& _name, emp::AnyFunction _func, size_t _num_args = 0) :
+    std::string name;  ///< Human-readable name of an action
+    emp::vector<emp::AnyFunction> function_vec; ///< Collection of functions associated with this action
+    emp::DataMap data; ///< Generic datamap for any additional data a module wants the organism to have 
+
+    Action(const std::string& _name, emp::AnyFunction _func) :
         name(_name),
         function_vec(),
-        num_args(_num_args), 
         data(){
       function_vec.push_back(_func);
     }
     Action(const std::string& _name) :
         name(_name),
         function_vec(),
-        num_args(0), 
         data(){ ; }
   };
 
-  //TODO: Switch to std unordered map
+  /// \brief An inter-module collection of functions that can be called by organisms. Functions are accessed by their type signature. 
   class ActionMap : public std::unordered_map<emp::TypeID, std::unordered_map<std::string, Action>>{
   public:
     ActionMap() { ; }
 
-
-
+    /// Add a single function to the map based on the type signature and name. Expand either map if necessary.  
     template <typename RETURN, typename... PARAMS>
     Action& AddFunc(
         const std::string& name,
-        const std::function<RETURN(PARAMS...)>& in_func,
-        size_t num_args = 0){
+        const std::function<RETURN(PARAMS...)>& in_func){
+      // Get the type, and either create a new entry or find the existing entry in the map
       emp::TypeID func_type = emp::GetTypeID<RETURN(PARAMS...)>();
-      //emp::AnyFunction any_func(in_func);
       if(this->find(func_type) == this->end()){
         this->insert({ func_type, std::unordered_map<std::string, Action>() });
       }
       std::unordered_map<std::string, Action>& action_map = this->at(func_type);
+      // Repeat the process in the inner map using the passed name
       if(action_map.find(name) == action_map.end()){
         action_map.insert( {name, Action(name)} );
       }
@@ -105,11 +70,10 @@ namespace mabe {
 
       emp::vector<emp::AnyFunction>& action_vec = action.function_vec;
       action_vec.emplace_back(in_func);
-
-      if(num_args > action.num_args) action.num_args = num_args;
       return action;
     }
 
+    /// Return the name->action map for the given type
     template <typename RETURN, typename... PARAMS>
     std::unordered_map<std::string, mabe::Action>&  GetFuncs(){
       emp::TypeID func_type = emp::GetTypeID<RETURN(PARAMS...)>();
