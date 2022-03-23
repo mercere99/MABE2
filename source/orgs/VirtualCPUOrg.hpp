@@ -275,6 +275,8 @@ namespace mabe {
         const std::string desc = 
           (action.data.HasName("description") ? 
             action.data.Get<std::string>("description") : "No description provided");
+        const size_t num_args = 
+          (action.data.HasName("num_args") ?  action.data.Get<size_t>("num_args") : 0);
         inst_lib.AddInst(
             action.name,                       // Instruction name
             [&action](VirtualCPUOrg& org, const inst_t& inst){
@@ -282,7 +284,7 @@ namespace mabe {
                 action.function_vec[func_idx].Call<void, VirtualCPUOrg&, const inst_t&>(org, inst);
               }
             },                                 // Function that will be executed
-            action.num_args,                   // Number of arguments
+            num_args,                          // Number of arguments
             desc,                              // Description 
             emp::ScopeType::NONE,              // No scope type, but must provide
             (size_t) -1,                       // Scope arg, must provide 
