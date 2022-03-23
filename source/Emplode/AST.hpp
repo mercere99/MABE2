@@ -191,7 +191,11 @@ namespace emplode {
     void SetSymbolTable(SymbolTableBase & _st) { symbol_table = &_st; }
 
     symbol_ptr_t Process() override {
-      for (auto node : children) node->ProcessVoid();
+      for (auto node : children) {
+        symbol_ptr_t out = node->Process();                  // Process this line.
+        if (out->IsBreak() || out->IsContinue()) return out; // Propagate a break or continue
+        if (out && out->IsTemporary()) out.Delete();         // Clean up anything else, if needed
+      }
       return nullptr;
     }
 
@@ -302,11 +306,14 @@ namespace emplode {
     }
 
     symbol_ptr_t Process() override {
-      double test = children[0]->ProcessAs<double>();            // Determine the state of the condition
+      double test = children[0]->ProcessAs<double>();             // Determine state of condition
+      symbol_ptr_t out = nullptr;                                 // Prepare for output symbol.
 
-      if (test != 0.0) children[1]->ProcessVoid();               // Handle TRUE
-      else if (children.size() > 2) children[2]->ProcessVoid();  // Handle FALSE
-      
+      if (test != 0.0) out = children[1]->Process();              // Process if TRUE
+      else if (children.size() > 2) out = children[2]->Process(); // Process if FALSE
+
+      if (out && (out->IsBreak() || out->IsContinue())) return out; // Propagate break/continue
+      if (out && out->IsTemporary()) out.Delete();                  // Clean up out, if needed
       return nullptr;
     }
 
