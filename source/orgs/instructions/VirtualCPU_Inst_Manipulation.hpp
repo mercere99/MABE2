@@ -1,10 +1,10 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019-2021.
+ *  @date 2021-2022.
  *
  *  @file  VirtualCPU_Inst_Manipulation.hpp
- *  @brief Provides manipulation instructions to a population of VirtualCPUOrgs.
+ *  @brief Provides data and head manipulation instructions to a population of VirtualCPUOrgs.
  *
  * 
  */
@@ -18,19 +18,21 @@
 
 namespace mabe {
 
+  /// A collection of head and data manipulation instructions to be used by VirtualCPUOrgs 
   class VirtualCPU_Inst_Manipulation : public Module {
   public: 
     using data_t = VirtualCPUOrg::data_t;
+    using inst_func_t = VirtualCPUOrg::inst_func_t;
   private:
-    int pop_id = 0;
-    std::function<void(VirtualCPUOrg&, const VirtualCPUOrg::inst_t&)> func_pop;
-    std::function<void(VirtualCPUOrg&, const VirtualCPUOrg::inst_t&)> func_push;
-    std::function<void(VirtualCPUOrg&, const VirtualCPUOrg::inst_t&)> func_swap_stack;
-    std::function<void(VirtualCPUOrg&, const VirtualCPUOrg::inst_t&)> func_swap;
-    std::function<void(VirtualCPUOrg&, const VirtualCPUOrg::inst_t&)> func_mov_head;
-    std::function<void(VirtualCPUOrg&, const VirtualCPUOrg::inst_t&)> func_jmp_head;
-    std::function<void(VirtualCPUOrg&, const VirtualCPUOrg::inst_t&)> func_get_head;
-    std::function<void(VirtualCPUOrg&, const VirtualCPUOrg::inst_t&)> func_set_flow;
+    int pop_id = 0; ///< ID of the population which will receive these instructions
+    bool include_pop = true;        ///< Config option indicating if instruction is used
+    bool include_push = true;       ///< Config option indicating if instruction is used
+    bool include_swap_stack = true; ///< Config option indicating if instruction is used
+    bool include_swap = true;       ///< Config option indicating if instruction is used
+    bool include_mov_head = true;   ///< Config option indicating if instruction is used
+    bool include_jmp_head = true;   ///< Config option indicating if instruction is used
+    bool include_get_head = true;   ///< Config option indicating if instruction is used
+    bool include_set_flow = true;   ///< Config option indicating if instruction is used
 
   public:
     VirtualCPU_Inst_Manipulation(mabe::MABE & control,
@@ -39,15 +41,37 @@ namespace mabe {
       : Module(control, name, desc) {;}
     ~VirtualCPU_Inst_Manipulation() { }
 
+    /// Set up variables for configuration file
     void SetupConfig() override {
-       LinkPop(pop_id, "target_pop", "Population(s) to manage.");
+      LinkPop(pop_id, "target_pop", "Population(s) to manage.");
+      LinkVar(include_pop, "include_pop", 
+          "Do we include the 'pop' instruction?");
+      LinkVar(include_push, "include_push", 
+          "Do we include the 'push' instruction?");
+      LinkVar(include_swap_stack, "include_swap_stack", 
+          "Do we include the 'swap_stack' instruction?");
+      LinkVar(include_swap, "include_swap", 
+          "Do we include the 'swap' instruction?");
+      LinkVar(include_mov_head, "include_mov_head", 
+          "Do we include the 'mov_head' instruction?");
+      LinkVar(include_jmp_head, "include_jmp_head", 
+          "Do we include the 'jmp_head' instruction?");
+      LinkVar(include_get_head, "include_get_head", 
+          "Do we include the 'get_head' instruction?");
+      LinkVar(include_set_flow, "include_set_flow", 
+          "Do we include the 'set_flow' instruction?");
     }
 
+    /// When config is loaded, set up functions
+    void SetupModule() override {
+      SetupFuncs();
+    }
+    
+    /// Add the instruction specified by the config file
     void SetupFuncs(){
       ActionMap& action_map = control.GetActionMap(pop_id);
-      // Pop 
-      {
-        func_pop = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
+      if(include_pop){ // Pop 
+        const inst_func_t func_pop = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
           size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
           hw.StackPop(idx);
         };
@@ -55,9 +79,8 @@ namespace mabe {
             "Pop", func_pop);
         action.data.AddVar<int>("inst_id", 15);
       }
-      // Push 
-      {
-        func_push = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
+      if(include_push){ // Push 
+        const inst_func_t func_push = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
           size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
           hw.StackPush(idx);
         };
@@ -65,18 +88,16 @@ namespace mabe {
             "Push", func_push);
         action.data.AddVar<int>("inst_id", 14);
       }
-      // Swap stack 
-      { 
-        func_swap_stack = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){
+      if(include_swap_stack){ // Swap stack 
+        const inst_func_t func_swap_stack = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){
           hw.StackSwap();
         };
         Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
             "SwapStk", func_swap_stack);
         action.data.AddVar<int>("inst_id", 16);
       }
-      // Swap 
-      {
-        func_swap = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
+      if(include_swap){ // Swap 
+        const inst_func_t func_swap = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
           if(hw.expanded_nop_args){
             size_t idx_1 = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
             size_t idx_2 = inst.nop_vec.size() < 2 ? hw.GetComplementNop(idx_1) : inst.nop_vec[1];
@@ -96,9 +117,8 @@ namespace mabe {
             "Swap", func_swap);
         action.data.AddVar<int>("inst_id", 17);
       }
-      // Move head 
-      {
-        func_mov_head = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
+      if(include_mov_head){ // Move head 
+        const inst_func_t func_mov_head = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
           if(hw.expanded_nop_args){
             size_t dest_idx = hw.flow_head;
             if(inst.nop_vec.size() >= 2) dest_idx = hw.GetModdedHead(inst.nop_vec[1]);
@@ -118,9 +138,8 @@ namespace mabe {
             "MovHead", func_mov_head);
         action.data.AddVar<int>("inst_id", 6);
       }
-      // Jump head 
-      {
-        func_jmp_head = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
+      if(include_jmp_head){ // Jump head 
+        const inst_func_t func_jmp_head = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
           if(hw.expanded_nop_args){
             size_t jump_dist = hw.regs[1];
             if(inst.nop_vec.size() >= 2) jump_dist = hw.regs[inst.nop_vec[1]];
@@ -136,9 +155,8 @@ namespace mabe {
             "JumpHead", func_jmp_head);
         action.data.AddVar<int>("inst_id", 7);
       }
-      // Get head  
-      {
-        func_get_head = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
+      if(include_get_head){ // Get head  
+        const inst_func_t func_get_head = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
           if(hw.expanded_nop_args){
             size_t head_val = inst.nop_vec.empty() ? hw.inst_ptr : hw.GetModdedHead(inst.nop_vec[0]);
             if(inst.nop_vec.size() < 2) hw.regs[2] = head_val;
@@ -153,9 +171,8 @@ namespace mabe {
             "GetHead", func_get_head);
         action.data.AddVar<int>("inst_id", 8);
       }
-      // Set flow  
-      {
-        func_set_flow = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
+      if(include_set_flow){ // Set flow  
+        const inst_func_t func_set_flow = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
           size_t idx = inst.nop_vec.empty() ? 2 : inst.nop_vec[0];
           hw.SetFH(hw.regs[idx]);
         };
@@ -165,9 +182,6 @@ namespace mabe {
       }
     }
 
-    void SetupModule() override {
-      SetupFuncs();
-    }
   };
 
   MABE_REGISTER_MODULE(VirtualCPU_Inst_Manipulation, "Manipulation instructions for VirtualCPUOrg");

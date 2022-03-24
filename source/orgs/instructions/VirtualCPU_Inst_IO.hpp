@@ -1,10 +1,10 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019-2021.
+ *  @date 2021-2022.
  *
  *  @file  VirtualCPU_Inst_IO.hpp
- *  @brief Provides VirtualCPUOrgs an IO function that loads a new input and caches the output.
+ *  @brief Provides VirtualCPUOrgs an IO instruction that loads a new input and caches the output
  * 
  */
 
@@ -19,16 +19,17 @@
 
 namespace mabe {
 
+  /// \brief Provides VirtualCPUOrgs an IO instruction that loads a new input and caches the output
   class VirtualCPU_Inst_IO : public Module {
   public: 
     using data_t = VirtualCPUOrg::data_t;
+    using inst_func_t = VirtualCPUOrg::inst_func_t;
   private:
-    int pop_id = 0;
-    std::string input_name = "input";
-    std::string output_name = "output";
-    std::string input_idx_name = "input_idx";
-    size_t num_inputs = 3;
-    std::function<void(VirtualCPUOrg&, const VirtualCPUOrg::inst_t&)> func_input;
+    int pop_id = 0; ///< ID of the population which will receive these instructions
+    std::string input_name = "input";         ///< Name of trait that stores inputs
+    std::string output_name = "output";       ///< Name of trait that stores outputs
+    std::string input_idx_name = "input_idx"; ///< Number of trait that stores the index of the current input
+    size_t num_inputs = 3; ///< Number of random inputs generated for each organism (they are reused if more inputs are requested)
 
   public:
     VirtualCPU_Inst_IO(mabe::MABE & control,
@@ -38,6 +39,7 @@ namespace mabe {
 
     ~VirtualCPU_Inst_IO() {;}
 
+    /// Set up variables for configuration file 
     void SetupConfig() override {
        LinkPop(pop_id, "target_pop", "Population(s) to manage.");
        LinkVar(input_name, "input_name", "Name of variable to store inputs");
@@ -45,10 +47,19 @@ namespace mabe {
        LinkVar(input_idx_name, "input_idx_name", "Index of next input to be loaded");
     }
 
+    /// Create organism traits and create IO instruction 
+    void SetupModule() override {
+      AddOwnedTrait<emp::vector<data_t>>(input_name, "VirtualCPUOrg inputs", {} );
+      AddOwnedTrait<size_t>(input_idx_name, "Index of next input", 0 );
+      AddSharedTrait<emp::vector<data_t>>(output_name, "VirtualCPUOrg outputs", {} );
+      SetupFuncs();
+    }
+
+    /// Define IO instruction and make it available to the specified population
     void SetupFuncs(){
       ActionMap& action_map = control.GetActionMap(pop_id);
 
-      func_input = [this](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
+      const inst_func_t func_input = [this](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
         emp::vector<data_t>& input_vec = hw.GetTrait<emp::vector<data_t>>(input_name);
         emp::vector<data_t>& output_vec = hw.GetTrait<emp::vector<data_t>>(output_name);
         size_t& input_idx = hw.GetTrait<size_t>(input_idx_name);
@@ -75,15 +86,9 @@ namespace mabe {
       action.data.AddVar<int>("inst_id", 24);
     }
 
-    void SetupModule() override {
-      AddOwnedTrait<emp::vector<data_t>>(input_name, "VirtualCPUOrg inputs", {} );
-      AddOwnedTrait<size_t>(input_idx_name, "Index of next input", 0 );
-      AddSharedTrait<emp::vector<data_t>>(output_name, "VirtualCPUOrg outputs", {} );
-      SetupFuncs();
-    }
   };
 
-  MABE_REGISTER_MODULE(VirtualCPU_Inst_IO, "IO instructions for VirtualCPUOrg");
+  MABE_REGISTER_MODULE(VirtualCPU_Inst_IO, "IO instruction for VirtualCPUOrg");
 }
 
 #endif

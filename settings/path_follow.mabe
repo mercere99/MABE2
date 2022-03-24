@@ -24,6 +24,13 @@ VirtualCPU_Inst_Nop inst_lib_nop { // Nop instructions for VirtualCPUOrg
   include_nop_x = 0;            // Include the special case NopX?
 };
 VirtualCPU_Inst_Math inst_lib_math { // Math instructions for VirtualCPUOrg
+  include_add = 1;              // Do we include the 'add' instruction?
+  include_dec = 1;              // Do we include the 'dec' instruction?
+  include_inc = 1;              // Do we include the 'inc' instruction?
+  include_nand = 1;             // Do we include the 'nand' instruction?
+  include_shift_l = 1;          // Do we include the 'shift_l' instruction?
+  include_shift_r = 1;          // Do we include the 'shift_r' instruction?
+  include_sub = 1;              // Do we include the 'sub' instruction?
   target_pop = "main_pop";      // Population(s) to manage.
 };
 VirtualCPU_Inst_IO inst_lib_io { // IO instructions for VirtualCPUOrg
@@ -33,17 +40,37 @@ VirtualCPU_Inst_IO inst_lib_io { // IO instructions for VirtualCPUOrg
   input_idx_name = "input_idx"; // Index of next input to be loaded
 };
 VirtualCPU_Inst_Flow inst_lib_flow { // Flow control instructions for VirtualCPUOrg
+  include_if_label = 1;         // Do we include the 'if_label' instruction?
+  include_if_less = 1;          // Do we include the 'if_less' instruction?
+  include_if_not_equal = 1;     // Do we include the 'if_not_equal' instruction?
+  include_mov_head_if_not_equal = 1; // Do we include the 'mov_head_if_not_equal' instruction?
   target_pop = "main_pop";      // Population(s) to manage.
 };
 VirtualCPU_Inst_Label inst_lib_label { // Label control instructions for VirtualCPUOrg
-  target_pop = "main_pop";      // Population(s) to manage.
+  include_label = 1;                 // Do we include the 'label' instruction?
+  include_search_label_direct_b = 1; // Do we include the 'search_label_direct_b' instruction?
+  include_search_label_direct_f = 1; // Do we include the 'search_label_direct_f' instruction?
+  include_search_label_direct_s = 1; // Do we include the 'search_label_direct_s' instruction?
+  include_search_seq_direct_b = 1;   // Do we include the 'search_seq_direct_b' instruction?
+  include_search_seq_direct_f = 1;   // Do we include the 'search_seq_direct_f' instruction?
+  include_search_seq_direct_s = 1;   // Do we include the 'search_seq_direct_s' instruction?
+  target_pop = "main_pop"; // Population(s) to manage.
 };
 VirtualCPU_Inst_Manipulation inst_lib_manip { // Manipulation instructions for VirtualCPUOrg
+  include_get_head = 1;         // Do we include the 'get_head' instruction?
+  include_jmp_head = 1;         // Do we include the 'jmp_head' instruction?
+  include_mov_head = 1;         // Do we include the 'mov_head' instruction?
+  include_pop = 1;              // Do we include the 'pop' instruction?
+  include_push = 1;             // Do we include the 'push' instruction?
+  include_set_flow = 1;         // Do we include the 'set_flow' instruction?
+  include_swap = 1;             // Do we include the 'swap' instruction?
+  include_swap_stack = 1;       // Do we include the 'swap_stack' instruction?
   target_pop = "main_pop";      // Population(s) to manage.
 };
 VirtualCPU_Inst_Replication inst_lib_repl { // Replication instructions for VirtualCPUOrg
   target_pop = "main_pop";      // Population(s) to manage.
   pos_trait = "org_pos";        // Name of trait that holds organism's position
+  offspring_genome_trait = "offspring_genome";// Name of trait that holds the offspring organism's genome
   include_h_alloc = 0;          // Do we include the 'h_alloc' instruction?
   include_h_divide = 0;         // Do we include the 'h_divide' instruction?
   include_h_copy = 0;           // Do we include the 'h_copy' instruction?

@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019-2021.
+ *  @date 2021-2022.
  *
  *  @file  VirtualCPU_Inst_Replication.hpp
  *  @brief Provides replication instructions to a population of VirtualCPUOrgs.
@@ -17,16 +17,19 @@
 
 namespace mabe {
 
+  /// A collection of replication instructions to be used by VirtualCPUOrgs 
   class VirtualCPU_Inst_Replication : public Module {
+  public:
     using inst_func_t = VirtualCPUOrg::inst_func_t;
   private:
-    int pop_id = 0;
-    std::string org_pos_trait = "org_pos";
-    bool include_h_alloc = true;
-    bool include_h_divide = true;
-    bool include_h_copy = true;
-    bool include_h_search = true;
-    bool include_repro = false;
+    int pop_id = 0; ///< ID of the population which will receive these instructions
+    std::string org_pos_trait = "org_pos"; ///< Name of the trait storing organism's position
+    std::string offspring_genome_trait = "offspring_genome"; ///< Name of the trait storing the genome of the offspring organism 
+    bool include_h_alloc  = true;  ///< Config option indicating if inst. is used
+    bool include_h_divide = true;  ///< Config option indicating if inst. is used
+    bool include_h_copy   = true;  ///< Config option indicating if inst. is used
+    bool include_h_search = true;  ///< Config option indicating if inst. is used
+    bool include_repro    = false; ///< Config option indicating if inst. is used
 
   public:
     VirtualCPU_Inst_Replication(mabe::MABE & control,
@@ -35,9 +38,12 @@ namespace mabe {
       : Module(control, name, desc) {;}
     ~VirtualCPU_Inst_Replication() { }
 
+    /// Set up variables for configuration file
     void SetupConfig() override {
       LinkPop(pop_id, "target_pop", "Population(s) to manage.");
       LinkVar(org_pos_trait, "pos_trait", "Name of trait that holds organism's position");
+      LinkVar(offspring_genome_trait, "offspring_genome_trait", 
+          "Name of trait that holds the offspring organism's genome");
       LinkVar(include_h_alloc, "include_h_alloc", "Do we include the 'h_alloc' instruction?");
       LinkVar(include_h_divide, "include_h_divide", "Do we include the 'h_divide' instruction?");
       LinkVar(include_h_copy, "include_h_copy", "Do we include the 'h_copy' instruction?");
@@ -45,17 +51,18 @@ namespace mabe {
       LinkVar(include_repro, "include_repro", "Do we include the 'repro' instruction?");
     }
 
+    /// When config is loaded, create traits and set up functions
+    void SetupModule() override {
+      AddRequiredTrait<OrgPosition>(org_pos_trait);
+      AddRequiredTrait<VirtualCPUOrg::genome_t>(offspring_genome_trait);
+      SetupFuncs();
+    }
+
+    /// Add the instruction specified by the config file
     void SetupFuncs(){
       ActionMap& action_map = control.GetActionMap(pop_id);
-      // Head allocate 
-      if(include_h_alloc){
+      if(include_h_alloc){ // Head allocate 
         inst_func_t func_h_alloc = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){
-          //std::cout << "HAlloc!" << std::endl;
-          //std::cout << "Working genome: " << hw.GetWorkingGenomeString() << std::endl;
-          //std::cout << "IP: " << hw.inst_ptr;
-          //std::cout << " RH: " << hw.read_head;
-          //std::cout << " WH: " << hw.write_head;
-          //std::cout << std::endl;
           hw.genome_working.resize(hw.genome.size() * 2, hw.GetDefaultInst());
           hw.regs[0] = hw.genome.size();
         };
@@ -63,8 +70,7 @@ namespace mabe {
               "HAlloc", func_h_alloc);
         action.data.AddVar<int>("inst_id", 22);
       }
-      // Head divide 
-      if(include_h_divide){
+      if(include_h_divide){ // Head divide 
         inst_func_t func_h_divide = [this](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){
           if(hw.read_head >= hw.genome.size() && hw.copied_inst_id_vec.size() >= hw.genome_working.size() / 2){
             OrgPosition& org_pos = hw.GetTrait<OrgPosition>(org_pos_trait);
@@ -88,15 +94,8 @@ namespace mabe {
             "HDivide", func_h_divide);
         action.data.AddVar<int>("inst_id", 23);
       }
-      // Head copy 
-      if(include_h_copy){
+      if(include_h_copy){ // Head copy 
         inst_func_t func_h_copy = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){
-          //std::cout << "Copy!" << std::endl;
-          //std::cout << "Working genome: " << hw.GetString() << std::endl;
-          //std::cout << "IP: " << hw.inst_ptr;
-          //std::cout << " RH: " << hw.read_head;
-          //std::cout << " WH: " << hw.write_head;
-          //std::cout << std::endl;
           hw.genome_working[hw.write_head] = hw.genome_working[hw.read_head];
           hw.copied_inst_id_vec.push_back(hw.genome_working[hw.write_head].id);
           hw.read_head++;
@@ -109,8 +108,7 @@ namespace mabe {
             "HCopy", func_h_copy);
         action.data.AddVar<int>("inst_id", 21);
       }
-      // Head search 
-      if(include_h_search){
+      if(include_h_search){ // Head search 
         inst_func_t func_h_search = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
           int res =hw.FindNopSequence(hw.GetComplementNopSequence(inst.nop_vec), hw.inst_ptr);
           if(inst.nop_vec.size() == 0 || res == hw.inst_ptr){
@@ -128,8 +126,7 @@ namespace mabe {
             "HSearch", func_h_search);
         action.data.AddVar<int>("inst_id", 25);
       }
-      // Repro 
-      if(include_repro){
+      if(include_repro){ // Repro 
         inst_func_t func_repro = [this](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){
           if(hw.inst_ptr > 0.75 * hw.genome_working.size() && 
               hw.num_insts_executed > 0.75 * hw.genome_working.size()){
@@ -152,11 +149,6 @@ namespace mabe {
       }
     }
 
-    void SetupModule() override {
-      AddRequiredTrait<OrgPosition>(org_pos_trait);
-      AddRequiredTrait<VirtualCPUOrg::genome_t>("offspring_genome");
-      SetupFuncs();
-    }
   };
 
   MABE_REGISTER_MODULE(VirtualCPU_Inst_Replication, "Replication instructions for VirtualCPUOrg");

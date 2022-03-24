@@ -1,10 +1,15 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2021.
+ *  @date 2021-2022.
  *
  *  @file  VirtualCPUOrg.hpp
- *  @brief An organism consisting of a linear sequence of instructions. 
+ *  @brief An organism consisting of a linear sequence of instructions.
+ *  
+ *  Instructions are added via other modules. VirtualCPUOrgs will load all instructions that have been registered (via the config file) and add them to the instruction library. 
+ *
+ *  For now, the virtual hardware of the VirtualCPUOrg is based on Avidians from Avida2, including support for additional nops, labels, and expanded nop notation for math instructions.
+ *
  *  @note Status: ALPHA
  *
  */
@@ -50,7 +55,6 @@ namespace mabe {
 
     /// \brief A simple struct containing all variables shared among all VirtualCPUOrgs. 
     ///
-    /// This struct contains all the variables that are shared among all VirtualCPUOrgs.
     /// This includes all the configuration variables, as well as internal variables (e.g., 
     /// variables used in calculating mutations)
     struct ManagerData : public Organism::ManagerData {
@@ -86,7 +90,7 @@ namespace mabe {
       emp::BitVector mut_sites;       ///< A pre-allocated vector for mutation sites. 
     };
 
-    /// Mutates (in place) the current organism. Currently only supports point mutations.
+    /// Mutate (in place) the current organism. Currently only supports point mutations.
     size_t Mutate(emp::Random & random) override {
       const size_t num_muts = SharedData().mut_dist.PickRandom(random);
 
@@ -109,7 +113,7 @@ namespace mabe {
       return num_muts;
     }
 
-    /// Randomizes (in place) the organism's genome. Does not add new instructions.
+    /// Randomize (in place) the organism's genome. Does not add new instructions.
     void Randomize(emp::Random & random) override {
       for (size_t pos = 0; pos < GetGenomeSize(); pos++) {
         RandomizeInst(pos, random);
@@ -117,14 +121,14 @@ namespace mabe {
       Organism::SetTrait<std::string>(SharedData().genome_name, GetGenomeString());
     }
 
-    /// Adds pads the organism's genome out to the specified length with random instructions.
+    /// Pad the organism's genome out to the specified length with random instructions.
     void FillRandom(size_t length, emp::Random & random){
       for (size_t pos = GetGenomeSize(); pos < length; pos++) {
         PushRandomInst(random);
       }
     }
 
-    /// Creates an ancestral organism and loads in values from configuration file
+    /// Create an ancestral organism and load in values from configuration file
     void Initialize(emp::Random & random) override {
       emp_assert(GetGenomeSize() == 0, "Cannot initialize VirtualCPUOrg twice");
       // Create the ancestor, either randomly or from a genome file
@@ -140,7 +144,7 @@ namespace mabe {
       CurateNops();
     }
     
-    /// Creates an offspring organism using the configuration file's mutation rate.
+    /// Create an offspring organism using the configuration file's mutation rate.
     emp::Ptr<Organism> MakeOffspringOrganism(emp::Random & random) const {
       // Create and mutate
       auto offspring = OrgType::Clone().DynamicCast<VirtualCPUOrg>();
@@ -157,7 +161,7 @@ namespace mabe {
       return offspring;
     }
     
-    /// Creates an identical organism with no mutations and with the same merit
+    /// Create an identical organism with no mutations and with the same merit
     virtual emp::Ptr<Organism> CloneOrganism() const {
       auto offspring = OrgType::Clone().DynamicCast<VirtualCPUOrg>();
       offspring->genome = genome;
@@ -182,13 +186,13 @@ namespace mabe {
       Process(SharedData().eval_time, SharedData().verbose);
     }
 
-    /// Returns a reference to the instruction library of the organism
+    /// Return a reference to the instruction library of the organism
     static inst_lib_t& GetInstLib(){
       static inst_lib_t inst_lib;
       return inst_lib;
     }
 
-    /// Setup configuration options for this organism type
+    /// Set up configuration options for this organism type
     void SetupConfig() override {
       GetManager().LinkVar(SharedData().mut_prob, "mut_prob",
                       "Probability of each instruction mutating on reproduction.");
@@ -224,7 +228,7 @@ namespace mabe {
                       "define the registers used");
     }
 
-    /// Setup this organism type with the traits it need to track and initialize 
+    /// Set up this organism type with the traits it need to track and initialize 
     /// shared variables.
     void SetupModule() override {
       SetupMutationDistribution();
@@ -243,7 +247,7 @@ namespace mabe {
       SetupInstLib();
     }
 
-    /// Loads external instructions that were added via the configuration file
+    /// Load external instructions that were added via the configuration file
     void SetupInstLib(){
       inst_lib_t& inst_lib = GetInstLib();
       // All instructions are stored in the populations ActionMap
@@ -293,13 +297,13 @@ namespace mabe {
       }
     }
 
-    /// Processes a single instruction
+    /// Process a single instruction
     bool ProcessStep() override { 
       Process(1, SharedData().verbose);
       return true; 
     }
 
-    /// Initializes the mutational distribution variables to match the genome size (either 
+    /// Initialize the mutational distribution variables to match the genome size (either 
     /// current size or projected sizes)
     void SetupMutationDistribution(){
       if(GetGenomeSize() != 0){ // If we have a genome size, use it!
