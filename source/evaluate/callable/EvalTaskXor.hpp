@@ -4,7 +4,7 @@
  *  @date 2019-2020.
  *
  *  @file  EvalTaskXor.h
- *  @brief Tests organism output for XOR operation on a ManualEval trigger
+ *  @brief Tests organism output for bitwise XOR operation
  */
 
 #ifndef MABE_EVAL_TASK_XOR_H
@@ -17,7 +17,8 @@
 
 namespace mabe {
 
-  class EvalTaskXor : public EvalTaskBase {
+  /// \brief Tests organism output for bitwise XOR operation
+  class EvalTaskXor : public EvalTaskBase<EvalTaskXor> {
 
   public:
     EvalTaskXor(mabe::MABE & control,
@@ -27,6 +28,7 @@ namespace mabe {
 
     ~EvalTaskXor() { }
     
+    /// Check if the passed output is equal to input_a XOR input_b  
     bool CheckTwoArg(const data_t& output, const data_t& input_a, const data_t& input_b){
       return output == (input_a ^ input_b);
     }

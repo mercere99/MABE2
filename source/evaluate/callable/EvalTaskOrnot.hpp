@@ -4,7 +4,10 @@
  *  @date 2019-2020.
  *
  *  @file  EvalTaskOrnot.h
- *  @brief Tests organism output for ORNOT operation on a ManualEval trigger
+ *  @brief Tests organism output for bitwise ORNOT operation
+ *
+ *  A ORNOT B is equal to A OR (~B), where ~ is bitwise NOT 
+ *  Here, however, we check both directions. So we also look for B OR (~A).
  */
 
 #ifndef MABE_EVAL_TASK_ORNOT_H
@@ -17,7 +20,8 @@
 
 namespace mabe {
 
-  class EvalTaskOrnot : public EvalTaskBase {
+  /// \brief Tests organism output for bitwise ORNOT operation
+  class EvalTaskOrnot : public EvalTaskBase<EvalTaskOrnot> {
 
   public:
     EvalTaskOrnot(mabe::MABE & control,
@@ -28,6 +32,7 @@ namespace mabe {
     ~EvalTaskOrnot() { }
 
     
+    /// Check if the passed output is equal to input_a ORNOT input_b or input_b ORNOT input_a
     bool CheckTwoArg(const data_t& output, const data_t& input_a, const data_t& input_b){
       return (output == (input_a | ~input_b)) || (output == (input_b | ~input_a));
     }

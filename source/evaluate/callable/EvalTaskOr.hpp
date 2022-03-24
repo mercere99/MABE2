@@ -4,7 +4,7 @@
  *  @date 2019-2020.
  *
  *  @file  EvalTaskOr.h
- *  @brief Tests organism output for OR operation on a ManualEval trigger
+ *  @brief Tests organism output for bitwise OR operation
  */
 
 #ifndef MABE_EVAL_TASK_OR_H
@@ -17,7 +17,8 @@
 
 namespace mabe {
 
-  class EvalTaskOr : public EvalTaskBase {
+  /// \brief Tests organism output for bitwise OR operation
+  class EvalTaskOr : public EvalTaskBase<EvalTaskOr> {
 
   public:
     EvalTaskOr(mabe::MABE & control,
@@ -27,6 +28,7 @@ namespace mabe {
 
     ~EvalTaskOr() { }
 
+    /// Check if the passed output is equal to input_a OR input_b  
     bool CheckTwoArg(const data_t& output, const data_t& input_a, const data_t& input_b){
       return output == (input_a | input_b);
     }

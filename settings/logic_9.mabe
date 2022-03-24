@@ -48,6 +48,7 @@ VirtualCPU_Inst_Replication inst_lib_repl { // Replication instructions for Virt
   include_repro = 0;            // Do we include the 'repro' instruction?
 };
 EvalTaskNot task_not {          // Organism-triggered evaluation of NOT operation
+  target_pop = "main_pop";      // Population to evaluate.
   inputs_trait = "input";       // Which trait contains the organism's inputs?
   outputs_trait = "output";     // Which trait contains the organism's outputs?
   fitness_trait = "child_merit";// Which trait should we increase if BASE was executed?
@@ -56,6 +57,7 @@ EvalTaskNot task_not {          // Organism-triggered evaluation of NOT operatio
   is_multiplicative = do_multiply;        // Should reward be multiplied (true) or added(false) to current score?
 };
 EvalTaskNand task_nand {        // Organism-triggered evaluation of NAND operation
+  target_pop = "main_pop";      // Population to evaluate.
   inputs_trait = "input";       // Which trait contains the organism's inputs?
   outputs_trait = "output";     // Which trait contains the organism's outputs?
   fitness_trait = "child_merit";// Which trait should we increase if BASE was executed?
@@ -64,6 +66,7 @@ EvalTaskNand task_nand {        // Organism-triggered evaluation of NAND operati
   is_multiplicative = do_multiply;        // Should reward be multiplied (true) or added(false) to current score?
 };
 EvalTaskAnd task_and {          // Organism-triggered evaluation of AND operation
+  target_pop = "main_pop";      // Population to evaluate.
   inputs_trait = "input";       // Which trait contains the organism's inputs?
   outputs_trait = "output";     // Which trait contains the organism's outputs?
   fitness_trait = "child_merit";// Which trait should we increase if BASE was executed?
@@ -72,6 +75,7 @@ EvalTaskAnd task_and {          // Organism-triggered evaluation of AND operatio
   is_multiplicative = do_multiply;        // Should reward be multiplied (true) or added(false) to current score?
 };
 EvalTaskOrnot task_ornot {      // Organism-triggered evaluation of ORNOT operation
+  target_pop = "main_pop";      // Population to evaluate.
   inputs_trait = "input";       // Which trait contains the organism's inputs?
   outputs_trait = "output";     // Which trait contains the organism's outputs?
   fitness_trait = "child_merit";// Which trait should we increase if BASE was executed?
@@ -80,6 +84,7 @@ EvalTaskOrnot task_ornot {      // Organism-triggered evaluation of ORNOT operat
   is_multiplicative = do_multiply;        // Should reward be multiplied (true) or added(false) to current score?
 };
 EvalTaskAndnot task_andnot {    // Organism-triggered evaluation of ANDNOT operation
+  target_pop = "main_pop";      // Population to evaluate.
   inputs_trait = "input";       // Which trait contains the organism's inputs?
   outputs_trait = "output";     // Which trait contains the organism's outputs?
   fitness_trait = "child_merit";// Which trait should we increase if BASE was executed?
@@ -88,6 +93,7 @@ EvalTaskAndnot task_andnot {    // Organism-triggered evaluation of ANDNOT opera
   is_multiplicative = do_multiply;        // Should reward be multiplied (true) or added(false) to current score?
 };
 EvalTaskOr task_or {            // Organism-triggered evaluation of OR operation
+  target_pop = "main_pop";      // Population to evaluate.
   inputs_trait = "input";       // Which trait contains the organism's inputs?
   outputs_trait = "output";     // Which trait contains the organism's outputs?
   fitness_trait = "child_merit";// Which trait should we increase if BASE was executed?
@@ -96,6 +102,7 @@ EvalTaskOr task_or {            // Organism-triggered evaluation of OR operation
   is_multiplicative = do_multiply;        // Should reward be multiplied (true) or added(false) to current score?
 };
 EvalTaskNor task_nor {          // Organism-triggered evaluation of NOR operation
+  target_pop = "main_pop";      // Population to evaluate.
   inputs_trait = "input";       // Which trait contains the organism's inputs?
   outputs_trait = "output";     // Which trait contains the organism's outputs?
   fitness_trait = "child_merit";// Which trait should we increase if BASE was executed?
@@ -104,6 +111,7 @@ EvalTaskNor task_nor {          // Organism-triggered evaluation of NOR operatio
   is_multiplicative = do_multiply;        // Should reward be multiplied (true) or added(false) to current score?
 };
 EvalTaskXor task_xor {          // Organism-triggered evaluation of XOR operation
+  target_pop = "main_pop";      // Population to evaluate.
   inputs_trait = "input";       // Which trait contains the organism's inputs?
   outputs_trait = "output";     // Which trait contains the organism's outputs?
   fitness_trait = "child_merit";// Which trait should we increase if BASE was executed?
@@ -112,6 +120,7 @@ EvalTaskXor task_xor {          // Organism-triggered evaluation of XOR operatio
   is_multiplicative = do_multiply;        // Should reward be multiplied (true) or added(false) to current score?
 };
 EvalTaskEqu task_equ {          // Organism-triggered evaluation of EQU operation
+  target_pop = "main_pop";      // Population to evaluate.
   inputs_trait = "input";       // Which trait contains the organism's inputs?
   outputs_trait = "output";     // Which trait contains the organism's outputs?
   fitness_trait = "child_merit";// Which trait should we increase if BASE was executed?

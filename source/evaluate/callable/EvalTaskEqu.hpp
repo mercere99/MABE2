@@ -4,7 +4,10 @@
  *  @date 2019-2020.
  *
  *  @file  EvalTaskEqu.h
- *  @brief Tests organism output for EQU operation on a ManualEval trigger
+ *  @brief Tests organism output for bitwise EQU operation
+ *
+ * Note that we are not checking for a binary A == B. 
+ * We are looking for the *bitwise* equality. If the Nth bit of A is equal to the Nth bit of B, the Nth bit of the output should be a 1 (and otherwise it should be a 0). 
  */
 
 #ifndef MABE_EVAL_TASK_EQU_H
@@ -17,7 +20,8 @@
 
 namespace mabe {
 
-  class EvalTaskEqu : public EvalTaskBase {
+  /// \brief Tests organism output for bitwise EQU operation
+  class EvalTaskEqu : public EvalTaskBase<EvalTaskEqu> {
 
   public:
     EvalTaskEqu(mabe::MABE & control,
@@ -27,6 +31,7 @@ namespace mabe {
 
     ~EvalTaskEqu() { }
     
+    /// Check if the passed output is equal to input_a EQU input_b  
     bool CheckTwoArg(const data_t& output, const data_t& input_a, const data_t& input_b){
       return output == ((input_a & input_b) | ~(input_a | input_b));
     }

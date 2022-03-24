@@ -1,10 +1,13 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019-2020.
+ *  @date 2019-2022.
  *
  *  @file  EvalTaskAndnot.h
- *  @brief Tests organism output for ANDNOT operation on a ManualEval trigger
+ *  @brief Tests organism output for bitwise ANDNOT operation
+ *
+ *  A ANDNOT B is equal to A AND (~B), where ~ is bitwise NOT 
+ *  Here, however, we check both directions. So we also look for B AND (~A).
  */
 
 #ifndef MABE_EVAL_TASK_ANDNOT_H
@@ -17,7 +20,8 @@
 
 namespace mabe {
 
-  class EvalTaskAndnot : public EvalTaskBase {
+  /// \brief Tests organism output for bitwise ANDNOT operation
+  class EvalTaskAndnot : public EvalTaskBase<EvalTaskAndnot> {
 
   public:
     EvalTaskAndnot(mabe::MABE & control,
@@ -27,6 +31,7 @@ namespace mabe {
 
     ~EvalTaskAndnot() { }
 
+    /// Check if passed output is equal to input_a ANDNOT input_b or input_b ANDNOT input_a 
     bool CheckTwoArg(const data_t& output, const data_t& input_a, const data_t& input_b){
       return (output == (input_a & ~input_b)) || (output == (input_b & ~input_a));
     }

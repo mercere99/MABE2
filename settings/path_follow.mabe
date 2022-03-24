@@ -51,7 +51,7 @@ VirtualCPU_Inst_Replication inst_lib_repl { // Replication instructions for Virt
   include_repro = 1;            // Do we include the 'repro' instruction?
 };
 EvalPathFollow path_follow {      // Evaluate organisms on their ability to follow a path.
-  target = "main_pop";            // Which population(s) should we evaluate?
+  target_pop = "main_pop";            // Which population(s) should we evaluate?
   score_trait = "child_merit";    // Which trait stores path following performance?
   state_trait = "state";          // Which trait stores organisms' path follow state?
   map_filenames = "test_map.txt"; // List of map files to load, separated by semicolons(;)

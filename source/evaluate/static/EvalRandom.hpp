@@ -4,24 +4,21 @@
  *  @date 2019-2020.
  *
  *  @file  EvalRandom.h
- *  @brief Gives each organism a random score between 0 and a specified max
+ *  @brief Evaluator that gives each organism a random score between 0 and a specified maximum
  */
 
 #ifndef MABE_EVAL_RANDOM_H
 #define MABE_EVAL_RANDOM_H
 
-#include "../core/MABE.hpp"
-#include "../core/Module.hpp"
-#include "../tools/NK.hpp"
-
+#include "../../core/MABE.hpp"
+#include "../../core/Module.hpp"
 
 namespace mabe {
 
+  /// \brief Evaluator that assigns each organism a random score between 0 and a given maximum
   class EvalRandom : public Module {
   private:
     double max_score;
-    mabe::Collection target_collect;
-
     std::string output_trait;
 
   public:
@@ -32,33 +29,38 @@ namespace mabe {
            double _max_score=1000, const std::string & _trait="fitness")
       : Module(control, name, desc)
       , max_score(_max_score) 
-      , target_collect(control.GetPopulation(0))
       , output_trait(_trait)
     {
       SetEvaluateMod(true);
     }
     ~EvalRandom() { }
-
-    void SetupConfig() override {
-      LinkCollection(target_collect, "target", "Which population(s) should we evaluate?");
-      LinkVar(max_score, "max_score", "Maximum value for the random scores");
-      LinkVar(output_trait, "output_trait", "Which trait should we store the random score in?");
+    
+    /// Set up the EVAL method to be used in the config file
+    static void InitType(emplode::TypeInfo & info) {
+      info.AddMemberFunction("EVAL",
+          [](EvalRandom & mod, Collection list) { return mod.Evaluate(list); },
+          "Use EvalRandom to evaluate all orgs in an OrgList.");
     }
 
+    /// Set up configuration variables
+    void SetupConfig() override {
+      LinkVar(max_score, "max_score", "Maximum value for the random scores");
+      LinkVar(output_trait,"output_trait","Which trait should we store the random score in?");
+    }
+
+    /// Set up traits
     void SetupModule() override {
-      // Setup the traits.
       AddOwnedTrait<double>(output_trait, "Random fitness value", 0.0);
     }
-
-    void OnUpdate(size_t update) override {
-      emp_assert(control.GetNumPopulations() >= 1);
-      emp::Random & random = control.GetRandom();
+    
+    /// Randomly assign a score to all organisms in the collection
+    double Evaluate(const Collection & orgs) {
       // Loop through the population and evaluate each organism.
       double max_fitness = 0.0;
       emp::Ptr<Organism> max_org = nullptr;
-      mabe::Collection alive_collect( target_collect.GetAlive() );
-      for (Organism & org : alive_collect) {
-        double fitness = random.GetDouble() * max_score;
+      mabe::Collection alive_orgs( orgs.GetAlive() );
+      for (Organism & org : alive_orgs) {
+        double fitness = control.GetRandom().GetDouble() * max_score;
         org.SetVar<double>(output_trait, fitness);
 
         if (fitness > max_fitness || !max_org) {
@@ -67,8 +69,15 @@ namespace mabe {
         }
       }
 
-      std::cout << "Max " << output_trait << " = " << max_fitness << std::endl;
+      return max_fitness;
     }
+
+    /// Convert population to a collection and evaluate all the organisms in it
+    double Evaluate(Population & pop) { return Evaluate( Collection(pop) ); }
+
+    /// Convert string to a collection and evaluate all the organisms in it
+    double Evaluate(const std::string & in) { return Evaluate( control.ToCollection(in) ); }
+
   };
 
   MABE_REGISTER_MODULE(EvalRandom, 
