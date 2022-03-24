@@ -340,7 +340,12 @@ namespace emplode {
     symbol_ptr_t Process() override {
 
       while (children[0]->ProcessAs<double>()) {
-        children[1]->ProcessVoid();
+        symbol_ptr_t out = children[1]->Process();
+        if (out) {
+          if (out->IsBreak())     { out.Delete(); break; }
+          if (out->IsContinue())  { out.Delete(); continue; }
+          if (out->IsTemporary()) { out.Delete(); }
+        }
       }
 
       return nullptr;
