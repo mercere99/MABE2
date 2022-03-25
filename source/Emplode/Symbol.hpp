@@ -374,9 +374,7 @@ namespace emplode {
     std::string ToString() const { return ToString(type); }
 
   public:
-    Symbol_Special(Type in_type) : Symbol("__Special", ToString(in_type), nullptr), type(in_type) {
-      is_temporary = true;
-    }
+    Symbol_Special(Type in_type) : Symbol("__Special", ToString(in_type), nullptr), type(in_type) {}
     std::string GetTypename() const override { return emp::to_string("[[Special::", ToString(), "]]"); }
 
     symbol_ptr_t Clone() const override { return emp::NewPtr<this_t>(*this); }
