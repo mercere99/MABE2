@@ -8,8 +8,8 @@ MaxSizePlacement place_max_size { // Grow population to a given size then mainta
   max_pop_size = pop_size;        // Maximum size of the population.
 };
 AnnotatePlacement_Position pos_annotater { // Store org's position as trait on placement.
-  target_pop = "main_pop";      // Population to annotate
-  pos_trait = "org_pos";        // Name of trait that will hold organism's position
+  target = "main_pop";      // Population(s) to annotate
+  pos_trait = "org_pos";    // Name of trait that will hold organism's position
 };
 SchedulerProbabilistic scheduler { // Rations out updates to organisms based on a specified attribute, using a method akin to roulette wheel selection.
   pop = "main_pop";             // Which population should we select parents from?

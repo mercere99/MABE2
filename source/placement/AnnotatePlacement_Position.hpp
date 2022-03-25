@@ -18,7 +18,7 @@ namespace mabe {
   /// \brief Stores organism's position as a trait on birth/inject
   class AnnotatePlacement_Position : public Module {
   private:
-    int pop_id = 0;                    ///< ID of the population to be evaluated
+    Collection target_collect;         ///< Collection of populations to manage
     std::string pos_trait = "org_pos"; ///< Name of trait storing organism's position
 
   public:
@@ -33,7 +33,7 @@ namespace mabe {
 
     /// Set up variables for configuration file
     void SetupConfig() override {
-      LinkPop(pop_id, "target_pop", "Population to annotate.");
+      LinkCollection(target_collect, "target", "Population(s) to annotate.");
       LinkVar(pos_trait, "pos_trait", "Name of trait that will hold organism's position");
     }
 
@@ -44,7 +44,7 @@ namespace mabe {
 
     /// When an organism is placed (via birth or inject), store its position as a trait
     void OnPlacement(OrgPosition pos) override {
-      if(pos.PopPtr()->GetID() == pop_id){
+      if(target_collect.HasPopulation(*pos.PopPtr())){
         Organism& org = pos.PopPtr()->At(pos.Pos());
         org.SetTrait<OrgPosition>(pos_trait, pos);
       }
