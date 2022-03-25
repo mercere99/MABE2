@@ -4,7 +4,7 @@
  *  @date 2019-2020.
  *
  *  @file  SchedulerProbabilistic.h
- *  @brief Rations out updates to organisms based on a specified attribute, using a method akin to roulette wheel selection. 
+ *  @brief Rations out updates to organisms based on a specified attribute, using a method akin to roulette selection. 
  **/
 
 #ifndef MABE_SCHEDULER_PROB_H
@@ -16,15 +16,15 @@
 
 namespace mabe {
 
-  /// Rations out updates to organisms based on a specified attribute, used a method akin to roulette wheel selection  
+  /// Rations out updates to organisms based on a specified attribute, using a method akin to roulette selection  
   class SchedulerProbabilistic : public Module {
   private:
-    std::string trait;       ///< Which trait should we select on?
-    double avg_updates;      ///< How many updates should organisms receive on average?
-    int pop_id = 0;   ///< Which population are we selecting from?
-    emp::UnorderedIndexMap weight_map;
-    double base_value = 1;
-    double merit_scale_factor = 1;
+    std::string trait;  ///< Which trait should we select on?
+    double avg_updates; ///< How many updates should organisms receive on average?
+    int pop_id = 0;     ///< Which population are we selecting from?
+    emp::UnorderedIndexMap weight_map; ///< Data structure storing all organism fitnesses
+    double base_value = 1; ///< Fitness value that all organisms start with 
+    double merit_scale_factor = 1; ///< Fitness = base_value + (merit * this value)
   public:
     SchedulerProbabilistic(mabe::MABE & control,
                      const std::string & name="SchedulerProbabilistic",
@@ -38,6 +38,7 @@ namespace mabe {
     }
     ~SchedulerProbabilistic() { }
 
+    /// Set up variables for configuration file
     void SetupConfig() override {
       LinkPop(pop_id, "pop", "Which population should we select parents from?");
       LinkVar(avg_updates, "avg_updates", "How many updates should organism receive on average?");
@@ -47,11 +48,12 @@ namespace mabe {
       LinkVar(merit_scale_factor, "merit_scale_factor", "How should the scheduler scale merit?");
     }
 
+    /// Register traits
     void SetupModule() override {
       AddRequiredTrait<double>(trait); ///< The fitness trait must be set by another module.
     }
 
-    // Setup member functions associated with this class.
+    /// Set up member functions associated with this class.
     static void InitType(emplode::TypeInfo & info) {
       info.AddMemberFunction(
         "SCHEDULE",
@@ -63,7 +65,7 @@ namespace mabe {
 
     /// Ration out updates to members of the population
     double Schedule() {
-      // Grab the variables we'll use over and over
+      // Grab the variables we'll use repeatedly 
       emp::Random & random = control.GetRandom();
       Population & pop = control.GetPopulation(pop_id);
       const size_t N = pop.GetSize();
@@ -72,7 +74,8 @@ namespace mabe {
         emp::notify::Error("Trying to schedule an empty population.");
         return 0;
       }
-      if(weight_map.GetSize() == 0) weight_map.Resize(N, 1);
+
+      if(weight_map.GetSize() == 0) weight_map.Resize(N, base_value);
       size_t selected_idx;
       // Dole out updates
       for(size_t i = 0; i < N * avg_updates; ++i){
@@ -80,16 +83,13 @@ namespace mabe {
         if(total_weight > 0.0){ // TODO: cap to max weight
           selected_idx = weight_map.Index(random.GetDouble() * total_weight);
         }
-        else selected_idx = random.GetUInt(pop.GetSize()); 
+        else selected_idx = random.GetUInt(pop.GetSize()); // No weights -> pick randomly 
         pop[selected_idx].ProcessStep();
       }
       return weight_map.GetWeight();
     }
 
-    void OnUpdate(size_t /*update*/) override {
-      //Schedule();
-    }
- 
+    /// When an organism is placed in a population, add its weight to the weight map
     void OnPlacement(OrgPosition placement_pos){
       Population & pop = placement_pos.Pop();
       const size_t N = pop.GetSize();
