@@ -197,7 +197,7 @@ namespace mabe {
       GetManager().LinkVar(SharedData().mut_prob, "mut_prob",
                       "Probability of each instruction mutating on reproduction.");
       GetManager().LinkFuns<size_t>([this](){ return GetGenomeSize(); },
-                       [this](const size_t & N){ Reset(); /*PushDefaultInst(N);*/ },
+                       [this](const size_t & /*N*/){ Reset(); /*PushDefaultInst(N);*/ },
                        "N", "Initial number of instructions in genome");
       GetManager().LinkVar(SharedData().init_random, "init_random",
                       "Should we randomize ancestor?  (0 = \"blank\" default)");

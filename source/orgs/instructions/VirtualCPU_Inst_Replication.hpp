@@ -110,7 +110,7 @@ namespace mabe {
       }
       if(include_h_search){ // Head search 
         inst_func_t func_h_search = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
-          int res =hw.FindNopSequence(hw.GetComplementNopSequence(inst.nop_vec), hw.inst_ptr);
+          size_t res = hw.FindNopSequence(hw.GetComplementNopSequence(inst.nop_vec), hw.inst_ptr);
           if(inst.nop_vec.size() == 0 || res == hw.inst_ptr){
             hw.regs[1] = 0;
             hw.regs[2] = 0;

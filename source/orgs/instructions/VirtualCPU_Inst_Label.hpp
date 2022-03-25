@@ -67,7 +67,7 @@ namespace mabe {
     void SetupFuncs(){
       ActionMap& action_map = control.GetActionMap(pop_id);
       if(include_label){ // Label 
-        const inst_func_t func_label = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){ ; };
+        const inst_func_t func_label = [](VirtualCPUOrg& /*hw*/, const VirtualCPUOrg::inst_t& /*inst*/){ ; };
         Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
             "Label", func_label);
         action.data.AddVar<int>("inst_id", 30);

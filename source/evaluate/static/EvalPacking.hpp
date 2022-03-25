@@ -147,11 +147,11 @@ namespace mabe {
         // Make sure this organism has its bit sequence ready for us to access.
         org.GenerateOutput();
         // Get the bits_traits of the orgnism.
-        const emp::BitVector & bits = org.GetVar<emp::BitVector>(bits_trait);
+        const emp::BitVector & bits = org.GetTrait<emp::BitVector>(bits_trait);
         // Evaluate the fitness of the orgnism
         double fitness = EvaluateOrg(bits, padding_size, package_size); 
         // Set the fitness_trait for the organism
-        org.SetVar<double>(fitness_trait, fitness);
+        org.SetTrait<double>(fitness_trait, fitness);
         // Update the max_fitness if applicable
         if (fitness > max_fitness) {
           max_fitness = fitness;

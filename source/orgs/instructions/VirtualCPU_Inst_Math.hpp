@@ -126,7 +126,6 @@ namespace mabe {
             hw.regs[idx] = hw.regs[idx] + hw.regs[idx_2];
             hw.regs[idx] = ~(hw.regs[idx] & hw.regs[idx_2]);
           }
-          size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
         };
         Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
             "Nand", func_nand);

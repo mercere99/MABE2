@@ -61,7 +61,7 @@ namespace mabe {
       mabe::Collection alive_orgs( orgs.GetAlive() );
       for (Organism & org : alive_orgs) {
         double fitness = control.GetRandom().GetDouble() * max_score;
-        org.SetVar<double>(output_trait, fitness);
+        org.SetTrait<double>(output_trait, fitness);
 
         if (fitness > max_fitness || !max_org) {
           max_fitness = fitness;

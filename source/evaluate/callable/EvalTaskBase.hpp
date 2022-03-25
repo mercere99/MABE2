@@ -66,12 +66,14 @@ namespace mabe {
     /// To be overridden by derived class. Determine if output is the result of applying the given function to input
     virtual bool CheckOneArg(const data_t& /*output*/, const data_t& /*input*/){
       emp_error("Derived EvalTask class did not define CheckOneArg");
+      return false;
     }; 
 
     /// To be overridden by derived class. Determine if input_a OP input_b = output (with OP depending on the derived class) 
     virtual bool CheckTwoArg(const data_t& /*output*/, const data_t& /*input_a*/, 
         const data_t& /*input_b*/){ 
       emp_error("Derived EvalTask class did not define CheckOneArg");
+      return false;
     }
 
     /// Evaluate an organism on the given logic task (assuming only one argument is needed)

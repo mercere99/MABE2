@@ -228,8 +228,8 @@ namespace mabe {
       if(!state.initialized) InitializeState(state);
       emp::Point2D<int> new_pos = state.cur_pos + (state.cur_dir * scale_factor);
       // Bounds check
-      if(new_pos.GetX() < 0 || new_pos.GetX() >= path_data_vec[state.cur_map_idx].tile_map.GetWidth() ||
-         new_pos.GetY() < 0 || new_pos.GetY() >= path_data_vec[state.cur_map_idx].tile_map.GetHeight()){
+      if(new_pos.GetX() < 0 || new_pos.GetX() >= static_cast<int>(path_data_vec[state.cur_map_idx].tile_map.GetWidth()) ||
+         new_pos.GetY() < 0 || new_pos.GetY() >= static_cast<int>(path_data_vec[state.cur_map_idx].tile_map.GetHeight())){
         new_pos = state.cur_pos;
       }
       if(state.cur_pos == new_pos) return state.normalized_score;
