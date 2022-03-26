@@ -610,13 +610,9 @@ namespace emplode {
       return emp::NewPtr<ASTNode_While>(test_node, body_node, keyword_line);
     }
 
-    else if (state.UseIfLexeme("BREAK")) {      
-      return MakeTempLeaf(Symbol_Special::BREAK, keyword_line);
-    }
+    else if (state.UseIfLexeme("BREAK")) { return MakeBreakLeaf(keyword_line); }
 
-    else if (state.UseIfLexeme("CONTINUE")) {
-      return MakeTempLeaf(Symbol_Special::CONTINUE, keyword_line);
-    }
+    else if (state.UseIfLexeme("CONTINUE")) { return MakeContinueLeaf(keyword_line); }
 
     // If we made it this far, we have an error.  Identify and deal with it!
 
