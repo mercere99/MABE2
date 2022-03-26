@@ -165,9 +165,14 @@ namespace emplode {
     return emp::NewPtr<ASTNode_Leaf>(symbol_ptr, line_id);
   }
 
-  emp::Ptr<ASTNode_Leaf> MakeTempLeaf(Symbol_Special::Type type, int line_id=-1) {
-    auto symbol_ptr = emp::NewPtr<Symbol_Special>(type);
-    return emp::NewPtr<ASTNode_Leaf>(symbol_ptr, line_id);
+  emp::Ptr<ASTNode_Leaf> MakeBreakLeaf(int line_id=-1) {
+      static Symbol_Special break_symbol(Symbol_Special::BREAK);
+      return emp::NewPtr<ASTNode_Leaf>(&break_symbol, line_id);
+  }
+
+  emp::Ptr<ASTNode_Leaf> MakeContinueLeaf(int line_id=-1) {
+      static Symbol_Special continue_symbol(Symbol_Special::CONTINUE);
+      return emp::NewPtr<ASTNode_Leaf>(&continue_symbol, line_id);
   }
 
   class ASTNode_Block : public ASTNode_Internal {
@@ -193,8 +198,9 @@ namespace emplode {
     symbol_ptr_t Process() override {
       for (auto node : children) {
         symbol_ptr_t out = node->Process();                  // Process this line.
+        if (!out) continue;                                  // No return symbol?  Keep going!
         if (out->IsBreak() || out->IsContinue()) return out; // Propagate a break or continue
-        if (out && out->IsTemporary()) out.Delete();         // Clean up anything else, if needed
+        if (out->IsTemporary()) out.Delete();                // Clean up anything else, if needed
       }
       return nullptr;
     }
@@ -252,8 +258,8 @@ namespace emplode {
 
     symbol_ptr_t Process() override {
       emp_assert(children.size() == 2);
-      auto out_val = fun(children[1]->template ProcessAs<ARG1_T>(),
-                         children[2]->template ProcessAs<ARG2_T>());
+      auto out_val = fun(children[0]->template ProcessAs<ARG1_T>(),
+                         children[1]->template ProcessAs<ARG2_T>());
       return GetSymbolTable().MakeTempSymbol(out_val);
     }
 
@@ -342,8 +348,8 @@ namespace emplode {
       while (children[0]->ProcessAs<double>()) {
         symbol_ptr_t out = children[1]->Process();
         if (out) {
-          if (out->IsBreak())     { out.Delete(); break; }
-          if (out->IsContinue())  { out.Delete(); continue; }
+          if (out->IsBreak())     { break; }
+          if (out->IsContinue())  { continue; }
           if (out->IsTemporary()) { out.Delete(); }
         }
       }
