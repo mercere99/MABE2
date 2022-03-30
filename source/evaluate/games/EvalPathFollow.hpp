@@ -94,35 +94,6 @@ namespace mabe {
     emp::Random& rand;          ///< Reference to the main random number generator of MABE
     bool randomize_cues = true; ///< If true, each org receives random values for each type for cue(consistent through lifetime). Otherwise, cues have same values for all orgs
     
-    protected: // Only a couple methods that should only be called internally
-
-    PathData& GetCurPath(const PathFollowState& state){
-      return path_data_vec[state.cur_map_idx];
-    }
-    
-    const PathData& GetCurPath(const PathFollowState& state) const{
-      return path_data_vec[state.cur_map_idx];
-    }
-
-    /// Fetch the reward value for organism's current position
-    ///
-    /// Off path: -1
-    /// On new tile of path: +1
-    /// On previously-visited tile of path: 0
-    double GetCurrentPosScore(const PathFollowState& state) const{
-      // If we're off the path, decrement score
-      int tile_id = state.status.Scan(GetCurPath(state).grid);
-      if(tile_id == Tile::EMPTY) return -1;
-      // On a new tile of the path, add score (forward, left, right, finish)
-      else if(!state.visited_tiles[ state.status.GetIndex(GetCurPath(state).grid)]) return 1;
-      return 0; // Otherwise we've seen this tile of the path before, do nothing
-    }
-
-    /// Record the organism's current position as visited
-    void MarkVisited(PathFollowState& state){
-      state.visited_tiles.Set(state.status.GetIndex(GetCurPath(state).grid), true);
-    }
-
     public: 
     PathFollowEvaluator(emp::Random& _rand) : rand(_rand) { ; } 
 
@@ -246,7 +217,33 @@ namespace mabe {
         }
       }
     }
+    
+    PathData& GetCurPath(const PathFollowState& state){
+      return path_data_vec[state.cur_map_idx];
+    }
+    
+    const PathData& GetCurPath(const PathFollowState& state) const{
+      return path_data_vec[state.cur_map_idx];
+    }
 
+    /// Record the organism's current position as visited
+    void MarkVisited(PathFollowState& state){
+      state.visited_tiles.Set(state.status.GetIndex(GetCurPath(state).grid), true);
+    }
+
+    /// Fetch the reward value for organism's current position
+    ///
+    /// Off path: -1
+    /// On new tile of path: +1
+    /// On previously-visited tile of path: 0
+    double GetCurrentPosScore(const PathFollowState& state) const{
+      // If we're off the path, decrement score
+      int tile_id = state.status.Scan(GetCurPath(state).grid);
+      if(tile_id == Tile::EMPTY) return -1;
+      // On a new tile of the path, add score (forward, left, right, finish)
+      else if(!state.visited_tiles[ state.status.GetIndex(GetCurPath(state).grid)]) return 1;
+      return 0; // Otherwise we've seen this tile of the path before, do nothing
+    }
 
     /// Move the organism in the direction it is facing then update and return score
     double Move(PathFollowState& state, int scale_factor = 1){
@@ -262,13 +259,13 @@ namespace mabe {
     /// Rotate the organism clockwise by 90 degrees
     void RotateRight(PathFollowState& state){
       if(!state.initialized) InitializeState(state);
-      state.status.Rotate(1);
+      state.status.Rotate(2);
     }
 
     /// Rotate the organism counterclockwise by 90 degrees
     void RotateLeft(PathFollowState& state){
       if(!state.initialized) InitializeState(state);
-      state.status.Rotate(-1);
+      state.status.Rotate(-2);
     }
 
     /// Fetch the cue value of the tile the organism is currently on
@@ -297,10 +294,10 @@ namespace mabe {
           return state.forward_cue;
           break;
         case Tile::START_LEFT:
-          return state.left_cue;
+          return state.forward_cue;
           break;
         case Tile::START_RIGHT:
-          return state.right_cue;
+          return state.forward_cue;
           break;
         case Tile::FINISH:
           return state.forward_cue;

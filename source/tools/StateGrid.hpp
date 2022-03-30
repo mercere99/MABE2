@@ -315,7 +315,7 @@ namespace emp {
 
     size_t GetX() const { return cur_state.x; }
     size_t GetY() const { return cur_state.y; }
-    size_t GetFacing() const {
+    int GetFacing() const {
       emp_assert(cur_state.facing >= 0 && cur_state.facing < 8);
       return (size_t) cur_state.facing;
     }
