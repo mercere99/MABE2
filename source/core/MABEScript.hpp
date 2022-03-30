@@ -131,7 +131,7 @@ namespace mabe {
     template <typename FROM_T=Collection>
     std::function<Symbol_Var(const FROM_T &)> BuildTraitSummary(
       std::string trait_fun,         // Function to calculate on each organism
-      std::string mode,              // Method to combine organism results
+      std::string summary_type,      // Method to combine organism results
       emp::DataLayout & data_layout  // DataLayout to assume for this summary
     ) {
       static_assert( std::is_same<FROM_T,Collection>() ||  std::is_same<FROM_T,Population>(),
@@ -155,7 +155,7 @@ namespace mabe {
         auto get_fun = [trait_id, result_type](const Organism & org) {
           return emp::to_literal( org.GetTraitAsString(trait_id, result_type) );
         };
-        auto fun = BuildCollectFun<std::string, Collection>(mode, get_fun);
+        auto fun = BuildCollectFun<std::string, Collection>(summary_type, get_fun);
 
         // If we are coming from a Population, first convert to a collection.
         if constexpr (std::is_same<FROM_T,Population>()) {
@@ -166,11 +166,11 @@ namespace mabe {
 
       // If we made it here, we are numeric.
       auto get_fun = BuildTraitEquation(data_layout, trait_fun);
-      auto fun = BuildCollectFun<double, Collection>(mode, get_fun);
+      auto fun = BuildCollectFun<double, Collection>(summary_type, get_fun);
 
       // If we don't have a fun, we weren't able to build an aggregation function.
       if (!fun) {
-        emp::notify::Error("Unknown trait filter '", mode, "' for trait '", trait_fun, "'.");
+        emp::notify::Error("Unknown trait filter '", summary_type, "' for trait '", trait_fun, "'.");
         return [](const FROM_T &){ return Symbol_Var(0); };
       }
 
@@ -358,7 +358,7 @@ namespace mabe {
     }
     
   public:
-    MABEScript(MABEBase & in) : control(in) { Initialize(); }
+    MABEScript(MABEBase & in) : control(in), dm_parser(true, in.GetRandom()) { Initialize(); }
     ~MABEScript() { }
 
   };
