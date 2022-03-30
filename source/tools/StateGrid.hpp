@@ -108,13 +108,19 @@ namespace emp {
     size_t height;            ///< Height of the overall grid
     emp::vector<int> states;  ///< Specific states at each position in the grid.
     StateGridInfo info;       ///< Information about the set of states used in this grid.
+    bool is_toroidal;         /**< Decides how boundaries are handled.  
+                                   If true, the grid is toroidal and agents that wander off 
+                                      one side wrap to the opposite side.
+                                   If false, agents are clamped to the grid. */
 
   public:
     StateGrid() : width(0), height(0), states(0), info() { ; }
-    StateGrid(StateGridInfo & _i, size_t _w=1, size_t _h=1, int init_val=0)
-      : width(_w), height(_h), states(_w*_h,init_val), info(_i) { ; }
+    StateGrid(StateGridInfo & _i, size_t _w=1, size_t _h=1, 
+        int init_val=0, bool _is_toroidal=false)
+      : width(_w), height(_h), states(_w*_h,init_val), info(_i), 
+        is_toroidal(_is_toroidal) { ; }
     StateGrid(StateGridInfo & _i, const std::string & filename)
-      : width(1), height(1), states(), info(_i) { Load(filename); }
+      : width(1), height(1), states(), info(_i), is_toroidal(false) { Load(filename); }
     StateGrid(const StateGrid &) = default;
     StateGrid(StateGrid && in) = default;
     ~StateGrid() { ; }
@@ -165,6 +171,8 @@ namespace emp {
       emp_assert(y < height, y, height);
       return info.GetName(GetState(x,y));
     }
+    bool GetIsToroidal() const { return is_toroidal; }
+    void SetIsToroidal(bool b){ is_toroidal = b; }
 
     /// Return a BitVector indicating which positions in the state grid have a particular state.
     emp::BitVector IsState(int target_state) {
@@ -264,13 +272,37 @@ namespace emp {
     /// Move explicitly in the x direction (regardless of facing).
     void MoveX(const StateGrid & grid, int steps=1) {
       emp_assert(grid.GetWidth(), grid.GetWidth());
-      cur_state.x = (size_t) Mod(steps + (int) cur_state.x, (int) grid.GetWidth());
+      if(grid.GetIsToroidal()){
+        cur_state.x = (size_t) Mod(steps + (int) cur_state.x, (int) grid.GetWidth());
+      }
+      else{
+        if(steps >= 0){
+          cur_state.x = (size_t) ( (steps + (int) cur_state.x >= (int) grid.GetWidth()) ?
+              grid.GetWidth() - 1 : steps + (int) cur_state.x );
+        }
+        else{
+          cur_state.x = (size_t) ( (steps - (int) cur_state.x < 0) ?
+              0 : steps - (int) cur_state.x );
+        }
+      }
     }
 
     /// Move explicitly in the y direction (regardless of facing).
     void MoveY(const StateGrid & grid, int steps=1) {
       emp_assert(grid.GetHeight(), grid.GetHeight());
-      cur_state.y = (size_t) Mod(steps + (int) cur_state.y, (int) grid.GetHeight());
+      if(grid.GetIsToroidal()){
+        cur_state.y = (size_t) Mod(steps + (int) cur_state.y, (int) grid.GetHeight());
+      }
+      else{
+        if(steps >= 0){
+          cur_state.y = (size_t) ( (steps + (int) cur_state.y >= (int) grid.GetHeight()) ?
+              grid.GetHeight() - 1 : steps + (int) cur_state.y );
+        }
+        else{
+          cur_state.y = (size_t) ( (steps - (int) cur_state.y < 0) ?
+              0 : steps - (int) cur_state.y );
+        }
+      }
     }
 
   public:
@@ -286,6 +318,9 @@ namespace emp {
     size_t GetFacing() const {
       emp_assert(cur_state.facing >= 0 && cur_state.facing < 8);
       return (size_t) cur_state.facing;
+    }
+    size_t GetIndex(const StateGrid& grid) const {
+      return (cur_state.y * grid.GetWidth()) + cur_state.x;
     }
 
     bool IsAt(size_t x, size_t y) const { return cur_state.IsAt(x,y); }
@@ -362,7 +397,7 @@ namespace emp {
     }
 
     /// Examine state of current position.
-    int Scan(const StateGrid & grid) {
+    int Scan(const StateGrid & grid) const{
       return grid(cur_state.x, cur_state.y);
       // @CAO: Should we be recording the scan somehow in history?
     }

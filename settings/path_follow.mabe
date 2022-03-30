@@ -119,6 +119,7 @@ max_file.ADD_COLUMN("gen", "best_org.TRAIT('generation')" );
   main_pop.INJECT("avida_org", 1);             // Inject ancestor organism 
 };;
 
+Var avg_gen; 
 @UPDATE(Var ud) {
   scheduler.SCHEDULE();
   PRINT("UD:", GET_UPDATE(),
@@ -130,6 +131,7 @@ max_file.ADD_COLUMN("gen", "best_org.TRAIT('generation')" );
        );
   fit_file.WRITE();
   max_file.WRITE();
-};;
+  avg_gen = main_pop.CALC_MEAN("generation");
+  IF(avg_gen >= max_gens) EXIT();
+};
 
-@UPDATE(Var ud2) IF (ud2 == max_gens) EXIT();
