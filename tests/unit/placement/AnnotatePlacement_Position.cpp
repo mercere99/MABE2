@@ -11,7 +11,7 @@
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
 // MABE
-#include "placement/AnnotatePlacement.hpp"
+#include "placement/AnnotatePlacement_Position.hpp"
 
 
-TEST_CASE("AnnotatePlacement_Placeholder", "[core]"){ ; }
+TEST_CASE("AnnotatePlacement_Position_Placeholder", "[core]"){ ; }

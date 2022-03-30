@@ -1,4 +1,4 @@
-TEST_NAMES= AnnotatePlacement MaxSizePlacement RandomReplacement
+TEST_NAMES= AnnotatePlacement_Position MaxSizePlacement RandomReplacement
 
 MABE_DIR= ../../../source/
 EMP_DIR= ../../../source/third-party/empirical
