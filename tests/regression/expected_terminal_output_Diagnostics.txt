@@ -103,4 +103,4 @@ UD:98  MainPopSize=512  AveFitness=484.961  MaxFitness=487.486
 UD:99  MainPopSize=512  AveFitness=484.001  MaxFitness=488.182
 UD:100  MainPopSize=512  AveFitness=485.229  MaxFitness=488.182
 EMP_TRACK_MEM: No memory leaks found!
- 215260 pointers found; all have been cleaned up fully.
+ 215261 pointers found; all have been cleaned up fully.

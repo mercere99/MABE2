@@ -1,10 +1,10 @@
 Latest commit at time of last regeneration:
-commit e4d36ffbb45e484afaed98741c60a57502316060
+commit d4b11b9f31c1dd7443afe0d245b7302ef6d1e7c1
 Author: Austin Ferguson <ferguson.austin.j@gmail.com>
-Date:   Fri Jan 21 14:54:04 2022 -0500
+Date:   Thu Mar 31 11:00:12 2022 -0400
 
-    Update EvalPacking unit tests to track new change
+    Fix bug when moving in non-toroidal StateGrid
  
  
 Time of last regeneration:
-Fri Jan 21 03:36:11 PM EST 2022
+Thu Mar 31 11:15:09 AM EDT 2022

@@ -203,4 +203,4 @@ MODE_LESS=660  MODE_EQU=340  MODE_GTR=0
 UD:100  MainPopSize=1000  AveFitness=73.8446  MaxFitness=74.9297  ModeFitness=74.9297
 MODE_LESS=670  MODE_EQU=330  MODE_GTR=0
 EMP_TRACK_MEM: No memory leaks found!
- 10935960 pointers found; all have been cleaned up fully.
+ 10935961 pointers found; all have been cleaned up fully.
