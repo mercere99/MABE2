@@ -26,7 +26,7 @@ namespace mabe {
 
   class BitSummaryOrg : public OrganismTemplate<BitSummaryOrg> {
   protected:
-    size_t num_ones = 0;
+    // Uses datamap to store num ones.
 
   public:
     BitSummaryOrg(OrganismManager<BitSummaryOrg> & _manager)
@@ -34,7 +34,8 @@ namespace mabe {
     BitSummaryOrg(const BitSummaryOrg &) = default;
     BitSummaryOrg(BitSummaryOrg &&) = default;
     BitSummaryOrg(const emp::BitVector & in, OrganismManager<BitSummaryOrg> & _manager)
-      : OrganismTemplate<BitSummaryOrg>(_manager), num_ones(in.CountOnes()) { }
+      : OrganismTemplate<BitSummaryOrg>(_manager)
+      { GetTrait<size_t>(SharedData().output_name) = in.CountOnes(); }
     ~BitSummaryOrg() { ; }
 
     struct ManagerData : public Organism::ManagerData {
@@ -48,11 +49,14 @@ namespace mabe {
 
     /// Use "to_string" to convert.
     std::string ToString() const override {
+      size_t num_ones = GetTrait<size_t>(SharedData().output_name);
       const size_t num_zeros = SharedData().num_bits - num_ones;
       return emp::to_string("[0:", num_zeros, ",1:", num_ones, "]");
     }
 
     size_t Mutate(emp::Random & random) override {
+      size_t & num_ones = GetTrait<size_t>(SharedData().output_name);
+
       const double mut_prob = SharedData().mut_prob;
       const double one_prob = SharedData().one_prob;
 
@@ -68,6 +72,7 @@ namespace mabe {
     }
 
     void Randomize(emp::Random & random) override {
+      size_t & num_ones = GetTrait<size_t>(SharedData().output_name);
       num_ones = SharedData().binomials.PickRandom(random, SharedData().one_prob, SharedData().num_bits);
     }
 
@@ -77,7 +82,7 @@ namespace mabe {
 
     /// Put the bits in the correct output position.
     void GenerateOutput() override {
-      SetTrait<size_t>(SharedData().output_name, num_ones);
+      // Nothing to do here - output already stored in DataMap.
     }
 
     /// Setup this organism type to be able to load from config.
@@ -88,7 +93,7 @@ namespace mabe {
                       "Probability of each bit being randomized on reproduction.");
       GetManager().LinkVar(SharedData().one_prob, "one_prob",
                       "Probability of a randomized bit becoming a one.");
-      GetManager().LinkVar(SharedData().output_name, "num_ones",
+      GetManager().LinkVar(SharedData().output_name, "output_name",
                       "Name of variable to output number of ones.");
       GetManager().LinkVar(SharedData().init_random, "init_random",
                       "Should we randomize ancestor?  (0 = all zeros)");
