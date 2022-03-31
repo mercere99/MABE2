@@ -281,8 +281,8 @@ namespace emp {
               grid.GetWidth() - 1 : steps + (int) cur_state.x );
         }
         else{
-          cur_state.x = (size_t) ( (steps - (int) cur_state.x < 0) ?
-              0 : steps - (int) cur_state.x );
+          cur_state.x = (size_t) ( ((int) cur_state.x + steps < 0) ?
+              0 : (int) cur_state.x + steps );
         }
       }
     }
@@ -299,8 +299,8 @@ namespace emp {
               grid.GetHeight() - 1 : steps + (int) cur_state.y );
         }
         else{
-          cur_state.y = (size_t) ( (steps - (int) cur_state.y < 0) ?
-              0 : steps - (int) cur_state.y );
+          cur_state.y = (size_t) ( (steps + (int) cur_state.y < 0) ?
+              0 : steps + (int) cur_state.y );
         }
       }
     }
@@ -366,9 +366,9 @@ namespace emp {
 
     /// Move in the direction currently faced.
     void Move(const StateGrid & grid, int steps=1) {
-      // std::cout << "steps = " << steps
-      //           << "  facing = " << cur_state.facing
-      //           << "  start = (" << cur_state.x << "," << cur_state.y << ")";
+       //std::cout << "steps = " << steps
+       //          << "  facing = " << cur_state.facing
+       //          << "  start = (" << cur_state.x << "," << cur_state.y << ")";
       switch (cur_state.facing) {
         case 0: MoveX(grid, -steps); MoveY(grid, -steps); break;
         case 1:                      MoveY(grid, -steps); break;
@@ -380,9 +380,9 @@ namespace emp {
         case 7: MoveX(grid, -steps);                      break;
       }
       UpdateHistory();
-      // std::cout << " end = (" << cur_state.x << "," << cur_state.y << ")"
-      //           << "  facing = " << cur_state.facing
-      //           << std::endl;
+       //std::cout << " end = (" << cur_state.x << "," << cur_state.y << ")"
+       //          << "  facing = " << cur_state.facing
+       //          << std::endl;
     }
 
     /// Rotate starting from current facing.
