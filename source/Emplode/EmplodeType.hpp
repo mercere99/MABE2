@@ -45,6 +45,8 @@ namespace emplode {
 
     virtual ~EmplodeType() { }
 
+    virtual std::string ToString() const { return "[[__EMPLODE_OBJECT__]]"; }
+
     // Optional function to override to add configuration options associated with an object.
     virtual void SetupConfig() { };
 
