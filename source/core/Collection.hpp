@@ -393,7 +393,7 @@ namespace mabe {
 
     // Convert this Collection into a string that can be used in configuration files.  For example:
     //   main_pop,special_pop[0-99],next_pop
-    std::string ToString() const {
+    std::string ToString() const override {
       std::stringstream ss;
       bool first = true;
       for (auto [pop_ptr, pop_info] : pos_map) {
