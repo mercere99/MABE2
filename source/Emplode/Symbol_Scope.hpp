@@ -69,6 +69,8 @@ namespace emplode {
     bool IsScope() const override { return true; }
     bool IsLocal() const override { return true; }  // @CAO, for now assuming all scopes are local!
 
+    std::string AsString() const override { return "[[__SCOPE__]]"; }
+
     /// Set this symbol to be a correctly-typed scope pointer.
     emp::Ptr<Symbol_Scope> AsScopePtr() override { return this; }
     emp::Ptr<const Symbol_Scope> AsScopePtr() const override { return this; }

@@ -61,6 +61,8 @@ namespace emplode {
     bool HasNumericReturn() const override { return return_type.IsArithmetic(); }
     bool HasStringReturn() const override { return return_type.IsType<std::string>(); }
 
+    std::string AsString() const override { return "[[__FUNCTION__]]"; }
+
     /// Set this symbol to be a correctly-typed scope pointer.
     emp::Ptr<Symbol_Function> AsFunctionPtr() override { return this; }
     emp::Ptr<const Symbol_Function> AsFunctionPtr() const override { return this; }
