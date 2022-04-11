@@ -65,6 +65,11 @@ namespace emplode {
       return type_info_ptr->GetTypeID();
     }
 
+    std::string AsString() const override {
+      if (obj_ptr) { return obj_ptr->ToString(); }
+      return "[[__OBJECT__]]";
+    }
+
     /// Set this symbol to be a correctly-typed scope pointer.
     emp::Ptr<Symbol_Object> AsObjectPtr() override { return this; }
     emp::Ptr<const Symbol_Object> AsObjectPtr() const override { return this; }
