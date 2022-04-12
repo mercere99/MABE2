@@ -94,18 +94,18 @@ namespace mabe {
 
     template <typename DATA_T, typename CONTAIN_T, typename FUN_T>
     Symbol_Var MinID(const CONTAIN_T & container, FUN_T get_fun) {
-      DATA_T min{};
+      DATA_T min_val{};
       if constexpr (std::is_arithmetic_v<DATA_T>) {
-        min = std::numeric_limits<DATA_T>::max();
+        min_val = std::numeric_limits<DATA_T>::max();
       }
       else if constexpr (std::is_same_v<std::string, DATA_T>) {
-        min = std::string('~',22);   // '~' is ascii char 126 (last printable one.)
+        min_val = std::string('~',22);   // '~' is ascii char 126 (last printable one.)
       }
       size_t id = 0;
       size_t min_id = 0;
       for (const auto & entry : container) {
         const DATA_T cur_val = get_fun(entry);
-        if (cur_val < min) { min = cur_val; min_id = id; }
+        if (cur_val < min_val) { min_val = cur_val; min_id = id; }
         ++id;
       }
       return min_id;
@@ -113,15 +113,15 @@ namespace mabe {
 
     template <typename DATA_T, typename CONTAIN_T, typename FUN_T>
     Symbol_Var MaxID(const CONTAIN_T & container, FUN_T get_fun) {
-      DATA_T max{};
+      DATA_T max_val{};
       if constexpr (std::is_arithmetic_v<DATA_T>) {
-        max = std::numeric_limits<DATA_T>::lowest();
+        max_val = std::numeric_limits<DATA_T>::lowest();
       }
       size_t id = 0;
       size_t max_id = 0;
       for (const auto & entry : container) {
         const DATA_T cur_val = get_fun(entry);
-        if (cur_val > max) { max = cur_val; max_id = id; }
+        if (cur_val > max_val) { max_val = cur_val; max_id = id; }
         ++id;
       }
       return max_id;
