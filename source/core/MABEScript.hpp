@@ -131,7 +131,7 @@ namespace mabe {
     template <typename FROM_T=Collection>
     std::function<Symbol_Var(const FROM_T &)> BuildTraitSummary(
       std::string trait_fun,         // Function to calculate on each organism
-      std::string summary_type,      // Method to combine organism results
+      std::string summary_type,      // Method to combine organism results ("max", "mean", etc.)
       emp::DataLayout & data_layout  // DataLayout to assume for this summary
     ) {
       static_assert( std::is_same<FROM_T,Collection>() ||  std::is_same<FROM_T,Population>(),
@@ -161,7 +161,9 @@ namespace mabe {
         if constexpr (std::is_same<FROM_T,Population>()) {
           return [fun](const Population & p){ return fun( Collection(p) ); };
         }
-        else return fun;
+        else {
+          return fun;
+        }
       }
 
       // If we made it here, we are numeric.
@@ -174,11 +176,12 @@ namespace mabe {
         return [](const FROM_T &){ return Symbol_Var(0); };
       }
 
-      // Go through all combinations of TO/FROM to return the correct types.
+      // If we are processing a Population, first convert it to a Collection.
       if constexpr (std::is_same<FROM_T,Population>()) {
         return [fun](const Population & p){ return fun( Collection(p) ); };
       }
-      else return fun;
+
+      return fun;
     }
 
 
@@ -186,9 +189,9 @@ namespace mabe {
     /// Output is a function in the form:  TO_T(const FROM_T &, string equation, TO_T default)
     template <typename FROM_T=Collection> 
     auto BuildTraitFunction(const std::string & fun_type) {
-      return [this,fun_type](FROM_T & pop, const std::string & equation) {
-        auto trait_fun = BuildTraitSummary<FROM_T>(equation, fun_type, pop.GetDataLayout());
-        return trait_fun(pop);
+      return [this,fun_type](FROM_T & group, const std::string & equation) {
+        auto trait_fun = BuildTraitSummary<FROM_T>(equation, fun_type, group.GetDataLayout());
+        return trait_fun(group);
       };
     }
 
