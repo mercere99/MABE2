@@ -153,7 +153,7 @@ namespace mabe {
         emp::TypeID result_type = data_layout.GetType(trait_id);
 
         auto get_fun = [trait_id, result_type](const Organism & org) {
-          return emp::to_literal( org.GetTraitAsString(trait_id, result_type) );
+          return org.GetTraitAsString(trait_id, result_type);
         };
         auto fun = BuildCollectFun<std::string, Collection>(summary_type, get_fun);
 
