@@ -119,7 +119,11 @@ namespace emplode {
     bool IsNumeric() const override { return std::is_scalar_v<T>; }
     bool IsString() const override { return std::is_same<std::string, T>(); }
 
-    bool CopyValue(const Symbol & in) override { SetString( in.AsString() ); return true; }
+    bool CopyValue(const Symbol & in) override {
+      if (in.IsNumeric()) SetValue(in.AsDouble());
+      else SetString(in.AsString());
+      return true;
+    }
   };
 
 }
