@@ -127,7 +127,10 @@ namespace mabe {
     }
 
     size_t GetRandomSeed() const override { return random.GetSeed(); }
-    void SetRandomSeed(size_t in_seed) override { random.ResetSeed(in_seed); }
+    void SetRandomSeed(size_t in_seed) override {
+      std::cout << "Setting Random Seed to " << in_seed << std::endl;
+      random.ResetSeed(in_seed);
+    }
 
     // --- Tools to setup runs ---
     bool Setup();
@@ -397,6 +400,9 @@ namespace mabe {
       [this](const emp::vector<std::string> &){ ShowModules(); } );
     arg_set.emplace_back("--set", "-s", "[param=value] ", "Set specified parameter",
       [this](const emp::vector<std::string> & in){
+        std::cout << "Adding command-line setting:";
+        for (const std::string & x : in) std::cout << " " << x;
+        std::cout << std::endl;
         emp::Append(config_settings, in);
         config_settings.push_back(";"); // Extra semi-colon so not needed on command line.
       });
