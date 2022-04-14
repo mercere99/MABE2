@@ -220,11 +220,12 @@ namespace emplode {
   class Parser {
   private:
     std::unordered_map<std::string, size_t> precedence_map;  ///< Precedence levels for symbols.
-    bool debug = false;                                      ///< Print full debug information?
 
+    /// Print only when debugging.
+    /// To activate debugging data, do: emp::notify::SetVerbose("emplode::Parser");
     template <typename... Ts>
     void Debug(Ts... args) const {
-      if (debug) std::cout << "DEBUG: " << emp::to_string(std::forward<Ts>(args)...) << std::endl;
+      emp::notify::Verbose("Emplode::Parser", emp::to_string(std::forward<Ts>(args)...));
     }
 
   public:
