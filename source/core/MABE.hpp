@@ -34,6 +34,7 @@
 
 #include "../Emplode/Emplode.hpp"
 
+#include "Batch.hpp"
 #include "Collection.hpp"
 #include "data_collect.hpp"
 #include "MABEBase.hpp"
@@ -98,6 +99,7 @@ namespace mabe {
     // ----------- Helper Functions -----------    
     void ShowHelp();       ///< Print information on how to run the software.
     void ShowModules();    ///< List all available modules in the current compilation.
+    void RunBatch();       ///< Process a whole series of MABE runs.
     void ProcessArgs();    ///< Process all arguments passed in on the command line.
 
     // -- Helper functions to be called inside of Setup() --
@@ -372,7 +374,28 @@ namespace mabe {
     exit_now = true;;
   }
 
+
+  void MABE::RunBatch() {
+    exit_now = true;  // Exit after running the batch of files.
+
+    if (config_filenames.size() == 0) {
+      std::cout << "Must specify which batch file should be run." << std::endl;
+      return;
+    }
+    if (config_filenames.size() > 1) {
+      std::cout << "Only one batch file may be specified." << std::endl;
+      for (size_t i = 1; i < config_filenames.size(); ++i) {
+        std::cout << "...ignoring '" config_filenames[i] << "'" << std::endl;
+      }
+    }
+
+    mabe::Batch batch(config_filenames[0]);
+    batch.Process(args[0]);
+  }
+
   void MABE::ProcessArgs() {
+    arg_set.emplace_back("--batch", "-b",    "[filename]    ", "Process a full batch of runs",
+      [this](const emp::vector<std::string> & in){ config_filenames = in; RunBatch(); } );
     arg_set.emplace_back("--filename", "-f", "[filename...] ", "Filenames of configuration settings",
       [this](const emp::vector<std::string> & in){ config_filenames = in; } );
     arg_set.emplace_back("--generate", "-g", "[filename]    ", "Generate a new output file",
