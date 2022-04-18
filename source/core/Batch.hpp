@@ -34,30 +34,33 @@ namespace mabe {
     std::string log_file;                     ///< Where should run details be saved?
     int replicates = 1;                       ///< How many replicates of each factor combination?
 
+    std::unordered_set<std::string, std::string> var_set ///< Variable to use in script.
+
     bool exit_now = false;                    ///< Has something gone wrong and we should abort?
 
     // --- Private helper functions ---
     template <typename... Ts>
     bool Require(bool test, Ts &&... args) {
+      if (exit_now) return false; // Already had a failure; don't report multiple.
+
       if (!test) {
         std::cout << "ERROR: ";
         ((std::cout << std::forward<Ts>(args)), ...);
+        exit_now = true;
       }
       return test;
     }
 
-    bool Process_Factor(std::string line) {
-      if (!Require(line.size(), "Factors must have a factor name.")) return false;
+    void Process_Factor(std::string line) {
+      Require(line.size(), "Factors must have a factor name.");
       std::string name = emp::string_pop_word(line);
       factors.push_back(name);
-      if (!Require(line.size(), "Factor '", name, "' must have at least one value.")) return false;
+      Require(line.size(), "Factor '", name, "' must have at least one value.");
 
       while (line.size()) {
         std::string option = emp::string_pop_word(line);
         factors.back().options.push_back(option);
       }
-
-      return true;
     }
 
   public:
@@ -72,26 +75,62 @@ namespace mabe {
       for (std::string line : batch_file) {
         std::string keyword = emp::string_pop_word(line);
         if (keyword == "config") {               // Set a config options on command line
+          Require(line.size(), "'config' must specify option to include.");
           config_options.push_back(line);
         } else if (keyword == "factor") {        // A range of variables to try in all combinations
           bool result = ProcessFactor(line);
           if (!result) return;
         } else if (keyword == "log") {      // A file to log output of runs
+          Require(line.size(), "'log' must specify filename.");
           log_file = emp::string_pop_word(line);
-          Require(line.size() == 0, "Only filename should be specified in 'log'; using '", log_file, "'.");
+          Require(!line.size(), "Only filename should be specified in 'log'; text follows '", log_file, "'.");
         } else if (keyword == "mabe") {          // Set the mabe executable location
+          Require(line.size(), "'mabe' must specify executable.");
           exe_name = emp::string_pop_word(line);
-          Require(line.size() == 0, "Only one executable should be specified in 'mabe'; using '", exe_name, "'.");
+          Require(!line.size(), "Only one executable should be specified in 'mabe'; text follows '", exe_name, "'.");
         } else if (keyword == "replicate") {     // Provide num replicates for each combo
+          Require(line.size(), "'replicate' must specify number of replicates.");
           replicates = emp::from_string<int>(emp::string_pop_word(line));
-          Require(line.size() == 0, "Only one value should be specified in 'replicate'; using '", replicates, "'.");
+          Require(!line.size(), "Only one value should be specified in 'replicate'; text follows '", replicates, "'.");
         } else if (keyword == "set") {           // Set a local variable value
-
+          Require(line.size(), "'set' must specify variable name and value to set to.");
+          std::string var = emp::string_pop_word(line);
+          var_set[var] = line;          
         } else {
           std::cerr << "ERROR: Unknown keyword '" << keyword << "'.  Aborting." << std::endl;
           return;
         }
-    }      
+
+        if (exit_now) return;
+      }
+    }
+
+    void Run() {
+      int seed = 1;  // Seeds start at 1 and work their way up.
+
+      // Loop through combinations of factors.
+      emp::vector<size_t> ids(factors.size());
+      for (auto & x : ids) x = 0;
+
+      while (true) {
+        // Set variables using the current factors.
+        for (size_t i = 0; i < ids.size(); ++i) {
+          var_set[factors[i].name] = factors[i].options[ids[i]];
+        }
+
+        // Generate the base run string.
+        std::stringstream ss;
+        ss << exe_name;
+        for (const std::string & option : config_options) {
+          ss << " " << option;
+        }
+
+        // Substitute in variables.
+
+        // Do all replicates in this treatment.
+
+        // Move on to the next factors.
+      }
     }
   };
 
