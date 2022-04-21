@@ -10,6 +10,7 @@
 #ifndef MABE_BATCH_HPP
 #define MABE_BATCH_HPP
 
+#include <cstdlib>
 #include <string>
 
 #include "emp/base/vector.hpp"
@@ -126,8 +127,14 @@ namespace mabe {
         }
 
         // Substitute in variables.
+        std::string exe_string(ss.str());        
+        emp::replace_vars(exe_string, var_set);
 
         // Do all replicates in this treatment.
+        for (size_t i = 0; i < replicates; ++i) {
+          std::out_string = emp::to_string(exe_string, " -s random_seed=", seed++);
+          std::system(out_string);
+        }
 
         // Move on to the next factors.
       }
