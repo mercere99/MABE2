@@ -73,6 +73,7 @@ namespace mabe {
       if(include_pop){ // Pop 
         const inst_func_t func_pop = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
           size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
+          if(!inst.nop_vec.empty()) hw.AdvanceIP();
           hw.StackPop(idx);
         };
         Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
@@ -82,6 +83,7 @@ namespace mabe {
       if(include_push){ // Push 
         const inst_func_t func_push = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
           size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
+          if(!inst.nop_vec.empty()) hw.AdvanceIP();
           hw.StackPush(idx);
         };
         Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(

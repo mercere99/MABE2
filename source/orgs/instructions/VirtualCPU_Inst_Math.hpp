@@ -84,10 +84,9 @@ namespace mabe {
             size_t idx_op_2 = inst.nop_vec.size() < 3 ? hw.GetComplementNop(idx_op_1) : inst.nop_vec[2];
             hw.regs[idx_res] = hw.regs[idx_op_1] + hw.regs[idx_op_2];
           }
-          else{
+          else{ // Nop determines destination, computation is always B + C
             size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
-            size_t idx_2 = hw.GetComplementNop(idx);
-            hw.regs[idx] = hw.regs[idx] + hw.regs[idx_2];
+            hw.regs[idx] = hw.regs[1] + hw.regs[2];
           }
         };
         Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
@@ -102,10 +101,9 @@ namespace mabe {
             size_t idx_op_2 = inst.nop_vec.size() < 3 ? hw.GetComplementNop(idx_op_1) : inst.nop_vec[2];
             hw.regs[idx_res] = hw.regs[idx_op_1] - hw.regs[idx_op_2];
           }
-          else{
+          else{ // Nop determines destination. Computation is always B - C
             size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
-            size_t idx_2 = hw.GetComplementNop(idx);
-            hw.regs[idx] = hw.regs[idx] - hw.regs[idx_2];
+            hw.regs[idx] = hw.regs[1] - hw.regs[2];
           }
         };
         Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
@@ -120,11 +118,9 @@ namespace mabe {
             size_t idx_op_2 = inst.nop_vec.size() < 3 ? hw.GetComplementNop(idx_op_1) : inst.nop_vec[2];
             hw.regs[idx_res] = ~(hw.regs[idx_op_1] & hw.regs[idx_op_2]);
           }
-          else{
+          else{ // Nop determines destination. Computation is always B NAND C
             size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
-            size_t idx_2 = hw.GetComplementNop(idx);
-            hw.regs[idx] = hw.regs[idx] + hw.regs[idx_2];
-            hw.regs[idx] = ~(hw.regs[idx] & hw.regs[idx_2]);
+            hw.regs[idx] = ~(hw.regs[1] & hw.regs[2]);
           }
         };
         Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
