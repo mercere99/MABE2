@@ -7,6 +7,9 @@
  *  @brief A full set of all standard modules available in MABE.
  */
 
+// Analyze Modules
+#include "analyze/SystematicsModule.hpp"
+
 // Evaluation Modules
 #include "evaluate/games/EvalMancala.hpp"
 #include "evaluate/games/EvalPathFollow.hpp"
@@ -34,6 +37,7 @@
 
 // Selection Modules
 #include "select/SelectElite.hpp"
+#include "select/SelectFitnessSharing.hpp"
 #include "select/SelectLexicase.hpp"
 #include "select/SchedulerProbabilistic.hpp"
 #include "select/SelectRoulette.hpp"

@@ -6,7 +6,6 @@ changed for individual experiments.
 The core components of MABE are below.  This first group are tools that have minimal internal dependencies (indicated by indentation below the requirement).
 
 data_collect.hpp    - Tools to extract data from elements in a container. 
-ErrorManager.hpp    - Track any run-time errors as they occur.
 SigListener.hpp     - Tool to trigger a specified member function on other classes when triggered.
 TraitInfo.hpp       - Specifications for module/trait interactions (on organisms, populations, etc.)
   TraitManager.hpp  - Manager for dealing with many requests for trait management.

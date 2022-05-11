@@ -244,7 +244,7 @@ namespace mabe {
       SetInputs(Organism::GetTrait<emp::vector<data_t>>(SharedData().input_name));
 
       // Run the code.
-      Process(SharedData().eval_time, SharedData().verbose);
+      //Process(SharedData().eval_time, SharedData().verbose);
     }
 
     /// Return a reference to the instruction library of the organism

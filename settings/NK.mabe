@@ -52,9 +52,7 @@ max_file.ADD_COLUMN( "Genome", "best_org.TRAIT('bits')" );
 // @BEFOREDIVIDE(OrgList parent IN altruists) PRINT("Altruist Birth!");
 
 @UPDATE(Var ud) {
-  // @UPDATE(Var update) {
-  // IF ([10:10].HAS(update)) EXIT();
-  // IF (update == 1000) EXIT;
+  IF (ud == 1000) EXIT();
 
   eval_nk.EVAL(main_pop);
   Var mode_fit = main_pop.CALC_MODE("fitness");

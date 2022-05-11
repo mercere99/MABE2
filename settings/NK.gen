@@ -10,6 +10,7 @@ SelectElite select_elite;
 SelectTournament select_tourny;
 GrowthPlacement place_next;
 MovePopulation sync_gen;
+AnalyzeSystematics sys;
 
 BitsOrg bits_org;
 
