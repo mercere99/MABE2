@@ -30,6 +30,11 @@ namespace mabe {
     bool include_h_copy   = true;  ///< Config option indicating if inst. is used
     bool include_h_search = true;  ///< Config option indicating if inst. is used
     bool include_repro    = false; ///< Config option indicating if inst. is used
+    int h_alloc_id  = -1;  ///< ID of the h_alloc instruction
+    int h_divide_id  = -1;  ///< ID of the h_divide instruction
+    int h_copy_id  = -1;  ///< ID of the h_copy instruction
+    int h_search_id  = -1;  ///< ID of the h_search instruction
+    int repro_id  = -1;  ///< ID of the repro instruction
 
   public:
     VirtualCPU_Inst_Replication(mabe::MABE & control,
@@ -49,6 +54,11 @@ namespace mabe {
       LinkVar(include_h_copy, "include_h_copy", "Do we include the 'h_copy' instruction?");
       LinkVar(include_h_search, "include_h_search", "Do we include the 'h_search' instruction?");
       LinkVar(include_repro, "include_repro", "Do we include the 'repro' instruction?");
+      LinkVar(h_alloc_id, "h_alloc_id", "ID of the h_alloc instruction");
+      LinkVar(h_divide_id, "h_divide_id", "ID of the h_divide instruction");
+      LinkVar(h_copy_id, "h_copy_id", "ID of the h_copy instruction");
+      LinkVar(h_search_id, "h_search_id", "ID of the h_search instruction");
+      LinkVar(repro_id, "repro_id", "ID of the repro instruction");
     }
 
     /// When config is loaded, create traits and set up functions
@@ -68,7 +78,7 @@ namespace mabe {
         };
         Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
               "HAlloc", func_h_alloc);
-        action.data.AddVar<int>("inst_id", 22);
+        action.data.AddVar<int>("inst_id", h_alloc_id);
       }
       if(include_h_divide){ // Head divide 
         inst_func_t func_h_divide = [this](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){
@@ -92,7 +102,7 @@ namespace mabe {
         };
         Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
             "HDivide", func_h_divide);
-        action.data.AddVar<int>("inst_id", 23);
+        action.data.AddVar<int>("inst_id", h_divide_id);
       }
       if(include_h_copy){ // Head copy 
         inst_func_t func_h_copy = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){
@@ -106,7 +116,7 @@ namespace mabe {
         };
         Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
             "HCopy", func_h_copy);
-        action.data.AddVar<int>("inst_id", 21);
+        action.data.AddVar<int>("inst_id", h_copy_id);
       }
       if(include_h_search){ // Head search 
         inst_func_t func_h_search = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
@@ -124,7 +134,7 @@ namespace mabe {
         };
         Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
             "HSearch", func_h_search);
-        action.data.AddVar<int>("inst_id", 25);
+        action.data.AddVar<int>("inst_id", h_search_id);
       }
       if(include_repro){ // Repro 
         inst_func_t func_repro = [this](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){
@@ -145,7 +155,7 @@ namespace mabe {
         };
         Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
             "Repro", func_repro);
-        action.data.AddVar<int>("inst_id", 23);
+        action.data.AddVar<int>("inst_id", repro_id);
       }
     }
 

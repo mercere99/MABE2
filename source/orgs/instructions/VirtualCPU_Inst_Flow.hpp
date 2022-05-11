@@ -27,6 +27,10 @@ namespace mabe {
     bool include_if_less = true;      ///< Config option indicating if instruction is used
     bool include_if_label = true;     ///< Config option indicating if instruction is used
     bool include_mov_head_if_not_equal = false; ///< Config option indicating if inst. is used
+    int if_not_equal_id = -1; // ID of the if_not_equal instruction
+    int if_less_id = -1; // ID of the if_less instruction
+    int if_label_id = -1; // ID of the if_label instruction
+    int mov_head_if_not_equal_id = -1; // ID of the mov_head_if_not_equal insruction
 
   public:
     VirtualCPU_Inst_Flow(mabe::MABE & control,
@@ -46,6 +50,14 @@ namespace mabe {
           "Do we include the 'if_label' instruction?");
       LinkVar(include_mov_head_if_not_equal, "include_mov_head_if_not_equal", 
           "Do we include the 'mov_head_if_not_equal' instruction?");
+      LinkVar(if_not_equal_id, "if_not_equal_id", 
+          "ID of the 'if_not_equal' instruction");
+      LinkVar(if_less_id, "if_less_id", 
+          "ID of the 'if_less' instruction");
+      LinkVar(if_label_id, "if_label_id", 
+          "ID of the 'if_label' instruction");
+      LinkVar(mov_head_if_not_equal_id, "mov_head_if_not_equal_id", 
+          "ID of the 'mov_head_if_not_equal' instruction");
     }
 
     /// When config is loaded, set up functions
@@ -57,7 +69,7 @@ namespace mabe {
     void SetupFuncs(){
       ActionMap& action_map = control.GetActionMap(pop_id);
       if(include_if_not_equal) { // If not equal
-        const inst_func_t func_if_n_equ = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
+        const inst_func_t func_if_not_equ = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
           if(hw.expanded_nop_args){
             size_t idx_op_1 = inst.nop_vec.size() < 1 ? 1 : inst.nop_vec[0];
             size_t idx_op_2 = inst.nop_vec.size() < 2 ? hw.GetComplementNop(idx_op_1) : inst.nop_vec[1];
@@ -75,8 +87,8 @@ namespace mabe {
         };
         Action& action = 
             action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
-                "IfNEqu",func_if_n_equ);
-        action.data.AddVar<int>("inst_id", 3);
+                "IfNEqu",func_if_not_equ);
+        action.data.AddVar<int>("inst_id", if_not_equal_id);
       }
       if(include_if_less){ // If less 
         const inst_func_t func_if_less = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
@@ -97,7 +109,7 @@ namespace mabe {
         };
         Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
             "IfLess", func_if_less);
-        action.data.AddVar<int>("inst_id", 4);
+        action.data.AddVar<int>("inst_id", if_less_id);
       }
       if(include_if_label){ // If label 
         const inst_func_t func_if_label = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
@@ -106,10 +118,10 @@ namespace mabe {
         };
         Action& action = action_map.AddFunc<void, VirtualCPUOrg&,const VirtualCPUOrg::inst_t&>(
             "IfLabel",func_if_label);
-        action.data.AddVar<int>("inst_id", 5);
+        action.data.AddVar<int>("inst_id", if_label_id);
       }
       if(include_mov_head_if_not_equal){ // Move head if not equal
-        const inst_func_t func_mov_head_if_n_equ = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
+        const inst_func_t func_mov_head_if_not_equ = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
           if(hw.expanded_nop_args){
             size_t idx_op_1 = inst.nop_vec.size() < 1 ? 1 : inst.nop_vec[0];
             size_t idx_op_2 = inst.nop_vec.size() < 2 ? hw.GetComplementNop(idx_op_1) : inst.nop_vec[1];
@@ -137,8 +149,8 @@ namespace mabe {
         };
         Action& action = 
             action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
-                "MoveHeadIfNEqu",func_mov_head_if_n_equ);
-        action.data.AddVar<int>("inst_id", 40);
+                "MoveHeadIfNEqu",func_mov_head_if_not_equ);
+        action.data.AddVar<int>("inst_id", mov_head_if_not_equal_id);
       }
     }
 

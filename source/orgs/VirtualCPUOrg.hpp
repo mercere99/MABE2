@@ -81,6 +81,8 @@ namespace mabe {
                                                                  indicates a file that 
                                                                  contains the ancestor's 
                                                                  genome */
+      std::string inst_set_output_filename = ""; /**< If not empty, writes instruction set
+                                                      (in order) to the specified file **/
       bool expanded_nop_args = false; /**< Flag that indicates whether to use the "expanded
                                            nop" syntax. If true, instructions like and can 
                                            take up to three nops to specify all three of the 
@@ -213,19 +215,21 @@ namespace mabe {
                       "Name of variable corresponding to the organism's task performance.");
       GetManager().LinkVar(SharedData().child_merit_name, "child_merit_name",
                       "Name of variable corresponding to the organism's task performance that"
-                      " will be used to calculate CPU cylces given to offspring.");
+                      " will be used to calculate CPU cycles given to offspring.");
       GetManager().LinkVar(SharedData().generation_name, "generation_name",
                       "Name of variable corresponding to the organism's generation. "
                       "When an organism replicates, the child's gen. is the parent's gen +1");
-      GetManager().LinkVar(SharedData().initial_merit, "inititial_merit",
+      GetManager().LinkVar(SharedData().initial_merit, "initial_merit",
                       "Initial value for merit (task performance)");
       GetManager().LinkVar(SharedData().verbose, "verbose",
                       "If true, print execution info of organisms");
       GetManager().LinkVar(SharedData().initial_genome_filename, "initial_genome_filename",
-                      "File that contains the gennome used to initialize organisms.");
+                      "File that contains the genome used to initialize organisms.");
+      GetManager().LinkVar(SharedData().inst_set_output_filename, "inst_set_output_filename",
+                      "If not empty, the instruction set is written to the specified file");
       GetManager().LinkVar(SharedData().expanded_nop_args, "expanded_nop_args",
-                      "If true, some instructions (e.g., math) will use multiple nops to fully "
-                      "define the registers used");
+                      "If true, some instructions (e.g., math) will use multiple nops to "
+                      "fully define the registers used");
     }
 
     /// Set up this organism type with the traits it need to track and initialize 
@@ -245,6 +249,28 @@ namespace mabe {
       GetManager().AddSharedTrait<genome_t>("passed_genome", "Genome as passed from parent", { } );
       GetManager().AddOwnedTrait<size_t>(SharedData().generation_name, "Organism's generation", 0);
       SetupInstLib();
+      if(!SharedData().inst_set_output_filename.empty()){
+        WriteInstructionSetFile(SharedData().inst_set_output_filename);
+      }
+    }
+
+    /// Write the instructions in the instruction set (in order) to the specified file
+    void WriteInstructionSetFile(const std::string& filename){
+      std::cout << "Writing instruction set to file: " << filename << std::endl;
+      emp::File file;
+      std::stringstream ss;
+      file << "index, id, char, name";
+      for(size_t inst_offset = 0; inst_offset < GetInstLib().GetSize(); ++inst_offset){
+        char inst_char = 'a' + inst_offset; 
+        if(inst_offset > 25) inst_char = 'A' + (inst_offset - 26);
+        size_t inst_id = GetInstLib().GetID(inst_char);
+        size_t inst_idx = GetInstLib().GetIndex(inst_id);
+        ss << inst_idx << ", " << inst_id << ", " << inst_char << ", " 
+           << GetInstLib().GetName(inst_idx); 
+        file << ss.str(); 
+        ss.str("");
+      }
+      file.Write(filename);
     }
 
     /// Load external instructions that were added via the configuration file
@@ -267,10 +293,12 @@ namespace mabe {
             "Instructions must provide an inst_id:", action.name);
         emp_assert(action.data.IsType<int>("inst_id"),
             "Instruction's inst_id must be an int!");
+        int inst_id = action.data.Get<int>("inst_id");
+        if(inst_id < 0) inst_id = inst_lib.GetSize(); // Auto assign defaults
         // Calculate the character associated with this instruction 
-        unsigned char c = 'a' + action.data.Get<int>("inst_id");
-        if(action.data.Get<int>("inst_id") > 25){
-          c = 'A' + action.data.Get<int>("inst_id") - 26;
+        unsigned char c = 'a' + inst_id;
+        if(inst_id > 25){
+          c = 'A' + inst_id - 26;
         }
         std::cout << "Found " << action.function_vec.size() << 
             " external functions with name: " << action.name << "!" <<
@@ -293,7 +321,7 @@ namespace mabe {
             emp::ScopeType::NONE,              // No scope type, but must provide
             (size_t) -1,                       // Scope arg, must provide 
             std::unordered_set<std::string>(), // Instruction properties
-            action.data.Get<int>("inst_id"));  // Instruction ID
+            inst_id);                          // Instruction ID
       }
     }
 

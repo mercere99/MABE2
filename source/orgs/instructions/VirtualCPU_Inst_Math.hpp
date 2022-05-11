@@ -30,6 +30,13 @@ namespace mabe {
     bool include_nand = true;    ///< Config option indicating if instruction is used
     bool include_shift_l = true; ///< Config option indicating if instruction is used
     bool include_shift_r = true; ///< Config option indicating if instruction is used
+    int inc_id = -1;     ///< ID of the inc instruction 
+    int dec_id = -1;     ///< ID of the dec instruction
+    int add_id = -1;     ///< ID of the add instruction
+    int sub_id = -1;     ///< ID of the sub instruction
+    int nand_id = -1;    ///< ID of the nand instruction
+    int shift_l_id = -1; ///< ID of the shift_l instruction
+    int shift_r_id = -1; ///< ID of the shift_r instruction
 
   public:
     VirtualCPU_Inst_Math(mabe::MABE & control,
@@ -48,6 +55,13 @@ namespace mabe {
       LinkVar(include_nand, "include_nand", "Do we include the 'nand' instruction?");
       LinkVar(include_shift_l, "include_shift_l", "Do we include the 'shift_l' instruction?");
       LinkVar(include_shift_r, "include_shift_r", "Do we include the 'shift_r' instruction?");
+      LinkVar(inc_id, "inc_id", "ID of the 'inc' instruction");
+      LinkVar(dec_id, "dec_id", "ID of the 'dec' instruction");
+      LinkVar(add_id, "add_id", "ID of the 'add' instruction");
+      LinkVar(sub_id, "sub_id", "ID of the 'sub' instruction");
+      LinkVar(nand_id, "nand_id", "ID of the 'nand' instruction");
+      LinkVar(shift_l_id, "shift_l_id", "ID of the 'shift_l' instruction");
+      LinkVar(shift_r_id, "shift_r_id", "ID of the 'shift_r' instruction");
     }
     
     /// When config is loaded, set up functions
@@ -65,7 +79,7 @@ namespace mabe {
         };
         Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
             "Inc", func_inc);
-          action.data.AddVar<int>("inst_id", 12);
+          action.data.AddVar<int>("inst_id", inc_id);
       }
       if(include_dec){ // Decrement 
         const inst_func_t func_dec = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
@@ -74,7 +88,7 @@ namespace mabe {
         };
         Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
             "Dec", func_dec);
-        action.data.AddVar<int>("inst_id", 13);
+        action.data.AddVar<int>("inst_id", dec_id);
       }
       if(include_add){ // Add 
         const inst_func_t func_add = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
@@ -91,7 +105,7 @@ namespace mabe {
         };
         Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
             "Add", func_add);
-        action.data.AddVar<int>("inst_id", 18);
+        action.data.AddVar<int>("inst_id", add_id);
       }
       if(include_sub){ // Sub 
         const inst_func_t func_sub = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
@@ -108,7 +122,7 @@ namespace mabe {
         };
         Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
             "Sub", func_sub);
-        action.data.AddVar<int>("inst_id", 19);
+        action.data.AddVar<int>("inst_id", sub_id);
       }
       if(include_nand){ // NAND 
         const inst_func_t func_nand = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
@@ -125,7 +139,7 @@ namespace mabe {
         };
         Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
             "Nand", func_nand);
-        action.data.AddVar<int>("inst_id", 20);
+        action.data.AddVar<int>("inst_id", nand_id);
       }
       if(include_shift_l){ // Shift Left 
         const inst_func_t func_shift_l = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
@@ -134,7 +148,7 @@ namespace mabe {
         };
         Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
             "ShiftL", func_shift_l);
-        action.data.AddVar<int>("inst_id", 11);
+        action.data.AddVar<int>("inst_id", shift_l_id);
       }
       if(include_shift_r){ // Shift Right 
         const inst_func_t func_shift_r = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
@@ -143,7 +157,7 @@ namespace mabe {
         };
         Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
             "ShiftR", func_shift_r);
-        action.data.AddVar<int>("inst_id", 10);
+        action.data.AddVar<int>("inst_id", shift_r_id);
       }
     }
 
