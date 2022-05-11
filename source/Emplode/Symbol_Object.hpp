@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of Emplode, currently within https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2021.
+ *  @date 2021-2022.
  *
  *  @file  Symbol_Object.hpp
  *  @brief Extension of scope when there is an external object associated with the structure.
@@ -11,6 +11,7 @@
 #ifndef EMPLODE_SYMBOL_OBJECT_HPP
 #define EMPLODE_SYMBOL_OBJECT_HPP
 
+#include "emp/base/error.hpp"
 #include "emp/base/map.hpp"
 
 #include "EmplodeType.hpp"

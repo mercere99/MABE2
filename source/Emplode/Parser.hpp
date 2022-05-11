@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of Emplode, currently within https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2021.
+ *  @date 2021-2022.
  *
  *  @file  Parser.hpp
  *  @brief Manages parsing of Emplode language input streams.
@@ -121,8 +121,9 @@ namespace emplode {
     template <typename... Ts>
     void Error(Ts &&... args) const {
       std::string line_info = pos.AtEnd() ? "end of input" : emp::to_string("line ", pos->line_id);
-      std::cout << "Error (" << line_info << " in '" << pos.GetTokenStream().GetName() << "'): "
-                << emp::to_string(std::forward<Ts>(args)...) << "\nAborting." << std::endl;
+      
+      emp::notify::Error("(", line_info, " in '", pos.GetTokenStream().GetName(), "'): ",
+                         emp::to_string(std::forward<Ts>(args)...), "\nAborting.");
       exit(1);
     }
 
