@@ -124,13 +124,16 @@ EvalPathFollow path_follow {      // Evaluate organisms on their ability to foll
   sg_sense_id = 38;             // ID of the 'sg_sense' instruction
 };
 VirtualCPUOrg avida_org {       // Organism consisting of Avida instructions.
-  mut_prob = 0.01;              // Probability of each instruction mutating on reproduction.
+  point_mut_prob = 0.01;        // Per-site probability of a point mutations
+  insertion_mut_prob = 0.01;        // Per-site probability of a insertion mutations
+  deletion_mut_prob = 0.01;        // Per-site probability of a deletion mutations
   N = 0;                        // Initial number of instructions in genome
   init_random = 0;              // Should we randomize ancestor?  (0 = "blank" default)
   eval_time = 200;              // How many CPU cycles should we give organisms to run?
   input_name = "input";         // Name of variable to load inputs from.
   output_name = "old_output";   // Name of variable to output results.
   genome_name = "genome";       // Where to store the genome?.
+  genome_length_name = "genome_length";   // Where to store the genome's length? 
   merit_name = "merit";         // Name of variable corresponding to the organism's task performance.
   child_merit_name = "child_merit";// Name of variable corresponding to the organism's task performance that will be used to calculate CPU cylces given to offspring.
   initial_merit = 0.01;       // Initial value for merit (task performance)
@@ -167,7 +170,9 @@ Var avg_gen;
         "  merit_mean=", main_pop.CALC_MEAN("child_merit"),
         "  merit_max=", main_pop.CALC_MAX("child_merit"),
         "  gen_mean=", main_pop.CALC_MEAN("generation"),
-        "  gen_max=", main_pop.CALC_MAX("generation")
+        "  gen_max=", main_pop.CALC_MAX("generation"),
+        "  genome_length_max=", main_pop.CALC_MAX("genome_length"),
+        "  genome_length_mean=", main_pop.CALC_MEAN("genome_length")
        );
   fit_file.WRITE();
   max_file.WRITE();
