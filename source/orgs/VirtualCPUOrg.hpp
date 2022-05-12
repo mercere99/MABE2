@@ -47,8 +47,10 @@ namespace mabe {
     using inst_func_t = std::function<void(this_t&, const this_t::inst_t&)>;
 
   protected: 
-
+    size_t insts_speculatively_executed = 0;
+    emp::BitVector non_speculative_inst_vec;
     
+
     void Mutate_Point(size_t pos, emp::Random& random){
       size_t old_inst_idx = genome[pos].idx;
       RandomizeInst(pos, random);
@@ -141,6 +143,8 @@ namespace mabe {
                                            nop" syntax. If true, instructions like and can 
                                            take up to three nops to specify all three of the 
                                            following: a + b = c */
+      bool use_speculative_execution = false; /**< Flag indicating whether we speculatively 
+                                                   execute instruction.*/
       // Internal use
       emp::CombinedBinomialDistribution point_mut_dist; ///< Distribution of number of point mutations to occur.
       emp::CombinedBinomialDistribution insertion_mut_dist; ///< Distribution of number of insertion mutations to occur.
@@ -199,6 +203,7 @@ namespace mabe {
       Organism::SetTrait<double>(SharedData().child_merit_name, SharedData().initial_merit); 
       Organism::SetTrait<size_t>(SharedData().generation_name, 0); 
       base_t::Initialize(); // MABE's proto organisms means we need to re-initialize the org
+      insts_speculatively_executed = 0;
       CurateNops();
     }
     
@@ -218,6 +223,7 @@ namespace mabe {
       offspring->Organism::SetTrait<size_t>(
           SharedData().genome_length_name, offspring->GetGenomeSize());
       offspring.DynamicCast<VirtualCPUOrg>()->ResetHardware();
+      offspring.DynamicCast<VirtualCPUOrg>()->insts_speculatively_executed = 0;
       return offspring;
     }
     
@@ -295,6 +301,11 @@ namespace mabe {
       GetManager().LinkVar(SharedData().expanded_nop_args, "expanded_nop_args",
                       "If true, some instructions (e.g., math) will use multiple nops to "
                       "fully define the registers used");
+      GetManager().LinkVar(SharedData().use_speculative_execution, 
+                      "use_speculative_execution",
+                      "If true, we run as many instructions as possible and then cache the "
+                      "results. Instructions that interact with the population or other "
+                      "organisms will halt speculative execution.");
     }
 
     /// Set up this organism type with the traits it need to track and initialize 
@@ -346,6 +357,7 @@ namespace mabe {
     /// Load external instructions that were added via the configuration file
     void SetupInstLib(){
       inst_lib_t& inst_lib = GetInstLib();
+      if(SharedData().use_speculative_execution) non_speculative_inst_vec.Clear();
       // All instructions are stored in the populations ActionMap
       ActionMap& action_map = GetManager().GetControl().GetActionMap(0);
       std::unordered_map<std::string, mabe::Action>& typed_action_map =
@@ -373,6 +385,23 @@ namespace mabe {
         std::cout << "Found " << action.function_vec.size() << 
             " external functions with name: " << action.name << "!" <<
             " (" << c << ")" << std::endl;
+        // If using speculative execution, see if this instruction breaks speculation
+        if(SharedData().use_speculative_execution){
+          // Ensure bitvec is large enough
+          if(non_speculative_inst_vec.GetSize() < inst_id + 1){
+            non_speculative_inst_vec.Resize(inst_id + 1);
+          }
+          if(action.data.HasName("is_non_speculative") && 
+              action.data.Get<bool>("is_non_speculative")){ // If non-speculative, flag it
+            if(non_speculative_inst_vec.GetSize() < inst_id + 1){
+              non_speculative_inst_vec.Resize(inst_id + 1);
+            }
+            non_speculative_inst_vec[inst_id] = true;
+          } else{ // Assume instructions are okay with speculation by default
+            non_speculative_inst_vec[inst_id] = false;
+          }
+            
+        }
         // Grab description
         const std::string desc = 
           (action.data.HasName("description") ? 
@@ -395,10 +424,35 @@ namespace mabe {
       }
     }
 
+    void Process_Speculative() {
+      if(insts_speculatively_executed > 0){
+        --insts_speculatively_executed;
+      }
+      else{
+        for(size_t offset = 0; offset < GetGenomeSize(); ++offset){
+          const size_t inst_id = genome_working[inst_ptr].id;
+          if(!non_speculative_inst_vec[inst_id]){
+            Process(1, SharedData().verbose);
+            ++insts_speculatively_executed; 
+          }
+          else{
+            if(insts_speculatively_executed == 0) Process(1, SharedData().verbose);
+            else break;
+            
+          }
+        }
+      }
+    }
+
     /// Process a single instruction
     bool ProcessStep() override { 
-      Process(1, SharedData().verbose);
-      return true; 
+      if(SharedData().use_speculative_execution){
+        Process_Speculative();
+      }
+      else{
+        Process(1, SharedData().verbose);
+      }
+      return true;
     }
 
     /// Initialize the mutational distribution variables to match the genome size (either 

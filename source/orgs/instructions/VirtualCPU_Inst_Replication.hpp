@@ -103,6 +103,7 @@ namespace mabe {
         Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
             "HDivide", func_h_divide);
         action.data.AddVar<int>("inst_id", h_divide_id);
+        action.data.AddVar<bool>("is_non_speculative", true);
       }
       if(include_h_copy){ // Head copy 
         inst_func_t func_h_copy = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){
@@ -156,6 +157,7 @@ namespace mabe {
         Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
             "Repro", func_repro);
         action.data.AddVar<int>("inst_id", repro_id);
+        action.data.AddVar<bool>("is_non_speculative", true);
       }
     }
 

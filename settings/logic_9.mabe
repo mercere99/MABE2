@@ -1,6 +1,6 @@
 random_seed = 0;       // Seed for random number generator; use 0 to base on time.
 Var pop_size = 3600;   // Local value variable.
-Var max_gens = 10000;  // Local value variable.
+Var max_updates = 1000;// Local value variable.
 Var do_multiply = 1;   // Local value variable.
 Population main_pop;   // Collection of organisms
 MaxSizePlacement place_max_size { // Grow population to a given size then maintain
@@ -192,16 +192,17 @@ VirtualCPUOrg avida_org {       // Organism consisting of Avida instructions.
   verbose = 0;                  // If true, print execution info of organisms
   initial_genome_filename = "ancestor_default.org";// File that contains the gennome used to initialize organisms.
   expanded_nop_args = 0;        // If true, some instructions (e.g., math) will use multiple nops to fully define the registers used
+  use_speculative_execution = 1;// If true, we run as many instructions as possible and then cache the results. Instructions that interact with the population or other organisms will halt speculative execution.
 };
-AnalyzeSystematics sys{
-  data_file_name = "phylogenetic_data.csv";// Filename for systematics data file.
-  data_updates = "0:1:-1";      // Which updates should we output a data from the phylogeny?
-  snapshot_file_root_name = "phylogeny";// Filename for snapshot files (will have update number and .csv appended to end)
-  snapshot_updates = "0:1:-1";  // Which updates should we output a snapshot of the phylogeny?
-  store_ancestors = 1;          // Store all ancestors of extant taxa.(1 = TRUE)
-  store_outside = 0;            // Store all taxa that ever existed.(1 = TRUE)
-  taxon_info = "genome";        // Which trait should we identify unique taxa based on
-};
+//AnalyzeSystematics sys{
+//  data_file_name = "phylogenetic_data.csv";// Filename for systematics data file.
+//  data_updates = "0:1:-1";      // Which updates should we output a data from the phylogeny?
+//  snapshot_file_root_name = "phylogeny";// Filename for snapshot files (will have update number and .csv appended to end)
+//  snapshot_updates = "0:1:-1";  // Which updates should we output a snapshot of the phylogeny?
+//  store_ancestors = 1;          // Store all ancestors of extant taxa.(1 = TRUE)
+//  store_outside = 0;            // Store all taxa that ever existed.(1 = TRUE)
+//  taxon_info = "genome";        // Which trait should we identify unique taxa based on
+//};
 
 //Var dominant_genome;
 DataFile fit_file { filename="fitness.csv"; };
@@ -245,17 +246,18 @@ Var dominant_genome;
   scheduler.SCHEDULE();
   dominant_genome = main_pop.CALC_MODE("genome");
   PRINT("UD:", GET_UPDATE(),
+        "  mean_generation=", main_pop.CALC_MEAN("generation"),
         "  pop_size=", main_pop.SIZE(),
-        "  merit_mean=", main_pop.CALC_MEAN("child_merit"),
-        "  merit_max=", main_pop.CALC_MAX("child_merit"),
-        "  not_frac=", main_pop.CALC_MEAN("not_performed"),
-        "  nand_frac=", main_pop.CALC_MEAN("nand_performed"),
-        "  dominant_genome=", dominant_genome ,
-        "  genome_length_max=", main_pop.CALC_MAX("genome_length"),
-        "  genome_length_mean=", main_pop.CALC_MEAN("genome_length")
+        "  merit_mean=", main_pop.CALC_MEAN("child_merit")
+        //"  merit_max=", main_pop.CALC_MAX("child_merit"),
+        //"  not_frac=", main_pop.CALC_MEAN("not_performed"),
+        //"  nand_frac=", main_pop.CALC_MEAN("nand_performed"),
+        //"  dominant_genome=", dominant_genome ,
+        //"  genome_length_max=", main_pop.CALC_MAX("genome_length"),
+        //"  genome_length_mean=", main_pop.CALC_MEAN("genome_length")
        );
   fit_file.WRITE();
   max_file.WRITE();
 };
 
-@UPDATE(Var ud2) IF (ud2 == max_gens) EXIT();
+@UPDATE(Var ud2) IF (ud2 == max_updates) EXIT();
