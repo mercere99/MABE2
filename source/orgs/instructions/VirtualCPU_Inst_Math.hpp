@@ -20,7 +20,9 @@ namespace mabe {
   /// A collection of math instructions to be used by VirtualCPUOrgs 
   class VirtualCPU_Inst_Math : public Module {
   public:
-    using inst_func_t = VirtualCPUOrg::inst_func_t;
+    using org_t = VirtualCPUOrg;
+    using inst_func_t = org_t::inst_func_t;
+    using this_t = VirtualCPU_Inst_Math;
   private:
     int pop_id = 0; ///< ID of the population which will receive these instructions
     bool include_inc = true;     ///< Config option indicating if instruction is used
@@ -44,6 +46,62 @@ namespace mabe {
                     const std::string & desc="Math instructions for VirtualCPUOrg population")
       : Module(control, name, desc){;}
     ~VirtualCPU_Inst_Math() { }
+
+    void Inst_Inc(org_t& hw, const org_t::inst_t& inst){
+      size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
+      ++hw.regs[idx];
+    }
+    void Inst_Dec(org_t& hw, const org_t::inst_t& inst){
+      size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
+      --hw.regs[idx];
+    }
+    void Inst_Add(org_t& hw, const org_t::inst_t& inst){
+      if(hw.expanded_nop_args){
+        size_t idx_res = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
+        size_t idx_op_1 = inst.nop_vec.size() < 2 ? idx_res : inst.nop_vec[1];
+        size_t idx_op_2 = 
+            inst.nop_vec.size() < 3 ? hw.GetComplementNop(idx_op_1) : inst.nop_vec[2];
+        hw.regs[idx_res] = hw.regs[idx_op_1] + hw.regs[idx_op_2];
+      }
+      else{ // Nop determines destination, computation is always B + C
+        size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
+        hw.regs[idx] = hw.regs[1] + hw.regs[2];
+      }
+    }
+    void Inst_Sub(org_t& hw, const org_t::inst_t& inst){
+      if(hw.expanded_nop_args){
+        size_t idx_res = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
+        size_t idx_op_1 = inst.nop_vec.size() < 2 ? idx_res : inst.nop_vec[1];
+        size_t idx_op_2 = 
+            inst.nop_vec.size() < 3 ? hw.GetComplementNop(idx_op_1) : inst.nop_vec[2];
+        hw.regs[idx_res] = hw.regs[idx_op_1] - hw.regs[idx_op_2];
+      }
+      else{ // Nop determines destination. Computation is always B - C
+        size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
+        hw.regs[idx] = hw.regs[1] - hw.regs[2];
+      }
+    }
+    void Inst_Nand(org_t& hw, const org_t::inst_t& inst){
+      if(hw.expanded_nop_args){
+        size_t idx_res = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
+        size_t idx_op_1 = inst.nop_vec.size() < 2 ? idx_res : inst.nop_vec[1];
+        size_t idx_op_2 = 
+            inst.nop_vec.size() < 3 ? hw.GetComplementNop(idx_op_1) : inst.nop_vec[2];
+        hw.regs[idx_res] = ~(hw.regs[idx_op_1] & hw.regs[idx_op_2]);
+      }
+      else{ // Nop determines destination. Computation is always B NAND C
+        size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
+        hw.regs[idx] = ~(hw.regs[1] & hw.regs[2]);
+      }
+    }
+    void Inst_ShiftL(org_t& hw, const org_t::inst_t& inst){
+      size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
+      hw.regs[idx] <<= 1;
+    }
+    void Inst_ShiftR(org_t& hw, const org_t::inst_t& inst){
+      size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
+      hw.regs[idx] >>= 1;
+    }
 
     /// Set up variables for configuration file
     void SetupConfig() override {
@@ -73,89 +131,51 @@ namespace mabe {
     void SetupFuncs(){
       ActionMap& action_map = control.GetActionMap(pop_id);
       if(include_inc){ // Increment
-        const inst_func_t func_inc = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
-          size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
-          ++hw.regs[idx];
-        };
-        Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
+        const inst_func_t func_inc = std::bind(&this_t::Inst_Inc, this, 
+            std::placeholders::_1, std::placeholders::_2);
+        Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "Inc", func_inc);
           action.data.AddVar<int>("inst_id", inc_id);
       }
       if(include_dec){ // Decrement 
-        const inst_func_t func_dec = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
-          size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
-          --hw.regs[idx];
-        };
-        Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
+        const inst_func_t func_dec = std::bind(&this_t::Inst_Dec, this, 
+            std::placeholders::_1, std::placeholders::_2);
+        Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "Dec", func_dec);
         action.data.AddVar<int>("inst_id", dec_id);
       }
       if(include_add){ // Add 
-        const inst_func_t func_add = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
-          if(hw.expanded_nop_args){
-            size_t idx_res = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
-            size_t idx_op_1 = inst.nop_vec.size() < 2 ? idx_res : inst.nop_vec[1];
-            size_t idx_op_2 = inst.nop_vec.size() < 3 ? hw.GetComplementNop(idx_op_1) : inst.nop_vec[2];
-            hw.regs[idx_res] = hw.regs[idx_op_1] + hw.regs[idx_op_2];
-          }
-          else{ // Nop determines destination, computation is always B + C
-            size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
-            hw.regs[idx] = hw.regs[1] + hw.regs[2];
-          }
-        };
-        Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
+        const inst_func_t func_add = std::bind(&this_t::Inst_Add, this, 
+            std::placeholders::_1, std::placeholders::_2);
+        Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "Add", func_add);
         action.data.AddVar<int>("inst_id", add_id);
       }
       if(include_sub){ // Sub 
-        const inst_func_t func_sub = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
-          if(hw.expanded_nop_args){
-            size_t idx_res = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
-            size_t idx_op_1 = inst.nop_vec.size() < 2 ? idx_res : inst.nop_vec[1];
-            size_t idx_op_2 = inst.nop_vec.size() < 3 ? hw.GetComplementNop(idx_op_1) : inst.nop_vec[2];
-            hw.regs[idx_res] = hw.regs[idx_op_1] - hw.regs[idx_op_2];
-          }
-          else{ // Nop determines destination. Computation is always B - C
-            size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
-            hw.regs[idx] = hw.regs[1] - hw.regs[2];
-          }
-        };
-        Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
+        const inst_func_t func_sub = std::bind(&this_t::Inst_Sub, this, 
+            std::placeholders::_1, std::placeholders::_2);
+        Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "Sub", func_sub);
         action.data.AddVar<int>("inst_id", sub_id);
       }
       if(include_nand){ // NAND 
-        const inst_func_t func_nand = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
-          if(hw.expanded_nop_args){
-            size_t idx_res = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
-            size_t idx_op_1 = inst.nop_vec.size() < 2 ? idx_res : inst.nop_vec[1];
-            size_t idx_op_2 = inst.nop_vec.size() < 3 ? hw.GetComplementNop(idx_op_1) : inst.nop_vec[2];
-            hw.regs[idx_res] = ~(hw.regs[idx_op_1] & hw.regs[idx_op_2]);
-          }
-          else{ // Nop determines destination. Computation is always B NAND C
-            size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
-            hw.regs[idx] = ~(hw.regs[1] & hw.regs[2]);
-          }
-        };
-        Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
+        const inst_func_t func_nand = std::bind(&this_t::Inst_Nand, this, 
+            std::placeholders::_1, std::placeholders::_2);
+        Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "Nand", func_nand);
         action.data.AddVar<int>("inst_id", nand_id);
       }
       if(include_shift_l){ // Shift Left 
-        const inst_func_t func_shift_l = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
-          size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
-          hw.regs[idx] <<= 1;
-        };
-        Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
+        const inst_func_t func_shift_l = std::bind(&this_t::Inst_ShiftL, this, 
+            std::placeholders::_1, std::placeholders::_2);
+        Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "ShiftL", func_shift_l);
         action.data.AddVar<int>("inst_id", shift_l_id);
       }
       if(include_shift_r){ // Shift Right 
-        const inst_func_t func_shift_r = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
-          size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
-          hw.regs[idx] >>= 1;
-        };
-        Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
+        const inst_func_t func_shift_r = std::bind(&this_t::Inst_ShiftR, this, 
+            std::placeholders::_1, std::placeholders::_2);
+        Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "ShiftR", func_shift_r);
         action.data.AddVar<int>("inst_id", shift_r_id);
       }

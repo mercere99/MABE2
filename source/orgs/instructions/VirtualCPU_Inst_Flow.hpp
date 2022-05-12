@@ -20,7 +20,9 @@ namespace mabe {
   /// A collection of flow control instructions to be used by VirtualCPUOrgs 
   class VirtualCPU_Inst_Flow : public Module {
   public:
-    using inst_func_t = VirtualCPUOrg::inst_func_t;
+    using org_t = VirtualCPUOrg;
+    using inst_func_t = org_t::inst_func_t;
+    using this_t = VirtualCPU_Inst_Flow;
   private:
     int pop_id = 0; ///< ID of the population which will receive these instructions
     bool include_if_not_equal = true; ///< Config option indicating if instruction is used
@@ -38,6 +40,73 @@ namespace mabe {
                     const std::string & desc="Flow control instructions for VirtualCPUOrg population")
       : Module(control, name, desc) {;}
     ~VirtualCPU_Inst_Flow() { }
+
+    
+    void Inst_IfNotEqual(org_t& hw, const org_t::inst_t& inst){
+      if(hw.expanded_nop_args){
+        size_t idx_op_1 = inst.nop_vec.size() < 1 ? 1 : inst.nop_vec[0];
+        size_t idx_op_2 = 
+            inst.nop_vec.size() < 2 ? hw.GetComplementNop(idx_op_1) : inst.nop_vec[1];
+        if(hw.regs[idx_op_1] == hw.regs[idx_op_2])
+          hw.AdvanceIP(1);
+        hw.AdvanceIP(inst.nop_vec.size()); 
+       }
+      else{
+        size_t idx_1 = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
+        size_t idx_2 = hw.GetComplementNop(idx_1);
+        if(hw.regs[idx_1] == hw.regs[idx_2])
+          hw.AdvanceIP(1);
+        if(inst.nop_vec.size()) hw.AdvanceIP(1); 
+      }
+    }
+    void Inst_IfLess(org_t& hw, const org_t::inst_t& inst){
+      if(hw.expanded_nop_args){
+        size_t idx_op_1 = inst.nop_vec.size() < 1 ? 1 : inst.nop_vec[0];
+        size_t idx_op_2 = 
+            inst.nop_vec.size() < 2 ? hw.GetComplementNop(idx_op_1) : inst.nop_vec[1];
+        if(hw.regs[idx_op_1] >= hw.regs[idx_op_2])
+          hw.AdvanceIP(1);
+        hw.AdvanceIP(inst.nop_vec.size()); 
+      }
+      else{
+        size_t idx_1 = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
+        size_t idx_2 = hw.GetComplementNop(idx_1);
+        if(hw.regs[idx_1] >= hw.regs[idx_2])
+          hw.AdvanceIP(1);
+        if(inst.nop_vec.size()) hw.AdvanceIP(1); 
+      }
+    }
+    void Inst_IfLabel(org_t& hw, const org_t::inst_t& inst){
+      hw.AdvanceIP(inst.nop_vec.size());
+      if(!hw.CheckIfLastCopied(hw.GetComplementNopSequence(inst.nop_vec))) hw.AdvanceIP();
+    }
+    void Inst_MoveHeadIfNotEqual(org_t& hw, const org_t::inst_t& inst){
+      if(hw.expanded_nop_args){
+        size_t idx_op_1 = inst.nop_vec.size() < 1 ? 1 : inst.nop_vec[0];
+        size_t idx_op_2 = 
+            inst.nop_vec.size() < 2 ? hw.GetComplementNop(idx_op_1) : inst.nop_vec[1];
+        size_t idx_mov_head = inst.nop_vec.size() < 3 ? 0 : inst.nop_vec[2];
+        size_t idx_target_head = inst.nop_vec.size() < 4 ? 3 : inst.nop_vec[2];
+        if(hw.regs[idx_op_1] != hw.regs[idx_op_2]){
+          size_t target_head_val = hw.inst_ptr;
+          const size_t target_mod = idx_target_head % 4;
+          if(     target_mod == 1) target_head_val = hw.read_head; 
+          else if(target_mod == 2) target_head_val = hw.write_head; 
+          else if(target_mod == 3) target_head_val = hw.flow_head; 
+          const size_t mov_mod = idx_mov_head % 4;
+          if(     mov_mod == 0) hw.SetIP(target_head_val);
+          else if(mov_mod == 1) hw.SetRH(target_head_val);
+          else if(mov_mod == 2) hw.SetWH(target_head_val);
+          else if(mov_mod == 3) hw.SetFH(target_head_val);
+          
+        }
+      }
+      else{
+        size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
+        size_t idx_2 = hw.GetComplementNop(idx);
+        if(hw.regs[idx] != hw.regs[idx_2]) hw.inst_ptr = hw.flow_head; 
+      }
+    }
 
     /// Set up variables for configuration file
     void SetupConfig() override {
@@ -69,87 +138,32 @@ namespace mabe {
     void SetupFuncs(){
       ActionMap& action_map = control.GetActionMap(pop_id);
       if(include_if_not_equal) { // If not equal
-        const inst_func_t func_if_not_equ = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
-          if(hw.expanded_nop_args){
-            size_t idx_op_1 = inst.nop_vec.size() < 1 ? 1 : inst.nop_vec[0];
-            size_t idx_op_2 = inst.nop_vec.size() < 2 ? hw.GetComplementNop(idx_op_1) : inst.nop_vec[1];
-            if(hw.regs[idx_op_1] == hw.regs[idx_op_2])
-              hw.AdvanceIP(1);
-            hw.AdvanceIP(inst.nop_vec.size()); 
-           }
-          else{
-            size_t idx_1 = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
-            size_t idx_2 = hw.GetComplementNop(idx_1);
-            if(hw.regs[idx_1] == hw.regs[idx_2])
-              hw.AdvanceIP(1);
-            if(inst.nop_vec.size()) hw.AdvanceIP(1); 
-          }
-        };
-        Action& action = 
-            action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
-                "IfNEqu",func_if_not_equ);
+        const inst_func_t func_if_not_equ = std::bind(&this_t::Inst_IfNotEqual, this, 
+            std::placeholders::_1, std::placeholders::_2);
+        Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
+            "IfNEqu",func_if_not_equ);
         action.data.AddVar<int>("inst_id", if_not_equal_id);
       }
       if(include_if_less){ // If less 
-        const inst_func_t func_if_less = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
-          if(hw.expanded_nop_args){
-            size_t idx_op_1 = inst.nop_vec.size() < 1 ? 1 : inst.nop_vec[0];
-            size_t idx_op_2 = inst.nop_vec.size() < 2 ? hw.GetComplementNop(idx_op_1) : inst.nop_vec[1];
-            if(hw.regs[idx_op_1] >= hw.regs[idx_op_2])
-              hw.AdvanceIP(1);
-            hw.AdvanceIP(inst.nop_vec.size()); 
-          }
-          else{
-            size_t idx_1 = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
-            size_t idx_2 = hw.GetComplementNop(idx_1);
-            if(hw.regs[idx_1] >= hw.regs[idx_2])
-              hw.AdvanceIP(1);
-            if(inst.nop_vec.size()) hw.AdvanceIP(1); 
-          }
-        };
-        Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
+        const inst_func_t func_if_less = std::bind(&this_t::Inst_IfLess, this, 
+            std::placeholders::_1, std::placeholders::_2);
+        Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "IfLess", func_if_less);
         action.data.AddVar<int>("inst_id", if_less_id);
       }
       if(include_if_label){ // If label 
-        const inst_func_t func_if_label = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
-          hw.AdvanceIP(inst.nop_vec.size());
-          if(!hw.CheckIfLastCopied(hw.GetComplementNopSequence(inst.nop_vec))) hw.AdvanceIP();
-        };
-        Action& action = action_map.AddFunc<void, VirtualCPUOrg&,const VirtualCPUOrg::inst_t&>(
+        const inst_func_t func_if_label = std::bind(&this_t::Inst_IfLabel, this, 
+            std::placeholders::_1, std::placeholders::_2);
+        Action& action = action_map.AddFunc<void, org_t&,const org_t::inst_t&>(
             "IfLabel",func_if_label);
         action.data.AddVar<int>("inst_id", if_label_id);
       }
       if(include_mov_head_if_not_equal){ // Move head if not equal
-        const inst_func_t func_mov_head_if_not_equ = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
-          if(hw.expanded_nop_args){
-            size_t idx_op_1 = inst.nop_vec.size() < 1 ? 1 : inst.nop_vec[0];
-            size_t idx_op_2 = inst.nop_vec.size() < 2 ? hw.GetComplementNop(idx_op_1) : inst.nop_vec[1];
-            size_t idx_mov_head = inst.nop_vec.size() < 3 ? 0 : inst.nop_vec[2];
-            size_t idx_target_head = inst.nop_vec.size() < 4 ? 3 : inst.nop_vec[2];
-            if(hw.regs[idx_op_1] != hw.regs[idx_op_2]){
-              size_t target_head_val = hw.inst_ptr;
-              const size_t target_mod = idx_target_head % 4;
-              if(     target_mod == 1) target_head_val = hw.read_head; 
-              else if(target_mod == 2) target_head_val = hw.write_head; 
-              else if(target_mod == 3) target_head_val = hw.flow_head; 
-              const size_t mov_mod = idx_mov_head % 4;
-              if(     mov_mod == 0) hw.SetIP(target_head_val);
-              else if(mov_mod == 1) hw.SetRH(target_head_val);
-              else if(mov_mod == 2) hw.SetWH(target_head_val);
-              else if(mov_mod == 3) hw.SetFH(target_head_val);
-              
-            }
-          }
-          else{
-            size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
-            size_t idx_2 = hw.GetComplementNop(idx);
-            if(hw.regs[idx] != hw.regs[idx_2]) hw.inst_ptr = hw.flow_head; 
-          }
-        };
-        Action& action = 
-            action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
-                "MoveHeadIfNEqu",func_mov_head_if_not_equ);
+        const inst_func_t func_mov_head_if_not_equ = std::bind(
+            &this_t::Inst_MoveHeadIfNotEqual, this, 
+            std::placeholders::_1, std::placeholders::_2);
+        Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
+            "MoveHeadIfNEqu",func_mov_head_if_not_equ);
         action.data.AddVar<int>("inst_id", mov_head_if_not_equal_id);
       }
     }

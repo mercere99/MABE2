@@ -21,8 +21,10 @@ namespace mabe {
   /// A collection of head and data manipulation instructions to be used by VirtualCPUOrgs 
   class VirtualCPU_Inst_Manipulation : public Module {
   public: 
-    using data_t = VirtualCPUOrg::data_t;
-    using inst_func_t = VirtualCPUOrg::inst_func_t;
+    using org_t = VirtualCPUOrg;
+    using data_t = org_t::data_t;
+    using inst_func_t = org_t::inst_func_t;
+    using this_t = VirtualCPU_Inst_Manipulation;
   private:
     int pop_id = 0; ///< ID of the population which will receive these instructions
     bool include_pop = true;        ///< Config option indicating if instruction is used
@@ -48,6 +50,80 @@ namespace mabe {
                     const std::string & desc="Manipulation instructions for VirtualCPUOrg population")
       : Module(control, name, desc) {;}
     ~VirtualCPU_Inst_Manipulation() { }
+    
+    void Inst_Pop(org_t& hw, const org_t::inst_t& inst){
+      size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
+      if(!inst.nop_vec.empty()) hw.AdvanceIP();
+      hw.StackPop(idx);
+    }
+    void Inst_Push(org_t& hw, const org_t::inst_t& inst){
+      size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
+      if(!inst.nop_vec.empty()) hw.AdvanceIP();
+      hw.StackPush(idx);
+    }
+    void Inst_SwapStack(org_t& hw, const org_t::inst_t& /*inst*/){
+      hw.StackSwap();
+    }
+    void Inst_Swap(org_t& hw, const org_t::inst_t& inst){
+      if(hw.expanded_nop_args){
+        size_t idx_1 = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
+        size_t idx_2 = inst.nop_vec.size() < 2 ? hw.GetComplementNop(idx_1) : inst.nop_vec[1];
+        data_t tmp = hw.regs[idx_1];
+        hw.regs[idx_1] = hw.regs[idx_2];
+        hw.regs[idx_2] = tmp;
+      }
+      else {
+        size_t idx_1 = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
+        size_t idx_2 = hw.GetComplementNop(idx_1);
+        data_t tmp = hw.regs[idx_1];
+        hw.regs[idx_1] = hw.regs[idx_2];
+        hw.regs[idx_2] = tmp;
+      }
+    }
+    void Inst_MoveHead(org_t& hw, const org_t::inst_t& inst){
+      if(hw.expanded_nop_args){
+        size_t dest_idx = hw.flow_head;
+        if(inst.nop_vec.size() >= 2) dest_idx = hw.GetModdedHead(inst.nop_vec[1]);
+        if(!inst.nop_vec.empty()) hw.SetModdedHead(inst.nop_vec[0], dest_idx);
+        else hw.SetIP(dest_idx);
+      }
+      else{
+        if(!inst.nop_vec.empty()){
+          // IP is a special case because it auto advances!
+          if(inst.nop_vec[0] % 4 == 0) hw.SetIP(hw.flow_head - 1);
+          else hw.SetModdedHead(inst.nop_vec[0], hw.flow_head);
+        }
+        else hw.SetIP(hw.flow_head - 1);
+      }
+    }
+    void Inst_JumpHead(org_t& hw, const org_t::inst_t& inst){
+      if(hw.expanded_nop_args){
+        size_t jump_dist = hw.regs[1];
+        if(inst.nop_vec.size() >= 2) jump_dist = hw.regs[inst.nop_vec[1]];
+        if(!inst.nop_vec.empty()) hw.AdvanceModdedHead(inst.nop_vec[0], jump_dist);
+        else hw.AdvanceIP(jump_dist);
+      }
+      else{
+        if(!inst.nop_vec.empty()) hw.AdvanceModdedHead(inst.nop_vec[0], hw.regs[2]);
+        else hw.AdvanceIP(hw.regs[2]);
+      }
+    }
+    void Inst_GetHead(org_t& hw, const org_t::inst_t& inst){
+      if(hw.expanded_nop_args){
+        size_t head_val = 
+            inst.nop_vec.empty() ? hw.inst_ptr : hw.GetModdedHead(inst.nop_vec[0]);
+        if(inst.nop_vec.size() < 2) hw.regs[2] = head_val;
+        else hw.regs[inst.nop_vec[1]] = head_val;
+      }
+      else{
+        if(inst.nop_vec.empty()) hw.regs[2] = hw.inst_ptr;
+        else hw.regs[2] = hw.GetModdedHead(inst.nop_vec[0]);
+      }
+    }
+    void Inst_SetFlow(org_t& hw, const org_t::inst_t& inst){
+      size_t idx = inst.nop_vec.empty() ? 2 : inst.nop_vec[0];
+      hw.SetFH(hw.regs[idx]);
+    }
 
     /// Set up variables for configuration file
     void SetupConfig() override {
@@ -87,114 +163,58 @@ namespace mabe {
     void SetupFuncs(){
       ActionMap& action_map = control.GetActionMap(pop_id);
       if(include_pop){ // Pop 
-        const inst_func_t func_pop = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
-          size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
-          if(!inst.nop_vec.empty()) hw.AdvanceIP();
-          hw.StackPop(idx);
-        };
-        Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
+        const inst_func_t func_pop = std::bind(&this_t::Inst_Pop, this, 
+            std::placeholders::_1, std::placeholders::_2);
+        Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "Pop", func_pop);
         action.data.AddVar<int>("inst_id", pop_inst_id);
       }
       if(include_push){ // Push 
-        const inst_func_t func_push = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
-          size_t idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
-          if(!inst.nop_vec.empty()) hw.AdvanceIP();
-          hw.StackPush(idx);
-        };
-        Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
+        const inst_func_t func_push = std::bind(&this_t::Inst_Push, this, 
+            std::placeholders::_1, std::placeholders::_2);
+        Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "Push", func_push);
         action.data.AddVar<int>("inst_id", push_id);
       }
       if(include_swap_stack){ // Swap stack 
-        const inst_func_t func_swap_stack = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){
-          hw.StackSwap();
-        };
-        Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
+        const inst_func_t func_swap_stack = std::bind(&this_t::Inst_SwapStack, this, 
+            std::placeholders::_1, std::placeholders::_2);
+        Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "SwapStk", func_swap_stack);
         action.data.AddVar<int>("inst_id", swap_stack_id);
       }
       if(include_swap){ // Swap 
-        const inst_func_t func_swap = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
-          if(hw.expanded_nop_args){
-            size_t idx_1 = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
-            size_t idx_2 = inst.nop_vec.size() < 2 ? hw.GetComplementNop(idx_1) : inst.nop_vec[1];
-            data_t tmp = hw.regs[idx_1];
-            hw.regs[idx_1] = hw.regs[idx_2];
-            hw.regs[idx_2] = tmp;
-          }
-          else {
-            size_t idx_1 = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
-            size_t idx_2 = hw.GetComplementNop(idx_1);
-            data_t tmp = hw.regs[idx_1];
-            hw.regs[idx_1] = hw.regs[idx_2];
-            hw.regs[idx_2] = tmp;
-          }
-        };
-        Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
+        const inst_func_t func_swap = std::bind(&this_t::Inst_Swap, this, 
+            std::placeholders::_1, std::placeholders::_2);
+        Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "Swap", func_swap);
         action.data.AddVar<int>("inst_id", swap_id);
       }
       if(include_mov_head){ // Move head 
-        const inst_func_t func_mov_head = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
-          if(hw.expanded_nop_args){
-            size_t dest_idx = hw.flow_head;
-            if(inst.nop_vec.size() >= 2) dest_idx = hw.GetModdedHead(inst.nop_vec[1]);
-            if(!inst.nop_vec.empty()) hw.SetModdedHead(inst.nop_vec[0], dest_idx);
-            else hw.SetIP(dest_idx);
-          }
-          else{
-            if(!inst.nop_vec.empty()){
-              // IP is a special case because it auto advances!
-              if(inst.nop_vec[0] % 4 == 0) hw.SetIP(hw.flow_head - 1);
-              else hw.SetModdedHead(inst.nop_vec[0], hw.flow_head);
-            }
-            else hw.SetIP(hw.flow_head - 1);
-          }
-        };
-        Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
+        const inst_func_t func_mov_head = std::bind(&this_t::Inst_MoveHead, this, 
+            std::placeholders::_1, std::placeholders::_2);
+        Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "MovHead", func_mov_head);
         action.data.AddVar<int>("inst_id", mov_head_id);
       }
       if(include_jmp_head){ // Jump head 
-        const inst_func_t func_jmp_head = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
-          if(hw.expanded_nop_args){
-            size_t jump_dist = hw.regs[1];
-            if(inst.nop_vec.size() >= 2) jump_dist = hw.regs[inst.nop_vec[1]];
-            if(!inst.nop_vec.empty()) hw.AdvanceModdedHead(inst.nop_vec[0], jump_dist);
-            else hw.AdvanceIP(jump_dist);
-          }
-          else{
-            if(!inst.nop_vec.empty()) hw.AdvanceModdedHead(inst.nop_vec[0], hw.regs[2]);
-            else hw.AdvanceIP(hw.regs[2]);
-          }
-        };
-        Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
+        const inst_func_t func_jmp_head = std::bind(&this_t::Inst_JumpHead, this, 
+            std::placeholders::_1, std::placeholders::_2);
+        Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "JumpHead", func_jmp_head);
         action.data.AddVar<int>("inst_id", jmp_head_id);
       }
       if(include_get_head){ // Get head  
-        const inst_func_t func_get_head = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
-          if(hw.expanded_nop_args){
-            size_t head_val = inst.nop_vec.empty() ? hw.inst_ptr : hw.GetModdedHead(inst.nop_vec[0]);
-            if(inst.nop_vec.size() < 2) hw.regs[2] = head_val;
-            else hw.regs[inst.nop_vec[1]] = head_val;
-          }
-          else{
-            if(inst.nop_vec.empty()) hw.regs[2] = hw.inst_ptr;
-            else hw.regs[2] = hw.GetModdedHead(inst.nop_vec[0]);
-          }
-        };
-        Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
+        const inst_func_t func_get_head = std::bind(&this_t::Inst_GetHead, this, 
+            std::placeholders::_1, std::placeholders::_2);
+        Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "GetHead", func_get_head);
         action.data.AddVar<int>("inst_id", get_head_id);
       }
       if(include_set_flow){ // Set flow  
-        const inst_func_t func_set_flow = [](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
-          size_t idx = inst.nop_vec.empty() ? 2 : inst.nop_vec[0];
-          hw.SetFH(hw.regs[idx]);
-        };
-        Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
+        const inst_func_t func_set_flow = std::bind(&this_t::Inst_SetFlow, this, 
+            std::placeholders::_1, std::placeholders::_2);
+        Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "SetFlow", func_set_flow);
         action.data.AddVar<int>("inst_id", set_flow_id);
       }
