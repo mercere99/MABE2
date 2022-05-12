@@ -195,9 +195,9 @@ VirtualCPUOrg avida_org {       // Organism consisting of Avida instructions.
   use_speculative_execution = 1;// If true, we run as many instructions as possible and then cache the results. Instructions that interact with the population or other organisms will halt speculative execution.
 };
 //AnalyzeSystematics sys{
-//  data_file_name = "phylogenetic_data.csv";// Filename for systematics data file.
+//  data_file_name = "phylo/phylogenetic_data.csv";// Filename for systematics data file.
 //  data_updates = "0:1:-1";      // Which updates should we output a data from the phylogeny?
-//  snapshot_file_root_name = "phylogeny";// Filename for snapshot files (will have update number and .csv appended to end)
+//  snapshot_file_root_name = "phylo/phylogeny";// Filename for snapshot files (will have update number and .csv appended to end)
 //  snapshot_updates = "0:1:-1";  // Which updates should we output a snapshot of the phylogeny?
 //  store_ancestors = 1;          // Store all ancestors of extant taxa.(1 = TRUE)
 //  store_outside = 0;            // Store all taxa that ever existed.(1 = TRUE)
