@@ -385,12 +385,12 @@ namespace mabe {
     if (config_filenames.size() > 1) {
       std::cout << "Only one batch file may be specified." << std::endl;
       for (size_t i = 1; i < config_filenames.size(); ++i) {
-        std::cout << "...ignoring '" config_filenames[i] << "'" << std::endl;
+        std::cout << "...ignoring '" << config_filenames[i] << "'" << std::endl;
       }
     }
 
-    mabe::Batch batch(config_filenames[0]);
-    batch.Process(args[0]);
+    mabe::Batch batch(config_filenames[0], args[0]);
+    batch.Process();
   }
 
   void MABE::ProcessArgs() {
