@@ -12,9 +12,11 @@
 
 #include <cstdlib>
 #include <string>
+#include <unordered_map>
 
 #include "emp/base/vector.hpp"
 #include "emp/base/notify.hpp"
+#include "emp/io/File.hpp"
 #include "emp/tools/string_utils.hpp"
 
 namespace mabe {
@@ -35,7 +37,7 @@ namespace mabe {
     std::string log_file;                     ///< Where should run details be saved?
     int replicates = 1;                       ///< How many replicates of each factor combination?
 
-    std::unordered_set<std::string, std::string> var_set ///< Variable to use in script.
+    std::unordered_map<std::string, std::string> var_set; ///< Variable to use in script.
 
     bool exit_now = false;                    ///< Has something gone wrong and we should abort?
 
@@ -52,7 +54,7 @@ namespace mabe {
       return test;
     }
 
-    void Process_Factor(std::string line) {
+    bool Process_Factor(std::string line) {
       Require(line.size(), "Factors must have a factor name.");
       std::string name = emp::string_pop_word(line);
       factors.push_back(name);
@@ -62,6 +64,8 @@ namespace mabe {
         std::string option = emp::string_pop_word(line);
         factors.back().options.push_back(option);
       }
+
+      return true;
     }
 
   public:
@@ -79,7 +83,7 @@ namespace mabe {
           Require(line.size(), "'config' must specify option to include.");
           config_options.push_back(line);
         } else if (keyword == "factor") {        // A range of variables to try in all combinations
-          bool result = ProcessFactor(line);
+          bool result = Process_Factor(line);
           if (!result) return;
         } else if (keyword == "log") {      // A file to log output of runs
           Require(line.size(), "'log' must specify filename.");
@@ -131,12 +135,18 @@ namespace mabe {
         emp::replace_vars(exe_string, var_set);
 
         // Do all replicates in this treatment.
-        for (size_t i = 0; i < replicates; ++i) {
-          std::out_string = emp::to_string(exe_string, " -s random_seed=", seed++);
-          std::system(out_string);
+        for (int i = 0; i < replicates; ++i) {
+          std::string out_string = emp::to_string(exe_string, " -s random_seed=", seed++);
+          std::system(out_string.c_str());
         }
 
         // Move on to the next factors.
+        size_t inc_pos = 0;
+        while(inc_pos < factors.size() && ++ids[inc_pos] == factors[inc_pos].options.size()) {
+          ids[inc_pos] = 0; // Reset the current factor.
+          ++inc_pos;        // And move on to the next.
+        }
+        if (inc_pos == factors.size()) break; // We've gone through all factors!
       }
     }
   };
