@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of Emplode, currently within https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019-2021.
+ *  @date 2019-2022.
  *
  *  @file  AST.hpp
  *  @brief Manages Abstract Syntax Tree nodes for Emplode.
@@ -135,7 +135,15 @@ namespace emplode {
 
     bool IsLeaf() const override { return true; }
 
-    symbol_ptr_t Process() override { return symbol_ptr; };
+    symbol_ptr_t Process() override { 
+      #ifndef NDEBUG
+      emp::notify::Verbose(
+        "Emplode::AST",
+        "AST: Calling leaf '", symbol_ptr ? symbol_ptr->AsString() : std::string("[null]")
+      );
+      #endif
+      return symbol_ptr;
+    };
 
     void Write(std::ostream & os, const std::string &) const override {
       // If this is a variable, print the variable name,
@@ -196,6 +204,13 @@ namespace emplode {
     void SetSymbolTable(SymbolTableBase & _st) { symbol_table = &_st; }
 
     symbol_ptr_t Process() override {
+      #ifndef NDEBUG
+      emp::notify::Verbose(
+        "Emplode::AST",
+        "AST: Processing BLOCK"
+      );
+      #endif
+
       for (auto node : children) {
         symbol_ptr_t out = node->Process();                  // Process this line.
         if (!out) continue;                                  // No return symbol?  Keep going!
@@ -230,6 +245,12 @@ namespace emplode {
 
     symbol_ptr_t Process() override {
       emp_assert(children.size() == 1);
+      #ifndef NDEBUG
+      emp::notify::Verbose(
+        "Emplode::AST",
+        "AST: Processing unary math: ", name
+      );
+      #endif
       double result = fun(children[0]->ProcessAs<double>());    // Run the function to get ouput value
       return GetSymbolTable().MakeTempSymbol(result);
     }
@@ -258,6 +279,12 @@ namespace emplode {
 
     symbol_ptr_t Process() override {
       emp_assert(children.size() == 2);
+      #ifndef NDEBUG
+      emp::notify::Verbose(
+        "Emplode::AST",
+        "AST: Processing binary op: ", name
+      );
+      #endif
       auto out_val = fun(children[0]->template ProcessAs<ARG1_T>(),
                          children[1]->template ProcessAs<ARG2_T>());
       return GetSymbolTable().MakeTempSymbol(out_val);
@@ -292,6 +319,13 @@ namespace emplode {
       symbol_ptr_t lhs = children[0]->Process();  // Determine the left-hand-side value.
       symbol_ptr_t rhs = children[1]->Process();  // Determine the right-hand-side value.
 
+      #ifndef NDEBUG
+      emp::notify::Verbose(
+        "Emplode::AST",
+        "AST: Assigning: ", lhs->GetName(), " = ", rhs->GetName(), " (", rhs->AsString(), ")"
+      );
+      #endif
+
       bool success = lhs && lhs->CopyValue(*rhs);
       if (!success) {
         std::cerr << "Error: copy to '" << lhs->GetName() << "' failed" << std::endl;
@@ -312,6 +346,13 @@ namespace emplode {
     }
 
     symbol_ptr_t Process() override {
+      #ifndef NDEBUG
+      emp::notify::Verbose(
+        "Emplode::AST",
+        "AST: Processing IF"
+      );
+      #endif
+
       double test = children[0]->ProcessAs<double>();             // Determine state of condition
       symbol_ptr_t out = nullptr;                                 // Prepare for output symbol.
 
@@ -344,6 +385,12 @@ namespace emplode {
     }
 
     symbol_ptr_t Process() override {
+      #ifndef NDEBUG
+      emp::notify::Verbose(
+        "Emplode::AST",
+        "AST: Processing WHILE"
+      );
+      #endif
 
       while (children[0]->ProcessAs<double>()) {
         symbol_ptr_t out = children[1]->Process();
@@ -381,6 +428,14 @@ namespace emplode {
 
     symbol_ptr_t Process() override {
       emp_assert(children.size() >= 1);
+      #ifndef NDEBUG
+      emp::notify::Verbose(
+        "Emplode::AST",
+        "AST: Processing Call"
+      );
+      #endif
+
+
       symbol_ptr_t fun = children[0]->Process();
 
       // Collect all arguments and call
@@ -434,6 +489,14 @@ namespace emplode {
 
     symbol_ptr_t Process() override {
       emp_assert(children.size() >= 1);
+
+      #ifndef NDEBUG
+      emp::notify::Verbose(
+        "Emplode::AST",
+        "AST: Processing Event"
+      );
+      #endif
+
       symbol_vector_t arg_entries;
       for (size_t id = 1; id < children.size(); id++) {
         arg_entries.push_back( children[id]->Process() );
