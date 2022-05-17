@@ -34,14 +34,15 @@ namespace mabe {
     bool initialized = false;     ///< Flag indicating if this state has been initialized
     emp::vector<data_t> prev_room_vec;   ///< Vector of cues from rooms previously visited
     emp::vector<data_t> door_choice_vec; ///< Vector of the doors the org has chosen
-    double score = 0;             /**< Number of unique valid tiles visited minus the number
-                                       of steps taken off the path (not unique) */
+    double score = 0;             ///< Summarized score of the organism 
     emp::vector<data_t> cue_vec;  ///< Vector containing the value of each cue (random or not)
     data_t current_cue;           ///< Cue of the current room the organism is in
-    size_t correct_doors_taken = 0;
-    size_t incorrect_doors_taken = 0;
-    size_t correct_exits_taken = 0;
-    size_t incorrect_exits_taken = 0;
+    size_t correct_doors_taken = 0;   ///< Number of times the org entered the correct door
+    size_t incorrect_doors_taken = 0; ///< Number of times the org entered the wrong door
+    size_t correct_exits_taken = 0;   /**< Number of times the org took the exit when it 
+                                           should have */
+    size_t incorrect_exits_taken = 0; /**< Number of times the org took the exit when it 
+                                           should not have */
 
     DoorsState() { ; }
     DoorsState(const DoorsState&){ // Ignore copy, just reset
@@ -54,7 +55,7 @@ namespace mabe {
   struct DoorsEvaluator{
     emp::Random& rand;  ///< Reference to the main random number generator of MABE
     emp::BitVector random_cues_mask; ///< Bitmask for which cues are randomized (1s) 
-    const size_t exit_cue_idx = 0;
+    const size_t exit_cue_idx = 0; ///< Index of the exit in the cue vector 
     
     public: 
     DoorsEvaluator(emp::Random& _rand) : rand(_rand) { ; } 
@@ -64,15 +65,15 @@ namespace mabe {
 
     /// Set the cues bitmask to the given mask
     void SetCuesMask(const emp::BitVector& mask){ random_cues_mask = mask; }
-
+    
+    /// Calculate the score for the given state
     double GetScore(const DoorsState& state) const{
       double score = 1.0 * state.correct_doors_taken - state.incorrect_doors_taken - 
           state.incorrect_exits_taken;
-      //std::cout << state.correct_doors_taken << " - " << state.incorrect_doors_taken << " - "
-      //          << state.incorrect_exits_taken  << " = " << score << std::endl;
       return (score >= 0) ? score : 0;
     }
 
+    /// Calculate and store the score for the given state
     double UpdateScore(DoorsState& state){
       state.score = GetScore(state);
       return state.score;
@@ -93,7 +94,7 @@ namespace mabe {
       return state.cue_vec[rand.GetUInt() % (GetNumDoors() - 1) + 1];
     }
 
-    /// Initialize all properties of a DoorsState to prepare it for the path follow task
+    /// Initialize all properties of a DoorsState to prepare it for the task
     void InitializeState(DoorsState& state, bool reset_map = true){
       state.initialized = true;
       state.score = 0;
@@ -166,7 +167,7 @@ namespace mabe {
     /// Fetch the cue value of the organism's current room 
     //
     // Note: While it sounds like this should be a const method, it is possible this is the
-    //  organism's first interaction with the path, so we may need to initialize it
+    //  organism's first action, so we may need to initialize it
     DoorsState::data_t Sense(DoorsState& state) { 
       if(!state.initialized) InitializeState(state);
       return state.current_cue;
@@ -181,14 +182,18 @@ namespace mabe {
 
   protected:
     std::string score_trait = "score"; ///< Name of trait for organism performance
-    std::string state_trait ="state";  ///< Name of trait that stores the path follow state
-    DoorsEvaluator evaluator;     ///< The evaluator that does all of the actually computing and bookkeeping for the path follow task
-    int pop_id = 0;                 ///< ID of the population to evaluate (and provide instructions to)
-    std::string randomize_cues_str;
-    std::string inst_id_str;
-    emp::vector<int> inst_id_vec;
+    std::string state_trait ="state";  ///< Name of trait that stores the task state
+    DoorsEvaluator evaluator;          /**< The evaluator that does all of the actually 
+                                            computing and bookkeeping for the task*/
+    int pop_id = 0;                    /**< ID of the population to evaluate (and provide 
+                                            instructions to) */
+    std::string randomize_cues_str;    /**< String version of a bitmask that determines 
+                                            which cues are randomized */
+    std::string inst_id_str;           ///< Semicolon-separated list of instruction door IDs  
+    emp::vector<int> inst_id_vec;      ///< ID of the `sense` instruction
     int sense_inst_id = -1;
     
+    /// Parse the instruction ID string into an actual vector of ID numbers
     void ParseInstIDs(){
       inst_id_vec.clear();
       emp::vector<std::string> sliced_str_vec;
@@ -212,12 +217,12 @@ namespace mabe {
     /// Set up variables for configuration script
     void SetupConfig() override {
       LinkPop(pop_id, "target_pop", "Population to evaluate.");
-      LinkVar(score_trait, "score_trait", "Which trait stores path following performance?");
-      LinkVar(state_trait, "state_trait", "Which trait stores organisms' path follow state?");
-      LinkVar(randomize_cues_str, "randomize_cues_mask", 
-        "A string of 1s and 0s. Starting at cue 1, a 1 indicates that cue is random, while 0 is fixed.");
-      LinkVar(inst_id_str, "inst_ids", 
-        "The IDs of the instructions. Should be a string composed of numbers separated by semicolons (e.g., \"1;2;3\"");
+      LinkVar(score_trait, "score_trait", "Which trait stores task performance?");
+      LinkVar(state_trait, "state_trait", "Which trait stores organisms' task state?");
+      LinkVar(randomize_cues_str, "randomize_cues_mask", "A string of 1s and 0s. Starting at "
+          "cue 1, a 1 indicates that cue is random, while 0 is fixed.");
+      LinkVar(inst_id_str, "inst_ids", "The IDs of the door instructions. Should be a string "
+          "composed of numbers separated by semicolons (e.g., \"1;2;3\"");
       LinkVar(sense_inst_id, "sense_inst_id", "ID of the sense instruction"); 
     }
     
@@ -231,7 +236,8 @@ namespace mabe {
     
     
 
-    /// Package path following actions (e.g., move, turn) into instructions and provide them to the organisms via ActionMap
+    /// Package actions (e.g., sense, take door N) into instructions and provide them to the 
+    /// organisms via ActionMap
     void SetupInstructions(){
       ParseInstIDs();
       ActionMap& action_map = control.GetActionMap(pop_id);
@@ -260,7 +266,8 @@ namespace mabe {
     }
   };
 
-  MABE_REGISTER_MODULE(EvalDoors, "Evaluate organisms on their associate symbols to doors.");
+  MABE_REGISTER_MODULE(EvalDoors, 
+      "Evaluate organisms on their ability to associate symbols to doors.");
 }
 
 #endif
