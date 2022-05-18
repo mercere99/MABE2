@@ -145,6 +145,8 @@ namespace mabe {
                                            following: a + b = c */
       bool use_speculative_execution = false; /**< Flag indicating whether we speculatively 
                                                    execute instruction.*/
+      int max_speculative_insts = -1;         /**< Maximum number of insts. to speculatively 
+                                                  execute. -1 for genome length. */
       // Internal use
       emp::CombinedBinomialDistribution point_mut_dist; ///< Distribution of number of point mutations to occur.
       emp::CombinedBinomialDistribution insertion_mut_dist; ///< Distribution of number of insertion mutations to occur.
@@ -306,6 +308,10 @@ namespace mabe {
                       "If true, we run as many instructions as possible and then cache the "
                       "results. Instructions that interact with the population or other "
                       "organisms will halt speculative execution.");
+      GetManager().LinkVar(SharedData().max_speculative_insts, 
+                      "max_speculative_insts",
+                      "Maximum number of instructions to speculatively execute. "
+                      "-1 for genome length.");
     }
 
     /// Set up this organism type with the traits it need to track and initialize 
@@ -429,7 +435,9 @@ namespace mabe {
         --insts_speculatively_executed;
       }
       else{
-        for(size_t offset = 0; offset < GetGenomeSize(); ++offset){
+        const size_t max_insts = (SharedData().max_speculative_insts == -1)
+            ? GetGenomeSize() : SharedData().max_speculative_insts;
+        for(size_t offset = 0; offset < max_insts; ++offset){
           const size_t inst_id = genome_working[inst_ptr].id;
           if(!non_speculative_inst_vec[inst_id]){
             Process(1, SharedData().verbose);
