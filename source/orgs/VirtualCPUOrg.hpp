@@ -201,7 +201,9 @@ namespace mabe {
       expanded_nop_args = SharedData().expanded_nop_args;
       Organism::SetTrait<std::string>(SharedData().genome_name, GetGenomeString());
       Organism::SetTrait<size_t>(SharedData().genome_length_name, GetGenomeSize());
-      Organism::SetTrait<double>(SharedData().merit_name, SharedData().initial_merit); 
+      SharedData().init_length = GetGenomeSize();
+      Organism::SetTrait<double>(SharedData().merit_name, 
+          GetGenomeSize() / SharedData().init_length); 
       Organism::SetTrait<double>(SharedData().child_merit_name, SharedData().initial_merit); 
       Organism::SetTrait<size_t>(SharedData().generation_name, 0); 
       base_t::Initialize(); // MABE's proto organisms means we need to re-initialize the org
@@ -215,7 +217,8 @@ namespace mabe {
       auto offspring = OrgType::Clone().DynamicCast<VirtualCPUOrg>();
       offspring->Mutate(random);
       // Initialize all necessary traits and ready hardware
-      offspring->SetTrait<double>(SharedData().merit_name, GetTrait<double>(SharedData().child_merit_name)); 
+      offspring->SetTrait<double>(SharedData().merit_name, 
+          offspring->GetGenomeSize() / SharedData().init_length + GetTrait<double>(SharedData().child_merit_name)); 
       offspring->SetTrait<double>(SharedData().child_merit_name, SharedData().initial_merit); 
       offspring->SetTrait<size_t>(SharedData().generation_name, 
           GetTrait<size_t>(SharedData().generation_name) + 1); 
