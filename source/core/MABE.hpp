@@ -35,6 +35,7 @@
 
 #include "../Emplode/Emplode.hpp"
 
+#include "Batch.hpp"
 #include "Collection.hpp"
 #include "data_collect.hpp"
 #include "MABEBase.hpp"
@@ -101,6 +102,7 @@ namespace mabe {
     // ----------- Helper Functions -----------    
     void ShowHelp();       ///< Print information on how to run the software.
     void ShowModules();    ///< List all available modules in the current compilation.
+    void RunBatch();       ///< Process a whole series of MABE runs.
     void ProcessArgs();    ///< Process all arguments passed in on the command line.
     /// Setup a function as deprecated so we can phase it out.
     void Deprecate(const std::string & old_name, const std::string & new_name);
@@ -129,7 +131,10 @@ namespace mabe {
     }
 
     size_t GetRandomSeed() const override { return random.GetSeed(); }
-    void SetRandomSeed(size_t in_seed) override { random.ResetSeed(in_seed); }
+    void SetRandomSeed(size_t in_seed) override {
+      std::cout << "Setting Random Seed to " << in_seed << std::endl;
+      random.ResetSeed(in_seed);
+    }
 
     // --- Tools to setup runs ---
     bool Setup();
@@ -384,7 +389,28 @@ namespace mabe {
     exit_now = true;;
   }
 
+
+  void MABE::RunBatch() {
+    exit_now = true;  // Exit after running the batch of files.
+
+    if (config_filenames.size() == 0) {
+      std::cout << "Must specify which batch file should be run." << std::endl;
+      return;
+    }
+    if (config_filenames.size() > 1) {
+      std::cout << "Only one batch file may be specified." << std::endl;
+      for (size_t i = 1; i < config_filenames.size(); ++i) {
+        std::cout << "...ignoring '" << config_filenames[i] << "'" << std::endl;
+      }
+    }
+
+    mabe::Batch batch(config_filenames[0], "");
+    batch.Process();
+  }
+
   void MABE::ProcessArgs() {
+    arg_set.emplace_back("--batch", "-b",    "[filename]    ", "Process a full batch of runs",
+      [this](const emp::vector<std::string> & in){ config_filenames = in; RunBatch(); } );
     arg_set.emplace_back("--filename", "-f", "[filename...] ", "Filenames of configuration settings",
       [this](const emp::vector<std::string> & in){ config_filenames = in; } );
     arg_set.emplace_back("--generate", "-g", "[filename]    ", "Generate a new output file",
@@ -412,6 +438,9 @@ namespace mabe {
       [this](const emp::vector<std::string> &){ ShowModules(); } );
     arg_set.emplace_back("--set", "-s", "[param=value] ", "Set specified parameter",
       [this](const emp::vector<std::string> & in){
+        std::cout << "Adding command-line setting:";
+        for (const std::string & x : in) std::cout << " " << x;
+        std::cout << std::endl;
         emp::Append(config_settings, in);
         config_settings.push_back(";"); // Extra semi-colon so not needed on command line.
       });
@@ -570,7 +599,9 @@ namespace mabe {
   /// Update MABE world.
   void MABE::Update(size_t num_updates) {
     if (update == 0) config_script.Trigger("START");
-    for (size_t ud = 0; ud < num_updates && !exit_now; ud++) {
+
+    const size_t target_update = update + num_updates;
+    while (update < target_update && !exit_now) {
       emp_assert(OK(), update);                 // In debug mode, keep checking MABE integrity
       if (rescan_signals) UpdateSignals();      // If we have reason to, update module signals
       before_update_sig.Trigger(update);        // Signal that a new update is about to begin

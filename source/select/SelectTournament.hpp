@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019-2021.
+ *  @date 2019-2022.
  *
  *  @file  SelectTournament.hpp
  *  @brief MABE module to enable tournament selection (choose T random orgs and return "best")
@@ -64,7 +64,7 @@ namespace mabe {
   public:
     SelectTournament(mabe::MABE & control,
                      const std::string & name="SelectTournament",
-                     const std::string & desc="Module to select the top fitness organisms from random subgroups for replication.",
+                     const std::string & desc="Replicate most fit organisms from random subgroups.",
                      const std::string & in_fit="fitness",
                      size_t t_size=7)
       : Module(control, name, desc)
@@ -95,7 +95,7 @@ namespace mabe {
 
   };
 
-  MABE_REGISTER_MODULE(SelectTournament, "Select the top fitness organisms from random subgroups for replication.");
+  MABE_REGISTER_MODULE(SelectTournament, "Replicate top fitness organisms from random subgroups.");
 }
 
 #endif

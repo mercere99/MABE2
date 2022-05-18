@@ -105,11 +105,14 @@ namespace emplode {
 
     virtual bool IsNumeric() const { return false; }   ///< Is symbol any kind of number?
     virtual bool IsString() const { return false; }    ///< Is symbol a string?
+    virtual bool HasValue() const { return false; }    ///< Is a unique value associated with this symbol?
 
     virtual bool IsError() const { return false; }     ///< Does symbol flag an error?
     virtual bool IsFunction() const { return false; }  ///< Is symbol a function?
     virtual bool IsObject() const { return false; }    ///< Is symbol associated with C++ object?
     virtual bool IsScope() const { return false; }     ///< Is symbol a full scope?
+    virtual bool IsContinue() const { return false; }  ///< Is symbol a "continue" signal?
+    virtual bool IsBreak() const { return false; }     ///< Is symbol a "break" signal?
 
     virtual bool IsLocal() const { return false; }     ///< Was symbol defined in config file?
 
@@ -339,6 +342,8 @@ namespace emplode {
     Symbol & SetValue(double in) override { value = in; return *this; }
     Symbol & SetString(const std::string & in) override { value = in; return *this; }
 
+    bool HasValue() const override { return true; }
+
     bool IsNumeric() const override { return value.IsDouble(); }
     bool IsString() const override { return value.IsString(); }
     bool IsLocal() const override { return true; }
@@ -350,6 +355,33 @@ namespace emplode {
     }
   };
 
+
+  class Symbol_Special : public Symbol {
+  public:
+    enum Type { CONTINUE, BREAK, UNKNOWN };
+
+  private:
+    using this_t = Symbol_Special;
+    Type type;
+
+    static std::string ToString(Type in_type) {
+      switch (in_type) {
+        case CONTINUE: return "CONTINUE";
+        case BREAK: return "BREAK";
+        default: return "UNKNOWN";
+      }
+    }
+    std::string ToString() const { return ToString(type); }
+
+  public:
+    Symbol_Special(Type in_type) : Symbol("__Special", ToString(in_type), nullptr), type(in_type) {}
+    std::string GetTypename() const override { return emp::to_string("[[Special::", ToString(), "]]"); }
+
+    symbol_ptr_t Clone() const override { return emp::NewPtr<this_t>(*this); }
+
+    bool IsContinue() const override { return type == CONTINUE; }  ///< Is symbol a "continue" signal?
+    bool IsBreak() const override { return type == BREAK; }  ///< Is symbol a "break" signal?
+  };
 
   /// A Symbol to transmit an error due to invalid parsing.
   /// The description provides the error and the IsError() flag is set to true.

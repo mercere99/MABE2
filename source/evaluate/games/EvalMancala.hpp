@@ -49,8 +49,15 @@ namespace mabe {
     // Setup member functions associated with this class.
     static void InitType(emplode::TypeInfo & info) {
       info.AddMemberFunction("EVAL",
-                             [](EvalMancala & mod, Collection list) { return mod.Evaluate(list); },
+                             [](EvalMancala & mod, Collection orgs) { return mod.Evaluate(orgs); },
                              "Evaluate organism's ability to play the game Mancala.");
+      info.AddMemberFunction("TRACE",
+                             [](EvalMancala & mod, Collection orgs, const std::string & filename) {
+                                std::ofstream file(filename);
+                                mod.TraceEval(orgs, file);
+                                return orgs.GetSize();
+                              },
+                             "Trace the Mancala game-play during evaluation.");
     }
 
     void SetupConfig() override {
@@ -223,6 +230,13 @@ namespace mabe {
     /// Trace the evaluation of an organism, sending output to a specified stream.
     void TraceEval(Organism & org, std::ostream & os) {
       EvalGame(org, control.GetRandom(), 0, true, os);
+    }
+
+    /// Trace the evaluation of a collection of organisms.
+    void TraceEval(Collection & orgs, std::ostream & os) {
+      for (Organism & org : orgs) {
+        EvalGame(org, control.GetRandom(), 0, true, os);
+      }
     }
 
     double Evaluate(const Collection & orgs) {

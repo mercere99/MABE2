@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2020-2021.
+ *  @date 2020-2022.
  *
  *  @file  Collection.hpp
  *  @brief A collection of organisms or whole populations; not owner.
@@ -130,6 +130,7 @@ namespace mabe {
       /// Identify how many positions we have.
       size_t GetSize(pop_ptr_t pop_ptr) const {
         if (full_pop) return pop_ptr->GetSize();
+        emp_assert(pop_ptr->GetSize() == pos_set.GetSize());
         return pos_set.CountOnes();
       }
 
@@ -151,8 +152,9 @@ namespace mabe {
       size_t GetPos(size_t org_id) {
         if (full_pop) return org_id;
 
-        size_t cur_pos = 0;
-        while(org_id--) {
+        size_t cur_pos = pos_set.FindOne();
+        while(org_id) {
+          org_id--;
           cur_pos = pos_set.FindOne(cur_pos+1);
         }
         return cur_pos;
@@ -349,13 +351,18 @@ namespace mabe {
 
     Organism & At(size_t org_id) override {
       for (auto [pop_ptr, pop_info] : pos_map) {
-        if (org_id < pop_info.GetSize(pop_ptr)) {
+        const size_t pop_size = pop_info.GetSize(pop_ptr);
+
+        // If the ID is in the current population, get it.
+        if (org_id < pop_size) {
           size_t pos = pop_info.GetPos(org_id);
           emp_assert(pop_info.is_mutable == true,
             "Cannot use At() for const population in Collection; try ConstAt() or use const iterator.");
           return pop_ptr->At(pos);
         }
-        org_id -= pop_info.GetSize(pop_ptr);
+
+        // Move on to the next population, subtracting off orgs from this one.
+        org_id -= pop_size;
       }
 
       emp::notify::Error("Trying to find org id out of range for a collection.");
@@ -393,7 +400,7 @@ namespace mabe {
 
     // Convert this Collection into a string that can be used in configuration files.  For example:
     //   main_pop,special_pop[0-99],next_pop
-    std::string ToString() const {
+    std::string ToString() const override {
       std::stringstream ss;
       bool first = true;
       for (auto [pop_ptr, pop_info] : pos_map) {

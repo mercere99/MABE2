@@ -136,9 +136,7 @@ namespace emplode {
     }
 
     bool AddSignal(const std::string & signal_name, size_t num_params) {
-      std::cerr << "DEBUG: Adding new signal '" << signal_name << "'." << std::endl;
-
-      // @CAO Needs to become a user-level error!
+      // @CAO Needs to become a user-level error?
       emp_assert(!emp::Has(event_map, signal_name), "Signal reused!", signal_name);
 
       event_map[signal_name] = emp::NewPtr<Event>(signal_name, num_params);
@@ -153,9 +151,7 @@ namespace emplode {
       node_ptr_t action,                ///< Abstract syntax tree to run when triggered
       size_t def_line                   ///< What file line was this defined on?
     ) {
-      std::cerr << "DEBUG: Adding an action onto '" << signal_name << "'." << std::endl;
-
-      // @CAO Needs to become a user-level error!
+      // @CAO Needs to become a user-level error?
       emp_assert(emp::Has(event_map, signal_name), "Unknown signal used!", signal_name);
 
       auto action_ptr = emp::NewPtr<Action>(signal_name, params, action, def_line);

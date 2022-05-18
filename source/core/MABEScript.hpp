@@ -131,7 +131,7 @@ namespace mabe {
     template <typename FROM_T=Collection>
     std::function<Symbol_Var(const FROM_T &)> BuildTraitSummary(
       std::string trait_fun,         // Function to calculate on each organism
-      std::string mode,              // Method to combine organism results
+      std::string summary_type,      // Method to combine organism results ("max", "mean", etc.)
       emp::DataLayout & data_layout  // DataLayout to assume for this summary
     ) {
       static_assert( std::is_same<FROM_T,Collection>() ||  std::is_same<FROM_T,Population>(),
@@ -153,32 +153,35 @@ namespace mabe {
         emp::TypeID result_type = data_layout.GetType(trait_id);
 
         auto get_fun = [trait_id, result_type](const Organism & org) {
-          return emp::to_literal( org.GetTraitAsString(trait_id, result_type) );
+          return org.GetTraitAsString(trait_id, result_type);
         };
-        auto fun = BuildCollectFun<std::string, Collection>(mode, get_fun);
+        auto fun = BuildCollectFun<std::string, Collection>(summary_type, get_fun);
 
         // If we are coming from a Population, first convert to a collection.
         if constexpr (std::is_same<FROM_T,Population>()) {
           return [fun](const Population & p){ return fun( Collection(p) ); };
         }
-        else return fun;
+        else {
+          return fun;
+        }
       }
 
       // If we made it here, we are numeric.
       auto get_fun = BuildTraitEquation(data_layout, trait_fun);
-      auto fun = BuildCollectFun<double, Collection>(mode, get_fun);
+      auto fun = BuildCollectFun<double, Collection>(summary_type, get_fun);
 
       // If we don't have a fun, we weren't able to build an aggregation function.
       if (!fun) {
-        emp::notify::Error("Unknown trait filter '", mode, "' for trait '", trait_fun, "'.");
+        emp::notify::Error("Unknown trait filter '", summary_type, "' for trait '", trait_fun, "'.");
         return [](const FROM_T &){ return Symbol_Var(0); };
       }
 
-      // Go through all combinations of TO/FROM to return the correct types.
+      // If we are processing a Population, first convert it to a Collection.
       if constexpr (std::is_same<FROM_T,Population>()) {
         return [fun](const Population & p){ return fun( Collection(p) ); };
       }
-      else return fun;
+
+      return fun;
     }
 
 
@@ -186,10 +189,57 @@ namespace mabe {
     /// Output is a function in the form:  TO_T(const FROM_T &, string equation, TO_T default)
     template <typename FROM_T=Collection> 
     auto BuildTraitFunction(const std::string & fun_type) {
-      return [this,fun_type](FROM_T & pop, const std::string & equation) {
-        auto trait_fun = BuildTraitSummary<FROM_T>(equation, fun_type, pop.GetDataLayout());
-        return trait_fun(pop);
+      return [this,fun_type](FROM_T & group, const std::string & equation) {
+        auto trait_fun = BuildTraitSummary<FROM_T>(equation, fun_type, group.GetDataLayout());
+        return trait_fun(group);
       };
+    }
+
+    template <typename GROUP_T>
+    void Initialize_GroupType(emplode::TypeInfo & type_info) {
+      type_info.AddMemberFunction("TRAIT", BuildTraitFunction<GROUP_T>("0"),
+        "Return the value of the provided trait for the first organism");
+      type_info.AddMemberFunction("CALC_RICHNESS", BuildTraitFunction<GROUP_T>("richness"),
+        "Count the number of distinct values of a trait (or equation).");
+      type_info.AddMemberFunction("CALC_MODE", BuildTraitFunction<GROUP_T>("mode"),
+        "Identify the most common value of a trait (or equation).");
+      type_info.AddMemberFunction("CALC_MEAN", BuildTraitFunction<GROUP_T>("mean"),
+        "Calculate the average value of a trait (or equation).");
+      type_info.AddMemberFunction("CALC_MIN", BuildTraitFunction<GROUP_T>("min"),
+        "Find the smallest value of a trait (or equation).");
+      type_info.AddMemberFunction("CALC_MAX", BuildTraitFunction<GROUP_T>("max"),
+        "Find the largest value of a trait (or equation).");
+      type_info.AddMemberFunction("ID_MIN", BuildTraitFunction<GROUP_T>("min_id"),
+        "Find the index of the smallest value of a trait (or equation).");
+      type_info.AddMemberFunction("ID_MAX", BuildTraitFunction<GROUP_T>("max_id"),
+        "Find the index of the largest value of a trait (or equation).");
+      type_info.AddMemberFunction("CALC_MEDIAN", BuildTraitFunction<GROUP_T>("median"),
+        "Find the 50-percentile value of a trait (or equation).");
+      type_info.AddMemberFunction("CALC_VARIANCE", BuildTraitFunction<GROUP_T>("variance"),
+        "Find the variance of the distribution of values of a trait (or equation).");
+      type_info.AddMemberFunction("CALC_STDDEV", BuildTraitFunction<GROUP_T>("stddev"),
+        "Find the variance of the distribution of values of a trait (or equation).");
+      type_info.AddMemberFunction("CALC_SUM", BuildTraitFunction<GROUP_T>("sum"),
+        "Add up the total value of a trait (or equation).");
+      type_info.AddMemberFunction("CALC_ENTROPY", BuildTraitFunction<GROUP_T>("entropy"),
+        "Determine the entropy of values for a trait (or equation).");
+
+      type_info.AddMemberFunction("FIND_MIN",
+        [this](GROUP_T & group, const std::string & trait_equation) -> Collection {
+          if (group.IsEmpty()) Collection{};
+          auto trait_fun =
+            BuildTraitSummary<GROUP_T>(trait_equation, "min_id", group.GetDataLayout());
+          return group.IteratorAt(trait_fun(group)).AsPosition();
+        },
+        "Produce OrgList with just the org with the minimum value of the provided function.");
+      type_info.AddMemberFunction("FIND_MAX",
+        [this](GROUP_T & group, const std::string & trait_equation) -> Collection {
+          if (group.IsEmpty()) Collection{};
+          auto trait_fun =
+            BuildTraitSummary<GROUP_T>(trait_equation, "max_id", group.GetDataLayout());
+          return group.IteratorAt(trait_fun(group)).AsPosition();
+        },
+        "Produce OrgList with just the org with the maximum value of the provided function.");
     }
 
   private:
@@ -213,11 +263,14 @@ namespace mabe {
         control.CopyPop(*from_pop, *to_pop);    // Do the actual copy.
         return true;
       };
-      auto & pop_type = AddType<Population>("Population", "Collection of organisms",
+      emplode::TypeInfo & pop_type = AddType<Population>("Population", "Collection of organisms",
                                              pop_init_fun, pop_copy_fun);
 
       // Setup "Collection" as another config type.
-      auto & collect_type = AddType<Collection>("OrgList", "Collection of organism pointers");
+      emplode::TypeInfo & collect_type = AddType<Collection>("OrgList", "Collection of organism pointers");
+
+      Initialize_GroupType<Population>(pop_type);
+      Initialize_GroupType<Collection>(collect_type);
 
       pop_type.AddMemberFunction("REPLACE_WITH",
         [this](Population & to_pop, Population & from_pop){
@@ -228,48 +281,6 @@ namespace mabe {
           control.MoveOrgs(from_pop, to_pop, false); return 0;
         }, "Move all organisms organisms from another population, adding after current orgs." );
 
-      pop_type.AddMemberFunction("TRAIT", BuildTraitFunction<Population>("0"),
-        "Return the value of the provided trait for the first organism");
-      pop_type.AddMemberFunction("CALC_RICHNESS", BuildTraitFunction<Population>("richness"),
-        "Count the number of distinct values of a trait (or equation).");
-      pop_type.AddMemberFunction("CALC_MODE", BuildTraitFunction<Population>("mode"),
-        "Identify the most common value of a trait (or equation).");
-      pop_type.AddMemberFunction("CALC_MEAN", BuildTraitFunction<Population>("mean"),
-        "Calculate the average value of a trait (or equation).");
-      pop_type.AddMemberFunction("CALC_MIN", BuildTraitFunction<Population>("min"),
-        "Find the smallest value of a trait (or equation).");
-      pop_type.AddMemberFunction("CALC_MAX", BuildTraitFunction<Population>("max"),
-        "Find the largest value of a trait (or equation).");
-      pop_type.AddMemberFunction("ID_MIN", BuildTraitFunction<Population>("min_id"),
-        "Find the index of the smallest value of a trait (or equation).");
-      pop_type.AddMemberFunction("ID_MAX", BuildTraitFunction<Population>("max_id"),
-        "Find the index of the largest value of a trait (or equation).");
-      pop_type.AddMemberFunction("CALC_MEDIAN", BuildTraitFunction<Population>("median"),
-        "Find the 50-percentile value of a trait (or equation).");
-      pop_type.AddMemberFunction("CALC_VARIANCE", BuildTraitFunction<Population>("variance"),
-        "Find the variance of the distribution of values of a trait (or equation).");
-      pop_type.AddMemberFunction("CALC_STDDEV", BuildTraitFunction<Population>("stddev"),
-        "Find the variance of the distribution of values of a trait (or equation).");
-      pop_type.AddMemberFunction("CALC_SUM", BuildTraitFunction<Population>("sum"),
-        "Add up the total value of a trait (or equation).");
-      pop_type.AddMemberFunction("CALC_ENTROPY", BuildTraitFunction<Population>("entropy"),
-        "Determine the entropy of values for a trait (or equation).");
-      pop_type.AddMemberFunction("FIND_MIN",
-        [this](Population & pop, const std::string & trait_equation) -> Collection {
-          if (pop.GetNumOrgs() == 0) Collection{};
-          auto trait_fun =
-            BuildTraitSummary<Population>(trait_equation, "min_id", pop.GetDataLayout());
-          return pop.IteratorAt(trait_fun(pop)).AsPosition();
-        },
-        "Produce OrgList with just the org with the minimum value of the provided function.");
-      pop_type.AddMemberFunction("FIND_MAX",
-        [this](Population & pop, const std::string & trait_equation) -> Collection {
-          if (pop.GetNumOrgs() == 0) Collection{};
-          auto trait_fun =
-            BuildTraitSummary<Population>(trait_equation, "max_id", pop.GetDataLayout());
-          return pop.IteratorAt(trait_fun(pop)).AsPosition();
-        },
-        "Produce OrgList with just the org with the minimum value of the provided function.");
       pop_type.AddMemberFunction("FILTER",
         [this](Population & pop, const std::string & trait_equation) -> Collection {
           Collection out_collect;
@@ -282,49 +293,6 @@ namespace mabe {
           return out_collect;
         },
         "Produce OrgList with just the orgs that pass through the filter criteria.");
-
-      collect_type.AddMemberFunction("TRAIT", BuildTraitFunction<Collection>("0"),
-        "Return the value of the provided trait for the first organism");
-      collect_type.AddMemberFunction("CALC_RICHNESS", BuildTraitFunction<Collection>("richness"),
-        "Count the number of distinct values of a trait (or equation).");
-      collect_type.AddMemberFunction("CALC_MODE", BuildTraitFunction<Collection>("mode"),
-        "Identify the most common value of a trait (or equation).");
-      collect_type.AddMemberFunction("CALC_MEAN", BuildTraitFunction<Collection>("mean"),
-        "Calculate the average value of a trait (or equation).");
-      collect_type.AddMemberFunction("CALC_MIN", BuildTraitFunction<Collection>("min"),
-        "Find the smallest value of a trait (or equation).");
-      collect_type.AddMemberFunction("CALC_MAX", BuildTraitFunction<Collection>("max"),
-        "Find the largest value of a trait (or equation).");
-      collect_type.AddMemberFunction("ID_MIN", BuildTraitFunction<Collection>("min_id"),
-        "Find the index of the smallest value of a trait (or equation).");
-      collect_type.AddMemberFunction("ID_MAX", BuildTraitFunction<Collection>("max_id"),
-        "Find the index of the largest value of a trait (or equation).");
-      collect_type.AddMemberFunction("CALC_MEDIAN", BuildTraitFunction<Collection>("median"),
-        "Find the 50-percentile value of a trait (or equation).");
-      collect_type.AddMemberFunction("CALC_VARIANCE", BuildTraitFunction<Collection>("variance"),
-        "Find the variance of the distribution of values of a trait (or equation).");
-      collect_type.AddMemberFunction("CALC_STDDEV", BuildTraitFunction<Collection>("stddev"),
-        "Find the variance of the distribution of values of a trait (or equation).");
-      collect_type.AddMemberFunction("CALC_SUM", BuildTraitFunction<Collection>("sum"),
-        "Add up the total value of a trait (or equation).");
-      collect_type.AddMemberFunction("CALC_ENTROPY", BuildTraitFunction<Collection>("entropy"),
-        "Determine the entropy of values for a trait (or equation).");
-      collect_type.AddMemberFunction("FIND_MIN",
-        [this](Collection & collect, const std::string & trait_equation) -> Collection {
-          if (collect.IsEmpty()) return Collection{};
-          auto trait_fun =
-            BuildTraitSummary<Collection>(trait_equation, "min_id", collect.GetDataLayout());
-          return collect.IteratorAt(trait_fun(collect)).AsPosition();
-        },
-        "Produce OrgList with just the org with the minimum value of the provided function.");
-      collect_type.AddMemberFunction("FIND_MAX",
-        [this](Collection & collect, const std::string & trait_equation) -> Collection {
-          if (collect.IsEmpty()) return Collection{};
-          auto trait_fun =
-            BuildTraitSummary<Collection>(trait_equation, "max_id", collect.GetDataLayout());
-          return collect.IteratorAt(trait_fun(collect)).AsPosition();
-        },
-        "Produce OrgList with just the org with the minimum value of the provided function.");
 
       // ------ DEPRECATED FUNCTION NAMES ------
       Deprecate("EVAL", "EXEC");
@@ -358,7 +326,7 @@ namespace mabe {
     }
     
   public:
-    MABEScript(MABEBase & in) : control(in) { Initialize(); }
+    MABEScript(MABEBase & in) : control(in), dm_parser(true, in.GetRandom()) { Initialize(); }
     ~MABEScript() { }
 
   };

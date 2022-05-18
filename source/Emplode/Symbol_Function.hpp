@@ -30,18 +30,26 @@ namespace emplode {
     using fun_t = symbol_ptr_t( const emp::vector<symbol_ptr_t> & );
     using std_fun_t = std::function< fun_t >;
 
-    std_fun_t fun;            // Unified-form function.
-    emp::TypeID return_type;  // Native return type for original function.
+    struct FunInfo {
+      std_fun_t fun;            // Unified-form function.
+      int num_params;        // How many arguments does this function take?
+    };
+
+    emp::vector<FunInfo> overloads;  // Set of overload options for this function.
+    emp::TypeID return_type;         // All overloads must share a return type.
+
     // size_t arg_count;
 
   public:
     Symbol_Function(const std::string & _name,
-                    std_fun_t _fun,
+                    std_fun_t fun,
                     const std::string & _desc,
                     emp::Ptr<Symbol_Scope> _scope,
+                    int num_params,
                     emp::TypeID _ret_type)
-      : Symbol(_name, _desc, _scope), fun(_fun), return_type(_ret_type)
+      : Symbol(_name, _desc, _scope), return_type(_ret_type)
     {
+      overloads.push_back( FunInfo{fun, num_params} );
     }
 
     Symbol_Function(const Symbol_Function &) = default;
@@ -52,6 +60,8 @@ namespace emplode {
     bool IsFunction() const override { return true; }
     bool HasNumericReturn() const override { return return_type.IsArithmetic(); }
     bool HasStringReturn() const override { return return_type.IsType<std::string>(); }
+
+    std::string AsString() const override { return "[[__FUNCTION__]]"; }
 
     /// Set this symbol to be a correctly-typed scope pointer.
     emp::Ptr<Symbol_Function> AsFunctionPtr() override { return this; }
@@ -65,14 +75,29 @@ namespace emplode {
       }
 
       const Symbol_Function & in_fun = in.AsFunction();
-      fun = in_fun.fun;
-      return_type = in_fun.return_type;
+      overloads = in_fun.overloads;
 
       return true;
     }
 
 
-    symbol_ptr_t Call( const emp::vector<symbol_ptr_t> & args ) override { return fun(args); }
+    symbol_ptr_t Call( const emp::vector<symbol_ptr_t> & args ) override {
+      emp_assert(overloads.size() > 0);
+
+      // Find the correct overloads...
+      for (auto & x : overloads) {
+        if (x.num_params == -1 || x.num_params == (int) args.size()) return x.fun(args);
+      }
+
+      std::string msg =
+        emp::to_string("No overload for function '", name, "' that takes ", args.size(),
+                       " arguments.\n...", overloads.size(), " options are:");
+      for (const auto & x : overloads) {
+        msg += emp::to_string (' ', x.num_params);
+      }
+      emp::notify::Exception("mabe::Symbol_Function::NO_OVERLOAD", msg);
+      return nullptr;
+    }
   };
 
 }

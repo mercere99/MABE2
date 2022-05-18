@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2021.
+ *  @date 2021-2022.
  *
  *  @file  EvalDiagnostic.hpp
  *  @brief MABE Evaluation module for counting the number of ones (or zeros) in an output.
@@ -17,9 +17,11 @@ namespace mabe {
 
   class EvalDiagnostic : public Module {
   private:
-    std::string vals_trait;     // Set of values to evaluate
-    std::string scores_trait;   // Vector of scores for each value
-    std::string total_trait;    // A single value totalling all of the scores.
+    std::string vals_trait = "vals";           // Set of values to evaluate
+    std::string scores_trait = "scores";       // Vector of scores for each value
+    std::string total_trait = "total";         // A single value totalling all of the scores.
+    std::string first_trait = "first_active";  // Location of first activation position.
+    std::string count_trait = "active_count";  // Number of activation positions.
 
     enum Type {
       EXPLOIT,                  // Must drive values as close to 100 as possible.
@@ -36,14 +38,8 @@ namespace mabe {
   public:
     EvalDiagnostic(mabe::MABE & control,
                    const std::string & name="EvalDiagnostic",
-                   const std::string & desc="Evaluate value sets using a specified diagnostic.",
-                   const std::string & _vtrait="vals",
-                   const std::string & _strait="scores",
-                   const std::string & _ttrait="total")
+                   const std::string & desc="Evaluate value sets using a specified diagnostic.")
       : Module(control, name, desc)
-      , vals_trait(_vtrait)
-      , scores_trait(_strait)
-      , total_trait(_ttrait)
     {
       SetEvaluateMod(true);
     }
@@ -59,15 +55,17 @@ namespace mabe {
     }
 
     void SetupConfig() override {
-      LinkVar(vals_trait, "vals_trait", "Which trait stores the values to evaluate?");
-      LinkVar(scores_trait, "scores_trait", "Which trait should we store revised scores in?");
-      LinkVar(total_trait, "total_trait", "Which trait should we store the total score in?");
+      LinkVar(vals_trait, "vals_trait", "Trait that stores the values to evaluate");
+      LinkVar(scores_trait, "scores_trait", "Trait to store activated scores");
+      LinkVar(total_trait, "total_trait", "Trait to store total score");
+      LinkVar(first_trait, "first_trait", "Trait to store first activation position");
+      LinkVar(count_trait, "count_trait", "Trait to store count of activation positions");
       LinkMenu(diagnostic_id, "diagnostic", "Which Diagnostic should we use?",
-               EXPLOIT, "exploit", "All values must independently optimize to the max.",
-               STRUCT_EXPLOIT, "struct_exploit", "Values must decrease from begining AND optimize.",
-               EXPLORE, "explore", "Only count max value and decreasing values after it.",
-               DIVERSITY, "diversity", "Only count max value; all others must be low.",
-               WEAK_DIVERSITY, "weak_diversity", "Only count max value; all others locked at zero."
+               EXPLOIT,        "exploit",        "Fitness = sum of all values",
+               STRUCT_EXPLOIT, "struct_exploit", "Fitness = sum of descending values from start",
+               EXPLORE,        "explore",        "Fitness = sum of descending values from max",
+               DIVERSITY,      "diversity",      "Fitness = max value minus all others",
+               WEAK_DIVERSITY, "weak_diversity", "Fitness = max value"
       );
     }
 
@@ -75,6 +73,8 @@ namespace mabe {
       AddRequiredTrait<emp::vector<double>>(vals_trait);
       AddOwnedTrait<emp::vector<double>>(scores_trait, "Individual scores for current diagnostic.", emp::vector<double>({0.0}));
       AddOwnedTrait<double>(total_trait, "Combined score for current diagnostic.", 0.0);
+      AddOwnedTrait<size_t>(first_trait, "First activated position.", 0.0);
+      AddOwnedTrait<size_t>(count_trait, "Total number of activated positions.", 0.0);
     }
 
     double Evaluate(Collection orgs) {
@@ -92,6 +92,8 @@ namespace mabe {
         const emp::vector<double> & vals = org.GetTrait<emp::vector<double>>(vals_trait);
         emp::vector<double> & scores = org.GetTrait<emp::vector<double>>(scores_trait);
         double & total_score = org.GetTrait<double>(total_trait);
+        size_t & first_active = org.GetTrait<size_t>(first_trait);
+        size_t & active_count = org.GetTrait<size_t>(count_trait);
 
         // Initialize output values.
         scores.resize(vals.size());
@@ -103,14 +105,18 @@ namespace mabe {
         case EXPLOIT:
           scores = vals;
           for (double x : scores) total_score += x;
+          first_active = 0;
+          active_count = vals.size();
           break;
         case STRUCT_EXPLOIT:
           total_score = scores[0] = vals[0];
+          first_active = 0;
 
           // Use values as long as they are monotonically decreasing.
           for (pos = 1; pos < vals.size() && vals[pos] <= vals[pos-1]; ++pos) {
             total_score += (scores[pos] = vals[pos]);
           }
+          active_count = pos;
 
           // Clear out the remaining values.
           while (pos < scores.size()) { scores[pos] = 0.0; ++pos; }
@@ -121,6 +127,7 @@ namespace mabe {
           for (size_t i = 0; i < pos; i++) scores[i] = 0.0;
 
           total_score = scores[pos] = vals[pos];
+          first_active = pos;
           pos++;
 
           // Use values as long as they are monotonically decreasing.
@@ -128,6 +135,7 @@ namespace mabe {
             total_score += (scores[pos] = vals[pos]);
             pos++;
           }
+          active_count = pos - first_active;
 
           // Clear out the remaining values.
           while (pos < scores.size()) { scores[pos] = 0.0; ++pos; }
@@ -135,8 +143,10 @@ namespace mabe {
           break;
         case DIVERSITY:
           // Only count highest value
-          pos = emp::FindMaxIndex(vals);  // Find the position to start.
+          pos = emp::FindMaxIndex(vals);  // Find the sole active position.
           total_score = scores[pos] = vals[pos];
+          first_active = pos;
+          active_count = 1;
 
           // All others are subtracted from max and divided by two, creating a
           // pressure to minimize.
@@ -149,6 +159,8 @@ namespace mabe {
           // Only count highest value
           pos = emp::FindMaxIndex(vals);  // Find the position to start.
           total_score = scores[pos] = vals[pos];
+          first_active = pos;
+          active_count = 1;
 
           // Clear all other schores.
           for (size_t i = 0; i < vals.size(); i++) {

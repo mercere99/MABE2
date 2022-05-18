@@ -1,8 +1,8 @@
-random_seed = 0;                // Seed for random number generator; use 0 to base on time.
+random_seed = 1;                // Seed for random number generator; use 0 to base on time.
+Var num_vals = 100;
 Var pop_size = 512;
 Var num_gens = 50000;
-Var num_vals = 100;
-Var print_step = 100;           // Interval for printing...
+Var print_step = 500;           // Interval for printing...
 
 Population main_pop;
 Population next_pop;
@@ -14,12 +14,12 @@ ValsOrg vals_org {              // Organism consisting of a series of N floating
   min_value = 0;                // Lower limit for value fields.
   max_value = 100;              // Upper limit for value fields.
   lower_bound = "clamp";        // How should the lower limit be enforced?
-                                // - "no_limit": Allow values to be arbirarily low.
+                                // - "no_limit": Allow values to be arbitrarily low.
                                 // - "clamp": Reduce too-low values to min_value.
                                 // - "wrap": Make low values loop around to maximum.
                                 // - "rebound": Make low values 'bounce' back up.
   upper_bound = "rebound";      // How should the upper limit be enforced?
-                                // - "no_limit": Allow values to be arbirarily high.
+                                // - "no_limit": Allow values to be arbitrarily high.
                                 // - "clamp": Reduce too-high values to max_value.
                                 // - "wrap": Make high values loop around to minimum.
                                 // - "rebound": Make high values 'bounce' back down.
@@ -27,7 +27,7 @@ ValsOrg vals_org {              // Organism consisting of a series of N floating
   total_name = "total";         // Name of variable to contain total of all values.
 };
 
-EvalDiagnostic diagnostics {    // Evaluate set of values with a specified diagnostic problem.
+EvalDiagnostic evaluator {    // Evaluate set of values with a specified diagnostic problem.
   vals_trait = "vals";          // Which trait stores the values to evaluate?
   scores_trait = "scores";      // Which trait should we store revised scores in?
   total_trait = "fitness";      // Which trait should we store the total score in?
@@ -59,22 +59,21 @@ SelectLexicase select_l {       // Shuffle traits each time an organism is chose
   sample_traits = 0;            // How many traits should be sampled each generation? (0 = off)
 };
 
-DataFile fit_file { filename="fitness.csv"; };
-fit_file.ADD_COLUMN( "Average Fitness", "main_pop.CALC_MEAN('fitness')" );
-fit_file.ADD_COLUMN( "Maximum Fitness", "main_pop.CALC_MAX('fitness')" );
-fit_file.ADD_COLUMN( "Dominant Fitness", "main_pop.CALC_MODE('fitness')" );
+OrgList best_org;
+DataFile out_file { filename="fitness.csv"; };
+out_file.ADD_SETUP( "best_org = main_pop.FIND_MAX('fitness')" );
+out_file.ADD_COLUMN( "Update", "GET_UPDATE()" );
+out_file.ADD_COLUMN( "Average Fitness", "main_pop.CALC_MEAN('fitness')" );
+out_file.ADD_COLUMN( "Dominant Fitness", "main_pop.CALC_MODE('fitness')" );
+out_file.ADD_COLUMN( "Max Fitness", "best_org.TRAIT('fitness')" );
+out_file.ADD_COLUMN( "Max Genome", "best_org.TRAIT('vals')" );
+out_file.ADD_COLUMN( "Max Scores", "best_org.TRAIT('scores')" );
 
-//DataFile max_file { filename="max_org.csv"; };
-//OrgList best_org;
-//max_file.ADD_SETUP( "best_org = main_pop.FIND_MAX('fitness')" );
-//max_file.ADD_COLUMN( "Fitness", "best_org.TRAIT('fitness')" );
-//max_file.ADD_COLUMN( "Genome", "best_org.TRAIT('vals')" );
-//max_file.ADD_COLUMN( "Scores", "best_org.TRAIT('scores')" );
 
 @START() {
   PRINT("Beginning DIAGNOSTICS!\nMain config options:");
-  PRINT(" Diagnostic:       '", diagnostics.diagnostic, "'");
-  PRINT(" Num org values:   ", num_vals);
+  PRINT(" Diagnostic:       '", evaluator.diagnostic, "'");
+  PRINT(" Num org values:   ", vals_org.N);
   PRINT(" Mut Probability:  ", vals_org.mut_prob);
   PRINT(" Mut Size:         ", vals_org.mut_size);
   PRINT(" Population size:  ", pop_size);
@@ -87,23 +86,24 @@ fit_file.ADD_COLUMN( "Dominant Fitness", "main_pop.CALC_MODE('fitness')" );
 // Actions to perform every update.
 
 @UPDATE(Var ud) {
-  IF (ud == num_gens) EXIT();
+  IF (ud >= num_gens) EXIT();
 
-  diagnostics.EVAL(main_pop);
+  evaluator.EVAL(main_pop);
 
   IF (ud % print_step == 0) {
+     best_org = main_pop.FIND_MAX('fitness');
      PRINT("UD:", GET_UPDATE(),
            "  MainPopSize=", main_pop.SIZE(),
            "  AveFitness=", main_pop.CALC_MEAN("fitness"),
            "  MaxFitness=", main_pop.CALC_MAX("fitness"),
+           "  BestOrg=", best_org,
      );
-     fit_file.WRITE();
-     //max_file.WRITE();
+     out_file.WRITE();
   }
 
   // select_e.SELECT(main_pop, next_pop, pop_size);
   // select_r.SELECT(main_pop, next_pop, pop_size);
-  // select_l.SELECT(main_pop, next_pop, pop_size);
-  select_t.SELECT(main_pop, next_pop, pop_size);
+  select_l.SELECT(main_pop, next_pop, pop_size);
+  // select_t.SELECT(main_pop, next_pop, pop_size);
   main_pop.REPLACE_WITH(next_pop);
 }

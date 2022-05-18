@@ -32,14 +32,14 @@ namespace emplode {
   protected:
     using symbol_ptr_t = emp::Ptr<Symbol>;
     using const_symbol_ptr_t = emp::Ptr<const Symbol>;
-    emp::map< std::string, symbol_ptr_t > symbol_table;   ///< Map of names to entries.
+    emp::map< std::string, symbol_ptr_t > symbol_map;   ///< Map of names to entries.
 
     template <typename T, typename... ARGS>
     T & Add(const std::string & name, ARGS &&... args) {
       auto new_ptr = emp::NewPtr<T>(name, std::forward<ARGS>(args)...);
-      emp_assert(!emp::Has(symbol_table, name), "Do not redeclare functions or variables!",
+      emp_assert(!emp::Has(symbol_map, name), "Do not redeclare functions or variables!",
                  name);
-      symbol_table[name] = new_ptr;
+      symbol_map[name] = new_ptr;
       return *new_ptr;
     }
 
@@ -56,19 +56,21 @@ namespace emplode {
 
     Symbol_Scope(const Symbol_Scope & in) : Symbol(in) {
       // Copy all defined variables/scopes/functions
-      for (auto [name, ptr] : symbol_table) { symbol_table[name] = ptr->Clone(); }
+      for (auto [name, ptr] : symbol_map) { symbol_map[name] = ptr->Clone(); }
     }
     Symbol_Scope(Symbol_Scope &&) = default;
 
     ~Symbol_Scope() {
       // Clear up the symbol table.
-      for (auto [name, ptr] : symbol_table) { ptr.Delete(); }
+      for (auto [name, ptr] : symbol_map) { ptr.Delete(); }
     }
 
     std::string GetTypename() const override { return "[Symbol_Scope]"; }
 
     bool IsScope() const override { return true; }
     bool IsLocal() const override { return true; }  // @CAO, for now assuming all scopes are local!
+
+    std::string AsString() const override { return "[[__SCOPE__]]"; }
 
     /// Set this symbol to be a correctly-typed scope pointer.
     emp::Ptr<Symbol_Scope> AsScopePtr() override { return this; }
@@ -85,9 +87,9 @@ namespace emplode {
 
       // Assignment to an existing Struct cannot create new variables; all must already exist.
       // Do not delete other existing entries.
-      for (const auto & [name, ptr] : in_scope.symbol_table) {
+      for (const auto & [name, ptr] : in_scope.symbol_map) {
         // If entry does not exist fail the copy.
-        if (!emp::Has(symbol_table, name)) {
+        if (!emp::Has(symbol_map, name)) {
           std::cerr << "Trying to assign `" << in.GetName() << "' to '" << GetName()
                     << "', but " << GetName() << "." << name << " does not exist." << std::endl;
           return false;
@@ -95,7 +97,7 @@ namespace emplode {
 
         if (ptr->IsFunction()) continue; // Don't copy functions.
 
-        bool success = symbol_table[name]->CopyValue(*ptr);
+        bool success = symbol_map[name]->CopyValue(*ptr);
         if (!success) {
           std::cerr << "Trying to assign `" << in.GetName() << "' to '" << GetName()
                     << "', but failed on `" << GetName() << "." << name << "`." << std::endl;
@@ -109,15 +111,15 @@ namespace emplode {
 
 
     /// Get a symbol out of this scope; 
-    symbol_ptr_t GetSymbol(std::string name) { return emp::Find(symbol_table, name, nullptr); }
+    symbol_ptr_t GetSymbol(std::string name) { return emp::Find(symbol_map, name, nullptr); }
 
     /// Lookup a variable, scanning outer scopes if needed
     symbol_ptr_t LookupSymbol(const std::string & name, bool scan_scopes=true) override {
       // See if this next symbol is in the var list.
-      auto it = symbol_table.find(name);
+      auto it = symbol_map.find(name);
 
       // If this name is unknown, check with the parent scope!
-      if (it == symbol_table.end()) {
+      if (it == symbol_map.end()) {
         if (scope.IsNull() || !scan_scopes) return nullptr;  // No parent?  Just fail...
         return scope->LookupSymbol(name);
       }
@@ -129,10 +131,10 @@ namespace emplode {
     /// Lookup a variable, scanning outer scopes if needed (in const context!)
     const_symbol_ptr_t LookupSymbol(const std::string & name, bool scan_scopes=true) const override {
       // See if this symbol is in the var list.
-      auto it = symbol_table.find(name);
+      auto it = symbol_map.find(name);
 
       // If this name is unknown, check with the parent scope!
-      if (it == symbol_table.end()) {
+      if (it == symbol_map.end()) {
         if (scope.IsNull() || !scan_scopes) return nullptr;  // No parent?  Just fail...
         return scope->LookupSymbol(name);
       }
@@ -185,18 +187,33 @@ namespace emplode {
       bool obj_owned=false
     );
 
+    template <typename FUN_T>
+    int constexpr CountParams() {
+      using info_t = emp::FunInfo<FUN_T>;
+
+      // If we have a single argument and it's a vector of symbols, assume variable args.
+      if constexpr (info_t::num_args == 1) {
+        using arg_t = typename info_t::template arg_t<0>;
+        if constexpr (std::is_same_v<arg_t, const emp::vector<symbol_ptr_t> &>) {
+          return -1;
+        }             
+      }
+
+      return info_t::num_args;
+    }
+
     /// Add a new user-defined function.
     template <typename FUN_T>
     Symbol_Function & AddFunction(const std::string & name,  FUN_T fun,
                                   const std::string & desc,  emp::TypeID return_type) {
-      return Add<Symbol_Function>(name, fun, desc, this, return_type);
+      return Add<Symbol_Function>(name, fun, desc, this, CountParams<FUN_T>(), return_type);
     }
 
     /// Add a new function that is a standard part of the scripting language.
     template <typename FUN_T>
     Symbol_Function & AddBuiltinFunction(const std::string & name,  FUN_T fun,
                                          const std::string & desc,  emp::TypeID return_type) {
-      return AddBuiltin<Symbol_Function>(name, fun, desc, this, return_type);
+      return AddBuiltin<Symbol_Function>(name, fun, desc, this, CountParams<FUN_T>(), return_type);
     }
 
     /// Write out all of the parameters contained in this scope to the provided stream.
@@ -204,7 +221,7 @@ namespace emplode {
                                       size_t comment_offset=32) const {
 
       // Loop through all of the entires in this scope and Write them.
-      for (auto [name, ptr] : symbol_table) {
+      for (auto [name, ptr] : symbol_map) {
         if (ptr->IsBuiltin()) continue; // Skip writing built-in entries.
         ptr->Write(os, prefix, comment_offset);
       }
@@ -224,7 +241,7 @@ namespace emplode {
       if (IsLocal()) cur_line += emp::to_string(GetTypename(), " ");
       cur_line += name;
 
-      bool has_body = emp::AnyOf(symbol_table, [](symbol_ptr_t ptr){ return !ptr->IsBuiltin(); });
+      bool has_body = emp::AnyOf(symbol_map, [](symbol_ptr_t ptr){ return !ptr->IsBuiltin(); });
       
       // Only open this scope if there are contents.
       cur_line += has_body ? " { " : ";";

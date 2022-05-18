@@ -64,6 +64,24 @@ namespace emplode {
 
     virtual void Write(std::ostream & /* os */=std::cout,
                        const std::string & /* offset */="") const { }
+
+    // Helper alternatives for Process()
+
+    /// Run process and clean up any returned symbols automatically, as needed.
+    void ProcessVoid() {
+      symbol_ptr_t out = Process();
+      if (out && out->IsTemporary()) out.Delete();
+    }
+
+    /// Run process, convert the return value to a double, and clean up the symbol if needed.
+    template <typename T>
+    T ProcessAs() {
+      symbol_ptr_t symbol_ptr = Process();                // Run process, collecting the result.
+      if (!symbol_ptr) return T();                        // Any non value will return a zero.
+      T result = symbol_ptr->As<T>();                     // Convert the result to the return type.
+      if (symbol_ptr->IsTemporary()) symbol_ptr.Delete(); // If we are done with input; delete the symbol!
+      return result;
+    }
   };
 
   /// An ASTNode representing an internal node.
@@ -135,16 +153,26 @@ namespace emplode {
   };
 
   // Helper functions for making temporary leaves.
-  emp::Ptr<ASTNode_Leaf> MakeTempLeaf(double val) {
-    auto out_ptr = emp::NewPtr<Symbol_Var>("__Temp", val, "Temporary double", nullptr);
-    out_ptr->SetTemporary();
-    return emp::NewPtr<ASTNode_Leaf>(out_ptr);
+  emp::Ptr<ASTNode_Leaf> MakeTempLeaf(double val, int line_id=-1) {
+    auto symbol_ptr = emp::NewPtr<Symbol_Var>("__Temp", val, "Temporary double", nullptr);
+    symbol_ptr->SetTemporary();
+    return emp::NewPtr<ASTNode_Leaf>(symbol_ptr, line_id);
   }
 
-  emp::Ptr<ASTNode_Leaf> MakeTempLeaf(const std::string & val) {
-    auto out_ptr = emp::NewPtr<Symbol_Var>("__Temp", val, "Temporary string", nullptr);
-    out_ptr->SetTemporary();
-    return emp::NewPtr<ASTNode_Leaf>(out_ptr);
+  emp::Ptr<ASTNode_Leaf> MakeTempLeaf(const std::string & val, int line_id=-1) {
+    auto symbol_ptr = emp::NewPtr<Symbol_Var>("__Temp", val, "Temporary string", nullptr);
+    symbol_ptr->SetTemporary();
+    return emp::NewPtr<ASTNode_Leaf>(symbol_ptr, line_id);
+  }
+
+  emp::Ptr<ASTNode_Leaf> MakeBreakLeaf(int line_id=-1) {
+      static Symbol_Special break_symbol(Symbol_Special::BREAK);
+      return emp::NewPtr<ASTNode_Leaf>(&break_symbol, line_id);
+  }
+
+  emp::Ptr<ASTNode_Leaf> MakeContinueLeaf(int line_id=-1) {
+      static Symbol_Special continue_symbol(Symbol_Special::CONTINUE);
+      return emp::NewPtr<ASTNode_Leaf>(&continue_symbol, line_id);
   }
 
   class ASTNode_Block : public ASTNode_Internal {
@@ -169,8 +197,10 @@ namespace emplode {
 
     symbol_ptr_t Process() override {
       for (auto node : children) {
-        symbol_ptr_t out = node->Process();
-        if (out && out->IsTemporary()) out.Delete();
+        symbol_ptr_t out = node->Process();                  // Process this line.
+        if (!out) continue;                                  // No return symbol?  Keep going!
+        if (out->IsBreak() || out->IsContinue()) return out; // Propagate a break or continue
+        if (out->IsTemporary()) out.Delete();                // Clean up anything else, if needed
       }
       return nullptr;
     }
@@ -200,10 +230,8 @@ namespace emplode {
 
     symbol_ptr_t Process() override {
       emp_assert(children.size() == 1);
-      symbol_ptr_t input_symbol = children[0]->Process();     // Process child to get input symbol
-      double output_value = fun(input_symbol->AsDouble());    // Run the function to get ouput value
-      if (input_symbol->IsTemporary()) input_symbol.Delete(); // If we are done with input; delete!
-      return GetSymbolTable().MakeTempSymbol(output_value);
+      double result = fun(children[0]->ProcessAs<double>());    // Run the function to get ouput value
+      return GetSymbolTable().MakeTempSymbol(result);
     }
 
     void Write(std::ostream & os, const std::string & offset) const override { 
@@ -230,11 +258,8 @@ namespace emplode {
 
     symbol_ptr_t Process() override {
       emp_assert(children.size() == 2);
-      symbol_ptr_t in1 = children[0]->Process();               // Process 1st child to input symbol
-      symbol_ptr_t in2 = children[1]->Process();               // Process 2nd child to input symbol
-      auto out_val = fun(in1->As<ARG1_T>(), in2->As<ARG2_T>()); // Run function; get ouput
-      if (in1->IsTemporary()) in1.Delete();                   // If we are done with in1; delete!
-      if (in2->IsTemporary()) in2.Delete();                   // If we are done with in2; delete!
+      auto out_val = fun(children[0]->template ProcessAs<ARG1_T>(),
+                         children[1]->template ProcessAs<ARG2_T>());
       return GetSymbolTable().MakeTempSymbol(out_val);
     }
 
@@ -267,8 +292,7 @@ namespace emplode {
       symbol_ptr_t lhs = children[0]->Process();  // Determine the left-hand-side value.
       symbol_ptr_t rhs = children[1]->Process();  // Determine the right-hand-side value.
 
-      // @CAO Should make sure that lhs is properly assignable.
-      bool success = lhs->CopyValue(*rhs);
+      bool success = lhs && lhs->CopyValue(*rhs);
       if (!success) {
         std::cerr << "Error: copy to '" << lhs->GetName() << "' failed" << std::endl;
         exit(1);
@@ -288,21 +312,14 @@ namespace emplode {
     }
 
     symbol_ptr_t Process() override {
-      symbol_ptr_t test = children[0]->Process();  // Determine the left-hand-side value.
+      double test = children[0]->ProcessAs<double>();             // Determine state of condition
+      symbol_ptr_t out = nullptr;                                 // Prepare for output symbol.
 
-      // Handle TRUE
-      if (test->AsDouble() != 0.0) {
-        symbol_ptr_t result = children[1]->Process();
-        if (result && result->IsTemporary()) result.Delete();
-      }
+      if (test != 0.0) out = children[1]->Process();              // Process if TRUE
+      else if (children.size() > 2) out = children[2]->Process(); // Process if FALSE
 
-      // Handle FALSE
-      else if (children.size() > 2) {
-        symbol_ptr_t result = children[2]->Process();
-        if (result && result->IsTemporary()) result.Delete();
-      }
-      
-      if (test->IsTemporary()) test.Delete();
+      if (out && (out->IsBreak() || out->IsContinue())) return out; // Propagate break/continue
+      if (out && out->IsTemporary()) out.Delete();                  // Clean up out, if needed
       return nullptr;
     }
 
@@ -315,6 +332,36 @@ namespace emplode {
         os << "\n" << offset << "ELSE ";
         children[2]->Write(os, offset);
       }
+    }
+  };
+
+  class ASTNode_While : public ASTNode_Internal {
+  public:
+    ASTNode_While(node_ptr_t test, node_ptr_t body, int _line=-1) {
+      AddChild(test);
+      AddChild(body);
+      line_id = _line;
+    }
+
+    symbol_ptr_t Process() override {
+
+      while (children[0]->ProcessAs<double>()) {
+        symbol_ptr_t out = children[1]->Process();
+        if (out) {
+          if (out->IsBreak())     { break; }
+          if (out->IsContinue())  { continue; }
+          if (out->IsTemporary()) { out.Delete(); }
+        }
+      }
+
+      return nullptr;
+    }
+
+    void Write(std::ostream & os, const std::string & offset) const override { 
+      os << "WHILE (";
+      children[0]->Write(os, offset);
+      os << ") ";
+      children[1]->Write(os, offset);
     }
   };
 
@@ -341,6 +388,12 @@ namespace emplode {
       for (size_t i = 1; i < children.size(); i++) {
         args.push_back(children[i]->Process());
       }
+
+      emp::notify::Verbose(
+        "Emplode::AST",
+        "AST: Calling function '", fun->GetName(), " with ", args.size(), " arguments."
+      );
+
       symbol_ptr_t result = fun->Call(args);
 
       // Cleanup and return

@@ -1,6 +1,6 @@
 random_seed = 0;       // Seed for random number generator; use 0 to base on time.
 Var pop_size = 3600;   // Local value variable.
-Var max_updates = 1000;// Local value variable.
+Var max_updates = 100; // Local value variable.
 Var do_multiply = 1;   // Local value variable.
 Population main_pop;   // Collection of organisms
 MaxSizePlacement place_max_size { // Grow population to a given size then maintain
@@ -193,16 +193,17 @@ VirtualCPUOrg avida_org {       // Organism consisting of Avida instructions.
   initial_genome_filename = "ancestor_default.org";// File that contains the gennome used to initialize organisms.
   expanded_nop_args = 0;        // If true, some instructions (e.g., math) will use multiple nops to fully define the registers used
   use_speculative_execution = 1;// If true, we run as many instructions as possible and then cache the results. Instructions that interact with the population or other organisms will halt speculative execution.
+  max_speculative_insts = 20; // Maximum number of instructions to speculatively execute. -1 for genome length.
 };
-//AnalyzeSystematics sys{
-//  data_file_name = "phylo/phylogenetic_data.csv";// Filename for systematics data file.
-//  data_updates = "0:1:-1";      // Which updates should we output a data from the phylogeny?
-//  snapshot_file_root_name = "phylo/phylogeny";// Filename for snapshot files (will have update number and .csv appended to end)
-//  snapshot_updates = "0:1:-1";  // Which updates should we output a snapshot of the phylogeny?
-//  store_ancestors = 1;          // Store all ancestors of extant taxa.(1 = TRUE)
-//  store_outside = 0;            // Store all taxa that ever existed.(1 = TRUE)
-//  taxon_info = "genome";        // Which trait should we identify unique taxa based on
-//};
+AnalyzeSystematics sys{
+  data_file_name = "phylo/phylogenetic_data.csv";// Filename for systematics data file.
+  data_updates = "0:1:-1";      // Which updates should we output a data from the phylogeny?
+  snapshot_file_root_name = "phylo/phylogeny";// Filename for snapshot files (will have update number and .csv appended to end)
+  snapshot_updates = "0:1:-1";  // Which updates should we output a snapshot of the phylogeny?
+  store_ancestors = 1;          // Store all ancestors of extant taxa.(1 = TRUE)
+  store_outside = 0;            // Store all taxa that ever existed.(1 = TRUE)
+  taxon_info = "genome";        // Which trait should we identify unique taxa based on
+};
 
 //Var dominant_genome;
 DataFile fit_file { filename="fitness.csv"; };
@@ -218,23 +219,23 @@ fit_file.ADD_COLUMN("or_frac",          "main_pop.CALC_MEAN('or_performed')" );
 fit_file.ADD_COLUMN("nor_frac",         "main_pop.CALC_MEAN('nor_performed')" );
 fit_file.ADD_COLUMN("xor_frac",         "main_pop.CALC_MEAN('xor_performed')" );
 fit_file.ADD_COLUMN("equ_frac",         "main_pop.CALC_MEAN('equ_performed')" );
-fit_file.ADD_COLUMN("dominant_genome",  "dominant_genome" );
+//fit_file.ADD_COLUMN("dominant_genome",  "dominant_genome" );
 
 DataFile max_file { filename="max_org.csv"; };
 OrgList best_org;
 max_file.ADD_SETUP("best_org = main_pop.FIND_MAX('child_merit')" );
-max_file.ADD_COLUMN("merit",       "best_org.TRAIT('child_merit')" );
-max_file.ADD_COLUMN("merit_given", "best_org.TRAIT('merit')" );
-max_file.ADD_COLUMN("genome",      "best_org.TRAIT('genome')" );
-max_file.ADD_COLUMN("not",         "best_org.TRAIT('not_performed')" );
-max_file.ADD_COLUMN("nand",        "best_org.TRAIT('nand_performed')" );
-max_file.ADD_COLUMN("and",         "best_org.TRAIT('and_performed')" );
-max_file.ADD_COLUMN("ornot",       "best_org.TRAIT('ornot_performed')" );
-max_file.ADD_COLUMN("andnot",      "best_org.TRAIT('andnot_performed')" );
-max_file.ADD_COLUMN("or",          "best_org.TRAIT('or_performed')" );
-max_file.ADD_COLUMN("nor",         "best_org.TRAIT('nor_performed')" );
-max_file.ADD_COLUMN("xor",         "best_org.TRAIT('xor_performed')" );
-max_file.ADD_COLUMN("equ",         "best_org.TRAIT('equ_performed')" );
+//max_file.ADD_COLUMN("merit",       "best_org.TRAIT('child_merit')" );
+//max_file.ADD_COLUMN("merit_given", "best_org.TRAIT('merit')" );
+//max_file.ADD_COLUMN("genome",      "best_org.TRAIT('genome')" );
+//max_file.ADD_COLUMN("not",         "best_org.TRAIT('not_performed')" );
+//max_file.ADD_COLUMN("nand",        "best_org.TRAIT('nand_performed')" );
+//max_file.ADD_COLUMN("and",         "best_org.TRAIT('and_performed')" );
+//max_file.ADD_COLUMN("ornot",       "best_org.TRAIT('ornot_performed')" );
+//max_file.ADD_COLUMN("andnot",      "best_org.TRAIT('andnot_performed')" );
+//max_file.ADD_COLUMN("or",          "best_org.TRAIT('or_performed')" );
+//max_file.ADD_COLUMN("nor",         "best_org.TRAIT('nor_performed')" );
+//max_file.ADD_COLUMN("xor",         "best_org.TRAIT('xor_performed')" );
+//max_file.ADD_COLUMN("equ",         "best_org.TRAIT('equ_performed')" );
 
 @START() {
   PRINT("random_seed = ", random_seed, "\n");  // Print seed at run start.
@@ -244,7 +245,7 @@ max_file.ADD_COLUMN("equ",         "best_org.TRAIT('equ_performed')" );
 Var dominant_genome;
 @UPDATE(Var ud) {
   scheduler.SCHEDULE();
-  dominant_genome = main_pop.CALC_MODE("genome");
+  //dominant_genome = main_pop.CALC_MODE("genome");
   PRINT("UD:", GET_UPDATE(),
         "  mean_generation=", main_pop.CALC_MEAN("generation"),
         "  pop_size=", main_pop.SIZE(),

@@ -65,6 +65,11 @@ namespace emplode {
       return type_info_ptr->GetTypeID();
     }
 
+    std::string AsString() const override {
+      if (obj_ptr) { return obj_ptr->ToString(); }
+      return "[[__OBJECT__]]";
+    }
+
     /// Set this symbol to be a correctly-typed scope pointer.
     emp::Ptr<Symbol_Object> AsObjectPtr() override { return this; }
     emp::Ptr<const Symbol_Object> AsObjectPtr() const override { return this; }
@@ -105,7 +110,7 @@ namespace emplode {
                                             *type_info_ptr, obj_owned);
 
       // Copy over all of the internal symbols.
-      for (auto [name, ptr] : symbol_table) { out->symbol_table[name] = ptr->Clone(); }
+      for (auto [name, ptr] : symbol_map) { out->symbol_map[name] = ptr->Clone(); }
       // @CAO: Will linkages be in place?
 
       return out;

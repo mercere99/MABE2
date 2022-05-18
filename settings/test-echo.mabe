@@ -1,0 +1,8 @@
+Var echo = 22;
+
+PRINT("Echo at config: ", echo);
+
+@START() {
+  PRINT("Echo at start: ", echo);
+  EXIT();
+}

@@ -132,10 +132,10 @@ namespace emplode {
 
       // 'PRINT' is a simple debugging command to output the value of a variable.
       auto print_fun = [](const emp::vector<emp::Ptr<Symbol>> & args) {
-          for (auto entry_ptr : args) entry_ptr->Print(std::cout);
-          std::cout << std::endl;
-          return 0;
-        };
+        for (auto entry_ptr : args) entry_ptr->Print(std::cout);
+        std::cout << std::endl;
+        return 0;
+      };
       AddFunction("PRINT", print_fun, "Print out the provided variables.");
 
       // Default 1-input math functions
@@ -189,7 +189,7 @@ namespace emplode {
         return emp::NewPtr<DataFile>(name, symbol_table.GetFileManager());
       };
       auto df_copy = symbol_table.DefaultCopyFun<DataFile>();
-      auto & df_type = AddType<DataFile>("DataFile", "Manage CSV-style date file output.",
+      auto & df_type = AddType<DataFile>("DataFile", "Manage CSV-style data file output.",
                                          df_init, df_copy, true);
       df_type.AddMemberFunction(
         "ADD_COLUMN",

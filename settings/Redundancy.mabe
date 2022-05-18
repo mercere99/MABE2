@@ -1,0 +1,71 @@
+// Tests of the evolution of redundancy.
+
+random_seed = 0;                // Seed for random number generator; use 0 to base on time.
+Var pop_size = 1000;            // Local value variable.
+Var num_bits = 100;             // Number of bits in each organism (and the NK landscape)
+Var stop_update = 5000;         // How many updates should we run for?
+Var print_step = 1;           // Interval for printing...
+
+//Var fit_fun = "num_ones > 0";   // Fitness function simply tests if any ones are present.
+Var fit_fun = "num_ones > RAND(0.0,2.0)";   // Fitness function simply tests if any ones are present.
+
+Population main_pop;            // Collection of evaluation organisms
+Population next_pop;            // Collection of offspring organisms
+
+BitSummaryOrg bits_org {        // Organism consisting of a series of N bits.
+  num_bits = ..num_bits;        // Number of bits in organism
+  mut_prob = 0.005;             // Probability of each bit mutating on reproduction.
+  one_prob = 0.005;             // Probability of a mutation producing a one.
+  output_name = "num_ones";     // Name of variable to contain bit sequence.
+  init_random = 1;              // Should we randomize ancestor?  (0 = all zeros)
+};
+
+// No evaluator needed -- num_ones can be directly used in fitness function.
+
+SelectTournament select_tourny { // Replicate most fit organisms from random subgroups
+  tournament_size = 4;          // Number of orgs in each tournament
+  fitness_fun = fit_fun;      // Which trait provides the fitness value to use?
+};
+
+DataFile count_file { filename="ones_count.csv"; };
+count_file.ADD_COLUMN( "Average Ones", "main_pop.CALC_MEAN('num_ones')" );
+count_file.ADD_COLUMN( "Maximum Ones", "main_pop.CALC_MAX('num_ones')" );
+count_file.ADD_COLUMN( "Dominant Ones", "main_pop.CALC_MODE('num_ones')" );
+
+DataFile max_file { filename="max_org.csv"; };
+OrgList best_org;
+max_file.ADD_SETUP( "best_org = main_pop.FIND_MAX('num_ones')" );
+max_file.ADD_COLUMN( "Num Ones", "best_org.TRAIT('num_ones')" );
+
+
+@START() {
+  PRINT("Beginning ROBUSTNESS evolution tests!\nMain config options:");
+  PRINT(" Random seed:      ", random_seed);
+  PRINT(" Population size:  ", pop_size);
+  PRINT(" Tournamenet size: ", select_tourny.tournament_size);
+  PRINT(" Num org bits:     ", bits_org.num_bits);
+  PRINT(" Mut Probability:  ", bits_org.mut_prob);
+  PRINT(" One Probability:  ", bits_org.one_prob);
+  PRINT(" Stop update:      ", stop_update, "\n");
+
+  main_pop.INJECT("bits_org", pop_size);       // Inject starting population.
+}
+
+// Actions to perform every update.
+
+@UPDATE(Var ud) {
+  IF (ud % print_step == 0) {
+     PRINT("UD:", GET_UPDATE(),
+           "  MainPopSize=", main_pop.SIZE(),
+           "  AveOnes=", main_pop.CALC_MEAN("num_ones"),
+           "  MaxOnes=", main_pop.CALC_MAX("num_ones"),
+     );
+     count_file.WRITE();
+     max_file.WRITE();
+  }
+
+  OrgList tourny_offspring = select_tourny.SELECT(main_pop, next_pop, pop_size);
+  main_pop.REPLACE_WITH(next_pop);
+
+  IF (ud == stop_update) EXIT();
+}
