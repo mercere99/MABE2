@@ -26,6 +26,25 @@
 #include "emp/tools/string_utils.hpp"
 
 namespace mabe {
+    
+  struct EvalDoors_TraitNames{
+    std::string score_trait = "score"; ///< Name of trait for organism performance
+    std::string accuracy_trait = "accuracy"; ///< Name of trait for organism accuracy
+    std::string state_trait ="state";  ///< Name of trait that stores the task state
+    std::string door_rooms_trait ="door_rooms"; /**< Name of trait that stores the number of
+                                                     "door rooms" visited */
+    std::string exit_rooms_trait ="exit_rooms"; /**< Name of trait that stores the number of
+                                                     "exit rooms" visited */
+    std::string correct_doors_trait ="correct_doors"; /**< Name of trait that stores the 
+                                                           number of doors correctly taken*/
+    std::string incorrect_doors_trait ="incorrect_doors"; /**< Name of trait that stores the
+                                                           number of doors incorrectly
+                                                           taken*/
+    std::string correct_exits_trait ="correct_exits"; /**< Name of trait that stores the 
+                                                           number of exits correctly taken*/
+    std::string incorrect_exits_trait ="incorrect_exits"; /**< Name of trait that stores the
+                                                         number of exits incorrectly taken*/
+  };
 
   /// \brief State of a single organism's progress on the doors task
   struct DoorsState{
@@ -43,6 +62,8 @@ namespace mabe {
                                            should have */
     size_t incorrect_exits_taken = 0; /**< Number of times the org took the exit when it 
                                            should not have */
+    size_t door_rooms_visited = 0;
+    size_t exit_rooms_visited = 0;
 
     DoorsState() { ; }
     DoorsState(const DoorsState&){ // Ignore copy, just reset
@@ -53,6 +74,10 @@ namespace mabe {
 
   /// \brief Handles all evaluation of the doors task
   struct DoorsEvaluator{
+    public:
+    using org_t = VirtualCPUOrg;
+
+    protected:
     emp::Random& rand;  ///< Reference to the main random number generator of MABE
     emp::BitVector random_cues_mask; ///< Bitmask for which cues are randomized (1s) 
     const size_t exit_cue_idx = 0; ///< Index of the exit in the cue vector 
@@ -77,6 +102,23 @@ namespace mabe {
     double UpdateScore(DoorsState& state){
       state.score = GetScore(state);
       return state.score;
+    }
+
+    /// Updates the records in the organism's traits
+    void UpdateRecords(const DoorsState& state, org_t& org, 
+        const EvalDoors_TraitNames& trait_names){
+      org.SetTrait<size_t>(trait_names.door_rooms_trait, state.door_rooms_visited);
+      org.SetTrait<size_t>(trait_names.exit_rooms_trait, state.exit_rooms_visited);
+      org.SetTrait<size_t>(trait_names.correct_doors_trait, state.correct_doors_taken);
+      org.SetTrait<size_t>(trait_names.incorrect_doors_trait, state.incorrect_doors_taken);
+      org.SetTrait<size_t>(trait_names.correct_exits_trait, state.correct_exits_taken);
+      org.SetTrait<size_t>(trait_names.incorrect_exits_trait, state.incorrect_exits_taken);
+    }
+
+    /// Calculate the score for the given state
+    double GetDoorAccuracy(const DoorsState& state) const{
+      if(state.door_rooms_visited <= 0) return 0;
+      return (1.0 * state.correct_doors_taken) / static_cast<double>(state.door_rooms_visited);
     }
 
     /// Extract the cue mask from the given string (one char (1 or 0) per cue)
@@ -127,6 +169,9 @@ namespace mabe {
     /// Move the organism through its chosen door
     double Move(DoorsState& state, DoorsState::data_t door_idx){
       if(!state.initialized) InitializeState(state);
+      // Increase room variable for correct room
+      if(state.current_cue == state.cue_vec[exit_cue_idx]) state.exit_rooms_visited++;
+      else state.door_rooms_visited++;
       if(door_idx == exit_cue_idx) return TakeExit(state);
       // Correct door -> Reward and move on!
       if(state.cue_vec[door_idx] == state.current_cue){
@@ -176,13 +221,12 @@ namespace mabe {
 
   /// \brief MABE module that evaluates Avida-esque organisms on how well they can associate cues to doors 
   class EvalDoors : public Module {
+  public:
     using data_t = uint32_t;
     using org_t = VirtualCPUOrg;
     using inst_func_t = org_t::inst_func_t;
 
   protected:
-    std::string score_trait = "score"; ///< Name of trait for organism performance
-    std::string state_trait ="state";  ///< Name of trait that stores the task state
     DoorsEvaluator evaluator;          /**< The evaluator that does all of the actually 
                                             computing and bookkeeping for the task*/
     int pop_id = 0;                    /**< ID of the population to evaluate (and provide 
@@ -192,6 +236,7 @@ namespace mabe {
     std::string inst_id_str;           ///< Semicolon-separated list of instruction door IDs  
     emp::vector<int> inst_id_vec;      ///< ID of the `sense` instruction
     int sense_inst_id = -1;
+    EvalDoors_TraitNames trait_names;
     
     /// Parse the instruction ID string into an actual vector of ID numbers
     void ParseInstIDs(){
@@ -217,8 +262,24 @@ namespace mabe {
     /// Set up variables for configuration script
     void SetupConfig() override {
       LinkPop(pop_id, "target_pop", "Population to evaluate.");
-      LinkVar(score_trait, "score_trait", "Which trait stores task performance?");
-      LinkVar(state_trait, "state_trait", "Which trait stores organisms' task state?");
+      LinkVar(trait_names.score_trait, "score_trait", 
+           "Which trait stores task performance?");
+      LinkVar(trait_names.accuracy_trait, "accuracy_trait", 
+          "Which trait stores organism accuracy?");
+      LinkVar(trait_names.state_trait, "state_trait", 
+          "Which trait stores organisms' task state?");
+      LinkVar(trait_names.door_rooms_trait, "door_rooms_trait", 
+          "Which trait stores the number of \"door rooms\" visited?");
+      LinkVar(trait_names.exit_rooms_trait, "exit_rooms_trait", 
+          "Which trait stores the number of \"exit rooms\" visited?");
+      LinkVar(trait_names.correct_doors_trait, "correct_doors_trait", 
+          "Which trait stores the number of doors correctly taken?");
+      LinkVar(trait_names.incorrect_doors_trait, "incorrect_doors_trait", 
+          "Which trait stores the number of doors incorrectly taken?");
+      LinkVar(trait_names.correct_exits_trait, "correct_exits_trait", 
+          "Which trait stores the number of exits correctly taken?");
+      LinkVar(trait_names.incorrect_exits_trait, "incorrect_exits_trait", 
+          "Which trait stores the number of exits incorrectly taken?");
       LinkVar(randomize_cues_str, "randomize_cues_mask", "A string of 1s and 0s. Starting at "
           "cue 1, a 1 indicates that cue is random, while 0 is fixed.");
       LinkVar(inst_id_str, "inst_ids", "The IDs of the door instructions. Should be a string "
@@ -228,8 +289,15 @@ namespace mabe {
     
     /// Set up organism traits, load maps, and provide instructions to organisms
     void SetupModule() override {
-      AddSharedTrait<double>(score_trait, "EvalDoors score", 0.0);
-      AddOwnedTrait<DoorsState>(state_trait, "Organism's EvalDoors state", { }); 
+      AddSharedTrait<double>(trait_names.score_trait, "EvalDoors score", 0.0);
+      AddSharedTrait<double>(trait_names.accuracy_trait, "EvalDoors accuracy", 0.0);
+      AddOwnedTrait<DoorsState>(trait_names.state_trait, "Organism's EvalDoors state", { }); 
+      AddOwnedTrait<size_t>(trait_names.door_rooms_trait, "\"Door rooms\" visited", 0);
+      AddOwnedTrait<size_t>(trait_names.exit_rooms_trait, "\"Exit rooms\" visited", 0);
+      AddOwnedTrait<size_t>(trait_names.correct_doors_trait, "Correct doors taken", 0);
+      AddOwnedTrait<size_t>(trait_names.incorrect_doors_trait, "Incorrect doors taken", 0);
+      AddOwnedTrait<size_t>(trait_names.correct_exits_trait, "Correct exits taken", 0);
+      AddOwnedTrait<size_t>(trait_names.incorrect_exits_trait, "Incorrect exits taken", 0);
       evaluator.ParseCuesMask(randomize_cues_str);
       SetupInstructions();
     }
@@ -244,8 +312,11 @@ namespace mabe {
       // Add the correct number of door instructions
       for(size_t door_idx = 0; door_idx < inst_id_vec.size(); ++door_idx){
         inst_func_t func_move = [this, door_idx](org_t& hw, const org_t::inst_t& /*inst*/){
-          double score = evaluator.Move(hw.GetTrait<DoorsState>(state_trait), door_idx);
-          hw.SetTrait<double>(score_trait, score);
+          DoorsState& state = hw.GetTrait<DoorsState>(trait_names.state_trait);
+          double score = evaluator.Move(state, door_idx);
+          hw.SetTrait<double>(trait_names.score_trait, score);
+          hw.SetTrait<double>(trait_names.accuracy_trait, evaluator.GetDoorAccuracy(state));
+          evaluator.UpdateRecords(state, hw, trait_names);
         };
         std::stringstream sstr;
         sstr << "doors-move-" << door_idx;
@@ -255,7 +326,7 @@ namespace mabe {
       }
       { // Sense 
         inst_func_t func_sense = [this](org_t& hw, const org_t::inst_t& inst){
-          uint32_t val = evaluator.Sense(hw.GetTrait<DoorsState>(state_trait));
+          uint32_t val = evaluator.Sense(hw.GetTrait<DoorsState>(trait_names.state_trait));
           size_t reg_idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
           hw.regs[reg_idx] = val;
         };

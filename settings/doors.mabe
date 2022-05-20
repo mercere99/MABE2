@@ -1,7 +1,7 @@
 random_seed = 0;                // Seed for random number generator; use 0 to base on time.
 Population main_pop;            // Collection of organisms
-Var pop_size = 3600;               // Local value variable.
-Var max_gens = 100;              // Local value variable.
+Var pop_size = 3600;            // Local value variable.
+Var max_gens = 200;             // Local value variable.
 Var do_multiply = 1;            // Local value variable.
 MaxSizePlacement place_max_size { // Grow population to a given size then maintain
   target = "main_pop";            // Population(s) to manage.
@@ -114,10 +114,17 @@ VirtualCPU_Inst_Replication inst_lib_repl { // Replication instructions for Virt
 EvalDoors eval_doors {      // Evaluate organisms on their ability to follow a path.
   target_pop = "main_pop";  // Which population(s) should we evaluate?
   score_trait = "child_merit";  // Which trait stores path following performance?
+  accuracy_trait = "accuracy";  // Which trait stores door accuracy?
   state_trait = "state";    // Which trait stores organisms' path follow state?
   randomize_cues_mask = "011";// If true, cues are assigned random values in for each new path
   inst_ids = "34;35;36"; // If true, cues are assigned random values in for each new path
-  sense_inst_id = 38;
+  sense_inst_id = 37;
+  correct_doors_trait = "correct_doors";// Which trait stores the number of doors correctly taken?
+  correct_exits_trait = "correct_exits";// Which trait stores the number of exits correctly taken?
+  door_rooms_trait = "door_rooms";// Which trait stores the number of "door rooms" visited?
+  exit_rooms_trait = "exit_rooms";// Which trait stores the number of "exit rooms" visited?
+  incorrect_doors_trait = "incorrect_doors";// Which trait stores the number of doors incorrectly taken?
+  incorrect_exits_trait = "incorrect_exits";// Which trait stores the number of exits incorrectly taken?
 };
 VirtualCPUOrg avida_org {       // Organism consisting of Avida instructions.
   point_mut_prob = 0.01;        // Per-site probability of a point mutations
@@ -151,16 +158,33 @@ AnalyzeSystematics sys{
 Var dominant_genome;
 DataFile fit_file { filename="fitness.csv"; };
 fit_file.ADD_SETUP("dominant_genome = main_pop.CALC_MODE('genome')" );
-fit_file.ADD_COLUMN("merit_mean",       "main_pop.CALC_MEAN('child_merit')" );
-fit_file.ADD_COLUMN("merit_max",        "main_pop.CALC_MAX('child_merit')" );
-fit_file.ADD_COLUMN("dominant_genome",  "dominant_genome" );
+fit_file.ADD_COLUMN("merit_mean",      "main_pop.CALC_MEAN('child_merit')" );
+fit_file.ADD_COLUMN("merit_max",       "main_pop.CALC_MAX('child_merit')" );
+fit_file.ADD_COLUMN("accuracy_mean",   "main_pop.CALC_MEAN('accuracy')" );
+fit_file.ADD_COLUMN("accuracy_max",    "main_pop.CALC_MAX('accuracy')" );
+fit_file.ADD_COLUMN("dominant_genome", "dominant_genome" );
+fit_file.ADD_COLUMN("genome_length_mean", "main_pop.CALC_MEAN('genome_length')" );
+fit_file.ADD_COLUMN("door_rooms_mean", "main_pop.CALC_MEAN('door_rooms')" );
+fit_file.ADD_COLUMN("exit_rooms_mean", "main_pop.CALC_MEAN('exit_rooms')" );
+fit_file.ADD_COLUMN("correct_doors_mean", "main_pop.CALC_MEAN('correct_doors')" );
+fit_file.ADD_COLUMN("incorrect_doors_mean", "main_pop.CALC_MEAN('incorrect_doors')" );
+fit_file.ADD_COLUMN("correct_exits_mean", "main_pop.CALC_MEAN('correct_exits')" );
+fit_file.ADD_COLUMN("incorrect_exits_mean", "main_pop.CALC_MEAN('incorrect_exits')" );
 
 DataFile max_file { filename="max_org.csv"; };
 OrgList best_org;
 max_file.ADD_SETUP("best_org = main_pop.FIND_MAX('child_merit')" );
+max_file.ADD_COLUMN("genome",       "best_org.TRAIT('genome')" );
 max_file.ADD_COLUMN("merit",       "best_org.TRAIT('child_merit')" );
 max_file.ADD_COLUMN("merit_given", "best_org.TRAIT('merit')" );
 max_file.ADD_COLUMN("gen", "best_org.TRAIT('generation')" );
+max_file.ADD_COLUMN("accuracy", "best_org.TRAIT('accuracy')" );
+max_file.ADD_COLUMN("door_rooms", "best_org.TRAIT('door_rooms')" );
+max_file.ADD_COLUMN("exit_rooms", "best_org.TRAIT('exit_rooms')" );
+max_file.ADD_COLUMN("correct_doors", "best_org.TRAIT('correct_doors')" );
+max_file.ADD_COLUMN("incorrect_doors", "best_org.TRAIT('incorrect_doors')" );
+max_file.ADD_COLUMN("correct_exits", "best_org.TRAIT('correct_exits')" );
+max_file.ADD_COLUMN("incorrect_exits", "best_org.TRAIT('incorrect_exits')" );
 
 @START() {
   PRINT("random_seed = ", random_seed, "\n");  // Print seed at run start.
@@ -177,7 +201,10 @@ Var avg_gen;
         "  gen_mean=", main_pop.CALC_MEAN("generation"),
         //"  gen_max=", main_pop.CALC_MAX("generation"),
         //"  genome_length_max=", main_pop.CALC_MAX("genome_length"),
-        "  genome_length_mean=", main_pop.CALC_MEAN("genome_length")
+        "\nlength_mean=", main_pop.CALC_MEAN("genome_length"),
+        "  mean_accuracy=", main_pop.CALC_MEAN("accuracy"),
+        "  mean_cor_doors=", main_pop.CALC_MEAN("correct_doors"),
+        "  max_cor_doors=", main_pop.CALC_MAX("correct_doors")
        );
   fit_file.WRITE();
   max_file.WRITE();
