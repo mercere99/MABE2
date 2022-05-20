@@ -1,5 +1,6 @@
 EMP_TRACK_MEM: Pointer tracking is active!
 Loading file(s): 'Diagnostics.mabe'
+Setting Random Seed to 2000
 random_seed = 2000
 
 UD:1  MainPopSize=512  AveFitness=169.298  MaxFitness=425.437
@@ -52,55 +53,5 @@ UD:47  MainPopSize=512  AveFitness=453.883  MaxFitness=458.394
 UD:48  MainPopSize=512  AveFitness=452.548  MaxFitness=458.738
 UD:49  MainPopSize=512  AveFitness=454.674  MaxFitness=458.965
 UD:50  MainPopSize=512  AveFitness=454.373  MaxFitness=461.053
-UD:51  MainPopSize=512  AveFitness=456.67  MaxFitness=461.053
-UD:52  MainPopSize=512  AveFitness=455.334  MaxFitness=461.053
-UD:53  MainPopSize=512  AveFitness=457.997  MaxFitness=461.83
-UD:54  MainPopSize=512  AveFitness=459.172  MaxFitness=463.151
-UD:55  MainPopSize=512  AveFitness=458.994  MaxFitness=463.151
-UD:56  MainPopSize=512  AveFitness=457.032  MaxFitness=463.151
-UD:57  MainPopSize=512  AveFitness=458.722  MaxFitness=465.031
-UD:58  MainPopSize=512  AveFitness=459.725  MaxFitness=465.031
-UD:59  MainPopSize=512  AveFitness=460.639  MaxFitness=465.683
-UD:60  MainPopSize=512  AveFitness=462.104  MaxFitness=466.309
-UD:61  MainPopSize=512  AveFitness=464.033  MaxFitness=466.782
-UD:62  MainPopSize=512  AveFitness=460.386  MaxFitness=467.216
-UD:63  MainPopSize=512  AveFitness=463.661  MaxFitness=467.216
-UD:64  MainPopSize=512  AveFitness=464.714  MaxFitness=468.063
-UD:65  MainPopSize=512  AveFitness=466.448  MaxFitness=468.552
-UD:66  MainPopSize=512  AveFitness=462.198  MaxFitness=468.66
-UD:67  MainPopSize=512  AveFitness=463.548  MaxFitness=469.096
-UD:68  MainPopSize=512  AveFitness=466.001  MaxFitness=470.648
-UD:69  MainPopSize=512  AveFitness=464.754  MaxFitness=470.744
-UD:70  MainPopSize=512  AveFitness=467.391  MaxFitness=471.397
-UD:71  MainPopSize=512  AveFitness=468.185  MaxFitness=471.909
-UD:72  MainPopSize=512  AveFitness=466.673  MaxFitness=471.909
-UD:73  MainPopSize=512  AveFitness=469.684  MaxFitness=473.76
-UD:74  MainPopSize=512  AveFitness=469.1  MaxFitness=473.76
-UD:75  MainPopSize=512  AveFitness=471.135  MaxFitness=473.923
-UD:76  MainPopSize=512  AveFitness=468.775  MaxFitness=474.657
-UD:77  MainPopSize=512  AveFitness=472.63  MaxFitness=475.284
-UD:78  MainPopSize=512  AveFitness=471.942  MaxFitness=475.804
-UD:79  MainPopSize=512  AveFitness=472.534  MaxFitness=476.271
-UD:80  MainPopSize=512  AveFitness=473.09  MaxFitness=476.847
-UD:81  MainPopSize=512  AveFitness=473.862  MaxFitness=478.282
-UD:82  MainPopSize=512  AveFitness=474.646  MaxFitness=478.408
-UD:83  MainPopSize=512  AveFitness=475.796  MaxFitness=478.408
-UD:84  MainPopSize=512  AveFitness=475.961  MaxFitness=479.789
-UD:85  MainPopSize=512  AveFitness=477.557  MaxFitness=480.106
-UD:86  MainPopSize=512  AveFitness=477.913  MaxFitness=482.622
-UD:87  MainPopSize=512  AveFitness=478.32  MaxFitness=482.622
-UD:88  MainPopSize=512  AveFitness=478.926  MaxFitness=482.622
-UD:89  MainPopSize=512  AveFitness=480.803  MaxFitness=483.675
-UD:90  MainPopSize=512  AveFitness=481.884  MaxFitness=483.769
-UD:91  MainPopSize=512  AveFitness=480.177  MaxFitness=483.769
-UD:92  MainPopSize=512  AveFitness=481.077  MaxFitness=484.184
-UD:93  MainPopSize=512  AveFitness=481.062  MaxFitness=485.809
-UD:94  MainPopSize=512  AveFitness=481.785  MaxFitness=485.809
-UD:95  MainPopSize=512  AveFitness=483.296  MaxFitness=485.809
-UD:96  MainPopSize=512  AveFitness=482.965  MaxFitness=486.778
-UD:97  MainPopSize=512  AveFitness=484.282  MaxFitness=486.778
-UD:98  MainPopSize=512  AveFitness=484.961  MaxFitness=487.486
-UD:99  MainPopSize=512  AveFitness=484.001  MaxFitness=488.182
-UD:100  MainPopSize=512  AveFitness=485.229  MaxFitness=488.182
 EMP_TRACK_MEM: No memory leaks found!
- 215261 pointers found; all have been cleaned up fully.
+ 109122 pointers found; all have been cleaned up fully.

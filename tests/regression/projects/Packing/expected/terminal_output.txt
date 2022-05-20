@@ -1,0 +1,57 @@
+EMP_TRACK_MEM: Pointer tracking is active!
+Loading file(s): 'Packing.mabe'
+Setting Random Seed to 20
+random_seed = 20
+
+UD:1  MainPopSize=200  AveFitness=0  MaxFitness=0
+UD:2  MainPopSize=200  AveFitness=0  MaxFitness=0
+UD:3  MainPopSize=200  AveFitness=0  MaxFitness=0
+UD:4  MainPopSize=200  AveFitness=0  MaxFitness=0
+UD:5  MainPopSize=200  AveFitness=0  MaxFitness=0
+UD:6  MainPopSize=200  AveFitness=0  MaxFitness=0
+UD:7  MainPopSize=200  AveFitness=0  MaxFitness=0
+UD:8  MainPopSize=200  AveFitness=0  MaxFitness=0
+UD:9  MainPopSize=200  AveFitness=0  MaxFitness=0
+UD:10  MainPopSize=200  AveFitness=0  MaxFitness=0
+UD:11  MainPopSize=200  AveFitness=0  MaxFitness=0
+UD:12  MainPopSize=200  AveFitness=0  MaxFitness=0
+UD:13  MainPopSize=200  AveFitness=0  MaxFitness=0
+UD:14  MainPopSize=200  AveFitness=0  MaxFitness=0
+UD:15  MainPopSize=200  AveFitness=0  MaxFitness=0
+UD:16  MainPopSize=200  AveFitness=0  MaxFitness=0
+UD:17  MainPopSize=200  AveFitness=0  MaxFitness=0
+UD:18  MainPopSize=200  AveFitness=0  MaxFitness=0
+UD:19  MainPopSize=200  AveFitness=0  MaxFitness=0
+UD:20  MainPopSize=200  AveFitness=0  MaxFitness=0
+UD:21  MainPopSize=200  AveFitness=0  MaxFitness=0
+UD:22  MainPopSize=200  AveFitness=0  MaxFitness=0
+UD:23  MainPopSize=200  AveFitness=0  MaxFitness=0
+UD:24  MainPopSize=200  AveFitness=0  MaxFitness=0
+UD:25  MainPopSize=200  AveFitness=0  MaxFitness=0
+UD:26  MainPopSize=200  AveFitness=0  MaxFitness=0
+UD:27  MainPopSize=200  AveFitness=0  MaxFitness=0
+UD:28  MainPopSize=200  AveFitness=0  MaxFitness=0
+UD:29  MainPopSize=200  AveFitness=0  MaxFitness=0
+UD:30  MainPopSize=200  AveFitness=0  MaxFitness=0
+UD:31  MainPopSize=200  AveFitness=0  MaxFitness=0
+UD:32  MainPopSize=200  AveFitness=0  MaxFitness=0
+UD:33  MainPopSize=200  AveFitness=0  MaxFitness=0
+UD:34  MainPopSize=200  AveFitness=0  MaxFitness=0
+UD:35  MainPopSize=200  AveFitness=0  MaxFitness=0
+UD:36  MainPopSize=200  AveFitness=0  MaxFitness=0
+UD:37  MainPopSize=200  AveFitness=0  MaxFitness=0
+UD:38  MainPopSize=200  AveFitness=0  MaxFitness=0
+UD:39  MainPopSize=200  AveFitness=0  MaxFitness=0
+UD:40  MainPopSize=200  AveFitness=0.005  MaxFitness=1
+UD:41  MainPopSize=200  AveFitness=0.35  MaxFitness=1
+UD:42  MainPopSize=200  AveFitness=0.85  MaxFitness=1
+UD:43  MainPopSize=200  AveFitness=0.835  MaxFitness=1
+UD:44  MainPopSize=200  AveFitness=0.895  MaxFitness=1
+UD:45  MainPopSize=200  AveFitness=0.805  MaxFitness=1
+UD:46  MainPopSize=200  AveFitness=0.895  MaxFitness=1
+UD:47  MainPopSize=200  AveFitness=0.91  MaxFitness=1
+UD:48  MainPopSize=200  AveFitness=0.865  MaxFitness=1
+UD:49  MainPopSize=200  AveFitness=0.915  MaxFitness=2
+UD:50  MainPopSize=200  AveFitness=1.305  MaxFitness=2
+EMP_TRACK_MEM: No memory leaks found!
+ 66250 pointers found; all have been cleaned up fully.

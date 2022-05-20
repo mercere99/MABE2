@@ -1,0 +1,16 @@
+EMP_TRACK_MEM: Pointer tracking is active!
+Loading file(s): 'RoyalRoad.mabe'
+Setting Random Seed to 40
+Beginning ROYAL ROAD!
+Main config options:
+ Brick size:       8
+ Num org bits:     100
+ Mut Probability:  0.005
+ Population size:  100
+ Tournamenet size: 100
+ Random seed:      40
+
+ Stop update:      50
+
+EMP_TRACK_MEM: No memory leaks found!
+ 34281 pointers found; all have been cleaned up fully.

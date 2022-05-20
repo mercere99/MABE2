@@ -1,43 +1,53 @@
-BUILD_DIR="../../build"
+BUILD_DIR="../../build" # Relative to THIS_DIR below
 
 THIS_DIR=`pwd`
-MABE_FILES=`ls ${THIS_DIR} | grep .mabe$`
+PROJECTS=`ls ${THIS_DIR}/projects`
 
 cd ${BUILD_DIR}
 make clean
 make debug
 cd ${THIS_DIR}
 
-for filename in ${MABE_FILES}
+for NAME in ${PROJECTS}
 do
-  NAME=`echo ${filename} | grep -P "^[\w|_][\w|\d_]+" -o`
   echo "${NAME}"
-  DIR="output/${NAME}"
-  mkdir ${DIR} -p
-  cd ${DIR}
-  cp ../../${BUILD_DIR}/MABE ./
-  cp ${THIS_DIR}/${filename} ./
-  cp ${THIS_DIR}/copy* ./
-  ./MABE -f ${filename} > terminal_output.txt
-
+  # Setup directory structure
+  PROJ_DIR="${THIS_DIR}/projects/${NAME}"
+  OUTPUT_DIR="${PROJ_DIR}/output"
+  FILE_DIR="${PROJ_DIR}/needed_files"
+  EXPECTED_DIR="${PROJ_DIR}/expected"
+  mkdir ${OUTPUT_DIR} -p
+  cd ${OUTPUT_DIR}
+  # Copy over mabe executable and all needed files
+  cp ${THIS_DIR}/${BUILD_DIR}/MABE ./
+  cp ${FILE_DIR}/* ./
+  # Run!
+  ./MABE -f ${NAME}.mabe  > terminal_output.txt
+  # Remove non-output files
+  rm ${OUTPUT_DIR}/MABE
+  NEEDED_FILES=`ls ${FILE_DIR}`
+  for needed_file in ${NEEDED_FILES}
+  do
+    rm ${OUTPUT_DIR}/${needed_file}
+  done
   # Check generated data against expected data
-  cmp terminal_output.txt ${THIS_DIR}/expected_terminal_output_${NAME}.txt 
-  TERMINAL_ERROR_CODE=$?
-  if ! test ${TERMINAL_ERROR_CODE} -eq 0;
-  then
-    echo "Error! File generated different terminal output!"
-    head terminal_output.txt -n 200
-    exit 1
-  fi
-
-  #cmp output.csv ${THIS_DIR}/expected_csv_output_${NAME}.csv
-  #CSV_ERROR_CODE=$?
-  #if ! test ${CSV_ERROR_CODE} -eq 0;
-  #then
-  #  echo "Error! File generated different values for output.csv"
-  #  head output.csv -n 50
-  #  exit 2
-  #fi
+  EXPECTED_FILES=`ls ${EXPECTED_DIR}`
+  for expected_file in ${EXPECTED_FILES}
+  do
+    if ! [ -e ${OUTPUT_DIR}/${expected_file} ]
+    then
+      echo "Error! Expected file not found in output! (${expected_file})"
+      exit 1
+    fi
+    cmp ${expected_file}  ${EXPECTED_DIR}/${expected_file}
+    TERMINAL_ERROR_CODE=$?
+    if ! test ${TERMINAL_ERROR_CODE} -eq 0;
+    then
+      echo "Error! File generated different terminal output! (${expected_file})"
+      head ${OUTPUT_DIR}/${expected_file} -n 200
+      exit 1
+    fi
+  done
   # Reset back to original directory
   cd ${THIS_DIR} 
 done

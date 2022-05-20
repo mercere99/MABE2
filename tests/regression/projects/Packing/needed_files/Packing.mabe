@@ -1,13 +1,14 @@
-random_seed = 5000;           // Seed for random number generator; use 0 to base on time.
+random_seed = 20;             // Seed for random number generator; use 0 to base on time.
 Population main_pop;          // Collection of organisms
 Population next_pop;          // Collection of organisms
 Var pop_size = 200;           // Local value variable.
-Var num_gens = 100;          // Local value variable.
+Var num_gens = 50;            // Local value variable.
 
-EvalRoyalRoad eval_rr {       // Evaluate bitstrings by counting ones (or zeros).
+EvalPacking eval_packing {    // Evaluate bitstrings by counting ones (or zeros).
   bits_trait = "bits";        // Which trait stores the bit sequence to evaluate?
-  fitness_trait = "fitness";    // Which trait should we store Royal Road fitness in?
-  brick_size = 8;             // Number of ones to have a whole brick in the road.
+  fitness_trait = "fitness";  // Which trait should we store Royal Road fitness in?
+  package_size = 6;           // Number of ones to form a single package.
+  padding_size = 3;           // Minimum nubmer of zeros to surround packages of ones. 
 };
 SelectElite select_elite {      // Choose the top fitness organisms for replication.
   fitness_fun = "fitness";    // Which trait provides the fitness value to use?
@@ -30,12 +31,16 @@ BitsOrg bits_org {              // Organism consisting of a series of N bits.
 };
 
 // Actions to perform every update.
+
+// @UPDATE(Var ud IN [100:100]) OrgList altruists = main_pop.FILTER("altruism > 0");
+// @BEFOREDIVIDE(OrgList parent IN altruists) PRINT("Altruist Birth!");
+
 @UPDATE(Var ud) {
   // @UPDATE(Var update) {
   // IF ([10:10].HAS(update)) EXIT();
   // IF (update == 1000) EXIT;
 
-  eval_rr.EVAL(main_pop);
+  eval_packing.EVAL(main_pop);
   PRINT("UD:", GET_UPDATE(),
         "  MainPopSize=", main_pop.SIZE(),
         "  AveFitness=", main_pop.CALC_MEAN("fitness"),

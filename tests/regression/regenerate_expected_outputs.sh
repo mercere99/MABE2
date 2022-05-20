@@ -1,7 +1,7 @@
-BUILD_DIR="../../build"
+BUILD_DIR="../../build" # Relative to THIS_DIR below
 
 THIS_DIR=`pwd`
-MABE_FILES=`ls ${THIS_DIR} | grep -P .mabe$`
+PROJECTS=`ls ${THIS_DIR}/projects`
 
 set -e # If any errors occur, propogate error and stop
 
@@ -10,22 +10,31 @@ make clean
 make debug
 cd ${THIS_DIR}
 
-for filename in ${MABE_FILES}
+for NAME in ${PROJECTS}
 do
-  NAME=`echo ${filename} | grep -P "^[\w|_][\w|\d_]+" -o`
-  echo "${NAME}"
-  DIR="output/${NAME}"
-  mkdir ${DIR} -p
-  cd ${DIR}
-  cp ../../${BUILD_DIR}/MABE ./
-  cp ${THIS_DIR}/${filename} ./
-  cp ${THIS_DIR}/copy* ./
-  ./MABE -f ${filename} > terminal_output.txt
-
-  # Copy output files back to this directory
-  cp ./terminal_output.txt ${THIS_DIR}/expected_terminal_output_${NAME}.txt
-  #cp ./output.csv ${THIS_DIR}/expected_csv_output_${NAME}.csv
-
+  echo "Starting project: ${NAME}"
+  # Setup directory structure
+  PROJ_DIR="${THIS_DIR}/projects/${NAME}"
+  OUTPUT_DIR="${PROJ_DIR}/output"
+  FILE_DIR="${PROJ_DIR}/needed_files"
+  EXPECTED_DIR="${PROJ_DIR}/expected"
+  mkdir ${OUTPUT_DIR} -p
+  mkdir ${EXPECTED_DIR} -p
+  mkdir ${FILE_DIR} -p
+  cd ${EXPECTED_DIR}
+  # Copy over mabe executable and all needed files
+  cp ${THIS_DIR}/${BUILD_DIR}/MABE ./
+  cp ${FILE_DIR}/* ./
+  # Run!
+  ./MABE -f ${NAME}.mabe > terminal_output.txt
+  # Remove non-output files
+  rm ${EXPECTED_DIR}/MABE
+  NEEDED_FILES=`ls ${FILE_DIR}`
+  for needed_file in ${NEEDED_FILES}
+  do
+    rm ${EXPECTED_DIR}/${needed_file}
+  done
+  # Return to starting directory
   cd ${THIS_DIR} 
 done
 echo "All expected data regenerated!"

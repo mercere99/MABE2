@@ -1,0 +1,82 @@
+EMP_TRACK_MEM: Pointer tracking is active!
+Loading file(s): 'Mancala.mabe'
+Registered instruction: Inc index: 0; id: 0; symbol: a
+Registered instruction: Dec index: 1; id: 1; symbol: b
+Registered instruction: Not index: 2; id: 2; symbol: c
+Registered instruction: SetReg index: 3; id: 3; symbol: d
+Registered instruction: Add index: 4; id: 4; symbol: e
+Registered instruction: Sub index: 5; id: 5; symbol: f
+Registered instruction: Mult index: 6; id: 6; symbol: g
+Registered instruction: Div index: 7; id: 7; symbol: h
+Registered instruction: Mod index: 8; id: 8; symbol: i
+Registered instruction: TestEqu index: 9; id: 9; symbol: j
+Registered instruction: TestNEqu index: 10; id: 10; symbol: k
+Registered instruction: TestLess index: 11; id: 11; symbol: l
+Registered instruction: If index: 12; id: 12; symbol: m
+Registered instruction: While index: 13; id: 13; symbol: n
+Registered instruction: Countdown index: 14; id: 14; symbol: o
+Registered instruction: Break index: 15; id: 15; symbol: p
+Registered instruction: Scope index: 16; id: 16; symbol: q
+Registered instruction: Define index: 17; id: 17; symbol: r
+Registered instruction: Call index: 18; id: 18; symbol: s
+Registered instruction: Push index: 19; id: 19; symbol: t
+Registered instruction: Pop index: 20; id: 20; symbol: u
+Registered instruction: Input index: 21; id: 21; symbol: v
+Registered instruction: Output index: 22; id: 22; symbol: w
+Registered instruction: CopyVal index: 23; id: 23; symbol: x
+Registered instruction: ScopeReg index: 24; id: 24; symbol: y
+Setting Random Seed to 2
+random_seed = 2
+
+UD:1  MainPopSize=20  AveFitness=-634.1  MaxFitness=-250
+UD:2  MainPopSize=20  AveFitness=-650.6  MaxFitness=-368
+UD:3  MainPopSize=20  AveFitness=-527.8  MaxFitness=-268
+UD:4  MainPopSize=20  AveFitness=-606.5  MaxFitness=-122
+UD:5  MainPopSize=20  AveFitness=-607.4  MaxFitness=-322
+UD:6  MainPopSize=20  AveFitness=-590.9  MaxFitness=-270
+UD:7  MainPopSize=20  AveFitness=-596.4  MaxFitness=-358
+UD:8  MainPopSize=20  AveFitness=-646.2  MaxFitness=-106
+UD:9  MainPopSize=20  AveFitness=-615  MaxFitness=-28
+UD:10  MainPopSize=20  AveFitness=-601.3  MaxFitness=-82
+UD:11  MainPopSize=20  AveFitness=-577.6  MaxFitness=-266
+UD:12  MainPopSize=20  AveFitness=-618.3  MaxFitness=-192
+UD:13  MainPopSize=20  AveFitness=-605.9  MaxFitness=-276
+UD:14  MainPopSize=20  AveFitness=-571  MaxFitness=-226
+UD:15  MainPopSize=20  AveFitness=-574.6  MaxFitness=-322
+UD:16  MainPopSize=20  AveFitness=-595.8  MaxFitness=-312
+UD:17  MainPopSize=20  AveFitness=-645.6  MaxFitness=-174
+UD:18  MainPopSize=20  AveFitness=-595.2  MaxFitness=-204
+UD:19  MainPopSize=20  AveFitness=-593.7  MaxFitness=-82
+UD:20  MainPopSize=20  AveFitness=-630.2  MaxFitness=-208
+UD:21  MainPopSize=20  AveFitness=-711.4  MaxFitness=-286
+UD:22  MainPopSize=20  AveFitness=-549.6  MaxFitness=-286
+UD:23  MainPopSize=20  AveFitness=-621.6  MaxFitness=-248
+UD:24  MainPopSize=20  AveFitness=-606.3  MaxFitness=-52
+UD:25  MainPopSize=20  AveFitness=-626.3  MaxFitness=-332
+UD:26  MainPopSize=20  AveFitness=-553.2  MaxFitness=-42
+UD:27  MainPopSize=20  AveFitness=-631  MaxFitness=-192
+UD:28  MainPopSize=20  AveFitness=-599.3  MaxFitness=-160
+UD:29  MainPopSize=20  AveFitness=-646.6  MaxFitness=-246
+UD:30  MainPopSize=20  AveFitness=-615.6  MaxFitness=-44
+UD:31  MainPopSize=20  AveFitness=-592.2  MaxFitness=-250
+UD:32  MainPopSize=20  AveFitness=-660.7  MaxFitness=-210
+UD:33  MainPopSize=20  AveFitness=-695.8  MaxFitness=-176
+UD:34  MainPopSize=20  AveFitness=-610  MaxFitness=-348
+UD:35  MainPopSize=20  AveFitness=-607.4  MaxFitness=-236
+UD:36  MainPopSize=20  AveFitness=-545.6  MaxFitness=-166
+UD:37  MainPopSize=20  AveFitness=-644.5  MaxFitness=-432
+UD:38  MainPopSize=20  AveFitness=-640.6  MaxFitness=-174
+UD:39  MainPopSize=20  AveFitness=-554.6  MaxFitness=-160
+UD:40  MainPopSize=20  AveFitness=-601.7  MaxFitness=-182
+UD:41  MainPopSize=20  AveFitness=-653.4  MaxFitness=-298
+UD:42  MainPopSize=20  AveFitness=-592.7  MaxFitness=-136
+UD:43  MainPopSize=20  AveFitness=-559.9  MaxFitness=-250
+UD:44  MainPopSize=20  AveFitness=-564.8  MaxFitness=-230
+UD:45  MainPopSize=20  AveFitness=-581.8  MaxFitness=-292
+UD:46  MainPopSize=20  AveFitness=-669.3  MaxFitness=-286
+UD:47  MainPopSize=20  AveFitness=-589.5  MaxFitness=-146
+UD:48  MainPopSize=20  AveFitness=-623  MaxFitness=-184
+UD:49  MainPopSize=20  AveFitness=-618.3  MaxFitness=-324
+UD:50  MainPopSize=20  AveFitness=-558.8  MaxFitness=-234
+EMP_TRACK_MEM: No memory leaks found!
+ 8011 pointers found; all have been cleaned up fully.
