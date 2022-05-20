@@ -47,8 +47,7 @@ namespace mabe {
       if (exit_now) return false; // Already had a failure; don't report multiple.
 
       if (!test) {
-        std::cout << "ERROR: ";
-        ((std::cout << std::forward<Ts>(args)), ...);
+        emp::notify::Error(std::forward<Ts>(args)...);
         exit_now = true;
       }
       return test;
@@ -100,6 +99,7 @@ namespace mabe {
         } else if (keyword == "set") {           // Set a local variable value
           Require(line.size(), "'set' must specify variable name and value to set to.");
           std::string var = emp::string_pop_word(line);
+          Require(var != "seed", "The variable 'seed' is reserved for the random number seed used.");
           var_set[var] = line;          
         } else {
           std::cerr << "ERROR: Unknown keyword '" << keyword << "'.  Aborting." << std::endl;
@@ -111,6 +111,12 @@ namespace mabe {
     }
 
     void Run() {
+      emp::notify::Message("Processing BATCH runs.");
+      emp::notify::Message("Using ", factors.size(), " combined factors");
+      for (const auto & factor : factors) {
+        emp::notify::Message("  ", factor.name, " with ", factor.options.size(), " options.");
+      }
+
       int seed = 1;  // Seeds start at 1 and work their way up.
 
       // Loop through combinations of factors.
@@ -129,15 +135,20 @@ namespace mabe {
         for (const std::string & option : config_options) {
           ss << " " << option;
         }
-
-        // Substitute in variables.
-        std::string exe_string(ss.str());        
-        emp::replace_vars(exe_string, var_set);
+        ss << " -s random_seed={$seed}";
 
         // Do all replicates in this treatment.
         for (int i = 0; i < replicates; ++i) {
-          std::string out_string = emp::to_string(exe_string, " -s random_seed=", seed++);
-          std::system(out_string.c_str());
+          // Prep the random seed.
+          var_set["seed"] = seed++;
+
+          // Substitute in variables.
+          std::string exe_string(ss.str());        
+          exe_string = emp::replace_vars(exe_string, var_set);
+
+          // And run the executable
+          emp::notify::Message("BATCH COMMAND: ", exe_string);
+          std::system(exe_string.c_str());
         }
 
         // Move on to the next factors.
