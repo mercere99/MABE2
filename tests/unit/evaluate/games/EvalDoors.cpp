@@ -3,15 +3,20 @@
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
  *  @date 2019-2021.
  *
- *  @file  Systematics.cpp
- *  @brief TODO. Currently this is a placeholder so codecov will see the untested source code
+ *  @file EvalMancala.cpp 
+ *  @brief Placeholder test file for EvalMancala.hpp 
  */
 
 // CATCH
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
+// Empirical tools
+#include "emp/base/vector.hpp"
 // MABE
-#include "analyze/Systematics.hpp"
+#include "evaluate/games/EvalDoors.hpp"
 
 
-TEST_CASE("Systematics_Placeholder", "[core]"){ ; }
+TEST_CASE("EvalDoors_Placeholder", "[evaluate/games]"){
+  {
+  }
+}

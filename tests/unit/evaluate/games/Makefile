@@ -1,4 +1,4 @@
-TEST_NAMES= EvalMancala EvalPathFollow
+TEST_NAMES= EvalMancala EvalPathFollow EvalDoors
 
 MABE_DIR= ../../../../source
 EMP_DIR= ../../../../source/third-party/empirical

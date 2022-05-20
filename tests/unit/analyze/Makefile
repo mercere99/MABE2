@@ -1,4 +1,4 @@
-TEST_NAMES= Systematics SystematicsAnalysis 
+TEST_NAMES= SystematicsModule
 
 MABE_DIR= ../../../source/
 EMP_DIR= ../../../source/third-party/empirical
