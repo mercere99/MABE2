@@ -82,6 +82,8 @@ namespace emplode {
       if (symbol_ptr->IsTemporary()) symbol_ptr.Delete(); // If we are done with input; delete the symbol!
       return result;
     }
+
+    virtual void PrintAST(std::ostream & os=std::cout, size_t indent=0) = 0;
   };
 
   /// An ASTNode representing an internal node.
@@ -158,6 +160,11 @@ namespace emplode {
       }
       os << output;
     }
+
+    void PrintAST(std::ostream & os=std::cout, size_t indent=0) override {
+      for (size_t i = 0; i < indent; ++i) os << " ";
+      os << "ASTNode_Leaf : " << symbol_ptr->DebugString() << std::endl;
+    }
   };
 
   // Helper functions for making temporary leaves.
@@ -226,6 +233,12 @@ namespace emplode {
         os << ";\n" << offset;
       }
     }
+
+    void PrintAST(std::ostream & os=std::cout, size_t indent=0) override {
+      for (size_t i = 0; i < indent; ++i) os << " ";
+      os << "ASTNode_Block: " << children.size() << " lines." << std::endl;
+      for (auto child_ptr : children) child_ptr->PrintAST(os, indent+2);
+    }
   };
 
   /// Unary mathematical operations.
@@ -258,6 +271,12 @@ namespace emplode {
     void Write(std::ostream & os, const std::string & offset) const override { 
       os << name;
       children[0]->Write(os, offset);
+    }
+
+    void PrintAST(std::ostream & os=std::cout, size_t indent=0) override {
+      for (size_t i = 0; i < indent; ++i) os << " ";
+      os << "ASTNode_Math1: " << GetName() << std::endl;
+      for (auto child : children) child->PrintAST(os, indent+2);
     }
   };
 
@@ -294,6 +313,12 @@ namespace emplode {
       children[0]->Write(os, offset);
       os << " " << name << " ";
       children[1]->Write(os, offset);
+    }
+
+    void PrintAST(std::ostream & os=std::cout, size_t indent=0) override {
+      for (size_t i = 0; i < indent; ++i) os << " ";
+      os << "ASTNode_Math2: " << GetName() << std::endl;
+      for (auto child : children) child->PrintAST(os, indent+2);
     }
   };
 
@@ -333,6 +358,12 @@ namespace emplode {
       }
       if (rhs->IsTemporary()) rhs.Delete();
       return lhs;
+    }
+
+    void PrintAST(std::ostream & os=std::cout, size_t indent=0) override {
+      for (size_t i = 0; i < indent; ++i) os << " ";
+      os << "ASTNode_Assign: " << GetName() << std::endl;
+      for (auto child : children) child->PrintAST(os, indent+2);
     }
   };
 
@@ -374,6 +405,12 @@ namespace emplode {
         children[2]->Write(os, offset);
       }
     }
+
+    void PrintAST(std::ostream & os=std::cout, size_t indent=0) override {
+      for (size_t i = 0; i < indent; ++i) os << " ";
+      os << "ASTNode_If: " << GetName() << std::endl;
+      for (auto child : children) child->PrintAST(os, indent+2);
+    }
   };
 
   class ASTNode_While : public ASTNode_Internal {
@@ -409,6 +446,12 @@ namespace emplode {
       children[0]->Write(os, offset);
       os << ") ";
       children[1]->Write(os, offset);
+    }
+
+    void PrintAST(std::ostream & os=std::cout, size_t indent=0) override {
+      for (size_t i = 0; i < indent; ++i) os << " ";
+      os << "ASTNode_While: " << GetName() << std::endl;
+      for (auto child : children) child->PrintAST(os, indent+2);
     }
   };
 
@@ -465,6 +508,12 @@ namespace emplode {
       }
       os << ")";
     }
+
+    void PrintAST(std::ostream & os=std::cout, size_t indent=0) override {
+      for (size_t i = 0; i < indent; ++i) os << " ";
+      os << "ASTNode_Call: " << GetName() << std::endl;
+      for (auto child : children) child->PrintAST(os, indent+2);
+    }
   };
 
   class ASTNode_Event : public ASTNode_Internal {
@@ -513,6 +562,12 @@ namespace emplode {
       }
       os << ") ";
       children[0]->Write(os, offset);  // Action.
+    }
+
+    void PrintAST(std::ostream & os=std::cout, size_t indent=0) override {
+      for (size_t i = 0; i < indent; ++i) os << " ";
+      os << "ASTNode_Event: " << GetName() << std::endl;
+      for (auto child : children) child->PrintAST(os, indent+2);
     }
   };
 
