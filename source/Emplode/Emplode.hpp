@@ -217,6 +217,8 @@ namespace emplode {
     Emplode & operator=(const Emplode &) = delete;
     Emplode & operator=(Emplode &&) = delete;
 
+    void PrintAST() { ast_root.PrintAST(); }
+
     /// Create a new type of event that can be used in the scripting language.
     bool AddSignal(const std::string & name) { return symbol_table.AddSignal(name); }
 
