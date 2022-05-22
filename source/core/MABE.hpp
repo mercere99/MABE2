@@ -128,6 +128,10 @@ namespace mabe {
       if (verbose) std::cout << emp::to_string(std::forward<Ts>(args)...) << std::endl;
     }
 
+    void PrintAST() override {
+      config_script.PrintAST();
+    }
+
     size_t GetRandomSeed() const override { return random.GetSeed(); }
     void SetRandomSeed(size_t in_seed) override {
       std::cout << "Setting Random Seed to " << in_seed << std::endl;
