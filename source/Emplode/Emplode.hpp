@@ -263,10 +263,12 @@ namespace emplode {
       // Parse and run the program, starting from the outer scope.
       ParseState state{pos, symbol_table, symbol_table.GetRootScope(), lexer};
       auto cur_block = parser.ParseStatementList(state);
-      cur_block->Process();
 
       // Store this AST onto the full set we're working with.
       ast_root.AddChild(cur_block);
+
+      // And process just this new block.
+      cur_block->Process();
     }
 
     // Sequentially load a series of configuration files.
