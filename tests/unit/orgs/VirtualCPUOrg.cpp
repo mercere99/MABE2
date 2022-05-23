@@ -28,20 +28,37 @@
 //  [X] SetupInstLib
 //    [X] All expected instructions appear in inst. lib.
 
+template<typename T>
+T& GetConfiguredRef(
+    mabe::MABE& control, 
+    const std::string& type_name, 
+    const std::string& var_name, 
+    emplode::Symbol_Scope& scope){
+  emplode::Symbol_Object& symbol_obj = 
+      control.GetConfigScript().GetSymbolTable().MakeObjSymbol(type_name, var_name, scope);
+  return *dynamic_cast<T*>(symbol_obj.GetObjectPtr().Raw());
+}
+
 TEST_CASE("VirtualCPUOrg_Main", "[orgs]"){
-  /*
   // Initialize the instruction library, which only needs done once
   mabe::MABE control(0, nullptr);
   control.GetRandom().ResetSeed(100);
   control.AddPopulation("test_pop", 0);
   mabe::OrganismManager<mabe::VirtualCPUOrg> manager(control, "name", "desc");
+  emplode::Symbol_Scope root_scope("root_scope", "desc", nullptr);
   // Add NopA, NopB, and NopC
-  mabe::VirtualCPU_Inst_Nop nop_inst_module(control);
+  mabe::VirtualCPU_Inst_Nop& nop_inst_module = 
+      GetConfiguredRef<mabe::VirtualCPU_Inst_Nop>(
+        control, "VirtualCPU_Inst_Nop", "insts_nop", root_scope); 
   // Add IO (for required traits) 
-  mabe::VirtualCPU_Inst_IO io_inst_module(control);
+  mabe::VirtualCPU_Inst_IO& io_inst_module = 
+      GetConfiguredRef<mabe::VirtualCPU_Inst_IO>(
+          control, "VirtualCPU_Inst_IO", "insts_io", root_scope); 
   mabe::VirtualCPUOrg tmp_org(manager);
   control.GetTraitManager().Unlock();
+  nop_inst_module.AsScope().GetSymbol("start_nop_id")->SetValue(0);
   nop_inst_module.SetupModule();
+  io_inst_module.AsScope().GetSymbol("io_inst_id")->SetValue(3);
   io_inst_module.SetupModule();
   tmp_org.SetupModule();
   control.GetTraitManager().Lock();
@@ -55,11 +72,17 @@ TEST_CASE("VirtualCPUOrg_Main", "[orgs]"){
     // [X] Can be changed
     // [X] Changes are seen by other orgs 
     mabe::MABE control(0, nullptr);
-    mabe::OrganismManager<mabe::VirtualCPUOrg> manager(control, "name", "desc");
+    mabe::OrganismManager<mabe::VirtualCPUOrg>& manager = GetConfiguredRef<mabe::OrganismManager<mabe::VirtualCPUOrg>>(control, "VirtualCPUOrg", "org_manager_1", root_scope);
     mabe::VirtualCPUOrg org_a(manager);
     mabe::VirtualCPUOrg org_b(manager);
+    manager.AsScope().GetSymbol("point_mut_prob")->SetValue(0.01);
+    manager.AsScope().GetSymbol("insertion_mut_prob")->SetValue(0);
+    manager.AsScope().GetSymbol("deletion_mut_prob")->SetValue(0);
+    org_a.SetupMutationDistribution();
     // Check that all shared data default properly (other than mutation datastructs)
     CHECK(org_a.SharedData().point_mut_prob == 0.01);
+    CHECK(org_a.SharedData().insertion_mut_prob == 0);
+    CHECK(org_a.SharedData().deletion_mut_prob == 0);
     CHECK(org_a.SharedData().init_length == 100);
     CHECK(org_a.SharedData().init_random == true);
     CHECK(org_a.SharedData().eval_time == 500);
@@ -120,8 +143,11 @@ TEST_CASE("VirtualCPUOrg_Main", "[orgs]"){
     //    [X] Mutation probability is used 
     //    [X] Genome trait is updated
     control.GetRandom().ResetSeed(100);
-    mabe::OrganismManager<mabe::VirtualCPUOrg> manager(control, "name", "desc");
+    mabe::OrganismManager<mabe::VirtualCPUOrg>& manager = GetConfiguredRef<mabe::OrganismManager<mabe::VirtualCPUOrg>>(control, "VirtualCPUOrg", "org_manager_2", root_scope);
     mabe::VirtualCPUOrg org(manager);
+    manager.AsScope().GetSymbol("point_mut_prob")->SetValue(0.01);
+    manager.AsScope().GetSymbol("insertion_mut_prob")->SetValue(0);
+    manager.AsScope().GetSymbol("deletion_mut_prob")->SetValue(0);
     org.SetupMutationDistribution();
     emp::DataMap data_map = control.GetOrganismDataMap();
     control.GetTraitManager().RegisterAll(data_map);
@@ -209,7 +235,7 @@ TEST_CASE("VirtualCPUOrg_Main", "[orgs]"){
     org.Initialize(control.GetRandom());
     CHECK(org.GetGenomeSize() == 50);
     CHECK(org.GetTrait<std::string>("genome") == org.GetGenomeString());
-    CHECK(org.GetTrait<double>("merit") == 20);
+    CHECK(org.GetTrait<double>("merit") == 1.0);
     CHECK(org.GetTrait<double>("child_merit") == 20);
     CHECK(org.nops_need_curated == false);
     CHECK(org.are_nops_counted == true);
@@ -222,7 +248,7 @@ TEST_CASE("VirtualCPUOrg_Main", "[orgs]"){
     org_2.Initialize(control.GetRandom());
     CHECK(org_2.GetGenomeSize() == 50);
     CHECK(org_2.GetTrait<std::string>("genome") == "[50]abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcab");
-    CHECK(org_2.GetTrait<double>("merit") == 20);
+    CHECK(org_2.GetTrait<double>("merit") == 1.0); 
     CHECK(org_2.GetTrait<double>("child_merit") == 20);
     CHECK(org_2.nops_need_curated == false);
     CHECK(org_2.are_nops_counted == true);
@@ -284,7 +310,7 @@ TEST_CASE("VirtualCPUOrg_Main", "[orgs]"){
     std::cout << "Parent: " << original_genome << std::endl;
     std::cout << "Child:  " << child_genome_1 << std::endl;
     CHECK(original_genome == child_genome_1);
-    CHECK(child_org_1->GetTrait<double>("merit") == org.GetTrait<double>("child_merit")); 
+    CHECK(child_org_1->GetTrait<double>("merit") == 1.0 + org.GetTrait<double>("child_merit")); 
     CHECK(child_org_1->GetTrait<double>("child_merit") == org.SharedData().initial_merit); 
     CHECK(child_org_1->inst_ptr == 0); 
     child_org_1.Delete();
@@ -298,7 +324,7 @@ TEST_CASE("VirtualCPUOrg_Main", "[orgs]"){
     std::cout << "Parent: " << original_genome << std::endl;
     std::cout << "Child:  " << child_genome_2 << std::endl;
     CHECK(original_genome != child_genome_2);
-    CHECK(child_org_2->GetTrait<double>("merit") == org.GetTrait<double>("child_merit")); 
+    CHECK(child_org_2->GetTrait<double>("merit") == 1.0 + org.GetTrait<double>("child_merit")); 
     CHECK(child_org_2->GetTrait<double>("child_merit") == org.SharedData().initial_merit); 
     CHECK(child_org_2->inst_ptr == 0); 
     child_org_2.Delete();
@@ -322,6 +348,7 @@ TEST_CASE("VirtualCPUOrg_Main", "[orgs]"){
     org.ProcessStep();
     CHECK(org.inst_ptr == 2);
   }
+  /*
   { // GenerateOutput 
     control.GetRandom().ResetSeed(107);
     mabe::OrganismManager<mabe::VirtualCPUOrg> manager(control, "name", "desc");
@@ -341,11 +368,11 @@ TEST_CASE("VirtualCPUOrg_Main", "[orgs]"){
     org.GenerateOutput();
     emp::vector<uint32_t>& output_vec = org.GetTrait<emp::vector<uint32_t>>(
         org.SharedData().output_name);
-    //std::cout << org.SharedData().output_name << std::endl;
-    //for(size_t idx = 0; idx < output_vec.size(); ++idx){
-    //  if(idx != 0) std::cout << ", ";
-    //  std::cout << output_vec[idx];
-    //}
+    std::cout << org.SharedData().output_name << std::endl;
+    for(size_t idx = 0; idx < output_vec.size(); ++idx){
+      if(idx != 0) std::cout << ", ";
+      std::cout << output_vec[idx];
+    }
     CHECK(output_vec.size() == 6);
     CHECK(output_vec[0] == 0);
     CHECK(output_vec[1] == 1);
