@@ -1,0 +1,19 @@
+random_seed = 0;                // Seed for random number generator; use 0 to base on time.
+Population main_pop;            // Collection of organisms
+Population next_pop;            // Collection of organisms
+
+Value pop_size = 200;           // Population size to use (need to be hooked in)
+
+CommandLine cl;
+FileOutput output;
+
+EvalMancala eval;
+SelectTournament select_t;
+
+GrowthPlacement place_next;
+MovePopulation sync_gen;
+AvidaGPOrg gp_org;
+
+@start() print("random_seed = ", random_seed, "\n");
+@start() inject("gp_org", "main_pop", pop_size);
+@update(1000) exit();

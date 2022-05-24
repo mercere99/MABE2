@@ -80,7 +80,7 @@ namespace mabe {
 
     /// Put the bits in the correct output position.
     void GenerateOutput() override {
-      SetVar<emp::BitVector>(SharedData().output_name, bits);
+      SetTrait<emp::BitVector>(SharedData().output_name, bits);
     }
 
     /// Setup this organism type to be able to load from config.

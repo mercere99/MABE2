@@ -5,7 +5,7 @@ Types of Modules
 Organisms
 =========
 
-For more detailed information on organisms, see the `organisms page <../organisms/traitinfo.html>`_ .
+For more detailed information on organisms, see the :ref:`Organisms page <_organisms>`.
 
 An organism is an individual agent and the target of evolution in MABE2. The genetic material of an 
 organisms is stored in the genome. Organisms use brains to process input and determine outputs. 
@@ -42,7 +42,7 @@ states, and internal data structures.
 Evaluators
 ==========
 
-For detailed information on genomes, see the `evaluator page <../evaluate/EvalPacking.html>`_ .
+For detailed information on genomes, see the `evaluator page <../evaluate/00_eval_overview.html>`_ .
 
 Evaluators are the functions on which organisms get tested. Evaluation modules are categorized by the types of IO they work with.
 

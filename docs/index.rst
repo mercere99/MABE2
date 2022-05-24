@@ -9,6 +9,7 @@
 Welcome to MABE2's documentation!
 =================================
 .. image:: images/MABE.png
+  :alt: MABE logo
   :width: 600
 
 .. important::
@@ -90,6 +91,12 @@ Ready to use MABE? Learn how to `install MABE <first_steps/00_installation.html>
    source/*
    modules/*
 
+.. toctree::
+   :hidden:
+   :caption: Organisms
+   :glob:
+
+   organisms/*
 
 .. toctree::
    :hidden:
@@ -97,11 +104,3 @@ Ready to use MABE? Learn how to `install MABE <first_steps/00_installation.html>
    :glob:
 
    evaluate/*
-
-
-.. toctree::
-   :hidden:
-   :caption: Organisms
-   :glob:
-
-   organisms/*

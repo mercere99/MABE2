@@ -1,6 +1,6 @@
-==========
+===================
 Overview of Source
-==========
+===================
 
 The files in the ``source`` directory an be divided into four different groups: Modules, Tools for Analysis, Core and Dependencies. 
 Below, we'll get into what each category means, and how items are sorted into each individual category. 

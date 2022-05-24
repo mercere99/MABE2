@@ -164,7 +164,7 @@ namespace mabe {
 
         // Otherwise it must be from a vector.
         else {
-          size_t vpos = id - base_IDs.size();  // Adjust id to be in range.
+          size_t vector_pos = id - base_IDs.size();  // Adjust id to be in range.
 
           // Step through the vectors to find the one with this index.
           size_t vid = 0;
@@ -172,12 +172,12 @@ namespace mabe {
           while (vid < vector_IDs.size()) {
             const size_t trait_id = vector_IDs[vid];
             const emp::vector<T> & cur_vec = dmap.Get<emp::vector<T>>(trait_id);
-            if (vpos < cur_vec.size()) {
-              out[id] = cur_vec[vpos];
+            if (vector_pos < cur_vec.size()) {
+              out[id] = cur_vec[vector_pos];
               found = true;
               break;
             }
-            vpos -= cur_vec.size();
+            vector_pos -= cur_vec.size();
             vid++;
           }
           emp_assert(found, "PROBLEM!  TraitSet ran out of vectors without finding trait id.");

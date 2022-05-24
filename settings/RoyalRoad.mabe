@@ -1,0 +1,53 @@
+random_seed = 0;                // Seed for random number generator; use 0 to base on time.
+Population main_pop;            // Collection of organisms
+Population next_pop;            // Collection of organisms
+
+Value pop_size = 200;           // Local value variable.
+
+CommandLine cl {                // Handle basic I/O on the command line.
+  target_pop = "main_pop";      // Which population should we print stats about?
+}
+EvalRoyalRoad eval_rr {         // Evaluate bitstrings by counting ones (or zeros).
+  target = "main_pop";          // Which population(s) should we evaluate?
+  bits_trait = "bits";          // Which trait stores the bit sequence to evaluate?
+  fitness_trait = "fitness";    // Which trait should we store Royal Road fitness in?
+  brick_size = 8;               // Number of ones to have a whole brick in the road.
+}
+FileOutput output {             // Output collected data into a specified file.
+  filename = "output.csv";      // Name of file for output data.
+  format = "fitness:max,fitness:mean,fitness:min,fitness:0,bits:0";// Column format to use in the file.
+  target = "main_pop";          // Which population(s) should we print from?
+  output_updates = "0:1";       // Which updates should we output data?
+}
+SelectElite select_elite {      // Choose the top fitness organisms for replication.
+  select_pop = "main_pop";      // Which population should we select parents from?
+  birth_pop = "next_pop";       // Which population should births go into?
+  top_count = 1;                // Number of top-fitness orgs to be replicated
+  copy_count = 1;               // Number of copies to make of replicated organisms
+  fitness_trait = "fitness";    // Which trait provides the fitness value to use?
+}
+SelectTournament select_tourny { // Select the top fitness organisms from random subgroups for replication.
+  select_pop = "main_pop";      // Which population should we select parents from?
+  birth_pop = "next_pop";       // Which population should births go into?
+  tournament_size = 100;          // Number of orgs in each tournament
+  num_tournaments = pop_size - 1;          // Number of tournaments to run
+  fitness_trait = "fitness";    // Which trait provides the fitness value to use?
+}
+GrowthPlacement place_next {    // Always appened births to the end of a population.
+  target = "main_pop,next_pop"; // Population(s) to manage.
+}
+MovePopulation sync_gen {       // Move organisms from one populaiton to another.
+  from_pop = "next_pop";        // Population to move organisms from.
+  to_pop = "main_pop";          // Population to move organisms into.
+  reset_to = 1;                 // Should we erase organisms at the destination?
+}
+BitsOrg bits_org {              // Organism consisting of a series of N bits.
+  N = 100;                      // Number of bits in organism
+  mut_prob = 0.01;              // Probability of each bit mutating on reproduction.
+  output_name = "bits";         // Name of variable to contain bit sequence.
+  init_random = 0;              // Should we randomize ancestor?  (0 = all zeros)
+}
+
+@start(0) print("random_seed = ", random_seed, "\n");
+@start(0) inject("bits_org", "main_pop", pop_size);
+@update(1000) exit();
