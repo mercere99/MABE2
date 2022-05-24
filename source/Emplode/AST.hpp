@@ -241,13 +241,13 @@ namespace emplode {
     }
   };
 
-  /// Unary mathematical operations.
-  class ASTNode_Math1 : public ASTNode_Internal {
+  /// Unary operations.
+  class ASTNode_Op1 : public ASTNode_Internal {
   protected:
     // A unary operator take in a double and returns another one.
     std::function< double(double) > fun;
   public:
-    ASTNode_Math1(const std::string & name, int _line=-1) : ASTNode_Internal(name) { 
+    ASTNode_Op1(const std::string & name, int _line=-1) : ASTNode_Internal(name) { 
       line_id = _line;
     }
 
@@ -275,26 +275,26 @@ namespace emplode {
 
     void PrintAST(std::ostream & os=std::cout, size_t indent=0) override {
       for (size_t i = 0; i < indent; ++i) os << " ";
-      os << "ASTNode_Math1: " << GetName() << std::endl;
+      os << "ASTNode_Op1: " << GetName() << std::endl;
       for (auto child : children) child->PrintAST(os, indent+2);
     }
   };
 
   /// Binary operations.
-  template <typename RETURN_T, typename ARG1_T, typename ARG2_T>
   class ASTNode_Op2 : public ASTNode_Internal {
   protected:
-    std::function< RETURN_T(ARG1_T, ARG2_T) > fun;
+    std::function< emp::Datum(emp::Datum, emp::Datum) > fun;
   public:
     ASTNode_Op2(const std::string & name, int _line=-1) : ASTNode_Internal(name) {
       line_id = _line;
     }
 
-    bool IsNumeric() const override { return std::is_same<RETURN_T, double>(); }
-    bool IsString() const override { return std::is_same<RETURN_T, std::string>(); }
+    // Type is always linked to the first argument.
+    bool IsNumeric() const override { return children[0]->IsNumeric(); }
+    bool IsString() const override { return children[0]->IsString(); }
     bool HasValue() const override { return true; }
 
-    void SetFun(std::function< RETURN_T(ARG1_T, ARG2_T) > _fun) { fun = _fun; }
+    void SetFun(std::function< emp::Datum(emp::Datum, emp::Datum) > _fun) { fun = _fun; }
 
     symbol_ptr_t Process() override {
       emp_assert(children.size() == 2);
@@ -304,8 +304,8 @@ namespace emplode {
         "AST: Processing binary op: ", name
       );
       #endif
-      auto out_val = fun(children[0]->template ProcessAs<ARG1_T>(),
-                         children[1]->template ProcessAs<ARG2_T>());
+      auto out_val = fun(children[0]->template ProcessAs<emp::Datum>(),
+                         children[1]->template ProcessAs<emp::Datum>());
       return GetSymbolTable().MakeTempSymbol(out_val);
     }
 
@@ -321,8 +321,6 @@ namespace emplode {
       for (auto child : children) child->PrintAST(os, indent+2);
     }
   };
-
-  using ASTNode_Math2 = ASTNode_Op2<double,double,double>;
 
 
   class ASTNode_Assign : public ASTNode_Internal {
