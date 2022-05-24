@@ -104,6 +104,8 @@ namespace mabe {
   public:
     virtual ~MABEBase() { }
 
+    virtual void PrintAST() = 0;
+
     void SetupBase() {
       emp::notify::Unpause();
     }

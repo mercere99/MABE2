@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of Emplode, currently within https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019-2021.
+ *  @date 2019-2022.
  *
  *  @file  AST.hpp
  *  @brief Manages Abstract Syntax Tree nodes for Emplode.
@@ -82,6 +82,8 @@ namespace emplode {
       if (symbol_ptr->IsTemporary()) symbol_ptr.Delete(); // If we are done with input; delete the symbol!
       return result;
     }
+
+    virtual void PrintAST(std::ostream & os=std::cout, size_t indent=0) = 0;
   };
 
   /// An ASTNode representing an internal node.
@@ -135,7 +137,15 @@ namespace emplode {
 
     bool IsLeaf() const override { return true; }
 
-    symbol_ptr_t Process() override { return symbol_ptr; };
+    symbol_ptr_t Process() override { 
+      #ifndef NDEBUG
+      emp::notify::Verbose(
+        "Emplode::AST",
+        "AST: Calling leaf '", symbol_ptr ? symbol_ptr->AsString() : std::string("[null]")
+      );
+      #endif
+      return symbol_ptr;
+    };
 
     void Write(std::ostream & os, const std::string &) const override {
       // If this is a variable, print the variable name,
@@ -149,6 +159,11 @@ namespace emplode {
         if (symbol_ptr->IsString()) output = emp::to_literal(output);
       }
       os << output;
+    }
+
+    void PrintAST(std::ostream & os=std::cout, size_t indent=0) override {
+      for (size_t i = 0; i < indent; ++i) os << " ";
+      os << "ASTNode_Leaf : " << symbol_ptr->DebugString() << std::endl;
     }
   };
 
@@ -196,6 +211,13 @@ namespace emplode {
     void SetSymbolTable(SymbolTableBase & _st) { symbol_table = &_st; }
 
     symbol_ptr_t Process() override {
+      #ifndef NDEBUG
+      emp::notify::Verbose(
+        "Emplode::AST",
+        "AST: Processing BLOCK"
+      );
+      #endif
+
       for (auto node : children) {
         symbol_ptr_t out = node->Process();                  // Process this line.
         if (!out) continue;                                  // No return symbol?  Keep going!
@@ -211,15 +233,21 @@ namespace emplode {
         os << ";\n" << offset;
       }
     }
+
+    void PrintAST(std::ostream & os=std::cout, size_t indent=0) override {
+      for (size_t i = 0; i < indent; ++i) os << " ";
+      os << "ASTNode_Block: " << children.size() << " lines." << std::endl;
+      for (auto child_ptr : children) child_ptr->PrintAST(os, indent+2);
+    }
   };
 
-  /// Unary mathematical operations.
-  class ASTNode_Math1 : public ASTNode_Internal {
+  /// Unary operations.
+  class ASTNode_Op1 : public ASTNode_Internal {
   protected:
     // A unary operator take in a double and returns another one.
     std::function< double(double) > fun;
   public:
-    ASTNode_Math1(const std::string & name, int _line=-1) : ASTNode_Internal(name) { 
+    ASTNode_Op1(const std::string & name, int _line=-1) : ASTNode_Internal(name) { 
       line_id = _line;
     }
 
@@ -230,6 +258,12 @@ namespace emplode {
 
     symbol_ptr_t Process() override {
       emp_assert(children.size() == 1);
+      #ifndef NDEBUG
+      emp::notify::Verbose(
+        "Emplode::AST",
+        "AST: Processing unary math: ", name
+      );
+      #endif
       double result = fun(children[0]->ProcessAs<double>());    // Run the function to get ouput value
       return GetSymbolTable().MakeTempSymbol(result);
     }
@@ -238,28 +272,40 @@ namespace emplode {
       os << name;
       children[0]->Write(os, offset);
     }
+
+    void PrintAST(std::ostream & os=std::cout, size_t indent=0) override {
+      for (size_t i = 0; i < indent; ++i) os << " ";
+      os << "ASTNode_Op1: " << GetName() << std::endl;
+      for (auto child : children) child->PrintAST(os, indent+2);
+    }
   };
 
   /// Binary operations.
-  template <typename RETURN_T, typename ARG1_T, typename ARG2_T>
   class ASTNode_Op2 : public ASTNode_Internal {
   protected:
-    std::function< RETURN_T(ARG1_T, ARG2_T) > fun;
+    std::function< emp::Datum(emp::Datum, emp::Datum) > fun;
   public:
     ASTNode_Op2(const std::string & name, int _line=-1) : ASTNode_Internal(name) {
       line_id = _line;
     }
 
-    bool IsNumeric() const override { return std::is_same<RETURN_T, double>(); }
-    bool IsString() const override { return std::is_same<RETURN_T, std::string>(); }
+    // Type is always linked to the first argument.
+    bool IsNumeric() const override { return children[0]->IsNumeric(); }
+    bool IsString() const override { return children[0]->IsString(); }
     bool HasValue() const override { return true; }
 
-    void SetFun(std::function< RETURN_T(ARG1_T, ARG2_T) > _fun) { fun = _fun; }
+    void SetFun(std::function< emp::Datum(emp::Datum, emp::Datum) > _fun) { fun = _fun; }
 
     symbol_ptr_t Process() override {
       emp_assert(children.size() == 2);
-      auto out_val = fun(children[0]->template ProcessAs<ARG1_T>(),
-                         children[1]->template ProcessAs<ARG2_T>());
+      #ifndef NDEBUG
+      emp::notify::Verbose(
+        "Emplode::AST",
+        "AST: Processing binary op: ", name
+      );
+      #endif
+      auto out_val = fun(children[0]->template ProcessAs<emp::Datum>(),
+                         children[1]->template ProcessAs<emp::Datum>());
       return GetSymbolTable().MakeTempSymbol(out_val);
     }
 
@@ -268,9 +314,13 @@ namespace emplode {
       os << " " << name << " ";
       children[1]->Write(os, offset);
     }
-  };
 
-  using ASTNode_Math2 = ASTNode_Op2<double,double,double>;
+    void PrintAST(std::ostream & os=std::cout, size_t indent=0) override {
+      for (size_t i = 0; i < indent; ++i) os << " ";
+      os << "ASTNode_Math2: " << GetName() << std::endl;
+      for (auto child : children) child->PrintAST(os, indent+2);
+    }
+  };
 
 
   class ASTNode_Assign : public ASTNode_Internal {
@@ -292,6 +342,13 @@ namespace emplode {
       symbol_ptr_t lhs = children[0]->Process();  // Determine the left-hand-side value.
       symbol_ptr_t rhs = children[1]->Process();  // Determine the right-hand-side value.
 
+      #ifndef NDEBUG
+      emp::notify::Verbose(
+        "Emplode::AST",
+        "AST: Assigning: ", lhs->GetName(), " = ", rhs->GetName(), " (", rhs->AsString(), ")"
+      );
+      #endif
+
       bool success = lhs && lhs->CopyValue(*rhs);
       if (!success) {
         std::cerr << "Error: copy to '" << lhs->GetName() << "' failed" << std::endl;
@@ -299,6 +356,12 @@ namespace emplode {
       }
       if (rhs->IsTemporary()) rhs.Delete();
       return lhs;
+    }
+
+    void PrintAST(std::ostream & os=std::cout, size_t indent=0) override {
+      for (size_t i = 0; i < indent; ++i) os << " ";
+      os << "ASTNode_Assign: " << GetName() << std::endl;
+      for (auto child : children) child->PrintAST(os, indent+2);
     }
   };
 
@@ -312,6 +375,13 @@ namespace emplode {
     }
 
     symbol_ptr_t Process() override {
+      #ifndef NDEBUG
+      emp::notify::Verbose(
+        "Emplode::AST",
+        "AST: Processing IF"
+      );
+      #endif
+
       double test = children[0]->ProcessAs<double>();             // Determine state of condition
       symbol_ptr_t out = nullptr;                                 // Prepare for output symbol.
 
@@ -333,6 +403,12 @@ namespace emplode {
         children[2]->Write(os, offset);
       }
     }
+
+    void PrintAST(std::ostream & os=std::cout, size_t indent=0) override {
+      for (size_t i = 0; i < indent; ++i) os << " ";
+      os << "ASTNode_If: " << GetName() << std::endl;
+      for (auto child : children) child->PrintAST(os, indent+2);
+    }
   };
 
   class ASTNode_While : public ASTNode_Internal {
@@ -344,6 +420,12 @@ namespace emplode {
     }
 
     symbol_ptr_t Process() override {
+      #ifndef NDEBUG
+      emp::notify::Verbose(
+        "Emplode::AST",
+        "AST: Processing WHILE"
+      );
+      #endif
 
       while (children[0]->ProcessAs<double>()) {
         symbol_ptr_t out = children[1]->Process();
@@ -363,6 +445,12 @@ namespace emplode {
       os << ") ";
       children[1]->Write(os, offset);
     }
+
+    void PrintAST(std::ostream & os=std::cout, size_t indent=0) override {
+      for (size_t i = 0; i < indent; ++i) os << " ";
+      os << "ASTNode_While: " << GetName() << std::endl;
+      for (auto child : children) child->PrintAST(os, indent+2);
+    }
   };
 
   class ASTNode_Call : public ASTNode_Internal {
@@ -381,6 +469,14 @@ namespace emplode {
 
     symbol_ptr_t Process() override {
       emp_assert(children.size() >= 1);
+      #ifndef NDEBUG
+      emp::notify::Verbose(
+        "Emplode::AST",
+        "AST: Processing Call"
+      );
+      #endif
+
+
       symbol_ptr_t fun = children[0]->Process();
 
       // Collect all arguments and call
@@ -410,6 +506,12 @@ namespace emplode {
       }
       os << ")";
     }
+
+    void PrintAST(std::ostream & os=std::cout, size_t indent=0) override {
+      for (size_t i = 0; i < indent; ++i) os << " ";
+      os << "ASTNode_Call: " << GetName() << std::endl;
+      for (auto child : children) child->PrintAST(os, indent+2);
+    }
   };
 
   class ASTNode_Event : public ASTNode_Internal {
@@ -434,6 +536,14 @@ namespace emplode {
 
     symbol_ptr_t Process() override {
       emp_assert(children.size() >= 1);
+
+      #ifndef NDEBUG
+      emp::notify::Verbose(
+        "Emplode::AST",
+        "AST: Processing Event"
+      );
+      #endif
+
       symbol_vector_t arg_entries;
       for (size_t id = 1; id < children.size(); id++) {
         arg_entries.push_back( children[id]->Process() );
@@ -450,6 +560,12 @@ namespace emplode {
       }
       os << ") ";
       children[0]->Write(os, offset);  // Action.
+    }
+
+    void PrintAST(std::ostream & os=std::cout, size_t indent=0) override {
+      for (size_t i = 0; i < indent; ++i) os << " ";
+      os << "ASTNode_Event: " << GetName() << std::endl;
+      for (auto child : children) child->PrintAST(os, indent+2);
     }
   };
 

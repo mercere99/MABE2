@@ -304,6 +304,7 @@ namespace mabe {
       AddFunction("EXIT", [this](){ control.RequestExit(); return 0; }, "Exit from this MABE run.");
       AddFunction("GET_UPDATE", [this](){ return control.GetUpdate(); }, "Get current update.");
       AddFunction("GET_VERBOSE", [this](){ return control.GetVerbose(); }, "Has the verbose flag been set?");
+      AddFunction("DEBUG_AST", [this](){ control.PrintAST(); return 0; }, "Print the current state of the Abstract Syntax Tree.");
 
       std::function<std::string(const std::string &)> preprocess_fun =
         [this](const std::string & str) { return Preprocess(str).result; };

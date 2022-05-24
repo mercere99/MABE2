@@ -31,6 +31,8 @@ EvalDiagnostic evaluator {    // Evaluate set of values with a specified diagnos
   vals_trait = "vals";          // Which trait stores the values to evaluate?
   scores_trait = "scores";      // Which trait should we store revised scores in?
   total_trait = "fitness";      // Which trait should we store the total score in?
+  first_trait = "first_active"; // Trait to store first activation position
+  count_trait = "active_count"; // Trait to store count of activation positions
   diagnostic = "explore";       // Which Diagnostic should we use?
                                 // "exploit": Fitness = sum of all values
                                 // "struct_exploit": Fitness = sum of descending values from start
@@ -62,15 +64,27 @@ SelectLexicase select_l {       // Shuffle traits each time an organism is chose
 OrgList best_org;
 DataFile out_file { filename="fitness.csv"; };
 out_file.ADD_SETUP( "best_org = main_pop.FIND_MAX('fitness')" );
+
 out_file.ADD_COLUMN( "Update", "GET_UPDATE()" );
-out_file.ADD_COLUMN( "Average Fitness", "main_pop.CALC_MEAN('fitness')" );
-out_file.ADD_COLUMN( "Dominant Fitness", "main_pop.CALC_MODE('fitness')" );
-out_file.ADD_COLUMN( "Max Fitness", "best_org.TRAIT('fitness')" );
-out_file.ADD_COLUMN( "Max Genome", "best_org.TRAIT('vals')" );
-out_file.ADD_COLUMN( "Max Scores", "best_org.TRAIT('scores')" );
+
+out_file.ADD_COLUMN( "Best Total Score", "best_org.TRAIT('fitness')" );
+out_file.ADD_COLUMN( "Average Total Score", "main_pop.CALC_MEAN('fitness')" );
+out_file.ADD_COLUMN( "Dominant Total Score", "main_pop.CALC_MODE('fitness')" );
+
+out_file.ADD_COLUMN( "Best Activation Pos", "best_org.TRAIT('first_active')");
+out_file.ADD_COLUMN( "Unique Activation Positions", "main_pop.CALC_RICHNESS('first_active')");
+out_file.ADD_COLUMN( "Activation Position Entropy", "main_pop.CALC_ENTROPY('first_active')");
+
+out_file.ADD_COLUMN( "Best Activation Count", "best_org.TRAIT('active_count')");
+out_file.ADD_COLUMN( "Average Activation Count", "main_pop.CALC_MEAN('active_count')");
+
+out_file.ADD_COLUMN( "Best Genome", "best_org.TRAIT('vals')" );
+out_file.ADD_COLUMN( "Best Scores", "best_org.TRAIT('scores')" );
 
 
 @START() {
+  print_step = 25600 / pop_size;
+
   PRINT("Beginning DIAGNOSTICS!\nMain config options:");
   PRINT(" Diagnostic:       '", evaluator.diagnostic, "'");
   PRINT(" Num org values:   ", vals_org.N);
@@ -78,7 +92,8 @@ out_file.ADD_COLUMN( "Max Scores", "best_org.TRAIT('scores')" );
   PRINT(" Mut Size:         ", vals_org.mut_size);
   PRINT(" Population size:  ", pop_size);
   PRINT(" Random seed:      ", random_seed, "\n");
-  PRINT(" Num Generations:  ", num_gens, "\n");
+  PRINT(" Num Generations:  ", num_gens);
+  PRINT(" Output step:      ", print_step, "\n");
   
   main_pop.INJECT("vals_org", pop_size);       // Inject starting population.
 }

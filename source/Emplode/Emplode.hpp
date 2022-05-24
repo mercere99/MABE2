@@ -217,6 +217,8 @@ namespace emplode {
     Emplode & operator=(const Emplode &) = delete;
     Emplode & operator=(Emplode &&) = delete;
 
+    void PrintAST() { ast_root.PrintAST(); }
+
     /// Create a new type of event that can be used in the scripting language.
     bool AddSignal(const std::string & name) { return symbol_table.AddSignal(name); }
 
@@ -261,10 +263,12 @@ namespace emplode {
       // Parse and run the program, starting from the outer scope.
       ParseState state{pos, symbol_table, symbol_table.GetRootScope(), lexer};
       auto cur_block = parser.ParseStatementList(state);
-      cur_block->Process();
 
       // Store this AST onto the full set we're working with.
       ast_root.AddChild(cur_block);
+
+      // And process just this new block.
+      cur_block->Process();
     }
 
     // Sequentially load a series of configuration files.

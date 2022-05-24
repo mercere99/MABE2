@@ -130,6 +130,10 @@ namespace mabe {
       if (verbose) std::cout << emp::to_string(std::forward<Ts>(args)...) << std::endl;
     }
 
+    void PrintAST() override {
+      config_script.PrintAST();
+    }
+
     size_t GetRandomSeed() const override { return random.GetSeed(); }
     void SetRandomSeed(size_t in_seed) override {
       std::cout << "Setting Random Seed to " << in_seed << std::endl;
@@ -394,7 +398,7 @@ namespace mabe {
     exit_now = true;  // Exit after running the batch of files.
 
     if (config_filenames.size() == 0) {
-      std::cout << "Must specify which batch file should be run." << std::endl;
+      std::cout << "Must specify name of batch file to run." << std::endl;
       return;
     }
     if (config_filenames.size() > 1) {
@@ -404,8 +408,9 @@ namespace mabe {
       }
     }
 
-    mabe::Batch batch(config_filenames[0], "");
+    mabe::Batch batch(config_filenames[0], args[0]);
     batch.Process();
+    batch.Run();
   }
 
   void MABE::ProcessArgs() {
