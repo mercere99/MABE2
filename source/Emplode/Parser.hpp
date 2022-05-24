@@ -356,7 +356,7 @@ namespace emplode {
 
     // First check for a unary negation at the start of the value.
     if (state.UseIfChar('-')) {
-      auto out_val = emp::NewPtr<ASTNode_Math1>("unary negation", state.GetLine());
+      auto out_val = emp::NewPtr<ASTNode_Op1>("unary negation", state.GetLine());
       out_val->SetFun( [](double val){ return -val; } );
       out_val->AddChild(ParseValue(state));
       return out_val;
@@ -403,77 +403,30 @@ namespace emplode {
     // If this operation is assignment, do so!
     if (symbol == "=") return emp::NewPtr<ASTNode_Assign>(in_node1, in_node2, op_token.line_id);
     
-    // If the first argument is numeric, assume we are using a math operator.
-    if (in_node1->IsNumeric()) {
+    // Determine the output value and put it in a temporary node.
+    emp::Ptr<ASTNode_Op2> out_val = emp::NewPtr<ASTNode_Op2>(symbol, op_token.line_id);
 
-      // Determine the output value and put it in a temporary node.
-      emp::Ptr<ASTNode_Math2> out_val = emp::NewPtr<ASTNode_Math2>(symbol, op_token.line_id);
+    if (symbol == "+") out_val->SetFun( [](emp::Datum v1, emp::Datum v2){ return v1 + v2; } );
+    else if (symbol == "-") out_val->SetFun( [](emp::Datum v1, emp::Datum v2){ return v1 - v2; } );
+    else if (symbol == "**") out_val->SetFun( [](emp::Datum v1, emp::Datum v2){ return emp::Pow(v1.AsDouble(), v2.AsDouble()); } );
+    else if (symbol == "*") out_val->SetFun( [](emp::Datum v1, emp::Datum v2){ return v1 * v2; } );
+    else if (symbol == "/") out_val->SetFun( [](emp::Datum v1, emp::Datum v2){ return v1 / v2; } );
+    else if (symbol == "%") out_val->SetFun( [](emp::Datum v1, emp::Datum v2){ return v1 % v2; } );
+    else if (symbol == "==") out_val->SetFun( [](emp::Datum v1, emp::Datum v2){ return v1 == v2; } );
+    else if (symbol == "!=") out_val->SetFun( [](emp::Datum v1, emp::Datum v2){ return v1 != v2; } );
+    else if (symbol == "<")  out_val->SetFun( [](emp::Datum v1, emp::Datum v2){ return v1 < v2; } );
+    else if (symbol == "<=") out_val->SetFun( [](emp::Datum v1, emp::Datum v2){ return v1 <= v2; } );
+    else if (symbol == ">")  out_val->SetFun( [](emp::Datum v1, emp::Datum v2){ return v1 > v2; } );
+    else if (symbol == ">=") out_val->SetFun( [](emp::Datum v1, emp::Datum v2){ return v1 >= v2; } );
 
-      if (symbol == "+") out_val->SetFun( [](double v1, double v2){ return v1 + v2; } );
-      else if (symbol == "-") out_val->SetFun( [](double v1, double v2){ return v1 - v2; } );
-      else if (symbol == "**") out_val->SetFun( [](double v1, double v2){ return emp::Pow(v1, v2); } );
-      else if (symbol == "*") out_val->SetFun( [](double v1, double v2){ return v1 * v2; } );
-      else if (symbol == "/") out_val->SetFun( [](double v1, double v2){ return v1 / v2; } );
-      else if (symbol == "%") out_val->SetFun( [](double v1, double v2){ return emp::Mod(v1, v2); } );
-      else if (symbol == "==") out_val->SetFun( [](double v1, double v2){ return v1 == v2; } );
-      else if (symbol == "!=") out_val->SetFun( [](double v1, double v2){ return v1 != v2; } );
-      else if (symbol == "<")  out_val->SetFun( [](double v1, double v2){ return v1 < v2; } );
-      else if (symbol == "<=") out_val->SetFun( [](double v1, double v2){ return v1 <= v2; } );
-      else if (symbol == ">")  out_val->SetFun( [](double v1, double v2){ return v1 > v2; } );
-      else if (symbol == ">=") out_val->SetFun( [](double v1, double v2){ return v1 >= v2; } );
+    // @CAO: Need to still handle these last two differently for short-circuiting.
+    else if (symbol == "&&") out_val->SetFun( [](emp::Datum v1, emp::Datum v2){ return v1 && v2; } );
+    else if (symbol == "||") out_val->SetFun( [](emp::Datum v1, emp::Datum v2){ return v1 || v2; } );
 
-      // @CAO: Need to still handle these last two differently for short-circuiting.
-      else if (symbol == "&&") out_val->SetFun( [](double v1, double v2){ return v1 && v2; } );
-      else if (symbol == "||") out_val->SetFun( [](double v1, double v2){ return v1 || v2; } );
+    out_val->AddChild(in_node1);
+    out_val->AddChild(in_node2);
 
-      out_val->AddChild(in_node1);
-      out_val->AddChild(in_node2);
-
-      return out_val;
-    }
-
-    // Otherwise assume that we are dealing with strings.
-    if (symbol == "+") {
-      auto out_val =
-        emp::NewPtr<ASTNode_Op2<std::string,std::string,std::string>>(symbol, op_token.line_id);
-      out_val->SetFun([](std::string val1, std::string val2){ return val1 + val2; });
-      out_val->AddChild(in_node1);
-      out_val->AddChild(in_node2);
-
-      return out_val;
-    }
-    else if (symbol == "*") {
-      auto fun = [](std::string val1, double val2) {
-        std::string out_string;
-        out_string.reserve(val1.size() * (size_t) val2);
-        for (size_t i = 0; i < (size_t) val2; i++) out_string += val1;
-        return out_string;
-      };
-
-      auto out_val = emp::NewPtr<ASTNode_Op2<std::string,std::string,double>>(symbol, op_token.line_id);
-      out_val->SetFun(fun);
-      out_val->AddChild(in_node1);
-      out_val->AddChild(in_node2);
-
-      return out_val;
-    }
-    else {
-      auto out_val = emp::NewPtr<ASTNode_Op2<double,std::string,std::string>>(symbol, op_token.line_id);
-
-      if (symbol == "==")      out_val->SetFun([](std::string v1, std::string v2){ return v1 == v2; });
-      else if (symbol == "!=") out_val->SetFun([](std::string v1, std::string v2){ return v1 != v2; });
-      else if (symbol == "<")  out_val->SetFun([](std::string v1, std::string v2){ return v1 < v2; });
-      else if (symbol == "<=") out_val->SetFun([](std::string v1, std::string v2){ return v1 <= v2; });
-      else if (symbol == ">")  out_val->SetFun([](std::string v1, std::string v2){ return v1 > v2; });
-      else if (symbol == ">=") out_val->SetFun([](std::string v1, std::string v2){ return v1 >= v2; });
-
-      out_val->AddChild(in_node1);
-      out_val->AddChild(in_node2);
-
-      return out_val;
-    }
-
-    return nullptr;
+    return out_val;
   }
                                       
 

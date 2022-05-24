@@ -126,6 +126,11 @@ namespace emplode {
 
     virtual double AsDouble() const { return std::nan("NaN"); }
     virtual std::string AsString() const { return "[[__INVALID SYMBOL CONVERSION__]]"; }
+    virtual emp::Datum AsDatum() const {
+      if (IsNumeric()) return emp::Datum(AsDouble());
+      return emp::Datum(AsString());
+    }
+
     virtual void Print(std::ostream & os) const { os << AsString(); }
 
     virtual Symbol & SetValue(double in) { (void) in; emp_assert(false, in); return *this; }
@@ -168,8 +173,11 @@ namespace emplode {
       // constexpr bool is_substitutable = is_const || !is_ref;
       constexpr bool is_substitutable = !is_ref;
 
+      // If we need a Datum, return the most natural form of it.
+      if constexpr (std::is_same<decay_T, emp::Datum>() && is_substitutable) { return AsDatum(); }
+
       // If we have a numeric or string request, run the appropriate conversion.
-      if constexpr (std::is_arithmetic<decay_T>() && is_substitutable) {
+      else if constexpr (std::is_arithmetic<decay_T>() && is_substitutable) {
         return static_cast<T>(AsDouble());
       }
       else if constexpr (std::is_same<T, std::string>() ||
@@ -255,6 +263,7 @@ namespace emplode {
     operator int() const { return static_cast<int>(AsDouble()); }
     operator size_t() const { return static_cast<size_t>(AsDouble()); }
     operator std::string() const { return AsString(); }
+    operator emp::Datum() const { return AsDatum(); }
     operator emp::Ptr<Symbol>() { return this; }
     operator EmplodeType&() { return *GetObjectPtr(); }
 
@@ -335,6 +344,7 @@ namespace emplode {
 
     double AsDouble() const override { return value.AsDouble(); }
     std::string AsString() const override { return value.AsString(); }
+    emp::Datum AsDatum() const override { return value; }
     void Print(std::ostream & os) const override {
       if (value.IsDouble()) os << value.NativeDouble();
       else os << value.NativeString();
