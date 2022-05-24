@@ -18,3 +18,4 @@ coverage: coverage_conversion
 
 coverage_conversion:
 	./convert_for_tests.sh
+
