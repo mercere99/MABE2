@@ -157,4 +157,4 @@ UD:98  mean_generation=4.39454  pop_size=659  merit_mean=1  genome_length_mean=5
 UD:99  mean_generation=4.45429  pop_size=700  merit_mean=1  genome_length_mean=50.5729
 UD:100  mean_generation=4.49455  pop_size=734  merit_mean=1  genome_length_mean=50.579
 EMP_TRACK_MEM: No memory leaks found!
- 17851 pointers found; all have been cleaned up fully.
+ 18051 pointers found; all have been cleaned up fully.

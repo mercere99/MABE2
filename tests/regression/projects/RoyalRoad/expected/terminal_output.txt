@@ -13,4 +13,4 @@ Main config options:
  Stop update:      50
 
 EMP_TRACK_MEM: No memory leaks found!
- 34281 pointers found; all have been cleaned up fully.
+ 34381 pointers found; all have been cleaned up fully.

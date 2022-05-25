@@ -1,10 +1,10 @@
 Latest commit at time of last regeneration:
-commit 37034069f155da807e27273f5459f1fd9a7d893d
+commit b7c747062b082b4e1a079d0a6189c53604d8ffd1
 Author: Austin Ferguson <ferguson.austin.j@gmail.com>
-Date:   Fri May 20 15:42:29 2022 -0400
+Date:   Wed May 25 18:38:14 2022 -0400
 
-    Quickly fix broken unit tests
+    Temporarily add phylo dir to .gitignore
  
  
 Time of last regeneration:
-Fri May 20 05:04:15 PM EDT 2022
+Wed May 25 06:39:55 PM EDT 2022
