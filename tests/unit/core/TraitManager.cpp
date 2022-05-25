@@ -463,8 +463,10 @@ TEST_CASE("TraitManager_Verify", "[core]") {
     //  [FINISH SETUP]
     mabe::TraitManager<mabe::ModuleBase> trait_man;
     mabe::TraitManager<mabe::ModuleBase> trait_man2;
+    mabe::TraitManager<mabe::ModuleBase> trait_man3;
     trait_man.Unlock(); 
     trait_man2.Unlock();
+    trait_man3.Unlock();
 
     // Setup a TraitManager
     // Reset re-used variables 
@@ -501,7 +503,7 @@ TEST_CASE("TraitManager_Verify", "[core]") {
     CHECK_FALSE(has_warning_been_thrown); 
 
     // -------------------------------------------------------
-    // A trait can only be PRIVATE to one module
+    // A PRIVATE trait cannot be accessed by another module
 
     // Another module tries to access it
     // Add a private trait
@@ -527,9 +529,39 @@ TEST_CASE("TraitManager_Verify", "[core]") {
     CHECK(has_error_been_thrown);
     CHECK_FALSE(has_warning_been_thrown); 
     CHECK(error_message == "Trait 'trait_i' is private in module 'EvalNK'; should not be used by other modules.\n[Suggestion: if traits are supposed to be distinct, prepend private name with a\n module-specific prefix.  Otherwise module needs to be edited to not have\n trait private.]");
+    
+    // -------------------------------------------------------
+    // A trait can only be PRIVATE to one module
+    
+    // Reset re-used variables 
+    has_error_been_thrown = false; 
+    error_message = ""; 
+    
+    // Another module tries to access it
+    // Add a private trait
+    trait_man3.AddTrait<int>(&nk_mod, mabe::TraitInfo::Access::PRIVATE, "trait_i", "a trait", 7); 
+    CHECK(trait_man3.GetSize() == 1); 
+    CHECK_FALSE(has_error_been_thrown); 
+    CHECK_FALSE(has_warning_been_thrown); 
 
-    //Another module also tries to claim that it's private
-    // TODO
+    // Verify should succeed
+    trait_man3.Verify(true); 
+    CHECK_FALSE(has_error_been_thrown);
+    CHECK_FALSE(has_warning_been_thrown); 
+
+    // Add another module that accesses it
+    trait_man3.AddTrait<int>(&nk2_mod, mabe::TraitInfo::Access::PRIVATE, "trait_i", "a trait", 7); 
+    CHECK(trait_man3.GetSize() == 1); 
+    CHECK_FALSE(has_error_been_thrown); 
+    CHECK_FALSE(has_warning_been_thrown); 
+
+    // Verify should fail
+    // Check correct error message prints
+    trait_man3.Verify(true); 
+    CHECK(has_error_been_thrown);
+    CHECK_FALSE(has_warning_been_thrown); 
+    CHECK(error_message == "Multiple modules declaring trait 'trait_i' as private: EvalNK and EvalNK.\n[Suggestion: if traits are supposed to be distinct, prepend names with a\n module-specific prefix.  Otherwise modules need to be edited to not have\n trait private.]");
+
   }
     
   {

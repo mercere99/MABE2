@@ -176,7 +176,7 @@ namespace mabe {
         std::stringstream error_msg;
         error_msg << "Multiple modules declaring trait '" << trait_name
                   << "' as private: " << emp::to_english_list(trait_ptr->GetPrivateNames()) << ".\n"
-                  << "[Suggestion: if traits are supposed to be distinct, prepend names with a"
+                  << "[Suggestion: if traits are supposed to be distinct, prepend names with a\n"
                   << " module-specific prefix.  Otherwise modules need to be edited to not have\n"
                   << " trait private.]";
         emp::notify::Error(error_msg.str());
