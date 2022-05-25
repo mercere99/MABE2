@@ -67,7 +67,9 @@ namespace mabe {
         std::string s = "Nop";
         Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             s + (char)('A' + i), func_nop);
-        action.data.AddVar<int>("inst_id", start_nop_id + i);
+        // Add the appropriate instruction id
+        if(start_nop_id == -1) action.data.AddVar<int>("inst_id", -1);
+        else action.data.AddVar<int>("inst_id", start_nop_id + i);
       }
       // Special case: Nop X
       if(include_nop_x){
