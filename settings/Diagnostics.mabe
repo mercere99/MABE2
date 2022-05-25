@@ -64,12 +64,12 @@ fit_file.ADD_COLUMN( "Average Fitness", "main_pop.CALC_MEAN('fitness')" );
 fit_file.ADD_COLUMN( "Maximum Fitness", "main_pop.CALC_MAX('fitness')" );
 fit_file.ADD_COLUMN( "Dominant Fitness", "main_pop.CALC_MODE('fitness')" );
 
-//DataFile max_file { filename="max_org.csv"; };
-//OrgList best_org;
-//max_file.ADD_SETUP( "best_org = main_pop.FIND_MAX('fitness')" );
-//max_file.ADD_COLUMN( "Fitness", "best_org.TRAIT('fitness')" );
-//max_file.ADD_COLUMN( "Genome", "best_org.TRAIT('vals')" );
-//max_file.ADD_COLUMN( "Scores", "best_org.TRAIT('scores')" );
+OrgList best_org;
+DataFile max_file { filename="max_org.csv"; };
+max_file.ADD_SETUP( "best_org = main_pop.FIND_MAX('fitness')" );
+max_file.ADD_COLUMN( "Fitness", "best_org.TRAIT('fitness')" );
+max_file.ADD_COLUMN( "Genome", "best_org.TRAIT('vals')" );
+max_file.ADD_COLUMN( "Scores", "best_org.TRAIT('scores')" );
 
 @START() {
   PRINT("Beginning DIAGNOSTICS!\nMain config options:");
@@ -98,7 +98,7 @@ fit_file.ADD_COLUMN( "Dominant Fitness", "main_pop.CALC_MODE('fitness')" );
            "  MaxFitness=", main_pop.CALC_MAX("fitness"),
      );
      fit_file.WRITE();
-     //max_file.WRITE();
+     max_file.WRITE();
   }
 
   // select_e.SELECT(main_pop, next_pop, pop_size);

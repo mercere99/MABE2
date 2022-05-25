@@ -159,12 +159,12 @@ fit_file.ADD_COLUMN("merit_mean",       "main_pop.CALC_MEAN('child_merit')" );
 fit_file.ADD_COLUMN("merit_max",        "main_pop.CALC_MAX('child_merit')" );
 fit_file.ADD_COLUMN("dominant_genome",  "dominant_genome" );
 
-//DataFile max_file { filename="max_org.csv"; };
-//OrgList best_org;
-//max_file.ADD_SETUP("best_org = main_pop.FIND_MAX('child_merit')" );
-//max_file.ADD_COLUMN("merit",       "best_org.TRAIT('child_merit')" );
-//max_file.ADD_COLUMN("merit_given", "best_org.TRAIT('merit')" );
-//max_file.ADD_COLUMN("gen", "best_org.TRAIT('generation')" );
+DataFile max_file { filename="max_org.csv"; };
+OrgList best_org;
+max_file.ADD_SETUP("best_org = main_pop.FIND_MAX('child_merit')" );
+max_file.ADD_COLUMN("merit",       "best_org.TRAIT('child_merit')" );
+max_file.ADD_COLUMN("merit_given", "best_org.TRAIT('merit')" );
+max_file.ADD_COLUMN("gen", "best_org.TRAIT('generation')" );
 
 @START() {
   PRINT("random_seed = ", random_seed, "\n");  // Print seed at run start.
@@ -184,7 +184,7 @@ Var avg_gen;
         //"  genome_length_mean=", main_pop.CALC_MEAN("genome_length")
        );
   fit_file.WRITE();
-  //max_file.WRITE();
+  max_file.WRITE();
   avg_gen = main_pop.CALC_MEAN("generation");
   IF(avg_gen >= max_gens) EXIT();
 };

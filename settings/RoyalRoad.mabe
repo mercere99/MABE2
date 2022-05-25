@@ -31,11 +31,11 @@ fit_file.ADD_COLUMN( "Average Fitness", "main_pop.CALC_MEAN('fitness')" );
 fit_file.ADD_COLUMN( "Maximum Fitness", "main_pop.CALC_MAX('fitness')" );
 fit_file.ADD_COLUMN( "Dominant Fitness", "main_pop.CALC_MODE('fitness')" );
 
-//DataFile max_file { filename="max_org.csv"; };
-//OrgList best_org;
-//max_file.ADD_SETUP( "best_org = main_pop.FIND_MAX('fitness')" );
-//max_file.ADD_COLUMN( "Fitness", "best_org.TRAIT('fitness')" );
-//max_file.ADD_COLUMN( "Genome", "best_org.TRAIT('bits')" );
+DataFile max_file { filename="max_org.csv"; };
+OrgList best_org;
+max_file.ADD_SETUP( "best_org = main_pop.FIND_MAX('fitness')" );
+max_file.ADD_COLUMN( "Fitness", "best_org.TRAIT('fitness')" );
+max_file.ADD_COLUMN( "Genome", "best_org.TRAIT('bits')" );
 
 
 @START() {
@@ -65,7 +65,7 @@ IF (ud % print_step == 0) {
            "  MaxFitness=", main_pop.CALC_MAX("fitness"),
      );
      fit_file.WRITE();
-     //max_file.WRITE();
+     max_file.WRITE();
   }
 
   OrgList tourny_offspring = select_tourny.SELECT(main_pop, next_pop, pop_size);

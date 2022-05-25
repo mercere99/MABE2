@@ -35,11 +35,11 @@ fit_file.ADD_COLUMN( "Average Fitness", "main_pop.CALC_MEAN('fitness')" );
 fit_file.ADD_COLUMN( "Maximum Fitness", "main_pop.CALC_MAX('fitness')" );
 fit_file.ADD_COLUMN( "Dominant Fitness", "main_pop.CALC_MODE('fitness')" );
 
-//DataFile max_file { filename="max_org.csv"; };
-//OrgList best_org;
-//max_file.ADD_SETUP( "best_org = main_pop.FIND_MAX('fitness')" );
-//max_file.ADD_COLUMN( "Fitness", "best_org.TRAIT('fitness')" );
-//max_file.ADD_COLUMN( "Genome", "best_org.TRAIT('bits')" );
+DataFile max_file { filename="max_org.csv"; };
+OrgList best_org;
+max_file.ADD_SETUP( "best_org = main_pop.FIND_MAX('fitness')" );
+max_file.ADD_COLUMN( "Fitness", "best_org.TRAIT('fitness')" );
+max_file.ADD_COLUMN( "Genome", "best_org.TRAIT('bits')" );
 
 
 @START() {
@@ -56,21 +56,21 @@ fit_file.ADD_COLUMN( "Dominant Fitness", "main_pop.CALC_MODE('fitness')" );
   IF (ud == 1000) EXIT();
 
   eval_nk.EVAL(main_pop);
-  //Var mode_fit = main_pop.CALC_MODE("fitness");
-  //OrgList list_less = main_pop.FILTER("fitness < ${mode_fit}");
-  //OrgList list_equ  = main_pop.FILTER("fitness == ${mode_fit}");
-  //OrgList list_gtr  = main_pop.FILTER("fitness > ${mode_fit}");
+  Var mode_fit = main_pop.CALC_MODE("fitness");
+  OrgList list_less = main_pop.FILTER("fitness < ${mode_fit}");
+  OrgList list_equ  = main_pop.FILTER("fitness == ${mode_fit}");
+  OrgList list_gtr  = main_pop.FILTER("fitness > ${mode_fit}");
   PRINT("UD:", GET_UPDATE(),
         "  MainPopSize=", main_pop.SIZE(),
         "  AveFitness=", main_pop.CALC_MEAN("fitness"),
         "  MaxFitness=", main_pop.CALC_MAX("fitness"),
-        //"  ModeFitness=", mode_fit,
-        //"\nMODE_LESS=", list_less.SIZE(),
-        //"  MODE_EQU=", list_equ.SIZE(),
-        //"  MODE_GTR=", list_gtr.SIZE(),
+        "  ModeFitness=", mode_fit,
+        "\nMODE_LESS=", list_less.SIZE(),
+        "  MODE_EQU=", list_equ.SIZE(),
+        "  MODE_GTR=", list_gtr.SIZE()
        );
   fit_file.WRITE();
-  //max_file.WRITE();
+  max_file.WRITE();
 
   OrgList elite_offspring = elite.SELECT(main_pop, next_pop, 25);
 
