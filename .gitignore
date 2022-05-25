@@ -42,9 +42,6 @@
 
 examples/NK
 
-# Vim swap files
-*.swp
-
 # Mac files 
 *.DS_Store
 
@@ -54,5 +51,6 @@ build/*.gen
 build/*.mabe
 build/MABE
 
-# Vim files
-*.swp
+# R history
+*.Rhistory
+
