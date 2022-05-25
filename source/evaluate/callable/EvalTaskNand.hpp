@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019-2022.
+ *  @date 2021-2022.
  *
  *  @file  EvalTaskNand.h
  *  @brief Tests organism output for bitwise NAND operation
@@ -10,9 +10,6 @@
 #ifndef MABE_EVAL_TASK_NAND_H
 #define MABE_EVAL_TASK_NAND_H
 
-#include "../../core/MABE.hpp"
-#include "../../core/Module.hpp"
-#include "../../orgs/VirtualCPUOrg.hpp"
 #include "./EvalTaskBase.hpp"
 
 namespace mabe {

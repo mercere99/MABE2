@@ -1,21 +1,19 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019-2020.
+ *  @date 2021-2022.
  *
  *  @file  EvalTaskEqu.h
  *  @brief Tests organism output for bitwise EQU operation
  *
  * Note that we are not checking for a binary A == B. 
- * We are looking for the *bitwise* equality. If the Nth bit of A is equal to the Nth bit of B, the Nth bit of the output should be a 1 (and otherwise it should be a 0). 
+ * We are looking for the *bitwise* equality. If the Nth bit of A is equal to the Nth bit of B,
+ *    the Nth bit of the output should be a 1 (and otherwise it should be a 0). 
  */
 
 #ifndef MABE_EVAL_TASK_EQU_H
 #define MABE_EVAL_TASK_EQU_H
 
-#include "../../core/MABE.hpp"
-#include "../../core/Module.hpp"
-#include "../../orgs/VirtualCPUOrg.hpp"
 #include "./EvalTaskBase.hpp"
 
 namespace mabe {

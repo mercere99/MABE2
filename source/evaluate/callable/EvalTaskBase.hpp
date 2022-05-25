@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019-2022.
+ *  @date 2021-2022.
  *
  *  @file  EvalTaskBase.h
  *  @brief Generic base class for evaluating an organism on a binary logic task. 
@@ -30,10 +30,12 @@ namespace mabe {
     std::string fitness_trait = "merit";  ///< Name of trait for organism's fitness (required)
     int pop_id = 0;                       ///< ID of the population to be evaluated
     std::string task_name;                ///< Name of the task (used to derive trait names)
-    std::string performed_trait = "unnamed_performed"; ///< Name of the trait tracking if the trait was performed
-    size_t num_args = 2;                  ///< Number of arguments (ie., unary vs binary func)
-    double reward_value = 1;              ///< Magnitude of the reward bestowed for completion of the task 
-    bool is_multiplicative = false;       ///< If true, reward_value is multiplied to current score (otherwise it is added to current score)
+    std::string performed_trait = "unnamed_performed"; /**< Name of the trait tracking if the
+                                                            trait was performed */
+    size_t num_args = 2;              ///< Number of arguments (ie., unary vs binary func)
+    double reward_value = 1;          ///< Magnitude of the reward bestowed for completion of the task 
+    bool is_multiplicative = false;   /**< If true, reward_value is multiplied to current 
+                                           score (otherwise it is added to current score)*/
 
   public:
     EvalTaskBase(mabe::MABE & _control,
@@ -50,9 +52,12 @@ namespace mabe {
 
     /// Set up configuration variables
     void SetupConfig() override {
-      LinkPop(pop_id, "target_pop", "Population to evaluate.");
-      LinkVar(inputs_trait,  "inputs_trait", "Which trait contains the organism's inputs?");
-      LinkVar(outputs_trait, "outputs_trait", "Which trait contains the organism's outputs?");
+      LinkPop(pop_id, "target_pop", 
+          "Population to evaluate.");
+      LinkVar(inputs_trait,  "inputs_trait", 
+          "Which trait contains the organism's inputs?");
+      LinkVar(outputs_trait, "outputs_trait", 
+          "Which trait contains the organism's outputs?");
       LinkVar(fitness_trait, "fitness_trait",
           "Which trait should we increase if BASE was executed?");
       LinkVar(performed_trait, "performed_trait", 
@@ -63,13 +68,15 @@ namespace mabe {
           "Should reward be multiplied (true) or added(false) to current score?");
     }
   
-    /// To be overridden by derived class. Determine if output is the result of applying the given function to input
+    /** Determine if output is the result of applying the given function to input
+        To be overridden by derived class. */
     virtual bool CheckOneArg(const data_t& /*output*/, const data_t& /*input*/){
       emp_error("Derived EvalTask class did not define CheckOneArg");
       return false;
     }; 
 
-    /// To be overridden by derived class. Determine if input_a OP input_b = output (with OP depending on the derived class) 
+    /** Determine if input_a OP input_b = output (with OP depending on the derived class)
+        To be overridden by derived class. */
     virtual bool CheckTwoArg(const data_t& /*output*/, const data_t& /*input_a*/, 
         const data_t& /*input_b*/){ 
       emp_error("Derived EvalTask class did not define CheckOneArg");

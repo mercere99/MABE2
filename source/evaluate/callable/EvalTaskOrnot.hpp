@@ -1,21 +1,18 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019-2020.
+ *  @date 2021-2022.
  *
  *  @file  EvalTaskOrnot.h
  *  @brief Tests organism output for bitwise ORNOT operation
  *
- *  A ORNOT B is equal to A OR (~B), where ~ is bitwise NOT 
+ *  A ORNOT B is equal to A OR (~B), where ~ is bitwise NOT.
  *  Here, however, we check both directions. So we also look for B OR (~A).
  */
 
 #ifndef MABE_EVAL_TASK_ORNOT_H
 #define MABE_EVAL_TASK_ORNOT_H
 
-#include "../../core/MABE.hpp"
-#include "../../core/Module.hpp"
-#include "../../orgs/VirtualCPUOrg.hpp"
 #include "./EvalTaskBase.hpp"
 
 namespace mabe {
