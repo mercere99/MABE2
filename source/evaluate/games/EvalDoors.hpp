@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2021-2022.
+ *  @date 2022-2022.
  *
  *  @file  EvalDoors.hpp
  *  @brief MABE Evaluation module that places the organism in a room with N+1 doors. 
@@ -11,6 +11,11 @@
  *          The extra door is the "exit" door. If the wrong door is chosen, the next room
  *          shows the "wrong choice" symbol, and organisms should then return to the 
  *          previous room via the exit door.
+ * 
+ * Notes: 
+ *    - If an organism has taken a wrong door and now should take the exit, we say they are in
+ *        an "exit room"
+ *      - Otherwise, they are in a "door room"
  *
  */
 
@@ -21,12 +26,13 @@
 #include "../../core/Module.hpp"
 #include "../../orgs/VirtualCPUOrg.hpp"
 
-#include "emp/io/File.hpp"
 #include "emp/bits/BitVector.hpp"
+#include "emp/io/File.hpp"
 #include "emp/tools/string_utils.hpp"
 
 namespace mabe {
     
+  /// \brief A collection of all the trait names used in EvalDoors
   struct EvalDoors_TraitNames{
     std::string score_trait = "score"; ///< Name of trait for organism performance
     std::string accuracy_trait = "accuracy"; ///< Name of trait for organism accuracy
@@ -61,9 +67,9 @@ namespace mabe {
     size_t correct_exits_taken = 0;   /**< Number of times the org took the exit when it 
                                            should have */
     size_t incorrect_exits_taken = 0; /**< Number of times the org took the exit when it 
-                                           should not have */
-    size_t door_rooms_visited = 0;
-    size_t exit_rooms_visited = 0;
+                                           should *not* have */
+    size_t door_rooms_visited = 0; /// Number of "door" rooms the organism has visited
+    size_t exit_rooms_visited = 0; /// Number of "exit" rooms the organism has visited
 
     DoorsState() { ; }
     DoorsState(const DoorsState&){ // Ignore copy, just reset
@@ -79,13 +85,13 @@ namespace mabe {
 
     protected:
     emp::Random& rand;  ///< Reference to the main random number generator of MABE
-    emp::BitVector random_cues_mask; ///< Bitmask for which cues are randomized (1s) 
+    emp::BitVector random_cues_mask; ///< Bitmask for which cues are randomized (1s = random) 
     const size_t exit_cue_idx = 0; ///< Index of the exit in the cue vector 
     
     public: 
     DoorsEvaluator(emp::Random& _rand) : rand(_rand) { ; } 
 
-    /// Fetch the number of doors in each room
+    /// Fetch the number of doors in each room (includes exit)
     size_t GetNumDoors() const { return random_cues_mask.GetSize(); }
 
     /// Set the cues bitmask to the given mask
@@ -93,8 +99,9 @@ namespace mabe {
     
     /// Calculate the score for the given state
     double GetScore(const DoorsState& state) const{
-      double score = 1.0 * state.correct_doors_taken - state.incorrect_doors_taken - 
+      double score = 1.0 + state.correct_doors_taken - state.incorrect_doors_taken - 
           state.incorrect_exits_taken;
+      // Truncate negative scores
       return (score >= 0) ? score : 0;
     }
 
@@ -118,7 +125,8 @@ namespace mabe {
     /// Calculate the score for the given state
     double GetDoorAccuracy(const DoorsState& state) const{
       if(state.door_rooms_visited <= 0) return 0;
-      return (1.0 * state.correct_doors_taken) / static_cast<double>(state.door_rooms_visited);
+      return static_cast<double>(state.correct_doors_taken) 
+             / static_cast<double>(state.door_rooms_visited);
     }
 
     /// Extract the cue mask from the given string (one char (1 or 0) per cue)
@@ -126,7 +134,7 @@ namespace mabe {
       random_cues_mask.Resize(s.size());
       for(size_t idx = 0; idx < s.size(); ++idx){
         if(s[idx] == '0') random_cues_mask[idx] = 0;
-        else if(s[idx] == '1') random_cues_mask[idx] = 0;
+        else if(s[idx] == '1') random_cues_mask[idx] = 1;
         else emp_error("Error! ParseCuesMask only works on strings with 1s and 0s!");
       }
     }
@@ -141,7 +149,13 @@ namespace mabe {
     void InitializeState(DoorsState& state){
       state.initialized = true;
       state.score = 0;
-      // Randomize the cue vector as expected
+      state.correct_doors_taken = 0;   
+      state.incorrect_doors_taken = 0; 
+      state.correct_exits_taken = 0;   
+      state.incorrect_exits_taken = 0; 
+      state.door_rooms_visited = 0; 
+      state.exit_rooms_visited = 0; 
+      // Randomize the cue vector according to configuration
       state.cue_vec.resize(GetNumDoors());
       size_t deterministic_cue_counter = 1;
       for(size_t idx = 0; idx < GetNumDoors(); ++idx){
@@ -228,10 +242,10 @@ namespace mabe {
     using inst_func_t = org_t::inst_func_t;
 
   protected:
-    DoorsEvaluator evaluator;          /**< The evaluator that does all of the actually 
-                                            computing and bookkeeping for the task*/
-    int pop_id = 0;                    /**< ID of the population to evaluate (and provide 
-                                            instructions to) */
+    DoorsEvaluator evaluator;          /**< The evaluator that does all of the actual 
+                                            computation and bookkeeping for the task*/
+    int pop_id = 0;                    /**< ID of the population to evaluate and provide 
+                                            instructions to */
     std::string randomize_cues_str;    /**< String version of a bitmask that determines 
                                             which cues are randomized */
     std::string inst_id_str;           ///< Semicolon-separated list of instruction door IDs  
@@ -303,8 +317,6 @@ namespace mabe {
       SetupInstructions();
     }
     
-    
-
     /// Package actions (e.g., sense, take door N) into instructions and provide them to the 
     /// organisms via ActionMap
     void SetupInstructions(){
