@@ -397,12 +397,12 @@ namespace mabe {
         // If using speculative execution, see if this instruction breaks speculation
         if(SharedData().use_speculative_execution){
           // Ensure bitvec is large enough
-          if(non_speculative_inst_vec.GetSize() < inst_id + 1){
+          if(non_speculative_inst_vec.GetSize() < static_cast<size_t>(inst_id + 1)){
             non_speculative_inst_vec.Resize(inst_id + 1);
           }
           if(action.data.HasName("is_non_speculative") && 
               action.data.Get<bool>("is_non_speculative")){ // If non-speculative, flag it
-            if(non_speculative_inst_vec.GetSize() < inst_id + 1){
+            if(non_speculative_inst_vec.GetSize() < static_cast<size_t>(inst_id + 1)){
               non_speculative_inst_vec.Resize(inst_id + 1);
             }
             non_speculative_inst_vec[inst_id] = true;

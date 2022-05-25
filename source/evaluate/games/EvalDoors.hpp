@@ -133,11 +133,12 @@ namespace mabe {
 
     /// Fetch a random cue from the set
     DoorsState::data_t GetRandomCue(const DoorsState& state){
-      return state.cue_vec[rand.GetUInt() % (GetNumDoors() - 1) + 1];
+      // Offset so we don't return the exit cue
+      return state.cue_vec[(rand.GetUInt() % (GetNumDoors() - 1)) + 1];
     }
 
     /// Initialize all properties of a DoorsState to prepare it for the task
-    void InitializeState(DoorsState& state, bool reset_map = true){
+    void InitializeState(DoorsState& state){
       state.initialized = true;
       state.score = 0;
       // Randomize the cue vector as expected
