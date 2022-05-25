@@ -26,7 +26,6 @@
 #include "emp/base/notify.hpp"
 #include "emp/config/command_line.hpp"
 #include "emp/control/Signal.hpp"
-#include "emp/control/SignalControl.hpp"
 #include "emp/data/DataMap.hpp"
 #include "emp/data/DataMapParser.hpp"
 #include "emp/datastructs/vector_utils.hpp"
@@ -97,7 +96,6 @@ namespace mabe {
     emp::vector<std::string> config_filenames; ///< Names of configuration files to load.
     emp::vector<std::string> config_settings;  ///< Additional config commands to run.
     std::string gen_filename;                  ///< Name of output file to generate.
-    std::string ast_dot_filename;              ///< Name of output DOT file for AST
     MABEScript config_script;                  ///< Configuration information for this run.
     // ----------- Helper Functions -----------    
     void ShowHelp();       ///< Print information on how to run the software.
@@ -579,13 +577,6 @@ namespace mabe {
       config_script.Write(gen_filename);
       exit_now = true;
     }
-    /*
-    if(ast_dot_filename != ""){
-      std::cout << "Writing AST to file '" << ast_dot_filename << "'." << std::endl;
-      config.WriteASTFile(ast_dot_filename);
-      Exit();
-    }
-    */
 
     // If any of the inital flags triggered an 'exit_now', do so.
     if (exit_now) return false;
