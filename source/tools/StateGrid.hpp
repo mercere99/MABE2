@@ -254,7 +254,10 @@ namespace emp {
     struct State {
       size_t x;      ///< X-coordinate of this agent
       size_t y;      ///< Y-coordinate of this agent.
-      int facing;    ///< 0=UL, 1=Up, 2=UR, 3=Right, 4=DR, 5=Down, 6=DL, 7=Left (+=Clockwise)
+      int facing;    /**< 0=UL, 1=Up, 2=UR, 3=Right, 4=DR, 5=Down, 6=DL, 7=Left (+=Clockwise)
+                          Most often handled as a size_t, but must be signed for rotations
+                          to function correctly (i.e., for the number to go negative before
+                          being put through a modulo operation) */
 
       State(size_t _x=0, size_t _y=0, size_t _f=1) : x(_x), y(_y), facing((int)_f) { ; }
       bool IsAt(size_t _x, size_t _y) const { return x == _x && y == _y; }
