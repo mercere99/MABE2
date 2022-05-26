@@ -9,7 +9,7 @@
  *
  *  TODO:
  *    - Make tile symbols configurable
- *    - Make max steps configurable 
+ *    - Make max steps configurable? 
  *    - Error checking
  *      - When loading map, it must have start and finish
  *      - When evaluating path, do some bounds checking on map_idx
@@ -32,23 +32,23 @@ namespace mabe {
 
   /// \brief State of a single organism's progress on the path following task
   struct PathFollowState{
-    bool initialized = false;     ///< Flag indicating if this state has been initialized
+    bool initialized;             ///< Flag indicating if this state has been initialized
     size_t cur_map_idx;           ///< Index of the map being traversed 
     emp::BitVector visited_tiles; ///< A mask showing which tiles have been previously visited
-    emp:: StateGridStatus status; ///< Stores position, direction, and interfaces with grid 
+    emp::StateGridStatus status;  ///< Stores position, direction, and interfaces with grid 
     double raw_score;             /**< Number of unique valid tiles visited minus the number
                                        of steps taken off the path (not unique) */
-    double normalized_score;      ///< Raw score divided by the length of the path
-    uint32_t empty_cue = 1;       /**< Value of empty cues for this state, potentially 
+    uint32_t empty_cue;           /**< Value of empty cues for this state, potentially 
                                        randomized depending on the configuration options */
-    uint32_t forward_cue = 2;     /**< Value of forward cues for this state, potentially 
+    uint32_t forward_cue;         /**< Value of forward cues for this state, potentially 
                                        randomized depending on the configuration options */
-    uint32_t left_cue = 3;        /**< Value of left turn cues for this state, potentially 
+    uint32_t left_cue;            /**< Value of left turn cues for this state, potentially 
                                        randomized depending on the configuration options */
-    uint32_t right_cue = 4;       /**< Value of right turn cues for this state, potentially 
+    uint32_t right_cue;           /**< Value of right turn cues for this state, potentially 
                                        randomized depending on the configuration options */
 
-    PathFollowState() { ; }
+    PathFollowState(): initialized(false), cur_map_idx(0), visited_tiles(), status(),
+        raw_score(0), empty_cue(1), forward_cue(2), left_cue(3), right_cue(4) { ; }
   };
 
   /// \brief Information of a single path that was loaded from file
@@ -90,14 +90,22 @@ namespace mabe {
     };
 
     emp::vector<PathData> path_data_vec; ///< All the relevant data for each map loaded
-    //size_t max_steps = 100; 
     emp::Random& rand;          ///< Reference to the main random number generator of MABE
-    bool randomize_cues = true; ///< If true, each org receives random values for each type for cue(consistent through lifetime). Otherwise, cues have same values for all orgs
+    bool randomize_cues; /**< If true, each org receives random values for each type for cue
+                                  (consistent through lifetime). Otherwise, cues have same 
+                                  values for all orgs */
     
     public: 
-    PathFollowEvaluator(emp::Random& _rand) : rand(_rand) { ; } 
+    PathFollowEvaluator(emp::Random& _rand) : path_data_vec(), rand(_rand), 
+        randomize_cues(true) { ; } 
 
+    /// Fetch the number of maps that are currently stored 
     size_t GetNumMaps(){ return path_data_vec.size(); }
+
+    /// Divide raw score by the length of the current path
+    double GetNormalizedScore(PathFollowState& state) const{
+      return static_cast<double>(state.raw_score) / path_data_vec[state.cur_map_idx].path_length;
+    }
 
     /// Load a single map for the path following task
     template <typename... Ts>
@@ -105,7 +113,7 @@ namespace mabe {
       // Create our PathData to be filled
       path_data_vec.emplace_back();
       PathData& path_data = *(path_data_vec.rbegin()); 
-      // Set up the possible tile types for the grid
+      // Set up the possible tile types for the grid (we ignore the score value)
       path_data.grid.AddState(Tile::EMPTY,       '.', 1.0, "empty");
       path_data.grid.AddState(Tile::FORWARD,     '+', 1.0, "forward");
       path_data.grid.AddState(Tile::LEFT,        'L', 1.0, "turn_left");
@@ -198,7 +206,6 @@ namespace mabe {
         path_data_vec[state.cur_map_idx].start_facing
       );
       state.raw_score = 0;
-      state.normalized_score = 0;
       if(randomize_cues){
         state.forward_cue = rand.GetUInt();
         state.right_cue = rand.GetUInt();
@@ -218,10 +225,12 @@ namespace mabe {
       }
     }
     
+    /// Fetch the data of the state's current path
     PathData& GetCurPath(const PathFollowState& state){
       return path_data_vec[state.cur_map_idx];
     }
     
+    /// Fetch the data of the state's current path
     const PathData& GetCurPath(const PathFollowState& state) const{
       return path_data_vec[state.cur_map_idx];
     }
@@ -241,19 +250,18 @@ namespace mabe {
       int tile_id = state.status.Scan(GetCurPath(state).grid);
       if(tile_id == Tile::EMPTY) return -1;
       // On a new tile of the path, add score (forward, left, right, finish)
-      else if(!state.visited_tiles[ state.status.GetIndex(GetCurPath(state).grid)]) return 1;
+      else if(!state.visited_tiles[ state.status.GetIndex(GetCurPath(state).grid) ]) return 1;
       return 0; // Otherwise we've seen this tile of the path before, do nothing
     }
 
-    /// Move the organism in the direction it is facing then update and return score
+    /// Move the organism in the direction it is facing, then update and return score
     double Move(PathFollowState& state, int scale_factor = 1){
       if(!state.initialized) InitializeState(state);
       state.status.Move(GetCurPath(state).grid, scale_factor);
       double score = GetCurrentPosScore(state);
       MarkVisited(state);
       state.raw_score += score;
-      state.normalized_score = state.raw_score / path_data_vec[state.cur_map_idx].path_length;
-      return state.normalized_score;
+      return GetNormalizedScore(state);
     }
     
     /// Rotate the organism clockwise by 90 degrees
@@ -310,7 +318,8 @@ namespace mabe {
     }
   };
 
-  /// \brief MABE module that evaluates Avida-esque organisms on how well than can navigate a nutrient-cued path
+  /** \brief MABE module that evaluates Avida-esque organisms on how well they can 
+             navigate a nutrient-cued path*/
   class EvalPathFollow : public Module {
     using inst_func_t = VirtualCPUOrg::inst_func_t;
 
@@ -339,20 +348,26 @@ namespace mabe {
 
     /// Set up variables for configuration script
     void SetupConfig() override {
-      LinkPop(pop_id, "target_pop", "Population to evaluate.");
-      LinkVar(score_trait, "score_trait", "Which trait stores path following performance?");
-      LinkVar(state_trait, "state_trait", "Which trait stores organisms' path follow state?");
+      LinkPop(pop_id, "target_pop", 
+          "Population to evaluate.");
+      LinkVar(score_trait, "score_trait", 
+          "Which trait stores path following performance?");
+      LinkVar(state_trait, "state_trait", 
+          "Which trait stores organisms' path follow state?");
       LinkVar(map_filenames, "map_filenames", 
           "List of map files to load, separated by semicolons(;)");
-      LinkVar(evaluator.randomize_cues, "randomize_cues", "If true, cues are assigned random values in for "
-          "each new path");
-      LinkVar(sg_move_id, "sg_move_id", "ID of the 'sg_move' instruction");
-      LinkVar(sg_move_back_id, "sg_move_back_id", "ID of the 'sg_move_back' instruction");
+      LinkVar(evaluator.randomize_cues, "randomize_cues", 
+          "If true, cues are assigned random values in for each new path");
+      LinkVar(sg_move_id, "sg_move_id", 
+          "ID of the 'sg_move' instruction (-1 for auto-assign)");
+      LinkVar(sg_move_back_id, "sg_move_back_id", 
+          "ID of the 'sg_move_back' instruction (-1 for auto-assign)");
       LinkVar(sg_rotate_right_id, "sg_rotate_right_id", 
-          "ID of the 'sg_rotate_right' instruction");
+          "ID of the 'sg_rotate_right' instruction (-1 for auto-assign)");
       LinkVar(sg_rotate_left_id, "sg_rotate_left_id", 
-          "ID of the 'sg_rotate_left' instruction");
-      LinkVar(sg_sense_id, "sg_sense_id", "ID of the 'sg_sense' instruction");
+          "ID of the 'sg_rotate_left' instruction (-1 for auto-assign)");
+      LinkVar(sg_sense_id, "sg_sense_id", 
+          "ID of the 'sg_sense' instruction (-1 for auto-assign)");
     }
     
     /// Set up organism traits, load maps, and provide instructions to organisms
@@ -412,7 +427,8 @@ namespace mabe {
     }
   };
 
-  MABE_REGISTER_MODULE(EvalPathFollow, "Evaluate organisms on their ability to follow a path.");
+  MABE_REGISTER_MODULE(EvalPathFollow, 
+      "Evaluate organisms on their ability to follow a nutrient-cued path.");
 }
 
 #endif
