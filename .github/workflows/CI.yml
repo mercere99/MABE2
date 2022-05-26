@@ -18,6 +18,8 @@ jobs:
     - run: sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
     - run: sudo apt-get update -qq
     - run: sudo apt-get install -qq cmake build-essential python3-pip python3-virtualenv nodejs tar gzip libpthread-stubs0-dev libc6-dbg gdb
+    - run: clang++ --version
+    - run: g++ --version
     - name: run-tests
       run: make unit
       working-directory: tests
@@ -32,7 +34,9 @@ jobs:
     - run: sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
     - run: sudo apt-get update -qq
     - run: sudo apt-get install -qq cmake build-essential python3-pip python3-virtualenv nodejs tar gzip libpthread-stubs0-dev libc6-dbg gdb
-    - run: sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-8 90
+      #- run: sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-8 90
+    - run: clang++ --version
+    - run: g++ --version
     - name: run-tests
       run: make regression 
       working-directory: tests
@@ -58,6 +62,8 @@ jobs:
         #- run: sudo update-alternatives --install /usr/bin/llvm-config llvm-config /usr/bin/llvm-config-7 90
         #- run: sudo update-alternatives --install /usr/bin/llvm-profdata llvm-profdata /usr/bin/llvm-profdata-7 90
         #- run: sudo update-alternatives --install /usr/bin/llvm-cov llvm-cov /usr/bin/llvm-cov-7 90
+      - run: clang++ --version
+      - run: g++ --version
       - run: git fetch origin master:refs/remotes/origin/master
       - run: make install-test-dependencies
         working-directory: source/third-party/empirical
