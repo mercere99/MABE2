@@ -4,11 +4,11 @@
  *  @date 2022-2022.
  *
  *  @file  EvalDoors.hpp
- *  @brief MABE Evaluation module that places the organism in a room with N+1 doors. 
+ *  @brief MABE Evaluation module that places the organism in a room with N doors. 
  *          In each room, a symbol indicates which door is the correct one. 
  *          The rooms are configurable such that the symbol is either set or random between 
  *          trials. 
- *          The extra door is the "exit" door. If the wrong door is chosen, the next room
+ *          One door is the "exit" door. If the wrong door is chosen, the next room
  *          shows the "wrong choice" symbol, and organisms should then return to the 
  *          previous room via the exit door.
  * 
@@ -85,17 +85,15 @@ namespace mabe {
 
     protected:
     emp::Random& rand;  ///< Reference to the main random number generator of MABE
-    emp::BitVector random_cues_mask; ///< Bitmask for which cues are randomized (1s = random) 
+    emp::vector<int> starting_cue_vec; /**< Vector of set cue values or random cue 
+                                            indicators (-1) */ 
     const size_t exit_cue_idx = 0; ///< Index of the exit in the cue vector 
     
     public: 
     DoorsEvaluator(emp::Random& _rand) : rand(_rand) { ; } 
 
     /// Fetch the number of doors in each room (includes exit)
-    size_t GetNumDoors() const { return random_cues_mask.GetSize(); }
-
-    /// Set the cues bitmask to the given mask
-    void SetCuesMask(const emp::BitVector& mask){ random_cues_mask = mask; }
+    size_t GetNumDoors() const { return starting_cue_vec.size(); }
     
     /// Calculate the score for the given state
     double GetScore(const DoorsState& state) const{
@@ -129,17 +127,27 @@ namespace mabe {
              / static_cast<double>(state.door_rooms_visited);
     }
 
-    /// Extract the cue mask from the given string (one char (1 or 0) per cue)
-    void ParseCuesMask(const std::string& s){ 
-      random_cues_mask.Resize(s.size());
-      for(size_t idx = 0; idx < s.size(); ++idx){
-        if(s[idx] == '0') random_cues_mask[idx] = 0;
-        else if(s[idx] == '1') random_cues_mask[idx] = 1;
-        else emp_error("Error! ParseCuesMask only works on strings with 1s and 0s!");
+    /** Extract cues from the given string. Can either be non-negative (used as is) or
+            -1 (randomized for each trial) */
+    void ParseCues(const std::string& input_str){ 
+      std::string s(input_str);
+      // Remove all trailing ;
+      while(s[s.length() - 1] == ';') s = s.substr(0, s.length() - 1); 
+      starting_cue_vec.clear();
+      emp::vector<std::string> sliced_str_vec;
+      emp::slice(s, sliced_str_vec, ';');
+      std::cout << "Eval doors starting cue values: " << std::endl << "\t"; 
+      for(std::string& slice : sliced_str_vec){
+        const int cue = std::stoi(slice);
+        if(cue < -1) emp_error("Error! ParseCues expects values of -1 or greater!");
+        if(cue == -1) std::cout << "[random] ";
+        else std::cout << "[set: " << cue << "] ";
+        starting_cue_vec.push_back(cue);
       }
+      std::cout << std::endl;
     }
 
-    /// Fetch a random cue from the set
+    /// Fetch a random door cue from the set
     DoorsState::data_t GetRandomCue(const DoorsState& state){
       // Offset so we don't return the exit cue
       return state.cue_vec[(rand.GetUInt() % (GetNumDoors() - 1)) + 1];
@@ -157,19 +165,22 @@ namespace mabe {
       state.exit_rooms_visited = 0; 
       // Randomize the cue vector according to configuration
       state.cue_vec.resize(GetNumDoors());
-      size_t deterministic_cue_counter = 1;
+      // First pass, add all set cues 
       for(size_t idx = 0; idx < GetNumDoors(); ++idx){
-        if(!random_cues_mask[idx]){ // If deterministic, use counter and increment
-          state.cue_vec[idx] = deterministic_cue_counter++;
+        if(starting_cue_vec[idx] >= 0){
+          state.cue_vec[idx] = starting_cue_vec[idx];
         }
-        else{ // Randomize cue
+      }
+      // Second pass, randomize other cues
+      for(size_t idx = 0; idx < GetNumDoors(); ++idx){
+        if(starting_cue_vec[idx] == -1){
           bool pass = false;
           while(!pass){
             pass = true;
             state.cue_vec[idx] = rand.GetUInt();
             // Ensure we didn't choose an existing cue
-            for(size_t idx_2 = 0; idx_2 < idx; ++idx_2){
-              if(state.cue_vec[idx] == state.cue_vec[idx_2]){
+            for(size_t idx_2 = 0; idx_2 < GetNumDoors(); ++idx_2){
+              if(idx != idx_2 && state.cue_vec[idx] == state.cue_vec[idx_2]){
                 pass = false;
                 break;
               }
@@ -246,8 +257,8 @@ namespace mabe {
                                             computation and bookkeeping for the task*/
     int pop_id = 0;                    /**< ID of the population to evaluate and provide 
                                             instructions to */
-    std::string randomize_cues_str;    /**< String version of a bitmask that determines 
-                                            which cues are randomized */
+    std::string cues_str; /**< String version of a vector of cue values. Non-negative values 
+                               are used as is, while -1 gives a random value for each trial */
     std::string inst_id_str;           ///< Semicolon-separated list of instruction door IDs  
     emp::vector<int> inst_id_vec;      ///< ID of the `sense` instruction
     int sense_inst_id = -1;
@@ -255,6 +266,10 @@ namespace mabe {
     
     /// Parse the instruction ID string into an actual vector of ID numbers
     void ParseInstIDs(){
+      // Remove any trailing ;
+      while(inst_id_str[inst_id_str.length() - 1] == ';'){
+        inst_id_str = inst_id_str.substr(0, inst_id_str.length() - 1); 
+      }
       inst_id_vec.clear();
       emp::vector<std::string> sliced_str_vec;
       emp::slice(inst_id_str, sliced_str_vec, ';');
@@ -295,8 +310,9 @@ namespace mabe {
           "Which trait stores the number of exits correctly taken?");
       LinkVar(trait_names.incorrect_exits_trait, "incorrect_exits_trait", 
           "Which trait stores the number of exits incorrectly taken?");
-      LinkVar(randomize_cues_str, "randomize_cues_mask", "A string of 1s and 0s. Starting at "
-          "cue 1, a 1 indicates that cue is random, while 0 is fixed.");
+      LinkVar(cues_str, "cue_values", "A semicolon-separated string of cue values. " 
+          "A non-negative value is used as is, -1 gives a random cue for each trial "
+          "(first value is the exit)");
       LinkVar(inst_id_str, "inst_ids", "The IDs of the door instructions. Should be a string "
           "composed of numbers separated by semicolons (e.g., \"1;2;3\"");
       LinkVar(sense_inst_id, "sense_inst_id", "ID of the sense instruction"); 
@@ -313,7 +329,7 @@ namespace mabe {
       AddOwnedTrait<size_t>(trait_names.incorrect_doors_trait, "Incorrect doors taken", 0);
       AddOwnedTrait<size_t>(trait_names.correct_exits_trait, "Correct exits taken", 0);
       AddOwnedTrait<size_t>(trait_names.incorrect_exits_trait, "Incorrect exits taken", 0);
-      evaluator.ParseCuesMask(randomize_cues_str);
+      evaluator.ParseCues(cues_str);
       SetupInstructions();
     }
     
