@@ -55,13 +55,7 @@ jobs:
       - run: wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
       - run: sudo apt-add-repository "deb https://apt.llvm.org/xenial/ llvm-toolchain-xenial-7 main"
       - run: sudo apt-get update -qq
-        #- run: sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-8 90
-      - run: sudo apt-get install cmake build-essential python3-virtualenv python3-pip nodejs tar gzip llvm llvm-dev #libclang-7-dev libllvm7 llvm-7 llvm-7-dev clang-7 libstdc++-7-dev 
-        # might have to happen after we update g++
-        #- run: sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-7 90
-        #- run: sudo update-alternatives --install /usr/bin/llvm-config llvm-config /usr/bin/llvm-config-7 90
-        #- run: sudo update-alternatives --install /usr/bin/llvm-profdata llvm-profdata /usr/bin/llvm-profdata-7 90
-        #- run: sudo update-alternatives --install /usr/bin/llvm-cov llvm-cov /usr/bin/llvm-cov-7 90
+      - run: sudo apt-get install cmake build-essential python3-virtualenv python3-pip nodejs tar gzip llvm llvm-dev clang llvm-dev libclang-dev
       - run: clang++ --version
       - run: g++ --version
       - run: git fetch origin master:refs/remotes/origin/master
@@ -71,7 +65,6 @@ jobs:
         working-directory: source/third-party/empirical
       - run: export CXX=clang++ && make coverage
         working-directory: tests 
-      #- run: curl -s https://codecov.io/bash | bash
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v2
         with:
