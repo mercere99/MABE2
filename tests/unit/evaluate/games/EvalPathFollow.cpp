@@ -575,9 +575,9 @@ TEST_CASE("EvalPathFollow_PathFollowEvaluator", "[evaluate/games]"){
     CHECK(state.visited_tiles.GetSize() == 121); // 11x11 
     CHECK(state.status.GetX() == evaluator.path_data_vec[0].start_x);
     CHECK(state.status.GetY() == evaluator.path_data_vec[0].start_y);
-    CHECK(state.status.GetFacing() == evaluator.path_data_vec[0].start_facing);
+    CHECK(state.status.GetFacing() == static_cast<size_t>(evaluator.path_data_vec[0].start_facing));
     CHECK(state.raw_score == 0);
-    CHECK(state.normalized_score == 0);
+    CHECK(evaluator.GetNormalizedScore(state) == 0);
     CHECK(state.empty_cue == 1);
     CHECK(state.forward_cue == 2);
     CHECK(state.left_cue == 3);
@@ -598,9 +598,9 @@ TEST_CASE("EvalPathFollow_PathFollowEvaluator", "[evaluate/games]"){
     CHECK(state.visited_tiles.GetSize() == 121); // 11x11 
     CHECK(state.status.GetX() == evaluator.path_data_vec[0].start_x);
     CHECK(state.status.GetY() == evaluator.path_data_vec[0].start_y);
-    CHECK(state.status.GetFacing() == evaluator.path_data_vec[0].start_facing);
+    CHECK(state.status.GetFacing() == static_cast<size_t>(evaluator.path_data_vec[0].start_facing));
     CHECK(state.raw_score == 0);
-    CHECK(state.normalized_score == 0);
+    CHECK(evaluator.GetNormalizedScore(state) == 0);
     CHECK(state.forward_cue == 2805919190);
     CHECK(state.right_cue == 3616089412);
     CHECK(state.left_cue == 2739352475);
@@ -630,9 +630,9 @@ TEST_CASE("EvalPathFollow_PathFollowEvaluator", "[evaluate/games]"){
     CHECK(state.visited_tiles.GetSize() == 25); // 5x5 
     CHECK(state.status.GetX() == evaluator.path_data_vec[1].start_x);
     CHECK(state.status.GetY() == evaluator.path_data_vec[1].start_y);
-    CHECK(state.status.GetFacing() == evaluator.path_data_vec[1].start_facing);
+    CHECK(state.status.GetFacing() == static_cast<size_t>(evaluator.path_data_vec[1].start_facing));
     CHECK(state.raw_score == 0);
-    CHECK(state.normalized_score == 0);
+    CHECK(evaluator.GetNormalizedScore(state) == 0);
     CHECK(state.empty_cue == 1);
     CHECK(state.forward_cue == 2);
     CHECK(state.left_cue == 3);
@@ -699,7 +699,7 @@ TEST_CASE("EvalPathFollow_PathFollowEvaluator", "[evaluate/games]"){
       CHECK(state.visited_tiles[7]);  // Marked new tile as visited?
       CHECK(state.raw_score == 1);       // Added reward
       CHECK(evaluator.path_data_vec[0].path_length == 4);   
-      CHECK(state.normalized_score == 1 / 4.0); // Added reward
+      CHECK(evaluator.GetNormalizedScore(state) == 1 / 4.0); // Added reward
     }
     { // second move: right
       CHECK(state.status.GetX() == 2); // State consistent from last move
@@ -712,7 +712,7 @@ TEST_CASE("EvalPathFollow_PathFollowEvaluator", "[evaluate/games]"){
       CHECK(state.status.GetY() == 1);
       CHECK(state.visited_tiles[8]);  // Marked new tile as visited?
       CHECK(state.raw_score == 0); // Score decremented 
-      CHECK(state.normalized_score == 0);
+      CHECK(evaluator.GetNormalizedScore(state) == 0);
     }
     { // third move: left 
       CHECK(state.status.GetX() == 3); // State consistent from last move
@@ -725,7 +725,7 @@ TEST_CASE("EvalPathFollow_PathFollowEvaluator", "[evaluate/games]"){
       CHECK(state.status.GetY() == 1);
       CHECK(state.visited_tiles[7]);  // Should still be visited
       CHECK(state.raw_score == 0); // Score remains 0 because tile was previously visited
-      CHECK(state.normalized_score == 0);
+      CHECK(evaluator.GetNormalizedScore(state) == 0);
     }
     { // fourth move: up
       CHECK(state.status.GetX() == 2); // State consistent from last move
@@ -738,7 +738,7 @@ TEST_CASE("EvalPathFollow_PathFollowEvaluator", "[evaluate/games]"){
       CHECK(state.status.GetY() == 0);
       CHECK(state.visited_tiles[2]);  // Should still be visited
       CHECK(state.raw_score == 1); // Score remains because tile was previously visited
-      CHECK(state.normalized_score == 1 / 4.0);
+      CHECK(evaluator.GetNormalizedScore(state) == 1 / 4.0);
     }
     { // Move backward
       CHECK(state.status.GetX() == 2); // State consistent from last move

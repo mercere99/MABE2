@@ -1,10 +1,10 @@
 Latest commit at time of last regeneration:
-commit b7c747062b082b4e1a079d0a6189c53604d8ffd1
+commit 74ee55dd72abd2f1d161804342ff7aa898b72457
 Author: Austin Ferguson <ferguson.austin.j@gmail.com>
-Date:   Wed May 25 18:38:14 2022 -0400
+Date:   Thu May 26 14:37:10 2022 -0400
 
-    Temporarily add phylo dir to .gitignore
+    Update how cues are configured in EvalDoors
  
  
 Time of last regeneration:
-Wed May 25 06:39:55 PM EDT 2022
+Thu May 26 02:42:18 PM EDT 2022
