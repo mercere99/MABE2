@@ -1,10 +1,10 @@
 Latest commit at time of last regeneration:
-commit 74ee55dd72abd2f1d161804342ff7aa898b72457
+commit c9d5e61fac2a8226905691953455c57b237dbce2
 Author: Austin Ferguson <ferguson.austin.j@gmail.com>
-Date:   Thu May 26 14:37:10 2022 -0400
+Date:   Fri May 27 11:07:47 2022 -0400
 
-    Update how cues are configured in EvalDoors
+    Track more traits in EvalDoor
  
  
 Time of last regeneration:
-Thu May 26 02:42:18 PM EDT 2022
+Fri May 27 11:10:50 AM EDT 2022
