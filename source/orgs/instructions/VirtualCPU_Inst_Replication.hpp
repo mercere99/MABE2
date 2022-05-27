@@ -106,8 +106,10 @@ namespace mabe {
             hw.genome_working.end(),
             offspring_genome.begin());
         hw.ResetHardware();
-        hw.inst_ptr = hw.genome_working.size() - 1;
+        // Set to end so completion of this inst moves it 0 
+        hw.inst_ptr = hw.genome_working.size() - 1; 
         control.Replicate(org_pos, *org_pos.PopPtr());
+        control.DoBirth(hw, org_pos, org_pos, false); // Reset parent
       }
     }
 

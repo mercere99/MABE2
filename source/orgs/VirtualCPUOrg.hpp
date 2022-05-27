@@ -227,6 +227,7 @@ namespace mabe {
           SharedData().genome_name, offspring->GetGenomeString());
       offspring->Organism::SetTrait<size_t>(
           SharedData().genome_length_name, offspring->GetGenomeSize());
+      offspring->Organism::GetTrait<emp::vector<data_t>>(SharedData().output_name).clear();
       offspring.DynamicCast<VirtualCPUOrg>()->ResetHardware();
       offspring.DynamicCast<VirtualCPUOrg>()->insts_speculatively_executed = 0;
       return offspring;
@@ -242,6 +243,7 @@ namespace mabe {
       offspring->ResetHardware();
       offspring->Organism::SetTrait<std::string>(SharedData().genome_name, offspring->GetGenomeString());
       offspring->Organism::SetTrait<size_t>(SharedData().genome_length_name, offspring->GetGenomeSize());
+      offspring->Organism::GetTrait<emp::vector<data_t>>(SharedData().output_name).clear();
       offspring->expanded_nop_args = SharedData().expanded_nop_args;
       return offspring;
     }
@@ -321,7 +323,7 @@ namespace mabe {
     /// shared variables.
     void SetupModule() override {
       SetupMutationDistribution();
-      GetManager().AddRequiredTrait<emp::vector<data_t>>(SharedData().input_name);
+      GetManager().AddOptionalTrait<emp::vector<data_t>>(SharedData().input_name);
       GetManager().AddSharedTrait(SharedData().output_name,
           "Value map output from organism.", emp::vector<data_t>());
       GetManager().AddSharedTrait<double>(SharedData().merit_name,
