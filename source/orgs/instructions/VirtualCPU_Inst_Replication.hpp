@@ -27,6 +27,7 @@ namespace mabe {
     int pop_id = 0; ///< ID of the population which will receive these instructions
     std::string org_pos_trait = "org_pos"; ///< Name of the trait storing organism's position
     std::string offspring_genome_trait = "offspring_genome"; ///< Name of the trait storing the genome of the offspring organism 
+    std::string reset_self_trait = "reset_self"; ///< Name of the trait storing if org needs reset 
     bool include_h_alloc  = true;  ///< Config option indicating if inst. is used
     bool include_h_divide = true;  ///< Config option indicating if inst. is used
     bool include_h_copy   = true;  ///< Config option indicating if inst. is used
@@ -65,7 +66,8 @@ namespace mabe {
         hw.genome_working.resize(hw.read_head, hw.GetDefaultInst());
         hw.ResetHardware();
         hw.inst_ptr = hw.genome.size() - 1;
-        control.Replicate(org_pos, *org_pos.PopPtr());
+        //control.Replicate(org_pos, *org_pos.PopPtr());
+        hw.SetTrait<bool>(reset_self_trait, true);
       }
     }
     void Inst_HCopy(org_t& hw, const org_t::inst_t& /*inst*/){
@@ -109,7 +111,8 @@ namespace mabe {
         // Set to end so completion of this inst moves it 0 
         hw.inst_ptr = hw.genome_working.size() - 1; 
         control.Replicate(org_pos, *org_pos.PopPtr());
-        control.DoBirth(hw, org_pos, org_pos, false); // Reset parent
+        //control.DoBirth(hw, org_pos, org_pos, false); // Reset parent
+        hw.SetTrait<bool>(reset_self_trait, true);
       }
     }
 
@@ -119,6 +122,8 @@ namespace mabe {
       LinkVar(org_pos_trait, "pos_trait", "Name of trait that holds organism's position");
       LinkVar(offspring_genome_trait, "offspring_genome_trait", 
           "Name of trait that holds the offspring organism's genome");
+      LinkVar(reset_self_trait, "reset_self_trait", 
+          "Name of trait that determines if the organism needs reset");
       LinkVar(include_h_alloc, "include_h_alloc", "Do we include the 'h_alloc' instruction?");
       LinkVar(include_h_divide, "include_h_divide", "Do we include the 'h_divide' instruction?");
       LinkVar(include_h_copy, "include_h_copy", "Do we include the 'h_copy' instruction?");
@@ -135,6 +140,7 @@ namespace mabe {
     void SetupModule() override {
       AddRequiredTrait<OrgPosition>(org_pos_trait);
       AddRequiredTrait<org_t::genome_t>(offspring_genome_trait);
+      AddRequiredTrait<bool>(reset_self_trait);
       SetupFuncs();
     }
 
