@@ -50,6 +50,11 @@ namespace mabe {
                                                            number of exits correctly taken*/
     std::string incorrect_exits_trait ="incorrect_exits"; /**< Name of trait that stores the
                                                          number of exits incorrectly taken*/
+    std::string doors_taken_prefix = "doors_taken_"; // Prefix for multiple traits (one per door)
+    std::string doors_correct_prefix = "doors_correct_"; // Prefix for multiple traits (one per door)
+    emp::vector<std::string> doors_taken_trait_vec; // Names of complete doors taken traits
+    emp::vector<std::string> doors_correct_trait_vec; // Names pf complete doors correct traits
+
   };
 
   /// \brief State of a single organism's progress on the doors task
@@ -70,6 +75,8 @@ namespace mabe {
                                            should *not* have */
     size_t door_rooms_visited = 0; /// Number of "door" rooms the organism has visited
     size_t exit_rooms_visited = 0; /// Number of "exit" rooms the organism has visited
+    emp::vector<size_t> doors_taken_vec; /// Number of times each door was taken
+    emp::vector<size_t> doors_correct_vec; /// Number of times each door was taken correctly
 
     DoorsState() { ; }
     DoorsState(const DoorsState&){ // Ignore copy, just reset
@@ -88,6 +95,25 @@ namespace mabe {
     emp::vector<int> starting_cue_vec; /**< Vector of set cue values or random cue 
                                             indicators (-1) */ 
     const size_t exit_cue_idx = 0; ///< Index of the exit in the cue vector 
+    
+    /// Move the organism through the "exit" door, going back one room  
+    double TakeExit(DoorsState& state){
+      if(!state.initialized) InitializeState(state);
+      // Update bookkeeping
+      state.prev_room_vec.push_back(state.current_cue);
+      state.door_choice_vec.push_back(state.cue_vec[exit_cue_idx]);
+      // Update score vars and current cue
+      if(state.current_cue == state.cue_vec[exit_cue_idx]){
+        state.correct_exits_taken++;
+        state.current_cue = *(state.prev_room_vec.rbegin() + 1); // Return to previous room
+        state.doors_correct_vec[exit_cue_idx]++;
+      }
+      else{
+        state.incorrect_exits_taken++;
+        state.current_cue = state.cue_vec[exit_cue_idx];
+      }
+      return UpdateScore(state);
+    }
     
     public: 
     DoorsEvaluator(emp::Random& _rand) : rand(_rand) { ; } 
@@ -118,6 +144,13 @@ namespace mabe {
       org.SetTrait<size_t>(trait_names.incorrect_doors_trait, state.incorrect_doors_taken);
       org.SetTrait<size_t>(trait_names.correct_exits_trait, state.correct_exits_taken);
       org.SetTrait<size_t>(trait_names.incorrect_exits_trait, state.incorrect_exits_taken);
+      for(size_t door_idx = 0; door_idx < GetNumDoors(); ++door_idx){
+        org.SetTrait<size_t>(trait_names.doors_taken_trait_vec[door_idx], 
+            state.doors_taken_vec[door_idx]);
+        org.SetTrait<size_t>(trait_names.doors_correct_trait_vec[door_idx], 
+            state.doors_correct_vec[door_idx]);
+
+      }
     }
 
     /// Calculate the score for the given state
@@ -163,6 +196,8 @@ namespace mabe {
       state.incorrect_exits_taken = 0; 
       state.door_rooms_visited = 0; 
       state.exit_rooms_visited = 0; 
+      state.doors_taken_vec.resize(GetNumDoors(), 0);
+      state.doors_correct_vec.resize(GetNumDoors(), 0);
       // Randomize the cue vector according to configuration
       state.cue_vec.resize(GetNumDoors());
       // First pass, add all set cues 
@@ -195,13 +230,15 @@ namespace mabe {
     /// Move the organism through its chosen door
     double Move(DoorsState& state, DoorsState::data_t door_idx){
       if(!state.initialized) InitializeState(state);
-      // Increase room variable for correct room
+      // Increase bookkeeping variables
+      state.doors_taken_vec[door_idx]++;
       if(state.current_cue == state.cue_vec[exit_cue_idx]) state.exit_rooms_visited++;
       else state.door_rooms_visited++;
       if(door_idx == exit_cue_idx) return TakeExit(state);
       // Correct door -> Reward and move on!
       if(state.cue_vec[door_idx] == state.current_cue){
         state.correct_doors_taken++;
+        state.doors_correct_vec[door_idx]++;
         state.prev_room_vec.push_back(state.current_cue);
         state.door_choice_vec.push_back(state.cue_vec[door_idx]);
         state.current_cue = GetRandomCue(state);
@@ -211,24 +248,6 @@ namespace mabe {
         state.incorrect_doors_taken++;
         state.prev_room_vec.push_back(state.current_cue);
         state.door_choice_vec.push_back(state.cue_vec[door_idx]);
-        state.current_cue = state.cue_vec[exit_cue_idx];
-      }
-      return UpdateScore(state);
-    }
-    
-    /// Move the organism through the "exit" door, going back one room  
-    double TakeExit(DoorsState& state){
-      if(!state.initialized) InitializeState(state);
-      // Update bookkeeping
-      state.prev_room_vec.push_back(state.current_cue);
-      state.door_choice_vec.push_back(state.cue_vec[exit_cue_idx]);
-      // Update score vars and current cue
-      if(state.current_cue == state.cue_vec[exit_cue_idx]){
-        state.correct_exits_taken++;
-        state.current_cue = *(state.prev_room_vec.rbegin() + 1); // Return to previous room
-      }
-      else{
-        state.incorrect_exits_taken++;
         state.current_cue = state.cue_vec[exit_cue_idx];
       }
       return UpdateScore(state);
@@ -310,6 +329,12 @@ namespace mabe {
           "Which trait stores the number of exits correctly taken?");
       LinkVar(trait_names.incorrect_exits_trait, "incorrect_exits_trait", 
           "Which trait stores the number of exits incorrectly taken?");
+      LinkVar(trait_names.doors_taken_prefix, "doors_taken_prefix", 
+          "Prefix of multiple traits (one per door) for the number of times that door "
+          "was taken");
+      LinkVar(trait_names.doors_correct_prefix, "doors_correct_prefix", 
+          "Prefix of multiple traits (one per door) for the number of times that door "
+          "was taken correctly");
       LinkVar(cues_str, "cue_values", "A semicolon-separated string of cue values. " 
           "A non-negative value is used as is, -1 gives a random cue for each trial "
           "(first value is the exit)");
@@ -320,6 +345,7 @@ namespace mabe {
     
     /// Set up organism traits, load maps, and provide instructions to organisms
     void SetupModule() override {
+      evaluator.ParseCues(cues_str);
       AddSharedTrait<double>(trait_names.score_trait, "EvalDoors score", 0.0);
       AddSharedTrait<double>(trait_names.accuracy_trait, "EvalDoors accuracy", 0.0);
       AddOwnedTrait<DoorsState>(trait_names.state_trait, "Organism's EvalDoors state", { }); 
@@ -329,7 +355,17 @@ namespace mabe {
       AddOwnedTrait<size_t>(trait_names.incorrect_doors_trait, "Incorrect doors taken", 0);
       AddOwnedTrait<size_t>(trait_names.correct_exits_trait, "Correct exits taken", 0);
       AddOwnedTrait<size_t>(trait_names.incorrect_exits_trait, "Incorrect exits taken", 0);
-      evaluator.ParseCues(cues_str);
+      for(size_t door_idx = 0; door_idx < evaluator.GetNumDoors(); ++door_idx){
+        trait_names.doors_taken_trait_vec.push_back(
+            trait_names.doors_taken_prefix + emp::to_string(door_idx));
+        trait_names.doors_correct_trait_vec.push_back(
+            trait_names.doors_correct_prefix + emp::to_string(door_idx));
+        AddOwnedTrait<size_t>(trait_names.doors_taken_trait_vec[door_idx], 
+            "Number of times door #" + emp::to_string(door_idx) + "was taken", 0);
+        AddOwnedTrait<size_t>(trait_names.doors_correct_trait_vec[door_idx], 
+            "Number of times door #" + emp::to_string(door_idx) + "was correctly taken", 0);
+
+      }
       SetupInstructions();
     }
     

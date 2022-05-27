@@ -165,6 +165,12 @@ fit_file.ADD_COLUMN("correct_doors_mean", "main_pop.CALC_MEAN('correct_doors')" 
 fit_file.ADD_COLUMN("incorrect_doors_mean", "main_pop.CALC_MEAN('incorrect_doors')" );
 fit_file.ADD_COLUMN("correct_exits_mean", "main_pop.CALC_MEAN('correct_exits')" );
 fit_file.ADD_COLUMN("incorrect_exits_mean", "main_pop.CALC_MEAN('incorrect_exits')" );
+fit_file.ADD_COLUMN("doors_taken_0_mean", "main_pop.CALC_MEAN('doors_taken_0')" );
+fit_file.ADD_COLUMN("doors_correct_0_mean", "main_pop.CALC_MEAN('doors_correct_0')" );
+fit_file.ADD_COLUMN("doors_taken_1_mean", "main_pop.CALC_MEAN('doors_taken_1')" );
+fit_file.ADD_COLUMN("doors_correct_1_mean", "main_pop.CALC_MEAN('doors_correct_1')" );
+fit_file.ADD_COLUMN("doors_taken_2_mean", "main_pop.CALC_MEAN('doors_taken_2')" );
+fit_file.ADD_COLUMN("doors_correct_2_mean", "main_pop.CALC_MEAN('doors_correct_2')" );
 
 DataFile max_file { filename="max_org.csv"; };
 OrgList best_org;
@@ -180,6 +186,12 @@ max_file.ADD_COLUMN("correct_doors", "best_org.TRAIT('correct_doors')" );
 max_file.ADD_COLUMN("incorrect_doors", "best_org.TRAIT('incorrect_doors')" );
 max_file.ADD_COLUMN("correct_exits", "best_org.TRAIT('correct_exits')" );
 max_file.ADD_COLUMN("incorrect_exits", "best_org.TRAIT('incorrect_exits')" );
+max_file.ADD_COLUMN("doors_taken_0", "best_org.TRAIT('doors_taken_0')" );
+max_file.ADD_COLUMN("doors_correct_0", "best_org.TRAIT('doors_correct_0')" );
+max_file.ADD_COLUMN("doors_taken_1", "best_org.TRAIT('doors_taken_1')" );
+max_file.ADD_COLUMN("doors_correct_1", "best_org.TRAIT('doors_correct_1')" );
+max_file.ADD_COLUMN("doors_taken_2", "best_org.TRAIT('doors_taken_2')" );
+max_file.ADD_COLUMN("doors_correct_2", "best_org.TRAIT('doors_correct_2')" );
 
 @START() {
   PRINT("random_seed = ", random_seed, "\n");  // Print seed at run start.
@@ -196,10 +208,14 @@ Var avg_gen;
         "  gen_mean=", main_pop.CALC_MEAN("generation"),
         //"  gen_max=", main_pop.CALC_MAX("generation"),
         //"  genome_length_max=", main_pop.CALC_MAX("genome_length"),
-        "\nlength_mean=", main_pop.CALC_MEAN("genome_length"),
+        "\n\tlength_mean=", main_pop.CALC_MEAN("genome_length"),
         "  mean_accuracy=", main_pop.CALC_MEAN("accuracy"),
         "  mean_cor_doors=", main_pop.CALC_MEAN("correct_doors"),
-        "  max_cor_doors=", main_pop.CALC_MAX("correct_doors")
+        "  max_cor_doors=", main_pop.CALC_MAX("correct_doors"),
+        "\n\tmean_left=", main_pop.CALC_MEAN("doors_taken_1"),
+        "  mean_right=", main_pop.CALC_MEAN("doors_taken_2"),
+        "  mean_cor_left=", main_pop.CALC_MEAN("doors_correct_1"),
+        "  mean_cor_right=", main_pop.CALC_MEAN("doors_correct_2")
        );
   fit_file.WRITE();
   max_file.WRITE();
