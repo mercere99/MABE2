@@ -49,6 +49,12 @@ namespace mabe {
 
     PathFollowState(): initialized(false), cur_map_idx(0), visited_tiles(), status(),
         raw_score(0), empty_cue(1), forward_cue(2), left_cue(3), right_cue(4) { ; }
+    
+    /// Copy constructor merely preps state to be initialized
+    PathFollowState(const PathFollowState& other){
+      raw_score = 0;
+      initialized = false;
+    }
   };
 
   /// \brief Information of a single path that was loaded from file
