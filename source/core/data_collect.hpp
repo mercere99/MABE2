@@ -51,7 +51,7 @@ namespace mabe {
       for (const auto & entry : container) {
         vals[ get_fun(entry) ]++;
       }
-      DATA_T mode_val;
+      DATA_T mode_val{};
       size_t mode_count = 0;
 
       for (auto [cur_val, cur_count] : vals) {
