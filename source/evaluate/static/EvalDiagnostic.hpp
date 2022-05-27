@@ -23,6 +23,13 @@ namespace mabe {
     std::string first_trait = "first_active";  // Location of first activation position.
     std::string count_trait = "active_count";  // Number of activation positions.
 
+    // Track the DataMap ID for each trait.
+    size_t vals_id = static_cast<size_t>(-1);
+    size_t scores_id = static_cast<size_t>(-1);
+    size_t total_id = static_cast<size_t>(-1);
+    size_t first_id = static_cast<size_t>(-1);
+    size_t count_id = static_cast<size_t>(-1);
+
     enum Type {
       EXPLOIT,                  // Must drive values as close to 100 as possible.
       STRUCT_EXPLOIT,           // Start at first value; only count values smaller than previous.
@@ -78,6 +85,15 @@ namespace mabe {
     }
 
     double Evaluate(Collection orgs) {
+      // If we haven't calculated the IDs, do so now.
+      if (vals_id == static_cast<size_t>(-1)) {
+        vals_id = orgs.GetDataLayout().GetID(vals_trait);
+        scores_id = orgs.GetDataLayout().GetID(scores_trait);
+        total_id = orgs.GetDataLayout().GetID(total_trait);
+        first_id = orgs.GetDataLayout().GetID(first_trait);
+        count_id = orgs.GetDataLayout().GetID(count_trait);
+      }
+
       // Track the organism with the highest total score.
       double max_total = 0.0;
       emp::Ptr<Organism> max_org = nullptr;
@@ -89,11 +105,11 @@ namespace mabe {
         org.GenerateOutput();
 
         // Get access to the data_map elements that we need.
-        const emp::vector<double> & vals = org.GetTrait<emp::vector<double>>(vals_trait);
-        emp::vector<double> & scores = org.GetTrait<emp::vector<double>>(scores_trait);
-        double & total_score = org.GetTrait<double>(total_trait);
-        size_t & first_active = org.GetTrait<size_t>(first_trait);
-        size_t & active_count = org.GetTrait<size_t>(count_trait);
+        const emp::vector<double> & vals = org.GetTrait<emp::vector<double>>(vals_id);
+        emp::vector<double> & scores = org.GetTrait<emp::vector<double>>(scores_id);
+        double & total_score = org.GetTrait<double>(total_id);
+        size_t & first_active = org.GetTrait<size_t>(first_id);
+        size_t & active_count = org.GetTrait<size_t>(count_id);
 
         // Initialize output values.
         scores.resize(vals.size());
