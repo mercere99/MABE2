@@ -87,7 +87,7 @@ namespace emplode {
           if (i) file << ",";
           file << cols[i].header;
         }
-        file << '\n';
+        file << std::endl;
       }
 
       // Do any setup for the columns.
