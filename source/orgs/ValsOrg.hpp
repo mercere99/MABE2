@@ -1,10 +1,10 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2021.
+ *  @date 2021-2022.
  *
  *  @file ValsOrg.hpp
- *  @brief An organism consisting of a series of values of type double.
+ *  @brief An organism consisting of a fixed-size series of values of type double.
  *  @note Status: ALPHA
  */
 
@@ -23,9 +23,6 @@ namespace mabe {
 
   class ValsOrg : public OrganismTemplate<ValsOrg> {
   protected:
-    emp::vector<double> vals;  // Set of values that make up organism.
-    double total = 0.0;        // Dynamic total of values in organism.
-
     // How do we enforce limits on values?
     enum BoundType {
       LIMIT_NONE=0,  // No boundary limit.  (e.g., in a 0 to 100 range, 103 would stay 103)
@@ -35,15 +32,17 @@ namespace mabe {
       LIMIT_ERROR    // Invalid limit type.
     };
 
-    void CalculateTotal() {
+    void CalculateTotal(const emp::vector<double> & vals) {
+      double total = 0.0;
       for (double x : vals) total += x;
       SetTrait<double>(SharedData().total_name, total);
     }
 
   public:
     struct ManagerData : public Organism::ManagerData {
-      std::string output_name = "vals";  ///< Name of trait that should be used to access values.
+      std::string genome_name = "vals";  ///< Name of trait that should be used to access values.
       std::string total_name = "total";  ///< Name of trait that indicate total of all values.
+      size_t num_vals = 100;             ///< Number of values in this genome.
       double mut_prob = 0.01;            ///< Probability of position mutating on reproduction.
       double mut_size = 1.0;             ///< Standard deviation of mutations.
       double min_value = 0.0;            ///< Smallest that values are allowed to be.
@@ -62,34 +61,32 @@ namespace mabe {
     };
 
     ValsOrg(OrganismManager<ValsOrg> & _manager)
-      : OrganismTemplate<ValsOrg>(_manager), vals(100, 0.0), total(0.0) { }
+      : OrganismTemplate<ValsOrg>(_manager) { }
     ValsOrg(const ValsOrg &) = default;
     ValsOrg(ValsOrg &&) = default;
-    ValsOrg(const emp::vector<double> & in, OrganismManager<ValsOrg> & _manager)
-      : OrganismTemplate<ValsOrg>(_manager), vals(in)
-    {
-      SharedData().ApplyBounds(vals);  // Make sure all data is within range.
-      CalculateTotal();
-    }
-    ValsOrg(size_t N, OrganismManager<ValsOrg> & _manager)
-      : OrganismTemplate<ValsOrg>(_manager), vals(N, 0.0), total(0.0) { }
     ~ValsOrg() { ; }
 
     /// Use "to_string" to convert.
-    std::string ToString() const override { return emp::to_string(vals, ":(TOTAL=", total, ")"); }
+    std::string ToString() const override {
+      const auto & vals = GetTrait<emp::vector<double>>(SharedData().genome_name);
+      const double total = GetTrait<double>(SharedData().total_name);
+      return emp::to_string(vals, ":(TOTAL=", total, ")");
+    }
 
     size_t Mutate(emp::Random & random) override {
       // Identify number of and positions for mutations.
       const size_t num_muts = SharedData().mut_dist.PickRandom(random);
       emp::BitVector & mut_sites = SharedData().mut_sites;
       mut_sites.ChooseRandom(random, num_muts);
+      auto & vals = GetTrait<emp::vector<double>>(SharedData().genome_name);
+      double & total = GetTrait<double>(SharedData().total_name);
 
       // Trigger mutations at the identified positions.
       int mut_pos = mut_sites.FindOne();
       while (mut_pos != -1) {
         double & cur_val = vals[mut_pos];        // Identify the next site to mutate.
         total -= cur_val;                        // Remove old value from the total.
-        cur_val += random.GetNormal();       // Mutate the value at the site.
+        cur_val += random.GetNormal();           // Mutate the value at the site.
         SharedData().ApplyBounds(cur_val);       // Make sure the value stays in the allowed range.
         total += cur_val;                        // Add the update value back into the total.
         mut_pos = mut_sites.FindOne(mut_pos+1);  // Move on to the next site to mutate.
@@ -100,7 +97,8 @@ namespace mabe {
     }
 
     void Randomize(emp::Random & random) override {
-      total = 0.0;
+      auto & vals = GetTrait<emp::vector<double>>(SharedData().genome_name);
+      double total = 0.0;
       for (double & x : vals) {
         x = random.GetDouble(SharedData().min_value, SharedData().max_value);
         total += x;
@@ -110,21 +108,23 @@ namespace mabe {
 
     void Initialize(emp::Random & random) override {
       if (SharedData().init_random) Randomize(random);
-      else { total = 0.0; for (double & x : vals) x = 0.0; }
+      else { 
+        auto & vals = GetTrait<emp::vector<double>>(SharedData().genome_name);
+        double total = 0.0;
+        for (double & x : vals) x = 0.0;
+        SetTrait<double>(SharedData().total_name, total);  // Store total in data map.
+      }
     }
 
 
     /// Put the values in the correct output positions.
     void GenerateOutput() override {
-      SetTrait<emp::vector<double>>(SharedData().output_name, vals);
-      SetTrait<double>(SharedData().total_name, total);
+      /// Output is already stored in the DataMap.
     }
 
     /// Setup this organism type to be able to load from config.
     void SetupConfig() override {
-      GetManager().LinkFuns<size_t>([this](){ return vals.size(); },
-                       [this](const size_t & N){ return vals.resize(N, 0.0); },
-                       "N", "Number of values in organism");
+      GetManager().LinkVar(SharedData().num_vals, "N", "Number of values in organism");
       GetManager().LinkVar(SharedData().mut_prob, "mut_prob",
                       "Probability of each value mutating on reproduction.");
       GetManager().LinkVar(SharedData().mut_size, "mut_size",
@@ -145,7 +145,7 @@ namespace mabe {
         LIMIT_CLAMP, "clamp", "Reduce too-high values to max_value.",
         LIMIT_WRAP, "wrap", "Make high values loop around to minimum.",
         LIMIT_REBOUND, "rebound", "Make high values 'bounce' back down." );
-      GetManager().LinkVar(SharedData().output_name, "output_name",
+      GetManager().LinkVar(SharedData().genome_name, "genome_name",
                       "Name of variable to contain set of values.");
       GetManager().LinkVar(SharedData().total_name, "total_name",
                       "Name of variable to contain total of all values.");
@@ -156,15 +156,15 @@ namespace mabe {
     /// Setup this organism type with the traits it need to track.
     void SetupModule() override {
       // Setup the mutation distribution.
-      SharedData().mut_dist.Setup(SharedData().mut_prob, vals.size());
+      SharedData().mut_dist.Setup(SharedData().mut_prob, SharedData().num_vals);
 
       // Setup the default vector to indicate mutation positions.
-      SharedData().mut_sites.Resize(vals.size());
+      SharedData().mut_sites.Resize(SharedData().num_vals);
 
       // Setup the output trait.
-      GetManager().AddSharedTrait(SharedData().output_name,
+      GetManager().AddSharedTrait(SharedData().genome_name,
                                   "Value vector output from organism.",
-                                  emp::vector<double>(vals.size()));
+                                  emp::vector<double>(SharedData().num_vals, 0.0));
       // Setup the output trait.
       GetManager().AddSharedTrait(SharedData().total_name,
                                   "Total of all organism outputs.",
