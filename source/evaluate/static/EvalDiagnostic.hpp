@@ -22,6 +22,7 @@ namespace mabe {
     std::string total_trait = "total";         // A single value totalling all of the scores.
     std::string first_trait = "first_active";  // Location of first activation position.
     std::string count_trait = "active_count";  // Number of activation positions.
+    size_t num_vals = 100;                     // Cardinality of the problem space.
 
     // Track the DataMap ID for each trait.
     size_t vals_id = static_cast<size_t>(-1);
@@ -63,6 +64,7 @@ namespace mabe {
 
     void SetupConfig() override {
       LinkVar(vals_trait, "vals_trait", "Trait that stores the values to evaluate");
+      LinkVar(num_vals, "N", "Cardinality of the problem (number of values to analyze)");
       LinkVar(scores_trait, "scores_trait", "Trait to store activated scores");
       LinkVar(total_trait, "total_trait", "Trait to store total score");
       LinkVar(first_trait, "first_trait", "Trait to store first activation position");
@@ -77,8 +79,8 @@ namespace mabe {
     }
 
     void SetupModule() override {
-      AddRequiredTrait<emp::vector<double>>(vals_trait);
-      AddOwnedTrait<emp::vector<double>>(scores_trait, "Individual scores for current diagnostic.", emp::vector<double>({0.0}));
+      AddRequiredTrait<double>(vals_trait, num_vals);
+      AddOwnedTrait<double>(scores_trait, "Individual scores for current diagnostic.", 0.0, num_vals);
       AddOwnedTrait<double>(total_trait, "Combined score for current diagnostic.", 0.0);
       AddOwnedTrait<size_t>(first_trait, "First activated position.", 0.0);
       AddOwnedTrait<size_t>(count_trait, "Total number of activated positions.", 0.0);
