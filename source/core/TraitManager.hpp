@@ -18,6 +18,7 @@
 #include <unordered_map>
 
 #include "emp/base/Ptr.hpp"
+#include "emp/meta/type_traits.hpp"
 
 #include "TraitInfo.hpp"
 
@@ -75,7 +76,8 @@ namespace mabe {
                          TraitInfo::Access access,
                          const std::string & trait_name,
                          const std::string & desc,
-                         const T & default_val)
+                         const T & default_val,
+                         size_t count)
     {
       const std::string & mod_name = mod_ptr->GetName();
 
@@ -99,7 +101,7 @@ namespace mabe {
       // If the trait does not already exist, build it as a new trait.
       emp::Ptr<TraitInfo> cur_trait = nullptr;
       if (emp::Has(trait_map, trait_name) == false) {
-        cur_trait = emp::NewPtr<TypedTraitInfo<T>>(trait_name, default_val);
+        cur_trait = emp::NewPtr<TypedTraitInfo<T>>(trait_name, default_val, count);
         cur_trait->SetAltTypes(alt_types);
         cur_trait->SetDesc(desc);
         trait_map[trait_name] = cur_trait;
@@ -119,12 +121,25 @@ namespace mabe {
         emp::vector<emp::TypeID> prev_alt_types = cur_trait->GetAltTypes();
         emp::vector<emp::TypeID> intersect_types = emp::FindIntersect(alt_types, prev_alt_types);
 
+        // Make sure the value count is consistent with previous modules.
+        if ( cur_trait->GetValueCount() != count ) {
+          if (count == TraitInfo::ANY_COUNT) count = cur_trait->GetValueCount();
+          else if (cur_trait->GetValueCount() == TraitInfo::ANY_COUNT) cur_trait->SetValueCount(count);
+          else {
+            emp::notify::Error("Module ", mod_name, " is trying to use trait '",
+                                trait_name, " with value count ", count,
+                                ", but previously defined in module(s) ",
+                                emp::to_english_list(cur_trait->GetModuleNames()),
+                                " with value count ", cur_trait->GetValueCount());
+          }
+        }
+
         // Make sure the type setup for this trait is compatable with the current module.
         if ( !emp::Has(alt_types, cur_trait->GetType()) ) {
           // Previous type does not match current options; can we switch over to type T?
           if (cur_trait->IsAllowedType<T>()) {
             cur_trait.Delete();
-            cur_trait = emp::NewPtr<TypedTraitInfo<T>>(trait_name, default_val);
+            cur_trait = emp::NewPtr<TypedTraitInfo<T>>(trait_name, default_val, count);
             cur_trait->SetDesc(desc);
             trait_map[trait_name] = cur_trait;
           }
@@ -155,12 +170,19 @@ namespace mabe {
     /////////////////////////////////////////////////
     //  --- Trait verification functions ---
 
-    /// Make sure that there are no illegal states in this trait setup.
+    /// Make sure that all traits have valid settings..
     bool VerifyValid(const std::string & trait_name, emp::Ptr<TraitInfo> trait_ptr) {
       // NO traits should be of UNKNOWN access.
       if (trait_ptr->GetUnknownCount()) {
         emp::notify::Error("Unknown access mode for trait '", trait_name,
                             "' in module(s) ", emp::to_english_list(trait_ptr->GetUnknownNames()),
+                            " (internal error!)");
+        return false;
+      }
+
+      if (trait_ptr->GetValueCount() == TraitInfo::ANY_COUNT) {
+        emp::notify::Error("No count specified for '", trait_name,
+                            "' in module(s) ", emp::to_english_list(trait_ptr->GetModuleNames()),
                             " (internal error!)");
         return false;
       }
