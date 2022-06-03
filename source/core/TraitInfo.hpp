@@ -69,6 +69,7 @@ namespace mabe {
     std::string desc="";                 ///< Description of this trait.
     emp::TypeID type;                    ///< Type identifier for this trait.
     emp::vector<emp::TypeID> alt_types;  ///< What other types should be allowed?
+    size_t val_count=1;                  ///< How many values are associated with this trait?
 
   public:
     /// Which modules are allowed to read or write this trait?
@@ -123,6 +124,9 @@ namespace mabe {
       FULL,       ///< Store ALL current/final values for organisms.
     };
 
+    /// Special value count to represent ANY count is allowed.
+    static constexpr const size_t ANY_COUNT = static_cast<size_t>(-1);
+
   protected:
     Init init = Init::DEFAULT;
     bool reset_parent = false;  ///< Should the parent ALSO be reset on birth?
@@ -165,12 +169,14 @@ namespace mabe {
     const std::string & GetDesc() const { return desc; }
     emp::TypeID GetType() const { return type; }
     const emp::vector<emp::TypeID> & GetAltTypes() const { return alt_types; }
+    size_t GetValueCount() const { return val_count; }
 
     template <typename... Ts>
     void SetAltTypes(const emp::vector<emp::TypeID> & in_alt_types) { alt_types = in_alt_types; }
     template <typename T> bool IsType() const { return GetType() == emp::GetTypeID<T>(); }
     bool IsAllowedType(emp::TypeID test_type) const { return Has(alt_types, test_type); };
     template <typename T> bool IsAllowedType() const { return IsAllowedType(emp::GetTypeID<T>()); }
+    void SetValueCount(size_t in_count) { val_count = in_count; }
 
     /// Determine what kind of access a module has.
     Access GetAccess(mod_ptr_t mod_ptr) const {
@@ -283,12 +289,14 @@ namespace mabe {
     {
       name = in_name;
       type = emp::GetTypeID<T>();
+      val_count = 1;
     }
 
-    TypedTraitInfo(const std::string & in_name, const T & in_default)
+    TypedTraitInfo(const std::string & in_name, const T & in_default, size_t in_count)
       : default_value(in_default), has_default(true)
     {
       name = in_name;
+      val_count = in_count;
       type = emp::GetTypeID<T>();
     }
 
@@ -303,7 +311,7 @@ namespace mabe {
     }
     
     void Register(emp::DataMap & dm) const override {
-      dm.AddVar(name, default_value, desc);
+      dm.AddVar(name, default_value, desc, "MABE Trait", val_count);
     }
 
   };
