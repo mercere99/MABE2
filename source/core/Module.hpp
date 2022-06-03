@@ -137,44 +137,45 @@ namespace mabe {
     TraitInfo & AddTrait(TraitInfo::Access access,
                          const std::string & name,
                          const std::string & desc="",
-                         const T & default_val=T()
+                         const T & default_val=T(),
+                         size_t count=1
     ) {
       emp_assert(name != "", name);
-      return control.GetTraitManager().AddTrait<T,ALT_Ts...>(this, access, name, desc, default_val);
+      return control.GetTraitManager().AddTrait<T,ALT_Ts...>(this, access, name, desc, default_val, count);
     }
 
     /// Add trait that this module can READ & WRITE this trait.  Others cannot use it.
     /// Must provide name, description, and a default value to start at.
     template <typename T, typename... ALT_Ts>
-    TraitInfo & AddPrivateTrait(const std::string & name, const std::string & desc, const T & default_val) {
-      return AddTrait<T,ALT_Ts...>(TraitInfo::Access::PRIVATE, name, desc, default_val);
+    TraitInfo & AddPrivateTrait(const std::string & name, const std::string & desc, const T & default_val, size_t count=1) {
+      return AddTrait<T,ALT_Ts...>(TraitInfo::Access::PRIVATE, name, desc, default_val, count);
     }
 
     /// Add trait that this module can READ & WRITE to; other modules can only read.
     /// Must provide name, description, and a default value to start at.
     template <typename T, typename... ALT_Ts>
-    TraitInfo & AddOwnedTrait(const std::string & name, const std::string & desc, const T & default_val) {
-      return AddTrait<T,ALT_Ts...>(TraitInfo::Access::OWNED, name, desc, default_val);
+    TraitInfo & AddOwnedTrait(const std::string & name, const std::string & desc, const T & default_val, size_t count=1) {
+      return AddTrait<T,ALT_Ts...>(TraitInfo::Access::OWNED, name, desc, default_val, count);
     }
    
     /// Add trait that this module can READ & WRITE to; at least one other module MUST read it.
     /// Must provide name, description, and a default value to start at.
     template <typename T, typename... ALT_Ts>
-    TraitInfo & AddGeneratedTrait(const std::string & name, const std::string & desc, const T & default_val) {
-      return AddTrait<T,ALT_Ts...>(TraitInfo::Access::GENERATED, name, desc, default_val);
+    TraitInfo & AddGeneratedTrait(const std::string & name, const std::string & desc, const T & default_val, size_t count=1) {
+      return AddTrait<T,ALT_Ts...>(TraitInfo::Access::GENERATED, name, desc, default_val, count);
     }
    
     /// Add trait that this module can READ & WRITE; other modules can too.
     template <typename T, typename... ALT_Ts>
-    TraitInfo & AddSharedTrait(const std::string & name, const std::string & desc, const T & default_val) {
-      return AddTrait<T,ALT_Ts...>(TraitInfo::Access::SHARED, name, desc, default_val);
+    TraitInfo & AddSharedTrait(const std::string & name, const std::string & desc, const T & default_val, size_t count=1) {
+      return AddTrait<T,ALT_Ts...>(TraitInfo::Access::SHARED, name, desc, default_val, count);
     }
    
     /// Add trait that this module can READ, but another module must WRITE to it.
     /// That other module should also provide the description for the trait.
     template <typename T, typename... ALT_Ts>
-    TraitInfo & AddRequiredTrait(const std::string & name) {
-      return AddTrait<T,ALT_Ts...>(TraitInfo::Access::REQUIRED, name);
+    TraitInfo & AddRequiredTrait(const std::string & name, size_t count=1) {
+      return AddTrait<T,ALT_Ts...>(TraitInfo::Access::REQUIRED, name, "", T(), count);
     }
 
     /// Add all of the traits that that this module needs to be able to READ, in order to
