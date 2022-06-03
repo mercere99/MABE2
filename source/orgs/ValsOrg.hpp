@@ -15,9 +15,10 @@
 #include "../core/Organism.hpp"
 #include "../core/OrganismManager.hpp"
 
-#include "emp/base/vector.hpp"
+#include "emp/datastructs/span_utils.hpp"
 #include "emp/math/Distribution.hpp"
 #include "emp/math/random_utils.hpp"
+#include "emp/polyfill/span.hpp"
 
 namespace mabe {
 
@@ -32,7 +33,7 @@ namespace mabe {
       LIMIT_ERROR    // Invalid limit type.
     };
 
-    void CalculateTotal(const emp::vector<double> & vals) {
+    void CalculateTotal(const std::span<double> & vals) {
       double total = 0.0;
       for (double x : vals) total += x;
       SetTrait<double>(SharedData().total_name, total);
@@ -57,7 +58,7 @@ namespace mabe {
 
       // Helper functions.
       inline void ApplyBounds(double & value);              ///< Put a single value back in range.
-      inline void ApplyBounds(emp::vector<double> & vals);  ///< Put all values back in range.
+      inline void ApplyBounds(std::span<double> & vals);  ///< Put all values back in range.
     };
 
     ValsOrg(OrganismManager<ValsOrg> & _manager)
@@ -68,7 +69,7 @@ namespace mabe {
 
     /// Use "to_string" to convert.
     std::string ToString() const override {
-      const auto & vals = GetTrait<emp::vector<double>>(SharedData().genome_name);
+      std::span<const double> vals = GetTrait<double>(SharedData().genome_name, SharedData().num_vals);
       const double total = GetTrait<double>(SharedData().total_name);
       return emp::to_string(vals, ":(TOTAL=", total, ")");
     }
@@ -78,7 +79,7 @@ namespace mabe {
       const size_t num_muts = SharedData().mut_dist.PickRandom(random);
       emp::BitVector & mut_sites = SharedData().mut_sites;
       mut_sites.ChooseRandom(random, num_muts);
-      auto & vals = GetTrait<emp::vector<double>>(SharedData().genome_name);
+      std::span<double> vals = GetTrait<double>(SharedData().genome_name, SharedData().num_vals);
       double & total = GetTrait<double>(SharedData().total_name);
 
       // Trigger mutations at the identified positions.
@@ -97,7 +98,7 @@ namespace mabe {
     }
 
     void Randomize(emp::Random & random) override {
-      auto & vals = GetTrait<emp::vector<double>>(SharedData().genome_name);
+      std::span<double> vals = GetTrait<double>(SharedData().genome_name, SharedData().num_vals);
       double total = 0.0;
       for (double & x : vals) {
         x = random.GetDouble(SharedData().min_value, SharedData().max_value);
@@ -109,7 +110,7 @@ namespace mabe {
     void Initialize(emp::Random & random) override {
       if (SharedData().init_random) Randomize(random);
       else { 
-        auto & vals = GetTrait<emp::vector<double>>(SharedData().genome_name);
+        std::span<double> vals = GetTrait<double>(SharedData().genome_name, SharedData().num_vals);
         double total = 0.0;
         for (double & x : vals) x = 0.0;
         SetTrait<double>(SharedData().total_name, total);  // Store total in data map.
@@ -135,13 +136,13 @@ namespace mabe {
                       "Upper limit for value fields.");
       GetManager().LinkMenu(
         SharedData().lower_bound, "lower_bound", "How should the lower limit be enforced?",
-        LIMIT_NONE, "no_limit", "Allow values to be arbirarily low.",
+        LIMIT_NONE, "no_limit", "Allow values to be arbitrarily low.",
         LIMIT_CLAMP, "clamp", "Reduce too-low values to min_value.",
         LIMIT_WRAP, "wrap", "Make low values loop around to maximum.",
         LIMIT_REBOUND, "rebound", "Make low values 'bounce' back up." );
       GetManager().LinkMenu(
         SharedData().upper_bound, "upper_bound", "How should the upper limit be enforced?",
-        LIMIT_NONE, "no_limit", "Allow values to be arbirarily high.",
+        LIMIT_NONE, "no_limit", "Allow values to be arbitrarily high.",
         LIMIT_CLAMP, "clamp", "Reduce too-high values to max_value.",
         LIMIT_WRAP, "wrap", "Make high values loop around to minimum.",
         LIMIT_REBOUND, "rebound", "Make high values 'bounce' back down." );
@@ -163,8 +164,9 @@ namespace mabe {
 
       // Setup the output trait.
       GetManager().AddSharedTrait(SharedData().genome_name,
-                                  "Value vector output from organism.",
-                                  emp::vector<double>(SharedData().num_vals, 0.0));
+                                  "Value array output from organism.",
+                                  0.0,
+                                  SharedData().num_vals);
       // Setup the output trait.
       GetManager().AddSharedTrait(SharedData().total_name,
                                   "Total of all organism outputs.",
@@ -182,7 +184,7 @@ namespace mabe {
         case LIMIT_CLAMP:   value = max_value; break;
         case LIMIT_WRAP:    value -= (max_value - min_value); break;
         case LIMIT_REBOUND: value = 2 * max_value - value; break;
-        case LIMIT_ERROR:   break;  // For now; perhaps do somethign with error?
+        case LIMIT_ERROR:   break;  // For now; perhaps do something with error?
       }
     }
     else if (value < min_value) {
@@ -191,12 +193,12 @@ namespace mabe {
         case LIMIT_CLAMP:   value = min_value; break;
         case LIMIT_WRAP:    value += (max_value - min_value); break;
         case LIMIT_REBOUND: value = 2 * min_value - value; break;
-        case LIMIT_ERROR:   break;  // For now; perhaps do somethign with error?
+        case LIMIT_ERROR:   break;  // For now; perhaps do something with error?
       }
     }
   }
 
-  void ValsOrg::ManagerData::ApplyBounds(emp::vector<double> & vals) {
+  void ValsOrg::ManagerData::ApplyBounds(std::span<double> & vals) {
     const size_t range_size = max_value - min_value;
 
     switch (upper_bound) {
