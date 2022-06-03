@@ -5,6 +5,9 @@
  *
  *  @file  EvalDiagnostic.hpp
  *  @brief MABE Evaluation module for counting the number of ones (or zeros) in an output.
+ * 
+ *  Developer notes:
+ *  - Can allow vals_trait to also be a vector.
  */
 
 #ifndef MABE_EVAL_DIAGNOSTIC_H
@@ -107,14 +110,13 @@ namespace mabe {
         org.GenerateOutput();
 
         // Get access to the data_map elements that we need.
-        const emp::vector<double> & vals = org.GetTrait<emp::vector<double>>(vals_id);
-        emp::vector<double> & scores = org.GetTrait<emp::vector<double>>(scores_id);
-        double & total_score = org.GetTrait<double>(total_id);
+        std::span<double> vals   = org.GetTrait<double>(vals_id, num_vals);
+        std::span<double> scores = org.GetTrait<double>(scores_id, num_vals);
+        double & total_score  = org.GetTrait<double>(total_id);
         size_t & first_active = org.GetTrait<size_t>(first_id);
         size_t & active_count = org.GetTrait<size_t>(count_id);
 
         // Initialize output values.
-        scores.resize(vals.size());
         total_score = 0.0;
         size_t pos = 0;
 
