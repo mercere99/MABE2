@@ -1,71 +1,81 @@
-EMP_DIR := ../source/third-party/empirical/include
+# Main (working) build options:
+#  native (default) - Optimized version of code. (38 sec)
+#  debug - turn on all debugging options, including asserts and pointer tracking.  (37 sec)
+#  quick - no debugging or optimization; fastest compile time. (21 sec)
+#  clean - remove all compilation artifacts including executable.
+#
+# Other build options, more rarely used:
+#  grumpy - Lots of extra warnings turned on
+#  noblock - Same as native, but "blocking" debug code is still allowed.
+
+EMP_DIR := ../../Empirical/include
 MABE_DIR := ../source
 
-# Flags to use regardless of compiler
-CFLAGS_all := -Wall -Wextra -Wno-unused-function -I$(EMP_DIR)/ -I$(MABE_DIR)/
-CFLAGS_version := -std=c++17
-
-# Emscripten compiler information
+# Compiler information
 CXX_web := emcc
 CXX_native := g++
 
-OFLAGS_native_opt := -O3 -DNDEBUG
-OFLAGS_native_debug := -g -pedantic -DEMP_TRACK_MEM  -Wnon-virtual-dtor -Wcast-align
-OFLAGS_native_grumpy := -g -pedantic -DEMP_TRACK_MEM  -Wnon-virtual-dtor -Wcast-align -Wconversion -Weffc++
+TARGET := MABE
 
-OFLAGS_web_opt := -Os -DNDEBUG -s TOTAL_MEMORY=67108864
-OFLAGS_web_debug := -g4 -pedantic -Wno-dollar-in-identifier-extension -s TOTAL_MEMORY=67108864 -s ASSERTIONS=2 -s DEMANGLE_SUPPORT=1 # -s SAFE_HEAP=1
+# Flags to use regardless of compiler
+FLAGS_version := -std=c++17
+FLAGS_include := -I$(EMP_DIR)/ -I$(MABE_DIR)/
+FLAGS_warn := -Wall -Wextra -Wno-unused-function -Wnon-virtual-dtor -Wcast-align
+FLAGS_base := $(FLAGS_version) $(FLAGS_include) $(FLAGS_warn)
 
-CFLAGS_native_opt := $(CFLAGS_all) $(OFLAGS_native_opt)
-CFLAGS_native_noblock := $(CFLAGS_all) $(OFLAGS_native_opt) -DEMP_NO_BLOCK
-CFLAGS_native_debug := $(CFLAGS_all) $(OFLAGS_native_debug)
-CFLAGS_native_grumpy := $(CFLAGS_all) $(OFLAGS_native_grumpy)
+FLAGS_debug := -g -pedantic -DEMP_TRACK_MEM
+FLAGS_nodebug := -DNDEBUG
+FLAGS_EMSCRIPTEN := --js-library $(EMP_DIR)/web/library_emp.js -s EXPORTED_FUNCTIONS="['_main', '_empCppCallback']" -s NO_EXIT_RUNTIME=1  -s TOTAL_MEMORY=67108864
 
-CFLAGS_web_debug := $(CFLAGS_all) $(OFLAGS_web_debug) --js-library $(EMP_DIR)/web/library_emp.js -s EXPORTED_FUNCTIONS="['_main', '_empCppCallback']" -s NO_EXIT_RUNTIME=1
-CFLAGS_web_opt := $(CFLAGS_all) $(OFLAGS_web_opt) --js-library $(EMP_DIR)/web/library_emp.js -s EXPORTED_FUNCTIONS="['_main', '_empCppCallback']" -s NO_EXIT_RUNTIME=1
-#CFLAGS_web := $(CFLAGS_all) $(OFLAGS_web) --js-library $(EMP_DIR)/web/library_emp.js -s EXPORTED_FUNCTIONS="['_main', '_empCppCallback']" -s DISABLE_EXCEPTION_CATCHING=1 -s NO_EXIT_RUNTIME=1
+FLAGS_native_opt := $(FLAGS_base) $(FLAGS_nodebug) -O3
+FLAGS_native_noblock := $(FLAGS_base) $(FLAGS_nodebug) -O3 -DEMP_NO_BLOCK
+FLAGS_native_debug := $(FLAGS_base) $(FLAGS_debug)
+FLAGS_native_grumpy := $(FLAGS_base) $(FLAGS_debug) -Wconversion -Weffc++
+FLAGS_native_quick := $(FLAGS_base) $(FLAGS_nodebug)
 
-# TARGETS := MABE NK AllOnes
-TARGETS := MABE
+FLAGS_web_debug := $(FLAGS_base) $(FLAGS_EMSCRIPTEN) -g4 -pedantic -Wno-dollar-in-identifier-extension -s ASSERTIONS=2 -s DEMANGLE_SUPPORT=1 # -s SAFE_HEAP=1
+FLAGS_web_opt := $(FLAGS_base) $(FLAGS_nodebug) -Os $(FLAGS_EMSCRIPTEN)
+#FLAGS_web := $(FLAGS_base) $(OFLAGS_web) --js-library $(EMP_DIR)/web/library_emp.js -s EXPORTED_FUNCTIONS="['_main', '_empCppCallback']" -s DISABLE_EXCEPTION_CATCHING=1 -s NO_EXIT_RUNTIME=1
+
+CXX := $(CXX_native)
+FLAGS := $(FLAGS_native_opt)
 
 default: native
 
-CXX := $(CXX_native)
-CFLAGS := $(CFLAGS_native_opt)
+native: $(TARGET)
 
-debug: CFLAGS := $(CFLAGS_native_debug)
-debug: all
+debug: FLAGS := $(FLAGS_native_debug)
+debug: $(TARGET)
 
-noblock: CFLAGS := $(CFLAGS_native_noblock)
-noblock: all
+noblock: FLAGS := $(FLAGS_native_noblock)
+noblock: $(TARGET)
 
-grumpy: CFLAGS := $(CFLAGS_native_grumpy)
-grumpy: all
+grumpy: FLAGS := $(FLAGS_native_grumpy)
+grumpy: $(TARGET)
+
+quick: FLAGS := $(FLAGS_native_quick)
+quick: $(TARGET)
 
 web: CXX := $(CXX_web)
-web: CFLAGS := $(CFLAGS_web_opt)
-web: all
+web: FLAGS := $(FLAGS_web_opt)
+web: $(TARGET)
 
 web-debug: CXX := $(CXX_web)
-web-debug: CFLAGS := $(CFLAGS_web_debug)
-web-debug: all
+web-debug: FLAGS := $(FLAGS_web_debug)
+web-debug: $(TARGET)
 
-native: all
+$(TARGET): $(TARGET).cpp ../source/modules.hpp
+	$(CXX) $(FLAGS) $(TARGET).cpp -o $(TARGET)
 
-all: $(TARGETS)
-
-$(TARGETS): % : %.cpp ../source/modules.hpp
-	$(CXX) $(CFLAGS_version) $(CFLAGS) $< -o $@
-
-$(JS_TARGETS): %.js : %.cpp
-	$(CXX_web) $(CFLAGS_web) $< -o $@
+$(JS_TARGET): %.js : %.cpp
+	$(CXX_web) $(FLAGS_web) $< -o $@
 
 debug-%: $*.cpp
-	$(CXX) $(CFLAGS_version) $(CFLAGS_native_debug) $< -o $@
+	$(CXX) $(FLAGS_native_debug) $< -o $@
 
 clean:
-	rm -rf debug-* *~ *.dSYM $(TARGETS)
-#	rm -rf debug-* *~ *.dSYM $(JS_TARGETS)
+	rm -rf debug-* *~ *.dSYM $(TARGET)
+#	rm -rf debug-* *~ *.dSYM $(JS_TARGET)
 
 new: clean
 new: native
