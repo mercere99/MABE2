@@ -19,6 +19,7 @@
 #include "emp/base/vector.hpp"
 #include "emp/data/DataMap.hpp"
 #include "emp/data/DataMapParser.hpp"
+#include "emp/data/Datum.hpp"
 #include "emp/datastructs/vector_utils.hpp"
 #include "emp/math/Random.hpp"
 #include "emp/tools/string_utils.hpp"
@@ -45,8 +46,8 @@ namespace mabe {
     using Symbol_Var = emplode::Symbol_Var;
 
     struct PreprocessResults {
-      std::string result;         // Updated string
-      emp::vector<double> values; // Numerical values kept aside, if preserve_nums=true;
+      std::string result;             // Updated string
+      emp::vector<emp::Datum> values; // Numerical values kept aside, if preserve_nums=true;
     };
 
   public:
