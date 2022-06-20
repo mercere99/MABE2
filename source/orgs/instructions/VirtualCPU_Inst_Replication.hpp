@@ -66,7 +66,7 @@ namespace mabe {
         hw.genome_working.resize(hw.read_head, hw.GetDefaultInst());
         hw.ResetHardware();
         hw.inst_ptr = hw.genome.size() - 1;
-        //control.Replicate(org_pos, *org_pos.PopPtr());
+        control.Replicate(org_pos, *org_pos.PopPtr());
         hw.SetTrait<bool>(reset_self_trait, true);
       }
     }

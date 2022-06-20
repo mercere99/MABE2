@@ -1,10 +1,10 @@
 Latest commit at time of last regeneration:
-commit c9d5e61fac2a8226905691953455c57b237dbce2
+commit 2940782dbcdb5a958e183a8993e4ce6c90899e30
 Author: Austin Ferguson <ferguson.austin.j@gmail.com>
-Date:   Fri May 27 11:07:47 2022 -0400
+Date:   Fri May 27 15:00:10 2022 -0400
 
-    Track more traits in EvalDoor
+    Add copy constructor to EvalPathState
  
  
 Time of last regeneration:
-Fri May 27 11:10:50 AM EDT 2022
+Sun Jun 19 05:30:26 PM EDT 2022

@@ -237,10 +237,12 @@ namespace mabe {
     virtual emp::Ptr<Organism> CloneOrganism() const {
       auto offspring = OrgType::Clone().DynamicCast<VirtualCPUOrg>();
       offspring->genome = genome;
+      offspring->genome_working = genome;
+      offspring->ResetHardware();
+      offspring->label_idx_vec.clear();
+      offspring->nops_need_curated = true;
       offspring->SetTrait<double>(SharedData().merit_name, GetTrait<double>(SharedData().merit_name)); 
       offspring->SetTrait<double>(SharedData().child_merit_name, SharedData().initial_merit); 
-      offspring->genome_working = offspring->genome;
-      offspring->ResetHardware();
       offspring->Organism::SetTrait<std::string>(SharedData().genome_name, offspring->GetGenomeString());
       offspring->Organism::SetTrait<size_t>(SharedData().genome_length_name, offspring->GetGenomeSize());
       offspring->Organism::GetTrait<emp::vector<data_t>>(SharedData().output_name).clear();
@@ -445,11 +447,19 @@ namespace mabe {
         for(size_t offset = 0; offset < max_insts; ++offset){
           const size_t inst_id = genome_working[inst_ptr].id;
           if(!non_speculative_inst_vec[inst_id]){
+            if(SharedData().verbose){
+              std::cout << "[" << GetTrait<OrgPosition>("org_pos").Pos() << "]" << std::endl;;
+            }
             Process(1, SharedData().verbose);
             ++insts_speculatively_executed; 
           }
           else{
-            if(insts_speculatively_executed == 0) Process(1, SharedData().verbose);
+            if(insts_speculatively_executed == 0){
+              if(SharedData().verbose){
+                std::cout << "[" << GetTrait<OrgPosition>("org_pos").Pos() << "]" << std::endl;;
+              }
+              Process(1, SharedData().verbose);
+            }
             else break;
             
           }
@@ -463,6 +473,9 @@ namespace mabe {
         Process_Speculative();
       }
       else{
+        if(SharedData().verbose){
+          std::cout << "[" << GetTrait<OrgPosition>("org_pos").Pos() << "]" << std::endl;;
+        }
         Process(1, SharedData().verbose);
       }
       return true;
