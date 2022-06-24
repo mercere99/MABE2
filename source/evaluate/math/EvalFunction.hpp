@@ -1,0 +1,176 @@
+/**
+ *  @note This file is part of MABE, https://github.com/mercere99/MABE2
+ *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
+ *  @date 2022.
+ *
+ *  @file  EvalFunction.hpp
+ *  @brief MABE Evaluation module rates organism's ability to perform a specified math function.
+ * 
+ *  This module specifies a function that agents are then evaluated based on how well they perform
+ *  the function.
+ */
+
+#ifndef MABE_EVAL_FUNCTION_HPP
+#define MABE_EVAL_FUNCTION_HPP
+
+#include "emp/base/array.hpp"
+#include "emp/base/notify.hpp"
+#include "emp/data/Datum.hpp"
+#include "emp/math/constants.hpp"
+
+#include "../../core/MABE.hpp"
+#include "../../core/Module.hpp"
+
+namespace mabe {
+
+  class EvalFunction : public Module {
+  private:
+    static const constexpr size_t MAX_INPUTS = 5;
+
+    std::string input_traits = "input1,input2"; ///< Traits to put input value(s) for organism.
+    std::string output_trait = "output";        ///< Trait to find output values from organism.
+    std::string errors_trait = "errors";        ///< Trait for each test's deviation from target.
+    std::string fitness_trait = "fitness";      ///< Trait for combined fitness (#tests - error sum)
+
+    // Track the DataMap ID for each trait or trait set.
+
+    emp::array<size_t, MAX_INPUTS> input_ids;
+    size_t output_id = emp::MAX_SIZE_T;
+    size_t errors_id = emp::MAX_SIZE_T;
+    size_t fitness_id = emp::MAX_SIZE_T;
+
+    std::string function = "input1 * 3 + 5*input2"; ///< Function to specify target output.
+
+    /// Test values of each input in order, separated by a ';'
+    std::string test_summary = "0:100;0:7:100,1:7:100,2:7:100,3:7:100,4:7:100,5:7:100,6:7:100";
+
+    emp::vector<std::string> input_names;   ///< Names of individual input traits.
+    std::function<emp::Datum( const emp::DataMap & )> fit_fun;
+    emp::vector<emp::vector<double>> test_values;
+    size_t num_tests = emp::MAX_SIZE_T;
+
+  public:
+    EvalFunction(mabe::MABE & control,
+                const std::string & name="EvalFunction",
+                const std::string & desc="Evaluate organisms by having them solve a function.")
+      : Module(control, name, desc)
+    {
+      SetEvaluateMod(true);
+    }
+    ~EvalFunction() { }
+
+    // Setup member functions associated with this class.
+    static void InitType(emplode::TypeInfo & info) {
+      info.AddMemberFunction("EVAL",
+                             [](EvalFunction & mod, Collection orgs) { return mod.Evaluate(orgs); },
+                             "Evaluate organism's ability to solve a target function.");
+    }
+
+    void SetupConfig() override {
+      LinkVar(input_traits, "input_traits", "Traits to put input value(s) for organism.\nFormat: comma-separated list");
+      LinkVar(output_trait, "output_trait", "Trait to find output values from organism.");
+      LinkVar(errors_trait, "errors_trait", "Trait for each test's deviation from target.");
+      LinkVar(fitness_trait, "fitness_trait", "Trait for combined fitness (#tests - error sum)");
+      LinkVar(function, "function", "Function to specify target output.");
+      LinkVar(test_summary, "test_values", "Test values to use for evaluation.\nFormat: Range list for each variable; use ';' to separate variables");
+      );
+    }
+
+    void SetupModule() override {
+      input_names = emp::slice(input_traits, ',');
+      if (intput_names.size() > MAX_INPUTS) {
+        emp::notify::Error("EvalFunction does not allow more than ", MAX_INPUTS, " inputs. ",
+                           input_names.size(), " inputs, requested.");
+      }
+      for (const std::string & name : input_names) {
+        AddOwnedTrait<double>(name, "Input value", 0.0);
+      }
+      AddRequiredTrait<double>(output_trait); // Output values
+      AddOwnedTrait<emp::vector<double>>(errors_trait, "Error vector for tests.", emp::vector<double>();
+      AddOwnedTrait<double>(fitness_trait, "Combined success rating", 0.0);
+
+      // Prepare the test values to use.
+      emp::remove_whitespace(test_summary);
+      emp::vector<std::string> test_sets = emp::slice(test_summary, ';');
+
+      if (test_sets.size() != input_names.size()) {
+        emp::notify::Error("EvalFunction requires one test set for each input.  Found ",
+                           input_names.size(), " inputs, but ", tests_sets.size(), " test sets.");
+      }
+
+      // Put the test values in place.
+      test_values.resize(test_sets.size());
+      for (size_t i = 0; i < test_sets.size(); ++i) {
+        test_values[i] = emp::ToSequence(test_sets[i]);
+        if (num_tests == emp::MAX_SIZE_T) num_tests = test_values[i].size();
+        else if (test_values[i].size() != num_tests) {
+          emp::notify::Error("EvalFunction requires all inputs to have the same count of values.  First input (0) has ",
+                            test_values[0].size(), " test values, but ", i, " has ", test_values[i].size(), ".");
+        }
+      }
+
+    }
+
+
+    double Evaluate(const Collection & orgs) {
+      // If we haven't calculated the IDs, do so now.
+      if (output_trait == emp::MAX_SIZE_T) {
+        for (size_t i = 0; i < input_names.size(); ++i) {
+          input_ids[i] = orgs.GetDataLayout().GetID(input_names[i]);
+        }
+        output_id = orgs.GetDataLayout().GetID(output_trait);
+        errors_id = orgs.GetDataLayout().GetID(errors_trait);
+        fitness_id = orgs.GetDataLayout().GetID(fitness_trait);
+      }
+
+      // Loop through the living organisms in the target collection to evaluate each.
+      mabe::Collection alive_collect( orgs.GetAlive() );
+
+      control.Verbose(" - ", alive_collect.GetSize(), " organisms found.");
+
+      size_t org_count = 0;
+      double max_fitness = 0.0;
+      for (Organism & org : alive_collect) {
+        control.Verbose("...eval org #", org_count++);
+
+        double & errors = org.GetTrait<emp::vector<double>>(errors_trait);
+
+    std::string input_traits = "input1,input2"; ///< Traits to put input value(s) for organism.
+    std::string output_trait = "output";        ///< Trait to find output values from organism.
+    std::string errors_trait = "error";         ///< Trait for each test's deviation from target.
+    std::string fitness_trait = "fitness";      ///< Trait for combined fitness (#tests - error sum)
+
+
+        double & scoreA = org.GetTrait<double>(scoreA_trait);
+        double & scoreB = org.GetTrait<double>(scoreB_trait);
+        double & num_errors = org.GetTrait<double>(error_trait);
+        double & fitness = org.GetTrait<double>(fitness_trait);
+        Results results = EvalGame(org, control.GetRandom());  // Start first.
+        scoreA = results.scoreA;
+        scoreB = results.scoreB;
+        num_errors = results.num_errors;
+        fitness = results.CalcFitness();
+
+        results = EvalGame(org, control.GetRandom(), 1);  // Start second.
+        scoreA += results.scoreA;
+        scoreB += results.scoreB;
+        num_errors += results.num_errors;
+        fitness += results.CalcFitness();
+
+        if (fitness > max_fitness) max_fitness = fitness;
+      }
+
+      return max_fitness;
+    }
+
+    // If a population is provided to Evaluate, first convert it to a Collection.
+    double Evaluate(Population & pop) { return Evaluate( Collection(pop) ); }
+
+    // If a string is provided to Evaluate, convert it to a Collection.
+    double Evaluate(const std::string & in) { return Evaluate( control.ToCollection(in) ); }
+  };
+
+  MABE_REGISTER_MODULE(EvalFunction, "Evaluate organisms on their ability to produce a target function.");
+}
+
+#endif
