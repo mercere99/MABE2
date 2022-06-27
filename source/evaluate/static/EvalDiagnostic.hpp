@@ -13,6 +13,8 @@
 #ifndef MABE_EVAL_DIAGNOSTIC_H
 #define MABE_EVAL_DIAGNOSTIC_H
 
+#include <emp/math/constants.hpp>
+
 #include "../../core/MABE.hpp"
 #include "../../core/Module.hpp"
 
@@ -28,11 +30,11 @@ namespace mabe {
     size_t num_vals = 100;                     // Cardinality of the problem space.
 
     // Track the DataMap ID for each trait.
-    size_t vals_id = static_cast<size_t>(-1);
-    size_t scores_id = static_cast<size_t>(-1);
-    size_t total_id = static_cast<size_t>(-1);
-    size_t first_id = static_cast<size_t>(-1);
-    size_t count_id = static_cast<size_t>(-1);
+    size_t vals_id = emp::MAX_SIZE_T;
+    size_t scores_id = emp::MAX_SIZE_T;
+    size_t total_id = emp::MAX_SIZE_T;
+    size_t first_id = emp::MAX_SIZE_T;
+    size_t count_id = emp::MAX_SIZE_T;
 
     enum Type {
       EXPLOIT,                  // Must drive values as close to 100 as possible.
@@ -91,7 +93,7 @@ namespace mabe {
 
     double Evaluate(Collection orgs) {
       // If we haven't calculated the IDs, do so now.
-      if (vals_id == static_cast<size_t>(-1)) {
+      if (vals_id == emp::MAX_SIZE_T) {
         vals_id = orgs.GetDataLayout().GetID(vals_trait);
         scores_id = orgs.GetDataLayout().GetID(scores_trait);
         total_id = orgs.GetDataLayout().GetID(total_trait);
