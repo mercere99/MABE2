@@ -333,8 +333,11 @@ namespace mabe {
     std::string score_trait = "score"; ///< Name of trait for organism performance
     std::string state_trait ="state";  ///< Name of trait that stores the path follow state
     std::string map_filenames="";      ///< ;-separated list map filenames to load.
-    PathFollowEvaluator evaluator;     ///< The evaluator that does all of the actually computing and bookkeeping for the path follow task
-    int pop_id = 0;                 ///< ID of the population to evaluate (and provide instructions to)
+    PathFollowEvaluator evaluator;     /**< The evaluator that does all of the actually 
+                                            computing and bookkeeping for the path follow 
+                                            task */
+    int pop_id = 0;              /**< ID of the population to evaluate 
+                                         (and provide instructions to) */
     int sg_move_id = -1;         ///< ID of the sg_move instruction
     int sg_move_back_id = -1;    ///< ID of the sg_move_back instruction
     int sg_rotate_right_id = -1; ///< ID of the sg_rotate_right instruction
@@ -384,7 +387,8 @@ namespace mabe {
       SetupInstructions();
     }
 
-    /// Package path following actions (e.g., move, turn) into instructions and provide them to the organisms via ActionMap
+    /// Package path following actions (e.g., move, turn) into instructions and provide 
+    /// them to the organisms via ActionMap
     void SetupInstructions(){
       ActionMap& action_map = control.GetActionMap(pop_id);
       { // Move

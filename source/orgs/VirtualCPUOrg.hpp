@@ -6,9 +6,13 @@
  *  @file  VirtualCPUOrg.hpp
  *  @brief An organism consisting of a linear sequence of instructions.
  *  
- *  Instructions are added via other modules. VirtualCPUOrgs will load all instructions that have been registered (via the config file) and add them to the instruction library. 
+ *  Instructions are added via other modules. 
+ *    VirtualCPUOrgs will load all instructions that have been registered 
+ *    (via the config file) and add them to the instruction library. 
  *
- *  For now, the virtual hardware of the VirtualCPUOrg is based on Avidians from Avida2, including support for additional nops, labels, and expanded nop notation for math instructions.
+ *  For now, the virtual hardware of the VirtualCPUOrg is based on Avidians from Avida2, 
+ *    including support for additional nops, labels, and expanded nop notation for 
+ *    math instructions.
  *
  *  @note Status: ALPHA
  *
@@ -55,20 +59,25 @@ namespace mabe {
     emp::BitVector non_speculative_inst_vec;
     
 
+    /// Perform a single point mutation at the given position
     void Mutate_Point(size_t pos, emp::Random& random){
       size_t old_inst_idx = genome[pos].idx;
       RandomizeInst(pos, random);
       while(genome[pos].idx == old_inst_idx) RandomizeInst(pos, random);
     }
 
+    /// Perform a single insertion mutation at the given position
     void Mutate_Insertion(size_t pos, emp::Random& random){
       InsertRandomInst(pos, random);
     }
 
+    /// Perform a single deletion mutation at the given position
     void Mutate_Deletion(size_t pos, emp::Random& /*random*/){
       RemoveInst(pos);
     }
 
+    /// Apply mutations according to the passed parameters, and then call the given function 
+    /// for each mutation
     size_t Mutate_Generic(
         std::function<void(size_t, emp::Random&)> mut_func,
         emp::CombinedBinomialDistribution& dist, 
@@ -163,7 +172,7 @@ namespace mabe {
       emp::BitVector mut_sites; ///< A pre-allocated vector for mutation sites. 
     };
 
-    /// Mutate (in place) the current organism. Currently only supports point mutations.
+    /// Mutate (in place) the current organism.
     size_t Mutate(emp::Random & random) override {
       size_t mut_count = 0;
       
@@ -450,6 +459,8 @@ namespace mabe {
       }
     }
 
+    /// Speculatively execute instructions up until an instruction modifies the outside world
+    /// If instructions have already been speculatively executed, simply reduce their counter
     void Process_Speculative() {
       if(insts_speculatively_executed > 0){
         --insts_speculatively_executed;
@@ -480,7 +491,7 @@ namespace mabe {
       }
     }
 
-    /// Process a single instruction
+    /// Process the next instruction, or use speculative execution if possible
     bool ProcessStep() override { 
       if(SharedData().use_speculative_execution){
         Process_Speculative();

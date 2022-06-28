@@ -50,11 +50,12 @@ namespace mabe {
                                                            number of exits correctly taken*/
     std::string incorrect_exits_trait ="incorrect_exits"; /**< Name of trait that stores the
                                                          number of exits incorrectly taken*/
-    std::string doors_taken_prefix = "doors_taken_"; // Prefix for multiple traits (one per door)
-    std::string doors_correct_prefix = "doors_correct_"; // Prefix for multiple traits (one per door)
-    emp::vector<std::string> doors_taken_trait_vec; // Names of complete doors taken traits
-    emp::vector<std::string> doors_correct_trait_vec; // Names pf complete doors correct traits
-
+    std::string doors_taken_prefix = "doors_taken_"; /**< Prefix for multiple traits 
+                                                          (one per door) */
+    std::string doors_correct_prefix = "doors_correct_"; /**< Prefix for multiple traits 
+                                                              (one per door)*/
+    emp::vector<std::string> doors_taken_trait_vec; // Names of doors taken traits
+    emp::vector<std::string> doors_correct_trait_vec; // Names of doors correct traits
   };
 
   /// \brief State of a single organism's progress on the doors task
@@ -279,9 +280,11 @@ namespace mabe {
     std::string cues_str; /**< String version of a vector of cue values. Non-negative values 
                                are used as is, while -1 gives a random value for each trial */
     std::string inst_id_str;           ///< Semicolon-separated list of instruction door IDs  
-    emp::vector<int> inst_id_vec;      ///< ID of the `sense` instruction
-    int sense_inst_id = -1;
-    EvalDoors_TraitNames trait_names;
+    emp::vector<int> inst_id_vec; /**< ID of the all door instructions 
+                                       (i.e., all instructions but `sense`) */
+    int sense_inst_id = -1; ///< ID of the `sense` instruction
+    EvalDoors_TraitNames trait_names;   /**<  Struct holding all of the trait names to keep 
+                                              things tidy */
     
     /// Parse the instruction ID string into an actual vector of ID numbers
     void ParseInstIDs(){
