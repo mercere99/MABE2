@@ -73,16 +73,6 @@ namespace mabe {
           || (req_count_inst_executed < 0 
             && hw.num_insts_executed >= req_frac_inst_executed * hw.genome_working.size())){
         OrgPosition& org_pos = hw.GetTrait<OrgPosition>(org_pos_trait);
-        //org_t::genome_t& offspring_genome = hw.GetTrait<org_t::genome_t>(
-        //    "offspring_genome");
-        //offspring_genome.resize(0,0);
-        //offspring_genome.resize(hw.genome_working.size() - hw.read_head, 
-        //    hw.GetDefaultInst()); 
-        //std::copy(
-        //    hw.genome_working.begin() + hw.read_head, 
-        //    hw.genome_working.end(),
-        //    offspring_genome.begin());
-        //hw.genome_working.resize(hw.read_head, hw.GetDefaultInst());
         hw.ResetWorkingGenome();
         hw.ResetHardware();
         hw.inst_ptr = hw.genome.size() - 1;
@@ -125,13 +115,6 @@ namespace mabe {
           || (req_count_inst_executed < 0 
             && hw.num_insts_executed >= req_frac_inst_executed * hw.genome_working.size())){
         OrgPosition& org_pos = hw.GetTrait<OrgPosition>(org_pos_trait);
-        org_t::genome_t& offspring_genome = hw.GetTrait<org_t::genome_t>(
-            "offspring_genome");
-        offspring_genome = hw.genome_working;
-        std::copy(
-            hw.genome_working.begin(), 
-            hw.genome_working.end(),
-            offspring_genome.begin());
         hw.ResetHardware();
         // Set to end so completion of this inst moves it 0 
         hw.inst_ptr = hw.genome_working.size() - 1; 
