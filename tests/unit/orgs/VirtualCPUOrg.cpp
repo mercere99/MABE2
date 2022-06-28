@@ -27,6 +27,10 @@
 //    [X] SetupInstLib was called
 //  [X] SetupInstLib
 //    [X] All expected instructions appear in inst. lib.
+//  [ ] Test mutations
+//    [X] Point
+//    [ ] Insertion
+//    [ ] Deletion
 
 template<typename T>
 T& GetConfiguredRef(
@@ -178,7 +182,9 @@ TEST_CASE("VirtualCPUOrg_Main", "[orgs]"){
 
     // Ensure mutation probability is used
     std::string original_genome = org.GetGenomeString();
-    org.SharedData().point_mut_prob = 1.0;
+    manager.AsScope().GetSymbol("point_mut_prob")->SetValue(1.0);
+    manager.AsScope().GetSymbol("insertion_mut_prob")->SetValue(0);
+    manager.AsScope().GetSymbol("deletion_mut_prob")->SetValue(0);
     org.SetupMutationDistribution();
     CHECK(org.Mutate(control.GetRandom()) == 100);
     std::string new_genome = org.GetGenomeString();

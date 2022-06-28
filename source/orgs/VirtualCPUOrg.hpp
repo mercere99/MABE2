@@ -171,7 +171,7 @@ namespace mabe {
           std::placeholders::_1, std::placeholders::_2);
       
       mut_count += 
-        Mutate_Generic(point_mut_func, SharedData().point_mut_dist, random, false);
+        Mutate_Generic(point_mut_func, SharedData().point_mut_dist, random, true);
       auto insertion_mut_func = std::bind( &this_t::Mutate_Insertion, this, 
           std::placeholders::_1, std::placeholders::_2);
       mut_count += 
@@ -179,7 +179,7 @@ namespace mabe {
       auto deletion_mut_func = std::bind( &this_t::Mutate_Deletion, this, 
           std::placeholders::_1, std::placeholders::_2);
       mut_count += 
-        Mutate_Generic(deletion_mut_func, SharedData().deletion_mut_dist, random);
+        Mutate_Generic(deletion_mut_func, SharedData().deletion_mut_dist, random, false);
       ResetWorkingGenome();
       Organism::SetTrait<std::string>(SharedData().genome_name, GetGenomeString());
       Organism::SetTrait<size_t>(SharedData().genome_length_name, GetGenomeSize());
