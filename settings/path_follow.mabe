@@ -100,6 +100,14 @@ VirtualCPU_Inst_Replication inst_lib_repl { // Replication instructions for Virt
   target_pop = "main_pop";      // Population(s) to manage.
   pos_trait = "org_pos";        // Name of trait that holds organism's position
   offspring_genome_trait = "offspring_genome";// Name of trait that holds the offspring organism's genome
+  req_count_inst_executed = 1500; // Minimum number of instructions that the organism must 
+                                  // execute before its allowed to reproduce. Otherwise 
+                                  // reproduction instructions do nothing.  Takes priority 
+                                  // over `req_frac_inst_executed`; -1 to use fraction instead
+  req_frac_inst_executed = 0;   // The organism must have executed at least this fraction 
+                                  // of their genome to reproduce. Otherwise reproduction 
+                                  // instructions do nothing. 
+                                  // Overruled by `req_count_inst_executed`
   include_h_alloc = 0;          // Do we include the 'h_alloc' instruction?
   include_h_divide = 0;         // Do we include the 'h_divide' instruction?
   include_h_copy = 0;           // Do we include the 'h_copy' instruction?

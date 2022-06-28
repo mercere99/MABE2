@@ -5,6 +5,14 @@
  *
  *  @file  VirtualCPU_Inst_Replication.hpp
  *  @brief Provides replication instructions to a population of VirtualCPUOrgs.
+ *
+ *  TODO: 
+ *    - Currently a trait that stores the offspring genome is created, but is unused in the 
+ *        replication instructions. 
+ *      - HCopy (and other instructions) should be able to add mutations to this genome
+ *      - When it's time to replicate, HDivide _should_ use this genome instead of relying on
+ *          reproduction mechanisms from VirtualCPUOrg / MABE
+ *      - How would this interact with other MABE systems?
  * 
  */
 
@@ -33,6 +41,12 @@ namespace mabe {
     bool include_h_copy   = true;  ///< Config option indicating if inst. is used
     bool include_h_search = true;  ///< Config option indicating if inst. is used
     bool include_repro    = false; ///< Config option indicating if inst. is used
+    double req_frac_inst_executed = 0.5;  /**< Config option indicating the fraction of 
+                                            an organism's genome that must have been executed 
+                                            for org to reproduce **/
+    int req_count_inst_executed = -1;     /**< Config option indicating the number of 
+                                            instructions an organism must have executed in 
+                                            order to reproduce **/
     int h_alloc_id  = -1;  ///< ID of the h_alloc instruction
     int h_divide_id  = -1;  ///< ID of the h_divide instruction
     int h_copy_id  = -1;  ///< ID of the h_copy instruction
@@ -51,19 +65,25 @@ namespace mabe {
       hw.regs[0] = hw.genome.size();
     }
     void Inst_HDivide(org_t& hw, const org_t::inst_t& /*inst*/){
-      if(hw.read_head >= hw.genome.size() && hw.copied_inst_id_vec.size() >= hw.genome_working.size() / 2){
+      // First make sure that: 
+        // If required inst count isn't negative, that many insts have been executed 
+        // Else, the correct fraction of the genome has been executed
+      if( (req_count_inst_executed >= 0 
+            && hw.num_insts_executed >= req_count_inst_executed)
+          || (req_count_inst_executed < 0 
+            && hw.num_insts_executed >= req_frac_inst_executed * hw.genome_working.size())){
         OrgPosition& org_pos = hw.GetTrait<OrgPosition>(org_pos_trait);
-        org_t::genome_t& offspring_genome = hw.GetTrait<org_t::genome_t>(
-            "offspring_genome");
-        offspring_genome = hw.genome_working;
-        offspring_genome.resize(0,0);
-        offspring_genome.resize(hw.genome_working.size() - hw.read_head, 
-            hw.GetDefaultInst()); 
-        std::copy(
-            hw.genome_working.begin() + hw.read_head, 
-            hw.genome_working.end(),
-            offspring_genome.begin());
-        hw.genome_working.resize(hw.read_head, hw.GetDefaultInst());
+        //org_t::genome_t& offspring_genome = hw.GetTrait<org_t::genome_t>(
+        //    "offspring_genome");
+        //offspring_genome.resize(0,0);
+        //offspring_genome.resize(hw.genome_working.size() - hw.read_head, 
+        //    hw.GetDefaultInst()); 
+        //std::copy(
+        //    hw.genome_working.begin() + hw.read_head, 
+        //    hw.genome_working.end(),
+        //    offspring_genome.begin());
+        //hw.genome_working.resize(hw.read_head, hw.GetDefaultInst());
+        hw.ResetWorkingGenome();
         hw.ResetHardware();
         hw.inst_ptr = hw.genome.size() - 1;
         control.Replicate(org_pos, *org_pos.PopPtr());
@@ -97,8 +117,13 @@ namespace mabe {
       }
     }
     void Inst_Repro(org_t& hw, const org_t::inst_t& /* inst */){
-      if(hw.inst_ptr > 0.75 * hw.genome_working.size() && 
-          hw.num_insts_executed > 0.75 * hw.genome_working.size()){
+      // First make sure that: 
+        // If required inst count isn't negative, that many insts have been executed 
+        // Else, the correct fraction of the genome has been executed
+      if( (req_count_inst_executed >= 0 
+            && hw.num_insts_executed >= req_count_inst_executed)
+          || (req_count_inst_executed < 0 
+            && hw.num_insts_executed >= req_frac_inst_executed * hw.genome_working.size())){
         OrgPosition& org_pos = hw.GetTrait<OrgPosition>(org_pos_trait);
         org_t::genome_t& offspring_genome = hw.GetTrait<org_t::genome_t>(
             "offspring_genome");
@@ -119,6 +144,14 @@ namespace mabe {
     /// Set up variables for configuration file
     void SetupConfig() override {
       LinkPop(pop_id, "target_pop", "Population(s) to manage.");
+      LinkVar(req_frac_inst_executed, "req_frac_inst_executed", 
+              "The organism must have executed at least this fraction of their genome to"
+                " reproduce. Otherwise reproduction instructions do nothing. Overruled by"
+                " `req_count_inst_executed`");
+      LinkVar(req_count_inst_executed, "req_count_inst_executed", 
+              "Minimum number of instructions that the organism must execute before its"
+                " allowed to reproduce. Otherwise reproduction instructions do nothing. "
+                " Takes priority over `req_frac_inst_executed`; -1 to use fraction instead");
       LinkVar(org_pos_trait, "pos_trait", "Name of trait that holds organism's position");
       LinkVar(offspring_genome_trait, "offspring_genome_trait", 
           "Name of trait that holds the offspring organism's genome");

@@ -93,6 +93,14 @@ VirtualCPU_Inst_Replication inst_lib_repl { // Replication instructions for Virt
   target_pop = "main_pop";      // Population(s) to manage.
   pos_trait = "org_pos";        // Name of trait that holds organism's position
   offspring_genome_trait = "offspring_genome";// Name of trait that holds the offspring organism's genome
+  req_count_inst_executed = 1500; // Minimum number of instructions that the organism must 
+                                  // execute before its allowed to reproduce. Otherwise 
+                                  // reproduction instructions do nothing.  Takes priority 
+                                  // over `req_frac_inst_executed`; -1 to use fraction instead
+  req_frac_inst_executed = 0 ;  // The organism must have executed at least this fraction 
+                                  // of their genome to reproduce. Otherwise reproduction 
+                                  // instructions do nothing. 
+                                  // Overruled by `req_count_inst_executed`
   include_h_alloc = 0;          // Do we include the 'h_alloc' instruction?
   include_h_divide = 0;         // Do we include the 'h_divide' instruction?
   include_h_copy = 0;           // Do we include the 'h_copy' instruction?
@@ -210,11 +218,9 @@ Var avg_gen;
         //"  genome_length_max=", main_pop.CALC_MAX("genome_length"),
         "\n\tlength_mean=", main_pop.CALC_MEAN("genome_length"),
         "  mean_accuracy=", main_pop.CALC_MEAN("accuracy"),
-        "  mean_cor_doors=", main_pop.CALC_MEAN("correct_doors"),
-        "  max_cor_doors=", main_pop.CALC_MAX("correct_doors"),
-        "\n\tmean_left=", main_pop.CALC_MEAN("doors_taken_1"),
-        "  mean_right=", main_pop.CALC_MEAN("doors_taken_2"),
-        "  mean_cor_left=", main_pop.CALC_MEAN("doors_correct_1"),
+        "  mean_cor=", main_pop.CALC_MEAN("correct_doors"),
+        "  max_cor=", main_pop.CALC_MAX("correct_doors"),
+        "\n\tmean_cor_left=", main_pop.CALC_MEAN("doors_correct_1"),
         "  mean_cor_right=", main_pop.CALC_MEAN("doors_correct_2")
        );
   fit_file.WRITE();
