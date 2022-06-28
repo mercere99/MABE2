@@ -12,6 +12,10 @@
  *
  *  @note Status: ALPHA
  *
+ *  TODO: 
+ *    - Decide what to do with N config option
+ *      - Is it okay to have it readonly?
+ *
  */
 
 #ifndef MABE_VIRTUAL_CPU_ORGANISM_H
@@ -72,20 +76,25 @@ namespace mabe {
         bool ensure_unique_pos = true){
       const size_t num_muts = dist.PickRandom(GetGenomeSize(), random);
 
-      if(num_muts == 0) return 0;
+      if(num_muts == 0){
+        return 0;
+      }
       if(num_muts == 1){
         const size_t pos = random.GetUInt(GetGenomeSize());
         mut_func(pos, random);
         return 1;
       }
+      // Only remaining option is num_muts > 1.
       if(ensure_unique_pos){ // Ensure no two mutations hit the same site
-        // Only remaining option is num_muts > 1.
         emp::BitVector mut_sites(genome.size());
         for (size_t i = 0; i < num_muts; i++) {
           const size_t pos = random.GetUInt(GetGenomeSize());
           if(mut_sites[pos]){ --i; continue; } // Duplicate position; try again.
           mut_sites[pos] = true;
           mut_func(pos, random);
+          if(mut_sites.size() != GetGenomeSize()){
+            mut_sites.resize(GetGenomeSize());
+          }
         }
       }
       else{ // Mutate without concern of mutations hitting the same site (e.g., deletion)
@@ -161,7 +170,8 @@ namespace mabe {
       auto point_mut_func = std::bind( &this_t::Mutate_Point, this, 
           std::placeholders::_1, std::placeholders::_2);
       
-      mut_count += Mutate_Generic(point_mut_func, SharedData().point_mut_dist, random);
+      mut_count += 
+        Mutate_Generic(point_mut_func, SharedData().point_mut_dist, random, false);
       auto insertion_mut_func = std::bind( &this_t::Mutate_Insertion, this, 
           std::placeholders::_1, std::placeholders::_2);
       mut_count += 
@@ -169,7 +179,8 @@ namespace mabe {
       auto deletion_mut_func = std::bind( &this_t::Mutate_Deletion, this, 
           std::placeholders::_1, std::placeholders::_2);
       mut_count += 
-        Mutate_Generic(deletion_mut_func, SharedData().deletion_mut_dist, random, false);
+        Mutate_Generic(deletion_mut_func, SharedData().deletion_mut_dist, random);
+      ResetWorkingGenome();
       Organism::SetTrait<std::string>(SharedData().genome_name, GetGenomeString());
       Organism::SetTrait<size_t>(SharedData().genome_length_name, GetGenomeSize());
       return mut_count;
@@ -180,6 +191,7 @@ namespace mabe {
       for (size_t pos = 0; pos < GetGenomeSize(); pos++) {
         RandomizeInst(pos, random);
       }
+      ResetWorkingGenome();
       Organism::SetTrait<std::string>(SharedData().genome_name, GetGenomeString());
       Organism::SetTrait<size_t>(SharedData().genome_length_name, GetGenomeSize());
     }
@@ -189,6 +201,7 @@ namespace mabe {
       for (size_t pos = GetGenomeSize(); pos < length; pos++) {
         PushRandomInst(random);
       }
+      ResetWorkingGenome();
     }
 
     /// Create an ancestral organism and load in values from configuration file
@@ -215,6 +228,8 @@ namespace mabe {
     emp::Ptr<Organism> MakeOffspringOrganism(emp::Random & random) const {
       // Create and mutate
       auto offspring = OrgType::Clone().DynamicCast<VirtualCPUOrg>();
+      offspring->ResetWorkingGenome();
+      offspring->ResetHardware();
       offspring->Mutate(random);
       // Initialize all necessary traits and ready hardware
       offspring->SetTrait<double>(SharedData().merit_name, 
@@ -236,17 +251,15 @@ namespace mabe {
     /// Create an identical organism with no mutations and with the same merit
     virtual emp::Ptr<Organism> CloneOrganism() const {
       auto offspring = OrgType::Clone().DynamicCast<VirtualCPUOrg>();
-      offspring->genome = genome;
-      offspring->genome_working = genome;
+      offspring->ResetWorkingGenome();
       offspring->ResetHardware();
-      offspring->label_idx_vec.clear();
-      offspring->nops_need_curated = true;
       offspring->SetTrait<double>(SharedData().merit_name, GetTrait<double>(SharedData().merit_name)); 
       offspring->SetTrait<double>(SharedData().child_merit_name, SharedData().initial_merit); 
       offspring->Organism::SetTrait<std::string>(SharedData().genome_name, offspring->GetGenomeString());
       offspring->Organism::SetTrait<size_t>(SharedData().genome_length_name, offspring->GetGenomeSize());
       offspring->Organism::GetTrait<emp::vector<data_t>>(SharedData().output_name).clear();
       offspring->expanded_nop_args = SharedData().expanded_nop_args;
+      offspring->insts_speculatively_executed = 0;
       return offspring;
     }
 
@@ -277,7 +290,7 @@ namespace mabe {
       GetManager().LinkVar(SharedData().deletion_mut_prob, "deletion_mut_prob",
                       "Per-site probability of a deletion mutation");
       GetManager().LinkFuns<size_t>([this](){ return GetGenomeSize(); },
-                       [this](const size_t & /*N*/){ Reset(); /*PushDefaultInst(N);*/ },
+                       [this](const size_t & /*N*/){ ClearGenome(); /*PushDefaultInst(N);*/ },
                        "N", "Initial number of instructions in genome");
       GetManager().LinkVar(SharedData().init_random, "init_random",
                       "Should we randomize ancestor?  (0 = \"blank\" default)");
@@ -448,7 +461,7 @@ namespace mabe {
           const size_t inst_id = genome_working[inst_ptr].id;
           if(!non_speculative_inst_vec[inst_id]){
             if(SharedData().verbose){
-              std::cout << "[" << GetTrait<OrgPosition>("org_pos").Pos() << "]" << std::endl;;
+              std::cout << "[" << GetTrait<OrgPosition>("org_pos").Pos() << "]" << std::endl;
             }
             Process(1, SharedData().verbose);
             ++insts_speculatively_executed; 
@@ -456,7 +469,7 @@ namespace mabe {
           else{
             if(insts_speculatively_executed == 0){
               if(SharedData().verbose){
-                std::cout << "[" << GetTrait<OrgPosition>("org_pos").Pos() << "]" << std::endl;;
+                std::cout << "[" << GetTrait<OrgPosition>("org_pos").Pos() << "]" << std::endl;
               }
               Process(1, SharedData().verbose);
             }
