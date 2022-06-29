@@ -213,24 +213,45 @@ namespace mabe {
       ResetWorkingGenome();
     }
 
+    /// Reset organism's hardware to the top of the original genome
+    void ResetHardware(){
+      ResetWorkingGenome();
+      expanded_nop_args = SharedData().expanded_nop_args;
+      base_t::Initialize();
+      insts_speculatively_executed = 0;
+      CurateNops();
+    }
+
+    /// Reset organism's traits to match what it was born with
+    void ResetTraits(){
+      Organism::SetTrait<std::string>(SharedData().genome_name, GetGenomeString());
+      Organism::SetTrait<size_t>(SharedData().genome_length_name, GetGenomeSize());
+      Organism::SetTrait<double>(SharedData().child_merit_name, 
+          SharedData().initial_merit); 
+    }
+
     /// Create an ancestral organism and load in values from configuration file
     void Initialize(emp::Random & random) override {
       emp_assert(GetGenomeSize() == 0, "Cannot initialize VirtualCPUOrg twice");
       // Create the ancestor, either randomly or from a genome file
       if(SharedData().init_random) FillRandom(SharedData().init_length, random);
-      else Load(SharedData().initial_genome_filename);
-      // Update values based on configuration variables
-      expanded_nop_args = SharedData().expanded_nop_args;
-      Organism::SetTrait<std::string>(SharedData().genome_name, GetGenomeString());
-      Organism::SetTrait<size_t>(SharedData().genome_length_name, GetGenomeSize());
-      SharedData().init_length = GetGenomeSize();
+      else{
+        Load(SharedData().initial_genome_filename);
+        SharedData().init_length = GetGenomeSize();
+      }
+      // Set traits that are specific to the ancestor (others are in ResetTraits) 
+      Organism::SetTrait<size_t>(SharedData().generation_name, 0); 
       Organism::SetTrait<double>(SharedData().merit_name, 
           GetGenomeSize() / SharedData().init_length); 
-      Organism::SetTrait<double>(SharedData().child_merit_name, SharedData().initial_merit); 
-      Organism::SetTrait<size_t>(SharedData().generation_name, 0); 
-      base_t::Initialize(); // MABE's proto organisms means we need to re-initialize the org
-      insts_speculatively_executed = 0;
-      CurateNops();
+      // Call generic reset methods
+      ResetHardware();
+      ResetTraits();
+    }
+
+    /// Reset the organism back to starting conditions
+    void Reset(){
+      ResetHardware();
+      ResetTraits();
     }
     
     /// Create an offspring organism using the configuration file's mutation rate.

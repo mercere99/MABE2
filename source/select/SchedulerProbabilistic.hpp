@@ -89,10 +89,6 @@ namespace mabe {
         }
         else selected_idx = random.GetUInt(pop.GetSize()); // No weights -> pick randomly 
         pop[selected_idx].ProcessStep();
-        if(pop[selected_idx].GetTrait<bool>(reset_self_trait)){
-          OrgPosition pos(pop, selected_idx);
-          control.DoBirth(pop[selected_idx], pos, pos, false); // Reset org 
-        }
       }
       return weight_map.GetWeight();
     }

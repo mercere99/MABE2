@@ -73,11 +73,12 @@ namespace mabe {
           || (req_count_inst_executed < 0 
             && hw.num_insts_executed >= req_frac_inst_executed * hw.genome_working.size())){
         OrgPosition& org_pos = hw.GetTrait<OrgPosition>(org_pos_trait);
-        hw.ResetWorkingGenome();
-        hw.ResetHardware();
-        hw.inst_ptr = hw.genome.size() - 1;
+        // Reset the parent
+        hw.Reset();
+        // Replicate
         control.Replicate(org_pos, *org_pos.PopPtr());
-        hw.SetTrait<bool>(reset_self_trait, true);
+        // Set to end so completion of this inst moves it 0 
+        hw.inst_ptr = hw.genome_working.size() - 1; 
       }
     }
     void Inst_HCopy(org_t& hw, const org_t::inst_t& /*inst*/){
@@ -115,12 +116,12 @@ namespace mabe {
           || (req_count_inst_executed < 0 
             && hw.num_insts_executed >= req_frac_inst_executed * hw.genome_working.size())){
         OrgPosition& org_pos = hw.GetTrait<OrgPosition>(org_pos_trait);
-        hw.ResetHardware();
+        // Reset the parent
+        hw.Reset();
+        // Replicate 
+        control.Replicate(org_pos, *org_pos.PopPtr());
         // Set to end so completion of this inst moves it 0 
         hw.inst_ptr = hw.genome_working.size() - 1; 
-        control.Replicate(org_pos, *org_pos.PopPtr());
-        //control.DoBirth(hw, org_pos, org_pos, false); // Reset parent
-        hw.SetTrait<bool>(reset_self_trait, true);
       }
     }
 
