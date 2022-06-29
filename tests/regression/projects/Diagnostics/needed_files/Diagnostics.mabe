@@ -1,6 +1,6 @@
 random_seed = 2000;             // Seed for random number generator; use 0 to base on time.
 Var pop_size = 512;
-Var num_gens = 50;
+Var num_gens = 500;
 
 Population main_pop;
 Population next_pop;

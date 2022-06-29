@@ -1,3 +1,3 @@
 #!/bin/bash
 
-./MABE_debug -f Packing.mabe > terminal_output.txt
+./MABE -f Packing.mabe > terminal_output.txt

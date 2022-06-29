@@ -1,8 +1,8 @@
 random_seed = 2;                // Seed for random number generator; use 0 to base on time.
 Population main_pop;            // Collection of organisms
 Population next_pop;            // Collection of organisms
-Var pop_size = 20;              // Constant population size 
-Var num_gens = 50;              // Number of generations to run 
+Var pop_size = 100;              // Constant population size 
+Var num_gens = 500;              // Number of generations to run 
 
 AvidaGPOrg avida_org {          // Organism consisting of Avida instructions.
   mut_prob = 0.01;              // Probability of each instruction mutating on reproduction.

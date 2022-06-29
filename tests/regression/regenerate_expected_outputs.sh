@@ -39,7 +39,7 @@ do
   cp ${LOCAL_BUILD_DIR}/MABE_debug ./
   cp ${FILE_DIR}/* ./
   # Run!
-  ./run_regression_test.sh
+  env MABE_IS_REGEN=1 ./run_regression_test.sh
   TERMINAL_ERROR_CODE=$?
   if ! test ${TERMINAL_ERROR_CODE} -eq 0;
   then

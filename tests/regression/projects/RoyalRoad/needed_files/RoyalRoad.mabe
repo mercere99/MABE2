@@ -1,7 +1,7 @@
 random_seed = 40;               // Seed for random number generator; use 0 to base on time.
-Var pop_size = 100;             // Local value variable.
+Var pop_size = 1000;            // Local value variable.
 Var num_bits = 100;             // Number of bits in each organism (and the NK landscape)
-Var stop_update = 50;           // How many updates should we run for?
+Var stop_update = 500;          // How many updates should we run for?
 Var print_step = 100;           // Interval for printing...
 
 Population main_pop;            // Collection of organisms

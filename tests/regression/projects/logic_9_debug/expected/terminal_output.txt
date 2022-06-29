@@ -1,0 +1,160 @@
+EMP_TRACK_MEM: Pointer tracking is active!
+Loading file(s): 'logic_9_debug.mabe'
+Setting Random Seed to 301
+Found 26 external functions! HSearch HCopy HDivide JumpHead SwapStk Push Pop SetFlow GetHead IfLabel NopA HAlloc NopB NopC Sub Swap Inc Nand Add MovHead IfLess ShiftL ShiftR Dec IfNEqu IO
+Found 1 external functions with name: HSearch! (u)
+Registered instruction: HSearch index: 0; id: 20; symbol: u
+Found 1 external functions with name: HCopy! (t)
+Registered instruction: HCopy index: 1; id: 19; symbol: t
+Found 1 external functions with name: HDivide! (s)
+Registered instruction: HDivide index: 2; id: 18; symbol: s
+Found 1 external functions with name: JumpHead! (w)
+Registered instruction: JumpHead index: 3; id: 22; symbol: w
+Found 1 external functions with name: SwapStk! (h)
+Registered instruction: SwapStk index: 4; id: 7; symbol: h
+Found 1 external functions with name: Push! (g)
+Registered instruction: Push index: 5; id: 6; symbol: g
+Found 1 external functions with name: Pop! (f)
+Registered instruction: Pop index: 6; id: 5; symbol: f
+Found 1 external functions with name: SetFlow! (z)
+Registered instruction: SetFlow index: 7; id: 25; symbol: z
+Found 1 external functions with name: GetHead! (x)
+Registered instruction: GetHead index: 8; id: 23; symbol: x
+Found 1 external functions with name: IfLabel! (y)
+Registered instruction: IfLabel index: 9; id: 24; symbol: y
+Found 1 external functions with name: NopA! (a)
+Registered instruction: NopA index: 10; id: 0; symbol: a
+Found 1 external functions with name: HAlloc! (r)
+Registered instruction: HAlloc index: 11; id: 17; symbol: r
+Found 1 external functions with name: NopB! (b)
+Registered instruction: NopB index: 12; id: 1; symbol: b
+Found 1 external functions with name: NopC! (c)
+Registered instruction: NopC index: 13; id: 2; symbol: c
+Found 1 external functions with name: Sub! (o)
+Registered instruction: Sub index: 14; id: 14; symbol: o
+Found 1 external functions with name: Swap! (i)
+Registered instruction: Swap index: 15; id: 8; symbol: i
+Found 1 external functions with name: Inc! (l)
+Registered instruction: Inc index: 16; id: 11; symbol: l
+Found 1 external functions with name: Nand! (p)
+Registered instruction: Nand index: 17; id: 15; symbol: p
+Found 1 external functions with name: Add! (n)
+Registered instruction: Add index: 18; id: 13; symbol: n
+Found 1 external functions with name: MovHead! (v)
+Registered instruction: MovHead index: 19; id: 21; symbol: v
+Found 1 external functions with name: IfLess! (e)
+Registered instruction: IfLess index: 20; id: 4; symbol: e
+Found 1 external functions with name: ShiftL! (k)
+Registered instruction: ShiftL index: 21; id: 10; symbol: k
+Found 1 external functions with name: ShiftR! (j)
+Registered instruction: ShiftR index: 22; id: 9; symbol: j
+Found 1 external functions with name: Dec! (m)
+Registered instruction: Dec index: 23; id: 12; symbol: m
+Found 1 external functions with name: IfNEqu! (d)
+Registered instruction: IfNEqu index: 24; id: 3; symbol: d
+Found 10 external functions with name: IO! (q)
+Registered instruction: IO index: 25; id: 16; symbol: q
+random_seed = 301
+
+UD:1  mean_generation=0  pop_size=1  merit_mean=1  merit_max=1  not_frac=0  nand_frac=0  genome_length_max=50  genome_length_mean=50
+UD:2  mean_generation=0  pop_size=1  merit_mean=1  merit_max=1  not_frac=0  nand_frac=0  genome_length_max=50  genome_length_mean=50
+UD:3  mean_generation=0  pop_size=1  merit_mean=1  merit_max=1  not_frac=0  nand_frac=0  genome_length_max=50  genome_length_mean=50
+UD:4  mean_generation=0  pop_size=1  merit_mean=1  merit_max=1  not_frac=0  nand_frac=0  genome_length_max=50  genome_length_mean=50
+UD:5  mean_generation=0  pop_size=1  merit_mean=1  merit_max=1  not_frac=0  nand_frac=0  genome_length_max=50  genome_length_mean=50
+UD:6  mean_generation=0  pop_size=1  merit_mean=1  merit_max=1  not_frac=0  nand_frac=0  genome_length_max=50  genome_length_mean=50
+UD:7  mean_generation=0.5  pop_size=2  merit_mean=1  merit_max=1  not_frac=0  nand_frac=0  genome_length_max=50  genome_length_mean=50
+UD:8  mean_generation=0.5  pop_size=2  merit_mean=1  merit_max=1  not_frac=0  nand_frac=0  genome_length_max=50  genome_length_mean=50
+UD:9  mean_generation=0.5  pop_size=2  merit_mean=1  merit_max=1  not_frac=0  nand_frac=0  genome_length_max=50  genome_length_mean=50
+UD:10  mean_generation=0.5  pop_size=2  merit_mean=1  merit_max=1  not_frac=0  nand_frac=0  genome_length_max=50  genome_length_mean=50
+UD:11  mean_generation=0.5  pop_size=2  merit_mean=1  merit_max=1  not_frac=0  nand_frac=0  genome_length_max=50  genome_length_mean=50
+UD:12  mean_generation=0.5  pop_size=2  merit_mean=1  merit_max=1  not_frac=0  nand_frac=0  genome_length_max=50  genome_length_mean=50
+UD:13  mean_generation=1  pop_size=3  merit_mean=1  merit_max=1  not_frac=0  nand_frac=0  genome_length_max=50  genome_length_mean=49.6667
+UD:14  mean_generation=1.5  pop_size=4  merit_mean=1  merit_max=1  not_frac=0  nand_frac=0  genome_length_max=50  genome_length_mean=49.75
+UD:15  mean_generation=1.5  pop_size=4  merit_mean=1  merit_max=1  not_frac=0  nand_frac=0  genome_length_max=50  genome_length_mean=49.75
+UD:16  mean_generation=2  pop_size=5  merit_mean=1  merit_max=1  not_frac=0  nand_frac=0  genome_length_max=50  genome_length_mean=49.8
+UD:17  mean_generation=2.375  pop_size=8  merit_mean=1  merit_max=1  not_frac=0  nand_frac=0  genome_length_max=50  genome_length_mean=49.5
+UD:18  mean_generation=2.55556  pop_size=9  merit_mean=1  merit_max=1  not_frac=0  nand_frac=0  genome_length_max=50  genome_length_mean=49.5556
+UD:19  mean_generation=3.06667  pop_size=15  merit_mean=1  merit_max=1  not_frac=0  nand_frac=0  genome_length_max=51  genome_length_mean=49.7333
+UD:20  mean_generation=3.35294  pop_size=17  merit_mean=1  merit_max=1  not_frac=0  nand_frac=0  genome_length_max=51  genome_length_mean=49.5882
+UD:21  mean_generation=3.8  pop_size=25  merit_mean=1  merit_max=1  not_frac=0  nand_frac=0  genome_length_max=51  genome_length_mean=49.76
+UD:22  mean_generation=4.06452  pop_size=31  merit_mean=1  merit_max=1  not_frac=0  nand_frac=0  genome_length_max=51  genome_length_mean=49.6774
+UD:23  mean_generation=4.38095  pop_size=42  merit_mean=1  merit_max=1  not_frac=0  nand_frac=0  genome_length_max=51  genome_length_mean=49.6905
+UD:24  mean_generation=4.68519  pop_size=54  merit_mean=1  merit_max=1  not_frac=0  nand_frac=0  genome_length_max=53  genome_length_mean=49.8704
+UD:25  mean_generation=5.01333  pop_size=75  merit_mean=1  merit_max=1  not_frac=0  nand_frac=0  genome_length_max=53  genome_length_mean=49.9333
+UD:26  mean_generation=5.21154  pop_size=104  merit_mean=1  merit_max=1  not_frac=0  nand_frac=0  genome_length_max=54  genome_length_mean=50.1346
+UD:27  mean_generation=5.5  pop_size=146  merit_mean=1  merit_max=1  not_frac=0  nand_frac=0  genome_length_max=54  genome_length_mean=50.1644
+UD:28  mean_generation=5.76238  pop_size=202  merit_mean=1  merit_max=1  not_frac=0  nand_frac=0  genome_length_max=54  genome_length_mean=50.1881
+UD:29  mean_generation=6.12414  pop_size=290  merit_mean=1  merit_max=1  not_frac=0  nand_frac=0  genome_length_max=55  genome_length_mean=50.3034
+UD:30  mean_generation=6.39512  pop_size=410  merit_mean=1  merit_max=1  not_frac=0  nand_frac=0  genome_length_max=55  genome_length_mean=50.3415
+UD:31  mean_generation=6.74338  pop_size=604  merit_mean=1  merit_max=1  not_frac=0  nand_frac=0  genome_length_max=58  genome_length_mean=50.4983
+UD:32  mean_generation=7.0411  pop_size=876  merit_mean=1  merit_max=1  not_frac=0  nand_frac=0  genome_length_max=58  genome_length_mean=50.5696
+UD:33  mean_generation=7.36037  pop_size=1282  merit_mean=1  merit_max=1  not_frac=0  nand_frac=0  genome_length_max=58  genome_length_mean=50.6888
+UD:34  mean_generation=7.71317  pop_size=1921  merit_mean=1  merit_max=1  not_frac=0  nand_frac=0  genome_length_max=58  genome_length_mean=50.7246
+UD:35  mean_generation=8.04803  pop_size=2894  merit_mean=1  merit_max=1  not_frac=0  nand_frac=0  genome_length_max=58  genome_length_mean=50.8082
+UD:36  mean_generation=8.43667  pop_size=3600  merit_mean=1  merit_max=1  not_frac=0  nand_frac=0  genome_length_max=58  genome_length_mean=50.8869
+UD:37  mean_generation=8.91528  pop_size=3600  merit_mean=1  merit_max=1  not_frac=0  nand_frac=0  genome_length_max=58  genome_length_mean=50.9656
+UD:38  mean_generation=9.3775  pop_size=3600  merit_mean=1  merit_max=1  not_frac=0  nand_frac=0  genome_length_max=59  genome_length_mean=51.035
+UD:39  mean_generation=9.85  pop_size=3600  merit_mean=1  merit_max=1  not_frac=0  nand_frac=0  genome_length_max=59  genome_length_mean=51.0942
+UD:40  mean_generation=10.265  pop_size=3600  merit_mean=1  merit_max=1  not_frac=0  nand_frac=0  genome_length_max=60  genome_length_mean=51.1644
+UD:41  mean_generation=10.6919  pop_size=3600  merit_mean=1  merit_max=1  not_frac=0  nand_frac=0  genome_length_max=60  genome_length_mean=51.1869
+UD:42  mean_generation=11.0994  pop_size=3600  merit_mean=1.00028  merit_max=2  not_frac=0  nand_frac=0.000277778  genome_length_max=60  genome_length_mean=51.1931
+UD:43  mean_generation=11.5489  pop_size=3600  merit_mean=1.00083  merit_max=4  not_frac=0.000277778  nand_frac=0.000277778  genome_length_max=60  genome_length_mean=51.26
+UD:44  mean_generation=11.9789  pop_size=3600  merit_mean=1  merit_max=1  not_frac=0.000277778  nand_frac=0  genome_length_max=61  genome_length_mean=51.2825
+UD:45  mean_generation=12.4958  pop_size=3600  merit_mean=1.00028  merit_max=2  not_frac=0.000277778  nand_frac=0  genome_length_max=62  genome_length_mean=51.3578
+UD:46  mean_generation=12.9475  pop_size=3600  merit_mean=1.00028  merit_max=2  not_frac=0.000277778  nand_frac=0  genome_length_max=62  genome_length_mean=51.4047
+UD:47  mean_generation=13.3894  pop_size=3600  merit_mean=1.00028  merit_max=2  not_frac=0.000555556  nand_frac=0  genome_length_max=62  genome_length_mean=51.4681
+UD:48  mean_generation=13.8336  pop_size=3600  merit_mean=1.00056  merit_max=2  not_frac=0.000277778  nand_frac=0.000277778  genome_length_max=61  genome_length_mean=51.5156
+UD:49  mean_generation=14.3064  pop_size=3600  merit_mean=1.00028  merit_max=2  not_frac=0.000277778  nand_frac=0  genome_length_max=62  genome_length_mean=51.57
+UD:50  mean_generation=14.7947  pop_size=3600  merit_mean=1.00028  merit_max=2  not_frac=0.000277778  nand_frac=0  genome_length_max=60  genome_length_mean=51.6086
+UD:51  mean_generation=15.2814  pop_size=3600  merit_mean=1  merit_max=1  not_frac=0.000277778  nand_frac=0  genome_length_max=60  genome_length_mean=51.6669
+UD:52  mean_generation=15.6644  pop_size=3600  merit_mean=1  merit_max=1  not_frac=0  nand_frac=0  genome_length_max=60  genome_length_mean=51.7019
+UD:53  mean_generation=16.0681  pop_size=3600  merit_mean=1.00056  merit_max=2  not_frac=0.000555556  nand_frac=0  genome_length_max=61  genome_length_mean=51.7328
+UD:54  mean_generation=16.5083  pop_size=3600  merit_mean=1.00056  merit_max=2  not_frac=0.000555556  nand_frac=0  genome_length_max=61  genome_length_mean=51.7897
+UD:55  mean_generation=16.9531  pop_size=3600  merit_mean=1  merit_max=1  not_frac=0  nand_frac=0  genome_length_max=62  genome_length_mean=51.8364
+UD:56  mean_generation=17.3761  pop_size=3600  merit_mean=1  merit_max=1  not_frac=0  nand_frac=0  genome_length_max=62  genome_length_mean=51.9111
+UD:57  mean_generation=17.7672  pop_size=3600  merit_mean=1.00028  merit_max=2  not_frac=0  nand_frac=0.000277778  genome_length_max=62  genome_length_mean=51.9308
+UD:58  mean_generation=18.2261  pop_size=3600  merit_mean=1.00028  merit_max=2  not_frac=0  nand_frac=0.000277778  genome_length_max=61  genome_length_mean=51.9689
+UD:59  mean_generation=18.7358  pop_size=3600  merit_mean=1.00111  merit_max=4  not_frac=0  nand_frac=0.000277778  genome_length_max=62  genome_length_mean=52.0175
+UD:60  mean_generation=19.1919  pop_size=3600  merit_mean=1.00917  merit_max=32  not_frac=0.000555556  nand_frac=0.000277778  genome_length_max=62  genome_length_mean=51.9825
+UD:61  mean_generation=19.7219  pop_size=3600  merit_mean=1.00944  merit_max=32  not_frac=0.00111111  nand_frac=0  genome_length_max=61  genome_length_mean=51.9622
+UD:62  mean_generation=20.1425  pop_size=3600  merit_mean=1.01806  merit_max=32  not_frac=0.00111111  nand_frac=0.000277778  genome_length_max=61  genome_length_mean=52.0375
+UD:63  mean_generation=20.6556  pop_size=3600  merit_mean=1.02611  merit_max=32  not_frac=0.000833333  nand_frac=0.000555556  genome_length_max=62  genome_length_mean=52.1406
+UD:64  mean_generation=21.1708  pop_size=3600  merit_mean=1.03917  merit_max=32  not_frac=0.000555556  nand_frac=0.000833333  genome_length_max=62  genome_length_mean=52.2144
+UD:65  mean_generation=21.6939  pop_size=3600  merit_mean=1.00889  merit_max=32  not_frac=0.000555556  nand_frac=0.000555556  genome_length_max=62  genome_length_mean=52.2544
+UD:66  mean_generation=22.1569  pop_size=3600  merit_mean=1.0175  merit_max=32  not_frac=0.000833333  nand_frac=0.000555556  genome_length_max=62  genome_length_mean=52.2769
+UD:67  mean_generation=22.6892  pop_size=3600  merit_mean=1.01528  merit_max=32  not_frac=0.00138889  nand_frac=0.000277778  genome_length_max=63  genome_length_mean=52.2947
+UD:68  mean_generation=23.1647  pop_size=3600  merit_mean=1.01056  merit_max=32  not_frac=0.00138889  nand_frac=0.000555556  genome_length_max=64  genome_length_mean=52.3353
+UD:69  mean_generation=23.7331  pop_size=3600  merit_mean=1.02583  merit_max=32  not_frac=0  nand_frac=0.000555556  genome_length_max=64  genome_length_mean=52.3539
+UD:70  mean_generation=24.2481  pop_size=3600  merit_mean=1.01722  merit_max=32  not_frac=0  nand_frac=0  genome_length_max=64  genome_length_mean=52.3842
+UD:71  mean_generation=24.6808  pop_size=3600  merit_mean=1.02583  merit_max=32  not_frac=0  nand_frac=0  genome_length_max=64  genome_length_mean=52.3875
+UD:72  mean_generation=25.2125  pop_size=3600  merit_mean=1.0175  merit_max=32  not_frac=0.000277778  nand_frac=0  genome_length_max=65  genome_length_mean=52.5058
+UD:73  mean_generation=25.7192  pop_size=3600  merit_mean=1.01972  merit_max=32  not_frac=0.000277778  nand_frac=0.000277778  genome_length_max=64  genome_length_mean=52.5508
+UD:74  mean_generation=26.2619  pop_size=3600  merit_mean=1.01861  merit_max=32  not_frac=0.000833333  nand_frac=0.000277778  genome_length_max=64  genome_length_mean=52.5581
+UD:75  mean_generation=26.8083  pop_size=3600  merit_mean=1.01  merit_max=32  not_frac=0.000555556  nand_frac=0.000833333  genome_length_max=64  genome_length_mean=52.6756
+UD:76  mean_generation=27.2128  pop_size=3600  merit_mean=1.03528  merit_max=32  not_frac=0.000277778  nand_frac=0.000555556  genome_length_max=64  genome_length_mean=52.6397
+UD:77  mean_generation=27.6375  pop_size=3600  merit_mean=1.01361  merit_max=32  not_frac=0.000833333  nand_frac=0.000555556  genome_length_max=64  genome_length_mean=52.62
+UD:78  mean_generation=28.0947  pop_size=3600  merit_mean=1.02028  merit_max=32  not_frac=0.000833333  nand_frac=0  genome_length_max=65  genome_length_mean=52.6361
+UD:79  mean_generation=28.6692  pop_size=3600  merit_mean=1.02778  merit_max=32  not_frac=0.000555556  nand_frac=0  genome_length_max=65  genome_length_mean=52.6475
+UD:80  mean_generation=29.2497  pop_size=3600  merit_mean=1.0225  merit_max=32  not_frac=0.00138889  nand_frac=0  genome_length_max=65  genome_length_mean=52.6361
+UD:81  mean_generation=29.9092  pop_size=3600  merit_mean=1.02  merit_max=32  not_frac=0.000555556  nand_frac=0  genome_length_max=64  genome_length_mean=52.6028
+UD:82  mean_generation=30.5792  pop_size=3600  merit_mean=1.04528  merit_max=32  not_frac=0.000555556  nand_frac=0.000277778  genome_length_max=64  genome_length_mean=52.5364
+UD:83  mean_generation=31.3047  pop_size=3600  merit_mean=1.03028  merit_max=32  not_frac=0.000277778  nand_frac=0.000277778  genome_length_max=64  genome_length_mean=52.6197
+UD:84  mean_generation=32.0672  pop_size=3600  merit_mean=1.03694  merit_max=32  not_frac=0.000555556  nand_frac=0  genome_length_max=63  genome_length_mean=52.6136
+UD:85  mean_generation=32.9353  pop_size=3600  merit_mean=1.04667  merit_max=32  not_frac=0.000277778  nand_frac=0  genome_length_max=63  genome_length_mean=52.65
+UD:86  mean_generation=33.8381  pop_size=3600  merit_mean=1.04361  merit_max=32  not_frac=0.000833333  nand_frac=0.000277778  genome_length_max=64  genome_length_mean=52.7014
+UD:87  mean_generation=34.8358  pop_size=3600  merit_mean=1.03639  merit_max=32  not_frac=0.000277778  nand_frac=0  genome_length_max=64  genome_length_mean=52.6789
+UD:88  mean_generation=35.8086  pop_size=3600  merit_mean=1.03556  merit_max=32  not_frac=0.000277778  nand_frac=0  genome_length_max=63  genome_length_mean=52.7047
+UD:89  mean_generation=36.7058  pop_size=3600  merit_mean=1.03639  merit_max=32  not_frac=0.000277778  nand_frac=0.000277778  genome_length_max=64  genome_length_mean=52.7319
+UD:90  mean_generation=37.7006  pop_size=3600  merit_mean=1.01917  merit_max=32  not_frac=0  nand_frac=0.000277778  genome_length_max=65  genome_length_mean=52.7867
+UD:91  mean_generation=38.8736  pop_size=3600  merit_mean=1.0125  merit_max=32  not_frac=0  nand_frac=0.000555556  genome_length_max=66  genome_length_mean=52.7908
+UD:92  mean_generation=39.9217  pop_size=3600  merit_mean=1.01306  merit_max=32  not_frac=0.000555556  nand_frac=0.000277778  genome_length_max=66  genome_length_mean=52.7172
+UD:93  mean_generation=41.0147  pop_size=3600  merit_mean=1.01417  merit_max=32  not_frac=0.000555556  nand_frac=0.000555556  genome_length_max=66  genome_length_mean=52.6758
+UD:94  mean_generation=41.9608  pop_size=3600  merit_mean=1.00194  merit_max=4  not_frac=0.00111111  nand_frac=0.000833333  genome_length_max=63  genome_length_mean=52.8089
+UD:95  mean_generation=42.9258  pop_size=3600  merit_mean=1.00306  merit_max=8  not_frac=0.000277778  nand_frac=0.00138889  genome_length_max=64  genome_length_mean=52.8822
+UD:96  mean_generation=43.9275  pop_size=3600  merit_mean=1.00028  merit_max=2  not_frac=0  nand_frac=0.000833333  genome_length_max=65  genome_length_mean=53.0361
+UD:97  mean_generation=44.9033  pop_size=3600  merit_mean=1.00056  merit_max=2  not_frac=0.000277778  nand_frac=0.00111111  genome_length_max=66  genome_length_mean=53.0081
+UD:98  mean_generation=45.9178  pop_size=3600  merit_mean=1.00028  merit_max=2  not_frac=0  nand_frac=0.000555556  genome_length_max=69  genome_length_mean=53.0161
+UD:99  mean_generation=46.8317  pop_size=3600  merit_mean=1  merit_max=1  not_frac=0  nand_frac=0.000277778  genome_length_max=66  genome_length_mean=53.1181
+UD:100  mean_generation=47.9272  pop_size=3600  merit_mean=1.00056  merit_max=2  not_frac=0.000555556  nand_frac=0  genome_length_max=66  genome_length_mean=53.2447
+EMP_TRACK_MEM: No memory leaks found!
+ 742078 pointers found; all have been cleaned up fully.

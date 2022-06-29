@@ -1,8 +1,8 @@
 random_seed = 20;             // Seed for random number generator; use 0 to base on time.
 Population main_pop;          // Collection of organisms
 Population next_pop;          // Collection of organisms
-Var pop_size = 200;           // Local value variable.
-Var num_gens = 50;            // Local value variable.
+Var pop_size = 1000;           // Local value variable.
+Var num_gens = 500;            // Local value variable.
 
 EvalPacking eval_packing {    // Evaluate bitstrings by counting ones (or zeros).
   bits_trait = "bits";        // Which trait stores the bit sequence to evaluate?

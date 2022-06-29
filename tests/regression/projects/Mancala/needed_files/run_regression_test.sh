@@ -1,3 +1,3 @@
 #!/bin/bash
 
-./MABE_debug -f Mancala.mabe > terminal_output.txt
+./MABE -f Mancala.mabe > terminal_output.txt
