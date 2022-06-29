@@ -1,5 +1,5 @@
 random_seed = 300;     // Seed for random number generator; use 0 to base on time.
-Var pop_size = 3600;   // Local value variable.
+Var pop_size = 1000;   // Local value variable.
 Var max_updates = 100; // Local value variable.
 Var do_multiply = 1;   // Local value variable.
 Population main_pop;   // Collection of organisms

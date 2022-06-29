@@ -1,10 +1,10 @@
 Latest commit at time of last regeneration:
-commit a70984e2638bad6bbeb7bc0495c534b0f3efa0a2
+commit 355cf367769937ebe2c47f8bf962142df31d6194
 Author: Austin Ferguson <ferguson.austin.j@gmail.com>
-Date:   Mon Jun 27 20:19:41 2022 -0400
+Date:   Wed Jun 29 14:00:45 2022 -0400
 
-    Remove unused code in reproduction instructions
+    Update Empirical submodule
  
  
 Time of last regeneration:
-Tue Jun 28 10:18:30 AM EDT 2022
+Wed Jun 29 02:14:18 PM EDT 2022
