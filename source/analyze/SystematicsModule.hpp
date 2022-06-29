@@ -110,6 +110,19 @@ public:
       data.Update(update);
       
     }
+    
+    void TakeManualSnapshot(){
+      sys.Snapshot(snapshot_file_root_name + "_manual_" + emp::to_string(control.GetUpdate()) + ".csv");
+    }
+    
+    static void InitType(emplode::TypeInfo & info) {
+      info.AddMemberFunction("SNAPSHOT",
+          [](AnalyzeSystematics & mod) { 
+            mod.TakeManualSnapshot();
+            return 0;
+          },
+          "Ouput snapshot to file");
+    }
 
     void BeforeDeath(OrgPosition pos) override {
       // Notify the systematics manager when an organism dies.
