@@ -19,8 +19,6 @@ then
   exit 1
 fi
 # Move executable
-echo "\nBuild dir:" 
-ls ${MABE_BUILD_DIR}
 mv ${MABE_BUILD_DIR}/MABE ${LOCAL_BUILD_DIR}/MABE_debug
 ## Release mode
 make clean
@@ -33,8 +31,6 @@ then
   exit 1
 fi
 # Move executable
-echo "\nBuild dir:" 
-ls ${MABE_BUILD_DIR}
 mv ${MABE_BUILD_DIR}/MABE ${LOCAL_BUILD_DIR}/MABE
 cd ${THIS_DIR}
 

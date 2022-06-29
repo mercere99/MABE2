@@ -1,13 +1,25 @@
-BUILD_DIR="../../build" # Relative to THIS_DIR below
+MABE_BUILD_DIR="../../build" # Relative to THIS_DIR below
 
 THIS_DIR=`pwd`
+MABE_BUILD_DIR=${THIS_DIR}/${MABE_BUILD_DIR}
+LOCAL_BUILD_DIR=${THIS_DIR}/build
 PROJECTS=`ls ${THIS_DIR}/projects`
 
 set -e # If any errors occur, propogate error and stop
 
-cd ${BUILD_DIR}
+### Compile
+mkdir -p ${LOCAL_BUILD_DIR}
+cd ${MABE_BUILD_DIR}
+## Debug mode
 make clean
-make debug
+make debug 
+# Move executable
+mv ${MABE_BUILD_DIR}/MABE ${LOCAL_BUILD_DIR}/MABE_debug
+## Release mode
+make clean
+make 
+# Move executable
+mv ${MABE_BUILD_DIR}/MABE ${LOCAL_BUILD_DIR}/MABE
 cd ${THIS_DIR}
 
 for NAME in ${PROJECTS}
@@ -23,12 +35,20 @@ do
   mkdir ${FILE_DIR} -p
   cd ${EXPECTED_DIR}
   # Copy over mabe executable and all needed files
-  cp ${THIS_DIR}/${BUILD_DIR}/MABE ./
+  cp ${LOCAL_BUILD_DIR}/MABE ./
+  cp ${LOCAL_BUILD_DIR}/MABE_debug ./
   cp ${FILE_DIR}/* ./
   # Run!
-  ./MABE -f ${NAME}.mabe > terminal_output.txt
+  ./run_regression_test.sh
+  TERMINAL_ERROR_CODE=$?
+  if ! test ${TERMINAL_ERROR_CODE} -eq 0;
+  then
+    echo "Error encountered while running ${OUTPUT_DIR}/run_regression_test.sh"
+    exit 1
+  fi
   # Remove non-output files
   rm ${EXPECTED_DIR}/MABE
+  rm ${EXPECTED_DIR}/MABE_debug
   NEEDED_FILES=`ls ${FILE_DIR}`
   for needed_file in ${NEEDED_FILES}
   do
