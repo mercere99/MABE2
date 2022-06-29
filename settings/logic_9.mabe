@@ -5,7 +5,7 @@ Var do_multiply = 1;   // Local value variable.
 Population main_pop;   // Collection of organisms
 MaxSizePlacement place_max_size { // Grow population to a given size then maintain
   target = "main_pop";          // Population(s) to manage.
-  max_pop_size = 3600;          // Maximum size of the population.
+  max_pop_size = pop_size;      // Maximum size of the population.
 };
 AnnotatePlacement_Position pos_annotater { // Store org's position as trait on placement.
   target = "main_pop";    // Population(s) to annotate
@@ -208,7 +208,7 @@ AnalyzeSystematics sys{
   data_file_name = "phylo/phylogenetic_data.csv";// Filename for systematics data file.
   data_updates = "0:1:-1";      // Which updates should we output a data from the phylogeny?
   snapshot_file_root_name = "phylo/phylogeny";// Filename for snapshot files (will have update number and .csv appended to end)
-  snapshot_updates = "0:1:-1";  // Which updates should we output a snapshot of the phylogeny?
+  snapshot_updates = "0:0:0";   // Which updates should we output a snapshot of the phylogeny?
   store_ancestors = 1;          // Store all ancestors of extant taxa.(1 = TRUE)
   store_outside = 0;            // Store all taxa that ever existed.(1 = TRUE)
   taxon_info = "genome";        // Which trait should we identify unique taxa based on
@@ -266,6 +266,7 @@ max_file.ADD_COLUMN("equ",         "best_org.TRAIT('equ_performed')" );
        );
   fit_file.WRITE();
   max_file.WRITE();
+  IF (ud % 10 == 0) sys.SNAPSHOT();
 };
 
 @UPDATE(Var ud2) IF (ud2 == max_updates) EXIT();
