@@ -1,11 +1,41 @@
-BUILD_DIR="../../build" # Relative to THIS_DIR below
+MABE_BUILD_DIR="../../build" # Relative to THIS_DIR below
 
 THIS_DIR=`pwd`
+MABE_BUILD_DIR=${THIS_DIR}/${MABE_BUILD_DIR}
+LOCAL_BUILD_DIR=${THIS_DIR}/build
 PROJECTS=`ls ${THIS_DIR}/projects`
 
-cd ${BUILD_DIR}
+### Compile
+mkdir -p ${LOCAL_BUILD_DIR}
+cd ${MABE_BUILD_DIR}
+## Debug mode
 make clean
-make debug
+make debug 
+# Make sure it compiled
+TERMINAL_ERROR_CODE=$?
+if ! test ${TERMINAL_ERROR_CODE} -eq 0;
+then
+  echo "Error! Could not compile MABE in debug mode! (${expected_file})"
+  exit 1
+fi
+# Move executable
+echo "\nBuild dir:" 
+ls ${MABE_BUILD_DIR}
+mv ${MABE_BUILD_DIR}/MABE ${LOCAL_BUILD_DIR}/MABE_debug
+## Release mode
+make clean
+make 
+# Make sure it compiled
+TERMINAL_ERROR_CODE=$?
+if ! test ${TERMINAL_ERROR_CODE} -eq 0;
+then
+  echo "Error! Could not compile MABE in release mode! (${expected_file})"
+  exit 1
+fi
+# Move executable
+echo "\nBuild dir:" 
+ls ${MABE_BUILD_DIR}
+mv ${MABE_BUILD_DIR}/MABE ${LOCAL_BUILD_DIR}/MABE
 cd ${THIS_DIR}
 
 for NAME in ${PROJECTS}
@@ -19,12 +49,20 @@ do
   mkdir ${OUTPUT_DIR} -p
   cd ${OUTPUT_DIR}
   # Copy over mabe executable and all needed files
-  cp ${THIS_DIR}/${BUILD_DIR}/MABE ./
+  cp ${LOCAL_BUILD_DIR}/MABE ./
+  cp ${LOCAL_BUILD_DIR}/MABE_debug ./
   cp ${FILE_DIR}/* ./
   # Run!
-  ./MABE -f ${NAME}.mabe  > terminal_output.txt
+  ./run_regression_test.sh
+  TERMINAL_ERROR_CODE=$?
+  if ! test ${TERMINAL_ERROR_CODE} -eq 0;
+  then
+    echo "Error encountered while running ${OUTPUT_DIR}/run_regression_test.sh"
+    exit 1
+  fi
   # Remove non-output files
   rm ${OUTPUT_DIR}/MABE
+  rm ${OUTPUT_DIR}/MABE_debug
   NEEDED_FILES=`ls ${FILE_DIR}`
   for needed_file in ${NEEDED_FILES}
   do
@@ -44,7 +82,8 @@ do
     if ! test ${TERMINAL_ERROR_CODE} -eq 0;
     then
       echo "Error! File generated different terminal output! (${expected_file})"
-      head ${OUTPUT_DIR}/${expected_file} -n 200
+      echo "Result of \"diff\" command (left is output, right is expected):"
+      diff "${expected_file}" "${EXPECTED_DIR}/${expected_file}"
       exit 1
     fi
   done
