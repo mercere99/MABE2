@@ -179,20 +179,25 @@ namespace mabe {
     /// Mutate (in place) the current organism.
     size_t Mutate(emp::Random & random) override {
       size_t mut_count = 0;
-      
-      auto point_mut_func = std::bind( &this_t::Mutate_Point, this, 
-          std::placeholders::_1, std::placeholders::_2);
-      
-      mut_count += 
-        Mutate_Generic(point_mut_func, SharedData().point_mut_dist, random, true);
-      auto insertion_mut_func = std::bind( &this_t::Mutate_Insertion, this, 
-          std::placeholders::_1, std::placeholders::_2);
-      mut_count += 
-        Mutate_Generic(insertion_mut_func, SharedData().insertion_mut_dist, random, false);
-      auto deletion_mut_func = std::bind( &this_t::Mutate_Deletion, this, 
-          std::placeholders::_1, std::placeholders::_2);
-      mut_count += 
-        Mutate_Generic(deletion_mut_func, SharedData().deletion_mut_dist, random, false);
+      mut_count += Mutate_Generic(
+        [this](size_t pos, emp::Random& random){
+          Mutate_Point(pos, random);
+        },
+        SharedData().point_mut_dist, random, true
+      );
+      mut_count += Mutate_Generic(
+        [this](size_t pos, emp::Random& random){
+          Mutate_Insertion(pos, random);
+        },
+        SharedData().point_mut_dist, random, true
+      );
+      mut_count += Mutate_Generic(
+        [this](size_t pos, emp::Random& random){
+          Mutate_Deletion(pos, random);
+        },
+        SharedData().point_mut_dist, random, true
+      );
+      // Update hardware and traits accordingly
       ResetWorkingGenome();
       Organism::SetTrait<std::string>(SharedData().genome_name, GetGenomeString());
       Organism::SetTrait<size_t>(SharedData().genome_length_name, GetGenomeSize());
