@@ -309,6 +309,7 @@ TEST_CASE("VirtualCPUOrg_Main", "[orgs]"){
     org.SetTrait<double>("child_merit", 3);
     std::string original_genome = org.GetGenomeString();
     org.AdvanceIP(1);
+    org.SetTrait<mabe::VirtualCPUOrg::genome_t>("offspring_genome", org.genome);
     emp::Ptr<mabe::VirtualCPUOrg> child_org_1 = 
         org.MakeOffspringOrganism(control.GetRandom()).DynamicCast<mabe::VirtualCPUOrg>();
     std::string child_genome_1 =
