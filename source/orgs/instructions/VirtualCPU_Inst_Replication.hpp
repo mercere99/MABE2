@@ -200,37 +200,37 @@ namespace mabe {
     void SetupFuncs(){
       ActionMap& action_map = control.GetActionMap(pop_id);
       if(include_h_alloc){ // Head allocate 
-        const inst_func_t func_h_alloc = std::bind(&this_t::Inst_HAlloc, this, 
-            std::placeholders::_1, std::placeholders::_2);
+        const inst_func_t func_h_alloc = 
+          [this](org_t& hw, const org_t::inst_t& inst){ Inst_HAlloc(hw, inst); };
         Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
               "HAlloc", func_h_alloc);
         action.data.AddVar<int>("inst_id", h_alloc_id);
       }
       if(include_h_divide){ // Head divide 
-        const inst_func_t func_h_divide = std::bind(&this_t::Inst_HDivide, this, 
-            std::placeholders::_1, std::placeholders::_2);
+        const inst_func_t func_h_divide = 
+          [this](org_t& hw, const org_t::inst_t& inst){ Inst_HDivide(hw, inst); };
         Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "HDivide", func_h_divide);
         action.data.AddVar<int>("inst_id", h_divide_id);
         action.data.AddVar<bool>("is_non_speculative", true);
       }
       if(include_h_copy){ // Head copy 
-        const inst_func_t func_h_copy = std::bind(&this_t::Inst_HCopy, this, 
-            std::placeholders::_1, std::placeholders::_2);
+        const inst_func_t func_h_copy = 
+          [this](org_t& hw, const org_t::inst_t& inst){ Inst_HCopy(hw, inst); };
         Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "HCopy", func_h_copy);
         action.data.AddVar<int>("inst_id", h_copy_id);
       }
       if(include_h_search){ // Head search 
-        const inst_func_t func_h_search = std::bind(&this_t::Inst_HSearch, this, 
-            std::placeholders::_1, std::placeholders::_2);
+        const inst_func_t func_h_search = 
+          [this](org_t& hw, const org_t::inst_t& inst){ Inst_HSearch(hw, inst); };
         Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "HSearch", func_h_search);
         action.data.AddVar<int>("inst_id", h_search_id);
       }
       if(include_repro){ // Repro 
-        const inst_func_t func_repro = std::bind(&this_t::Inst_Repro, this, 
-            std::placeholders::_1, std::placeholders::_2);
+        const inst_func_t func_repro = 
+          [this](org_t& hw, const org_t::inst_t& inst){ Inst_Repro(hw, inst); };
         Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "Repro", func_repro);
         action.data.AddVar<int>("inst_id", repro_id);

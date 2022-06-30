@@ -83,8 +83,8 @@ namespace mabe {
     /// Define IO instruction and make it available to the specified population
     void SetupFuncs(){
       ActionMap& action_map = control.GetActionMap(pop_id);
-      const inst_func_t func_input = std::bind(&this_t::Inst_IO, this, 
-          std::placeholders::_1, std::placeholders::_2);
+        const inst_func_t func_input = 
+          [this](org_t& hw, const org_t::inst_t& inst){ Inst_IO(hw, inst); };
       Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
           "IO", func_input);
       action.data.AddVar<int>("inst_id", io_inst_id);

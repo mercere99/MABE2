@@ -111,56 +111,50 @@ namespace mabe {
     void SetupFuncs(){
       ActionMap& action_map = control.GetActionMap(pop_id);
       if(include_label){ // Label 
-        const inst_func_t func_label = std::bind(&this_t::Inst_Label, this, 
-            std::placeholders::_1, std::placeholders::_2);
+        const inst_func_t func_label = 
+          [this](org_t& hw, const org_t::inst_t& inst){ Inst_Label(hw, inst); };
         Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "Label", func_label);
         action.data.AddVar<int>("inst_id", label_id);
       }
       if(include_search_label_direct_s){ // SearchLabelDirectS 
-        const inst_func_t func_search_label_direct_s = std::bind(
-            &this_t::Inst_SearchLabelDirectS, this, 
-            std::placeholders::_1, std::placeholders::_2);
+        const inst_func_t func_search_label_direct_s = 
+          [this](org_t& hw, const org_t::inst_t& inst){ Inst_SearchLabelDirectS(hw, inst); };
         Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "SearchLabelDirectS", func_search_label_direct_s);
         action.data.AddVar<int>("inst_id", search_label_direct_s_id);
       }
       if(include_search_label_direct_f){ // SearchLabelDirectF 
-        const inst_func_t func_search_label_direct_f = std::bind(
-            &this_t::Inst_SearchLabelDirectF, this, 
-            std::placeholders::_1, std::placeholders::_2);
+        const inst_func_t func_search_label_direct_f = 
+          [this](org_t& hw, const org_t::inst_t& inst){ Inst_SearchLabelDirectF(hw, inst); };
         Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "SearchLabelDirectF", func_search_label_direct_f);
         action.data.AddVar<int>("inst_id", search_label_direct_f_id);
       }
       if(include_search_label_direct_b){ // SearchLabelDirectB 
-        const inst_func_t func_search_label_direct_b = std::bind(
-            &this_t::Inst_SearchLabelDirectB, this, 
-            std::placeholders::_1, std::placeholders::_2);
+        const inst_func_t func_search_label_direct_b = 
+          [this](org_t& hw, const org_t::inst_t& inst){ Inst_SearchLabelDirectB(hw, inst); };
         Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "SearchLabelDirectB", func_search_label_direct_b);
         action.data.AddVar<int>("inst_id", search_label_direct_b_id);
       }
       if(include_search_seq_direct_s){ // SearchSeqDirectS 
-        const inst_func_t func_search_seq_direct_s = std::bind(
-            &this_t::Inst_SearchSeqDirectS, this, 
-            std::placeholders::_1, std::placeholders::_2);
+        const inst_func_t func_search_seq_direct_s = 
+          [this](org_t& hw, const org_t::inst_t& inst){ Inst_SearchSeqDirectS(hw, inst); };
         Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "SearchSeqDirectS", func_search_seq_direct_s);
         action.data.AddVar<int>("inst_id", search_seq_direct_s_id);
       }
       if(include_search_seq_direct_f){ // SearchSeqDirectF 
-        const inst_func_t func_search_seq_direct_f = std::bind(
-            &this_t::Inst_SearchSeqDirectB, this, 
-            std::placeholders::_1, std::placeholders::_2);
+        const inst_func_t func_search_seq_direct_f = 
+          [this](org_t& hw, const org_t::inst_t& inst){ Inst_SearchSeqDirectF(hw, inst); };
         Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "SearchSeqDirectF", func_search_seq_direct_f);
         action.data.AddVar<int>("inst_id", search_seq_direct_f_id);
       }
       if(include_search_seq_direct_b){ // SearchSeqDirectB 
-        const inst_func_t func_search_seq_direct_b = std::bind(
-            &this_t::Inst_SearchSeqDirectB, this, 
-            std::placeholders::_1, std::placeholders::_2);
+        const inst_func_t func_search_seq_direct_b = 
+          [this](org_t& hw, const org_t::inst_t& inst){ Inst_SearchSeqDirectB(hw, inst); };
         Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "SearchSeqDirectB", func_search_seq_direct_b);
         action.data.AddVar<int>("inst_id", search_seq_direct_b_id);

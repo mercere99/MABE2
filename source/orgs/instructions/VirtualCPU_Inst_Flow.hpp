@@ -138,30 +138,29 @@ namespace mabe {
     void SetupFuncs(){
       ActionMap& action_map = control.GetActionMap(pop_id);
       if(include_if_not_equal) { // If not equal
-        const inst_func_t func_if_not_equ = std::bind(&this_t::Inst_IfNotEqual, this, 
-            std::placeholders::_1, std::placeholders::_2);
+        const inst_func_t func_if_not_equ = 
+          [this](org_t& hw, const org_t::inst_t& inst){ Inst_IfNotEqual(hw, inst); };
         Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "IfNEqu",func_if_not_equ);
         action.data.AddVar<int>("inst_id", if_not_equal_id);
       }
       if(include_if_less){ // If less 
-        const inst_func_t func_if_less = std::bind(&this_t::Inst_IfLess, this, 
-            std::placeholders::_1, std::placeholders::_2);
+        const inst_func_t func_if_less = 
+          [this](org_t& hw, const org_t::inst_t& inst){ Inst_IfLess(hw, inst); };
         Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "IfLess", func_if_less);
         action.data.AddVar<int>("inst_id", if_less_id);
       }
       if(include_if_label){ // If label 
-        const inst_func_t func_if_label = std::bind(&this_t::Inst_IfLabel, this, 
-            std::placeholders::_1, std::placeholders::_2);
+        const inst_func_t func_if_label = 
+          [this](org_t& hw, const org_t::inst_t& inst){ Inst_IfLabel(hw, inst); };
         Action& action = action_map.AddFunc<void, org_t&,const org_t::inst_t&>(
             "IfLabel",func_if_label);
         action.data.AddVar<int>("inst_id", if_label_id);
       }
       if(include_mov_head_if_not_equal){ // Move head if not equal
-        const inst_func_t func_mov_head_if_not_equ = std::bind(
-            &this_t::Inst_MoveHeadIfNotEqual, this, 
-            std::placeholders::_1, std::placeholders::_2);
+        const inst_func_t func_mov_head_if_not_equ = 
+          [this](org_t& hw, const org_t::inst_t& inst){ Inst_MoveHeadIfNotEqual(hw, inst); };
         Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "MoveHeadIfNEqu",func_mov_head_if_not_equ);
         action.data.AddVar<int>("inst_id", mov_head_if_not_equal_id);

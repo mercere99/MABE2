@@ -163,57 +163,57 @@ namespace mabe {
     void SetupFuncs(){
       ActionMap& action_map = control.GetActionMap(pop_id);
       if(include_pop){ // Pop 
-        const inst_func_t func_pop = std::bind(&this_t::Inst_Pop, this, 
-            std::placeholders::_1, std::placeholders::_2);
+        const inst_func_t func_pop = 
+          [this](org_t& hw, const org_t::inst_t& inst){ Inst_Pop(hw, inst); };
         Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "Pop", func_pop);
         action.data.AddVar<int>("inst_id", pop_inst_id);
       }
       if(include_push){ // Push 
-        const inst_func_t func_push = std::bind(&this_t::Inst_Push, this, 
-            std::placeholders::_1, std::placeholders::_2);
+        const inst_func_t func_push = 
+          [this](org_t& hw, const org_t::inst_t& inst){ Inst_Push(hw, inst); };
         Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "Push", func_push);
         action.data.AddVar<int>("inst_id", push_id);
       }
       if(include_swap_stack){ // Swap stack 
-        const inst_func_t func_swap_stack = std::bind(&this_t::Inst_SwapStack, this, 
-            std::placeholders::_1, std::placeholders::_2);
+        const inst_func_t func_swap_stack = 
+          [this](org_t& hw, const org_t::inst_t& inst){ Inst_SwapStack(hw, inst); };
         Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "SwapStk", func_swap_stack);
         action.data.AddVar<int>("inst_id", swap_stack_id);
       }
       if(include_swap){ // Swap 
-        const inst_func_t func_swap = std::bind(&this_t::Inst_Swap, this, 
-            std::placeholders::_1, std::placeholders::_2);
+        const inst_func_t func_swap = 
+          [this](org_t& hw, const org_t::inst_t& inst){ Inst_Swap(hw, inst); };
         Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "Swap", func_swap);
         action.data.AddVar<int>("inst_id", swap_id);
       }
       if(include_mov_head){ // Move head 
-        const inst_func_t func_mov_head = std::bind(&this_t::Inst_MoveHead, this, 
-            std::placeholders::_1, std::placeholders::_2);
+        const inst_func_t func_mov_head = 
+          [this](org_t& hw, const org_t::inst_t& inst){ Inst_MoveHead(hw, inst); };
         Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "MovHead", func_mov_head);
         action.data.AddVar<int>("inst_id", mov_head_id);
       }
       if(include_jmp_head){ // Jump head 
-        const inst_func_t func_jmp_head = std::bind(&this_t::Inst_JumpHead, this, 
-            std::placeholders::_1, std::placeholders::_2);
+        const inst_func_t func_jmp_head = 
+          [this](org_t& hw, const org_t::inst_t& inst){ Inst_JumpHead(hw, inst); };
         Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "JumpHead", func_jmp_head);
         action.data.AddVar<int>("inst_id", jmp_head_id);
       }
       if(include_get_head){ // Get head  
-        const inst_func_t func_get_head = std::bind(&this_t::Inst_GetHead, this, 
-            std::placeholders::_1, std::placeholders::_2);
+        const inst_func_t func_get_head = 
+          [this](org_t& hw, const org_t::inst_t& inst){ Inst_GetHead(hw, inst); };
         Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "GetHead", func_get_head);
         action.data.AddVar<int>("inst_id", get_head_id);
       }
       if(include_set_flow){ // Set flow  
-        const inst_func_t func_set_flow = std::bind(&this_t::Inst_SetFlow, this, 
-            std::placeholders::_1, std::placeholders::_2);
+        const inst_func_t func_set_flow = 
+          [this](org_t& hw, const org_t::inst_t& inst){ Inst_SetFlow(hw, inst); };
         Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "SetFlow", func_set_flow);
         action.data.AddVar<int>("inst_id", set_flow_id);

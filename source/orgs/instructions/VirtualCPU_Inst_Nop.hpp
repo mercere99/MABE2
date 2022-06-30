@@ -60,8 +60,8 @@ namespace mabe {
     void SetupFuncs(){
       emp_assert(num_nops <= 23,"Code only supports 23 normal NOP instructions currently");
       ActionMap& action_map = control.GetActionMap(pop_id);
-      const inst_func_t func_nop = std::bind(&this_t::Inst_Nop, this, 
-          std::placeholders::_1, std::placeholders::_2);
+      const inst_func_t func_nop = 
+        [this](org_t& hw, const org_t::inst_t& inst){ Inst_Nop(hw, inst); };
       // Add the appropriate amount of nops
       for(size_t i = 0; i < num_nops; i++){
         std::string s = "Nop";

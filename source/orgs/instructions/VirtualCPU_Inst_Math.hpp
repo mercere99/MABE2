@@ -131,50 +131,50 @@ namespace mabe {
     void SetupFuncs(){
       ActionMap& action_map = control.GetActionMap(pop_id);
       if(include_inc){ // Increment
-        const inst_func_t func_inc = std::bind(&this_t::Inst_Inc, this, 
-            std::placeholders::_1, std::placeholders::_2);
+        const inst_func_t func_inc = 
+          [this](org_t& hw, const org_t::inst_t& inst){ Inst_Inc(hw, inst); };
         Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "Inc", func_inc);
           action.data.AddVar<int>("inst_id", inc_id);
       }
       if(include_dec){ // Decrement 
-        const inst_func_t func_dec = std::bind(&this_t::Inst_Dec, this, 
-            std::placeholders::_1, std::placeholders::_2);
+        const inst_func_t func_dec = 
+          [this](org_t& hw, const org_t::inst_t& inst){ Inst_Dec(hw, inst); };
         Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "Dec", func_dec);
         action.data.AddVar<int>("inst_id", dec_id);
       }
       if(include_add){ // Add 
-        const inst_func_t func_add = std::bind(&this_t::Inst_Add, this, 
-            std::placeholders::_1, std::placeholders::_2);
+        const inst_func_t func_add = 
+          [this](org_t& hw, const org_t::inst_t& inst){ Inst_Add(hw, inst); };
         Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "Add", func_add);
         action.data.AddVar<int>("inst_id", add_id);
       }
       if(include_sub){ // Sub 
-        const inst_func_t func_sub = std::bind(&this_t::Inst_Sub, this, 
-            std::placeholders::_1, std::placeholders::_2);
+        const inst_func_t func_sub = 
+          [this](org_t& hw, const org_t::inst_t& inst){ Inst_Sub(hw, inst); };
         Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "Sub", func_sub);
         action.data.AddVar<int>("inst_id", sub_id);
       }
       if(include_nand){ // NAND 
-        const inst_func_t func_nand = std::bind(&this_t::Inst_Nand, this, 
-            std::placeholders::_1, std::placeholders::_2);
+        const inst_func_t func_nand = 
+          [this](org_t& hw, const org_t::inst_t& inst){ Inst_Nand(hw, inst); };
         Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "Nand", func_nand);
         action.data.AddVar<int>("inst_id", nand_id);
       }
       if(include_shift_l){ // Shift Left 
-        const inst_func_t func_shift_l = std::bind(&this_t::Inst_ShiftL, this, 
-            std::placeholders::_1, std::placeholders::_2);
+        const inst_func_t func_shift_l = 
+          [this](org_t& hw, const org_t::inst_t& inst){ Inst_ShiftL(hw, inst); };
         Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "ShiftL", func_shift_l);
         action.data.AddVar<int>("inst_id", shift_l_id);
       }
       if(include_shift_r){ // Shift Right 
-        const inst_func_t func_shift_r = std::bind(&this_t::Inst_ShiftR, this, 
-            std::placeholders::_1, std::placeholders::_2);
+        const inst_func_t func_shift_r = 
+          [this](org_t& hw, const org_t::inst_t& inst){ Inst_ShiftR(hw, inst); };
         Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "ShiftR", func_shift_r);
         action.data.AddVar<int>("inst_id", shift_r_id);
