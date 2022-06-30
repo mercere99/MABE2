@@ -1,10 +1,10 @@
 Latest commit at time of last regeneration:
-commit f196b7c9218b619d91990d11da81706973464ae7
+commit 5795cbfdf3f60493f2811b1d90bc39c9b0fbc229
 Author: Austin Ferguson <ferguson.austin.j@gmail.com>
-Date:   Wed Jun 29 17:16:45 2022 -0400
+Date:   Thu Jun 30 09:46:20 2022 -0400
 
-    Add and update regression tests
+    Fix issue where Avidian traits do not fully reset
  
  
 Time of last regeneration:
-Wed Jun 29 05:47:14 PM EDT 2022
+Thu Jun 30 10:04:00 AM EDT 2022
