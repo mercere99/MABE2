@@ -103,7 +103,6 @@ namespace mabe {
     void RunBatch();       ///< Process a whole series of MABE runs.
     void ProcessArgs();    ///< Process all arguments passed in on the command line.
     /// Setup a function as deprecated so we can phase it out.
-    void Deprecate(const std::string & old_name, const std::string & new_name);
     void Setup_Modules();  ///< Run SetupModule() method on each module we've loaded.
     void UpdateSignals();  ///< Link signals only to modules that respond to them.
 
