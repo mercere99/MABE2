@@ -61,8 +61,11 @@ namespace mabe {
     ~VirtualCPU_Inst_Replication() { }
 
     void Inst_HAlloc(org_t& hw, const org_t::inst_t& /*inst*/){
-      hw.genome_working.resize(hw.genome.size() * 2, hw.GetDefaultInst());
-      hw.regs[0] = hw.genome.size();
+      // Only expand once
+      if(hw.genome_working.size() == hw.genome.size()){
+        hw.genome_working.resize(hw.genome.size() * 2, hw.GetDefaultInst());
+        hw.regs[0] = hw.genome.size();
+      }
     }
     void Inst_HDivide(org_t& hw, const org_t::inst_t& /*inst*/){
       // First make sure that: 
@@ -72,7 +75,21 @@ namespace mabe {
             && hw.num_insts_executed >= req_count_inst_executed)
           || (req_count_inst_executed < 0 
             && hw.num_insts_executed >= req_frac_inst_executed * hw.genome_working.size())){
+        // Make sure we've had an HAlloc
+        if(hw.GetGenomeSize() == hw.GetWorkingGenomeSize()){
+          return;
+        }
         OrgPosition& org_pos = hw.GetTrait<OrgPosition>(org_pos_trait);
+        // Store the soon-to-be offspring's genome
+        org_t::genome_t& offspring_genome = hw.GetTrait<org_t::genome_t>(
+            offspring_genome_trait);
+        offspring_genome.resize(hw.genome_working.size() - hw.read_head,
+            hw.GetDefaultInst());
+        std::copy(
+            hw.genome_working.begin() + hw.read_head,
+            hw.genome_working.end(),
+            offspring_genome.begin());
+        hw.genome_working.resize(hw.read_head, hw.GetDefaultInst());
         // Reset the parent
         hw.Reset();
         // Replicate
@@ -114,10 +131,18 @@ namespace mabe {
       if( (req_count_inst_executed >= 0 
             && hw.num_insts_executed >= req_count_inst_executed)
           || (req_count_inst_executed < 0 
-            && hw.num_insts_executed >= req_frac_inst_executed * hw.genome_working.size())){
+            && hw.num_insts_executed >= req_frac_inst_executed * hw.genome.size())){
         OrgPosition& org_pos = hw.GetTrait<OrgPosition>(org_pos_trait);
         // Reset the parent
         hw.Reset();
+        // Store the soon-to-be offspring's genome
+        org_t::genome_t& offspring_genome = hw.GetTrait<org_t::genome_t>(
+            offspring_genome_trait);
+        offspring_genome.resize(hw.genome.size(), hw.GetDefaultInst());
+        std::copy(
+            hw.genome.begin(),
+            hw.genome.end(),
+            offspring_genome.begin());
         // Replicate 
         control.Replicate(org_pos, *org_pos.PopPtr());
         // Set to end so completion of this inst moves it 0 

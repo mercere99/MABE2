@@ -141,6 +141,9 @@ namespace mabe {
       std::string merit_name = "merit";   /**< Name of trait that stores the merit of an org 
                                                as it was passed from its parent */ 
       std::string genome_name = "genome"; ///< Name of trait that stores an org's genome 
+      std::string offspring_genome_name = "offspring_genome";  /**< Name of trait that stores 
+                                                                    the genome for the 
+                                                                    upcoming offspring */
       std::string position_name = "org_pos"; ///< Name of trait that stores org's position 
       std::string genome_length_name = "genome_length"; /**< Name of trait that stores length 
                                                              of org's genome 
@@ -228,10 +231,13 @@ namespace mabe {
       const double merit = Organism::GetTrait<double>(SharedData().merit_name);
       const size_t gen = Organism::GetTrait<size_t>(SharedData().generation_name);
       const OrgPosition pos = Organism::GetTrait<OrgPosition>(SharedData().position_name);
+      const genome_t offspring_genome = 
+          Organism::GetTrait<genome_t>(SharedData().offspring_genome_name);
       GetManager().GetControl().ResetTraits(*this);
       Organism::SetTrait<double>(SharedData().merit_name, merit);
       Organism::SetTrait<size_t>(SharedData().generation_name, gen);
       Organism::SetTrait<OrgPosition>(SharedData().position_name, pos);
+      Organism::SetTrait<genome_t>(SharedData().offspring_genome_name, offspring_genome);
       Organism::SetTrait<std::string>(SharedData().genome_name, GetGenomeString());
       Organism::SetTrait<size_t>(SharedData().genome_length_name, GetGenomeSize());
       Organism::SetTrait<double>(SharedData().child_merit_name, 
@@ -266,6 +272,13 @@ namespace mabe {
     emp::Ptr<Organism> MakeOffspringOrganism(emp::Random & random) const {
       // Create and mutate
       auto offspring = OrgType::Clone().DynamicCast<VirtualCPUOrg>();
+      const genome_t offspring_genome = 
+          GetTrait<genome_t>(SharedData().offspring_genome_name);
+      offspring->genome.resize(offspring_genome.size(), GetDefaultInst());
+      std::copy(
+          offspring_genome.begin(),
+          offspring_genome.end(),
+          offspring->genome.begin());
       offspring->ResetWorkingGenome();
       offspring->ResetHardware();
       offspring->Mutate(random);
@@ -387,7 +400,7 @@ namespace mabe {
           "Fitness passed on to children", SharedData().initial_merit);
       GetManager().AddOwnedTrait<std::string>(SharedData().genome_name, 
           "Organism's genome", "[None]");
-      GetManager().AddSharedTrait<genome_t>("offspring_genome", 
+      GetManager().AddSharedTrait<genome_t>(SharedData().offspring_genome_name, 
           "Latest genome copied", { } );
       GetManager().AddSharedTrait<genome_t>("passed_genome", 
           "Genome as passed from parent", { } );
@@ -528,6 +541,7 @@ namespace mabe {
 
     /// Process the next instruction, or use speculative execution if possible
     bool ProcessStep() override { 
+      if(GetWorkingGenomeSize() == 0) return false;
       if(SharedData().use_speculative_execution){
         Process_Speculative();
       }

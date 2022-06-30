@@ -1,10 +1,10 @@
 Latest commit at time of last regeneration:
-commit 5795cbfdf3f60493f2811b1d90bc39c9b0fbc229
+commit 3007d0bdd35eb1cc1e727f53e27ed00adae8aa87
 Author: Austin Ferguson <ferguson.austin.j@gmail.com>
-Date:   Thu Jun 30 09:46:20 2022 -0400
+Date:   Thu Jun 30 10:05:12 2022 -0400
 
-    Fix issue where Avidian traits do not fully reset
+    Regen Avida regression tests after trait changes
  
  
 Time of last regeneration:
-Thu Jun 30 10:04:00 AM EDT 2022
+Thu Jun 30 11:24:22 AM EDT 2022
