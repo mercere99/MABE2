@@ -123,7 +123,8 @@ EvalPathFollow path_follow {      // Evaluate organisms on their ability to foll
   target_pop = "main_pop";            // Which population(s) should we evaluate?
   score_trait = "child_merit";    // Which trait stores path following performance?
   state_trait = "state";          // Which trait stores organisms' path follow state?
-  map_filenames = "test_map.txt"; // List of map files to load, separated by semicolons(;)
+  map_filenames = "../settings/EvalPathFollow/test_map.txt"; 
+                                // List of map files to load, separated by semicolons(;)
   randomize_cues = 1;           // If true, cues are assigned random values in for each new path
   sg_move_id = 34;              // ID of the 'sg_move' instruction
   sg_move_back_id = 35;         // ID of the 'sg_move_back' instruction
@@ -147,7 +148,8 @@ VirtualCPUOrg avida_org {       // Organism consisting of Avida instructions.
   child_merit_name = "child_merit";// Name of variable corresponding to the organism's task performance that will be used to calculate CPU cylces given to offspring.
   initial_merit = 0.01;       // Initial value for merit (task performance)
   verbose = 0;
-  initial_genome_filename = "ancestor_extended.org";// File that contains the gennome used to initialize organisms.
+  initial_genome_filename = "../settings/VirtualCPUOrg/ancestor_repro.org";
+                              // File that contains the gennome used to initialize organisms.
   inst_set_output_filename = "inst_set.txt";
   expanded_nop_args = 1;        // If true, some instructions (e.g., math) will use multiple nops to fully define the registers used
 };
