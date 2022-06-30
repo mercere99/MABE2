@@ -47,6 +47,9 @@ namespace mabe {
     int req_count_inst_executed = -1;     /**< Config option indicating the number of 
                                             instructions an organism must have executed in 
                                             order to reproduce **/
+    double req_frac_inst_copied = 0.5;  /**< Config option indicating the fraction of 
+                                             an organism's genome that must have been copied 
+                                             for org to reproduce **/
     int h_alloc_id  = -1;  ///< ID of the h_alloc instruction
     int h_divide_id  = -1;  ///< ID of the h_divide instruction
     int h_copy_id  = -1;  ///< ID of the h_copy instruction
@@ -71,10 +74,14 @@ namespace mabe {
       // First make sure that: 
         // If required inst count isn't negative, that many insts have been executed 
         // Else, the correct fraction of the genome has been executed
-      if( (req_count_inst_executed >= 0 
-            && hw.num_insts_executed >= req_count_inst_executed)
-          || (req_count_inst_executed < 0 
-            && hw.num_insts_executed >= req_frac_inst_executed * hw.genome_working.size())){
+        // Regardless, make sure copy limit has been met
+      const bool can_repro_exec_count = 
+          (req_count_inst_executed >= 0 && hw.num_insts_executed >= req_count_inst_executed);
+      const bool can_repro_exec_frac = (req_count_inst_executed < 0 
+          && hw.num_insts_executed >= req_frac_inst_executed * hw.GetGenomeSize());
+      const bool can_repro_copy_frac =  
+          hw.GetNumInstsCopied() >= req_frac_inst_copied * hw.GetGenomeSize();
+      if(can_repro_copy_frac && (can_repro_exec_count || can_repro_exec_frac)){
         // Make sure we've had an HAlloc
         if(hw.GetGenomeSize() == hw.GetWorkingGenomeSize()){
           return;
@@ -161,6 +168,9 @@ namespace mabe {
               "Minimum number of instructions that the organism must execute before its"
                 " allowed to reproduce. Otherwise reproduction instructions do nothing. "
                 " Takes priority over `req_frac_inst_executed`; -1 to use fraction instead");
+      LinkVar(req_frac_inst_copied, "req_frac_inst_copied", 
+              "The organism must have copied at least this fraction of their genome to"
+                " reproduce via HDivide. Otherwise HDivide does nothing.");
       LinkVar(org_pos_trait, "pos_trait", "Name of trait that holds organism's position");
       LinkVar(offspring_genome_trait, "offspring_genome_trait", 
           "Name of trait that holds the offspring organism's genome");
