@@ -45,12 +45,6 @@ examples/NK
 # Mac files 
 *.DS_Store
 
-# Files created locally
-build/*.csv
-build/*.gen
-build/*.mabe
-build/MABE
-
 # R history
 *.Rhistory
 

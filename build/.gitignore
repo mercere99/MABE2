@@ -1,4 +1,10 @@
-./MABE
-./Makefile
-./*.sh
-phylo/
+# Output csv files
+*.csv  
+# MABE generator files
+*.gen  
+# MABE config files
+*.mabe 
+# MABE Executable
+MABE   
+# Systematics/phylogeny output
+phylo/ 
