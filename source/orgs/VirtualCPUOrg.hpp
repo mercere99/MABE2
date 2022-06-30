@@ -141,6 +141,7 @@ namespace mabe {
       std::string merit_name = "merit";   /**< Name of trait that stores the merit of an org 
                                                as it was passed from its parent */ 
       std::string genome_name = "genome"; ///< Name of trait that stores an org's genome 
+      std::string position_name = "org_pos"; ///< Name of trait that stores org's position 
       std::string genome_length_name = "genome_length"; /**< Name of trait that stores length 
                                                              of org's genome 
                                                    */
@@ -221,9 +222,16 @@ namespace mabe {
       insts_speculatively_executed = 0;
       CurateNops();
     }
-
+      
     /// Reset organism's traits to match what it was born with
     void ResetTraits(){
+      const double merit = Organism::GetTrait<double>(SharedData().merit_name);
+      const size_t gen = Organism::GetTrait<size_t>(SharedData().generation_name);
+      const OrgPosition pos = Organism::GetTrait<OrgPosition>(SharedData().position_name);
+      GetManager().GetControl().ResetTraits(*this);
+      Organism::SetTrait<double>(SharedData().merit_name, merit);
+      Organism::SetTrait<size_t>(SharedData().generation_name, gen);
+      Organism::SetTrait<OrgPosition>(SharedData().position_name, pos);
       Organism::SetTrait<std::string>(SharedData().genome_name, GetGenomeString());
       Organism::SetTrait<size_t>(SharedData().genome_length_name, GetGenomeSize());
       Organism::SetTrait<double>(SharedData().child_merit_name, 
@@ -332,6 +340,8 @@ namespace mabe {
                       "Name of variable to output results.");
       GetManager().LinkVar(SharedData().genome_name, "genome_name",
                       "Where to store the genome?.");
+      GetManager().LinkVar(SharedData().position_name, "position_name",
+                      "Where to store the organism's position?.");
       GetManager().LinkVar(SharedData().genome_length_name, "genome_length_name",
                       "Where to store the genome's length?.");
       GetManager().LinkVar(SharedData().merit_name, "merit_name",
@@ -381,6 +391,8 @@ namespace mabe {
           "Latest genome copied", { } );
       GetManager().AddSharedTrait<genome_t>("passed_genome", 
           "Genome as passed from parent", { } );
+      GetManager().AddSharedTrait<OrgPosition>(SharedData().position_name, 
+          "Organism's position ", { } );
       GetManager().AddOwnedTrait<size_t>(SharedData().generation_name, 
           "Organism's generation", 0);
       GetManager().AddOwnedTrait<size_t>(SharedData().genome_length_name, 
@@ -493,7 +505,8 @@ namespace mabe {
           const size_t inst_id = genome_working[inst_ptr].id;
           if(!non_speculative_inst_vec[inst_id]){
             if(SharedData().verbose){
-              std::cout << "[" << GetTrait<OrgPosition>("org_pos").Pos() << "]" << std::endl;
+              std::cout << "[" << GetTrait<OrgPosition>(SharedData().position_name).Pos() 
+                << "]" << std::endl;
             }
             Process(1, SharedData().verbose);
             ++insts_speculatively_executed; 
@@ -501,7 +514,8 @@ namespace mabe {
           else{
             if(insts_speculatively_executed == 0){
               if(SharedData().verbose){
-                std::cout << "[" << GetTrait<OrgPosition>("org_pos").Pos() << "]" << std::endl;
+                std::cout << "[" << GetTrait<OrgPosition>(SharedData().position_name).Pos() 
+                  << "]" << std::endl;
               }
               Process(1, SharedData().verbose);
             }
@@ -519,7 +533,8 @@ namespace mabe {
       }
       else{
         if(SharedData().verbose){
-          std::cout << "[" << GetTrait<OrgPosition>("org_pos").Pos() << "]" << std::endl;;
+          std::cout << "[" << GetTrait<OrgPosition>(SharedData().position_name).Pos()
+            << "]" << std::endl;;
         }
         Process(1, SharedData().verbose);
       }

@@ -295,6 +295,11 @@ namespace mabe {
     // --- Deal with Organism TRAITS ---
     TraitManager<ModuleBase> & GetTraitManager() { return trait_man; }
 
+    /// Resets ALL traits for a given organism to their default values
+    void ResetTraits(Organism& org){
+      trait_man.ResetAll(org.GetDataMap());
+    }
+
     /// Return the DataMap for organisms
     emp::DataMap GetOrganismDataMap(){
       return org_data_map;

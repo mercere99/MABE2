@@ -62,6 +62,10 @@ namespace mabe {
       }
     }
 
+    void ResetAll(emp::DataMap & data_map){
+      for (auto [name,trait_ptr] : trait_map) trait_ptr->ResetToDefault(data_map);
+    }
+
     /**
      *  Add a new organism trait.
      *  @param T The preferred type for this trait.

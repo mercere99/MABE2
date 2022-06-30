@@ -39,7 +39,7 @@ namespace mabe {
 
     /// Initialize position trait
     void SetupModule() override {
-      AddOwnedTrait<OrgPosition>(pos_trait, "Organism's position in the population", {});
+      AddSharedTrait<OrgPosition>(pos_trait, "Organism's position in the population", {});
     }
 
     /// When an organism is placed (via birth or inject), store its position as a trait

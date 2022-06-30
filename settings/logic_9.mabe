@@ -194,6 +194,7 @@ VirtualCPUOrg avida_org {       // Organism consisting of Avida instructions.
   output_name = "old_output";   // Name of variable to output results.
   genome_name = "genome";       // Where to store the genome?.
   genome_length_name = "genome_length";// Where to store the genome's length?.
+  position_name = "org_pos";    // Where to store the organism's position?.
   merit_name = "merit";         // Name of variable corresponding to the organism's task performance.
   child_merit_name = "child_merit";// Name of variable corresponding to the organism's task performance that will be used to calculate CPU cylces given to offspring.
   initial_merit = 1;          // Initial value for merit (task performance)
