@@ -189,13 +189,13 @@ namespace mabe {
         [this](size_t pos, emp::Random& random){
           Mutate_Insertion(pos, random);
         },
-        SharedData().point_mut_dist, random, true
+        SharedData().insertion_mut_dist, random, false 
       );
       mut_count += Mutate_Generic(
         [this](size_t pos, emp::Random& random){
           Mutate_Deletion(pos, random);
         },
-        SharedData().point_mut_dist, random, true
+        SharedData().deletion_mut_dist, random, false
       );
       // Update hardware and traits accordingly
       ResetWorkingGenome();
