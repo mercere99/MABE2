@@ -44,6 +44,7 @@ namespace mabe {
         name(_name),
         function_vec(),
         data(){ ; }
+    Action() = default;
   };
 
   /// \brief An inter-module collection of functions that can be called by organisms. Functions are accessed by their type signature. 

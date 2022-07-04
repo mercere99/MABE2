@@ -59,6 +59,7 @@ TEST_CASE("VirtualCPUOrg_Main", "[orgs]"){
       GetConfiguredRef<mabe::VirtualCPU_Inst_IO>(
           control, "VirtualCPU_Inst_IO", "insts_io", root_scope); 
   mabe::VirtualCPUOrg tmp_org(manager);
+  tmp_org.SharedData().inst_set_input_filename = "inst_set_test.txt";
   control.GetTraitManager().Unlock();
   nop_inst_module.AsScope().GetSymbol("start_nop_id")->SetValue(0);
   nop_inst_module.SetupModule();

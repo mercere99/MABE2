@@ -159,6 +159,7 @@ namespace mabe {
                                                                  indicates a file that 
                                                                  contains the ancestor's 
                                                                  genome */
+      std::string inst_set_input_filename = ""; /// File to load for the instruction set
       std::string inst_set_output_filename = ""; /**< If not empty, writes instruction set
                                                       (in order) to the specified file **/
       bool expanded_nop_args = false; /**< Flag that indicates whether to use the "expanded
@@ -374,6 +375,9 @@ namespace mabe {
                       "Initial value for merit (task performance)");
       GetManager().LinkVar(SharedData().verbose, "verbose",
                       "If true, print execution info of organisms");
+      GetManager().LinkVar(SharedData().inst_set_input_filename, "inst_set_input_filename",
+                      "File that contains the instruction set to use."
+                      " One instruction name per line. Order is maintained.");
       GetManager().LinkVar(SharedData().initial_genome_filename, "initial_genome_filename",
                       "File that contains the genome used to initialize organisms.");
       GetManager().LinkVar(SharedData().inst_set_output_filename, "inst_set_output_filename",
@@ -440,6 +444,14 @@ namespace mabe {
       file.Write(filename);
     }
 
+    /// Load from the file the instruction to use and what order to include them in
+    emp::vector<std::string> LoadInstSetFromFile(){
+      emp::File file(SharedData().inst_set_input_filename);
+      file.RemoveWhitespace();
+      file.RemoveEmpty();
+      return file.GetAllLines();
+    }
+
     /// Load external instructions that were added via the configuration file
     void SetupInstLib(){
       inst_lib_t& inst_lib = GetInstLib();
@@ -454,39 +466,38 @@ namespace mabe {
         std::cout << " " << it->first;
       }
       std::cout << std::endl;
-      // Iterate over each instruction that was found, and add it to the instruction library
-      for(auto it = typed_action_map.begin(); it != typed_action_map.end(); it++){
-        mabe::Action& action = it->second; 
-        emp_assert(action.data.HasName("inst_id"), 
-            "Instructions must provide an inst_id:", action.name);
-        emp_assert(action.data.IsType<int>("inst_id"),
-            "Instruction's inst_id must be an int!");
-        int inst_id = action.data.Get<int>("inst_id");
-        if(inst_id < 0) inst_id = inst_lib.GetSize(); // Auto assign defaults
-        // Calculate the character associated with this instruction 
-        unsigned char c = 'a' + inst_id;
-        if(inst_id > 25){
-          c = 'A' + inst_id - 26;
+
+      const emp::vector<std::string> name_vec = LoadInstSetFromFile();
+      for(size_t inst_idx = 0; inst_idx < name_vec.size(); ++inst_idx){
+        const std::string& name = name_vec[inst_idx];
+        if(typed_action_map.find(name) == typed_action_map.end()){
+          emp_error("Instruction '" + name + "' not found. Make sure the VirtualCPUOrg"
+             " module comes after all instruction modules in the config file"); 
         }
+        mabe::Action& action = typed_action_map[name];
+        unsigned char c = 'a' + inst_idx;
+        if(inst_idx > 25){
+          c = 'A' + inst_idx - 26;
+        }
+
         std::cout << "Found " << action.function_vec.size() << 
             " external functions with name: " << action.name << "!" <<
             " (" << c << ")" << std::endl;
         // If using speculative execution, see if this instruction breaks speculation
         if(SharedData().use_speculative_execution){
           // Ensure bitvec is large enough
-          if(non_speculative_inst_vec.GetSize() < static_cast<size_t>(inst_id + 1)){
-            non_speculative_inst_vec.Resize(inst_id + 1);
+          if(non_speculative_inst_vec.GetSize() < static_cast<size_t>(inst_idx + 1)){
+            non_speculative_inst_vec.Resize(inst_idx + 1);
           }
           if(action.data.HasName("is_non_speculative") && 
               action.data.Get<bool>("is_non_speculative")){ // If non-speculative, flag it
-            if(non_speculative_inst_vec.GetSize() < static_cast<size_t>(inst_id + 1)){
-              non_speculative_inst_vec.Resize(inst_id + 1);
+            if(non_speculative_inst_vec.GetSize() < static_cast<size_t>(inst_idx + 1)){
+              non_speculative_inst_vec.Resize(inst_idx + 1);
             }
-            non_speculative_inst_vec[inst_id] = true;
+            non_speculative_inst_vec[inst_idx] = true;
           } else{ // Assume instructions are okay with speculation by default
-            non_speculative_inst_vec[inst_id] = false;
+            non_speculative_inst_vec[inst_idx] = false;
           }
-            
         }
         // Grab description
         const std::string desc = 
@@ -506,7 +517,7 @@ namespace mabe {
             emp::ScopeType::NONE,              // No scope type, but must provide
             (size_t) -1,                       // Scope arg, must provide 
             std::unordered_set<std::string>(), // Instruction properties
-            inst_id);                          // Instruction ID
+            inst_idx);                          // Instruction ID
       }
     }
 

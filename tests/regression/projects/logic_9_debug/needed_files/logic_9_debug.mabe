@@ -199,6 +199,9 @@ VirtualCPUOrg avida_org {       // Organism consisting of Avida instructions.
   initial_merit = 1;          // Initial value for merit (task performance)
   verbose = 0;                  // If true, print execution info of organisms
   initial_genome_filename = "ancestor_default.org";// File that contains the gennome used to initialize organisms.
+  inst_set_input_filename = "inst_set_traditional.txt"; 
+                              // File that contains the instruction set to use. 
+                              // One instruction name per line. Order is maintained.
   expanded_nop_args = 0;        // If true, some instructions (e.g., math) will use multiple nops to fully define the registers used
   use_speculative_execution = 1;// If true, we run as many instructions as possible and then cache the results. Instructions that interact with the population or other organisms will halt speculative execution.
   max_speculative_insts = 20; // Maximum number of instructions to speculatively execute. -1 for genome length.
@@ -253,6 +256,7 @@ Var dominant_genome;
        );
   fit_file.WRITE();
   max_file.WRITE();
+  Var org_idx = 0;
 };
 
 @UPDATE(Var ud2) IF (ud2 == max_updates) EXIT();
