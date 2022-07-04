@@ -19,13 +19,13 @@
 namespace mabe {
 
   /// \brief Tests organism output for bitwise EQU operation
-  class EvalTaskEqu : public EvalTaskBase<EvalTaskEqu> {
+  class EvalTaskEqu : public EvalTaskBase<EvalTaskEqu, 2> {
 
   public:
     EvalTaskEqu(mabe::MABE & control,
                   const std::string & name="EvalTaskEqu",
                   const std::string & desc="Evaluate organism on EQU logic task")
-      : EvalTaskBase(control, name, "equ", 2, desc){;}
+      : EvalTaskBase(control, name, "equ", desc){;}
 
     ~EvalTaskEqu() { }
     

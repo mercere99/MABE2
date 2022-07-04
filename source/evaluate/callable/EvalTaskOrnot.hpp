@@ -18,13 +18,13 @@
 namespace mabe {
 
   /// \brief Tests organism output for bitwise ORNOT operation
-  class EvalTaskOrnot : public EvalTaskBase<EvalTaskOrnot> {
+  class EvalTaskOrnot : public EvalTaskBase<EvalTaskOrnot, 2> {
 
   public:
     EvalTaskOrnot(mabe::MABE & control,
                   const std::string & name="EvalTaskOrnot",
                   const std::string & desc="Evaluate organism on ORNOT logic task")
-      : EvalTaskBase(control, name, "ornot", 2, desc){;}
+      : EvalTaskBase(control, name, "ornot", desc){;}
 
     ~EvalTaskOrnot() { }
 

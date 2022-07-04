@@ -15,13 +15,13 @@
 namespace mabe {
 
   /// \brief Tests organism output for bitwise OR operation
-  class EvalTaskOr : public EvalTaskBase<EvalTaskOr> {
+  class EvalTaskOr : public EvalTaskBase<EvalTaskOr, 2> {
 
   public:
     EvalTaskOr(mabe::MABE & control,
                   const std::string & name="EvalTaskOr",
                   const std::string & desc="Evaluate organism on OR logic task")
-      : EvalTaskBase(control, name, "or", 2, desc){;}
+      : EvalTaskBase(control, name, "or", desc){;}
 
     ~EvalTaskOr() { }
 

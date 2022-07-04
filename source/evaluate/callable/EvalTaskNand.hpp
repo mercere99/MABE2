@@ -15,12 +15,12 @@
 namespace mabe {
 
   /// \brief Tests organism output for bitwise NAND operation
-  class EvalTaskNand : public EvalTaskBase<EvalTaskNand> {
+  class EvalTaskNand : public EvalTaskBase<EvalTaskNand, 2> {
   public:
     EvalTaskNand(mabe::MABE & control,
                   const std::string & name="EvalTaskNand",
                   const std::string & desc="Evaluate organism on NAND logic task")
-      : EvalTaskBase(control, name, "nand", 2, desc){;}
+      : EvalTaskBase(control, name, "nand", desc){;}
 
     /// Check if the passed output is equal to input_a NAND input_b  
     bool CheckTwoArg(const data_t& output, const data_t& input_a, const data_t& input_b){

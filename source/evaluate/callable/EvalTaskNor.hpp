@@ -15,13 +15,13 @@
 namespace mabe {
 
   /// \brief Tests organism output for bitwise NOR operation
-  class EvalTaskNor : public EvalTaskBase<EvalTaskNor> {
+  class EvalTaskNor : public EvalTaskBase<EvalTaskNor, 2> {
 
   public:
     EvalTaskNor(mabe::MABE & control,
                   const std::string & name="EvalTaskNor",
                   const std::string & desc="Evaluate organism on NOR logic task")
-      : EvalTaskBase(control, name, "nor", 2, desc){;}
+      : EvalTaskBase(control, name, "nor", desc){;}
 
     ~EvalTaskNor() { }
     

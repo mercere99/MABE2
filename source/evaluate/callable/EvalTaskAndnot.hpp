@@ -18,13 +18,13 @@
 namespace mabe {
 
   /// \brief Tests organism output for bitwise ANDNOT operation
-  class EvalTaskAndnot : public EvalTaskBase<EvalTaskAndnot> {
+  class EvalTaskAndnot : public EvalTaskBase<EvalTaskAndnot, 2> {
 
   public:
     EvalTaskAndnot(mabe::MABE & control,
                   const std::string & name="EvalTaskAndnot",
                   const std::string & desc="Evaluate organism on ANDNOT logic task")
-      : EvalTaskBase(control, name, "andnot", 2, desc){;}
+      : EvalTaskBase(control, name, "andnot", desc){;}
 
     ~EvalTaskAndnot() { }
 

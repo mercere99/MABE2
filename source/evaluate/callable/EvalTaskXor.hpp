@@ -15,13 +15,13 @@
 namespace mabe {
 
   /// \brief Tests organism output for bitwise XOR operation
-  class EvalTaskXor : public EvalTaskBase<EvalTaskXor> {
+  class EvalTaskXor : public EvalTaskBase<EvalTaskXor, 2> {
 
   public:
     EvalTaskXor(mabe::MABE & control,
                   const std::string & name="EvalTaskXor",
                   const std::string & desc="Evaluate organism on XOR logic task")
-      : EvalTaskBase(control, name, "xor", 2, desc){;}
+      : EvalTaskBase(control, name, "xor", desc){;}
 
     ~EvalTaskXor() { }
     

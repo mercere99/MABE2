@@ -17,7 +17,7 @@
 namespace mabe {
 
   /// \brief Generic base class for evaluating an organism on a binary logic task. 
-  template <typename DERIVED>
+  template <typename DERIVED, size_t NUM_ARGS>
   class EvalTaskBase : public Module {
   public:
     using derived_t = DERIVED;
@@ -32,7 +32,6 @@ namespace mabe {
     std::string task_name;                ///< Name of the task (used to derive trait names)
     std::string performed_trait = "unnamed_performed"; /**< Name of the trait tracking if the
                                                             trait was performed */
-    size_t num_args = 2;              ///< Number of arguments (ie., unary vs binary func)
     double reward_value = 1;          ///< Magnitude of the reward bestowed for completion of the task 
     bool is_multiplicative = false;   /**< If true, reward_value is multiplied to current 
                                            score (otherwise it is added to current score)*/
@@ -41,12 +40,10 @@ namespace mabe {
     EvalTaskBase(mabe::MABE & _control,
                   const std::string & _mod_name="EvalTaskBase",
                   const std::string & _task_name = "unnamed",
-                  size_t _num_args = 2,
                   const std::string & _desc="Evaluate organism on BASE logic task")
       : Module(_control, _mod_name, _desc)
       , task_name(_task_name)
-      , performed_trait(_task_name + "_performed")
-      , num_args(_num_args){;}
+      , performed_trait(_task_name + "_performed"){;}
 
     ~EvalTaskBase() { }
 
@@ -138,10 +135,10 @@ namespace mabe {
 
     /// Evaluate all organisms in the collection
     double EvaluateCollection(Collection & orgs) {
-      if(num_args == 1){
+      if constexpr (NUM_ARGS == 1){
         for (Organism & org : orgs) EvaluateOneArg(org);
       }
-      if(num_args == 2){
+      else if constexpr(NUM_ARGS == 2){
         for (Organism & org : orgs) EvaluateTwoArg(org);
       }
       return 0;
@@ -152,10 +149,10 @@ namespace mabe {
       ActionMap& action_map = control.GetActionMap(pop_id);
       // Create a function that checks either a unary or binary function 
       inst_func_t func_task;
-      if(num_args == 1){ // Unary function
+      if constexpr(NUM_ARGS == 1){ // Unary function
         func_task = [this](org_t& hw, const org_t::inst_t& /*inst*/){ EvaluateOneArg(hw); };
       }
-      else if(num_args == 2){ // Binary function
+      else if constexpr (NUM_ARGS == 2){ // Binary function
         func_task = [this](org_t& hw, const org_t::inst_t& /*inst*/){ EvaluateTwoArg(hw); };
       }
       else{ 

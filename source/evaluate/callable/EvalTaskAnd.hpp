@@ -15,13 +15,13 @@
 namespace mabe {
 
   /// \brief Tests organism output for bitwise AND operation
-  class EvalTaskAnd : public EvalTaskBase<EvalTaskAnd> {
+  class EvalTaskAnd : public EvalTaskBase<EvalTaskAnd, 2> {
 
   public:
     EvalTaskAnd(mabe::MABE & control,
                   const std::string & name="EvalTaskAnd",
                   const std::string & desc="Evaluate organism on AND logic task")
-      : EvalTaskBase(control, name, "and", 2, desc){;}
+      : EvalTaskBase(control, name, "and", desc){;}
 
     ~EvalTaskAnd() { }
    

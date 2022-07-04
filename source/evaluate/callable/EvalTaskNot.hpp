@@ -15,12 +15,12 @@
 namespace mabe {
 
   /// \brief Tests organism output for bitwise NOT operation
-  class EvalTaskNot : public EvalTaskBase<EvalTaskNot> {
+  class EvalTaskNot : public EvalTaskBase<EvalTaskNot, 1> {
   public:
     EvalTaskNot(mabe::MABE & control,
                   const std::string & name="EvalTaskNot",
                   const std::string & desc="Evaluate organism on NOT logic task")
-      : EvalTaskBase(control, name, "not", 1, desc){;}
+      : EvalTaskBase(control, name, "not", desc){;}
 
     /// Check if the passed output is bitwise NOT of the passed input  
     bool CheckOneArg(const data_t& output, const data_t& input){
