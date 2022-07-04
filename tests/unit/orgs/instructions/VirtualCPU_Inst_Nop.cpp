@@ -49,9 +49,7 @@ TEST_CASE("VirtualCPUOrg_Inst_Nop_Main", "[orgs/instructions]"){
   mabe::VirtualCPUOrg tmp_org(manager);
   tmp_org.SharedData().inst_set_input_filename = "../inst_set_test.txt";
   control.GetTraitManager().Unlock();
-  nop_inst_module.AsScope().GetSymbol("start_nop_id")->SetValue(0);
   nop_inst_module.SetupModule();
-  io_inst_module.AsScope().GetSymbol("io_inst_id")->SetValue(3);
   io_inst_module.SetupModule();
   tmp_org.SetupModule();
   control.GetTraitManager().Lock();
