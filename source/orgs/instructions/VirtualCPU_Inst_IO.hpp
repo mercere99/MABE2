@@ -32,7 +32,6 @@ namespace mabe {
     std::string output_name = "output";       ///< Name of trait that stores outputs
     std::string input_idx_name = "input_idx"; ///< Number of trait that stores the index of the current input
     size_t num_inputs = 3; ///< Number of random inputs generated for each organism (they are reused if more inputs are requested)
-    int io_inst_id = -1; ///< ID of the IO instruction
 
   public:
     VirtualCPU_Inst_IO(mabe::MABE & control,
@@ -69,7 +68,6 @@ namespace mabe {
        LinkVar(input_name, "input_name", "Name of variable to store inputs");
        LinkVar(output_name, "output_name", "Name of variable to store outputs");
        LinkVar(input_idx_name, "input_idx_name", "Index of next input to be loaded");
-       LinkVar(io_inst_id, "io_inst_id", "ID of the IO instruction");
     }
 
     /// Create organism traits and create IO instruction 
@@ -87,7 +85,6 @@ namespace mabe {
           [this](org_t& hw, const org_t::inst_t& inst){ Inst_IO(hw, inst); };
       Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
           "IO", func_input);
-      action.data.AddVar<int>("inst_id", io_inst_id);
     }
 
   };

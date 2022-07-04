@@ -27,9 +27,6 @@ namespace mabe {
     int pop_id = 0; ///< ID of the population which will receive these instructions
   public:
     size_t num_nops = 3; ///< The number of "normal" nops to include (starting with NopA)
-    bool include_nop_x = false; ///< Flag indicating if the special NopX inst. is included
-    int nop_x_id = -1; ///< ID for the NopX instruction
-    int start_nop_id = -1; ///< ID for the NopA instruction, each additional nop increments
 
     VirtualCPU_Inst_Nop(mabe::MABE & control,
                     const std::string & name="VirtualCPU_Inst_Nop",
@@ -45,10 +42,6 @@ namespace mabe {
     void SetupConfig() override {
        LinkPop(pop_id, "target_pop", "Population(s) to manage.");
        LinkVar(num_nops, "num_nops", "Number of nops to include.");
-       LinkVar(include_nop_x, "include_nop_x", "Include the special case NopX?");
-       LinkVar(nop_x_id, "nop_x_id", "ID for the NopX instruction");
-       LinkVar(start_nop_id, "start_nop_id", 
-           "ID for the NopA instruction, additional nops increment from there");
     }
     
     /// When config is loaded, set up functions
@@ -67,15 +60,10 @@ namespace mabe {
         std::string s = "Nop";
         Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             s + (char)('A' + i), func_nop);
-        // Add the appropriate instruction id
-        if(start_nop_id == -1) action.data.AddVar<int>("inst_id", -1);
-        else action.data.AddVar<int>("inst_id", start_nop_id + i);
       }
-      // Special case: Nop X
-      if(include_nop_x){
+      { // Special case: Nop X
         Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "NopX", func_nop);
-        action.data.AddVar<int>("inst_id", nop_x_id);
       }
     }
 

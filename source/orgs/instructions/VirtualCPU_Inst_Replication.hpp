@@ -36,11 +36,6 @@ namespace mabe {
     std::string org_pos_trait = "org_pos"; ///< Name of the trait storing organism's position
     std::string offspring_genome_trait = "offspring_genome"; ///< Name of the trait storing the genome of the offspring organism 
     std::string reset_self_trait = "reset_self"; ///< Name of the trait storing if org needs reset 
-    bool include_h_alloc  = true;  ///< Config option indicating if inst. is used
-    bool include_h_divide = true;  ///< Config option indicating if inst. is used
-    bool include_h_copy   = true;  ///< Config option indicating if inst. is used
-    bool include_h_search = true;  ///< Config option indicating if inst. is used
-    bool include_repro    = false; ///< Config option indicating if inst. is used
     double req_frac_inst_executed = 0.5;  /**< Config option indicating the fraction of 
                                             an organism's genome that must have been executed 
                                             for org to reproduce **/
@@ -50,11 +45,6 @@ namespace mabe {
     double req_frac_inst_copied = 0.5;  /**< Config option indicating the fraction of 
                                              an organism's genome that must have been copied 
                                              for org to reproduce **/
-    int h_alloc_id  = -1;  ///< ID of the h_alloc instruction
-    int h_divide_id  = -1;  ///< ID of the h_divide instruction
-    int h_copy_id  = -1;  ///< ID of the h_copy instruction
-    int h_search_id  = -1;  ///< ID of the h_search instruction
-    int repro_id  = -1;  ///< ID of the repro instruction
 
   public:
     VirtualCPU_Inst_Replication(mabe::MABE & control,
@@ -176,16 +166,6 @@ namespace mabe {
           "Name of trait that holds the offspring organism's genome");
       LinkVar(reset_self_trait, "reset_self_trait", 
           "Name of trait that determines if the organism needs reset");
-      LinkVar(include_h_alloc, "include_h_alloc", "Do we include the 'h_alloc' instruction?");
-      LinkVar(include_h_divide, "include_h_divide", "Do we include the 'h_divide' instruction?");
-      LinkVar(include_h_copy, "include_h_copy", "Do we include the 'h_copy' instruction?");
-      LinkVar(include_h_search, "include_h_search", "Do we include the 'h_search' instruction?");
-      LinkVar(include_repro, "include_repro", "Do we include the 'repro' instruction?");
-      LinkVar(h_alloc_id, "h_alloc_id", "ID of the h_alloc instruction");
-      LinkVar(h_divide_id, "h_divide_id", "ID of the h_divide instruction");
-      LinkVar(h_copy_id, "h_copy_id", "ID of the h_copy instruction");
-      LinkVar(h_search_id, "h_search_id", "ID of the h_search instruction");
-      LinkVar(repro_id, "repro_id", "ID of the repro instruction");
     }
 
     /// When config is loaded, create traits and set up functions
@@ -199,41 +179,36 @@ namespace mabe {
     /// Add the instruction specified by the config file
     void SetupFuncs(){
       ActionMap& action_map = control.GetActionMap(pop_id);
-      if(include_h_alloc){ // Head allocate 
+      { // Head allocate 
         const inst_func_t func_h_alloc = 
           [this](org_t& hw, const org_t::inst_t& inst){ Inst_HAlloc(hw, inst); };
         Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
               "HAlloc", func_h_alloc);
-        action.data.AddVar<int>("inst_id", h_alloc_id);
       }
-      if(include_h_divide){ // Head divide 
+      { // Head divide 
         const inst_func_t func_h_divide = 
           [this](org_t& hw, const org_t::inst_t& inst){ Inst_HDivide(hw, inst); };
         Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "HDivide", func_h_divide);
-        action.data.AddVar<int>("inst_id", h_divide_id);
         action.data.AddVar<bool>("is_non_speculative", true);
       }
-      if(include_h_copy){ // Head copy 
+      { // Head copy 
         const inst_func_t func_h_copy = 
           [this](org_t& hw, const org_t::inst_t& inst){ Inst_HCopy(hw, inst); };
         Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "HCopy", func_h_copy);
-        action.data.AddVar<int>("inst_id", h_copy_id);
       }
-      if(include_h_search){ // Head search 
+      { // Head search 
         const inst_func_t func_h_search = 
           [this](org_t& hw, const org_t::inst_t& inst){ Inst_HSearch(hw, inst); };
         Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "HSearch", func_h_search);
-        action.data.AddVar<int>("inst_id", h_search_id);
       }
-      if(include_repro){ // Repro 
+      { // Repro 
         const inst_func_t func_repro = 
           [this](org_t& hw, const org_t::inst_t& inst){ Inst_Repro(hw, inst); };
         Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "Repro", func_repro);
-        action.data.AddVar<int>("inst_id", repro_id);
         action.data.AddVar<bool>("is_non_speculative", true);
       }
     }

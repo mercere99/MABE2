@@ -1,6 +1,6 @@
 Loading file(s): 'logic_9.mabe'
 Setting Random Seed to 300
-Found 26 external functions! HSearch HCopy HDivide JumpHead SwapStk Push Pop SetFlow GetHead IfLabel NopA HAlloc NopB NopC Sub Swap Inc Nand Add MovHead IfLess ShiftL ShiftR Dec IfNEqu IO
+Found 29 external functions! Repro HSearch HCopy HDivide JumpHead SwapStk Push Pop MoveHeadIfNEqu SetFlow GetHead IfLabel NopA HAlloc NopB NopX NopC Sub Swap Inc Nand Add MovHead IfLess ShiftL ShiftR Dec IfNEqu IO
 Found 1 external functions with name: NopA! (a)
 Registered instruction: NopA index: 0; id: 0; symbol: a
 Found 1 external functions with name: NopB! (b)

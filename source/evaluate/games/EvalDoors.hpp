@@ -279,27 +279,9 @@ namespace mabe {
                                             instructions to */
     std::string cues_str; /**< String version of a vector of cue values. Non-negative values 
                                are used as is, while -1 gives a random value for each trial */
-    std::string inst_id_str;           ///< Semicolon-separated list of instruction door IDs  
-    emp::vector<int> inst_id_vec; /**< ID of the all door instructions 
-                                       (i.e., all instructions but `sense`) */
-    int sense_inst_id = -1; ///< ID of the `sense` instruction
     EvalDoors_TraitNames trait_names;   /**<  Struct holding all of the trait names to keep 
                                               things tidy */
     
-    /// Parse the instruction ID string into an actual vector of ID numbers
-    void ParseInstIDs(){
-      // Remove any trailing ;
-      while(inst_id_str[inst_id_str.length() - 1] == ';'){
-        inst_id_str = inst_id_str.substr(0, inst_id_str.length() - 1); 
-      }
-      inst_id_vec.clear();
-      emp::vector<std::string> sliced_str_vec;
-      emp::slice(inst_id_str, sliced_str_vec, ';');
-      for(std::string& slice : sliced_str_vec){
-        inst_id_vec.push_back(std::stoi(slice));
-      }
-    }
-
   public:
     EvalDoors(mabe::MABE & control,
                 const std::string & name="EvalDoors",
@@ -341,9 +323,6 @@ namespace mabe {
       LinkVar(cues_str, "cue_values", "A semicolon-separated string of cue values. " 
           "A non-negative value is used as is, -1 gives a random cue for each trial "
           "(first value is the exit)");
-      LinkVar(inst_id_str, "inst_ids", "The IDs of the door instructions. Should be a string "
-          "composed of numbers separated by semicolons (e.g., \"1;2;3\"");
-      LinkVar(sense_inst_id, "sense_inst_id", "ID of the sense instruction"); 
     }
     
     /// Set up organism traits, load maps, and provide instructions to organisms
@@ -375,10 +354,9 @@ namespace mabe {
     /// Package actions (e.g., sense, take door N) into instructions and provide them to the 
     /// organisms via ActionMap
     void SetupInstructions(){
-      ParseInstIDs();
       ActionMap& action_map = control.GetActionMap(pop_id);
       // Add the correct number of door instructions
-      for(size_t door_idx = 0; door_idx < inst_id_vec.size(); ++door_idx){
+      for(size_t door_idx = 0; door_idx < evaluator.GetNumDoors(); ++door_idx){
         inst_func_t func_move = [this, door_idx](org_t& hw, const org_t::inst_t& /*inst*/){
           DoorsState& state = hw.GetTrait<DoorsState>(trait_names.state_trait);
           double score = evaluator.Move(state, door_idx);
@@ -390,7 +368,6 @@ namespace mabe {
         sstr << "doors-move-" << door_idx;
         Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             sstr.str(), func_move);
-        action.data.AddVar<int>("inst_id", inst_id_vec[door_idx]);
       }
       { // Sense 
         inst_func_t func_sense = [this](org_t& hw, const org_t::inst_t& inst){
@@ -400,7 +377,6 @@ namespace mabe {
         };
         Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "doors-sense", func_sense);
-        action.data.AddVar<int>("inst_id", sense_inst_id);
       }
     }
   };

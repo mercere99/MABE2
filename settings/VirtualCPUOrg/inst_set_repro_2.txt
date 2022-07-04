@@ -31,8 +31,7 @@ JumpHead
 GetHead
 SetFlow
 Repro
-sg-move
-sg-move-back
-sg-rotate-r
-sg-rotate-l
-sg-sense
+doors-sense
+doors-move-0
+doors-move-1
+doors-move-2

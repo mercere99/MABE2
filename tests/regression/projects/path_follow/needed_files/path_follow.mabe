@@ -21,25 +21,8 @@ SchedulerProbabilistic scheduler { // Rations out updates to organisms based on 
 VirtualCPU_Inst_Nop inst_lib_nop { // Nop instructions for VirtualCPUOrg
   target_pop = "main_pop";      // Population(s) to manage.
   num_nops = 6;                 // Number of nops to include.
-  include_nop_x = 0;            // Include the special case NopX?
-  nop_x_id = -1;                // ID for the NopX instruction
-  start_nop_id = 0;            // ID for the NopA instruction, additional nops increment from there
 };
 VirtualCPU_Inst_Math inst_lib_math { // Math instructions for VirtualCPUOrg
-  include_inc = 1;              // Do we include the 'inc' instruction?
-  include_dec = 1;              // Do we include the 'dec' instruction?
-  include_add = 1;              // Do we include the 'add' instruction?
-  include_sub = 1;              // Do we include the 'sub' instruction?
-  include_nand = 1;             // Do we include the 'nand' instruction?
-  include_shift_l = 1;          // Do we include the 'shift_l' instruction?
-  include_shift_r = 1;          // Do we include the 'shift_r' instruction?
-  inc_id = 6;                  // ID of the 'inc' instruction
-  dec_id = 7;                  // ID of the 'dec' instruction
-  add_id = 8;                  // ID of the 'add' instruction
-  sub_id = 9;                  // ID of the 'sub' instruction
-  nand_id = 10;                  // ID of the 'nand' instruction
-  shift_l_id = 11;              // ID of the 'shift_l' instruction
-  shift_r_id = 12;               // ID of the 'shift_r' instruction
   target_pop = "main_pop";      // Population(s) to manage.
 };
 VirtualCPU_Inst_IO inst_lib_io { // IO instructions for VirtualCPUOrg
@@ -47,69 +30,20 @@ VirtualCPU_Inst_IO inst_lib_io { // IO instructions for VirtualCPUOrg
   input_name = "input";         // Name of variable to store inputs
   output_name = "output";       // Name of variable to store outputs
   input_idx_name = "input_idx"; // Index of next input to be loaded
-  io_inst_id = 13;              // ID of the IO instruction
 };
 VirtualCPU_Inst_Flow inst_lib_flow { // Flow control instructions for VirtualCPUOrg
-  include_if_label = 1;         // Do we include the 'if_label' instruction?
-  include_if_less = 1;          // Do we include the 'if_less' instruction?
-  include_if_not_equal = 1;     // Do we include the 'if_not_equal' instruction?
-  include_mov_head_if_not_equal = 1; // Do we include the 'mov_head_if_not_equal' instruction?
-  if_not_equal_id = 14;          // ID of the 'if_not_equal' instruction
-  if_less_id = 15;               // ID of the 'if_less' instruction
-  if_label_id = 16;             // ID of the 'if_label' instruction
-  mov_head_if_not_equal_id = 17;// ID of the 'mov_head_if_not_equal' instruction
   target_pop = "main_pop";      // Population(s) to manage.
 };
 VirtualCPU_Inst_Label inst_lib_label { // Label control instructions for VirtualCPUOrg
-  include_label = 1;                 // Do we include the 'label' instruction?
-  include_search_label_direct_b = 1; // Do we include the 'search_label_direct_b' instruction?
-  include_search_label_direct_f = 1; // Do we include the 'search_label_direct_f' instruction?
-  include_search_label_direct_s = 1; // Do we include the 'search_label_direct_s' instruction?
-  include_search_seq_direct_b = 1;   // Do we include the 'search_seq_direct_b' instruction?
-  include_search_seq_direct_f = 1;   // Do we include the 'search_seq_direct_f' instruction?
-  include_search_seq_direct_s = 1;   // Do we include the 'search_seq_direct_s' instruction?
-  label_id = 18;                     // ID of the 'label' instruction
-  search_label_direct_b_id = 19;     // ID of the 'search_label_direct_s' instruction
-  search_label_direct_f_id = 20;     // ID of the 'search_label_direct_s' instruction
-  search_label_direct_s_id = 21;     // ID of the 'search_label_direct_s' instruction
-  search_seq_direct_b_id = 22;       // ID of the 'search_seq_direct_s' instruction
-  search_seq_direct_f_id = 23;       // ID of the 'search_seq_direct_s' instruction
-  search_seq_direct_s_id = 24;       // ID of the 'search_seq_direct_s' instruction
   target_pop = "main_pop"; // Population(s) to manage.
 };
 VirtualCPU_Inst_Manipulation inst_lib_manip { // Manipulation instructions for VirtualCPUOrg
-  include_get_head = 1;         // Do we include the 'get_head' instruction?
-  include_jmp_head = 1;         // Do we include the 'jmp_head' instruction?
-  include_mov_head = 1;         // Do we include the 'mov_head' instruction?
-  include_pop = 1;              // Do we include the 'pop' instruction?
-  include_push = 1;             // Do we include the 'push' instruction?
-  include_set_flow = 1;         // Do we include the 'set_flow' instruction?
-  include_swap = 1;             // Do we include the 'swap' instruction?
-  include_swap_stack = 1;       // Do we include the 'swap_stack' instruction?
-  pop_inst_id = 25;              // ID for the 'pop' instruction
-  push_id = 26;                  // ID for the 'push' instruction
-  swap_stack_id = 27;            // ID for the 'swap_stack' instruction
-  swap_id = 28;                  // ID for the 'swap' instruction
-  mov_head_id = 29;              // ID for the 'mov_head' instruction
-  jmp_head_id = 30;              // ID for the 'jmp_head' instruction
-  get_head_id = 31;              // ID for the 'get_head' instruction
-  set_flow_id = 32;              // ID for the 'set_flow' instruction
   target_pop = "main_pop";      // Population(s) to manage.
 };
 VirtualCPU_Inst_Replication inst_lib_repl { // Replication instructions for VirtualCPUOrg
   target_pop = "main_pop";      // Population(s) to manage.
   pos_trait = "org_pos";        // Name of trait that holds organism's position
   offspring_genome_trait = "offspring_genome";// Name of trait that holds the offspring organism's genome
-  include_h_alloc = 0;          // Do we include the 'h_alloc' instruction?
-  include_h_divide = 0;         // Do we include the 'h_divide' instruction?
-  include_h_copy = 0;           // Do we include the 'h_copy' instruction?
-  include_h_search = 0;         // Do we include the 'h_search' instruction?
-  include_repro = 1;            // Do we include the 'repro' instruction?
-  h_alloc_id = 33;              // ID of the h_alloc instruction
-  h_divide_id = 34;             // ID of the h_divide instruction
-  h_copy_id = 35;               // ID of the h_copy instruction
-  h_search_id = 36;             // ID of the h_search instruction
-  repro_id = 33;                // ID of the repro instruction
 };
 EvalPathFollow path_follow {      // Evaluate organisms on their ability to follow a path.
   target_pop = "main_pop";            // Which population(s) should we evaluate?
@@ -117,11 +51,6 @@ EvalPathFollow path_follow {      // Evaluate organisms on their ability to foll
   state_trait = "state";          // Which trait stores organisms' path follow state?
   map_filenames = "test_map.txt"; // List of map files to load, separated by semicolons(;)
   randomize_cues = 1;           // If true, cues are assigned random values in for each new path
-  sg_move_id = 34;              // ID of the 'sg_move' instruction
-  sg_move_back_id = 35;         // ID of the 'sg_move_back' instruction
-  sg_rotate_right_id = 36;      // ID of the 'sg_rotate_right' instruction
-  sg_rotate_left_id = 37;       // ID of the 'sg_rotate_left' instruction
-  sg_sense_id = 38;             // ID of the 'sg_sense' instruction
 };
 VirtualCPUOrg avida_org {       // Organism consisting of Avida instructions.
   point_mut_prob = 0.01;        // Per-site probability of a point mutations

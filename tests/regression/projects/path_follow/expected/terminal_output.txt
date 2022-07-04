@@ -2,7 +2,7 @@ Loading file(s): 'path_follow.mabe'
 Setting Random Seed to 30
 Loading!
 Map #0 is 40x40, with 20 path tiles!
-Found 39 external functions! sg-sense sg-rotate-r sg-rotate-l sg-move-back Repro GetHead MovHead ShiftL JumpHead Add Dec Nand Inc sg-move NopF SwapStk NopE ShiftR SetFlow SearchLabelDirectF Swap SearchSeqDirectS NopC NopB NopD SearchLabelDirectS IfNEqu SearchLabelDirectB NopA IO IfLabel IfLess MoveHeadIfNEqu SearchSeqDirectF Label Push Sub SearchSeqDirectB Pop
+Found 44 external functions! sg-rotate-r sg-rotate-l sg-move-back sg-sense HSearch Repro HCopy HAlloc GetHead MovHead ShiftL JumpHead Add HDivide Dec Inc sg-move NopF SwapStk NopE SetFlow SearchLabelDirectF Swap SearchSeqDirectS NopC Nand NopX NopB NopD SearchLabelDirectS IfNEqu SearchLabelDirectB NopA ShiftR IO IfLabel IfLess MoveHeadIfNEqu SearchSeqDirectF Label Push Sub SearchSeqDirectB Pop
 Found 1 external functions with name: NopA! (a)
 Registered instruction: NopA index: 0; id: 0; symbol: a
 Found 1 external functions with name: NopB! (b)

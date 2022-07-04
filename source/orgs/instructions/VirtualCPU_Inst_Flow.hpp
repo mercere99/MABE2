@@ -25,14 +25,6 @@ namespace mabe {
     using this_t = VirtualCPU_Inst_Flow;
   private:
     int pop_id = 0; ///< ID of the population which will receive these instructions
-    bool include_if_not_equal = true; ///< Config option indicating if instruction is used
-    bool include_if_less = true;      ///< Config option indicating if instruction is used
-    bool include_if_label = true;     ///< Config option indicating if instruction is used
-    bool include_mov_head_if_not_equal = false; ///< Config option indicating if inst. is used
-    int if_not_equal_id = -1; // ID of the if_not_equal instruction
-    int if_less_id = -1; // ID of the if_less instruction
-    int if_label_id = -1; // ID of the if_label instruction
-    int mov_head_if_not_equal_id = -1; // ID of the mov_head_if_not_equal insruction
 
   public:
     VirtualCPU_Inst_Flow(mabe::MABE & control,
@@ -111,22 +103,6 @@ namespace mabe {
     /// Set up variables for configuration file
     void SetupConfig() override {
       LinkPop(pop_id, "target_pop", "Population(s) to manage.");
-      LinkVar(include_if_not_equal, "include_if_not_equal", 
-          "Do we include the 'if_not_equal' instruction?");
-      LinkVar(include_if_less, "include_if_less", 
-          "Do we include the 'if_less' instruction?");
-      LinkVar(include_if_label, "include_if_label", 
-          "Do we include the 'if_label' instruction?");
-      LinkVar(include_mov_head_if_not_equal, "include_mov_head_if_not_equal", 
-          "Do we include the 'mov_head_if_not_equal' instruction?");
-      LinkVar(if_not_equal_id, "if_not_equal_id", 
-          "ID of the 'if_not_equal' instruction");
-      LinkVar(if_less_id, "if_less_id", 
-          "ID of the 'if_less' instruction");
-      LinkVar(if_label_id, "if_label_id", 
-          "ID of the 'if_label' instruction");
-      LinkVar(mov_head_if_not_equal_id, "mov_head_if_not_equal_id", 
-          "ID of the 'mov_head_if_not_equal' instruction");
     }
 
     /// When config is loaded, set up functions
@@ -137,33 +113,29 @@ namespace mabe {
     /// Add the instruction specified by the config file
     void SetupFuncs(){
       ActionMap& action_map = control.GetActionMap(pop_id);
-      if(include_if_not_equal) { // If not equal
+      { // If not equal
         const inst_func_t func_if_not_equ = 
           [this](org_t& hw, const org_t::inst_t& inst){ Inst_IfNotEqual(hw, inst); };
         Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "IfNEqu",func_if_not_equ);
-        action.data.AddVar<int>("inst_id", if_not_equal_id);
       }
-      if(include_if_less){ // If less 
+      { // If less 
         const inst_func_t func_if_less = 
           [this](org_t& hw, const org_t::inst_t& inst){ Inst_IfLess(hw, inst); };
         Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "IfLess", func_if_less);
-        action.data.AddVar<int>("inst_id", if_less_id);
       }
-      if(include_if_label){ // If label 
+      { // If label 
         const inst_func_t func_if_label = 
           [this](org_t& hw, const org_t::inst_t& inst){ Inst_IfLabel(hw, inst); };
         Action& action = action_map.AddFunc<void, org_t&,const org_t::inst_t&>(
             "IfLabel",func_if_label);
-        action.data.AddVar<int>("inst_id", if_label_id);
       }
-      if(include_mov_head_if_not_equal){ // Move head if not equal
+      { // Move head if not equal
         const inst_func_t func_mov_head_if_not_equ = 
           [this](org_t& hw, const org_t::inst_t& inst){ Inst_MoveHeadIfNotEqual(hw, inst); };
         Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "MoveHeadIfNEqu",func_mov_head_if_not_equ);
-        action.data.AddVar<int>("inst_id", mov_head_if_not_equal_id);
       }
     }
 

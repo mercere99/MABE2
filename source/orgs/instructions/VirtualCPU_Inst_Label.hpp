@@ -25,21 +25,6 @@ namespace mabe {
     using this_t = VirtualCPU_Inst_Label;
   private:
     int pop_id = 0; ///< ID of the population which will receive these instructions
-  private:
-    bool include_label = true;          ///< Config option indicating if instruction is used
-    bool include_search_label_direct_s = false; ///< Config option indicating if inst. is used
-    bool include_search_label_direct_f = false; ///< Config option indicating if inst. is used
-    bool include_search_label_direct_b = false; ///< Config option indicating if inst. is used
-    bool include_search_seq_direct_s = false;   ///< Config option indicating if inst. is used
-    bool include_search_seq_direct_f = false;   ///< Config option indicating if inst. is used
-    bool include_search_seq_direct_b = false;   ///< Config option indicating if inst. is used
-    int label_id = -1;                 ///< ID of the label instruction 
-    int search_label_direct_s_id = -1; ///< ID of the search_label_direct_s instruction  
-    int search_label_direct_f_id = -1; ///< ID of the search_label_direct_f instruction 
-    int search_label_direct_b_id = -1; ///< ID of the search_label_direct_b instruction 
-    int search_seq_direct_s_id = -1;   ///< ID of the search_seq_direct_s instruction 
-    int search_seq_direct_f_id = -1;   ///< ID of the search_seq_direct_f instruction
-    int search_seq_direct_b_id = -1;   ///< ID of the search_seq_direct_b instruction
 
   public:
     VirtualCPU_Inst_Label(mabe::MABE & control,
@@ -72,34 +57,6 @@ namespace mabe {
     /// Set up variables for configuration file
     void SetupConfig() override {
       LinkPop(pop_id, "target_pop", "Population(s) to manage.");
-      LinkVar(include_label, "include_label", 
-          "Do we include the 'label' instruction?");
-      LinkVar(include_search_label_direct_s, "include_search_label_direct_s", 
-          "Do we include the 'search_label_direct_s' instruction?");
-      LinkVar(include_search_label_direct_f, "include_search_label_direct_f", 
-          "Do we include the 'search_label_direct_f' instruction?");
-      LinkVar(include_search_label_direct_b, "include_search_label_direct_b", 
-          "Do we include the 'search_label_direct_b' instruction?");
-      LinkVar(include_search_seq_direct_s, "include_search_seq_direct_s", 
-          "Do we include the 'search_seq_direct_s' instruction?");
-      LinkVar(include_search_seq_direct_f, "include_search_seq_direct_f", 
-          "Do we include the 'search_seq_direct_f' instruction?");
-      LinkVar(include_search_seq_direct_b, "include_search_seq_direct_b", 
-          "Do we include the 'search_seq_direct_b' instruction?");
-      LinkVar(label_id, "label_id", 
-          "ID of the 'label' instruction");
-      LinkVar(search_label_direct_s_id, "search_label_direct_s_id", 
-          "ID of the 'search_label_direct_s' instruction");
-      LinkVar(search_label_direct_f_id, "search_label_direct_f_id", 
-          "ID of the 'search_label_direct_s' instruction");
-      LinkVar(search_label_direct_b_id, "search_label_direct_b_id", 
-          "ID of the 'search_label_direct_s' instruction");
-      LinkVar(search_seq_direct_s_id, "search_seq_direct_s_id", 
-          "ID of the 'search_seq_direct_s' instruction");
-      LinkVar(search_seq_direct_f_id, "search_seq_direct_f_id", 
-          "ID of the 'search_seq_direct_s' instruction");
-      LinkVar(search_seq_direct_b_id, "search_seq_direct_b_id", 
-          "ID of the 'search_seq_direct_s' instruction");
     }
     
     /// When config is loaded, set up functions
@@ -110,54 +67,47 @@ namespace mabe {
     /// Add the instruction specified by the config file
     void SetupFuncs(){
       ActionMap& action_map = control.GetActionMap(pop_id);
-      if(include_label){ // Label 
+      { // Label 
         const inst_func_t func_label = 
           [this](org_t& hw, const org_t::inst_t& inst){ Inst_Label(hw, inst); };
         Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "Label", func_label);
-        action.data.AddVar<int>("inst_id", label_id);
       }
-      if(include_search_label_direct_s){ // SearchLabelDirectS 
+      { // SearchLabelDirectS 
         const inst_func_t func_search_label_direct_s = 
           [this](org_t& hw, const org_t::inst_t& inst){ Inst_SearchLabelDirectS(hw, inst); };
         Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "SearchLabelDirectS", func_search_label_direct_s);
-        action.data.AddVar<int>("inst_id", search_label_direct_s_id);
       }
-      if(include_search_label_direct_f){ // SearchLabelDirectF 
+      { // SearchLabelDirectF 
         const inst_func_t func_search_label_direct_f = 
           [this](org_t& hw, const org_t::inst_t& inst){ Inst_SearchLabelDirectF(hw, inst); };
         Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "SearchLabelDirectF", func_search_label_direct_f);
-        action.data.AddVar<int>("inst_id", search_label_direct_f_id);
       }
-      if(include_search_label_direct_b){ // SearchLabelDirectB 
+      { // SearchLabelDirectB 
         const inst_func_t func_search_label_direct_b = 
           [this](org_t& hw, const org_t::inst_t& inst){ Inst_SearchLabelDirectB(hw, inst); };
         Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "SearchLabelDirectB", func_search_label_direct_b);
-        action.data.AddVar<int>("inst_id", search_label_direct_b_id);
       }
-      if(include_search_seq_direct_s){ // SearchSeqDirectS 
+      { // SearchSeqDirectS 
         const inst_func_t func_search_seq_direct_s = 
           [this](org_t& hw, const org_t::inst_t& inst){ Inst_SearchSeqDirectS(hw, inst); };
         Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "SearchSeqDirectS", func_search_seq_direct_s);
-        action.data.AddVar<int>("inst_id", search_seq_direct_s_id);
       }
-      if(include_search_seq_direct_f){ // SearchSeqDirectF 
+      { // SearchSeqDirectF 
         const inst_func_t func_search_seq_direct_f = 
           [this](org_t& hw, const org_t::inst_t& inst){ Inst_SearchSeqDirectF(hw, inst); };
         Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "SearchSeqDirectF", func_search_seq_direct_f);
-        action.data.AddVar<int>("inst_id", search_seq_direct_f_id);
       }
-      if(include_search_seq_direct_b){ // SearchSeqDirectB 
+      { // SearchSeqDirectB 
         const inst_func_t func_search_seq_direct_b = 
           [this](org_t& hw, const org_t::inst_t& inst){ Inst_SearchSeqDirectB(hw, inst); };
         Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "SearchSeqDirectB", func_search_seq_direct_b);
-        action.data.AddVar<int>("inst_id", search_seq_direct_b_id);
       }
     }
 

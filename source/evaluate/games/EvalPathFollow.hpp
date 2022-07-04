@@ -338,11 +338,6 @@ namespace mabe {
                                             task */
     int pop_id = 0;              /**< ID of the population to evaluate 
                                          (and provide instructions to) */
-    int sg_move_id = -1;         ///< ID of the sg_move instruction
-    int sg_move_back_id = -1;    ///< ID of the sg_move_back instruction
-    int sg_rotate_right_id = -1; ///< ID of the sg_rotate_right instruction
-    int sg_rotate_left_id = -1;  ///< ID of the sg_rotate_left instruction
-    int sg_sense_id = -1;        ///< ID of the sg_sense instruction
 
   public:
     EvalPathFollow(mabe::MABE & control,
@@ -367,16 +362,6 @@ namespace mabe {
           "List of map files to load, separated by semicolons(;)");
       LinkVar(evaluator.randomize_cues, "randomize_cues", 
           "If true, cues are assigned random values in for each new path");
-      LinkVar(sg_move_id, "sg_move_id", 
-          "ID of the 'sg_move' instruction (-1 for auto-assign)");
-      LinkVar(sg_move_back_id, "sg_move_back_id", 
-          "ID of the 'sg_move_back' instruction (-1 for auto-assign)");
-      LinkVar(sg_rotate_right_id, "sg_rotate_right_id", 
-          "ID of the 'sg_rotate_right' instruction (-1 for auto-assign)");
-      LinkVar(sg_rotate_left_id, "sg_rotate_left_id", 
-          "ID of the 'sg_rotate_left' instruction (-1 for auto-assign)");
-      LinkVar(sg_sense_id, "sg_sense_id", 
-          "ID of the 'sg_sense' instruction (-1 for auto-assign)");
     }
     
     /// Set up organism traits, load maps, and provide instructions to organisms
@@ -397,7 +382,6 @@ namespace mabe {
           hw.SetTrait<double>(score_trait, score);
         };
         Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>("sg-move", func_move);
-        action.data.AddVar<int>("inst_id", sg_move_id);
       }
       { // Move backward
         inst_func_t func_move_back = [this](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){
@@ -406,7 +390,6 @@ namespace mabe {
         };
         Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
             "sg-move-back", func_move_back);
-        action.data.AddVar<int>("inst_id", sg_move_back_id);
       }
       { // Rotate right 
         inst_func_t func_rotate_right = [this](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){
@@ -414,7 +397,6 @@ namespace mabe {
         };
         Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
             "sg-rotate-r", func_rotate_right);
-        action.data.AddVar<int>("inst_id", sg_rotate_right_id);
       }
       { // Rotate left 
         inst_func_t func_rotate_left = [this](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){
@@ -422,7 +404,6 @@ namespace mabe {
         };
         Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
             "sg-rotate-l", func_rotate_left);
-        action.data.AddVar<int>("inst_id", sg_rotate_left_id);
       }
       { // Sense 
         inst_func_t func_sense = [this](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
@@ -432,7 +413,6 @@ namespace mabe {
         };
         Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
             "sg-sense", func_sense);
-        action.data.AddVar<int>("inst_id", sg_sense_id);
       }
     }
   };

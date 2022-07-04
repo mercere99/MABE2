@@ -1,10 +1,10 @@
 Latest commit at time of last regeneration:
-commit ce35133c23f4a94a347e25fa6f0021164aef6f2e
+commit ce71c3f01e45f9d0fc2dd9df01abf086c2fd5bd7
 Author: Austin Ferguson <ferguson.austin.j@gmail.com>
-Date:   Fri Jul 1 16:10:15 2022 -0400
+Date:   Mon Jul 4 17:19:23 2022 -0400
 
-    Update path following regression tests
+    Add POW reward type to binary logic tasks
  
  
 Time of last regeneration:
-Mon Jul  4 02:18:25 PM EDT 2022
+Mon Jul  4 06:04:12 PM EDT 2022
