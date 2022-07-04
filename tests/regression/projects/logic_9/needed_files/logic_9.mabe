@@ -1,7 +1,7 @@
 random_seed = 300;     // Seed for random number generator; use 0 to base on time.
 Var pop_size = 3600;   // Local value variable.
 Var max_updates = 300; // Local value variable.
-Var do_multiply = 1;   // Local value variable.
+Var task_reward_type = "mult"; 
 Population main_pop;   // Collection of organisms
 MaxSizePlacement place_max_size { // Grow population to a given size then maintain
   target = "main_pop";          // Population(s) to manage.
@@ -109,7 +109,10 @@ EvalTaskNot task_not {          // Organism-triggered evaluation of NOT operatio
   fitness_trait = "child_merit";// Which trait should we increase if BASE was executed?
   performed_trait = "not_performed";// Which trait should track if BASE was executed?
   reward_value = 2;             // How large is the reward for performing this task?
-  is_multiplicative = do_multiply;        // Should reward be multiplied (true) or added(false) to current score?
+  reward_type = task_reward_type;// How to apply the reward to the organism's merit?
+                                //  add: Additive. New merit = old merit + reward
+                                //  mult: Multiplicative. New merit = old merit * reward
+                                //  pow: Power. New merit = old merit * (2 ^ reward)
 };
 EvalTaskNand task_nand {        // Organism-triggered evaluation of NAND operation
   target_pop = "main_pop";      // Population to evaluate.
@@ -118,7 +121,10 @@ EvalTaskNand task_nand {        // Organism-triggered evaluation of NAND operati
   fitness_trait = "child_merit";// Which trait should we increase if BASE was executed?
   performed_trait = "nand_performed";// Which trait should track if BASE was executed?
   reward_value = 2;             // How large is the reward for performing this task?
-  is_multiplicative = do_multiply;        // Should reward be multiplied (true) or added(false) to current score?
+  reward_type = task_reward_type;// How to apply the reward to the organism's merit?
+                                //  add: Additive. New merit = old merit + reward
+                                //  mult: Multiplicative. New merit = old merit * reward
+                                //  pow: Power. New merit = old merit * (2 ^ reward)
 };
 EvalTaskAnd task_and {          // Organism-triggered evaluation of AND operation
   target_pop = "main_pop";      // Population to evaluate.
@@ -127,7 +133,10 @@ EvalTaskAnd task_and {          // Organism-triggered evaluation of AND operatio
   fitness_trait = "child_merit";// Which trait should we increase if BASE was executed?
   performed_trait = "and_performed";// Which trait should track if BASE was executed?
   reward_value = 4;             // How large is the reward for performing this task?
-  is_multiplicative = do_multiply;        // Should reward be multiplied (true) or added(false) to current score?
+  reward_type = task_reward_type;// How to apply the reward to the organism's merit?
+                                //  add: Additive. New merit = old merit + reward
+                                //  mult: Multiplicative. New merit = old merit * reward
+                                //  pow: Power. New merit = old merit * (2 ^ reward)
 };
 EvalTaskOrnot task_ornot {      // Organism-triggered evaluation of ORNOT operation
   target_pop = "main_pop";      // Population to evaluate.
@@ -136,7 +145,10 @@ EvalTaskOrnot task_ornot {      // Organism-triggered evaluation of ORNOT operat
   fitness_trait = "child_merit";// Which trait should we increase if BASE was executed?
   performed_trait = "ornot_performed";// Which trait should track if BASE was executed?
   reward_value = 4;             // How large is the reward for performing this task?
-  is_multiplicative = do_multiply;        // Should reward be multiplied (true) or added(false) to current score?
+  reward_type = task_reward_type;// How to apply the reward to the organism's merit?
+                                //  add: Additive. New merit = old merit + reward
+                                //  mult: Multiplicative. New merit = old merit * reward
+                                //  pow: Power. New merit = old merit * (2 ^ reward)
 };
 EvalTaskAndnot task_andnot {    // Organism-triggered evaluation of ANDNOT operation
   target_pop = "main_pop";      // Population to evaluate.
@@ -145,7 +157,10 @@ EvalTaskAndnot task_andnot {    // Organism-triggered evaluation of ANDNOT opera
   fitness_trait = "child_merit";// Which trait should we increase if BASE was executed?
   performed_trait = "andnot_performed";// Which trait should track if BASE was executed?
   reward_value = 8;             // How large is the reward for performing this task?
-  is_multiplicative = do_multiply;        // Should reward be multiplied (true) or added(false) to current score?
+  reward_type = task_reward_type;// How to apply the reward to the organism's merit?
+                                //  add: Additive. New merit = old merit + reward
+                                //  mult: Multiplicative. New merit = old merit * reward
+                                //  pow: Power. New merit = old merit * (2 ^ reward)
 };
 EvalTaskOr task_or {            // Organism-triggered evaluation of OR operation
   target_pop = "main_pop";      // Population to evaluate.
@@ -154,7 +169,10 @@ EvalTaskOr task_or {            // Organism-triggered evaluation of OR operation
   fitness_trait = "child_merit";// Which trait should we increase if BASE was executed?
   performed_trait = "or_performed";// Which trait should track if BASE was executed?
   reward_value = 8;             // How large is the reward for performing this task?
-  is_multiplicative = do_multiply;        // Should reward be multiplied (true) or added(false) to current score?
+  reward_type = task_reward_type;// How to apply the reward to the organism's merit?
+                                //  add: Additive. New merit = old merit + reward
+                                //  mult: Multiplicative. New merit = old merit * reward
+                                //  pow: Power. New merit = old merit * (2 ^ reward)
 };
 EvalTaskNor task_nor {          // Organism-triggered evaluation of NOR operation
   target_pop = "main_pop";      // Population to evaluate.
@@ -163,7 +181,10 @@ EvalTaskNor task_nor {          // Organism-triggered evaluation of NOR operatio
   fitness_trait = "child_merit";// Which trait should we increase if BASE was executed?
   performed_trait = "nor_performed";// Which trait should track if BASE was executed?
   reward_value = 16;            // How large is the reward for performing this task?
-  is_multiplicative = do_multiply;        // Should reward be multiplied (true) or added(false) to current score?
+  reward_type = task_reward_type;// How to apply the reward to the organism's merit?
+                                //  add: Additive. New merit = old merit + reward
+                                //  mult: Multiplicative. New merit = old merit * reward
+                                //  pow: Power. New merit = old merit * (2 ^ reward)
 };
 EvalTaskXor task_xor {          // Organism-triggered evaluation of XOR operation
   target_pop = "main_pop";      // Population to evaluate.
@@ -172,7 +193,10 @@ EvalTaskXor task_xor {          // Organism-triggered evaluation of XOR operatio
   fitness_trait = "child_merit";// Which trait should we increase if BASE was executed?
   performed_trait = "xor_performed";// Which trait should track if BASE was executed?
   reward_value = 16;            // How large is the reward for performing this task?
-  is_multiplicative = do_multiply;        // Should reward be multiplied (true) or added(false) to current score?
+  reward_type = task_reward_type;// How to apply the reward to the organism's merit?
+                                //  add: Additive. New merit = old merit + reward
+                                //  mult: Multiplicative. New merit = old merit * reward
+                                //  pow: Power. New merit = old merit * (2 ^ reward)
 };
 EvalTaskEqu task_equ {          // Organism-triggered evaluation of EQU operation
   target_pop = "main_pop";      // Population to evaluate.
@@ -181,7 +205,10 @@ EvalTaskEqu task_equ {          // Organism-triggered evaluation of EQU operatio
   fitness_trait = "child_merit";// Which trait should we increase if BASE was executed?
   performed_trait = "equ_performed";// Which trait should track if BASE was executed?
   reward_value = 32;            // How large is the reward for performing this task?
-  is_multiplicative = do_multiply;        // Should reward be multiplied (true) or added(false) to current score?
+  reward_type = task_reward_type;// How to apply the reward to the organism's merit?
+                                //  add: Additive. New merit = old merit + reward
+                                //  mult: Multiplicative. New merit = old merit * reward
+                                //  pow: Power. New merit = old merit * (2 ^ reward)
 };
 VirtualCPUOrg avida_org {       // Organism consisting of Avida instructions.
   point_mut_prob = 0.05;              // Probability of each instruction mutating on reproduction.

@@ -24,6 +24,13 @@ namespace mabe {
     using org_t = VirtualCPUOrg;
     using data_t = org_t::data_t;
     using inst_func_t = org_t::inst_func_t;
+
+    enum RewardType{
+      ADD,   // Additive. New merit = old merit + reward
+      MULT,  // Multiplicative. New merit = old merit * reward
+      POW    // Power. New merit = old merit * (2 ^ reward)
+    };
+
   protected:
     std::string inputs_trait = "input";   ///< Name of trait for organism's inputs  (required)
     std::string outputs_trait = "output"; ///< Name of trait for organism's outputs (required)
@@ -33,8 +40,7 @@ namespace mabe {
     std::string performed_trait = "unnamed_performed"; /**< Name of the trait tracking if the
                                                             trait was performed */
     double reward_value = 1;          ///< Magnitude of the reward bestowed for completion of the task 
-    bool is_multiplicative = false;   /**< If true, reward_value is multiplied to current 
-                                           score (otherwise it is added to current score)*/
+    RewardType reward_type = ADD; /// How do we apply the reward to the organism's merit?
 
   public:
     EvalTaskBase(mabe::MABE & _control,
@@ -61,8 +67,11 @@ namespace mabe {
           "Which trait should track if BASE was executed?");
       LinkVar(reward_value, "reward_value", 
           "How large is the reward for performing this task?");
-      LinkVar(is_multiplicative, "is_multiplicative", 
-          "Should reward be multiplied (true) or added(false) to current score?");
+      LinkMenu(reward_type, "reward_type", "How to apply the reward to the organism's merit?",
+               ADD,         "add",         "Additive. New merit = old merit + reward",
+               MULT,        "mult",        "Multiplicative. New merit = old merit * reward",
+               POW,         "pow",         "Power. New merit = old merit * (2 ^ reward)"
+      );
     }
   
     /** Determine if output is the result of applying the given function to input
@@ -91,10 +100,18 @@ namespace mabe {
           data_t& output = *output_vec.rbegin(); // Check latest output
           for(data_t input : input_vec){ // Must check against all inputs
             if( CheckOneArg(output, input) ){ // Unary check
-              if(is_multiplicative)
-                hw.SetTrait<double>(fitness_trait, original_fitness * reward_value);
-              else
-                hw.SetTrait<double>(fitness_trait, original_fitness + reward_value);
+              switch(reward_type){
+                case ADD:
+                  hw.SetTrait<double>(fitness_trait, original_fitness + reward_value);
+                  break;
+                case MULT:
+                  hw.SetTrait<double>(fitness_trait, original_fitness * reward_value);
+                  break;
+                case POW: // new = old * (2 ^ power)
+                  hw.SetTrait<double>(fitness_trait, 
+                      original_fitness * std::pow(2.0, reward_value));
+                  break;
+              }
               task_performed = true;
               return true;
             }
@@ -117,11 +134,17 @@ namespace mabe {
           for(size_t idx_a = 0; idx_a < input_vec.size() - 1; idx_a++){
             for(size_t idx_b = idx_a + 1; idx_b < input_vec.size(); idx_b++){
               if( CheckTwoArg(output, input_vec[idx_a], input_vec[idx_b]) ){ // Binary check
-                if(is_multiplicative){
-                  hw.SetTrait<double>(fitness_trait, original_fitness * reward_value);
-                }
-                else{
-                  hw.SetTrait<double>(fitness_trait, original_fitness + reward_value);
+                switch(reward_type){
+                  case ADD:
+                    hw.SetTrait<double>(fitness_trait, original_fitness + reward_value);
+                    break;
+                  case MULT:
+                    hw.SetTrait<double>(fitness_trait, original_fitness * reward_value);
+                    break;
+                  case POW: // new = old * (2 ^ power)
+                    hw.SetTrait<double>(fitness_trait, 
+                        original_fitness * std::pow(2.0, reward_value));
+                    break;
                 }
                 task_performed = true;
                 return true;
