@@ -447,6 +447,8 @@ namespace mabe {
     /// Load from the file the instruction to use and what order to include them in
     emp::vector<std::string> LoadInstSetFromFile(){
       emp::File file(SharedData().inst_set_input_filename);
+      file.RemoveComments("//");
+      file.RemoveComments("#");
       file.RemoveWhitespace();
       file.RemoveEmpty();
       return file.GetAllLines();
