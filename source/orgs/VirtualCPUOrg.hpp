@@ -237,13 +237,10 @@ namespace mabe {
       const double merit = Organism::GetTrait<double>(SharedData().merit_name);
       const size_t gen = Organism::GetTrait<size_t>(SharedData().generation_name);
       const OrgPosition pos = Organism::GetTrait<OrgPosition>(SharedData().position_name);
-      const genome_t offspring_genome = 
-          Organism::GetTrait<genome_t>(SharedData().offspring_genome_name);
       GetManager().GetControl().ResetTraits(*this);
       Organism::SetTrait<double>(SharedData().merit_name, merit);
       Organism::SetTrait<size_t>(SharedData().generation_name, gen);
       Organism::SetTrait<OrgPosition>(SharedData().position_name, pos);
-      Organism::SetTrait<genome_t>(SharedData().offspring_genome_name, offspring_genome);
       Organism::SetTrait<std::string>(SharedData().genome_name, GetGenomeString());
       Organism::SetTrait<size_t>(SharedData().genome_length_name, GetGenomeSize());
       Organism::SetTrait<double>(SharedData().child_merit_name, 
@@ -286,11 +283,15 @@ namespace mabe {
           offspring_genome.end(),
           offspring->genome.begin());
       offspring->ResetWorkingGenome();
-      offspring->ResetHardware();
       offspring->Mutate(random);
+      offspring->Reset();
+      double bonus = 
+          static_cast<double>(std::min(
+            {offspring->GetGenomeSize(), GetNumInstsExecuted(), GetNumInstsExecuted()}
+          )) / SharedData().init_length;
       // Initialize all necessary traits and ready hardware
       offspring->SetTrait<double>(SharedData().merit_name, 
-          offspring->GetGenomeSize() / SharedData().init_length + GetTrait<double>(SharedData().child_merit_name)); 
+          bonus + GetTrait<double>(SharedData().child_merit_name)); 
       offspring->SetTrait<double>(SharedData().child_merit_name, SharedData().initial_merit); 
       offspring->SetTrait<size_t>(SharedData().generation_name, 
           GetTrait<size_t>(SharedData().generation_name) + 1); 

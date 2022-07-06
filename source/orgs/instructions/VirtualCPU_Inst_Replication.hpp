@@ -87,10 +87,10 @@ namespace mabe {
             hw.genome_working.end(),
             offspring_genome.begin());
         hw.genome_working.resize(hw.read_head, hw.GetDefaultInst());
-        // Reset the parent
-        hw.Reset();
         // Replicate
         control.Replicate(org_pos, *org_pos.PopPtr());
+        // Reset the parent
+        hw.Reset();
         // Set to end so completion of this inst moves it 0 
         hw.inst_ptr = hw.genome_working.size() - 1; 
       }
@@ -98,14 +98,9 @@ namespace mabe {
     void Inst_HCopy(org_t& hw, const org_t::inst_t& /*inst*/){
       hw.genome_working[hw.write_head] = hw.genome_working[hw.read_head];
       hw.copied_inst_id_vec.push_back(hw.genome_working[hw.write_head].id);
-      hw.read_head++;
-      while(hw.read_head >= hw.genome_working.size()){
-        hw.read_head -= hw.genome_working.size();
-      }
-      hw.write_head++;
-      while(hw.write_head >= hw.genome_working.size()){
-        hw.write_head -= hw.genome_working.size();
-      }
+      hw.genome_working[hw.read_head].has_been_copied = true;
+      hw.AdvanceRH();
+      hw.AdvanceWH();
       // TODO: Mutation
     }
     void Inst_HSearch(org_t& hw, const org_t::inst_t& inst){
@@ -130,8 +125,6 @@ namespace mabe {
           || (req_count_inst_executed < 0 
             && hw.num_insts_executed >= req_frac_inst_executed * hw.genome.size())){
         OrgPosition& org_pos = hw.GetTrait<OrgPosition>(org_pos_trait);
-        // Reset the parent
-        hw.Reset();
         // Store the soon-to-be offspring's genome
         org_t::genome_t& offspring_genome = hw.GetTrait<org_t::genome_t>(
             offspring_genome_trait);
@@ -142,6 +135,8 @@ namespace mabe {
             offspring_genome.begin());
         // Replicate 
         control.Replicate(org_pos, *org_pos.PopPtr());
+        // Reset the parent
+        hw.Reset();
         // Set to end so completion of this inst moves it 0 
         hw.inst_ptr = hw.genome_working.size() - 1; 
       }
