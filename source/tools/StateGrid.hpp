@@ -114,7 +114,7 @@ namespace emp {
                                    If false, agents are clamped to the grid. */
 
   public:
-    StateGrid() : width(0), height(0), states(0), info() { ; }
+    StateGrid() : width(0), height(0), states(0), info(), is_toroidal(false) { ; }
     StateGrid(StateGridInfo & _i, size_t _w=1, size_t _h=1, 
         int init_val=0, bool _is_toroidal=false)
       : width(_w), height(_h), states(_w*_h,init_val), info(_i), 
