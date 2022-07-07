@@ -316,7 +316,8 @@ TEST_CASE("VirtualCPUOrg_Main", "[orgs]"){
     std::cout << "Parent: " << original_genome << std::endl;
     std::cout << "Child:  " << child_genome_1 << std::endl;
     CHECK(original_genome == child_genome_1);
-    CHECK(child_org_1->GetTrait<double>("merit") == 1.0 + org.GetTrait<double>("child_merit")); 
+    // Merit should not have changed because we haven't copied any instructions
+    CHECK(child_org_1->GetTrait<double>("merit") == org.GetTrait<double>("child_merit")); 
     CHECK(child_org_1->GetTrait<double>("child_merit") == org.SharedData().initial_merit); 
     CHECK(child_org_1->inst_ptr == 0); 
     child_org_1.Delete();
@@ -330,7 +331,8 @@ TEST_CASE("VirtualCPUOrg_Main", "[orgs]"){
     std::cout << "Parent: " << original_genome << std::endl;
     std::cout << "Child:  " << child_genome_2 << std::endl;
     CHECK(original_genome != child_genome_2);
-    CHECK(child_org_2->GetTrait<double>("merit") == 1.0 + org.GetTrait<double>("child_merit")); 
+    // Merit should not have changed because we haven't copied any instructions
+    CHECK(child_org_2->GetTrait<double>("merit") == org.GetTrait<double>("child_merit")); 
     CHECK(child_org_2->GetTrait<double>("child_merit") == org.SharedData().initial_merit); 
     CHECK(child_org_2->inst_ptr == 0); 
     child_org_2.Delete();
