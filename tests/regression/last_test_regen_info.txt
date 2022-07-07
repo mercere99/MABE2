@@ -1,10 +1,10 @@
 Latest commit at time of last regeneration:
-commit ce71c3f01e45f9d0fc2dd9df01abf086c2fd5bd7
+commit 5edbe4764b59e4435ca7693714bded0d68eb6355
 Author: Austin Ferguson <ferguson.austin.j@gmail.com>
-Date:   Mon Jul 4 17:19:23 2022 -0400
+Date:   Thu Jul 7 11:50:45 2022 -0400
 
-    Add POW reward type to binary logic tasks
+    Fix initialization of bool in StateGrid
  
  
 Time of last regeneration:
-Mon Jul  4 06:04:12 PM EDT 2022
+Thu Jul  7 11:53:12 AM EDT 2022
