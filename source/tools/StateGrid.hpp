@@ -24,6 +24,7 @@
 #include <string>
 
 #include "emp/base/assert.hpp"
+#include "emp/base/error.hpp"
 #include "emp/base/Ptr.hpp"
 #include "emp/base/vector.hpp"
 
