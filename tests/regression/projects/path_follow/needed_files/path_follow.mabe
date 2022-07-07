@@ -73,6 +73,8 @@ VirtualCPUOrg avida_org {       // Organism consisting of Avida instructions.
                               // One instruction name per line. Order is maintained.
   inst_set_output_filename = "inst_set.txt";
   expanded_nop_args = 1;        // If true, some instructions (e.g., math) will use multiple nops to fully define the registers used
+  copy_influences_merit = 0;    // If true, the number of instructions copied (e.g., via 
+                                  // HCopy instruction)factor into offspring merit
 };
 AnalyzeSystematics sys{
   data_file_name = "phylo/phylogenetic_data.csv";// Filename for systematics data file.

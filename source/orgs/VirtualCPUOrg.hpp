@@ -154,6 +154,8 @@ namespace mabe {
       std::string generation_name = "generation";  /**<  Name of the trait that store's the 
                                                          org's generation */
       double initial_merit = 0; ///< Merit that the ancestor starts with
+      bool copy_influences_merit = true;  /**<  Does the number of instructions copied 
+                                                  influence merit passed to offspring? */
       bool verbose = false;     ///< Flag that indicates whether to print additional info
       std::string initial_genome_filename = "ancestor.org"; /**< If init_random is false, this
                                                                  indicates a file that 
@@ -285,10 +287,14 @@ namespace mabe {
       offspring->ResetWorkingGenome();
       offspring->Mutate(random);
       offspring->Reset();
-      double bonus = 
-          static_cast<double>(std::min(
-            {offspring->GetGenomeSize(), GetNumInstsExecuted(), GetNumInstsExecuted()}
-          )) / SharedData().init_length;
+      double bonus = 0;
+      if(SharedData().copy_influences_merit){
+          bonus = std::min(
+            {offspring->GetGenomeSize(), GetNumInstsCopied(), GetNumInstsExecuted()}
+          );
+      } 
+      else bonus = std::min(offspring->GetGenomeSize(), GetNumInstsExecuted());
+      bonus /= SharedData().init_length;
       // Initialize all necessary traits and ready hardware
       offspring->SetTrait<double>(SharedData().merit_name, 
           bonus + GetTrait<double>(SharedData().child_merit_name)); 
@@ -395,6 +401,10 @@ namespace mabe {
                       "max_speculative_insts",
                       "Maximum number of instructions to speculatively execute. "
                       "-1 for genome length.");
+      GetManager().LinkVar(SharedData().copy_influences_merit, 
+                      "copy_influences_merit",
+                      "If 1, the number of instructions copied (e.g., via HCopy instruction)"
+                      "factor into offspring merit");
     }
 
     /// Set up this organism type with the traits it need to track and initialize 
