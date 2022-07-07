@@ -193,6 +193,10 @@ namespace emp {
       // Load this data from a stream or a file.
       File file(std::forward<Ts>(args)...);
       file.RemoveWhitespace();
+      file.RemoveEmpty();
+      if(file.GetNumLines() == 0){
+        emp_error("Error! StateGrid attempting to load file that empty or missing!"); 
+      }
 
       // Determine the size of the new grid.
       height = file.GetNumLines();

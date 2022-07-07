@@ -452,6 +452,10 @@ namespace mabe {
       file.RemoveComments("#");
       file.RemoveWhitespace();
       file.RemoveEmpty();
+      if(file.GetNumLines() == 0){
+        emp_error("Error! VirtualCPUOrg instruction set file is either empty or missing: ", 
+            SharedData().inst_set_input_filename);
+      }
       return file.GetAllLines();
     }
 
