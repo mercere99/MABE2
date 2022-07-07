@@ -50,10 +50,23 @@ namespace mabe {
     PathFollowState(): initialized(false), cur_map_idx(0), visited_tiles(), status(),
         raw_score(0), empty_cue(1), forward_cue(2), left_cue(3), right_cue(4) { ; }
     
-    /// Copy constructor merely preps state to be initialized
-    PathFollowState(const PathFollowState& other){
+    PathFollowState(const PathFollowState&){ // Ignore copy, just prep to initialize
       raw_score = 0;
       initialized = false;
+    }
+    PathFollowState(PathFollowState&&){ // Ignore move, just prep to initialize
+      raw_score = 0;
+      initialized = false;
+    }
+    PathFollowState& operator=(PathFollowState&){ // Ignore copy, just prep to initialize
+      raw_score = 0;
+      initialized = false;
+      return *this;
+    }
+    PathFollowState& operator=(PathFollowState&&){ // Ignore move, just prep to initialize
+      raw_score = 0;
+      initialized = false;
+      return *this;
     }
   };
 
@@ -377,41 +390,47 @@ namespace mabe {
     void SetupInstructions(){
       ActionMap& action_map = control.GetActionMap(pop_id);
       { // Move
-        inst_func_t func_move = [this](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){
-          double score = evaluator.Move(hw.GetTrait<PathFollowState>(state_trait));
-          hw.SetTrait<double>(score_trait, score);
-        };
-        Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>("sg-move", func_move);
+        inst_func_t func_move = 
+          [this](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){
+            double score = evaluator.Move(hw.GetTrait<PathFollowState>(state_trait));
+            hw.SetTrait<double>(score_trait, score);
+          };
+        action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
+            "sg-move", func_move);
       }
       { // Move backward
-        inst_func_t func_move_back = [this](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){
-          double score = evaluator.Move(hw.GetTrait<PathFollowState>(state_trait), -1);
-          hw.SetTrait<double>(score_trait, score);
-        };
-        Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
+        inst_func_t func_move_back = 
+          [this](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){
+            double score = evaluator.Move(hw.GetTrait<PathFollowState>(state_trait), -1);
+            hw.SetTrait<double>(score_trait, score);
+          };
+        action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
             "sg-move-back", func_move_back);
       }
       { // Rotate right 
-        inst_func_t func_rotate_right = [this](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){
-          evaluator.RotateRight(hw.GetTrait<PathFollowState>(state_trait));
-        };
-        Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
+        inst_func_t func_rotate_right = 
+          [this](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){
+            evaluator.RotateRight(hw.GetTrait<PathFollowState>(state_trait));
+          };
+        action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
             "sg-rotate-r", func_rotate_right);
       }
       { // Rotate left 
-        inst_func_t func_rotate_left = [this](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){
-          evaluator.RotateLeft(hw.GetTrait<PathFollowState>(state_trait));
-        };
-        Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
+        inst_func_t func_rotate_left = 
+          [this](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& /*inst*/){
+            evaluator.RotateLeft(hw.GetTrait<PathFollowState>(state_trait));
+          };
+        action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
             "sg-rotate-l", func_rotate_left);
       }
       { // Sense 
-        inst_func_t func_sense = [this](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
-          uint32_t val = evaluator.Sense(hw.GetTrait<PathFollowState>(state_trait));
-          size_t reg_idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
-          hw.regs[reg_idx] = val;
-        };
-        Action& action = action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
+        inst_func_t func_sense = 
+          [this](VirtualCPUOrg& hw, const VirtualCPUOrg::inst_t& inst){
+            uint32_t val = evaluator.Sense(hw.GetTrait<PathFollowState>(state_trait));
+            size_t reg_idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
+            hw.regs[reg_idx] = val;
+          };
+        action_map.AddFunc<void, VirtualCPUOrg&, const VirtualCPUOrg::inst_t&>(
             "sg-sense", func_sense);
       }
     }

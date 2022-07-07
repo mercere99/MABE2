@@ -58,11 +58,11 @@ namespace mabe {
       // Add the appropriate amount of nops
       for(size_t i = 0; i < num_nops; i++){
         std::string s = "Nop";
-        Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
+        action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             s + (char)('A' + i), func_nop);
       }
       { // Special case: Nop X
-        Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
+        action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "NopX", func_nop);
       }
     }

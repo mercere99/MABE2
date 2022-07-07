@@ -70,43 +70,43 @@ namespace mabe {
       { // Label 
         const inst_func_t func_label = 
           [this](org_t& hw, const org_t::inst_t& inst){ Inst_Label(hw, inst); };
-        Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
+        action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "Label", func_label);
       }
       { // SearchLabelDirectS 
         const inst_func_t func_search_label_direct_s = 
           [this](org_t& hw, const org_t::inst_t& inst){ Inst_SearchLabelDirectS(hw, inst); };
-        Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
+        action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "SearchLabelDirectS", func_search_label_direct_s);
       }
       { // SearchLabelDirectF 
         const inst_func_t func_search_label_direct_f = 
           [this](org_t& hw, const org_t::inst_t& inst){ Inst_SearchLabelDirectF(hw, inst); };
-        Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
+        action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "SearchLabelDirectF", func_search_label_direct_f);
       }
       { // SearchLabelDirectB 
         const inst_func_t func_search_label_direct_b = 
           [this](org_t& hw, const org_t::inst_t& inst){ Inst_SearchLabelDirectB(hw, inst); };
-        Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
+        action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "SearchLabelDirectB", func_search_label_direct_b);
       }
       { // SearchSeqDirectS 
         const inst_func_t func_search_seq_direct_s = 
           [this](org_t& hw, const org_t::inst_t& inst){ Inst_SearchSeqDirectS(hw, inst); };
-        Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
+        action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "SearchSeqDirectS", func_search_seq_direct_s);
       }
       { // SearchSeqDirectF 
         const inst_func_t func_search_seq_direct_f = 
           [this](org_t& hw, const org_t::inst_t& inst){ Inst_SearchSeqDirectF(hw, inst); };
-        Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
+        action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "SearchSeqDirectF", func_search_seq_direct_f);
       }
       { // SearchSeqDirectB 
         const inst_func_t func_search_seq_direct_b = 
           [this](org_t& hw, const org_t::inst_t& inst){ Inst_SearchSeqDirectB(hw, inst); };
-        Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
+        action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "SearchSeqDirectB", func_search_seq_direct_b);
       }
     }

@@ -84,6 +84,20 @@ namespace mabe {
       initialized = false;
       score = 0;
     }
+    DoorsState(DoorsState&&){ // Ignore move, just reset
+      initialized = false;
+      score = 0;
+    }
+    DoorsState& operator=(DoorsState&){ // Ignore copy assignment, just reset
+      initialized = false;
+      score = 0;
+      return *this;
+    }
+    DoorsState& operator=(DoorsState&&){ // Ignore move assignment, just reset
+      initialized = false;
+      score = 0;
+      return *this;
+    }
   };
 
   /// \brief Handles all evaluation of the doors task
@@ -366,7 +380,7 @@ namespace mabe {
         };
         std::stringstream sstr;
         sstr << "doors-move-" << door_idx;
-        Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
+        action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             sstr.str(), func_move);
       }
       { // Sense 
@@ -375,7 +389,7 @@ namespace mabe {
           size_t reg_idx = inst.nop_vec.empty() ? 1 : inst.nop_vec[0];
           hw.regs[reg_idx] = val;
         };
-        Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
+        action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "doors-sense", func_sense);
       }
     }

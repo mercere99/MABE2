@@ -116,25 +116,25 @@ namespace mabe {
       { // If not equal
         const inst_func_t func_if_not_equ = 
           [this](org_t& hw, const org_t::inst_t& inst){ Inst_IfNotEqual(hw, inst); };
-        Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
+        action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "IfNEqu",func_if_not_equ);
       }
       { // If less 
         const inst_func_t func_if_less = 
           [this](org_t& hw, const org_t::inst_t& inst){ Inst_IfLess(hw, inst); };
-        Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
+        action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "IfLess", func_if_less);
       }
       { // If label 
         const inst_func_t func_if_label = 
           [this](org_t& hw, const org_t::inst_t& inst){ Inst_IfLabel(hw, inst); };
-        Action& action = action_map.AddFunc<void, org_t&,const org_t::inst_t&>(
+        action_map.AddFunc<void, org_t&,const org_t::inst_t&>(
             "IfLabel",func_if_label);
       }
       { // Move head if not equal
         const inst_func_t func_mov_head_if_not_equ = 
           [this](org_t& hw, const org_t::inst_t& inst){ Inst_MoveHeadIfNotEqual(hw, inst); };
-        Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
+        action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "MoveHeadIfNEqu",func_mov_head_if_not_equ);
       }
     }

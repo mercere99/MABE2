@@ -125,49 +125,49 @@ namespace mabe {
       { // Pop 
         const inst_func_t func_pop = 
           [this](org_t& hw, const org_t::inst_t& inst){ Inst_Pop(hw, inst); };
-        Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
+        action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "Pop", func_pop);
       }
       { // Push 
         const inst_func_t func_push = 
           [this](org_t& hw, const org_t::inst_t& inst){ Inst_Push(hw, inst); };
-        Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
+        action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "Push", func_push);
       }
       { // Swap stack 
         const inst_func_t func_swap_stack = 
           [this](org_t& hw, const org_t::inst_t& inst){ Inst_SwapStack(hw, inst); };
-        Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
+        action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "SwapStk", func_swap_stack);
       }
       { // Swap 
         const inst_func_t func_swap = 
           [this](org_t& hw, const org_t::inst_t& inst){ Inst_Swap(hw, inst); };
-        Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
+        action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "Swap", func_swap);
       }
       { // Move head 
         const inst_func_t func_mov_head = 
           [this](org_t& hw, const org_t::inst_t& inst){ Inst_MoveHead(hw, inst); };
-        Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
+        action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "MovHead", func_mov_head);
       }
       { // Jump head 
         const inst_func_t func_jmp_head = 
           [this](org_t& hw, const org_t::inst_t& inst){ Inst_JumpHead(hw, inst); };
-        Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
+        action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "JumpHead", func_jmp_head);
       }
       { // Get head  
         const inst_func_t func_get_head = 
           [this](org_t& hw, const org_t::inst_t& inst){ Inst_GetHead(hw, inst); };
-        Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
+        action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "GetHead", func_get_head);
       }
       { // Set flow  
         const inst_func_t func_set_flow = 
           [this](org_t& hw, const org_t::inst_t& inst){ Inst_SetFlow(hw, inst); };
-        Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
+        action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "SetFlow", func_set_flow);
       }
     }

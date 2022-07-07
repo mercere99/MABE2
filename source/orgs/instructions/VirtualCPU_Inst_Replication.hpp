@@ -66,7 +66,8 @@ namespace mabe {
         // Else, the correct fraction of the genome has been executed
         // Regardless, make sure copy limit has been met
       const bool can_repro_exec_count = 
-          (req_count_inst_executed >= 0 && hw.num_insts_executed >= req_count_inst_executed);
+          (req_count_inst_executed >= 0 
+            && hw.num_insts_executed >= (size_t)req_count_inst_executed);
       const bool can_repro_exec_frac = (req_count_inst_executed < 0 
           && hw.num_insts_executed >= req_frac_inst_executed * hw.GetGenomeSize());
       const bool can_repro_copy_frac =  
@@ -121,7 +122,7 @@ namespace mabe {
         // If required inst count isn't negative, that many insts have been executed 
         // Else, the correct fraction of the genome has been executed
       if( (req_count_inst_executed >= 0 
-            && hw.num_insts_executed >= req_count_inst_executed)
+            && hw.num_insts_executed >= (size_t)req_count_inst_executed)
           || (req_count_inst_executed < 0 
             && hw.num_insts_executed >= req_frac_inst_executed * hw.genome.size())){
         OrgPosition& org_pos = hw.GetTrait<OrgPosition>(org_pos_trait);
@@ -177,7 +178,7 @@ namespace mabe {
       { // Head allocate 
         const inst_func_t func_h_alloc = 
           [this](org_t& hw, const org_t::inst_t& inst){ Inst_HAlloc(hw, inst); };
-        Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
+        action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
               "HAlloc", func_h_alloc);
       }
       { // Head divide 
@@ -190,13 +191,13 @@ namespace mabe {
       { // Head copy 
         const inst_func_t func_h_copy = 
           [this](org_t& hw, const org_t::inst_t& inst){ Inst_HCopy(hw, inst); };
-        Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
+        action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "HCopy", func_h_copy);
       }
       { // Head search 
         const inst_func_t func_h_search = 
           [this](org_t& hw, const org_t::inst_t& inst){ Inst_HSearch(hw, inst); };
-        Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
+        action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "HSearch", func_h_search);
       }
       { // Repro 

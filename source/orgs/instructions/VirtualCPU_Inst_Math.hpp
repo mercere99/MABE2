@@ -105,43 +105,43 @@ namespace mabe {
       { // Increment
         const inst_func_t func_inc = 
           [this](org_t& hw, const org_t::inst_t& inst){ Inst_Inc(hw, inst); };
-        Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
+        action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "Inc", func_inc);
       }
       { // Decrement 
         const inst_func_t func_dec = 
           [this](org_t& hw, const org_t::inst_t& inst){ Inst_Dec(hw, inst); };
-        Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
+        action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "Dec", func_dec);
       }
       { // Add 
         const inst_func_t func_add = 
           [this](org_t& hw, const org_t::inst_t& inst){ Inst_Add(hw, inst); };
-        Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
+        action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "Add", func_add);
       }
       { // Sub 
         const inst_func_t func_sub = 
           [this](org_t& hw, const org_t::inst_t& inst){ Inst_Sub(hw, inst); };
-        Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
+        action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "Sub", func_sub);
       }
       { // NAND 
         const inst_func_t func_nand = 
           [this](org_t& hw, const org_t::inst_t& inst){ Inst_Nand(hw, inst); };
-        Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
+        action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "Nand", func_nand);
       }
       { // Shift Left 
         const inst_func_t func_shift_l = 
           [this](org_t& hw, const org_t::inst_t& inst){ Inst_ShiftL(hw, inst); };
-        Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
+        action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "ShiftL", func_shift_l);
       }
       { // Shift Right 
         const inst_func_t func_shift_r = 
           [this](org_t& hw, const org_t::inst_t& inst){ Inst_ShiftR(hw, inst); };
-        Action& action = action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
+        action_map.AddFunc<void, org_t&, const org_t::inst_t&>(
             "ShiftR", func_shift_r);
       }
     }
