@@ -7,12 +7,7 @@
  *  @brief Provides replication instructions to a population of VirtualCPUOrgs.
  *
  *  TODO: 
- *    - Currently a trait that stores the offspring genome is created, but is unused in the 
- *        replication instructions. 
  *      - HCopy (and other instructions) should be able to add mutations to this genome
- *      - When it's time to replicate, HDivide _should_ use this genome instead of relying on
- *          reproduction mechanisms from VirtualCPUOrg / MABE
- *      - How would this interact with other MABE systems?
  * 
  */
 
