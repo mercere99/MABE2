@@ -282,7 +282,8 @@ namespace mabe {
 
   struct ModuleInfo {
     std::string name;
-    std::string desc;
+    std::string brief_desc;
+    emp::vector<std::string> full_desc;
     std::function<emp::Ptr<EmplodeType>(MABE &, const std::string &)> obj_init_fun;
     std::function<void(emplode::TypeInfo &)> type_init_fun;
     emp::TypeID type_id;
@@ -297,7 +298,7 @@ namespace mabe {
   static void PrintModuleInfo() {
     auto & mod_type_map = GetModuleMap();
     for (auto & [name,mod] : mod_type_map) {
-      std::cout << name << " : " << mod.desc << std::endl;
+      std::cout << name << " : " << mod.brief_desc << std::endl;
     }
   }
 }

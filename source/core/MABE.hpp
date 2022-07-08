@@ -353,10 +353,9 @@ namespace mabe {
       std::cout << "TOPIC: " << help_topic << std::endl;
       if (emp::Has(mod_map, help_topic)) {
         const auto & info = mod_map[help_topic];
-        auto desc_lines = emp::slice(info.desc, '\n');
         std::cout << "\n--- MABE Module ---\n\n"
                   << "Description:\n";
-        for (const std::string & line : desc_lines) {
+        for (const std::string & line : info.full_desc) {
           std::cout << "  " << line << "\n";
         }
         std::cout << "\nDefault Configuration:\n\n";
@@ -383,7 +382,7 @@ namespace mabe {
     // }          
     std::cout << "Available modules:\n";
     for (auto & [type_name,mod] : GetModuleMap()) {
-      std::cout << "  " << type_name << " : " << mod.desc << "\n";
+      std::cout << "  " << type_name << " : " << mod.brief_desc << "\n";
     }          
     exit_now = true;;
   }
@@ -546,7 +545,7 @@ namespace mabe {
       auto mod_init_fun = [this,mod=&mod](const std::string & name) -> emp::Ptr<emplode::EmplodeType> {
         return mod->obj_init_fun(*this,name);
       };
-      auto & type_info = config_script.AddType(type_name, mod.desc, mod_init_fun, nullptr, mod.type_id);
+      auto & type_info = config_script.AddType(type_name, mod.brief_desc, mod_init_fun, nullptr, mod.type_id);
       mod.type_init_fun(type_info);  // Setup functions for this module.
     }
   }

@@ -359,7 +359,8 @@ namespace mabe {
       emp_assert(!emp::Has(GetModuleMap(), type_name), "Module name used multiple times.", type_name);
       ModuleInfo new_info;
       new_info.name = type_name;
-      new_info.desc = desc;
+      new_info.full_desc = emp::slice(desc, '\n');
+      new_info.brief_desc = new_info.full_desc.size() ? new_info.full_desc[0] : "(no description available)";
       new_info.obj_init_fun = [desc](MABE & control, const std::string & name) -> emp::Ptr<EmplodeType> {
         return &control.AddModule<T>(name, desc);
       };
