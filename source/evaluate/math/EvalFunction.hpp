@@ -42,11 +42,14 @@ namespace mabe {
     std::string function = "input1 * 3 + 5*input2"; ///< Function to specify target output.
 
     /// Test values of each input in order, separated by a ';'
-    std::string test_summary = "0:100;0:7:100,1:7:100,2:7:100,3:7:100,4:7:100,5:7:100,6:7:100";
+    //std::string test_summary = "0:100; 100:-1:0"
+    std::string case_ids = 0:100;
+    std::string test_summary = "case_id; (case_id*7)%100";
 
     emp::vector<std::string> input_names;   ///< Names of individual input traits.
     std::function<emp::Datum( const emp::DataMap & )> fit_fun;
     emp::vector<emp::vector<double>> test_values;
+    emp::vector<double> target_results;
     size_t num_tests = emp::MAX_SIZE_T;
 
   public:
@@ -98,15 +101,21 @@ namespace mabe {
                            input_names.size(), " inputs, but ", tests_sets.size(), " test sets.");
       }
 
-      // Put the test values in place.
-      test_values.resize(test_sets.size());
+      // Put the test values in place, along with the expected results.
+      test_values.resize(test_sets.size());               // Create one array for each input variable.
       for (size_t i = 0; i < test_sets.size(); ++i) {
-        test_values[i] = emp::ToSequence(test_sets[i]);
+        test_values[i] = emp::ToSequence(test_sets[i]);   // Set all values for one input variable.
         if (num_tests == emp::MAX_SIZE_T) num_tests = test_values[i].size();
         else if (test_values[i].size() != num_tests) {
           emp::notify::Error("EvalFunction requires all inputs to have the same count of values.  First input (0) has ",
                             test_values[0].size(), " test values, but ", i, " has ", test_values[i].size(), ".");
         }
+      }
+
+      // Build a DataMap to detemine expected results for each test case.
+      emp::DataMap test_map;
+      for (size_t i = 0; i < input_names.size(); ++i) {
+        test_map.AddVar<double>(input_names[0]);
       }
 
     }
@@ -115,6 +124,7 @@ namespace mabe {
     double Evaluate(const Collection & orgs) {
       // If we haven't calculated the IDs, do so now.
       if (output_trait == emp::MAX_SIZE_T) {
+        input_ids.resize(input_names.size());
         for (size_t i = 0; i < input_names.size(); ++i) {
           input_ids[i] = orgs.GetDataLayout().GetID(input_names[i]);
         }
@@ -133,29 +143,23 @@ namespace mabe {
       for (Organism & org : alive_collect) {
         control.Verbose("...eval org #", org_count++);
 
-        double & errors = org.GetTrait<emp::vector<double>>(errors_trait);
-
-    std::string input_traits = "input1,input2"; ///< Traits to put input value(s) for organism.
-    std::string output_trait = "output";        ///< Trait to find output values from organism.
-    std::string errors_trait = "error";         ///< Trait for each test's deviation from target.
-    std::string fitness_trait = "fitness";      ///< Trait for combined fitness (#tests - error sum)
-
-
-        double & scoreA = org.GetTrait<double>(scoreA_trait);
-        double & scoreB = org.GetTrait<double>(scoreB_trait);
-        double & num_errors = org.GetTrait<double>(error_trait);
+        double & ouput = org.GetTrait<double>(output_id);
+        double & errors = org.GetTrait<emp::vector<double>>(errors_id);
         double & fitness = org.GetTrait<double>(fitness_trait);
-        Results results = EvalGame(org, control.GetRandom());  // Start first.
-        scoreA = results.scoreA;
-        scoreB = results.scoreB;
-        num_errors = results.num_errors;
-        fitness = results.CalcFitness();
 
-        results = EvalGame(org, control.GetRandom(), 1);  // Start second.
-        scoreA += results.scoreA;
-        scoreB += results.scoreB;
-        num_errors += results.num_errors;
-        fitness += results.CalcFitness();
+        /// Loop through test cases to evaluate each.
+        for (size_t test_id = 0; test_id < num_tests; ++test_id) {
+          // Setup inputs for the current test.
+          for (size_t input_pos = 0; input_pos < input_ids.size(); ++input_pos) {
+            org.SetTrait(input_ids[input_pos], test_values[input_pos][test_id]);
+          }
+
+          // Run the organism.
+          org.GenerateOutput();
+
+          // Evaluate the results.
+
+        }
 
         if (fitness > max_fitness) max_fitness = fitness;
       }
