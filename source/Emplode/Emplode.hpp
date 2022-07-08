@@ -319,7 +319,7 @@ namespace emplode {
       return result;                                        // Return the result string.
     }
 
-
+    /// Write out the code for this script to the provided stream.
     Emplode & Write(std::ostream & os=std::cout) {
       symbol_table.GetRootScope().WriteContents(os);
       os << '\n';
@@ -327,6 +327,7 @@ namespace emplode {
       return *this;
     }
 
+    /// Write out the code for this script to a file of the provided name.
     Emplode & Write(const std::string & filename) {
       // If the filename is empty or "_", output to standard out.
       if (filename == "" || filename == "_") return Write();
@@ -335,6 +336,21 @@ namespace emplode {
       std::ofstream out_file(filename);
       return Write(out_file);
     }
+
+    /// Look up the specified symbol and write it's config to the provided stream.
+    bool WriteSymbol(const std::string & symbol_name,
+                     std::ostream & os=std::cout,
+                     const std::string & prefix = "",
+                     size_t comment_offset = 32UL) {
+      auto symbol_ptr = symbol_table.GetRootScope().GetSymbol(symbol_name);
+      if (!symbol_ptr) {
+        os << prefix << "[Unknown symbol '" << symbol_name <<"'].\n";
+        return false;
+      }
+      symbol_ptr->Write(os, prefix, comment_offset);
+      return true;
+    }
+
   };
 
 }
