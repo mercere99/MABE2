@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019-2021.
+ *  @date 2019-2022.
  *
  *  @file  MABE.hpp
  *  @brief Master controller object for a MABE run.
@@ -27,7 +27,7 @@
 #include "emp/config/command_line.hpp"
 #include "emp/control/Signal.hpp"
 #include "emp/data/DataMap.hpp"
-#include "emp/data/DataMapParser.hpp"
+#include "emp/data/SimpleParser.hpp"
 #include "emp/datastructs/vector_utils.hpp"
 #include "emp/math/Random.hpp"
 #include "emp/tools/string_utils.hpp"
@@ -354,7 +354,13 @@ namespace mabe {
       if (emp::Has(mod_map, help_topic)) {
         const auto & info = mod_map[help_topic];
         std::cout << "--- MABE Module ---\n"
-                  << "Description: " << info.desc << "\n";
+                  << "Description: " << info.desc << "\n"
+                  << "Sample Config:\n";
+
+        // Print a configuration template for the user.
+        std::string config_code =info.name + " example_module;";
+        config_script.LoadStatements(config_code, "help_output");
+        config_script.Write();
       }
       else {
         std::cout << "Unknown keyword.\n";
@@ -400,7 +406,7 @@ namespace mabe {
 
   void MABE::ProcessArgs() {
     arg_set.emplace_back("--batch", "-b",    "[filename]    ", "Process a full batch of runs",
-      [this](const emp::vector<std::string> & in){ config_filenames = in; RunBatch(); } );
+      [this](const emp::vector<std::string> & in){ config_filenames = in; RunBatch(); } );    
     arg_set.emplace_back("--filename", "-f", "[filename...] ", "Filenames of configuration settings",
       [this](const emp::vector<std::string> & in){ config_filenames = in; } );
     arg_set.emplace_back("--generate", "-g", "[filename]    ", "Generate a new output file",
