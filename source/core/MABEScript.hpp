@@ -18,7 +18,7 @@
 #include "emp/base/Ptr.hpp"
 #include "emp/base/vector.hpp"
 #include "emp/data/DataMap.hpp"
-#include "emp/data/DataMapParser.hpp"
+#include "emp/data/SimpleParser.hpp"
 #include "emp/data/Datum.hpp"
 #include "emp/datastructs/vector_utils.hpp"
 #include "emp/math/Random.hpp"
@@ -41,7 +41,7 @@ namespace mabe {
   class MABEScript : public emplode::Emplode {
   private:
     MABEBase & control;
-    emp::DataMapParser dm_parser;       ///< Parser to process functions on a data map
+    emp::SimpleParser dm_parser;       ///< Parser to process functions on a data map
 
     using Symbol_Var = emplode::Symbol_Var;
 
@@ -145,16 +145,21 @@ namespace mabe {
       // (1) the trait (or trait function) and
       // (2) how to calculate the trait SUMMARY, such as min, max, ave, etc.
 
-      // If we have a single trait, we may want to use a string type.
-      if (emp::is_identifier(trait_fun)           // If we have a single trait...
-          && data_layout.HasName(trait_fun)      // ...and it's in the data map...
-          && !data_layout.IsNumeric(trait_fun)   // ...and it's not numeric...
-      ) {
-        size_t trait_id = data_layout.GetID(trait_fun);
-        emp::TypeID result_type = data_layout.GetType(trait_id);
+      // If the function is just a single trait, identify it and get its ID.
+      const bool is_single_trait = emp::is_identifier(trait_fun) && data_layout.HasName(trait_fun);
+      size_t trait_id = is_single_trait ? data_layout.GetID(trait_fun) : emp::MAX_SIZE_T;
 
-        auto get_fun = [trait_id, result_type](const Organism & org) {
-          return org.GetTraitAsString(trait_id, result_type);
+      // Determine if we have a non-numeric trait (which also includes MULTIPLE numeric traits).
+      const bool is_non_numeric = is_single_trait &&
+        (!data_layout.IsNumeric(trait_id) || data_layout.GetCount(trait_id) != 1);
+
+      // If we have a non-numeric trait, should use a string type.
+      if (is_non_numeric) {
+        const emp::TypeID result_type = data_layout.GetType(trait_id);
+        const size_t trait_count = data_layout.GetCount(trait_id);
+
+        auto get_fun = [trait_id, result_type, trait_count](const Organism & org) {
+          return org.GetTraitAsString(trait_id, result_type, trait_count);
         };
         auto fun = BuildCollectFun<std::string, Collection>(summary_type, get_fun);
 
