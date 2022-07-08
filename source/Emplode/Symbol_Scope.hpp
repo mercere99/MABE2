@@ -64,7 +64,7 @@ namespace emplode {
       for (auto [name, ptr] : symbol_map) { ptr.Delete(); }
     }
 
-    std::string GetTypename() const override { return "[Symbol_Scope]"; }
+    std::string GetTypename() const override { return "Scope"; }
 
     bool IsScope() const override { return true; }
     bool IsLocal() const override { return true; }  // @CAO, for now assuming all scopes are local!
