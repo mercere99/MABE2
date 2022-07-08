@@ -353,14 +353,18 @@ namespace mabe {
       std::cout << "TOPIC: " << help_topic << std::endl;
       if (emp::Has(mod_map, help_topic)) {
         const auto & info = mod_map[help_topic];
-        std::cout << "--- MABE Module ---\n"
-                  << "Description: " << info.desc << "\n"
-                  << "Sample Config:\n";
+        auto desc_lines = emp::slice(info.desc, '\n');
+        std::cout << "\n--- MABE Module ---\n\n"
+                  << "Description:\n";
+        for (const std::string & line : desc_lines) {
+          std::cout << "  " << line << "\n";
+        }
+        std::cout << "\nDefault Configuration:\n\n";
 
         // Print a configuration template for the user.
         std::string config_code =info.name + " example_module;";
         config_script.LoadStatements(config_code, "help_output");
-        config_script.Write();
+        config_script.WriteSymbol("example_module", std::cout, "  ");
       }
       else {
         std::cout << "Unknown keyword.\n";
