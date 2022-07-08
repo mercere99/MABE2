@@ -235,7 +235,7 @@ namespace emplode {
       // If this is a built-in scope, don't print it.
       if (IsBuiltin()) return *this;
 
-      // Declare this scope.
+      // Declare this scope, starting with the type if originally declared locally.
       std::string cur_line = prefix;
       if (IsLocal()) cur_line += emp::to_string(GetTypename(), " ");
       cur_line += name;

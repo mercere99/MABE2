@@ -99,7 +99,7 @@ namespace mabe {
     double Evaluate(const std::string & in) { return Evaluate( control.ToCollection(in) ); }
   };
 
-  MABE_REGISTER_MODULE(EvalNK, "Evaluate bitstrings on an NK fitness lanscape.");
+  MABE_REGISTER_MODULE(EvalNK, "Evaluate bitstrings on an NK fitness landscape.\nFor more info about NK models, see: https://en.wikipedia.org/wiki/NK_model");
 }
 
 #endif
