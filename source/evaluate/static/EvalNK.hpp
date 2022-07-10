@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019-2021.
+ *  @date 2019-2022.
  *
  *  @file  EvalNK.hpp
  *  @brief MABE Evaluation module for NK Landscapes
@@ -10,46 +10,28 @@
 #ifndef MABE_EVAL_NK_H
 #define MABE_EVAL_NK_H
 
-#include "../../core/MABE.hpp"
-#include "../../core/Module.hpp"
+#include "../../core/EvalModule.hpp"
 #include "../../tools/NK.hpp"
 
 #include "emp/datastructs/reference_vector.hpp"
 
 namespace mabe {
 
-  class EvalNK : public Module {
+  class EvalNK : public EvalModule {
   private:
+    std::string bits_trait;
+    std::string fitness_trait;
+
     size_t N;
     size_t K;    
     NKLandscape landscape;
 
-    std::string bits_trait;
-    std::string fitness_trait;
-
   public:
     EvalNK(mabe::MABE & control,
            const std::string & name="EvalNK",
-           const std::string & desc="Module to evaluate bitstrings on an NK Fitness Lanscape",
-           size_t _N=100, size_t _K=3, const std::string & _btrait="bits", const std::string & _ftrait="fitness")
-      : Module(control, name, desc)
-      , N(_N), K(_K)
-      , bits_trait(_btrait)
-      , fitness_trait(_ftrait)
-    {
-      SetEvaluateMod(true);
-    }
+           const std::string & desc="Module to evaluate bitstrings on an NK Fitness Landscape")
+      : EvalModule(control, name, desc) { }
     ~EvalNK() { }
-
-    // Setup member functions associated with this class.
-    static void InitType(emplode::TypeInfo & info) {
-      info.AddMemberFunction("EVAL",
-                             [](EvalNK & mod, Collection list) { return mod.Evaluate(list); },
-                             "Use NK landscape to evaluate all orgs in an OrgList.");
-      info.AddMemberFunction("RESET",
-                             [](EvalNK & mod) { mod.landscape.Config(mod.N, mod.K, mod.control.GetRandom()); return 0; },
-                             "Regenerate the NK landscape with current N and K.");
-    }
 
     void SetupConfig() override {
       LinkVar(N, "N", "Number of bits required in output");
@@ -67,7 +49,7 @@ namespace mabe {
       landscape.Config(N, K, control.GetRandom());  // Setup the fitness landscape.
     }
 
-    double Evaluate(const Collection & orgs) {
+    double Evaluate(const Collection & orgs) override {
       // Loop through the population and evaluate each organism.
       double max_fitness = 0.0;
       emp::Ptr<Organism> max_org = nullptr;
@@ -92,11 +74,11 @@ namespace mabe {
       return max_fitness;
     }
 
-    // If a population is provided to Evaluate, first convert it to a Collection.
-    double Evaluate(Population & pop) { return Evaluate( Collection(pop) ); }
-
-    // If a string is provided to Evaluate, convert it to a Collection.
-    double Evaluate(const std::string & in) { return Evaluate( control.ToCollection(in) ); }
+    /// Re-randomize all of the entries.
+    double Reset() override {
+      landscape.Config(N, K, control.GetRandom());
+      return 0.0;
+    }
   };
 
   MABE_REGISTER_MODULE(EvalNK, "Evaluate bitstrings on an NK fitness landscape.\nFor more info about NK models, see: https://en.wikipedia.org/wiki/NK_model");
