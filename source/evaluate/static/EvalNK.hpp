@@ -19,11 +19,11 @@ namespace mabe {
 
   class EvalNK : public EvalModule {
   private:
-    std::string bits_trait;
-    std::string fitness_trait;
+    std::string bits_trait = "bits";
+    std::string fitness_trait = "fitness";
 
-    size_t N;
-    size_t K;    
+    size_t N = 100;
+    size_t K = 2;    
     NKLandscape landscape;
 
   public:
