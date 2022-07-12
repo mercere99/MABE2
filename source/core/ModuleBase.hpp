@@ -208,11 +208,14 @@ namespace mabe {
     ModuleBase & SetSelectMod(bool in=true) { return SetActionTag("Select", in); }
     ModuleBase & SetVisualizerMod(bool in=true) { return SetActionTag("Visualize", in); }
 
-    // Allow modules to setup any traits or other internal state after config is loaded.
+    /// Allow modules to setup any traits or other internal state after config is loaded.
     virtual void SetupModule() { /* By default, assume no setup needed. */ }
 
-    // Once data maps are locked in (no new traits allowed) modules can use that information.
+    /// Once data maps are locked in (no new traits allowed) modules can use that information.
     virtual void SetupDataMap(emp::DataMap &) { /* By default, no setup needed. */ }
+
+    /// Internal notification of DataMaps being locked in.
+    virtual void SetupDataMap_Internal(emp::DataMap &) = 0;
 
     // ----==== SIGNALS ====----
 
