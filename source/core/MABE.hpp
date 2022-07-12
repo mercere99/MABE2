@@ -500,7 +500,8 @@ namespace mabe {
 
     // Alert modules (especially org managers) to the final set of traits.
     for (emp::Ptr<ModuleBase> mod_ptr : modules) {
-      mod_ptr->SetupDataMap(org_data_map);
+      mod_ptr->SetupDataMap_Internal(org_data_map); // Internal indication that DataMap is locked in.
+      mod_ptr->SetupDataMap(org_data_map);    // User-available indication that DataMap is locked in.
     }
   }
 
