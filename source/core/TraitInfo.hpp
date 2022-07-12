@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019-2021.
+ *  @date 2019-2022.
  *
  *  @file  TraitInfo.hpp
  *  @brief Information about a single phenotypic trait.
@@ -11,7 +11,7 @@
  *
  *  The TARGET indicates what type of object the trait should be applied to.
  *    [ORGANISM]   - Every organism in MABE must have this trait.
- *    [POPULATION] - Collections of organsims must have this trait.
+ *    [POPULATION] - Collections of organisms must have this trait.
  *    [MODULE]     - Every module attached to MABE must have this trait.
  *    [MANAGER]    - Every OrganismManager must have this trait.
  * 
@@ -86,10 +86,10 @@ namespace mabe {
 
     /// How should this trait be initialized (via inheritance) in a newly-born organism?
     /// * Injected organisms always use the default value.
-    /// * Modules can moitor signals to make other changes at any time.
+    /// * Modules can monitor signals to make other changes at any time.
     enum class Init {
       DEFAULT=0, ///< Trait is initialized to a pre-set default value.
-      FIRST,     ///< Trait is inhereted (from first parent if more than one)
+      FIRST,     ///< Trait is inherited (from first parent if more than one)
       AVERAGE,   ///< Trait becomes average of all parents on birth.
       MINIMUM,   ///< Trait becomes lowest of all parents on birth.
       MAXIMUM,   ///< Trait becomes highest of all parents on birth.
@@ -252,16 +252,16 @@ namespace mabe {
       return *this;
     }
 
-    /// Set the current value of this trait to be automatically inthereted by offspring.
+    /// Set the current value of this trait to be automatically inherited by offspring.
     TraitInfo & SetInheritParent() { init = Init::FIRST; return *this; }
 
-    /// Set the average across parents for this trait to be automatically inthereted by offspring.
+    /// Set the average across parents for this trait to be automatically inherited by offspring.
     TraitInfo & SetInheritAverage() { init = Init::AVERAGE; return *this; }
 
-    /// Set the minimum across parents for this trait to be automatically inthereted by offspring.
+    /// Set the minimum across parents for this trait to be automatically inherited by offspring.
     TraitInfo & SetInheritMinimum() { init = Init::MINIMUM; return *this; }
 
-    /// Set the maximum across parents for this trait to be automatically inthereted by offspring.
+    /// Set the maximum across parents for this trait to be automatically inherited by offspring.
     TraitInfo & SetInheritMaximum() { init = Init::MAXIMUM; return *this; }
 
     /// Set the parent to ALSO reset to the same value as the offspring on divide.
