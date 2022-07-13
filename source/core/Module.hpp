@@ -56,6 +56,7 @@ namespace mabe {
       size_t count;                    // Number of entries used for this trait.
       std::string config_name;         // Trait name in config file.
       size_t id = emp::MAX_SIZE_T;     // ID of this trait in the DataMap.
+      bool registered = false;         // Has trait been registered to a module?
 
       BaseTrait(Access _a, const std::string & _n, const std::string & _d, size_t _c=1)
         : access(_a), name(_n), desc(_d), count(_c), config_name(name + "_trait") { }
@@ -69,23 +70,30 @@ namespace mabe {
     };
 
     /// Extension on BaseTrait to allow saving of a typed default value.
-    template <typename T, Access ACCESS> struct OrgTrait : public BaseTrait {
+    template <typename T, Access ACCESS>
+    struct OrgTrait : public BaseTrait {
       T default_value{};
 
       OrgTrait(const std::string & _n, const std::string & _d, size_t _c=1)
         : BaseTrait(ACCESS, _n,_d,_c) { }
 
-      /// A trait supplied with an organism converts to the trait reference for that organism.
-      T & operator()(mabe::Organism & org) { return org.GetTrait<T>(id); }
-
-      /// A trait supplied with a const organism converts to the trait value for that organism.
-      const T & operator()(const mabe::Organism & org) { return org.GetTrait<T>(id); }
-
       /// Get() takes an organism and returns the trait reference for that organism.
-      T & Get(mabe::Organism & org) { return org.GetTrait<T>(id); }
+      T & Get(mabe::Organism & org) {
+        emp_assert(registered == true, "trait must be have RegisterTrait() run on them before use.");
+        return org.GetTrait<T>(id);
+      }
 
       /// Get() takes a const organism and returns the trait value for that organism.
-      const T & Get(const mabe::Organism & org) const { return org.GetTrait<T>(id); }
+      const T & Get(const mabe::Organism & org) const {
+        emp_assert(registered == true, "trait must be have RegisterTrait() run on them before use.");
+        return org.GetTrait<T>(id);
+      }
+
+      /// A trait supplied with an organism converts to the trait reference for that organism.
+      inline T & operator()(mabe::Organism & org) { return Get(org); }
+
+      /// A trait supplied with a const organism converts to the trait value for that organism.
+      inline const T & operator()(const mabe::Organism & org) { return Get(org); }
 
       /// If a trait is supplied a collection it returns a vector of values, one for each
       /// organism in the collection.
@@ -102,7 +110,13 @@ namespace mabe {
       /// Adjust the default value associated with this trait.
       void SetDefault(T _default) { default_value = _default; }
 
-      void AddTrait(Module & mod) { mod.AddTrait<T>(ACCESS, name, desc, default_value, count); }
+      /// Internal mechanism for this trait to be added to the module.
+      //  @CAO: Needs cleanup and better integration with TraitInfo.
+      void AddTrait(Module & mod) {
+        emp_assert(registered == false);
+        mod.AddTrait<T>(ACCESS, name, desc, default_value, count);
+        registered = true;
+      }
     };
 
     // Traits that are read- and write-protected.
