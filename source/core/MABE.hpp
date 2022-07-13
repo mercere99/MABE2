@@ -486,7 +486,10 @@ namespace mabe {
     // Allow the user-defined module SetupModule() member functions run.  These are
     // typically used for any internal setup needed by modules are the configuration is
     // complete.
-    for (emp::Ptr<ModuleBase> mod_ptr : modules) mod_ptr->SetupModule();
+    for (emp::Ptr<ModuleBase> mod_ptr : modules) {
+      mod_ptr->SetupModule_Internal();
+      mod_ptr->SetupModule();
+    }
   }
 
   /// As part of the main Setup(), load in all of the organism traits that modules need to
