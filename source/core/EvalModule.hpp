@@ -17,6 +17,7 @@
 
 namespace mabe {
 
+  template <typename DERIVED_T>
   class EvalModule : public Module {
   public:
     EvalModule(mabe::MABE & control,
@@ -31,10 +32,10 @@ namespace mabe {
     // Setup member functions associated with this class.
     static void InitType(emplode::TypeInfo & info) {
       info.AddMemberFunction("EVAL",
-                             [](EvalModule & mod, Collection list) { return mod.Evaluate(list); },
+                             [](DERIVED_T & mod, Collection list) { return mod.Evaluate(list); },
                              "Evaluate all orgs in the OrgList.");
       info.AddMemberFunction("RESET",
-                             [](EvalModule & mod) { return mod.Reset(); },
+                             [](DERIVED_T & mod) { return mod.Reset(); },
                              "Regenerate the landscape with current config values.");
     }
 
@@ -48,7 +49,7 @@ namespace mabe {
     virtual double Evaluate(const std::string & in) { return Evaluate( control.ToCollection(in) ); }
 
     /// Re-randomize all of the entries.
-    virtual double Reset() { emp::notify::Message("Module '", name, "' cannot be reset."); }
+    virtual double Reset() { emp::notify::Message("Module '", name, "' cannot be reset."); return 0.0;  }
   };
 
 }
