@@ -75,14 +75,34 @@ namespace mabe {
       OrgTrait(const std::string & _n, const std::string & _d, size_t _c=1)
         : BaseTrait(ACCESS, _n,_d,_c) { }
 
-      void SetDefault(T _default) { default_value = _default; }
+      /// A trait supplied with an organism converts to the trait reference for that organism.
+      T & operator()(mabe::Organism & org) { return org.GetTrait<T>(id); }
 
+      /// A trait supplied with a const organism converts to the trait value for that organism.
+      const T & operator()(const mabe::Organism & org) { return org.GetTrait<T>(id); }
+
+      /// Get() takes an organism and returns the trait reference for that organism.
       T & Get(mabe::Organism & org) { return org.GetTrait<T>(id); }
+
+      /// Get() takes a const organism and returns the trait value for that organism.
       const T & Get(const mabe::Organism & org) const { return org.GetTrait<T>(id); }
 
-      void AddTrait(Module & mod) {
-        mod.AddTrait<T>(ACCESS, name, desc, default_value, count);
+      /// If a trait is supplied a collection it returns a vector of values, one for each
+      /// organism in the collection.
+      emp::vector<T> operator()(mabe::Collection & collect) const {
+        const size_t num_orgs = collect.GetSize();
+        emp::vector<T> out_v;
+        out_v.reserve(num_orgs);
+        for (auto org : collect) {
+          out_v.push_back(org.GetTrait<T>(id));
+        }
+        return out_v;
       }
+
+      /// Adjust the default value associated with this trait.
+      void SetDefault(T _default) { default_value = _default; }
+
+      void AddTrait(Module & mod) { mod.AddTrait<T>(ACCESS, name, desc, default_value, count); }
     };
 
     // Traits that are read- and write-protected.
@@ -107,8 +127,10 @@ namespace mabe {
     emp::vector<emp::Ptr<BaseTrait>> trait_ptrs;
 
     void RegisterTrait(BaseTrait & trait) {
-      trait_ptrs.push_back(&trait);                        // Store trait for later use.
-      LinkVar(trait.name, trait.config_name, trait.desc);  // Hook trait into config file.
+      trait_ptrs.push_back(&trait);  // Store trait for later use.
+
+      // Hook trait into config file.
+      LinkVar(trait.name, trait.config_name, std::string("Trait name for ") + trait.desc);
     }
 
     void SetupTraits() {
