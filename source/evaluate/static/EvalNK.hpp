@@ -19,8 +19,8 @@ namespace mabe {
 
   class EvalNK : public EvalModule {
   private:
-    std::string bits_trait = "bits";
-    std::string fitness_trait = "fitness";
+    RequiredTrait<emp::BitVector> bits_trait{"bits", "Bit-sequence to evaluate."};
+    OwnedTrait<double> fitness_trait{"fitness", "NK fitness value"};
 
     size_t N = 100;
     size_t K = 2;    
@@ -29,22 +29,18 @@ namespace mabe {
   public:
     EvalNK(mabe::MABE & control,
            const std::string & name="EvalNK",
-           const std::string & desc="Module to evaluate bitstrings on an NK Fitness Landscape")
+           const std::string & desc="Evaluate bitstrings on an NK Fitness Landscape")
       : EvalModule(control, name, desc) { }
     ~EvalNK() { }
 
     void SetupConfig() override {
-      LinkVar(N, "N", "Number of bits required in output");
+      LinkVar(N, "N", "Total number of bits required in sequence");
       LinkVar(K, "K", "Number of bits used in each gene");
-      LinkVar(bits_trait, "bits_trait", "Which trait stores the bit sequence to evaluate?");
-      LinkVar(fitness_trait, "fitness_trait", "Which trait should we store NK fitness in?");
+      RegisterTrait(bits_trait);
+      RegisterTrait(fitness_trait);
     }
 
     void SetupModule() override {
-      // Setup the traits.
-      AddRequiredTrait<emp::BitVector>(bits_trait);
-      AddOwnedTrait<double>(fitness_trait, "NK fitness value", 0.0);
-
       // Setup the fitness landscape.
       landscape.Config(N, K, control.GetRandom());  // Setup the fitness landscape.
     }
@@ -56,14 +52,14 @@ namespace mabe {
       mabe::Collection alive_orgs( orgs.GetAlive() );
       for (Organism & org : alive_orgs) {
         org.GenerateOutput();
-        const auto & bits = org.GetTrait<emp::BitVector>(bits_trait);
+        const auto & bits = bits_trait(org);
         if (bits.size() != N) {
           emp::notify::Error("Org returns ", bits.size(), " bits, but ",
                              N, " bits needed for NK landscape.",
                              "\nOrg: ", org.ToString());
         }
-        double fitness = landscape.GetFitness(bits);
-        org.SetTrait<double>(fitness_trait, fitness);
+        const double fitness = landscape.GetFitness(bits);
+        fitness_trait(org) = fitness;
 
         if (fitness > max_fitness || !max_org) {
           max_fitness = fitness;
