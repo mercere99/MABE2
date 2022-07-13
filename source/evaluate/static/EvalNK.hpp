@@ -17,7 +17,7 @@
 
 namespace mabe {
 
-  class EvalNK : public EvalModule {
+  class EvalNK : public EvalModule<EvalNK> {
   private:
     RequiredTrait<emp::BitVector> bits_trait{"bits", "Bit-sequence to evaluate."};
     OwnedTrait<double> fitness_trait{"fitness", "NK fitness value"};
