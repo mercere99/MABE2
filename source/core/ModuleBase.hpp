@@ -211,6 +211,9 @@ namespace mabe {
     /// Allow modules to setup any traits or other internal state after config is loaded.
     virtual void SetupModule() { /* By default, assume no setup needed. */ }
 
+    /// Internal notification for a module that config is loaded.
+    virtual void SetupModule_Internal() = 0;
+
     /// Once data maps are locked in (no new traits allowed) modules can use that information.
     virtual void SetupDataMap(emp::DataMap &) { /* By default, no setup needed. */ }
 

@@ -79,13 +79,13 @@ namespace mabe {
 
       /// Get() takes an organism and returns the trait reference for that organism.
       T & Get(mabe::Organism & org) {
-        emp_assert(registered == true, "trait must be have RegisterTrait() run on them before use.");
+        emp_assert(registered == true, "traits must be have RegisterTrait() run on them before use.", name);
         return org.GetTrait<T>(id);
       }
 
       /// Get() takes a const organism and returns the trait value for that organism.
       const T & Get(const mabe::Organism & org) const {
-        emp_assert(registered == true, "trait must be have RegisterTrait() run on them before use.");
+        emp_assert(registered == true, "traits must be have RegisterTrait() run on them before use.", name);
         return org.GetTrait<T>(id);
       }
 
@@ -147,7 +147,7 @@ namespace mabe {
       LinkVar(trait.name, trait.config_name, std::string("Trait name for ") + trait.desc);
     }
 
-    void SetupTraits() {
+    void SetupModule_Internal() override final {
       for (auto trait_ptr : trait_ptrs) {
         trait_ptr->AddTrait(*this);
       }
