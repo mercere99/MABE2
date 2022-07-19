@@ -18,7 +18,7 @@ CXX_native := g++
 TARGET := MABE
 
 # Flags to use regardless of compiler
-FLAGS_version := -std=c++17
+FLAGS_version := -std=c++20
 FLAGS_include := -I$(EMP_DIR)/ -I$(MABE_DIR)/
 FLAGS_warn := -Wall -Wextra -Wno-unused-function -Wnon-virtual-dtor -Wcast-align
 FLAGS_base := $(FLAGS_version) $(FLAGS_include) $(FLAGS_warn)
