@@ -130,7 +130,7 @@ namespace mabe {
       /// Identify how many positions we have.
       size_t GetSize(pop_ptr_t pop_ptr) const {
         if (full_pop) return pop_ptr->GetSize();
-        emp_assert(pop_ptr->GetSize() == pos_set.GetSize());
+        emp_assert(pop_ptr->GetSize() >= pos_set.GetSize());
         return pos_set.CountOnes();
       }
 

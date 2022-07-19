@@ -1,0 +1,56 @@
+random_seed = 0;              // Seed for random number generator; use 0 to base on time.
+Population main_pop;          // Collection of organisms
+Population next_pop;          // Collection of organisms
+Var pop_size = 200;           // Local value variable.
+Var num_gens = 1000;          // Local value variable.
+
+EvalPacking eval_packing {    // Evaluate bitstrings by counting ones (or zeros).
+  bits_trait = "bits";        // Which trait stores the bit sequence to evaluate?
+  fitness_trait = "fitness";  // Which trait should we store Royal Road fitness in?
+  package_size = 6;           // Number of ones to form a single package.
+  padding_size = 3;           // Minimum nubmer of zeros to surround packages of ones. 
+};
+SelectElite select_elite {      // Choose the top fitness organisms for replication.
+  fitness_fun = "fitness";    // Which trait provides the fitness value to use?
+};
+SelectTournament select_tourny { // Select the top fitness organisms from random subgroups for replication.
+  tournament_size = 100;          // Number of orgs in each tournament
+  fitness_fun = "fitness";    // Which trait provides the fitness value to use?
+};
+BitsOrg bits_org {              // Organism consisting of a series of N bits.
+  N = 100;                      // Number of bits in organism
+  mut_prob = 0.01;              // Probability of each bit mutating on reproduction.
+  output_name = "bits";         // Name of variable to contain bit sequence.
+  init_random = 0;              // Should we randomize ancestor?  (0 = all zeros)
+};
+
+
+@START() {
+  PRINT("random_seed = ", random_seed, "\n");  // Print seed at run start.
+  main_pop.INJECT("bits_org", pop_size);       // Inject starting population.
+};
+
+// Actions to perform every update.
+
+// @UPDATE(Var ud IN [100:100]) OrgList altruists = main_pop.FILTER("altruism > 0");
+// @BEFOREDIVIDE(OrgList parent IN altruists) PRINT("Altruist Birth!");
+
+@UPDATE(Var ud) {
+  // @UPDATE(Var update) {
+  // IF ([10:10].HAS(update)) EXIT();
+  // IF (update == 1000) EXIT;
+
+  eval_packing.EVAL(main_pop);
+  PRINT("UD:", GET_UPDATE(),
+        "  MainPopSize=", main_pop.SIZE(),
+        "  AveFitness=", main_pop.CALC_MEAN("fitness"),
+        "  MaxFitness=", main_pop.CALC_MAX("fitness")
+       );
+
+  OrgList elite_offspring = select_elite.SELECT(main_pop, next_pop, 25);
+  Var num_tournaments = pop_size - elite_offspring.SIZE();  // Calc num. of tournaments to run
+  OrgList tourny_offspring = select_tourny.SELECT(main_pop, next_pop, num_tournaments);
+  main_pop.REPLACE_WITH(next_pop);
+};
+
+@UPDATE(Var ud2) IF (ud2 == num_gens) EXIT();

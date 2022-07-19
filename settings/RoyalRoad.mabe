@@ -1,7 +1,7 @@
 random_seed = 0;                // Seed for random number generator; use 0 to base on time.
 Var pop_size = 1000;            // Local value variable.
 Var num_bits = 100;             // Number of bits in each organism (and the NK landscape)
-Var stop_update = 5000;        // How many updates should we run for?
+Var stop_update = 5000;         // How many updates should we run for?
 Var print_step = 100;           // Interval for printing...
 
 Population main_pop;            // Collection of organisms
@@ -16,14 +16,14 @@ BitsOrg bits_org {              // Organism consisting of a series of N bits.
 
 EvalRoyalRoad eval_rr {         // Evaluate bitstrings by counting ones (or zeros).
   bits_trait = "bits";          // Which trait stores the bit sequence to evaluate?
-  score_trait = "fitness";      // Which trait should we store Royal Road fitness in?
+  fitness_trait = "fitness";      // Which trait should we store Royal Road fitness in?
   brick_size = 8;               // Number of ones to have a whole brick in the road.
   extra_bit_cost = 0.5;         // Penalty per-bit for extra-long roads.
 };
 
-SelectTournament select_tourny { // Replicate most fit organisms from random subgroups
-  tournament_size = 4;          // Number of orgs in each tournament
-  fitness_fun = "fitness";      // Which trait provides the fitness value to use?
+SelectTournament select_tourny { // Select the top fitness organisms from random subgroups for replication.
+  tournament_size = 100;          // Number of orgs in each tournament
+  fitness_fun = "fitness";    // Which trait provides the fitness value to use?
 };
 
 DataFile fit_file { filename="fitness.csv"; };

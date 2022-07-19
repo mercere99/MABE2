@@ -14,6 +14,7 @@
 #include <string>
 
 #include "emp/base/Ptr.hpp"
+#include "emp/base/notify.hpp"
 #include "emp/base/vector.hpp"
 #include "emp/datastructs/tuple_utils.hpp"
 #include "emp/meta/ValPack.hpp"

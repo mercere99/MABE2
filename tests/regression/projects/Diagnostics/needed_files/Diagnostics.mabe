@@ -1,0 +1,74 @@
+random_seed = 2000;             // Seed for random number generator; use 0 to base on time.
+Var pop_size = 512;
+Var num_gens = 500;
+
+Population main_pop;
+Population next_pop;
+
+EvalDiagnostic eval_diagnostics { // Evaluate set of values with a specified diagnostic problem.
+  vals_trait = "vals";          // Which trait stores the values to evaluate?
+  scores_trait = "scores";      // Which trait should we store revised scores in?
+  total_trait = "fitness";      // Which trait should we store the total score in?
+  diagnostic = "explore";       // Which Diagnostic should we use?
+                                // "exploit": All values must independently optimize to the max.
+                                // "struct_exploit": Values must decrease from begining AND optimize.
+                                // "explore": Only count max value and decreasing values after it.
+                                // "diversity": Only count max value; all others must be low.
+                                // "weak_diversity": Only count max value; all others locked at zero.
+};
+
+SelectRoulette select_r {          // Choose the top fitness organisms for replication.
+  fitness_fun = "fitness";    // Which trait provides the fitness value to use?
+};
+
+SelectElite select_e {          // Choose the top fitness organisms for replication.
+  fitness_fun = "fitness";    // Which trait provides the fitness value to use?
+};
+SelectTournament select_t {     // Select the top fitness organisms from random subgroups for replication.
+  tournament_size = 7;          // Number of orgs in each tournament
+  fitness_fun = "fitness";      // Which trait provides the fitness value to use?
+};
+SelectLexicase select_l {       // Shuffle traits each time an organism is chose for replication.
+  fitness_traits = "scores";    // Which traits provide the fitness values to use?
+  epsilon = 0.0;                // Range from max value to be preserved? (fraction of max)
+};
+
+ValsOrg vals_org {              // Organism consisting of a series of N floating-point values.
+  N = 100;                      // Number of values in organism
+  mut_prob = 0.007;             // Probability of each value mutating on reproduction.
+  mut_size = 1.0;               // Standard deviation on size of mutations.
+  min_value = 0;                // Lower limit for value fields.
+  max_value = 100;              // Upper limit for value fields.
+  lower_bound = "clamp";        // How should the lower limit be enforced?
+                                // - "no_limit": Allow values to be arbirarily low.
+                                // - "clamp": Reduce too-low values to min_value.
+                                // - "wrap": Make low values loop around to maximum.
+                                // - "rebound": Make low values 'bounce' back up.
+  upper_bound = "rebound";      // How should the upper limit be enforced?
+                                // - "no_limit": Allow values to be arbirarily high.
+                                // - "clamp": Reduce too-high values to max_value.
+                                // - "wrap": Make high values loop around to minimum.
+                                // - "rebound": Make high values 'bounce' back down.
+  output_name = "vals";         // Name of variable to contain set of values.
+  total_name = "total";         // Name of variable to contain total of all values.
+};
+
+@START() {
+  PRINT("random_seed = ", random_seed, "\n");
+  main_pop.INJECT("vals_org", pop_size);
+};
+
+@UPDATE(Var ud) {
+  eval_diagnostics.EVAL(main_pop);
+  PRINT("UD:", GET_UPDATE(),
+        "  MainPopSize=", main_pop.SIZE(),
+        "  AveFitness=", main_pop.CALC_MEAN("fitness"),
+        "  MaxFitness=", main_pop.CALC_MAX("fitness")
+       );
+  OrgList elite_offspring = select_e.SELECT(main_pop, next_pop, 32);
+  Var num_tournaments = pop_size - elite_offspring.SIZE(); // Calc num. of tournaments to run
+  OrgList tourny_offspring = select_t.SELECT(main_pop, next_pop, num_tournaments);
+  main_pop.REPLACE_WITH(next_pop);
+};
+
+@UPDATE(Var ud2) IF (ud2 == num_gens) EXIT();

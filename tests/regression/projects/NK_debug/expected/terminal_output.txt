@@ -1,0 +1,107 @@
+EMP_TRACK_MEM: Pointer tracking is active!
+Loading file(s): 'NK_debug.mabe'
+Setting Random Seed to 11
+random_seed = 11
+
+UD:1  MainPopSize=50  AveFitness=48.7873  MaxFitness=56.7699  ModeFitness=43.0111
+MODE_LESS=0  MODE_EQU=1  MODE_GTR=49
+UD:2  MainPopSize=50  AveFitness=52.9409  MaxFitness=56.7699  ModeFitness=53.1768
+MODE_LESS=25  MODE_EQU=4  MODE_GTR=21
+UD:3  MainPopSize=50  AveFitness=55.5578  MaxFitness=57.6626  ModeFitness=56.7699
+MODE_LESS=39  MODE_EQU=4  MODE_GTR=7
+UD:4  MainPopSize=50  AveFitness=56.7915  MaxFitness=59.2503  ModeFitness=57.5449
+MODE_LESS=33  MODE_EQU=6  MODE_GTR=11
+UD:5  MainPopSize=50  AveFitness=57.1909  MaxFitness=59.2503  ModeFitness=57.6626
+MODE_LESS=36  MODE_EQU=4  MODE_GTR=10
+UD:6  MainPopSize=50  AveFitness=57.9364  MaxFitness=59.2503  ModeFitness=59.2503
+MODE_LESS=45  MODE_EQU=5  MODE_GTR=0
+UD:7  MainPopSize=50  AveFitness=58.3537  MaxFitness=60.8916  ModeFitness=59.2503
+MODE_LESS=40  MODE_EQU=7  MODE_GTR=3
+UD:8  MainPopSize=50  AveFitness=59.0625  MaxFitness=61.4708  ModeFitness=59.2503
+MODE_LESS=26  MODE_EQU=7  MODE_GTR=17
+UD:9  MainPopSize=50  AveFitness=60.1102  MaxFitness=61.5798  ModeFitness=61.2562
+MODE_LESS=39  MODE_EQU=6  MODE_GTR=5
+UD:10  MainPopSize=50  AveFitness=60.6279  MaxFitness=62.4384  ModeFitness=61.4708
+MODE_LESS=36  MODE_EQU=11  MODE_GTR=3
+UD:11  MainPopSize=50  AveFitness=61.0462  MaxFitness=62.4384  ModeFitness=61.4708
+MODE_LESS=23  MODE_EQU=12  MODE_GTR=15
+UD:12  MainPopSize=50  AveFitness=61.5408  MaxFitness=63.4078  ModeFitness=62.4384
+MODE_LESS=34  MODE_EQU=10  MODE_GTR=6
+UD:13  MainPopSize=50  AveFitness=62.1348  MaxFitness=64.0114  ModeFitness=62.4384
+MODE_LESS=22  MODE_EQU=11  MODE_GTR=17
+UD:14  MainPopSize=50  AveFitness=62.7389  MaxFitness=64.249  ModeFitness=63.4078
+MODE_LESS=33  MODE_EQU=5  MODE_GTR=12
+UD:15  MainPopSize=50  AveFitness=62.997  MaxFitness=65.4018  ModeFitness=64.0114
+MODE_LESS=39  MODE_EQU=5  MODE_GTR=6
+UD:16  MainPopSize=50  AveFitness=63.42  MaxFitness=65.4018  ModeFitness=64.0114
+MODE_LESS=28  MODE_EQU=6  MODE_GTR=16
+UD:17  MainPopSize=50  AveFitness=63.8131  MaxFitness=65.4018  ModeFitness=64.249
+MODE_LESS=25  MODE_EQU=9  MODE_GTR=16
+UD:18  MainPopSize=50  AveFitness=63.9765  MaxFitness=65.4514  ModeFitness=65.4018
+MODE_LESS=37  MODE_EQU=11  MODE_GTR=2
+UD:19  MainPopSize=50  AveFitness=64.4271  MaxFitness=66.3459  ModeFitness=65.4018
+MODE_LESS=33  MODE_EQU=12  MODE_GTR=5
+UD:20  MainPopSize=50  AveFitness=64.8555  MaxFitness=66.2873  ModeFitness=65.4018
+MODE_LESS=29  MODE_EQU=11  MODE_GTR=10
+UD:21  MainPopSize=50  AveFitness=65.0188  MaxFitness=66.2873  ModeFitness=65.4514
+MODE_LESS=31  MODE_EQU=8  MODE_GTR=11
+UD:22  MainPopSize=50  AveFitness=64.928  MaxFitness=66.2873  ModeFitness=65.4514
+MODE_LESS=27  MODE_EQU=8  MODE_GTR=15
+UD:23  MainPopSize=50  AveFitness=65.102  MaxFitness=66.4287  ModeFitness=66.2873
+MODE_LESS=43  MODE_EQU=4  MODE_GTR=3
+UD:24  MainPopSize=50  AveFitness=65.1317  MaxFitness=66.4287  ModeFitness=66.2873
+MODE_LESS=39  MODE_EQU=5  MODE_GTR=6
+UD:25  MainPopSize=50  AveFitness=65.512  MaxFitness=66.4287  ModeFitness=66.2873
+MODE_LESS=32  MODE_EQU=8  MODE_GTR=10
+UD:26  MainPopSize=50  AveFitness=65.529  MaxFitness=66.5099  ModeFitness=66.3702
+MODE_LESS=32  MODE_EQU=11  MODE_GTR=7
+UD:27  MainPopSize=50  AveFitness=65.6607  MaxFitness=66.649  ModeFitness=66.3702
+MODE_LESS=27  MODE_EQU=6  MODE_GTR=17
+UD:28  MainPopSize=50  AveFitness=65.7888  MaxFitness=66.649  ModeFitness=66.4514
+MODE_LESS=30  MODE_EQU=9  MODE_GTR=11
+UD:29  MainPopSize=50  AveFitness=65.7037  MaxFitness=66.649  ModeFitness=66.649
+MODE_LESS=40  MODE_EQU=10  MODE_GTR=0
+UD:30  MainPopSize=50  AveFitness=65.6955  MaxFitness=66.8253  ModeFitness=66.649
+MODE_LESS=36  MODE_EQU=13  MODE_GTR=1
+UD:31  MainPopSize=50  AveFitness=65.8607  MaxFitness=67.2322  ModeFitness=66.649
+MODE_LESS=32  MODE_EQU=14  MODE_GTR=4
+UD:32  MainPopSize=50  AveFitness=66.1201  MaxFitness=67.2322  ModeFitness=66.649
+MODE_LESS=28  MODE_EQU=10  MODE_GTR=12
+UD:33  MainPopSize=50  AveFitness=66.0309  MaxFitness=67.2322  ModeFitness=67.012
+MODE_LESS=39  MODE_EQU=6  MODE_GTR=5
+UD:34  MainPopSize=50  AveFitness=66.1194  MaxFitness=67.248  ModeFitness=67.2322
+MODE_LESS=42  MODE_EQU=7  MODE_GTR=1
+UD:35  MainPopSize=50  AveFitness=66.6599  MaxFitness=67.7064  ModeFitness=67.2322
+MODE_LESS=34  MODE_EQU=13  MODE_GTR=3
+UD:36  MainPopSize=50  AveFitness=66.239  MaxFitness=67.5968  ModeFitness=67.2322
+MODE_LESS=36  MODE_EQU=10  MODE_GTR=4
+UD:37  MainPopSize=50  AveFitness=66.4082  MaxFitness=67.5968  ModeFitness=67.2322
+MODE_LESS=33  MODE_EQU=6  MODE_GTR=11
+UD:38  MainPopSize=50  AveFitness=66.509  MaxFitness=67.6781  ModeFitness=67.5968
+MODE_LESS=42  MODE_EQU=7  MODE_GTR=1
+UD:39  MainPopSize=50  AveFitness=66.4429  MaxFitness=67.7765  ModeFitness=67.5968
+MODE_LESS=41  MODE_EQU=5  MODE_GTR=4
+UD:40  MainPopSize=50  AveFitness=66.6019  MaxFitness=67.9474  ModeFitness=67.6781
+MODE_LESS=39  MODE_EQU=5  MODE_GTR=6
+UD:41  MainPopSize=50  AveFitness=67.0741  MaxFitness=67.9474  ModeFitness=67.7765
+MODE_LESS=34  MODE_EQU=12  MODE_GTR=4
+UD:42  MainPopSize=50  AveFitness=66.9861  MaxFitness=67.9474  ModeFitness=67.9474
+MODE_LESS=41  MODE_EQU=9  MODE_GTR=0
+UD:43  MainPopSize=50  AveFitness=66.9959  MaxFitness=67.9474  ModeFitness=67.9474
+MODE_LESS=39  MODE_EQU=11  MODE_GTR=0
+UD:44  MainPopSize=50  AveFitness=66.9467  MaxFitness=67.9474  ModeFitness=67.9474
+MODE_LESS=32  MODE_EQU=18  MODE_GTR=0
+UD:45  MainPopSize=50  AveFitness=67.1825  MaxFitness=68.2426  ModeFitness=67.9474
+MODE_LESS=33  MODE_EQU=15  MODE_GTR=2
+UD:46  MainPopSize=50  AveFitness=66.9901  MaxFitness=68.2426  ModeFitness=67.9474
+MODE_LESS=31  MODE_EQU=12  MODE_GTR=7
+UD:47  MainPopSize=50  AveFitness=66.9844  MaxFitness=68.4216  ModeFitness=68.1263
+MODE_LESS=40  MODE_EQU=7  MODE_GTR=3
+UD:48  MainPopSize=50  AveFitness=67.4016  MaxFitness=68.4216  ModeFitness=68.2426
+MODE_LESS=35  MODE_EQU=10  MODE_GTR=5
+UD:49  MainPopSize=50  AveFitness=67.3977  MaxFitness=68.4216  ModeFitness=68.4216
+MODE_LESS=42  MODE_EQU=8  MODE_GTR=0
+UD:50  MainPopSize=50  AveFitness=67.251  MaxFitness=68.4254  ModeFitness=68.4216
+MODE_LESS=42  MODE_EQU=7  MODE_GTR=1
+EMP_TRACK_MEM: No memory leaks found!
+ 287586 pointers found; all have been cleaned up fully.

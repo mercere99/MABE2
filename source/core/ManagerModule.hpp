@@ -95,7 +95,9 @@ namespace mabe {
       return obj_ptr;
     }
 
-
+    mabe::MABE& GetControl(){
+      return control;
+    }
     void SetupModule() override {
       obj_prototype->SetupModule();
     }

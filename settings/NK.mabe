@@ -1,9 +1,10 @@
 random_seed = 0;                // Seed for random number generator; use 0 to base on time.
 Var pop_size = 1000;            // Number of organisms to evaluate in the population.
 Var num_bits = 100;             // Number of bits in each organism (and the NK landscape)
+Var num_gens = 1000;
 
 Population main_pop;            // Main population for managing candidate solutions.
-Population next_pop;            // Temporary population while constructing the next generation.
+Population next_pop;            // Temp. population while constructing the next generation.
 
 BitsOrg bits_org {              // Organism consisting of a series of N bits.
   output_name = "bits";         // Name of variable to contain bit sequence.
@@ -23,7 +24,8 @@ SelectElite elite {             // Choose the top fitness organisms for replicat
   top_count = 5;                // Number of top-fitness orgs to be replicated
   fitness_fun = "fitness";      // Which trait provides the fitness value to use?
 };
-SelectTournament tournament {   // Replicate most fit organisms from random subgroups
+
+SelectTournament tournament {   // Select the top fitness organisms from random subgroups for replication.
   tournament_size = 7;          // Number of orgs in each tournament
   fitness_fun = "fitness";      // Which trait provides the fitness value to use?
 };
@@ -65,7 +67,7 @@ max_file.ADD_COLUMN( "Genome", "best_org.TRAIT('bits')" );
         "  ModeFitness=", mode_fit,
         "\nMODE_LESS=", list_less.SIZE(),
         "  MODE_EQU=", list_equ.SIZE(),
-        "  MODE_GTR=", list_gtr.SIZE(),
+        "  MODE_GTR=", list_gtr.SIZE()
        );
   fit_file.WRITE();
   max_file.WRITE();
@@ -77,3 +79,5 @@ max_file.ADD_COLUMN( "Genome", "best_org.TRAIT('bits')" );
 
   main_pop.REPLACE_WITH(next_pop);
 }
+
+@UPDATE(Var ud2) IF (ud2 == num_gens) EXIT();

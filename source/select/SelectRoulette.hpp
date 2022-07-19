@@ -17,19 +17,20 @@
 
 namespace mabe {
 
-  /// Add roulette selection with the current population.
+  /// \brief Selects organisms with roulette (fitness-proportional) selection
   class SelectRoulette : public Module {
   private:
     std::string fit_equation;    ///< Which equation should we select on?
 
+    /// Select num_births organisms from select_pop and replicate them into birth_pop
     Collection Select(Population & select_pop, Population & birth_pop, size_t num_births) {
       if (select_pop.GetID() == birth_pop.GetID()) {
         emp::notify::Error("SelectRoulette currently requires birth_pop and select_pop to be different.");
         return Collection{};
       }
 
+      // Build fitness map using the fitness equation
       auto fit_fun = control.BuildTraitEquation(select_pop, fit_equation);
-
       emp::IndexMap fit_map(select_pop.GetSize(), 0.0);
       for (size_t org_pos = 0; org_pos < select_pop.GetSize(); org_pos++) {
         if (select_pop.IsEmpty(org_pos)) continue;
@@ -51,14 +52,14 @@ namespace mabe {
     SelectRoulette(
       mabe::MABE & control,
       const std::string & name="SelectRoulette",
-      const std::string & desc="Module to choose random organisms for replication, based on fitness."
+      const std::string & desc="Module to choose random organisms for replication, proportional to their fitness."
     ) : Module(control, name, desc)
     {
       SetSelectMod(true);               ///< Mark this module as a selection module.
     } 
     ~SelectRoulette() { }
 
-    // Setup member functions associated with this class.
+    // Set up member functions associated with this class.
     static void InitType(emplode::TypeInfo & info) {
       info.AddMemberFunction(
         "SELECT",
@@ -68,17 +69,19 @@ namespace mabe {
         "Perform roulette selection on the provided organisms.");
     }
 
+    // Set up variables for configuration file
     void SetupConfig() override {
       LinkVar(fit_equation, "fitness_fun", "Function used as fitness for selection?");
     }
 
+    /// Validate fitness equation from configuration file
     void SetupModule() override {
-      AddRequiredEquation(fit_equation);   // The fitness traits must be set by another module.
+      AddRequiredEquation(fit_equation);   // The fitness traits must be set by another module
     }
 
   };
 
-  MABE_REGISTER_MODULE(SelectRoulette, "Randomly choose organisms to replicate weighted by fitness.");
+  MABE_REGISTER_MODULE(SelectRoulette, "Randomly choose organisms to replicate, with odds proportional to their fitness.");
 }
 
 #endif

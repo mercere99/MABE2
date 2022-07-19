@@ -1,0 +1,10 @@
+Latest commit at time of last regeneration:
+commit fba7098fa7d1a4068900cb120972b298027145d3
+Author: Austin Ferguson <ferguson.austin.j@gmail.com>
+Date:   Thu Jul 7 15:05:48 2022 -0400
+
+    Update VCPUOrg test to handle bonus merit change
+ 
+ 
+Time of last regeneration:
+Thu Jul  7 04:22:25 PM EDT 2022

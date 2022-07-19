@@ -1,7 +1,7 @@
-random_seed = 1;                // Seed for random number generator; use 0 to base on time.
-Var num_vals = 100;
+random_seed = 0;                // Seed for random number generator; use 0 to base on time.
 Var pop_size = 512;
 Var num_gens = 50000;
+Var num_vals = 100;
 Var print_step = 100;           // Interval for printing...
 
 Population main_pop;
@@ -64,13 +64,12 @@ fit_file.ADD_COLUMN( "Average Fitness", "main_pop.CALC_MEAN('fitness')" );
 fit_file.ADD_COLUMN( "Maximum Fitness", "main_pop.CALC_MAX('fitness')" );
 fit_file.ADD_COLUMN( "Dominant Fitness", "main_pop.CALC_MODE('fitness')" );
 
-DataFile max_file { filename="max_org.csv"; };
 OrgList best_org;
+DataFile max_file { filename="max_org.csv"; };
 max_file.ADD_SETUP( "best_org = main_pop.FIND_MAX('fitness')" );
 max_file.ADD_COLUMN( "Fitness", "best_org.TRAIT('fitness')" );
 max_file.ADD_COLUMN( "Genome", "best_org.TRAIT('vals')" );
 max_file.ADD_COLUMN( "Scores", "best_org.TRAIT('scores')" );
-
 
 @START() {
   PRINT("Beginning DIAGNOSTICS!\nMain config options:");

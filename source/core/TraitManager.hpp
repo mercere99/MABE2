@@ -18,6 +18,7 @@
 #include <unordered_map>
 
 #include "emp/base/Ptr.hpp"
+#include "emp/base/notify.hpp"
 
 #include "TraitInfo.hpp"
 
@@ -59,6 +60,10 @@ namespace mabe {
       for (auto [name,trait_ptr] : trait_map) {
         trait_ptr->Register(data_map);
       }
+    }
+
+    void ResetAll(emp::DataMap & data_map){
+      for (auto [name,trait_ptr] : trait_map) trait_ptr->ResetToDefault(data_map);
     }
 
     /**
@@ -232,7 +237,7 @@ namespace mabe {
       // A REQUIRED trait must have another module write to it (i.e. OWNED, GENERATED or SHARED).
       if (trait_ptr->IsRequired() &&
               !trait_ptr->IsOwned() && !trait_ptr->IsShared() && !trait_ptr->IsGenerated()) {
-        emp::notify::Error("Trait '", trait_name, "' marked REQUIRED by module(s) ",
+        emp::notify::Error("Trait '", trait_name, "' marked REQUIRED by module(s) '",
                 emp::to_english_list(trait_ptr->GetRequiredNames()),
                 "'; must be written to by other modules.\n",
                 "[Suggestion: set another module to write to this trait (where it is either\n",

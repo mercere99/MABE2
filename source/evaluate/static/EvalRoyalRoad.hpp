@@ -23,7 +23,7 @@ namespace mabe {
   class EvalRoyalRoad : public Module {
   private:
     std::string bits_trait;
-    std::string score_trait;
+    std::string fitness_trait;
 
     size_t brick_size = 8;
     double extra_bit_cost = 0.5;
@@ -34,7 +34,7 @@ namespace mabe {
                   const std::string & desc="Evaluate bitstrings by counting ones (or zeros).")
       : Module(control, name, desc)
       , bits_trait("bits")
-      , score_trait("score")
+      , fitness_trait("fitness")
     {
       SetEvaluateMod(true);
     }
@@ -49,25 +49,26 @@ namespace mabe {
 
     void SetupConfig() override {
       LinkVar(bits_trait, "bits_trait", "Which trait stores the bit sequence to evaluate?");
-      LinkVar(score_trait, "score_trait", "Which trait should we store Royal Road score in?");
+      LinkVar(fitness_trait, "fitness_trait", 
+          "Which trait should we store Royal Road fitness in?");
       LinkVar(brick_size, "brick_size", "Number of ones to have a whole brick in the road.");
       LinkVar(extra_bit_cost, "extra_bit_cost", "Penalty per-bit for extra-long roads.");
     }
 
     void SetupModule() override {
       AddRequiredTrait<emp::BitVector>(bits_trait);
-      AddOwnedTrait<double>(score_trait, "Royal Road score value", 0.0);
+      AddOwnedTrait<double>(fitness_trait, "Royal Road fitness value", 0.0);
     }
 
     double Evaluate(Collection orgs) {
       // Loop through the population and evaluate each organism.
-      double max_score = 0.0;
+      double max_fitness = 0.0;
       mabe::Collection alive_collect = orgs.GetAlive();
       for (Organism & org : alive_collect) {        
         // Make sure this organism has its bit sequence ready for us to access.
         org.GenerateOutput();
 
-        // Count the number of ones in the bit sequence.
+        // Count the number of contiguous ones at the start of the bit sequence.
         const emp::BitVector & bits = org.GetTrait<emp::BitVector>(bits_trait);
         int road_length = 0.0;
         for (size_t i = 0; i < bits.size(); i++) {
@@ -77,16 +78,16 @@ namespace mabe {
 
         const int overage = road_length % brick_size;
 
-        // Store the count on the organism in the score trait.
-        double score = road_length - overage * (extra_bit_cost + 1.0);
-        org.SetTrait<double>(score_trait, score);
+        // Store the count on the organism in the fitness trait.
+        double fitness = road_length - overage * (extra_bit_cost + 1.0);
+        org.SetTrait<double>(fitness_trait, fitness);
 
-        if (score > max_score) {
-          max_score = score;
+        if (fitness > max_fitness) {
+          max_fitness = fitness;
         }
       }
 
-      return max_score;
+      return max_fitness;
     }
   };
 

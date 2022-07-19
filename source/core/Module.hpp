@@ -176,6 +176,12 @@ namespace mabe {
     TraitInfo & AddRequiredTrait(const std::string & name) {
       return AddTrait<T,ALT_Ts...>(TraitInfo::Access::REQUIRED, name);
     }
+    
+    /// Add trait that this module can READ, but is not required 
+    template <typename T, typename... ALT_Ts>
+    TraitInfo & AddOptionalTrait(const std::string & name) {
+      return AddTrait<T,ALT_Ts...>(TraitInfo::Access::OPTIONAL, name);
+    }
 
     /// Add all of the traits that that this module needs to be able to READ, in order to
     /// computer the provided equation.  Another module must WRITE these traits and provide the
@@ -317,7 +323,6 @@ namespace mabe {
       has_signal[SIG_OnHelp] = false;
       control.RescanSignals();
     }
-
 
     /// Turn off all signals in this function.
     void Deactivate() override {

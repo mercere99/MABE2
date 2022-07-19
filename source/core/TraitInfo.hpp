@@ -269,6 +269,9 @@ namespace mabe {
 
     /// Register this trait in the provided DataMap.
     virtual void Register(emp::DataMap & dm) const = 0;
+    
+    /// Reset this trait back to its default value.
+    virtual void ResetToDefault(emp::DataMap & dm) = 0;
   };
 
   // Information about this trait, including type information and alternate type options.
@@ -300,6 +303,15 @@ namespace mabe {
       default_value = in_default;
       has_default = true;
       return *this;
+    }
+
+    void ResetToDefault(emp::DataMap& dm) override{
+      emp_assert(dm.HasName(GetName()));
+      emp_assert(dm.IsType<T>(GetName()));
+
+      T& val = dm.Get<T>(GetName());
+      if(has_default) val = default_value;
+      else val = { };
     }
     
     void Register(emp::DataMap & dm) const override {

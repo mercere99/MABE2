@@ -173,6 +173,7 @@ namespace mabe {
       trait_set.SetTraits(trait_inputs);     ///< Parse set of trait inputs passed in.
     }
 
+
   };
 
   MABE_REGISTER_MODULE(SelectLexicase, "Shuffle traits each time an organism is chose for replication.");

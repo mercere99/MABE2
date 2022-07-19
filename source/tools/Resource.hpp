@@ -16,7 +16,7 @@
 #ifndef EMP_EVO_RESOURCE_H
 #define EMP_EVO_RESOURCE_H
 
-#include "World.hpp"
+#include "emp/Evolve/World.hpp"
 
 namespace emp {
 

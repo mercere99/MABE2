@@ -1,0 +1,74 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [master, auto_testing, waves_tests, avida, avida_merge]
+  pull_request:
+    branches: [master, auto_testing]
+
+jobs:
+  unit-tests-debug:
+    name: Debug mode unit tests
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: 'recursive'
+    - run: sudo apt-get update -qq
+    - run: sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+    - run: sudo apt-get update -qq
+    - run: sudo apt-get install -qq cmake build-essential python3-pip python3-virtualenv nodejs tar gzip libpthread-stubs0-dev libc6-dbg gdb
+    - run: clang++ --version
+    - run: g++ --version
+    - name: run-tests
+      run: make unit
+      working-directory: tests
+
+  regression-tests-native:
+    name: Regression tests
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: 'recursive'
+    - run: sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+    - run: sudo apt-get update -qq
+    - run: sudo apt-get install -qq cmake build-essential python3-pip python3-virtualenv nodejs tar gzip libpthread-stubs0-dev libc6-dbg gdb
+      #- run: sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-8 90
+    - run: clang++ --version
+    - run: g++ --version
+    - name: run-tests
+      run: make regression 
+      working-directory: tests
+
+  test-coverage:
+    name: Measure test coverage
+    runs-on: ubuntu-22.04
+    steps:
+      # working-directory: tests
+      - uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+      - uses: codecov/codecov-action@v2
+      - run: sudo apt-get update -qq
+      - run: sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+      - run: wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
+      - run: sudo apt-add-repository "deb https://apt.llvm.org/xenial/ llvm-toolchain-xenial-7 main"
+      - run: sudo apt-get update -qq
+      - run: sudo apt-get install cmake build-essential python3-virtualenv python3-pip nodejs tar gzip llvm llvm-dev clang llvm-dev libclang-dev
+      - run: clang++ --version
+      - run: g++ --version
+      - run: git fetch origin master:refs/remotes/origin/master
+      - run: make install-test-dependencies
+        working-directory: source/third-party/empirical
+      - run: export CXX=clang++ && make install-coverage-dependencies
+        working-directory: source/third-party/empirical
+      - run: export CXX=clang++ && make coverage
+        working-directory: tests 
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v2
+        with:
+          directory: ./tests/coverage_source/
+          fail_ci_if_error: true
+          name: codecov-umbrella
+          verbose: true

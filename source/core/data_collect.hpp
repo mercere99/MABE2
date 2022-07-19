@@ -20,6 +20,7 @@
 #include <string>
 
 #include "emp/tools/string_utils.hpp"
+#include "emp/datastructs/vector_utils.hpp"
 #include "../Emplode/Symbol.hpp"
 
 namespace mabe {
@@ -33,7 +34,6 @@ namespace mabe {
       return get_fun( container.At(index) );
     }
 
-
     // Count up the number of distinct values.
     template <typename DATA_T, typename CONTAIN_T, typename FUN_T>
     Symbol_Var Unique(const CONTAIN_T & container, FUN_T get_fun) {
@@ -43,7 +43,6 @@ namespace mabe {
       }
       return vals.size();
     }
-
 
     template <typename DATA_T, typename CONTAIN_T, typename FUN_T>
     Symbol_Var Mode(const CONTAIN_T & container, FUN_T get_fun) {

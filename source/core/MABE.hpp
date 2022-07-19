@@ -43,6 +43,7 @@
 #include "Population.hpp"
 #include "SigListener.hpp"
 #include "TraitManager.hpp"
+#include "ActionMap.hpp"
 
 namespace mabe {
 
@@ -62,6 +63,8 @@ namespace mabe {
 
     /// Populations used; generated in the configuration file.
     emp::vector< emp::Ptr<Population> > pops;
+
+    emp::vector<ActionMap> action_maps;
 
     /// Organism pointer to use for all empty cells.
     emp::Ptr<Organism> empty_org = nullptr;
@@ -94,17 +97,13 @@ namespace mabe {
     emp::vector<std::string> config_settings;  ///< Additional config commands to run.
     std::string gen_filename;                  ///< Name of output file to generate.
     MABEScript config_script;                  ///< Configuration information for this run.
-
-
     // ----------- Helper Functions -----------    
     void ShowHelp();       ///< Print information on how to run the software.
     void ShowModules();    ///< List all available modules in the current compilation.
     void RunBatch();       ///< Process a whole series of MABE runs.
     void ProcessArgs();    ///< Process all arguments passed in on the command line.
-
-    // -- Helper functions to be called inside of Setup() --
+    /// Setup a function as deprecated so we can phase it out.
     void Setup_Modules();  ///< Run SetupModule() method on each module we've loaded.
-    void Setup_Traits();   ///< Load organism traits and test for module conflicts.    
     void UpdateSignals();  ///< Link signals only to modules that respond to them.
 
   public:
@@ -114,11 +113,11 @@ namespace mabe {
     ~MABE() {
       before_exit_sig.Trigger();                      // Notify modules of end...
 
-      for (auto mod_ptr : modules) mod_ptr.Delete();  // Delete all modules.
       for (auto pop_ptr : pops) {                     // Delete all populations.
         ClearPop(*pop_ptr);
         pop_ptr.Delete();
       }
+      for (auto mod_ptr : modules) mod_ptr.Delete();  // Delete all modules.
       // Delete the empty organism AFTER clearing the populations, so it's not still used.
       if (empty_org) empty_org.Delete();
     }
@@ -153,6 +152,9 @@ namespace mabe {
     int GetPopID(std::string_view pop_name) const {
       return emp::FindEval(pops, [pop_name](const auto & p){ return p->GetName() == pop_name; });
     }
+    const ActionMap & GetActionMap(size_t id) const { return action_maps[id]; }
+    ActionMap & GetActionMap(size_t id) { return action_maps[id]; }
+
     Population & GetPopulation(size_t id) { return *pops[id]; }
     const Population & GetPopulation(size_t id) const { return *pops[id]; }
     Population & AddPopulation(const std::string & name, size_t pop_size=0) override;
@@ -292,11 +294,24 @@ namespace mabe {
     // --- Deal with Organism TRAITS ---
     TraitManager<ModuleBase> & GetTraitManager() { return trait_man; }
 
+    /// Resets ALL traits for a given organism to their default values
+    void ResetTraits(Organism& org){
+      trait_man.ResetAll(org.GetDataMap());
+    }
+
+    /// Return the DataMap for organisms
+    emp::DataMap GetOrganismDataMap(){
+      return org_data_map;
+    }
+
     /// Build a lambda function that takes an organism applied the provided equation to it.
     /// (The provided data layout must match that or the organisms.)
-    auto BuildTraitEquation(const emp::DataLayout & data_layout, const std::string & equation) {
+    auto BuildTraitEquation(const emp::DataLayout & data_layout, const std::string & equation)
+    {
       return config_script.BuildTraitEquation(data_layout, equation);
     }
+    
+    void Setup_Traits();   ///< Load organism traits and test for module conflicts.    
 
     /// Build a trait equations for organisms in a given population.
     auto BuildTraitEquation(const Population & pop, const std::string & equation) {
@@ -306,6 +321,8 @@ namespace mabe {
     const std::set<std::string> & GetEquationTraits(const std::string & equation) {
       return config_script.GetEquationTraits(equation);
     }
+
+    MABEScript& GetConfigScript(){ return config_script; }
 
     bool OK();           ///< Sanity checks for debugging
 
@@ -623,6 +640,7 @@ namespace mabe {
       // Return a random org since no structure to population.
       return OrgPosition(new_pop, GetRandom().GetUInt(new_pop->GetSize()));
     });
+    action_maps.emplace_back();
 
     return *new_pop;
   }
