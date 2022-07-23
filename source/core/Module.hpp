@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019-2021.
+ *  @date 2019-2022.
  *
  *  @file  Module.hpp
  *  @brief Base class for all MABE modules.
@@ -47,62 +47,99 @@ namespace mabe {
 
   protected:
 
+    /// AsConfig() provides a simple mechanism for indicating that you want to store a reference to a variable
+    /// (because it will be set during configuration) rather than simply using a value.
+    template <typename T>
+    struct ConfigPlaceholder {
+      T & var;
+      ConfigPlaceholder(T & in_var) : var(in_var) { }
+      ConfigPlaceholder(const ConfigPlaceholder &) = default;
+    };
+
+    template <typename T> ConfigPlaceholder<T> AsConfig(T & in_var) { return in_var; }
+
     // -- Trait information for use in derived module types. --
 
-    struct BaseTrait {
-      Access access = Access::UNKNOWN; // Which modules can read/write this trait?
-      std::string name;                // Name of this trait in a DataMap
-      std::string desc;                // Description of this trait
-      size_t count;                    // Number of entries used for this trait.
-      std::string config_name;         // Trait name in config file.
-      size_t id = emp::MAX_SIZE_T;     // ID of this trait in the DataMap.
-      bool registered = false;         // Has trait been registered to a module?
+    class BaseTrait {
+    protected:
+      Access access = Access::UNKNOWN;      // Which modules can read/write this trait?
+      bool multi = false;                   // Can this trait have multiple values?
+      std::string name;                     // Name of this trait in a DataMap
+      std::string desc;                     // Description of this trait
+      size_t count = 0;                     // Number of entries used for this trait.
+      emp::Ptr<size_t> count_ref = nullptr; // If count is determined by a config var, store here.
 
-      BaseTrait(Access _a, const std::string & _n, const std::string & _d, size_t _c=1)
-        : access(_a), name(_n), desc(_d), count(_c), config_name(name + "_trait") { }
+      std::string config_name;              // Trait name in config file.
+      size_t id = emp::MAX_SIZE_T;          // ID of this trait in the DataMap.
+      bool registered = false;              // Has trait been registered to a module?
+
+    public:
+      BaseTrait(Access _a, bool _m, const std::string & _n, const std::string & _d, size_t _c=1)
+        : access(_a), multi(_m), name(_n), desc(_d), count(_c), config_name(name + "_trait") {
+          emp_assert(multi == true || count == 1, multi, count);
+        }
+      BaseTrait(Access _a, bool _m, const std::string & _n, const std::string & _d,
+                ConfigPlaceholder<size_t> _cr)
+        : access(_a), multi(_m), name(_n), desc(_d), count_ref(&_cr.var),
+          config_name(name + "_trait") {
+            emp_assert(multi==true, "Having a non-unary count possible requires a multi trait.");
+        }
       virtual ~BaseTrait() { }
 
       const std::string & GetName() const { return name; }
       const std::string & GetDesc() const { return desc; }
+      size_t GetCount() const { return count_ref ? *count_ref : count; }
+      const std::string & GetConfigName() const { return config_name; }
+      size_t GetID() const { return id; }
+
+      std::string & GetNameVar() { return name; }
+
       virtual void AddTrait(Module & mod) = 0;
       void SetConfigName(const std::string & _name) { config_name = _name; }
       void SetupDataMap(const emp::DataMap & dm) { id = dm.GetID(name); }
     };
 
     /// Extension on BaseTrait to allow saving of a typed default value.
-    template <typename T, Access ACCESS>
+    template <typename T,      // What type is this trait?
+              Access ACCESS,   // How can this trait be accessed?
+              bool MULTI>      // Does this trait have multiple values?
     struct OrgTrait : public BaseTrait {
       T default_value{};
 
-      OrgTrait(const std::string & _n, const std::string & _d, size_t _c=1)
-        : BaseTrait(ACCESS, _n,_d,_c) { }
+      // The get type should be a T & for a single value or a span<T> for multiple values.
+      using get_t = typename std::conditional<MULTI, std::span<T>, T &>::type;
+
+      template<typename... Ts>
+      OrgTrait(Ts &&... args) : BaseTrait(ACCESS, MULTI, std::forward<Ts>(args)...) { }
 
       /// Get() takes an organism and returns the trait reference for that organism.
-      T & Get(mabe::Organism & org) {
+      get_t Get(mabe::Organism & org) {
         emp_assert(registered == true, "traits must be have RegisterTrait() run on them before use.", name);
-        return org.GetTrait<T>(id);
+        if constexpr (MULTI) return org.GetTrait<T>(id, GetCount());
+        else return org.GetTrait<T>(id);
       }
 
       /// Get() takes a const organism and returns the trait value for that organism.
-      const T & Get(const mabe::Organism & org) const {
+      const get_t Get(const mabe::Organism & org) const {
         emp_assert(registered == true, "traits must be have RegisterTrait() run on them before use.", name);
-        return org.GetTrait<T>(id);
+        if constexpr (MULTI) return org.GetTrait<T>(id, GetCount());
+        else return org.GetTrait<T>(id);
       }
 
       /// A trait supplied with an organism converts to the trait reference for that organism.
-      inline T & operator()(mabe::Organism & org) { return Get(org); }
+      inline get_t operator()(mabe::Organism & org) { return Get(org); }
 
       /// A trait supplied with a const organism converts to the trait value for that organism.
-      inline const T & operator()(const mabe::Organism & org) { return Get(org); }
+      inline const get_t operator()(const mabe::Organism & org) { return Get(org); }
 
       /// If a trait is supplied a collection it returns a vector of values, one for each
       /// organism in the collection.
-      emp::vector<T> operator()(mabe::Collection & collect) const {
+      auto operator()(mabe::Collection & collect) const {
         const size_t num_orgs = collect.GetSize();
         emp::vector<T> out_v;
         out_v.reserve(num_orgs);
-        for (auto org : collect) {
-          out_v.push_back(org.GetTrait<T>(id));
+        for (auto & org : collect) {
+          out_v.push_back(org.GetTrait<T>(id,GetCount()));
         }
         return out_v;
       }
@@ -114,28 +151,34 @@ namespace mabe {
       //  @CAO: Needs cleanup and better integration with TraitInfo.
       void AddTrait(Module & mod) {
         emp_assert(registered == false);
-        mod.AddTrait<T>(ACCESS, name, desc, default_value, count);
+        mod.AddTrait<T>(ACCESS, name, desc, default_value, GetCount());
         registered = true;
       }
     };
 
     // Traits that are read- and write-protected.
-    template <typename T> using PrivateTrait = OrgTrait<T, Access::PRIVATE>;
+    template <typename T, bool MULTI=false> using PrivateTrait = OrgTrait<T, Access::PRIVATE, MULTI>;
+    template <typename T> using PrivateMultiTrait = OrgTrait<T, Access::PRIVATE, true>;
 
     // Traits that are world readable, but write-protected
-    template <typename T> using OwnedTrait = OrgTrait<T, Access::OWNED>;
+    template <typename T, bool MULTI=false> using OwnedTrait = OrgTrait<T, Access::OWNED, MULTI>;
+    template <typename T> using OwnedMultiTrait = OrgTrait<T, Access::OWNED, true>;
 
     // Traits that are write-protected but MUST be read by another.
-    template <typename T> using GeneratedTrait = OrgTrait<T, Access::GENERATED>;
+    template <typename T, bool MULTI=false> using GeneratedTrait = OrgTrait<T, Access::GENERATED, MULTI>;
+    template <typename T> using GeneratedMultiTrait = OrgTrait<T, Access::GENERATED, true>;
 
     // Traits that can be freely shared (read or write) with others.
-    template <typename T> using SharedTrait = OrgTrait<T, Access::SHARED>;
+    template <typename T, bool MULTI=false> using SharedTrait = OrgTrait<T, Access::SHARED, MULTI>;
+    template <typename T> using SharedMultiTrait = OrgTrait<T, Access::SHARED, true>;
 
     // Traits that must be generated by another.
-    template <typename T> using RequiredTrait = OrgTrait<T, Access::REQUIRED>;
+    template <typename T, bool MULTI=false> using RequiredTrait = OrgTrait<T, Access::REQUIRED, MULTI>;
+    template <typename T> using RequiredMultiTrait = OrgTrait<T, Access::REQUIRED, true>;
 
     // Traits that will be used if created by another, but are not required.
-    template <typename T> using OptionalTrait = OrgTrait<T, Access::OPTIONAL>;
+    template <typename T, bool MULTI=false> using OptionalTrait = OrgTrait<T, Access::OPTIONAL, MULTI>;
+    template <typename T> using OptionalMultiTrait = OrgTrait<T, Access::OPTIONAL, true>;
 
 
     emp::vector<emp::Ptr<BaseTrait>> trait_ptrs;
@@ -144,7 +187,9 @@ namespace mabe {
       trait_ptrs.push_back(&trait);  // Store trait for later use.
 
       // Hook trait into config file.
-      LinkVar(trait.name, trait.config_name, std::string("Trait name for ") + trait.desc);
+      LinkVar(trait.GetNameVar(),
+              trait.GetConfigName(),
+              std::string("Trait name for ") + trait.GetDesc());
     }
 
     void SetupModule_Internal() override final {
