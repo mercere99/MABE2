@@ -22,6 +22,9 @@ namespace emplode {
   class Symbol_Linked : public Symbol {
   private:
     T & var;
+
+    static_assert(!std::is_const<T>(), "Variables cannot be const.");
+    
   public:
     using this_t = Symbol_Linked<T>;
 

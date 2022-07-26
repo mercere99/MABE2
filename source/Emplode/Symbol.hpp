@@ -338,6 +338,8 @@ namespace emplode {
     Symbol_Var(const std::string & _val) : Symbol("__Auto__", "", nullptr), value(_val) {}
     Symbol_Var(const emp::Datum & _val)  : Symbol("__Auto__", "", nullptr), value(_val) {}
 
+    Symbol_Var & operator=(const Symbol_Var &) = default;
+
     std::string GetTypename() const override { return "Var"; }
 
     symbol_ptr_t Clone() const override { return emp::NewPtr<Symbol_Var>(*this); }
