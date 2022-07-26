@@ -1,6 +1,7 @@
 random_seed = 0;                // Seed for random number generator; use 0 to base on time.
 Var pop_size = 1000;            // Number of organisms to evaluate in the population.
 Var num_bits = 100;             // Number of bits in each organism (and the NK landscape)
+Var max_ud = 25;
 
 Population main_pop;            // Main population for managing candidate solutions.
 Population next_pop;            // Temporary population while constructing the next generation.
@@ -51,7 +52,7 @@ max_file.ADD_COLUMN( "Genome", "best_org.TRAIT('bits')" );
 // @BEFOREDIVIDE(OrgList parent IN altruists) PRINT("Altruist Birth!");
 
 @UPDATE(Var ud) {
-  IF (ud == 1000) EXIT();
+  IF (ud == max_ud) EXIT();
 
   eval_nk.EVAL(main_pop);
   Var mode_fit = main_pop.CALC_MODE("fitness");
