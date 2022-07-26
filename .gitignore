@@ -42,3 +42,11 @@ build/*.csv
 build/*.gen
 build/*.mabe
 build/MABE
+
+# Temporary and backup files
+*.tmp
+*.bak
+*.bak2
+*-bak.*
+*-bak2.*
+tmp*
