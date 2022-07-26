@@ -1,0 +1,18 @@
+Loading file(s): 'RoyalRoad.mabe'
+Setting Random Seed to 40
+Beginning ROYAL ROAD!
+Main config options:
+ Brick size:       8
+ Num org bits:     100
+ Mut Probability:  0.005
+ Population size:  1000
+ Tournamenet size: 100
+ Random seed:      40
+
+ Stop update:      500
+
+UD:100  MainPopSize=1000  AveFitness=-0.0005  MaxFitness=0
+UD:200  MainPopSize=1000  AveFitness=-0.0045  MaxFitness=0
+UD:300  MainPopSize=1000  AveFitness=-0.0085  MaxFitness=0
+UD:400  MainPopSize=1000  AveFitness=7.577  MaxFitness=8
+UD:500  MainPopSize=1000  AveFitness=14.857  MaxFitness=16

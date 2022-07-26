@@ -37,6 +37,9 @@
 *.out
 *.app
 
+# Files open in vim
+*.swp
+
 examples/NK
 build/*.csv
 build/*.gen
@@ -50,3 +53,10 @@ build/MABE
 *-bak.*
 *-bak2.*
 tmp*
+
+# Mac files 
+*.DS_Store
+
+# R history
+*.Rhistory
+

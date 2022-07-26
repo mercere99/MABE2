@@ -13,8 +13,11 @@
 #ifndef MABE_SIGNAL_LISTENER_H
 #define MABE_SIGNAL_LISTENER_H
 
+#include "emp/base/array.hpp"
 #include "emp/base/Ptr.hpp"
 #include "emp/base/vector.hpp"
+
+#include "OrgIterator.hpp"
 
 namespace mabe {
 

@@ -127,8 +127,8 @@ namespace mabe {
     /// @param[in] ppos is the parent position (required if it exists; not used with inject).
     void AddOrgAt(emp::Ptr<Organism> org_ptr, OrgPosition pos, OrgPosition ppos=OrgPosition()) {
       emp_assert(org_ptr);                               // Must have a non-null organism to insert.
-      before_placement_sig.Trigger(*org_ptr, pos, ppos); // Notify listerners org is about to be placed.
       ClearOrgAt(pos);                                   // Clear any organism already in this position.
+      before_placement_sig.Trigger(*org_ptr, pos, ppos); // Notify listerners org is about to be placed.
       pos.PopPtr()->SetOrg(pos.Pos(), org_ptr);          // Put the new organism in place.
       on_placement_sig.Trigger(pos);                     // Notify listeners org has been placed.
     }

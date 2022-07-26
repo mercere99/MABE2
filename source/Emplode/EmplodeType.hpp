@@ -64,7 +64,7 @@ namespace emplode {
     }
 
     /// Setup an instance of a new EmplodeType object; provide it with its symbol and type information.    
-    void Setup(Symbol_Object & in_symbol) {
+    void Setup(Symbol_Scope & in_symbol) {
       symbol_ptr = &in_symbol;
 
       // Link specialized variable for the derived type.

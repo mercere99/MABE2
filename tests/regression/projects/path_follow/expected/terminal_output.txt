@@ -1,0 +1,213 @@
+Loading file(s): 'path_follow.mabe'
+Setting Random Seed to 30
+Loading!
+Map #0 is 40x40, with 20 path tiles!
+Found 44 external functions! sg-rotate-r sg-rotate-l sg-move-back sg-sense HSearch Repro HCopy HAlloc GetHead MovHead ShiftL JumpHead Add HDivide Dec Inc sg-move NopF SwapStk NopE SetFlow SearchLabelDirectF Swap SearchSeqDirectS NopC Nand NopX NopB NopD SearchLabelDirectS IfNEqu SearchLabelDirectB NopA ShiftR IO IfLabel IfLess MoveHeadIfNEqu SearchSeqDirectF Label Push Sub SearchSeqDirectB Pop
+Found 1 external functions with name: NopA! (a)
+Registered instruction: NopA index: 0; id: 0; symbol: a
+Found 1 external functions with name: NopB! (b)
+Registered instruction: NopB index: 1; id: 1; symbol: b
+Found 1 external functions with name: NopC! (c)
+Registered instruction: NopC index: 2; id: 2; symbol: c
+Found 1 external functions with name: NopD! (d)
+Registered instruction: NopD index: 3; id: 3; symbol: d
+Found 1 external functions with name: NopE! (e)
+Registered instruction: NopE index: 4; id: 4; symbol: e
+Found 1 external functions with name: NopF! (f)
+Registered instruction: NopF index: 5; id: 5; symbol: f
+Found 1 external functions with name: Inc! (g)
+Registered instruction: Inc index: 6; id: 6; symbol: g
+Found 1 external functions with name: Dec! (h)
+Registered instruction: Dec index: 7; id: 7; symbol: h
+Found 1 external functions with name: Add! (i)
+Registered instruction: Add index: 8; id: 8; symbol: i
+Found 1 external functions with name: Sub! (j)
+Registered instruction: Sub index: 9; id: 9; symbol: j
+Found 1 external functions with name: Nand! (k)
+Registered instruction: Nand index: 10; id: 10; symbol: k
+Found 1 external functions with name: ShiftL! (l)
+Registered instruction: ShiftL index: 11; id: 11; symbol: l
+Found 1 external functions with name: ShiftR! (m)
+Registered instruction: ShiftR index: 12; id: 12; symbol: m
+Found 1 external functions with name: IO! (n)
+Registered instruction: IO index: 13; id: 13; symbol: n
+Found 1 external functions with name: IfNEqu! (o)
+Registered instruction: IfNEqu index: 14; id: 14; symbol: o
+Found 1 external functions with name: IfLess! (p)
+Registered instruction: IfLess index: 15; id: 15; symbol: p
+Found 1 external functions with name: IfLabel! (q)
+Registered instruction: IfLabel index: 16; id: 16; symbol: q
+Found 1 external functions with name: MoveHeadIfNEqu! (r)
+Registered instruction: MoveHeadIfNEqu index: 17; id: 17; symbol: r
+Found 1 external functions with name: Label! (s)
+Registered instruction: Label index: 18; id: 18; symbol: s
+Found 1 external functions with name: SearchLabelDirectB! (t)
+Registered instruction: SearchLabelDirectB index: 19; id: 19; symbol: t
+Found 1 external functions with name: SearchLabelDirectF! (u)
+Registered instruction: SearchLabelDirectF index: 20; id: 20; symbol: u
+Found 1 external functions with name: SearchLabelDirectS! (v)
+Registered instruction: SearchLabelDirectS index: 21; id: 21; symbol: v
+Found 1 external functions with name: SearchSeqDirectB! (w)
+Registered instruction: SearchSeqDirectB index: 22; id: 22; symbol: w
+Found 1 external functions with name: SearchSeqDirectF! (x)
+Registered instruction: SearchSeqDirectF index: 23; id: 23; symbol: x
+Found 1 external functions with name: SearchSeqDirectS! (y)
+Registered instruction: SearchSeqDirectS index: 24; id: 24; symbol: y
+Found 1 external functions with name: Pop! (z)
+Registered instruction: Pop index: 25; id: 25; symbol: z
+Found 1 external functions with name: Push! (A)
+Registered instruction: Push index: 26; id: 26; symbol: A
+Found 1 external functions with name: SwapStk! (B)
+Registered instruction: SwapStk index: 27; id: 27; symbol: B
+Found 1 external functions with name: Swap! (C)
+Registered instruction: Swap index: 28; id: 28; symbol: C
+Found 1 external functions with name: MovHead! (D)
+Registered instruction: MovHead index: 29; id: 29; symbol: D
+Found 1 external functions with name: JumpHead! (E)
+Registered instruction: JumpHead index: 30; id: 30; symbol: E
+Found 1 external functions with name: GetHead! (F)
+Registered instruction: GetHead index: 31; id: 31; symbol: F
+Found 1 external functions with name: SetFlow! (G)
+Registered instruction: SetFlow index: 32; id: 32; symbol: G
+Found 1 external functions with name: Repro! (H)
+Registered instruction: Repro index: 33; id: 33; symbol: H
+Found 1 external functions with name: sg-move! (I)
+Registered instruction: sg-move index: 34; id: 34; symbol: I
+Found 1 external functions with name: sg-move-back! (J)
+Registered instruction: sg-move-back index: 35; id: 35; symbol: J
+Found 1 external functions with name: sg-rotate-r! (K)
+Registered instruction: sg-rotate-r index: 36; id: 36; symbol: K
+Found 1 external functions with name: sg-rotate-l! (L)
+Registered instruction: sg-rotate-l index: 37; id: 37; symbol: L
+Found 1 external functions with name: sg-sense! (M)
+Registered instruction: sg-sense index: 38; id: 38; symbol: M
+Writing instruction set to file: inst_set.txt
+random_seed = 30
+
+UD:1  pop_size=1  merit_mean=0.01  merit_max=0.01  gen_mean=0  gen_max=0  genome_length_max=50  genome_length_mean=50
+UD:2  pop_size=2  merit_mean=0.01  merit_max=0.01  gen_mean=0.5  gen_max=1  genome_length_max=51  genome_length_mean=50.5
+UD:3  pop_size=2  merit_mean=0.01  merit_max=0.01  gen_mean=0.5  gen_max=1  genome_length_max=51  genome_length_mean=50.5
+UD:4  pop_size=4  merit_mean=0.01  merit_max=0.01  gen_mean=1  gen_max=2  genome_length_max=52  genome_length_mean=50.75
+UD:5  pop_size=4  merit_mean=0.01  merit_max=0.01  gen_mean=1  gen_max=2  genome_length_max=52  genome_length_mean=50.75
+UD:6  pop_size=8  merit_mean=0.01  merit_max=0.01  gen_mean=1.5  gen_max=3  genome_length_max=53  genome_length_mean=51.25
+UD:7  pop_size=9  merit_mean=-0.00333333  merit_max=0.01  gen_mean=1.66667  gen_max=3  genome_length_max=53  genome_length_mean=51.4444
+UD:8  pop_size=16  merit_mean=0.01  merit_max=0.01  gen_mean=2  gen_max=4  genome_length_max=53  genome_length_mean=51.3125
+UD:9  pop_size=17  merit_mean=-0.00411765  merit_max=0.01  gen_mean=2.05882  gen_max=4  genome_length_max=54  genome_length_mean=51.4706
+UD:10  pop_size=31  merit_mean=0.00806452  merit_max=0.01  gen_mean=2.48387  gen_max=5  genome_length_max=54  genome_length_mean=51.3548
+UD:11  pop_size=35  merit_mean=-0.002  merit_max=0.01  gen_mean=2.57143  gen_max=5  genome_length_max=55  genome_length_mean=51.5429
+UD:12  pop_size=58  merit_mean=0.0037931  merit_max=0.01  gen_mean=2.91379  gen_max=5  genome_length_max=56  genome_length_mean=51.569
+UD:13  pop_size=72  merit_mean=0.00180556  merit_max=0.01  gen_mean=3.01389  gen_max=6  genome_length_max=56  genome_length_mean=51.5
+UD:14  pop_size=114  merit_mean=0.00587719  merit_max=0.01  gen_mean=3.39474  gen_max=6  genome_length_max=57  genome_length_mean=51.5175
+UD:15  pop_size=147  merit_mean=0.0044898  merit_max=0.05  gen_mean=3.53741  gen_max=6  genome_length_max=57  genome_length_mean=51.415
+UD:16  pop_size=214  merit_mean=0.00514019  merit_max=0.05  gen_mean=3.82243  gen_max=7  genome_length_max=57  genome_length_mean=51.3318
+UD:17  pop_size=292  merit_mean=0.00431507  merit_max=0.05  gen_mean=3.98973  gen_max=7  genome_length_max=57  genome_length_mean=51.2842
+UD:18  pop_size=426  merit_mean=0.00359155  merit_max=0.05  gen_mean=4.29812  gen_max=8  genome_length_max=57  genome_length_mean=51.3357
+UD:19  pop_size=590  merit_mean=0.00505085  merit_max=0.05  gen_mean=4.47627  gen_max=8  genome_length_max=58  genome_length_mean=51.2525
+UD:20  pop_size=858  merit_mean=0.0048951  merit_max=0.1  gen_mean=4.79371  gen_max=9  genome_length_max=58  genome_length_mean=51.2797
+UD:21  pop_size=1000  merit_mean=0.00487  merit_max=0.1  gen_mean=5.022  gen_max=10  genome_length_max=60  genome_length_mean=51.238
+UD:22  pop_size=1000  merit_mean=0.00469  merit_max=0.15  gen_mean=5.354  gen_max=11  genome_length_max=60  genome_length_mean=51.221
+UD:23  pop_size=1000  merit_mean=0.00628  merit_max=0.1  gen_mean=5.749  gen_max=11  genome_length_max=60  genome_length_mean=51.254
+UD:24  pop_size=1000  merit_mean=0.00548  merit_max=0.1  gen_mean=6.059  gen_max=11  genome_length_max=60  genome_length_mean=51.267
+UD:25  pop_size=1000  merit_mean=0.00605  merit_max=0.1  gen_mean=6.406  gen_max=11  genome_length_max=59  genome_length_mean=51.259
+UD:26  pop_size=1000  merit_mean=0.00663  merit_max=0.1  gen_mean=6.8  gen_max=12  genome_length_max=59  genome_length_mean=51.23
+UD:27  pop_size=1000  merit_mean=0.00516  merit_max=0.1  gen_mean=7.062  gen_max=13  genome_length_max=60  genome_length_mean=51.104
+UD:28  pop_size=1000  merit_mean=0.00617  merit_max=0.1  gen_mean=7.413  gen_max=14  genome_length_max=60  genome_length_mean=50.997
+UD:29  pop_size=1000  merit_mean=0.00455  merit_max=0.1  gen_mean=7.773  gen_max=14  genome_length_max=60  genome_length_mean=50.978
+UD:30  pop_size=1000  merit_mean=0.00548  merit_max=0.15  gen_mean=8.14  gen_max=15  genome_length_max=60  genome_length_mean=50.929
+UD:31  pop_size=1000  merit_mean=0.00696  merit_max=0.1  gen_mean=8.512  gen_max=15  genome_length_max=60  genome_length_mean=50.807
+UD:32  pop_size=1000  merit_mean=0.00526  merit_max=0.15  gen_mean=8.847  gen_max=16  genome_length_max=60  genome_length_mean=50.753
+UD:33  pop_size=1000  merit_mean=0.00523  merit_max=0.1  gen_mean=9.285  gen_max=16  genome_length_max=61  genome_length_mean=50.825
+UD:34  pop_size=1000  merit_mean=0.00713  merit_max=0.1  gen_mean=9.678  gen_max=17  genome_length_max=61  genome_length_mean=50.722
+UD:35  pop_size=1000  merit_mean=0.00789  merit_max=0.1  gen_mean=9.97  gen_max=17  genome_length_max=61  genome_length_mean=50.581
+UD:36  pop_size=1000  merit_mean=0.00775  merit_max=0.1  gen_mean=10.345  gen_max=18  genome_length_max=61  genome_length_mean=50.529
+UD:37  pop_size=1000  merit_mean=0.00712  merit_max=0.1  gen_mean=10.599  gen_max=19  genome_length_max=60  genome_length_mean=50.426
+UD:38  pop_size=1000  merit_mean=0.00797  merit_max=0.1  gen_mean=11.073  gen_max=20  genome_length_max=61  genome_length_mean=50.321
+UD:39  pop_size=1000  merit_mean=0.00884  merit_max=0.1  gen_mean=11.441  gen_max=20  genome_length_max=61  genome_length_mean=50.198
+UD:40  pop_size=1000  merit_mean=0.00906  merit_max=0.1  gen_mean=11.877  gen_max=21  genome_length_max=61  genome_length_mean=50.163
+UD:41  pop_size=1000  merit_mean=0.00947  merit_max=0.15  gen_mean=12.315  gen_max=22  genome_length_max=61  genome_length_mean=50.274
+UD:42  pop_size=1000  merit_mean=0.01017  merit_max=0.1  gen_mean=12.757  gen_max=23  genome_length_max=60  genome_length_mean=50.278
+UD:43  pop_size=1000  merit_mean=0.00977  merit_max=0.15  gen_mean=13.256  gen_max=23  genome_length_max=62  genome_length_mean=50.167
+UD:44  pop_size=1000  merit_mean=0.01016  merit_max=0.2  gen_mean=13.697  gen_max=24  genome_length_max=62  genome_length_mean=50.037
+UD:45  pop_size=1000  merit_mean=0.0101  merit_max=0.2  gen_mean=14.02  gen_max=25  genome_length_max=64  genome_length_mean=50.01
+UD:46  pop_size=1000  merit_mean=0.00964  merit_max=0.1  gen_mean=14.453  gen_max=25  genome_length_max=61  genome_length_mean=49.955
+UD:47  pop_size=1000  merit_mean=0.00884  merit_max=0.15  gen_mean=14.785  gen_max=25  genome_length_max=61  genome_length_mean=49.968
+UD:48  pop_size=1000  merit_mean=0.00975  merit_max=0.1  gen_mean=15.263  gen_max=25  genome_length_max=62  genome_length_mean=49.893
+UD:49  pop_size=1000  merit_mean=0.01111  merit_max=0.1  gen_mean=15.783  gen_max=25  genome_length_max=61  genome_length_mean=49.766
+UD:50  pop_size=1000  merit_mean=0.01122  merit_max=0.15  gen_mean=16.269  gen_max=26  genome_length_max=61  genome_length_mean=49.607
+UD:51  pop_size=1000  merit_mean=0.0109  merit_max=0.15  gen_mean=16.867  gen_max=27  genome_length_max=61  genome_length_mean=49.613
+UD:52  pop_size=1000  merit_mean=0.01278  merit_max=0.2  gen_mean=17.305  gen_max=28  genome_length_max=62  genome_length_mean=49.336
+UD:53  pop_size=1000  merit_mean=0.01191  merit_max=0.25  gen_mean=17.828  gen_max=28  genome_length_max=65  genome_length_mean=49.325
+UD:54  pop_size=1000  merit_mean=0.01332  merit_max=0.25  gen_mean=18.11  gen_max=29  genome_length_max=62  genome_length_mean=49.156
+UD:55  pop_size=1000  merit_mean=0.0132  merit_max=0.1  gen_mean=18.561  gen_max=27  genome_length_max=64  genome_length_mean=48.993
+UD:56  pop_size=1000  merit_mean=0.0142  merit_max=0.1  gen_mean=19.089  gen_max=27  genome_length_max=64  genome_length_mean=48.847
+UD:57  pop_size=1000  merit_mean=0.01396  merit_max=0.1  gen_mean=19.721  gen_max=29  genome_length_max=65  genome_length_mean=48.883
+UD:58  pop_size=1000  merit_mean=0.01539  merit_max=0.1  gen_mean=20.229  gen_max=29  genome_length_max=66  genome_length_mean=48.758
+UD:59  pop_size=1000  merit_mean=0.01562  merit_max=0.2  gen_mean=20.75  gen_max=29  genome_length_max=65  genome_length_mean=48.6
+UD:60  pop_size=1000  merit_mean=0.01556  merit_max=0.1  gen_mean=21.355  gen_max=30  genome_length_max=65  genome_length_mean=48.439
+UD:61  pop_size=1000  merit_mean=0.01707  merit_max=0.2  gen_mean=21.897  gen_max=31  genome_length_max=62  genome_length_mean=48.296
+UD:62  pop_size=1000  merit_mean=0.01558  merit_max=0.1  gen_mean=22.54  gen_max=32  genome_length_max=62  genome_length_mean=47.978
+UD:63  pop_size=1000  merit_mean=0.01522  merit_max=0.15  gen_mean=23.175  gen_max=33  genome_length_max=62  genome_length_mean=47.921
+UD:64  pop_size=1000  merit_mean=0.01648  merit_max=0.1  gen_mean=23.747  gen_max=34  genome_length_max=60  genome_length_mean=47.849
+UD:65  pop_size=1000  merit_mean=0.01517  merit_max=0.15  gen_mean=24.19  gen_max=35  genome_length_max=60  genome_length_mean=47.704
+UD:66  pop_size=1000  merit_mean=0.01486  merit_max=0.1  gen_mean=24.748  gen_max=36  genome_length_max=60  genome_length_mean=47.372
+UD:67  pop_size=1000  merit_mean=0.01508  merit_max=0.1  gen_mean=25.264  gen_max=36  genome_length_max=60  genome_length_mean=47.292
+UD:68  pop_size=1000  merit_mean=0.01513  merit_max=0.15  gen_mean=25.848  gen_max=37  genome_length_max=60  genome_length_mean=46.995
+UD:69  pop_size=1000  merit_mean=0.0158  merit_max=0.2  gen_mean=26.438  gen_max=37  genome_length_max=60  genome_length_mean=46.768
+UD:70  pop_size=1000  merit_mean=0.0172  merit_max=0.2  gen_mean=27.027  gen_max=38  genome_length_max=61  genome_length_mean=46.769
+UD:71  pop_size=1000  merit_mean=0.01679  merit_max=0.15  gen_mean=27.612  gen_max=39  genome_length_max=61  genome_length_mean=46.182
+UD:72  pop_size=1000  merit_mean=0.01826  merit_max=0.15  gen_mean=28.071  gen_max=40  genome_length_max=62  genome_length_mean=45.95
+UD:73  pop_size=1000  merit_mean=0.01772  merit_max=0.15  gen_mean=28.577  gen_max=41  genome_length_max=61  genome_length_mean=45.454
+UD:74  pop_size=1000  merit_mean=0.0168  merit_max=0.25  gen_mean=29.075  gen_max=41  genome_length_max=58  genome_length_mean=44.767
+UD:75  pop_size=1000  merit_mean=0.01656  merit_max=0.15  gen_mean=29.551  gen_max=42  genome_length_max=59  genome_length_mean=44.791
+UD:76  pop_size=1000  merit_mean=0.01762  merit_max=0.15  gen_mean=30.043  gen_max=44  genome_length_max=59  genome_length_mean=44.546
+UD:77  pop_size=1000  merit_mean=0.01973  merit_max=0.15  gen_mean=30.682  gen_max=43  genome_length_max=59  genome_length_mean=44.461
+UD:78  pop_size=1000  merit_mean=0.01958  merit_max=0.25  gen_mean=31.206  gen_max=44  genome_length_max=59  genome_length_mean=44.148
+UD:79  pop_size=1000  merit_mean=0.02127  merit_max=0.2  gen_mean=31.783  gen_max=44  genome_length_max=59  genome_length_mean=43.894
+UD:80  pop_size=1000  merit_mean=0.02068  merit_max=0.25  gen_mean=32.209  gen_max=46  genome_length_max=59  genome_length_mean=43.48
+UD:81  pop_size=1000  merit_mean=0.02088  merit_max=0.15  gen_mean=32.664  gen_max=46  genome_length_max=59  genome_length_mean=43.302
+UD:82  pop_size=1000  merit_mean=0.02099  merit_max=0.15  gen_mean=33.368  gen_max=46  genome_length_max=59  genome_length_mean=42.983
+UD:83  pop_size=1000  merit_mean=0.02066  merit_max=0.1  gen_mean=34.044  gen_max=47  genome_length_max=60  genome_length_mean=42.545
+UD:84  pop_size=1000  merit_mean=0.01929  merit_max=0.1  gen_mean=34.689  gen_max=46  genome_length_max=60  genome_length_mean=42.189
+UD:85  pop_size=1000  merit_mean=0.01782  merit_max=0.1  gen_mean=35.445  gen_max=47  genome_length_max=62  genome_length_mean=41.732
+UD:86  pop_size=1000  merit_mean=0.01982  merit_max=0.15  gen_mean=35.976  gen_max=48  genome_length_max=61  genome_length_mean=41.204
+UD:87  pop_size=1000  merit_mean=0.01973  merit_max=0.2  gen_mean=36.805  gen_max=49  genome_length_max=57  genome_length_mean=41.045
+UD:88  pop_size=1000  merit_mean=0.01865  merit_max=0.25  gen_mean=37.504  gen_max=49  genome_length_max=57  genome_length_mean=40.907
+UD:89  pop_size=1000  merit_mean=0.02106  merit_max=0.15  gen_mean=38.2  gen_max=49  genome_length_max=58  genome_length_mean=40.805
+UD:90  pop_size=1000  merit_mean=0.02171  merit_max=0.2  gen_mean=38.748  gen_max=51  genome_length_max=56  genome_length_mean=40.609
+UD:91  pop_size=1000  merit_mean=0.02152  merit_max=0.25  gen_mean=39.616  gen_max=51  genome_length_max=58  genome_length_mean=40.14
+UD:92  pop_size=1000  merit_mean=0.02134  merit_max=0.25  gen_mean=39.987  gen_max=52  genome_length_max=58  genome_length_mean=40.309
+UD:93  pop_size=1000  merit_mean=0.01995  merit_max=0.25  gen_mean=40.659  gen_max=52  genome_length_max=60  genome_length_mean=40.269
+UD:94  pop_size=1000  merit_mean=0.02126  merit_max=0.15  gen_mean=41.218  gen_max=52  genome_length_max=60  genome_length_mean=39.845
+UD:95  pop_size=1000  merit_mean=0.02039  merit_max=0.2  gen_mean=41.8  gen_max=53  genome_length_max=57  genome_length_mean=39.419
+UD:96  pop_size=1000  merit_mean=0.02035  merit_max=0.25  gen_mean=42.655  gen_max=54  genome_length_max=57  genome_length_mean=38.974
+UD:97  pop_size=1000  merit_mean=0.01958  merit_max=0.15  gen_mean=43.506  gen_max=55  genome_length_max=55  genome_length_mean=38.585
+UD:98  pop_size=1000  merit_mean=0.0193  merit_max=0.15  gen_mean=44.409  gen_max=56  genome_length_max=55  genome_length_mean=38.36
+UD:99  pop_size=1000  merit_mean=0.02011  merit_max=0.2  gen_mean=45.279  gen_max=56  genome_length_max=55  genome_length_mean=38.043
+UD:100  pop_size=1000  merit_mean=0.02122  merit_max=0.15  gen_mean=46.023  gen_max=57  genome_length_max=55  genome_length_mean=38.082
+UD:101  pop_size=1000  merit_mean=0.02113  merit_max=0.25  gen_mean=46.75  gen_max=58  genome_length_max=56  genome_length_mean=38.017
+UD:102  pop_size=1000  merit_mean=0.01928  merit_max=0.2  gen_mean=47.71  gen_max=59  genome_length_max=58  genome_length_mean=37.538
+UD:103  pop_size=1000  merit_mean=0.01649  merit_max=0.25  gen_mean=48.678  gen_max=61  genome_length_max=57  genome_length_mean=36.812
+UD:104  pop_size=1000  merit_mean=0.01704  merit_max=0.15  gen_mean=49.31  gen_max=63  genome_length_max=57  genome_length_mean=36.406
+UD:105  pop_size=1000  merit_mean=0.01492  merit_max=0.25  gen_mean=50.251  gen_max=64  genome_length_max=58  genome_length_mean=35.783
+UD:106  pop_size=1000  merit_mean=0.01403  merit_max=0.15  gen_mean=51.281  gen_max=64  genome_length_max=59  genome_length_mean=35.175
+UD:107  pop_size=1000  merit_mean=0.0136  merit_max=0.15  gen_mean=52.208  gen_max=65  genome_length_max=59  genome_length_mean=34.776
+UD:108  pop_size=1000  merit_mean=0.01465  merit_max=0.15  gen_mean=53.155  gen_max=64  genome_length_max=59  genome_length_mean=34.003
+UD:109  pop_size=1000  merit_mean=0.01525  merit_max=0.15  gen_mean=54.252  gen_max=65  genome_length_max=61  genome_length_mean=33.296
+UD:110  pop_size=1000  merit_mean=0.01344  merit_max=0.15  gen_mean=55.276  gen_max=66  genome_length_max=61  genome_length_mean=32.557
+UD:111  pop_size=1000  merit_mean=0.0158  merit_max=0.2  gen_mean=56.377  gen_max=67  genome_length_max=52  genome_length_mean=31.717
+UD:112  pop_size=1000  merit_mean=0.01607  merit_max=0.25  gen_mean=57.748  gen_max=69  genome_length_max=51  genome_length_mean=30.752
+UD:113  pop_size=1000  merit_mean=0.01518  merit_max=0.3  gen_mean=59.155  gen_max=70  genome_length_max=50  genome_length_mean=29.874
+UD:114  pop_size=1000  merit_mean=0.01464  merit_max=0.15  gen_mean=60.452  gen_max=73  genome_length_max=50  genome_length_mean=28.546
+UD:115  pop_size=1000  merit_mean=0.01209  merit_max=0.1  gen_mean=62.12  gen_max=75  genome_length_max=54  genome_length_mean=26.796
+UD:116  pop_size=1000  merit_mean=0.01187  merit_max=0.15  gen_mean=64.341  gen_max=78  genome_length_max=54  genome_length_mean=24.371
+UD:117  pop_size=1000  merit_mean=0.01131  merit_max=0.1  gen_mean=66.835  gen_max=79  genome_length_max=54  genome_length_mean=21.989
+UD:118  pop_size=1000  merit_mean=0.0114  merit_max=0.2  gen_mean=69.571  gen_max=80  genome_length_max=54  genome_length_mean=19.62
+UD:119  pop_size=1000  merit_mean=0.01074  merit_max=0.1  gen_mean=72.041  gen_max=82  genome_length_max=44  genome_length_mean=17.801
+UD:120  pop_size=1000  merit_mean=0.01092  merit_max=0.2  gen_mean=74.632  gen_max=85  genome_length_max=36  genome_length_mean=16.09
+UD:121  pop_size=1000  merit_mean=0.01158  merit_max=0.1  gen_mean=77.45  gen_max=88  genome_length_max=34  genome_length_mean=14.696
+UD:122  pop_size=1000  merit_mean=0.01352  merit_max=0.1  gen_mean=80.452  gen_max=90  genome_length_max=34  genome_length_mean=13.493
+UD:123  pop_size=1000  merit_mean=0.01588  merit_max=0.15  gen_mean=83.653  gen_max=94  genome_length_max=33  genome_length_mean=12.341
+UD:124  pop_size=1000  merit_mean=0.01689  merit_max=0.2  gen_mean=86.922  gen_max=97  genome_length_max=21  genome_length_mean=11.455
+UD:125  pop_size=1000  merit_mean=0.0176  merit_max=0.25  gen_mean=90.992  gen_max=102  genome_length_max=17  genome_length_mean=10.289
+UD:126  pop_size=1000  merit_mean=0.02065  merit_max=0.2  gen_mean=96.943  gen_max=108  genome_length_max=17  genome_length_mean=8.674
+UD:127  pop_size=1000  merit_mean=0.02125  merit_max=0.1  gen_mean=104.8  gen_max=117  genome_length_max=17  genome_length_mean=6.517

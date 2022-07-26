@@ -1,0 +1,16 @@
+DIR_NAMES= dir1 dir2 # Replace these with the subdirectories that live beside this Makefile!
+
+default: test
+
+test-%:
+	cd $(@:test-%=%) && make test
+
+test: $(addprefix test-, $(DIR_NAMES))
+
+cov-%:
+	cd $(@:cov-%=%) && make coverage
+
+coverage: coverage_conversion $(addprefix cov-, $(DIR_NAMES))
+
+coverage_conversion:
+	./convert_for_tests.sh

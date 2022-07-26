@@ -61,7 +61,6 @@ namespace mabe {
       #ifndef NDEBUG
         emp_error(args...);
       #endif
-
       // Otherwise store it to deal with it when requested.
       errors.push_back( emp::to_string( std::forward<Ts>(args)... ));
 
@@ -76,7 +75,7 @@ namespace mabe {
     template <typename... Ts>
     void AddWarning(Ts &&... args) {
       // If we are in debug mode, trigger the warning immediately.
-      emp_warning(args...);
+      //emp_warning(args...);
 
       // Otherwise store it to deal with it when requested.
       warnings.push_back( emp::to_string( std::forward<Ts>(args)... ));
@@ -109,6 +108,7 @@ namespace mabe {
     void Clear() {
       errors.resize(0);
       next_error = 0;
+      warnings.resize(0);
       next_warning = 0;
     }
 

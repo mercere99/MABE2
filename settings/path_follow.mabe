@@ -1,0 +1,131 @@
+random_seed = 0;                // Seed for random number generator; use 0 to base on time.
+Population main_pop;            // Collection of organisms
+Var pop_size = 3600;               // Local value variable.
+Var max_gens = 100;              // Local value variable.
+Var do_multiply = 1;            // Local value variable.
+MaxSizePlacement place_max_size { // Grow population to a given size then maintain
+  target = "main_pop";            // Population(s) to manage.
+  max_pop_size = pop_size;        // Maximum size of the population.
+};
+AnnotatePlacement_Position pos_annotater { // Store org's position as trait on placement.
+  target = "main_pop";      // Population(s) to annotate
+  pos_trait = "org_pos";    // Name of trait that will hold organism's position
+};
+SchedulerProbabilistic scheduler { // Rations out updates to organisms based on a specified attribute, using a method akin to roulette wheel selection.
+  pop = "main_pop";             // Which population should we select parents from?
+  avg_updates = 30;             // How many updates should organism receive on average?
+  trait = "merit";              // Which trait provides the fitness value to use?
+  base_value = 1;               // What value should the scheduler use for organisms that have performed no tasks?
+  merit_scale_factor = 2;       // How should the scheduler scale merit?
+};
+VirtualCPU_Inst_Nop inst_lib_nop { // Nop instructions for VirtualCPUOrg
+  target_pop = "main_pop";      // Population(s) to manage.
+  num_nops = 6;                 // Number of nops to include.
+};
+VirtualCPU_Inst_Math inst_lib_math { // Math instructions for VirtualCPUOrg
+  target_pop = "main_pop";      // Population(s) to manage.
+};
+VirtualCPU_Inst_Flow inst_lib_flow { // Flow control instructions for VirtualCPUOrg
+  target_pop = "main_pop";      // Population(s) to manage.
+};
+VirtualCPU_Inst_Label inst_lib_label { // Label control instructions for VirtualCPUOrg
+  target_pop = "main_pop"; // Population(s) to manage.
+};
+VirtualCPU_Inst_Manipulation inst_lib_manip { // Manipulation instructions for VirtualCPUOrg
+  target_pop = "main_pop";      // Population(s) to manage.
+};
+VirtualCPU_Inst_Replication inst_lib_repl { // Replication instructions for VirtualCPUOrg
+  target_pop = "main_pop";      // Population(s) to manage.
+  pos_trait = "org_pos";        // Name of trait that holds organism's position
+  offspring_genome_trait = "offspring_genome";// Name of trait that holds the offspring organism's genome
+  req_count_inst_executed = 1500; // Minimum number of instructions that the organism must 
+                                  // execute before its allowed to reproduce. Otherwise 
+                                  // reproduction instructions do nothing.  Takes priority 
+                                  // over `req_frac_inst_executed`; -1 to use fraction instead
+  req_frac_inst_executed = 0;   // The organism must have executed at least this fraction 
+                                  // of their genome to reproduce. Otherwise reproduction 
+                                  // instructions do nothing. 
+                                  // Overruled by `req_count_inst_executed`
+};
+EvalPathFollow path_follow {      // Evaluate organisms on their ability to follow a path.
+  target_pop = "main_pop";            // Which population(s) should we evaluate?
+  score_trait = "child_merit";    // Which trait stores path following performance?
+  state_trait = "state";          // Which trait stores organisms' path follow state?
+  map_filenames = "../settings/EvalPathFollow/test_map.txt"; 
+                                // List of map files to load, separated by semicolons(;)
+  randomize_cues = 1;           // If true, cues are assigned random values in for each new path
+};
+VirtualCPUOrg avida_org {       // Organism consisting of Avida instructions.
+  point_mut_prob = 0.01;        // Per-site probability of a point mutations
+  insertion_mut_prob = 0.01;        // Per-site probability of a insertion mutations
+  deletion_mut_prob = 0.01;        // Per-site probability of a deletion mutations
+  N = 0;                        // Initial number of instructions in genome
+  init_random = 0;              // Should we randomize ancestor?  (0 = "blank" default)
+  eval_time = 200;              // How many CPU cycles should we give organisms to run?
+  input_name = "input";         // Name of variable to load inputs from.
+  output_name = "old_output";   // Name of variable to output results.
+  genome_name = "genome";       // Where to store the genome?.
+  genome_length_name = "genome_length";   // Where to store the genome's length? 
+  position_name = "org_pos";    // Where to store the organism's position?.
+  merit_name = "merit";         // Name of variable corresponding to the organism's task performance.
+  child_merit_name = "child_merit";// Name of variable corresponding to the organism's task performance that will be used to calculate CPU cylces given to offspring.
+  initial_merit = 0.01;       // Initial value for merit (task performance)
+  verbose = 0;
+  initial_genome_filename = "../settings/VirtualCPUOrg/ancestor_repro.org";
+                              // File that contains the gennome used to initialize organisms.
+  inst_set_input_filename = "../settings/VirtualCPUOrg/inst_set_repro.txt"; 
+                              // File that contains the instruction set to use. 
+                              // One instruction name per line. Order is maintained.
+  inst_set_output_filename = "inst_set.txt";
+  expanded_nop_args = 1;        // If true, some instructions (e.g., math) will use multiple 
+                                  // nops to fully define the registers used
+  copy_influences_merit = 0;    // If true, the number of instructions copied (e.g., via 
+                                  // HCopy instruction)factor into offspring merit
+};
+AnalyzeSystematics sys{
+  data_file_name = "phylo/phylogenetic_data.csv";// Filename for systematics data file.
+  data_updates = "0:1:-1";      // Which updates should we output a data from the phylogeny?
+  snapshot_file_root_name = "phylo/phylogeny";// Filename for snapshot files (will have update number and .csv appended to end)
+  snapshot_updates = "0:1:-1";  // Which updates should we output a snapshot of the phylogeny?
+  store_ancestors = 1;          // Store all ancestors of extant taxa.(1 = TRUE)
+  store_outside = 0;            // Store all taxa that ever existed.(1 = TRUE)
+  taxon_info = "genome";        // Which trait should we identify unique taxa based on
+};
+
+Var dominant_genome;
+DataFile fit_file { filename="fitness.csv"; };
+fit_file.ADD_SETUP("dominant_genome = main_pop.CALC_MODE('genome')" );
+fit_file.ADD_COLUMN("merit_mean",       "main_pop.CALC_MEAN('child_merit')" );
+fit_file.ADD_COLUMN("merit_max",        "main_pop.CALC_MAX('child_merit')" );
+fit_file.ADD_COLUMN("dominant_genome",  "dominant_genome" );
+
+DataFile max_file { filename="max_org.csv"; };
+OrgList best_org;
+max_file.ADD_SETUP("best_org = main_pop.FIND_MAX('child_merit')" );
+max_file.ADD_COLUMN("merit",       "best_org.TRAIT('child_merit')" );
+max_file.ADD_COLUMN("merit_given", "best_org.TRAIT('merit')" );
+max_file.ADD_COLUMN("gen", "best_org.TRAIT('generation')" );
+
+@START() {
+  PRINT("random_seed = ", random_seed, "\n");  // Print seed at run start.
+  main_pop.INJECT("avida_org", 1);             // Inject ancestor organism 
+};;
+
+Var avg_gen; 
+@UPDATE(Var ud) {
+  scheduler.SCHEDULE();
+  PRINT("UD:", GET_UPDATE(),
+        "  pop_size=", main_pop.SIZE(),
+        "  merit_mean=", main_pop.CALC_MEAN("child_merit"),
+        "  merit_max=", main_pop.CALC_MAX("child_merit"),
+        "  gen_mean=", main_pop.CALC_MEAN("generation"),
+        //"  gen_max=", main_pop.CALC_MAX("generation"),
+        "\n\tgenome_length_max=", main_pop.CALC_MAX("genome_length"),
+        "  genome_length_mean=", main_pop.CALC_MEAN("genome_length")
+       );
+  fit_file.WRITE();
+  max_file.WRITE();
+  avg_gen = main_pop.CALC_MEAN("generation");
+  IF(avg_gen >= max_gens) EXIT();
+};
+
