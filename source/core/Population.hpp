@@ -177,7 +177,7 @@ namespace mabe {
       org_ptr->SetPopulation(*this);
       if (!data_layout_ptr) data_layout_ptr = &org_ptr->GetDataMap().GetLayout();
 
-      if ( &org_ptr->GetDataMap().GetLayout() != data_layout_ptr ) {
+      if ( data_layout_ptr != &org_ptr->GetDataMap().GetLayout() ) {
         emp::notify::Error("Trying to insert an organism into population '", name,
                            "' with the incorrect trait set.");
       }
