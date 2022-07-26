@@ -62,6 +62,14 @@ fit_file.ADD_COLUMN( "Dominant Fitness", "main_pop.CALC_MODE('fitness')" );
   fit_file.WRITE();
   // max_file.WRITE();
 
+  // Trace every 10 updates.
+  IF (ud % 10 == 0) {
+    OrgList trace_org = main_pop.FIND_MAX("fitness");
+    Var filename = "Trace-" + ud;
+    eval.TRACE(trace_org, filename);
+  }
+
+  // Generate the next generation and put it in place.
   OrgList offspring = select.SELECT(main_pop, next_pop, pop_size);
   main_pop.REPLACE_WITH(next_pop);
 };
