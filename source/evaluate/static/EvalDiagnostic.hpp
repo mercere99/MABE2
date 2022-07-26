@@ -22,19 +22,12 @@ namespace mabe {
 
   class EvalDiagnostic : public Module {
   private:
-    std::string vals_trait = "vals";           // Set of values to evaluate
-    std::string scores_trait = "scores";       // Vector of scores for each value
-    std::string total_trait = "total";         // A single value totalling all of the scores.
-    std::string first_trait = "first_active";  // Location of first activation position.
-    std::string count_trait = "active_count";  // Number of activation positions.
     size_t num_vals = 100;                     // Cardinality of the problem space.
-
-    // Track the DataMap ID for each trait.
-    size_t vals_id = emp::MAX_SIZE_T;
-    size_t scores_id = emp::MAX_SIZE_T;
-    size_t total_id = emp::MAX_SIZE_T;
-    size_t first_id = emp::MAX_SIZE_T;
-    size_t count_id = emp::MAX_SIZE_T;
+    RequiredMultiTrait<double> vals_trait{"vals", "Set of values to evaluate.", AsConfig(num_vals)};
+    OwnedMultiTrait<double> scores_trait{"scores", "Set of scores for each value.", AsConfig(num_vals)};
+    OwnedTrait<double> total_trait{"total", "A single value totalling all scores."};
+    OwnedTrait<size_t> first_trait{"first", "Location of first active positions."};
+    OwnedTrait<size_t> active_count_trait{"active_count", "Number of activation positions."};
 
     enum Type {
       EXPLOIT,                  // Must drive values as close to 100 as possible.
@@ -52,10 +45,7 @@ namespace mabe {
     EvalDiagnostic(mabe::MABE & control,
                    const std::string & name="EvalDiagnostic",
                    const std::string & desc="Evaluate value sets using a specified diagnostic.")
-      : Module(control, name, desc)
-    {
-      SetEvaluateMod(true);
-    }
+      : Module(control, name, desc) { SetEvaluateMod(true); }
     ~EvalDiagnostic() { }
 
     // Setup member functions associated with this class.
@@ -68,12 +58,7 @@ namespace mabe {
     }
 
     void SetupConfig() override {
-      LinkVar(vals_trait, "vals_trait", "Trait that stores the values to evaluate");
       LinkVar(num_vals, "N", "Cardinality of the problem (number of values to analyze)");
-      LinkVar(scores_trait, "scores_trait", "Trait to store activated scores");
-      LinkVar(total_trait, "total_trait", "Trait to store total score");
-      LinkVar(first_trait, "first_trait", "Trait to store first activation position");
-      LinkVar(count_trait, "count_trait", "Trait to store count of activation positions");
       LinkMenu(diagnostic_id, "diagnostic", "Which Diagnostic should we use?",
                EXPLOIT,        "exploit",        "Fitness = sum of all values",
                STRUCT_EXPLOIT, "struct_exploit", "Fitness = sum of descending values from start",
@@ -81,26 +66,18 @@ namespace mabe {
                DIVERSITY,      "diversity",      "Fitness = max value minus all others",
                WEAK_DIVERSITY, "weak_diversity", "Fitness = max value"
       );
+      RegisterTrait(vals_trait);
+      RegisterTrait(scores_trait);
+      RegisterTrait(total_trait);
+      RegisterTrait(first_trait);
+      RegisterTrait(active_count_trait);
     }
 
     void SetupModule() override {
-      AddRequiredTrait<double>(vals_trait, num_vals);
-      AddOwnedTrait<double>(scores_trait, "Individual scores for current diagnostic.", 0.0, num_vals);
-      AddOwnedTrait<double>(total_trait, "Combined score for current diagnostic.", 0.0);
-      AddOwnedTrait<size_t>(first_trait, "First activated position.", 0.0);
-      AddOwnedTrait<size_t>(count_trait, "Total number of activated positions.", 0.0);
+      // Nothing needed here yet...
     }
 
     double Evaluate(Collection orgs) {
-      // If we haven't calculated the IDs, do so now.
-      if (vals_id == emp::MAX_SIZE_T) {
-        vals_id = orgs.GetDataLayout().GetID(vals_trait);
-        scores_id = orgs.GetDataLayout().GetID(scores_trait);
-        total_id = orgs.GetDataLayout().GetID(total_trait);
-        first_id = orgs.GetDataLayout().GetID(first_trait);
-        count_id = orgs.GetDataLayout().GetID(count_trait);
-      }
-
       // Track the organism with the highest total score.
       double max_total = 0.0;
       emp::Ptr<Organism> max_org = nullptr;
@@ -112,11 +89,11 @@ namespace mabe {
         org.GenerateOutput();
 
         // Get access to the data_map elements that we need.
-        std::span<double> vals   = org.GetTrait<double>(vals_id, num_vals);
-        std::span<double> scores = org.GetTrait<double>(scores_id, num_vals);
-        double & total_score  = org.GetTrait<double>(total_id);
-        size_t & first_active = org.GetTrait<size_t>(first_id);
-        size_t & active_count = org.GetTrait<size_t>(count_id);
+        std::span<double> vals = vals_trait(org);
+        std::span<double> scores = scores_trait(org);
+        double & total_score = total_trait(org);
+        size_t & first_active = first_trait(org);
+        size_t & active_count = active_count_trait(org);
 
         // Initialize output values.
         total_score = 0.0;
