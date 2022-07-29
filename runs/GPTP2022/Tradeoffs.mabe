@@ -4,6 +4,9 @@ Var pop_size = 512;
 Var num_gens = 50000;
 Var print_step = 500;           // Interval for printing...
 
+Var out_dir = "./";
+Var out_filename = "data.csv";
+
 Population main_pop;
 Population next_pop;
 
@@ -62,7 +65,7 @@ SelectLexicase select_l {       // Shuffle traits each time an organism is chose
 };
 
 OrgList best_org;
-DataFile out_file { filename="fitness.csv"; };
+DataFile out_file { filename = out_dir + out_filename; };
 out_file.ADD_SETUP( "best_org = main_pop.FIND_MAX('fitness')" );
 
 out_file.ADD_COLUMN( "Update", "GET_UPDATE()" );
@@ -93,7 +96,8 @@ out_file.ADD_COLUMN( "Best Scores", "best_org.TRAIT('scores')" );
   PRINT(" Population size:  ", pop_size);
   PRINT(" Random seed:      ", random_seed, "\n");
   PRINT(" Num Generations:  ", num_gens);
-  PRINT(" Output step:      ", print_step, "\n");
+  PRINT(" Output step:      ", print_step);
+  PRINT(" Data File:        ", out_file.filename, "\n");
   
   main_pop.INJECT("vals_org", pop_size);       // Inject starting population.
 }
