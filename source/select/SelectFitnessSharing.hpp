@@ -20,21 +20,17 @@ namespace mabe {
   /// Add elite selection with the current population.
   class SelectFitnessSharing : public Module {
   private:
-    std::string trait;       ///< Which trait should we select on?
-    std::string sharing_trait;  ///< Which trait should we use for sharing?
-    size_t tourny_size;      ///< How big should each tournament be?
-    double sharing_threshold; ///< How similar to organisms need to be for fitness sharing?
-    double alpha = 1;        ///< Fitness sharing shape parameter
+    std::string trait = "fitness";      ///< Which trait should we select on?
+    std::string sharing_trait = "vals"; ///< Which trait should we use for sharing?
+    size_t tourny_size = 7;             ///< How big should each tournament be?
+    double sharing_threshold;           ///< How similar to organisms need to be for fitness sharing?
+    double alpha = 1;                   ///< Fitness sharing shape parameter
 
   public:
     SelectFitnessSharing(mabe::MABE & control,
                      const std::string & name="SelectFitnessSharing",
-                     const std::string & desc="Module to select the top fitness organisms from random subgroups for replication.",
-                     const std::string & in_trait="fitness",
-                     const std::string & in_share_trait="vals",
-                     size_t t_size=7)
+                     const std::string & desc="Module to select the top fitness organisms from random subgroups for replication.")
       : Module(control, name, desc)
-      , trait(in_trait), sharing_trait(in_share_trait), tourny_size(t_size)
     {
       SetSelectMod(true);              ///< Mark this module as a selection module.
     }
@@ -76,14 +72,14 @@ namespace mabe {
         return placement_list;
       }
 
-      for (int i = 0; i < select_pop.size(); i++) {
+      for (size_t i = 0; i < select_pop.size(); i++) {
         if (select_pop.IsEmpty(i)) {
           continue;
         }
         Organism & org1 = select_pop[i];
         double niche_count = 0.1;
         select_pop[i].GenerateOutput();
-        for (int j = 0; j < select_pop.size(); j++) {
+        for (size_t j = 0; j < select_pop.size(); j++) {
           if (select_pop.IsEmpty(j) || i == j) {
             continue;
           }
