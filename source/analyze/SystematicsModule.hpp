@@ -22,44 +22,35 @@ namespace mabe {
 class AnalyzeSystematics : public Module {
 private:
 
-    // Systematics manager
-    // Should the systematics manager track extinct non-ancestor taxa?
-    bool store_outside; 
-    // Should the systematics manager track extinct ancestor taxa?
-    bool store_ancestors;
-    std::string taxon_info; // Which trait should taxa be based on?
-    emp::Systematics <Organism, std::string> sys; // The systematics manager.
+    // Systematics manager setup
+    bool store_outside = false;                   ///< Should we track extinct non-ancestor taxa?
+    bool store_ancestors = true;                  ///< Should we track extinct ancestor taxa?
+    std::string taxon_info = "taxon_info";        ///< Which trait should taxa be based on?
+    emp::Systematics <Organism, std::string> sys; ///< The systematics manager.
 
     // Output
-    int snapshot_start; // The update we should start taking snapshots.
-    int snapshot_frequency; // The number of updates between snapshots.
-    int snapshot_end; // The update we should end taking snapshots.
-    std::string snapshot_file_root_name; // Root name of the snapshot files.
-    int data_start; // The update we should start adding rows to the datafile.
-    int data_frequency; // The number of updates between each row.
-    int data_end; // The update we should end adding rows to the datafile.
-    std::string data_file_name; // Name of the data file.
-    emp::DataFile data; // The data file object.
+    size_t snapshot_start = 0;             ///< Update to start taking snapshots.
+    size_t snapshot_frequency = 1;         ///< Number of updates between snapshots.
+    size_t snapshot_end = emp::MAX_SIZE_T; ///< Update to end taking snapshots.
+    std::string snapshot_file_root_name;   ///< Root name of the snapshot files.
+    size_t data_start = 0;                 ///< Update to start adding rows to the datafile.
+    size_t data_frequency = 1;             ///< Number of updates between each row.
+    size_t data_end = emp::MAX_SIZE_T;     ///< Update to end adding rows to the datafile.
+    std::string data_file_name;            ///< Name of the data file.
+    emp::DataFile data;                    ///< Data file object.
 
 public:
     AnalyzeSystematics(mabe::MABE & control,
                const std::string & name="AnalyzeSystematics",
-               const std::string & desc="Module to track the population's phylogeny.",
-               bool _storeout = 0, bool _storeanc = 1, const std::string & _taxon_info = "taxon_info")
-      : Module(control, name, desc), 
-      store_outside(_storeout), 
-      store_ancestors(_storeanc),
-      taxon_info(_taxon_info),
-      sys([this](Organism& org){org.GenerateOutput(); return org.GetTraitAsString(org.GetTraitID(taxon_info));}, true, _storeanc, _storeout, true),
-      snapshot_start(-1),
-      snapshot_frequency(1),
-      snapshot_end(-1),
-      snapshot_file_root_name("phylogeny"),
-      data_start(-1),
-      data_frequency(-1),
-      data_end(-1),
-      data_file_name("phylogenetic_data.csv"),
-      data("")
+               const std::string & desc="Module to track the population's phylogeny.")
+      : Module(control, name, desc)
+      , sys([this](Organism& org){
+              org.GenerateOutput();
+              return org.GetTraitAsString(org.GetTraitID(taxon_info));
+            }, true, store_ancestors, store_outside, true)
+      , snapshot_file_root_name("phylogeny")
+      , data_file_name("phylogenetic_data.csv")
+      , data("")
     {
       SetAnalyzeMod(true);    ///< Mark this module as an analyze module.
     }
@@ -107,8 +98,7 @@ public:
       if (update >= snapshot_start && update <= snapshot_end && (update - snapshot_start) % snapshot_frequency == 0) {
         sys.Snapshot(snapshot_file_root_name + "_" + emp::to_string(update) + ".csv");
       }
-      data.Update(update);
-      
+      data.Update(update);      
     }
     
     void TakeManualSnapshot(){
