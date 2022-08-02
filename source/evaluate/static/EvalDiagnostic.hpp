@@ -23,11 +23,11 @@ namespace mabe {
   class EvalDiagnostic : public Module {
   private:
     size_t num_vals = 100;                     // Cardinality of the problem space.
-    RequiredMultiTrait<double> vals_trait{"vals", "Set of values to evaluate.", AsConfig(num_vals)};
-    OwnedMultiTrait<double> scores_trait{"scores", "Set of scores for each value.", AsConfig(num_vals)};
-    OwnedTrait<double> total_trait{"total", "A single value totalling all scores."};
-    OwnedTrait<size_t> first_trait{"first", "Location of first active positions."};
-    OwnedTrait<size_t> active_count_trait{"active_count", "Number of activation positions."};
+    RequiredMultiTrait<double> vals_trait{this, "vals", "Set of values to evaluate.", AsConfig(num_vals)};
+    OwnedMultiTrait<double> scores_trait{this, "scores", "Set of scores for each value.", AsConfig(num_vals)};
+    OwnedTrait<double> total_trait{this, "total", "A single value totalling all scores."};
+    OwnedTrait<size_t> first_trait{this, "first", "Location of first active positions."};
+    OwnedTrait<size_t> active_count_trait{this, "active_count", "Number of activation positions."};
 
     enum Type {
       EXPLOIT,                  // Must drive values as close to 100 as possible.
