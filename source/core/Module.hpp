@@ -48,7 +48,7 @@ namespace mabe {
   protected:
 
     /// AsConfig() provides a simple mechanism for indicating that you want to store a reference to a variable
-    /// (because it will be set during configuration) rather than simply using a value.
+    /// (because it will be set during configuration) rather than simply using a static value.
     template <typename T>
     struct ConfigPlaceholder {
       T & var;
@@ -62,30 +62,41 @@ namespace mabe {
 
     class BaseTrait {
     protected:
-      Access access = Access::UNKNOWN;      // Which modules can read/write this trait?
-      bool multi = false;                   // Can this trait have multiple values?
-      std::string name;                     // Name of this trait in a DataMap
-      std::string desc;                     // Description of this trait
-      size_t count = 0;                     // Number of entries used for this trait.
-      emp::Ptr<size_t> count_ref = nullptr; // If count is determined by a config var, store here.
+      Access access = Access::UNKNOWN;      ///< Which modules can read/write this trait?
+      bool multi = false;                   ///< Can this trait have multiple values?
+      emp::Ptr<Module> owner_ptr;           ///< Track which module owns this trait object.
+      std::string name;                     ///< Name of this trait in a DataMap
+      std::string desc;                     ///< Description of this trait
+      size_t count = 0;                     ///< Number of entries used for this trait.
+      emp::Ptr<size_t> count_ref = nullptr; ///< If count is determined by config var, store here.
 
-      std::string config_name;              // Trait name in config file.
-      size_t id = emp::MAX_SIZE_T;          // ID of this trait in the DataMap.
-      bool registered = false;              // Has trait been registered to a module?
+      std::string config_name;              ///< Trait name in config file.
+      size_t id = emp::MAX_SIZE_T;          ///< ID of this trait in the DataMap.
+      bool registered = false;              ///< Has trait been registered to a module?
 
     public:
-      BaseTrait(Access _a, bool _m, const std::string & _n, const std::string & _d, size_t _c=1)
-        : access(_a), multi(_m), name(_n), desc(_d), count(_c), config_name(name + "_trait") {
+      BaseTrait(Access _a, bool _m, emp::Ptr<Module> _o, const std::string & _n,
+                const std::string & _d, size_t _c=1)
+        : access(_a), multi(_m), owner_ptr(_o), name(_n), desc(_d), count(_c),
+          config_name(name + "_trait")
+        {
           emp_assert(multi == true || count == 1, multi, count);
+          owner_ptr->trait_ptrs.push_back(this);   // Store trait for lookup in module.
         }
-      BaseTrait(Access _a, bool _m, const std::string & _n, const std::string & _d,
-                ConfigPlaceholder<size_t> _cr)
-        : access(_a), multi(_m), name(_n), desc(_d), count_ref(&_cr.var),
-          config_name(name + "_trait") {
-            emp_assert(multi==true, "Having a non-unary count possible requires a multi trait.");
+
+      /// Constructor for when trait count is determined by a different config variable.
+      BaseTrait(Access _a, bool _m, emp::Ptr<Module> _o, const std::string & _n,
+                const std::string & _d, ConfigPlaceholder<size_t> _cr)
+        : access(_a), multi(_m), owner_ptr(_o), name(_n), desc(_d), count_ref(&_cr.var),
+          config_name(name + "_trait")
+        {
+          emp_assert(multi==true, "Having a non-unary count possible requires a multi trait.");
+          owner_ptr->trait_ptrs.push_back(this);  // Store trait for lookup in module.
         }
       virtual ~BaseTrait() { }
 
+      Module & GetOwner() { return *owner_ptr; }
+      Access GetAccess() const { return access; }
       const std::string & GetName() const { return name; }
       const std::string & GetDesc() const { return desc; }
       size_t GetCount() const { return count_ref ? *count_ref : count; }
@@ -100,9 +111,9 @@ namespace mabe {
     };
 
     /// Extension on BaseTrait to allow saving of a typed default value.
-    template <typename T,      // What type is this trait?
-              Access ACCESS,   // How can this trait be accessed?
-              bool MULTI>      // Does this trait have multiple values?
+    template <typename T,                  // What type is this trait?
+              Access ACCESS,               // How can this trait be accessed?
+              bool MULTI>                  // Does this trait have multiple values?
     struct OrgTrait : public BaseTrait {
       T default_value{};
 
@@ -183,13 +194,12 @@ namespace mabe {
 
     emp::vector<emp::Ptr<BaseTrait>> trait_ptrs;
 
-    void RegisterTrait(BaseTrait & trait) {
-      trait_ptrs.push_back(&trait);  // Store trait for later use.
-
-      // Hook trait into config file.
-      LinkVar(trait.GetNameVar(),
-              trait.GetConfigName(),
-              std::string("Trait name for ") + trait.GetDesc());
+    void SetupConfig_Internal() override final {
+      for (auto trait_ptr : trait_ptrs) {
+        LinkVar(trait_ptr->GetNameVar(),
+                trait_ptr->GetConfigName(),
+                std::string("Trait name for ") + trait_ptr->GetDesc());
+      }      
     }
 
     void SetupModule_Internal() override final {
@@ -263,25 +273,27 @@ namespace mabe {
     }
 
     /// Link a range of values with a start, stop, and step.
+    template <typename T=int>
     emplode::Symbol_LinkedFunctions<std::string> & LinkRange(
-      int & start_var,
-      int & step_var,
-      int & stop_var,
+      T & start_var,
+      T & step_var,
+      T & stop_var,
       const std::string & name,
       const std::string & desc
     ) {
+      constexpr T no_val = ((T) 0) - 1;
       std::function<std::string()> get_fun =
         [&start_var,&step_var,&stop_var]() {
-          // If stop_var is -1, don't bother printing it (i.e. NO stop)
-          if (stop_var == -1) return emp::to_string(start_var, ':', step_var);
+          // If stop_var is no_val, don't bother printing it (i.e. NO stop)
+          if (stop_var == no_val) return emp::to_string(start_var, ':', step_var);
           return emp::to_string(start_var, ':', step_var, ':', stop_var);
         };
 
       std::function<void(std::string)> set_fun =
         [&start_var,&step_var,&stop_var](std::string name){
-          start_var = emp::from_string<int>(emp::string_pop(name, ':'));
-          step_var = emp::from_string<int>(emp::string_pop(name, ':'));
-          stop_var = name.size() ? emp::from_string<int>(name) : -1; // -1 indicates no stop.
+          start_var = emp::from_string<T>(emp::string_pop(name, ':'));
+          step_var = emp::from_string<T>(emp::string_pop(name, ':'));
+          stop_var = name.size() ? emp::from_string<T>(name) : no_val; // no_val indicates no stop.
         };
 
       return AsScope().LinkFuns<std::string>(name, get_fun, set_fun, desc);
