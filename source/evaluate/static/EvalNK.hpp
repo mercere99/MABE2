@@ -19,8 +19,9 @@ namespace mabe {
 
   class EvalNK : public EvalModule<EvalNK> {
   private:
-    RequiredTrait<emp::BitVector> bits_trait{"bits", "Bit-sequence to evaluate."};
-    OwnedTrait<double> fitness_trait{"fitness", "NK fitness value"};
+    // MABE_REQUIRED_TRAIT(bits, emp::BitVector, "Bit-sequence to evaluate.");
+    RequiredTrait<emp::BitVector> bits_trait{this, "bits", "Bit-sequence to evaluate."};
+    OwnedTrait<double> fitness_trait{this, "fitness", "NK fitness value"};
 
     size_t N = 100;
     size_t K = 2;    
@@ -36,8 +37,6 @@ namespace mabe {
     void SetupConfig() override {
       LinkVar(N, "N", "Total number of bits required in sequence");
       LinkVar(K, "K", "Number of bits used in each gene");
-      RegisterTrait(bits_trait);
-      RegisterTrait(fitness_trait);
     }
 
     void SetupModule() override {
