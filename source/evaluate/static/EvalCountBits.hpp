@@ -19,8 +19,8 @@ namespace mabe {
 
   class EvalCountBits : public Module {
   private:
-    RequiredTrait<emp::BitVector> bits_trait{"bits", "Bit-sequence to evaluate."};
-    OwnedTrait<double> score_trait{"score", "Count of the number of specified bits"};
+    RequiredTrait<emp::BitVector> bits_trait{this, "bits", "Bit-sequence to evaluate."};
+    OwnedTrait<double> score_trait{this, "score", "Count of the number of specified bits"};
 
     bool count_type;   // =0 for counts zeros, or =1 for count ones.
 
@@ -43,8 +43,6 @@ namespace mabe {
 
     void SetupConfig() override {
       LinkVar(count_type, "count_type", "Which type of bit should we count? (0 or 1)");
-      RegisterTrait(bits_trait);
-      RegisterTrait(score_trait);
     }
 
     void SetupModule() override {
