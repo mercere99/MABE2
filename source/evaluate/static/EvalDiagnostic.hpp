@@ -66,11 +66,6 @@ namespace mabe {
                DIVERSITY,      "diversity",      "Fitness = max value minus all others",
                WEAK_DIVERSITY, "weak_diversity", "Fitness = max value"
       );
-      RegisterTrait(vals_trait);
-      RegisterTrait(scores_trait);
-      RegisterTrait(total_trait);
-      RegisterTrait(first_trait);
-      RegisterTrait(active_count_trait);
     }
 
     void SetupModule() override {
