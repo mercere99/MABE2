@@ -108,6 +108,11 @@ namespace mabe {
       virtual void AddTrait(Module & mod) = 0;
       void SetConfigName(const std::string & _name) { config_name = _name; }
       void SetupDataMap(const emp::DataMap & dm) { id = dm.GetID(name); }
+
+      virtual bool ReadOK() const = 0;
+      virtual bool WriteOK() const = 0;
+      virtual bool OtherReadOK() const = 0;
+      virtual bool OtherWriteOK() const = 0;
     };
 
     /// Extension on BaseTrait to allow saving of a typed default value.
@@ -164,6 +169,22 @@ namespace mabe {
         emp_assert(registered == false);
         mod.AddTrait<T>(ACCESS, name, desc, default_value, GetCount());
         registered = true;
+      }
+
+      bool ReadOK() const override {
+        return true;
+      }
+      bool WriteOK() const override {
+        if constexpr (ACCESS == REQUIRED || ACCESS == OPTIONAL) return false;
+        return true;
+      }
+      bool OtherReadOK() const override {
+        if constexpr (ACCESS == PRIVATE) return false;
+        return true;
+      }
+      bool OtherWriteOK() const override {
+        if constexpr (ACCESS == PRIVATE || ACCESS == OWNED || ACCESS == GENERATED) return false;
+        return true;
       }
     };
 
