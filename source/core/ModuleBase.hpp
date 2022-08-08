@@ -74,16 +74,19 @@
 
 namespace mabe {
 
+  class BaseTrait;
   class MABE;
   class OrgType;
   class Organism;
   class OrgPosition;
   class Population;
+  template <typename MOD_T> class TraitManager;
 
   using emplode::EmplodeType;
 
   class ModuleBase : public EmplodeType {
     friend MABE;
+    friend BaseTrait;
   protected:
     std::string name;          ///< Unique name for this module.
     std::string desc;          ///< Description for this module.
@@ -104,6 +107,9 @@ namespace mabe {
 
     /// Set of traits that this module is working with.
     emp::map<std::string, emp::Ptr<TraitInfo>> trait_map;
+
+    /// Trait object used in this module.
+    emp::vector<emp::Ptr<BaseTrait>> trait_ptrs;
 
     /// Other variables that we want to hook on to this Module externally.
     emp::DataMap data_map;
@@ -168,6 +174,8 @@ namespace mabe {
       // Clean up trait information.
       for (auto & x : trait_map) x.second.Delete();
     }
+
+    virtual TraitManager<ModuleBase> & GetTraitManager() =  0;
 
     /// By DEFAULT modules do not do anything extra when copying themselves.
     bool CopyValue(const EmplodeType &) override { return true; }
