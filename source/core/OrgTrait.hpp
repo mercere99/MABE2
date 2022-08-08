@@ -44,11 +44,10 @@ namespace mabe {
 
     std::string config_name;              ///< Trait name in config file.
     size_t id = emp::MAX_SIZE_T;          ///< ID of this trait in the DataMap.
-    bool registered = false;              ///< Has trait been registered to a module?
 
   public:
     BaseTrait(Access _a, bool _m, emp::Ptr<ModuleBase> _o, const std::string & _n,
-              const std::string & _d, size_t _c=1)
+              const std::string & _d="", size_t _c=1)
       : access(_a), multi(_m), owner_ptr(_o), name(_n), desc(_d), count(_c),
         config_name(name + "_trait")
       {
@@ -87,9 +86,9 @@ namespace mabe {
     virtual bool OtherWriteOK() const = 0;
   };
 
-  /// Extension on BaseTrait to allow saving of a typed default value.
+  /// Extension on BaseTrait to allow typed operations including saving of default value.
   template <typename T,                  // What type is this trait?
-            TraitInfo::Access ACCESS,               // How can this trait be accessed?
+            TraitInfo::Access ACCESS,    // How can this trait be accessed?
             bool MULTI>                  // Does this trait have multiple values?
   struct OrgTrait : public BaseTrait {
     T default_value{};
@@ -102,14 +101,12 @@ namespace mabe {
 
     /// Get() takes an organism and returns the trait reference for that organism.
     get_t Get(mabe::Organism & org) {
-      emp_assert(registered == true, "traits must be have RegisterTrait() run on them before use.", name);
       if constexpr (MULTI) return org.GetTrait<T>(id, GetCount());
       else return org.GetTrait<T>(id);
     }
 
     /// Get() takes a const organism and returns the trait value for that organism.
     const get_t Get(const mabe::Organism & org) const {
-      emp_assert(registered == true, "traits must be have RegisterTrait() run on them before use.", name);
       if constexpr (MULTI) return org.GetTrait<T>(id, GetCount());
       else return org.GetTrait<T>(id);
     }
@@ -118,7 +115,7 @@ namespace mabe {
     inline get_t operator()(mabe::Organism & org) { return Get(org); }
 
     /// A trait supplied with a const organism converts to the trait value for that organism.
-    inline const get_t operator()(const mabe::Organism & org) { return Get(org); }
+    inline const get_t operator()(const mabe::Organism & org) const { return Get(org); }
 
     /// If a trait is supplied a collection it returns a vector of values, one for each
     /// organism in the collection.
@@ -138,9 +135,7 @@ namespace mabe {
     /// Internal mechanism for this trait to be added to the module.
     //  @CAO: Needs cleanup and better integration with TraitInfo.
     void AddTrait() {
-      emp_assert(registered == false);
       owner_ptr->GetTraitManager().AddTrait<T>(owner_ptr, ACCESS, name, desc, default_value, GetCount());
-      registered = true;
     }
 
     bool ReadOK() const override {
@@ -158,6 +153,39 @@ namespace mabe {
       if constexpr (ACCESS == Access::PRIVATE || ACCESS == Access::OWNED || ACCESS == Access::GENERATED) return false;
       return true;
     }
+  };
+
+  /// Special-case trait that can have any base type, but get's converted to string when accessed.
+  struct RequiredTraitAsString : public BaseTrait {
+    template<typename... Ts>
+    RequiredTraitAsString(emp::Ptr<ModuleBase> owner_ptr, const std::string & name)
+      : BaseTrait(TraitInfo::Access::REQUIRED, false, owner_ptr, name) { }
+
+    /// Get() takes an organism and returns the trait reference for that organism.
+    std::string Get(mabe::Organism & org) const { return org.GetTraitAsString(id); }
+
+    /// A trait supplied with an organism converts to the trait reference for that organism.
+    inline std::string operator()(mabe::Organism & org) const { return Get(org); }
+
+    /// If a trait is supplied a collection it returns a vector of values, one for each
+    /// organism in the collection.
+    emp::vector<std::string> operator()(mabe::Collection & collect) const {
+      const size_t num_orgs = collect.GetSize();
+      emp::vector<std::string> out_v;
+      out_v.reserve(num_orgs);
+      for (auto & org : collect) {
+        out_v.push_back(org.GetTraitAsString(id));
+      }
+      return out_v;
+    }
+
+    /// Internal mechanism for this trait to be added to the module.
+    void AddTrait() { owner_ptr->GetTraitManager().AddTraitAsString(owner_ptr, name); }
+
+    bool ReadOK() const override { return true; }
+    bool WriteOK() const override {return false; }
+    bool OtherReadOK() const override { return true; }
+    bool OtherWriteOK() const override { return true; }
   };
 
 }
