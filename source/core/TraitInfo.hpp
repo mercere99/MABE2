@@ -171,6 +171,8 @@ namespace mabe {
     const emp::vector<emp::TypeID> & GetAltTypes() const { return alt_types; }
     size_t GetValueCount() const { return val_count; }
 
+    virtual bool IsAnyType() const { return false; }
+
     template <typename... Ts>
     void SetAltTypes(const emp::vector<emp::TypeID> & in_alt_types) { alt_types = in_alt_types; }
     template <typename T> bool IsType() const { return GetType() == emp::GetTypeID<T>(); }
@@ -244,11 +246,21 @@ namespace mabe {
     TraitInfo & SetName(const std::string & in_name) { name = in_name; return *this; }
     TraitInfo & SetDesc(const std::string & in_desc) { desc = in_desc; return *this; }
  
-    // Add a module that can access this trait.
+    /// Add a module that can access this trait.
     TraitInfo & AddAccess(const std::string & in_name, mod_ptr_t in_mod, Access access, bool is_manager) {
       access_info.push_back(ModuleInfo{ in_name, in_mod, access, is_manager });
       access_counts[access]++;
       if (is_manager) manager_access_counts[access]++;
+      return *this;
+    }
+
+    /// Add all of the accesses from a previous TraitInfo object.
+    TraitInfo & AddAccess(const TraitInfo & in) {
+      for (const auto & mod_info : in.access_info) access_info.push_back(mod_info);
+      for (size_t i = 0; i < NUM_ACCESS; ++i) {
+        access_counts[i] += in.access_counts[i];
+        manager_access_counts[i] += in.manager_access_counts[i];
+      }
       return *this;
     }
 
@@ -274,10 +286,10 @@ namespace mabe {
     TraitInfo & SetArchiveAll() { archive = Archive::ALL_REPRO; return *this; }
 
     /// Register this trait in the provided DataMap.
-    virtual void Register(emp::DataMap & dm) const = 0;
+    virtual bool Register(emp::DataMap &) const { return false; }
     
     /// Reset this trait back to its default value.
-    virtual void ResetToDefault(emp::DataMap & dm) = 0;
+    virtual bool ResetToDefault(emp::DataMap &) { return false; }
   };
 
   // Information about this trait, including type information and alternate type options.
@@ -313,21 +325,29 @@ namespace mabe {
       return *this;
     }
 
-    void ResetToDefault(emp::DataMap& dm) override{
+    bool ResetToDefault(emp::DataMap& dm) override {
       emp_assert(dm.HasName(GetName()));
       emp_assert(dm.IsType<T>(GetName()));
 
       T& val = dm.Get<T>(GetName());
       if(has_default) val = default_value;
       else val = { };
+      return true;
     }
     
-    void Register(emp::DataMap & dm) const override {
+    bool Register(emp::DataMap & dm) const override {
       dm.AddVar(name, default_value, desc, "MABE Trait", val_count);
+      return true;
     }
 
   };
 
+  // Information about a trait that is currently only accessed as a string.
+  class TraitInfoAsString : public TraitInfo {
+  public:
+    TraitInfoAsString(const std::string & in_name="") { name = in_name; }
+    bool IsAnyType() const override { return true; }
+  };
 }
 
 #endif
