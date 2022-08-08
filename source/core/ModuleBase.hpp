@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019-2021.
+ *  @date 2019-2022.
  *
  *  @file  ModuleBase.hpp
  *  @brief Base class for Module, which (in turn) is the base class for all MABE modules
@@ -25,7 +25,7 @@
  *     OnUpdate(size_t new_update)
  *       : New update has just started.
  *     BeforeRepro(OrgPosition parent_pos)
- *       : Parent is about to reporduce.
+ *       : Parent is about to reproduce.
  *     OnOffspringReady(Organism & offspring, OrgPosition parent_pos, Population & target_pop)
  *       : Offspring is ready to be placed.
  *     OnInjectReady(Organism & inject_org, Population & pop)
