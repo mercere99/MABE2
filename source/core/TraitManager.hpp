@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2021.
+ *  @date 2021-2022.
  *
  *  @file  TraitManager.hpp
  *  @brief Handling of multiple traits and how they relate to users.
@@ -73,8 +73,10 @@ namespace mabe {
      *  @param ALT_Ts Alternative types that can be allowed for non-owning of this trait.
      *  @param mod_ptr Pointer to the module that uses this trait.
      *  @param access The accesses method the module is requesting for this trait.
+     *  @param trait_name String with the unique name for this trait.
      *  @param desc A brief description of this trait.
      *  @param default_value The value to use for this trait when it is not otherwise set.
+     *  @param count A count of how many values are associated with this trait.
      */
     template <typename T, typename... ALT_Ts>
     TraitInfo & AddTrait(emp::Ptr<MOD_T> mod_ptr,
@@ -112,6 +114,19 @@ namespace mabe {
         trait_map[trait_name] = cur_trait;
       }
       
+      // If it was previously defined as "Any Type", just use the new types.
+      else if (trait_map[trait_name]->IsAnyType()) {
+        cur_trait = trait_map[trait_name];
+        // Build a new version of the trait information with the actual type options.
+        emp::Ptr<TraitInfo> new_trait = emp::NewPtr<TypedTraitInfo<T>>(trait_name, default_val, count);
+        cur_trait->SetAltTypes(alt_types);  // Include the alternate types.
+        new_trait->SetDesc(desc);           // Update the description.
+        new_trait->AddAccess(*cur_trait);   // Move over previous access attempts.
+        trait_map[trait_name] = new_trait;  // Activate the new trait information.
+        cur_trait.Delete();                 // Delete the old trait information.
+        cur_trait = new_trait;
+      }
+
       // Otherwise make sure that it is consistent with previous modules.
       else {
         cur_trait = trait_map[trait_name];
@@ -143,10 +158,13 @@ namespace mabe {
         if ( !emp::Has(alt_types, cur_trait->GetType()) ) {
           // Previous type does not match current options; can we switch over to type T?
           if (cur_trait->IsAllowedType<T>()) {
-            cur_trait.Delete();
-            cur_trait = emp::NewPtr<TypedTraitInfo<T>>(trait_name, default_val, count);
-            cur_trait->SetDesc(desc);
-            trait_map[trait_name] = cur_trait;
+            // Build a new version of the trait information with the updated type.
+            emp::Ptr<TraitInfo> new_trait = emp::NewPtr<TypedTraitInfo<T>>(trait_name, default_val, count);
+            new_trait->SetDesc(desc);          // Update the description.
+            new_trait->AddAccess(*cur_trait);  // Move over previous access attempts.
+            trait_map[trait_name] = new_trait; // Activate the new trait information.
+            cur_trait.Delete();                // Delete the old trait information.
+            cur_trait = new_trait;
           }
 
           // @CAO Technically, we can shift to any of the intersect types.
@@ -171,6 +189,47 @@ namespace mabe {
 
       return *cur_trait;
     }
+
+    /**
+     *  Add a new organism trait that will only be viewed as a string.
+     *  @param mod_ptr Pointer to the module that uses this trait.
+     *  @param trait_name String with the unique name for this trait.
+     */
+    TraitInfo & AddTraitAsString(emp::Ptr<MOD_T> mod_ptr, const std::string & trait_name)
+    {
+      const std::string & mod_name = mod_ptr->GetName();
+
+      // Traits must be added in the SetupModule() function for the given modules;
+      // afterward the trait manager is locked and additional new traits are not allowed.
+      if (locked) {
+        emp::notify::Error("Module '", mod_name, "' adding trait '", trait_name,
+                           "' before config files have loaded; should be done in SetupModule().");
+      }
+
+      // If the trait does not already exist, build it as a new trait.
+      emp::Ptr<TraitInfo> cur_trait = nullptr;
+      if (emp::Has(trait_map, trait_name) == false) {
+        trait_map[trait_name] = emp::NewPtr<TraitInfoAsString>(trait_name);
+      }
+      
+      // Otherwise make sure that it is consistent with previous modules.
+      else {
+        cur_trait = trait_map[trait_name];
+
+        // Make sure that the SAME module isn't defining a trait twice.
+        if (cur_trait->HasAccess(mod_ptr)) {
+          emp::notify::Error("Module ", mod_name, " is creating multiple traits named '",
+                   trait_name, "'.");
+        }
+      }
+
+      // Add this module's access to the trait.
+      bool is_manager = mod_ptr->IsManageMod();
+      cur_trait->AddAccess(mod_name, mod_ptr, TraitInfo::Access::REQUIRED, is_manager);
+
+      return *cur_trait;
+    }
+
 
     /////////////////////////////////////////////////
     //  --- Trait verification functions ---
