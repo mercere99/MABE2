@@ -36,20 +36,21 @@ namespace mabe {
 
     Access access = Access::UNKNOWN;      ///< Which modules can read/write this trait?
     bool multi = false;                   ///< Can this trait have multiple values?
-    emp::Ptr<ModuleBase> owner_ptr;           ///< Track which module owns this trait object.
+    emp::Ptr<ModuleBase> owner_ptr;       ///< Track which module owns this trait object.
     std::string name;                     ///< Name of this trait in a DataMap
     std::string desc;                     ///< Description of this trait
     size_t count = 0;                     ///< Number of entries used for this trait.
     emp::Ptr<size_t> count_ref = nullptr; ///< If count is determined by config var, store here.
 
     std::string config_name;              ///< Trait name in config file.
+    std::string config_desc;              ///< Description for trait name in config file.
     size_t id = emp::MAX_SIZE_T;          ///< ID of this trait in the DataMap.
 
   public:
     BaseTrait(Access _a, bool _m, emp::Ptr<ModuleBase> _o, const std::string & _n,
               const std::string & _d="", size_t _c=1)
       : access(_a), multi(_m), owner_ptr(_o), name(_n), desc(_d), count(_c),
-        config_name(name + "_trait")
+        config_name(name + "_trait"), config_desc(std::string("Trait name for ") + _d)
       {
         emp_assert(multi == true || count == 1, multi, count);
         owner_ptr->trait_ptrs.push_back(this);   // Store trait for lookup in module.
@@ -59,7 +60,7 @@ namespace mabe {
     BaseTrait(Access _a, bool _m, emp::Ptr<ModuleBase> _o, const std::string & _n,
               const std::string & _d, ConfigPlaceholder<size_t> _cr)
       : access(_a), multi(_m), owner_ptr(_o), name(_n), desc(_d), count_ref(&_cr.var),
-        config_name(name + "_trait")
+        config_name(name + "_trait"), config_desc(std::string("Trait name for ") + _d)
       {
         emp_assert(multi==true, "Having a non-unary count possible requires a multi trait.");
         owner_ptr->trait_ptrs.push_back(this);  // Store trait for lookup in module.
@@ -72,12 +73,14 @@ namespace mabe {
     const std::string & GetDesc() const { return desc; }
     size_t GetCount() const { return count_ref ? *count_ref : count; }
     const std::string & GetConfigName() const { return config_name; }
+    const std::string & GetConfigDesc() const { return config_desc; }
     size_t GetID() const { return id; }
 
     std::string & GetNameVar() { return name; }
 
     virtual void AddTrait() = 0;
     void SetConfigName(const std::string & _name) { config_name = _name; }
+    void SetConfigDesc(const std::string & _desc) { config_desc = _desc; }
     void SetupDataMap(const emp::DataMap & dm) { id = dm.GetID(name); }
 
     virtual bool ReadOK() const = 0;
@@ -158,8 +161,8 @@ namespace mabe {
   /// Special-case trait that can have any base type, but get's converted to string when accessed.
   struct RequiredTraitAsString : public BaseTrait {
     template<typename... Ts>
-    RequiredTraitAsString(emp::Ptr<ModuleBase> owner_ptr, const std::string & name)
-      : BaseTrait(TraitInfo::Access::REQUIRED, false, owner_ptr, name) { }
+    RequiredTraitAsString(emp::Ptr<ModuleBase> owner_ptr, const std::string & name, const std::string & desc="")
+      : BaseTrait(TraitInfo::Access::REQUIRED, false, owner_ptr, name, desc) { }
 
     /// Get() takes an organism and returns the trait reference for that organism.
     std::string Get(mabe::Organism & org) const { return org.GetTraitAsString(id); }
