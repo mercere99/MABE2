@@ -4,7 +4,7 @@ EMP_DIR=../source/third-party/empirical
 COV_DIR=./coverage_source
 TEST_DIR=./unit
 
-FLAGS="-std=c++17 -pthread -Wall -Wno-unused-function -Wno-unused-private-field -I${EMP_DIR}/include/ -I${EMP_DIR}/third-party/Catch/single_include/catch2 -I../source/ -DEMP_TRACK_MEM"
+FLAGS="-std=c++20 -pthread -Wall -Wno-unused-function -Wno-unused-private-field -I${EMP_DIR}/include/ -I${EMP_DIR}/third-party/Catch/single_include/catch2 -I../source/ -DEMP_TRACK_MEM"
 
 mkdir ${COV_DIR} -p
 
