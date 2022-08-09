@@ -46,6 +46,18 @@ namespace mabe {
 
     using Access = TraitInfo::Access;
 
+    struct UpdateRange {
+      size_t start = 0;
+      size_t stop = emp::MAX_SIZE_T;
+      size_t step = 1;
+
+      bool IsValid(size_t in_update) {
+        return in_update >= start &&
+               in_update <= stop &&
+               (in_update - start) % step == 0;
+      }
+    };
+
   protected:
 
     template <typename T> ConfigPlaceholder<T> AsConfig(T & in_var) { return in_var; }
@@ -80,7 +92,7 @@ namespace mabe {
       for (auto trait_ptr : trait_ptrs) {
         LinkVar(trait_ptr->GetNameVar(),
                 trait_ptr->GetConfigName(),
-                std::string("Trait name for ") + trait_ptr->GetDesc());
+                trait_ptr->GetConfigDesc());
       }      
     }
 
@@ -179,6 +191,10 @@ namespace mabe {
         };
 
       return AsScope().LinkFuns<std::string>(name, get_fun, set_fun, desc);
+    }
+
+    auto LinkRange(UpdateRange & in_range, const std::string & name, const std::string & desc) {
+      return LinkRange(in_range.start, in_range.step, in_range.stop, name, desc);
     }
   public:
 
