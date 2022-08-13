@@ -97,6 +97,7 @@ namespace mabe {
     emp::vector<std::string> config_settings;  ///< Additional config commands to run.
     std::string gen_filename;                  ///< Name of output file to generate.
     MABEScript config_script;                  ///< Configuration information for this run.
+    
     // ----------- Helper Functions -----------    
     void ShowHelp();       ///< Print information on how to run the software.
     void ShowModules();    ///< List all available modules in the current compilation.
@@ -236,19 +237,19 @@ namespace mabe {
     /// Move all organisms from one population to another.
     void MoveOrgs(Population & from_pop, Population & to_pop, bool reset_to) override;
 
-    /// Return a ramdom position from a desginated population.
+    /// Return a random position from a designated population.
     OrgPosition GetRandomPos(Population & pop) {
       emp_assert(pop.GetSize() > 0);
       return pop.IteratorAt( random.GetUInt(pop.GetSize()) );
     }
 
-    /// Return a ramdom position from the population with the specified id.
+    /// Return a random position from the population with the specified id.
     OrgPosition GetRandomPos(size_t pop_id) { return GetRandomPos(GetPopulation(pop_id)); }
 
-    /// Return a ramdom position from a desginated population with a living organism in it.
+    /// Return a random position from a designated population with a living organism in it.
     OrgPosition GetRandomOrgPos(Population & pop);
 
-    /// Return a ramdom position of a living organism from the population with the specified id.
+    /// Return a random position of a living organism from the population with the specified id.
     OrgPosition GetRandomOrgPos(size_t pop_id) { return GetRandomOrgPos(GetPopulation(pop_id)); }
 
 
@@ -538,7 +539,7 @@ namespace mabe {
       }
     }
 
-    // Now that we have scanned the signals, we can turn off the rescan flag.
+    // Now that we have scanned the signals, we can turn off the re-scan flag.
     rescan_signals = false;
   }
 
@@ -679,7 +680,7 @@ namespace mabe {
   }
 
   /// Inject this specific instance of an organism and turn over the pointer to be managed
-  /// by MABE.  Teturn the position the organism was placed in.
+  /// by MABE.  Return the position the organism was placed in.
   OrgPosition MABE::InjectInstance(Population & pop, emp::Ptr<Organism> org_ptr) {
     emp_assert(org_ptr->GetDataMap().SameLayout(org_data_map));
     on_inject_ready_sig.Trigger(*org_ptr, pop);
@@ -693,7 +694,7 @@ namespace mabe {
   }
   
 
-  /// Add an organsim of a specified type to the world (provide the type name and the
+  /// Add an organism of a specified type to the world (provide the type name and the
   /// MABE controller will create instances of it.)  Returns the position of the last
   /// organism placed.
   Collection MABE::Inject(Population & pop, const std::string & type_name, size_t copy_count) {
@@ -790,7 +791,7 @@ namespace mabe {
     EmptyPop(from_pop, 0);
   }
 
-  /// Return a ramdom position from a desginated population with a living organism in it.
+  /// Return a random position from a designated population with a living organism in it.
   OrgPosition MABE::GetRandomOrgPos(Population & pop) {
     emp_assert(pop.GetNumOrgs() > 0, "GetRandomOrgPos cannot be called if there are no orgs.");
     OrgPosition pos = GetRandomPos(pop);
