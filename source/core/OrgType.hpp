@@ -1,11 +1,15 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2021.
+ *  @date 2021-2022.
  *
  *  @file  OrgType.hpp
  *  @brief A base class for all organism components, with facilities for replication.
- *  @note Status: ALPHA
+ *  @note Status: BETA
+ * 
+ *  Organisms are all managed types in MABE, which is to say that a module handles all of their
+ *  configuration options, shared by each individual.  The same is true for each organism component
+ *  such as genomes or brains.  And OrgType should be the base class of any such components.
  */
 
 #ifndef MABE_ORG_TYPE_HPP
@@ -31,9 +35,11 @@ namespace mabe {
     const Module & GetManager() const { return (Module&) manager; }
 
     /// The class below is a placeholder for storing any manager-specific data that the organisms
-    /// should have access to.  A derived organism class merely needs to shadow this one in order
-    /// to include specialized data.
+    /// should have access to.  A derived organism class should derive it's managed data from this
+    /// one (mabe::OrgType::ManagerData) such that it inherits the common variables.
     struct ManagerData {
+      /// Trait object used in this module.
+      emp::vector<emp::Ptr<BaseTrait>> trait_ptrs;
     };
 
 
