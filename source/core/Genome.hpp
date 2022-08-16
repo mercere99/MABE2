@@ -164,8 +164,8 @@ namespace mabe {
     double alphabet_size = 4.0;
 
   public:
-    TypedGenome<LOCUS_T>() { }
-    TypedGenome<LOCUS_T>(this_t &) = default;
+    TypedGenome() { }
+    TypedGenome(this_t &) = default;
 
     emp::Ptr<Genome> Clone() override { return emp::NewPtr<this_t>(*this); }
     emp::Ptr<Genome> CloneProtocol() override {

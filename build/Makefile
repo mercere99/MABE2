@@ -8,7 +8,7 @@
 #  grumpy - Lots of extra warnings turned on
 #  noblock - Same as native, but "blocking" debug code is still allowed.
 
-EMP_DIR := ../../Empirical/include
+EMP_DIR := ../source/third-party/empirical/include
 MABE_DIR := ../source
 
 # Compiler information
