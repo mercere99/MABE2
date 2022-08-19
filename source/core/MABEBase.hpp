@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2021.
+ *  @date 2021-2022.
  *
  *  @file  MABEBase.hpp
  *  @brief Signal and population management for the master controller object in a MABE run.
@@ -128,7 +128,7 @@ namespace mabe {
     void AddOrgAt(emp::Ptr<Organism> org_ptr, OrgPosition pos, OrgPosition ppos=OrgPosition()) {
       emp_assert(org_ptr);                               // Must have a non-null organism to insert.
       ClearOrgAt(pos);                                   // Clear any organism already in this position.
-      before_placement_sig.Trigger(*org_ptr, pos, ppos); // Notify listerners org is about to be placed.
+      before_placement_sig.Trigger(*org_ptr, pos, ppos); // Notify listeners org is about to be placed.
       pos.PopPtr()->SetOrg(pos.Pos(), org_ptr);          // Put the new organism in place.
       on_placement_sig.Trigger(pos);                     // Notify listeners org has been placed.
     }
