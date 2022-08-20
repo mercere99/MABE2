@@ -26,8 +26,8 @@
 
 TEST_CASE("EvalTaskNot", "[evaluate/callable]"){
   using org_t = mabe::VirtualCPUOrg;
-  using inst_t = mabe::VirtualCPUOrg::inst_t;
-  using data_t = mabe::VirtualCPUOrg::data_t;
+  using inst_t = org_t::inst_t;
+  using data_t = org_t::data_t;
 
   mabe::MABE control = mabe::MABE(0, NULL);
   control.AddPopulation("fake pop"); 
@@ -40,7 +40,7 @@ TEST_CASE("EvalTaskNot", "[evaluate/callable]"){
   CHECK(task.CheckOneArg(~5, 5));
 
   // Create a more complicated testing environment
-  mabe::OrganismManager<mabe::VirtualCPUOrg> org_manager(control, "test_manager");
+  mabe::OrganismManager<org_t> org_manager(control, "test_manager");
   control.GetTraitManager().Unlock();
   org_manager.AddSharedTrait<emp::vector<data_t>>("input", "input vector", emp::vector<data_t>());
   org_manager.AddSharedTrait<emp::vector<data_t>>("output", "output vector", emp::vector<data_t>());
@@ -48,15 +48,15 @@ TEST_CASE("EvalTaskNot", "[evaluate/callable]"){
   task.AddOwnedTrait<bool>("not_performed", "Was and performed?", false);
   control.Setup_Traits();
   control.GetTraitManager().Lock();
-  mabe::VirtualCPUOrg org(org_manager);
+  org_t org(org_manager);
   control.GetTraitManager().RegisterAll(org.GetDataMap());
-  mabe::VirtualCPUOrg::inst_t inst(0,0);
+  org_t::inst_t inst(0,0);
   
   // Setup and fetch the new function
   task.SetupFunc();
   mabe::ActionMap& action_map = control.GetActionMap(0);
   std::unordered_map<std::string, mabe::Action>& typed_action_map =
-    action_map.GetFuncs<void, mabe::VirtualCPUOrg&, const mabe::VirtualCPUOrg::inst_t&>();
+    action_map.GetFuncs<void, org_t&, const org_t::inst_t&>();
   CHECK(typed_action_map.size() == 1);
   CHECK(typed_action_map.begin()->first == "IO");
   mabe::Action& action = typed_action_map.begin()->second;
@@ -70,17 +70,17 @@ TEST_CASE("EvalTaskNot", "[evaluate/callable]"){
   input_vec.push_back(12);
   // Incorrect answer -> no reward
   output_vec.push_back(127);
-  action.function_vec[0].Call<void, mabe::VirtualCPUOrg&, const inst_t&>(org, inst);
+  action.function_vec[0].Call<void, org_t&, const inst_t&>(org, inst);
   CHECK(org.GetTrait<double>("merit") == 0);
   CHECK(!org.GetTrait<bool>("not_performed"));
   // Correct answer -> reward
   output_vec.push_back(~35); 
-  action.function_vec[0].Call<void, mabe::VirtualCPUOrg&, const inst_t&>(org, inst);
+  action.function_vec[0].Call<void, org_t&, const inst_t&>(org, inst);
   CHECK(org.GetTrait<double>("merit") == 1);
   CHECK(org.GetTrait<bool>("not_performed"));
   // Repeated answer -> no reward
   output_vec.push_back(~12);
-  action.function_vec[0].Call<void, mabe::VirtualCPUOrg&, const inst_t&>(org, inst);
+  action.function_vec[0].Call<void, org_t&, const inst_t&>(org, inst);
   CHECK(org.GetTrait<double>("merit") == 1);
   CHECK(org.GetTrait<bool>("not_performed"));
 }
