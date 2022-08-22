@@ -90,16 +90,13 @@ namespace mabe {
 
       // Traits must be added in the SetupModule() function for the given modules;
       // afterward the trait manager is locked and additional new traits are not allowed.
-      if (locked) {
-        emp::notify::Error("Module '", mod_name, "' adding trait '", trait_name,
-                           "' before config files have loaded; should be done in SetupModule().");
-      }
+      emp_assert(!locked, "Module adding trait before config files are loaded; add in SetupModule().",
+                 mod_name, trait_name);
 
       // Traits cannot be added without access information.
-      if (access == TraitInfo::UNKNOWN) {
-        emp::notify::Error("Module ", mod_name, " trying to add trait named '", trait_name,
-                           "' with UNKNOWN access type.");
-      }
+      emp_assert(access != TraitInfo::UNKNOWN,
+                 "Module trying to add trait with UNKNOWN access type.",
+                 mod_name, trait_name);
 
       // Determine the type options this module can handle.
       emp::vector<emp::TypeID> alt_types = emp::GetTypeIDs<T, ALT_Ts...>();
