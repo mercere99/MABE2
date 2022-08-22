@@ -94,7 +94,7 @@ namespace mabe {
     }
 
     /// When an organism is placed in a population, add its weight to the weight map
-    void OnPlacement(OrgPosition placement_pos){
+    void OnPlacement(OrgPosition placement_pos) override {
       Population & pop = placement_pos.Pop();
       const size_t N = pop.GetSize();
       if(weight_map.GetSize() < N){
