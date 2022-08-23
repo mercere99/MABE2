@@ -85,7 +85,7 @@ TEST_CASE("TraitManager_Basic", "[core]"){
     // Traits cannot be added if manager is locked
     // Verified due to error being thrown 
     // Make sure error message is correct one
-    trait_man.AddTrait<double>(&nk_mod, mabe::TraitInfo::Access::OPTIONAL, "trait_i", "a trait", 7.0); 
+    trait_man.AddTrait<double>(&nk_mod, mabe::TraitInfo::Access::OPTIONAL, "trait_i", "a trait", 7.0, 1); 
     CHECK(has_error_been_thrown); 
     CHECK_FALSE(has_warning_been_thrown);  
     CHECK(trait_man.GetSize() == 1); 
@@ -98,7 +98,7 @@ TEST_CASE("TraitManager_Basic", "[core]"){
 
     // Check trait with unknown access should throw error
     // Check error message is correct 
-    trait_man.AddTrait<int>(&nk_mod, mabe::TraitInfo::Access::UNKNOWN, "trait_k", "a trait", 7); 
+    trait_man.AddTrait<int>(&nk_mod, mabe::TraitInfo::Access::UNKNOWN, "trait_k", "a trait", 7, 1); 
     CHECK(has_error_been_thrown); 
     CHECK_FALSE(has_warning_been_thrown); 
     CHECK(trait_man.GetSize() == 2); 
@@ -108,14 +108,14 @@ TEST_CASE("TraitManager_Basic", "[core]"){
     has_error_been_thrown = false; 
 
     // Add a trait regularly and check to see if traitmap expands
-    trait_man.AddTrait<int>(&nk_mod, mabe::TraitInfo::Access::OPTIONAL, "trait_l", "a trait", 7); 
+    trait_man.AddTrait<int>(&nk_mod, mabe::TraitInfo::Access::OPTIONAL, "trait_l", "a trait", 7, 1); 
     CHECK_FALSE(has_error_been_thrown); 
     CHECK_FALSE(has_warning_been_thrown); 
     CHECK(trait_man.GetSize() == 3); 
 
     // Add same trait to a different module
     // Shouldn't expand traitmap
-    trait_man.AddTrait<int>(&nk2_mod, mabe::TraitInfo::Access::OPTIONAL, "trait_l", "a trait", 7); 
+    trait_man.AddTrait<int>(&nk2_mod, mabe::TraitInfo::Access::OPTIONAL, "trait_l", "a trait", 7, 1); 
     CHECK_FALSE(has_error_been_thrown); 
     CHECK_FALSE(has_warning_been_thrown); 
     CHECK(trait_man.GetSize() == 3); 
@@ -161,7 +161,7 @@ TEST_CASE("TraitManager_AddTrait", "[core]"){
     CHECK(trait_man.GetSize() == 0); 
 
     // Add a trait normally
-    mabe::TypedTraitInfo<std::string>& trait_i = (mabe::TypedTraitInfo<std::string>& )trait_man.AddTrait<std::string>(&nk_mod, mabe::TraitInfo::Access::OPTIONAL, "trait_i", "a trait", "test string"); 
+    mabe::TypedTraitInfo<std::string>& trait_i = (mabe::TypedTraitInfo<std::string>& )trait_man.AddTrait<std::string>(&nk_mod, mabe::TraitInfo::Access::OPTIONAL, "trait_i", "a trait", "test string", 1); 
     CHECK(trait_man.GetSize() == 1); 
     CHECK_FALSE(has_error_been_thrown); 
     CHECK_FALSE(has_warning_been_thrown); 
@@ -172,7 +172,7 @@ TEST_CASE("TraitManager_AddTrait", "[core]"){
     // Add same trait to same module
     // Should throw error and not add it again to the map
     // Check correct error message is printed
-    trait_man.AddTrait<std::string>(&nk_mod, mabe::TraitInfo::Access::OPTIONAL, "trait_i", "a trait", "test string"); 
+    trait_man.AddTrait<std::string>(&nk_mod, mabe::TraitInfo::Access::OPTIONAL, "trait_i", "a trait", "test string", 1); 
     CHECK(has_error_been_thrown); 
     CHECK_FALSE(has_warning_been_thrown); 
     CHECK(trait_man.GetSize() == 1);
@@ -192,25 +192,25 @@ TEST_CASE("TraitManager_AddTrait", "[core]"){
     // Check new modules with accepted AltTypes can be added 
 
     // Create a trait with ints, doubles and strings allowed
-    trait_man.AddTrait<int, double, std::string>(&nk_mod, mabe::TraitInfo::Access::OPTIONAL, "trait_i", "a trait", 7); 
+    trait_man.AddTrait<int, double, std::string>(&nk_mod, mabe::TraitInfo::Access::OPTIONAL, "trait_i", "a trait", 7, 1); 
     CHECK(trait_man.GetSize() == 1); 
     CHECK_FALSE(has_error_been_thrown); 
     CHECK_FALSE(has_warning_been_thrown); 
 
     // Add a module that accesses with one of the AltTypes
-    trait_man.AddTrait<double>(&nk2_mod, mabe::TraitInfo::Access::OPTIONAL, "trait_i", "a trait", 7.0); 
+    trait_man.AddTrait<double>(&nk2_mod, mabe::TraitInfo::Access::OPTIONAL, "trait_i", "a trait", 7.0, 1); 
     CHECK(trait_man.GetSize() == 1); 
     CHECK_FALSE(has_error_been_thrown); 
     CHECK_FALSE(has_warning_been_thrown); 
 
     // Also check the reverse order! 
 
-    trait_man.AddTrait<double>(&nk_mod, mabe::TraitInfo::Access::OPTIONAL, "trait_ij", "a trait", 7.0); 
+    trait_man.AddTrait<double>(&nk_mod, mabe::TraitInfo::Access::OPTIONAL, "trait_ij", "a trait", 7.0, 1); 
     CHECK(trait_man.GetSize() == 2); 
     CHECK_FALSE(has_error_been_thrown); 
     CHECK_FALSE(has_warning_been_thrown); 
 
-    trait_man.AddTrait<int, double, std::string>(&nk2_mod, mabe::TraitInfo::Access::OPTIONAL, "trait_ij", "a trait", 7); 
+    trait_man.AddTrait<int, double, std::string>(&nk2_mod, mabe::TraitInfo::Access::OPTIONAL, "trait_ij", "a trait", 7, 1); 
     CHECK(trait_man.GetSize() == 2); 
     CHECK_FALSE(has_error_been_thrown); 
     CHECK_FALSE(has_warning_been_thrown);
@@ -219,7 +219,7 @@ TEST_CASE("TraitManager_AddTrait", "[core]"){
     // Test to pass valid non-AltType 
 
     // Create a trait with ints, doubles and strings allowed
-    trait_man.AddTrait<int, double, std::string>(&nk_mod, mabe::TraitInfo::Access::OPTIONAL, "trait_j", "a trait", 7); 
+    trait_man.AddTrait<int, double, std::string>(&nk_mod, mabe::TraitInfo::Access::OPTIONAL, "trait_j", "a trait", 7, 1); 
     CHECK(trait_man.GetSize() == 3); 
     CHECK_FALSE(has_error_been_thrown); 
     CHECK_FALSE(has_warning_been_thrown); 
@@ -228,7 +228,7 @@ TEST_CASE("TraitManager_AddTrait", "[core]"){
     // Test pass invalid non-AltType 
 
     // Create trait that only takes ints and doubles
-    trait_man.AddTrait<int, double>(&nk_mod, mabe::TraitInfo::Access::OPTIONAL, "trait_k", "a trait", 7); 
+    trait_man.AddTrait<int, double>(&nk_mod, mabe::TraitInfo::Access::OPTIONAL, "trait_k", "a trait", 7, 1); 
     CHECK(trait_man.GetSize() == 4); 
     CHECK_FALSE(has_error_been_thrown); 
     CHECK_FALSE(has_warning_been_thrown); 
@@ -236,7 +236,7 @@ TEST_CASE("TraitManager_AddTrait", "[core]"){
 
     // Add another module to that trait with non-AltTypes type
     // Check correct error message prints
-    trait_man.AddTrait<std::string>(&nk2_mod, mabe::TraitInfo::Access::OPTIONAL, "trait_k", "a trait", "test string"); 
+    trait_man.AddTrait<std::string>(&nk2_mod, mabe::TraitInfo::Access::OPTIONAL, "trait_k", "a trait", "test string", 1); 
     CHECK(trait_man.GetSize() == 4);
     CHECK(has_error_been_thrown); 
     CHECK_FALSE(has_warning_been_thrown);  
@@ -286,7 +286,7 @@ TEST_CASE("TraitManager_Verify", "[core]") {
 
     // Check that if a REQUIRED trait doesn't have one that adds to them, Verify throws error
     // Check correct error message prints
-    trait_man.AddTrait<int>(&nk_mod, mabe::TraitInfo::Access::REQUIRED, "trait_i", "a trait", 7); 
+    trait_man.AddTrait<int>(&nk_mod, mabe::TraitInfo::Access::REQUIRED, "trait_i", "a trait", 7, 1); 
     CHECK(trait_man.GetSize() == 1);
     trait_man.Verify(true); 
     CHECK(has_error_been_thrown); 
@@ -295,7 +295,7 @@ TEST_CASE("TraitManager_Verify", "[core]") {
 
     // Add a Trait that OWNES the trait, check Verify works
     has_error_been_thrown = false; 
-    trait_man.AddTrait<int>(&nk2_mod, mabe::TraitInfo::Access::OWNED, "trait_i", "a trait", 7); 
+    trait_man.AddTrait<int>(&nk2_mod, mabe::TraitInfo::Access::OWNED, "trait_i", "a trait", 7, 1); 
     CHECK(trait_man.GetSize() == 1); 
     trait_man.Verify(true); 
     CHECK_FALSE(has_error_been_thrown); 
@@ -307,7 +307,7 @@ TEST_CASE("TraitManager_Verify", "[core]") {
     // Do the check again, this time with a trait that GENERATES
     // Check that if a REQUIRED trait doesn't have one that adds to them, Verify throws error
     // Check correct error message prints
-    trait_man.AddTrait<int>(&nk_mod, mabe::TraitInfo::Access::REQUIRED, "trait_j", "a trait", 7); 
+    trait_man.AddTrait<int>(&nk_mod, mabe::TraitInfo::Access::REQUIRED, "trait_j", "a trait", 7, 1); 
     CHECK(trait_man.GetSize() == 2);
     trait_man.Verify(true); 
     CHECK(has_error_been_thrown); 
@@ -317,7 +317,7 @@ TEST_CASE("TraitManager_Verify", "[core]") {
 
     // Add a Trait that GENERATES the trait, check Verify works
     has_error_been_thrown = false; 
-    trait_man.AddTrait<int>(&nk2_mod, mabe::TraitInfo::Access::GENERATED, "trait_j", "a trait", 7); 
+    trait_man.AddTrait<int>(&nk2_mod, mabe::TraitInfo::Access::GENERATED, "trait_j", "a trait", 7, 1); 
     CHECK(trait_man.GetSize() == 2);
     trait_man.Verify(true); 
     CHECK_FALSE(has_error_been_thrown); 
@@ -328,7 +328,7 @@ TEST_CASE("TraitManager_Verify", "[core]") {
 
     // Do the check again, this time with a trait that SHARES
     // Check that if a REQUIRED trait doesn't have one that adds to them, Verify throws error
-    trait_man.AddTrait<int>(&nk_mod, mabe::TraitInfo::Access::REQUIRED, "trait_k", "a trait", 7); 
+    trait_man.AddTrait<int>(&nk_mod, mabe::TraitInfo::Access::REQUIRED, "trait_k", "a trait", 7, 1); 
     CHECK(trait_man.GetSize() == 3);
     trait_man.Verify(true); 
     CHECK(has_error_been_thrown); 
@@ -337,7 +337,7 @@ TEST_CASE("TraitManager_Verify", "[core]") {
 
     // Add a Trait that GENERATES the trait, check Verify works
     has_error_been_thrown = false; 
-    trait_man.AddTrait<int>(&nk2_mod, mabe::TraitInfo::Access::SHARED, "trait_k", "a trait", 7); 
+    trait_man.AddTrait<int>(&nk2_mod, mabe::TraitInfo::Access::SHARED, "trait_k", "a trait", 7, 1); 
 
     trait_man.Verify(true); 
     CHECK_FALSE(has_error_been_thrown); 
@@ -359,14 +359,14 @@ TEST_CASE("TraitManager_Verify", "[core]") {
     // A trait that is OWNED or GENERATED cannot have other modules writing to it.
 
     //Create a new OWNED trait
-    trait_man.AddTrait<int>(&nk_mod, mabe::TraitInfo::Access::OWNED, "trait_i", "a trait",  7); 
+    trait_man.AddTrait<int>(&nk_mod, mabe::TraitInfo::Access::OWNED, "trait_i", "a trait",  7, 1); 
     CHECK(trait_man.GetSize() == 1); 
     CHECK_FALSE(has_error_been_thrown); 
     CHECK_FALSE(has_warning_been_thrown); 
 
     // Check Verify throws error if another module tries OWNING it
     // Check error message is correct
-    trait_man.AddTrait<int>(&nk2_mod, mabe::TraitInfo::Access::OWNED, "trait_i", "a trait", 7); 
+    trait_man.AddTrait<int>(&nk2_mod, mabe::TraitInfo::Access::OWNED, "trait_i", "a trait", 7, 1); 
     CHECK(trait_man.GetSize() == 1); 
     trait_man.Verify(true); 
     CHECK(has_error_been_thrown); 
@@ -377,14 +377,14 @@ TEST_CASE("TraitManager_Verify", "[core]") {
     error_message = "";
 
     //Create a new OWNED trait
-    trait_man2.AddTrait<int>(&nk_mod, mabe::TraitInfo::Access::OWNED, "trait_j", "a trait", 7); 
+    trait_man2.AddTrait<int>(&nk_mod, mabe::TraitInfo::Access::OWNED, "trait_j", "a trait", 7, 1); 
     CHECK(trait_man2.GetSize() == 1); 
     CHECK_FALSE(has_error_been_thrown); 
     CHECK_FALSE(has_warning_been_thrown); 
 
     // Check Verify throws error if another module tries GENERATING it
     // Check correct error message is shown
-    trait_man2.AddTrait<int>(&nk2_mod, mabe::TraitInfo::Access::GENERATED, "trait_j", "a trait", 7); 
+    trait_man2.AddTrait<int>(&nk2_mod, mabe::TraitInfo::Access::GENERATED, "trait_j", "a trait", 7, 1); 
     CHECK(trait_man2.GetSize() == 1); 
     trait_man2.Verify(true); 
     CHECK(has_error_been_thrown); 
@@ -405,13 +405,13 @@ TEST_CASE("TraitManager_Verify", "[core]") {
 
     //  [BEGIN TESTS]
     //Create a new GENERATED trait
-    trait_man.AddTrait<int>(&nk_mod, mabe::TraitInfo::Access::GENERATED, "trait_k", "a trait", 7); 
+    trait_man.AddTrait<int>(&nk_mod, mabe::TraitInfo::Access::GENERATED, "trait_k", "a trait", 7, 1); 
     CHECK(trait_man.GetSize() == 1); 
     CHECK_FALSE(has_error_been_thrown); 
     CHECK_FALSE(has_warning_been_thrown); 
 
     // Add a module that REQUIRES the GENERATED one
-    trait_man.AddTrait<int>(&nk2_mod, mabe::TraitInfo::Access::REQUIRED, "trait_k", "a trait", 7); 
+    trait_man.AddTrait<int>(&nk2_mod, mabe::TraitInfo::Access::REQUIRED, "trait_k", "a trait", 7, 1); 
     CHECK(trait_man.GetSize() == 1); 
     CHECK_FALSE(has_error_been_thrown); 
     CHECK_FALSE(has_warning_been_thrown); 
@@ -423,7 +423,7 @@ TEST_CASE("TraitManager_Verify", "[core]") {
 
     // Check Verify throws error if another module tries OWNING it
     // Check error message is correct
-    trait_man.AddTrait<int>(&nk3_mod, mabe::TraitInfo::Access::OWNED, "trait_k", "a trait", 7); 
+    trait_man.AddTrait<int>(&nk3_mod, mabe::TraitInfo::Access::OWNED, "trait_k", "a trait", 7, 1); 
     CHECK(trait_man.GetSize() == 1); 
     trait_man.Verify(true); 
     CHECK(has_error_been_thrown); 
@@ -434,13 +434,13 @@ TEST_CASE("TraitManager_Verify", "[core]") {
     error_message = "";
 
     //Create a new GENERATED trait
-    trait_man2.AddTrait<int>(&nk_mod, mabe::TraitInfo::Access::GENERATED, "trait_l", "a trait", 7); 
+    trait_man2.AddTrait<int>(&nk_mod, mabe::TraitInfo::Access::GENERATED, "trait_l", "a trait", 7, 1); 
     CHECK(trait_man2.GetSize() == 1); 
     CHECK_FALSE(has_error_been_thrown); 
     CHECK_FALSE(has_warning_been_thrown); 
 
     // Add a module that REQUIRES the GENERATED one
-    trait_man2.AddTrait<int>(&nk2_mod, mabe::TraitInfo::Access::REQUIRED, "trait_l", "a trait", 7); 
+    trait_man2.AddTrait<int>(&nk2_mod, mabe::TraitInfo::Access::REQUIRED, "trait_l", "a trait", 7, 1); 
     CHECK(trait_man2.GetSize() == 1); 
     CHECK_FALSE(has_error_been_thrown); 
     CHECK_FALSE(has_warning_been_thrown); 
@@ -451,7 +451,7 @@ TEST_CASE("TraitManager_Verify", "[core]") {
     CHECK_FALSE(has_warning_been_thrown); 
 
     // Check Verify throws error if another module tries GENERATING it
-    trait_man2.AddTrait<int>(&nk2_mod, mabe::TraitInfo::Access::GENERATED, "trait_l", "a trait", 7); 
+    trait_man2.AddTrait<int>(&nk2_mod, mabe::TraitInfo::Access::GENERATED, "trait_l", "a trait", 7, 1); 
     CHECK(trait_man2.GetSize() == 1); 
     trait_man2.Verify(true); 
     CHECK(has_error_been_thrown); 
@@ -477,7 +477,7 @@ TEST_CASE("TraitManager_Verify", "[core]") {
     // A GENERATED trait must have another module REQUIRE it
 
     // Create a generated trait
-    trait_man.AddTrait<int>(&nk_mod, mabe::TraitInfo::Access::GENERATED, "trait_l", "a trait", 7); 
+    trait_man.AddTrait<int>(&nk_mod, mabe::TraitInfo::Access::GENERATED, "trait_l", "a trait", 7, 1); 
     CHECK(trait_man.GetSize() == 1); 
     CHECK_FALSE(has_error_been_thrown); 
     CHECK_FALSE(has_warning_been_thrown); 
@@ -492,7 +492,7 @@ TEST_CASE("TraitManager_Verify", "[core]") {
     has_error_been_thrown = false; 
 
     // Add a module that REQUIRES the trait
-    trait_man.AddTrait<int>(&nk2_mod, mabe::TraitInfo::Access::REQUIRED, "trait_l", "a trait", 7); 
+    trait_man.AddTrait<int>(&nk2_mod, mabe::TraitInfo::Access::REQUIRED, "trait_l", "a trait", 7, 1); 
     CHECK(trait_man.GetSize() == 1); 
     CHECK_FALSE(has_error_been_thrown); 
     CHECK_FALSE(has_warning_been_thrown); 
@@ -507,7 +507,7 @@ TEST_CASE("TraitManager_Verify", "[core]") {
 
     // Another module tries to access it
     // Add a private trait
-    trait_man2.AddTrait<int>(&nk_mod, mabe::TraitInfo::Access::PRIVATE, "trait_i", "a trait", 7); 
+    trait_man2.AddTrait<int>(&nk_mod, mabe::TraitInfo::Access::PRIVATE, "trait_i", "a trait", 7, 1); 
     CHECK(trait_man2.GetSize() == 1); 
     CHECK_FALSE(has_error_been_thrown); 
     CHECK_FALSE(has_warning_been_thrown); 
@@ -518,7 +518,7 @@ TEST_CASE("TraitManager_Verify", "[core]") {
     CHECK_FALSE(has_warning_been_thrown); 
 
     // Add another module that accesses it
-    trait_man2.AddTrait<int>(&nk2_mod, mabe::TraitInfo::Access::OPTIONAL, "trait_i", "a trait", 7); 
+    trait_man2.AddTrait<int>(&nk2_mod, mabe::TraitInfo::Access::OPTIONAL, "trait_i", "a trait", 7, 1); 
     CHECK(trait_man2.GetSize() == 1); 
     CHECK_FALSE(has_error_been_thrown); 
     CHECK_FALSE(has_warning_been_thrown); 
@@ -539,7 +539,7 @@ TEST_CASE("TraitManager_Verify", "[core]") {
     
     // Another module tries to access it
     // Add a private trait
-    trait_man3.AddTrait<int>(&nk_mod, mabe::TraitInfo::Access::PRIVATE, "trait_i", "a trait", 7); 
+    trait_man3.AddTrait<int>(&nk_mod, mabe::TraitInfo::Access::PRIVATE, "trait_i", "a trait", 7, 1); 
     CHECK(trait_man3.GetSize() == 1); 
     CHECK_FALSE(has_error_been_thrown); 
     CHECK_FALSE(has_warning_been_thrown); 
@@ -550,7 +550,7 @@ TEST_CASE("TraitManager_Verify", "[core]") {
     CHECK_FALSE(has_warning_been_thrown); 
 
     // Add another module that accesses it
-    trait_man3.AddTrait<int>(&nk2_mod, mabe::TraitInfo::Access::PRIVATE, "trait_i", "a trait", 7); 
+    trait_man3.AddTrait<int>(&nk2_mod, mabe::TraitInfo::Access::PRIVATE, "trait_i", "a trait", 7, 1); 
     CHECK(trait_man3.GetSize() == 1); 
     CHECK_FALSE(has_error_been_thrown); 
     CHECK_FALSE(has_warning_been_thrown); 
@@ -579,7 +579,7 @@ TEST_CASE("TraitManager_Verify", "[core]") {
     // OWNED/GENERATED traits cannot be SHARED
 
     // Create a OWNED trait
-    trait_man.AddTrait<int>(&nk_mod, mabe::TraitInfo::Access::OWNED, "trait_l", "a trait", 7); 
+    trait_man.AddTrait<int>(&nk_mod, mabe::TraitInfo::Access::OWNED, "trait_l", "a trait", 7, 1); 
     CHECK(trait_man.GetSize() == 1); 
     CHECK_FALSE(has_error_been_thrown); 
     CHECK_FALSE(has_warning_been_thrown);
@@ -590,7 +590,7 @@ TEST_CASE("TraitManager_Verify", "[core]") {
     CHECK_FALSE(has_warning_been_thrown); 
 
     // Try and SHARE it
-    trait_man.AddTrait<int>(&nk2_mod, mabe::TraitInfo::Access::SHARED, "trait_l", "a trait", 7); 
+    trait_man.AddTrait<int>(&nk2_mod, mabe::TraitInfo::Access::SHARED, "trait_l", "a trait", 7, 1); 
     CHECK(trait_man.GetSize() == 1); 
 
     // Verify should fail
@@ -603,13 +603,13 @@ TEST_CASE("TraitManager_Verify", "[core]") {
     error_message = "";
 
     // Crate a GENERATED trait that also is REQUIRED
-    trait_man2.AddTrait<int>(&nk_mod, mabe::TraitInfo::Access::GENERATED, "trait_i", "a trait", 7); 
+    trait_man2.AddTrait<int>(&nk_mod, mabe::TraitInfo::Access::GENERATED, "trait_i", "a trait", 7, 1); 
     CHECK(trait_man2.GetSize() == 1);  
     CHECK_FALSE(has_error_been_thrown); 
     CHECK_FALSE(has_warning_been_thrown);
 
 
-    trait_man2.AddTrait<int>(&nk2_mod, mabe::TraitInfo::Access::REQUIRED, "trait_i", "a trait", 7); 
+    trait_man2.AddTrait<int>(&nk2_mod, mabe::TraitInfo::Access::REQUIRED, "trait_i", "a trait", 7, 1); 
     CHECK(trait_man2.GetSize() == 1);   
     CHECK_FALSE(has_error_been_thrown); 
     CHECK_FALSE(has_warning_been_thrown);
@@ -621,7 +621,7 @@ TEST_CASE("TraitManager_Verify", "[core]") {
     
 
     // Try and SHARE it
-    trait_man2.AddTrait<int>(&nk3_mod, mabe::TraitInfo::Access::SHARED, "trait_i", "a trait", 7); 
+    trait_man2.AddTrait<int>(&nk3_mod, mabe::TraitInfo::Access::SHARED, "trait_i", "a trait", 7, 1); 
     CHECK(trait_man2.GetSize() == 1);  
     
     

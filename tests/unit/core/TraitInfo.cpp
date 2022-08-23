@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019-2021.
+ *  @date 2019-2022.
  *
  *  @file  TraitInfo.cpp
  *  @brief Tests for the main MABE object 
@@ -398,7 +398,7 @@ TEST_CASE("TraitInfo_DefaultMethods", "[core]") {
 
     //   Create trait with default value 
     //   Test HasDefault, SetDefault and GetDefault
-    mabe::TypedTraitInfo<int> trait_j("trait_j", 7);
+    mabe::TypedTraitInfo<int> trait_j("trait_j", 7, 1);
 
     CHECK(trait_j.HasDefault()); 
     CHECK(trait_j.GetDefault() == 7);
@@ -421,7 +421,7 @@ TEST_CASE("TraitInfo_DefaultMethods", "[core]") {
 
     //   Create trait with default value 
     //   Test HasDefault, SetDefault and GetDefault
-    mabe::TypedTraitInfo<int> trait_l("trait_l", 7.0);
+    mabe::TypedTraitInfo<int> trait_l("trait_l", 7.0, 1);
 
     CHECK(trait_l.HasDefault()); 
     CHECK(trait_l.GetDefault() == 7.0);
@@ -444,7 +444,7 @@ TEST_CASE("TraitInfo_DefaultMethods", "[core]") {
 
     //   Create trait with default value 
     //   Test HasDefault, SetDefault and GetDefault
-    mabe::TypedTraitInfo<std::string> trait_n("trait_n", "test string");
+    mabe::TypedTraitInfo<std::string> trait_n("trait_n", "test string", 1);
 
     CHECK(trait_n.HasDefault()); 
     CHECK(trait_n.GetDefault() == "test string"); 
