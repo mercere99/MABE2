@@ -84,7 +84,14 @@ namespace mabe {
 
   using emplode::EmplodeType;
 
-  class ModuleBase : public EmplodeType {
+  struct TraitHolder {
+    /// Trait object used in this module.
+    emp::vector<emp::Ptr<BaseTrait>> trait_ptrs;
+
+    virtual ~TraitHolder() { }
+  };
+
+  class ModuleBase : public EmplodeType, public TraitHolder {
     friend MABE;
     friend BaseTrait;
   protected:
@@ -107,9 +114,6 @@ namespace mabe {
 
     /// Set of traits that this module is working with.
     emp::map<std::string, emp::Ptr<TraitInfo>> trait_map;
-
-    /// Trait object used in this module.
-    emp::vector<emp::Ptr<BaseTrait>> trait_ptrs;
 
     /// Other variables that we want to hook on to this Module externally.
     emp::DataMap data_map;
@@ -149,15 +153,11 @@ namespace mabe {
       emp_assert(false, "CloneObject_impl() must be overridden for ManagerModule.");
       return nullptr;
     }
-    virtual emp::Ptr<OrgType> CloneObject_impl(const OrgType &, emp::Random &) {
-      emp_assert(false, "CloneObject_impl() must be overridden for ManagerModule.");
-      return nullptr;
-    }
     virtual emp::Ptr<OrgType> Make_impl() {
       emp_assert(false, "Make_impl() must be overridden for ManagerModule.");
       return nullptr;
     }
-    virtual emp::Ptr<OrgType> Make_impl(emp::Random &) {
+    virtual emp::Ptr<OrgType> MakeRandom_impl(emp::Random &) {
       emp_assert(false, "Make_impl() must be overridden for ManagerModule.");
       return nullptr;
     }
@@ -290,7 +290,7 @@ namespace mabe {
     }
     template <typename OBJ_T>
     emp::Ptr<OBJ_T> Make(emp::Random & random) {
-      return Make_impl(random).template DynamicCast<OBJ_T>();
+      return MakeRandom_impl(random).template DynamicCast<OBJ_T>();
     }
   };
 
