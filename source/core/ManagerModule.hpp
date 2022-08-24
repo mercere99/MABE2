@@ -89,7 +89,7 @@ namespace mabe {
 
     /// Create a random object from scratch.  Default to using the obj_prototype object
     /// and then randomize if a random number generator is provided.
-    emp::Ptr<OrgType> Make_impl(emp::Random & random) override {
+    emp::Ptr<OrgType> MakeRandom_impl(emp::Random & random) override {
       auto obj_ptr = obj_prototype->Clone();
       obj_ptr->Initialize(random);
       return obj_ptr;
@@ -98,6 +98,22 @@ namespace mabe {
     mabe::MABE& GetControl(){
       return control;
     }
+
+    void SetupConfig_Internal() override final {
+      // Set traits created in the managed data to point to their actual module.
+      for (emp::Ptr<BaseTrait> trait_ptr : data.trait_ptrs) {
+        trait_ptr->SetModule(this);
+      }
+
+      // Move all of the traits in the managed data over to the proper module.
+      emp_assert(trait_ptrs.size() == 0); // No traits should start in module if managed data is used.
+      trait_ptrs = data.trait_ptrs;
+      data.trait_ptrs.resize(0);
+
+      // Now let the module deal with them properly.
+      Module::SetupConfig_Internal();
+    }
+
     void SetupModule() override {
       obj_prototype->SetupModule();
     }
