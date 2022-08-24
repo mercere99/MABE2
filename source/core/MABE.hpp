@@ -323,7 +323,7 @@ namespace mabe {
       return config_script.GetEquationTraits(equation);
     }
 
-    MABEScript& GetConfigScript(){ return config_script; }
+    MABEScript& GetConfigScript() { return config_script; }
 
     bool OK();           ///< Sanity checks for debugging
 

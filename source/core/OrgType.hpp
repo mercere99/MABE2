@@ -37,10 +37,7 @@ namespace mabe {
     /// The class below is a placeholder for storing any manager-specific data that the organisms
     /// should have access to.  A derived organism class should derive it's managed data from this
     /// one (mabe::OrgType::ManagerData) such that it inherits the common variables.
-    struct ManagerData {
-      /// Trait object used in this module.
-      emp::vector<emp::Ptr<BaseTrait>> trait_ptrs;
-    };
+    struct ManagerData : public TraitHolder { };
 
 
     // ------------------------------------------
