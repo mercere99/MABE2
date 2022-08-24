@@ -36,7 +36,10 @@ namespace mabe {
     emp::TypeID GetObjType() const override { return emp::GetTypeID<EmptyOrganism>(); }
 
     emp::Ptr<OrgType> Make_impl() override { return emp::NewPtr<EmptyOrganism>(*this); }
-    emp::Ptr<OrgType> Make_impl(emp::Random &) override { emp_error("Cannot make a 'random' EmptyOrganism."); return nullptr; }
+    emp::Ptr<OrgType> MakeRandom_impl(emp::Random &) override {
+      emp_error("Cannot make a 'random' EmptyOrganism.");
+      return nullptr;
+    }
   };
 
 }
