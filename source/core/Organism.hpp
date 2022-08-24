@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019-2021.
+ *  @date 2019-2022.
  *
  *  @file  Organism.hpp
  *  @brief A base class for all organisms in MABE.
@@ -81,15 +81,15 @@ namespace mabe {
 
     /// Produce an sexual (two parent) offspring WITH MUTATIONS.
     [[nodiscard]] virtual emp::Ptr<Organism>
-    MakeOffspringOrganism(emp::Ptr<Organism> parent2, emp::Random & random) const {
+    MakeOffspringOrganism_TwoParent(emp::Ptr<Organism> parent2, emp::Random & random) const {
       return OrgType::MakeOffspring(parent2, random).DynamicCast<Organism>();
     }
 
     // @CAO: Need to clean this one up to use Organism...
-    /// Produce one or more offspring from multiple parents WITH MUTATIONS.  By default, use
-    /// Recombine() and then Mutate().
+    /// Produce one or more offspring from multiple parents WITH MUTATIONS.
+    // @CAO: By default, use Recombine() and then Mutate() ?
     [[nodiscard]] virtual emp::vector<emp::Ptr<OrgType>> 
-    MakeOffspringOrganisms(emp::vector<emp::Ptr<OrgType>> other_parents, emp::Random & random) const {
+    MakeOffspringOrganisms_MultiParent(emp::vector<emp::Ptr<OrgType>> other_parents, emp::Random & random) const {
       return OrgType::MakeOffspring(other_parents, random);
     }
 
