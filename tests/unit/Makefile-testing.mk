@@ -1,7 +1,7 @@
 MABE_DIR = $(TESTING_DIR)/../..
 default: test
 
-include $(MABE_DIR)/Makefile.base
+include $(MABE_DIR)/Makefile-base.mk
 
 FLAGS = $(FLAGS_DEBUG)
 

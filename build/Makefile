@@ -9,7 +9,7 @@
 #  noblock - Same as native, but "blocking" debug code is still allowed.
 
 MABE_DIR := ..
-include $(MABE_DIR)/Makefile.base
+include $(MABE_DIR)/Makefile-base.mk
 
 TARGET := MABE
 CLEAN_EXTRA = $(TARGET)
