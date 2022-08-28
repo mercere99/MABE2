@@ -39,14 +39,17 @@ namespace mabe {
                              "Regenerate the landscape with current config values.");
     }
 
-    /// Run this evaluator on the provided population.
-    virtual double Evaluate(const Collection & orgs) = 0;
+    /// Run this evaluator on the provided collection.
+    virtual double EvaluateCollection(const Collection & orgs) = 0;
+
+    /// Run this evaluator on the provided collection.
+    double Evaluate(const Collection & orgs) { return EvaluateCollection(orgs); };
 
     /// If a population is provided to Evaluate, first convert it to a Collection.
-    virtual double Evaluate(Population & pop) { return Evaluate( Collection(pop) ); }
+    double Evaluate(Population & pop) { return Evaluate( Collection(pop) ); }
 
     /// If a string is provided to Evaluate, convert it to a Collection.
-    virtual double Evaluate(const std::string & in) { return Evaluate( control.ToCollection(in) ); }
+    double Evaluate(const std::string & in) { return Evaluate( control.ToCollection(in) ); }
 
     /// Re-randomize all of the entries.
     virtual double Reset() { emp::notify::Message("Module '", name, "' cannot be reset."); return 0.0;  }
