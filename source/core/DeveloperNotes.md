@@ -14,6 +14,8 @@ TraitSet.hpp        - Collections of traits, all with the same type (or a vector
 Specialty modules in MABE have a linear dependency; each module listed below is dependent on all of those above it.
 
 ModuleBase.hpp      - Core functionality for interfacing with all module types.
+OrgTrait.hpp        - Simplified trait handling for organisms (and auto-interface with config)
+OrgType.hpp         - Base class for Organisms and related components (Genomes, Brains, etc)
 Organism.hpp        - Information about a single agent; ModuleBase is interface for OrganismManager.
 OrgIterator.hpp     - Tools for identifying organism locations and stepping through sets of them.
 Population.hpp      - Collection of Organisms (some of which could be EmptyOrganisms)
@@ -22,7 +24,8 @@ MABEBase.hpp        - Handles restricted core MABE functionality and provides in
 MABEScript.hpp      - Builds on Emplode to provide the full MABE scripting language.
 MABE.hpp            - Main controller object; manipulates Populations and Organisms
 Module.hpp          - Modify main MABE controller functions.
-FactoryModule.hpp   - Framework to build specialty modules that manage other config objects.
+EvalModule.hpp      - Specialty Module base class to help build evaluation-based modules.
+ManagerModule.hpp   - Framework to build specialty modules that manage other config objects.
 OrganismManager.hpp - Specialty Module type to manage organisms with shared configuration.
 EmptyOrganism.hpp   - Specialty Organism type to represent empty cells.
 
