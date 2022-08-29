@@ -19,12 +19,12 @@ namespace mabe {
 
   class EvalMancala : public Module {
   private:
-    OwnedTrait<emp::vector<double>> input_trait {this, "input", "Input values (current board state)", emp::vector<double>({0.0})};
+    OwnedTrait<emp::vector<double>> input_trait {this, "input", "Input values (current board state)"};
     RequiredTrait<emp::vector<double>> output_trait {this, "output"}; // Output values (move to make)
-    OwnedTrait<double> scoreA_trait {this, "scoreA", "Score for this player", 0.0};
-    OwnedTrait<double> scoreB_trait {this, "scoreB", "Score for opponent", 0.0};
-    OwnedTrait<double> error_trait {this, "num_errors", "Number of illegal moves attempted", 0.0};
-    OwnedTrait<double> fitness_trait {this, "fitness", "Combined success rating", 0.0};
+    OwnedTrait<double> scoreA_trait {this, "scoreA", "Score for this player"};
+    OwnedTrait<double> scoreB_trait {this, "scoreB", "Score for opponent"};
+    OwnedTrait<double> error_trait {this, "num_errors", "Number of illegal moves attempted"};
+    OwnedTrait<double> fitness_trait {this, "fitness", "Combined success rating"};
 
     /// What type of opponent should we use?
     enum Opponent {
