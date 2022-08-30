@@ -70,6 +70,9 @@ namespace mabe {
     }
     virtual ~ManagerModule() { obj_prototype.Delete(); }
 
+    data_t & GetManagedData() { return data; }
+    const data_t & GetManagedData() const { return data; }
+
     /// Save the type that uses this manager.
     using managed_t = MANAGED_T;
 
