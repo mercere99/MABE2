@@ -23,6 +23,7 @@ namespace mabe {
     RequiredTrait<emp::BitVector> bits_trait{this, "bits", "Bit-sequence to evaluate."};
     OwnedTrait<double> fitness_trait{this, "fitness", "NK fitness value"};
 
+    // ConfigVar<size_t> N {this, "N", 100, "Total number of bits required in sequence"};
     size_t N = 100;
     size_t K = 2;    
     NKLandscape landscape;
@@ -44,7 +45,7 @@ namespace mabe {
       landscape.Config(N, K, control.GetRandom());  // Setup the fitness landscape.
     }
 
-    double Evaluate(const Collection & orgs) override {
+    double EvaluateCollection(const Collection & orgs) override {
       // Loop through the population and evaluate each organism.
       double max_fitness = 0.0;
       emp::Ptr<Organism> max_org = nullptr;
