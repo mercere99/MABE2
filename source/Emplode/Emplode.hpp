@@ -253,12 +253,10 @@ namespace emplode {
     SymbolTable & GetSymbolTable() { return symbol_table; }
     const SymbolTable & GetSymbolTable() const { return symbol_table; }
 
-    /// Load a single, specified configuration file.
-    void Load(const std::string & filename) {
-      std::ifstream file(filename);           // Load the provided file.
-      emp::TokenStream tokens = lexer.Tokenize(file, filename);          // Convert to more-usable tokens.
-      file.close();                           // Close the file (now that it's converted)
-      pos_t pos = tokens.begin();             // Start at the beginning of the file.
+    /// Load a single, specified configuration from a stream.
+    void Load(std::istream & is, const std::string & stream_name) {
+      emp::TokenStream tokens = lexer.Tokenize(is, stream_name); // Convert to more-usable tokens.
+      pos_t pos = tokens.begin();                                // Start at beginning of input.
 
       // Parse and run the program, starting from the outer scope.
       ParseState state{pos, symbol_table, symbol_table.GetRootScope(), lexer};
@@ -269,6 +267,13 @@ namespace emplode {
 
       // And process just this new block.
       cur_block->Process();
+    }
+
+    /// Load a single, specified configuration file.
+    void Load(const std::string & filename) {
+      std::ifstream file(filename);  // Open the provided file.
+      Load(file, filename);          // Load contents
+      file.close();                  // Close the file (now that it's loaded)
     }
 
     /// Sequentially load a series of configuration files.
