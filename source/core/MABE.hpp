@@ -29,6 +29,7 @@
 #include "emp/data/DataMap.hpp"
 #include "emp/data/SimpleParser.hpp"
 #include "emp/datastructs/vector_utils.hpp"
+#include "emp/math/constants.hpp"
 #include "emp/math/Random.hpp"
 #include "emp/tools/string_utils.hpp"
 
@@ -104,10 +105,12 @@ namespace mabe {
     void RunBatch();       ///< Process a whole series of MABE runs.
     void ProcessArgs();    ///< Process all arguments passed in on the command line.
     /// Setup a function as deprecated so we can phase it out.
-    void Setup_Modules();  ///< Run SetupModule() method on each module we've loaded.
-    void UpdateSignals();  ///< Link signals only to modules that respond to them.
+    void Setup_CommandLine(); ///< Process all command-line args.
+    void Setup_Modules();     ///< Run SetupModule() method on each module we've loaded.
+    void UpdateSignals();     ///< Link signals only to modules that respond to them.
 
   public:
+    MABE();                        ///< MABE default constructor (for testing)
     MABE(int argc, char* argv[]);  ///< MABE command-line constructor.
     MABE(const MABE &) = delete;
     MABE(MABE &&) = delete;
@@ -156,8 +159,23 @@ namespace mabe {
     const ActionMap & GetActionMap(size_t id) const { return action_maps[id]; }
     ActionMap & GetActionMap(size_t id) { return action_maps[id]; }
 
+    size_t GetPopulationID(const std::string & name) const {
+      for (size_t id = 0; id < pops.size(); ++id) {
+        if (pops[id]->GetName() == name) return id;
+      }
+      return emp::MAX_SIZE_T;
+    }
     Population & GetPopulation(size_t id) { return *pops[id]; }
     const Population & GetPopulation(size_t id) const { return *pops[id]; }
+
+    Population & GetPopulation(const std::string & name) {
+      return *pops[GetPopulationID(name)];
+    }
+    const Population & GetPopulation(const std::string & name) const {
+      return *pops[GetPopulationID(name)];
+    }
+
+
     Population & AddPopulation(const std::string & name, size_t pop_size=0) override;
 
     /// Move an organism from one position to another; kill anything that previously occupied
@@ -324,6 +342,13 @@ namespace mabe {
     }
 
     MABEScript& GetConfigScript() { return config_script; }
+
+    // Pass anything we want to load into the config script.
+    template <typename... Ts>
+    void Load(Ts &&... args) { config_script.Load(std::forward<Ts>(args)...); }
+
+    // Execute a single statement (and return a value-based result)
+    emp::Datum Execute(const std::string & cmd) { return config_script.Execute(cmd); }
 
     bool OK();           ///< Sanity checks for debugging
 
@@ -499,8 +524,34 @@ namespace mabe {
     if (show_help) ShowHelp();
   }
 
+  void MABE::Setup_CommandLine() {
+    ProcessArgs();         // Deal with command-line inputs.
+    if (exit_now) return;  // If command-line arguments require exit (e.g., after '--help')
+
+    // If filenames have been specified on command line, load each in order.
+    if (config_filenames.size()) {
+      std::cout << "Loading file(s): " << emp::to_quoted_list(config_filenames) << std::endl;
+      config_script.Load(config_filenames);   // Load files
+    }
+
+    // If other variable settings have been specified, run them AFTER files are loaded.
+    if (config_settings.size()) {
+      std::cout << "Loading command-line settings." << std::endl;
+      config_script.LoadStatements(config_settings, "command-line settings");      
+    }
+
+    // If we are writing a file, do so and then exit.
+    if (gen_filename != "") {
+      std::cout << "Generating file '" << gen_filename << "'." << std::endl;
+      config_script.Write(gen_filename);
+      exit_now = true;
+    }    
+  }
+
   /// As part of the main Setup(), run SetupModule() method on each module we've loaded.
   void MABE::Setup_Modules() {
+    trait_man.Unlock(); // Allow traits to be linked.
+
     // Allow the user-defined module SetupModule() member functions run.  These are
     // typically used for any internal setup needed by modules are the configuration is
     // complete.
@@ -547,9 +598,7 @@ namespace mabe {
   // ---------------- PUBLIC MEMBER FUNCTIONS -----------------
 
 
-  MABE::MABE(int argc, char* argv[])
-    : args(emp::cl::args_to_strings(argc, argv))
-    , config_script(*this)
+  MABE::MABE() : config_script(*this)
   {
     // Updates to scripting language that require full controller functionality.
 
@@ -570,37 +619,21 @@ namespace mabe {
       auto & type_info = config_script.AddType(type_name, mod.brief_desc, mod_init_fun, nullptr, mod.type_id);
       mod.type_init_fun(type_info);  // Setup functions for this module.
     }
+
+    // Default the list of arguments to the (likely) name of the executable.
+    args.push_back("MABE");
+  }
+
+  MABE::MABE(int argc, char* argv[]) : MABE()
+  {
+    args = emp::cl::args_to_strings(argc, argv);
   }
 
   bool MABE::Setup() {
-    ProcessArgs();                   // Deal with command-line inputs.
-
-    // Sometimes command-line arguments will require an immediate exit (such as after '--help')
-    if (exit_now) return false;
-
-    // If configuration filenames have been specified, load each of them in order.
-    if (config_filenames.size()) {
-      std::cout << "Loading file(s): " << emp::to_quoted_list(config_filenames) << std::endl;
-      config_script.Load(config_filenames);   // Load files
-    }
-
-    if (config_settings.size()) {
-      std::cout << "Loading command-line settings." << std::endl;
-      config_script.LoadStatements(config_settings, "command-line settings");      
-    }
-
-    // If we are writing a file, do so and then exit.
-    if (gen_filename != "") {
-      std::cout << "Generating file '" << gen_filename << "'." << std::endl;
-      config_script.Write(gen_filename);
-      exit_now = true;
-    }
-
-    // If any of the inital flags triggered an 'exit_now', do so.
-    if (exit_now) return false;
-
-    // Allow traits to be linked.
-    trait_man.Unlock();
+    // Read in command line arguments, respond to flags, load associated files, and deal with
+    // any other command-line settings.
+    Setup_CommandLine(); 
+    if (exit_now) return false;  // If any of the inital flags triggered an 'exit_now', do so.
 
     Setup_Modules();    // Run SetupModule() on each module for linking traits or other setup.
     Setup_Traits();     // Make sure module traits do not clash.
