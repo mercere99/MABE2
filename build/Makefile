@@ -9,12 +9,12 @@
 #  noblock - Same as native, but "blocking" debug code is still allowed.
 
 MABE_DIR := ..
+default: native
+
 include $(MABE_DIR)/Makefile-base.mk
 
 TARGET := MABE
 CLEAN_EXTRA = $(TARGET)
-
-default: native
 
 native: FLAGS := $(FLAGS_OPT)
 native: $(TARGET)
