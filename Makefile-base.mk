@@ -35,4 +35,4 @@ clean:
 	@echo About to remove:
 	@echo $(wildcard $(CLEAN_FILES))
 	@echo ----
-	rm -rI $(CLEAN_FILES)
+	rm -rI $(wildcard $(CLEAN_FILES))
