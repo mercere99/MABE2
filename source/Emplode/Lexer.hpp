@@ -52,12 +52,12 @@ namespace emplode {
       token_symbol = AddToken("Symbol", ".|\"::\"|\"==\"|\"!=\"|\"<=\"|\">=\"|\"->\"|\"&&\"|\"||\"|\"<<\"|\">>\"|\"++\"|\"--\"|\"**\"");
     }
 
-    bool IsKeyword(const emp::Token token) const noexcept { return token.token_id == token_keyword; }
-    bool IsID(const emp::Token token) const noexcept { return token.token_id == token_identifier; }
-    bool IsNumber(const emp::Token token) const noexcept { return token.token_id == token_number; }
-    bool IsString(const emp::Token token) const noexcept { return token.token_id == token_string; }
-    bool IsDots(const emp::Token token) const noexcept { return token.token_id == token_dots; }
-    bool IsSymbol(const emp::Token token) const noexcept { return token.token_id == token_symbol; }
+    bool IsKeyword(const emp::Token token) const noexcept { return token.id == token_keyword; }
+    bool IsID(const emp::Token token) const noexcept { return token.id == token_identifier; }
+    bool IsNumber(const emp::Token token) const noexcept { return token.id == token_number; }
+    bool IsString(const emp::Token token) const noexcept { return token.id == token_string; }
+    bool IsDots(const emp::Token token) const noexcept { return token.id == token_dots; }
+    bool IsSymbol(const emp::Token token) const noexcept { return token.id == token_symbol; }
   };
 }
 
