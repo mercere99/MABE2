@@ -416,11 +416,11 @@ namespace mabe {
     }
 
     /// Load from the file the instruction to use and what order to include them in
-    emp::vector<std::string> LoadInstSetFromFile(){
+    emp::vector<emp::String> LoadInstSetFromFile(){
       if (SharedData().inst_set_input_filename.size() == 0) {
         emp::notify::Error("VirtualCPUOrg instruction set filename is empty.");
         emp_error("Stop!");
-        return emp::vector<std::string>{};
+        return emp::vector<emp::String>{};
       }
       emp::File file(SharedData().inst_set_input_filename);
       file.RemoveComments("//");
@@ -449,7 +449,7 @@ namespace mabe {
       }
       std::cout << std::endl;
 
-      const emp::vector<std::string> name_vec = LoadInstSetFromFile();
+      const emp::vector<emp::String> name_vec = LoadInstSetFromFile();
       for(size_t inst_idx = 0; inst_idx < name_vec.size(); ++inst_idx){
         const std::string& name = name_vec[inst_idx];
         if(typed_action_map.find(name) == typed_action_map.end()){
