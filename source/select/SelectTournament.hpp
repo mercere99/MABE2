@@ -18,8 +18,8 @@ namespace mabe {
   /// Add elite selection with the current population.
   class SelectTournament : public Module {
   private:
-    std::string fit_equation;     ///< Trait function that we should select on
-    size_t tourny_size;      ///< Number of organisms in each tournament
+    std::string fit_equation;  ///< Trait function that we should select on
+    size_t tourny_size;        ///< Number of organisms in each tournament
 
     Collection Select(Population & select_pop, Population & birth_pop, size_t num_births) {
       emp::Random & random = control.GetRandom();

@@ -58,14 +58,14 @@ max_file.ADD_COLUMN( "Genome", "best_org.TRAIT('bits')" );
 
   eval_rr.EVAL(main_pop);
 
-IF (ud % print_step == 0) {
-     PRINT("UD:", GET_UPDATE(),
-           "  MainPopSize=", main_pop.SIZE(),
-           "  AveFitness=", main_pop.CALC_MEAN("fitness"),
-           "  MaxFitness=", main_pop.CALC_MAX("fitness"),
-     );
-     fit_file.WRITE();
-     max_file.WRITE();
+  IF (ud % print_step == 0) {
+    PRINT("UD:", GET_UPDATE(),
+          "  MainPopSize=", main_pop.SIZE(),
+          "  AveFitness=", main_pop.CALC_MEAN("fitness"),
+          "  MaxFitness=", main_pop.CALC_MAX("fitness"),
+    );
+    fit_file.WRITE();
+    max_file.WRITE();
   }
 
   OrgList tourny_offspring = select_tourny.SELECT(main_pop, next_pop, pop_size);
