@@ -1,15 +1,31 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2020-2022.
+ *  @date 2020-2023.
  *
  *  @file  Collection.hpp
  *  @brief A collection of organisms or whole populations; not owner.
  *
- *  While organisms must be managed by Population objects, collections are an easy way
- *  to represent and manipulate groups of organisms (by their position).  Organisms can be
- *  added individually or as whole populations.
+ *  While organisms are managed by Population objects, collections provide an easy way
+ *  to represent and manipulate groups (by position).  Organisms can be added individually
+ *  or as whole populations.
  * 
+ *  -- Usage in C++ --
+ *  Construction:
+ *    Default collections are empty; both copy and move constructors exist.  A collection can
+ *    also be constructed using one ore more populations or organism positions.
+ * 
+ *  .GetSize() or .IsEmpty() to get size information about this collection.
+ * 
+ *  -- Usage in MABEScript --
+ *   Collections have various MABEScript member functions:
+ *    SET_ORG or SET_POP can be used to initialize the contents of a collection.
+ *    ADD_COLLECT, ADD_ORG, or ADD_POP can be used to expand a collection.
+ *    CLEAR will remove all individuals from a collection.
+ *    HAS_ORG or HAS_POP can be used to test the contents of a collection.
+ *    SIZE will return the number of organisms within a collection.
+ * 
+ *  -- Implementation --
  *  Internally, a Collection is represented by a map; keys are pointers to the included Populations
  *  and values are a PopInfo class (a flag for "do we included the whole population" and a
  *  BitVector indicating the positions that are included if not the whole population).
@@ -305,7 +321,8 @@ namespace mabe {
       );
     }
 
-    template <typename OUT_T, typename IN_T> static OUT_T MakeRValueFrom(IN_T && in) {
+    template <typename OUT_T, typename IN_T>
+    static OUT_T MakeRValueFrom(IN_T && in) {
       static_assert(std::is_same<OUT_T, Collection>(),
                     "Internal error: type mis-match for MakeRValueFrom()");
       // using decay_T = std::decay_t<IN_T>;
@@ -423,7 +440,7 @@ namespace mabe {
 
     pop_ptr_t GetFirstPop() {
       if (pos_map.size() == 0) return nullptr;
-      emp_assert(pos_map.begin()->second.is_mutable == true,
+      emp_assert(pos_map.begin()->second.is_mutable,
         "Cannot use GetFirstPop() for const Population in Collection; try ConstGetFirstPop().");
       return pos_map.begin()->first;
     }
