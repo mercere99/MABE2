@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2022.
+ *  @date 2022-23.
  *
  *  @file  Batch.hpp
  *  @brief Manager for batches of MABE runs.
@@ -154,8 +154,7 @@ namespace mabe {
         // Move on to the next factors.
         size_t inc_pos = 0;
         while(inc_pos < factors.size() && ++ids[inc_pos] == factors[inc_pos].options.size()) {
-          ids[inc_pos] = 0; // Reset the current factor.
-          ++inc_pos;        // And move on to the next.
+          ids[inc_pos++] = 0; // Reset the current factor and move to the next.
         }
         if (inc_pos == factors.size()) break; // We've gone through all factors!
       }
