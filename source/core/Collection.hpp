@@ -15,7 +15,27 @@
  *    Default collections are empty; both copy and move constructors exist.  A collection can
  *    also be constructed using one ore more populations or organism positions.
  * 
- *  .GetSize() or .IsEmpty() to get size information about this collection.
+ *  .GetSize() or .IsEmpty() returns size information about this collection.
+ * 
+ *  .At(size_t pos) or .ConstAt(size_t) returns the organism at the specified position in
+ *  the collection.  Operator [] can be used for the same effect.
+ * 
+ *  .IteratorAt(size_t pos) or .ConstIteratorAt(size_t pos) returns an iterator to a
+ *  specified position.
+ * 
+ *  .HasPopulation(const Population & pop) or .HasPosition(const OrgPosition & pos) indicate
+ *  the contents of the collection.
+ * 
+ *  .ToString() provides a string version of this collection for human readability.
+ * 
+ *  .Insert(item) will allow you to insert an organism position, a populaiton, or another
+ *  collection into this collection.
+ * 
+ *  .Clear() empties this collection.
+ * 
+ *  Collections can also be modified with |= (or, equivalently +=) or &=.
+ * 
+ *  .GetAlive() returns a new collection with just the living organisms from this one.
  * 
  *  -- Usage in MABEScript --
  *   Collections have various MABEScript member functions:
