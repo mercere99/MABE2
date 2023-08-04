@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2020-2021.
+ *  @date 2020-2023.
  *
  *  @file  data_collect.hpp
  *  @brief Functions to collect data from containers.
@@ -11,6 +11,22 @@
  *  Each build function must know the data type it is working with (DATA_T), the type of container
  *  it should expect (CONTAIN_T), and be provided a function that will take a container element and
  *  return the appropriate value of type DATA_T.
+ * 
+ *  BuildCollectFun(std::string action, FUN_T get_fun) will return a the correct parse function.
+ *
+ *  Options are an index value for a supplied container or:
+ *    "unique" || "richness"
+ *    "mode" || "dom" || "dominant"
+ *    "min"
+ *    "max"
+ *    "min_id"
+ *    "max_id"
+ *    "ave" || "mean"
+ *    "median"
+ *    "variance"
+ *    "stddev"
+ *    "sum" || "total"
+ *    "entropy"
  */
 
 #ifndef EMP_DATA_COLLECT_H
@@ -46,7 +62,7 @@ namespace mabe {
 
     template <typename DATA_T, typename CONTAIN_T, typename FUN_T>
     Symbol_Var Mode(const CONTAIN_T & container, FUN_T get_fun) {
-      std::map<DATA_T, size_t> vals;
+      std::unordered_map<DATA_T, size_t> vals;
       for (const auto & entry : container) {
         vals[ get_fun(entry) ]++;
       }
