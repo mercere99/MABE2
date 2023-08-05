@@ -8,6 +8,9 @@
  *
  *  A TraitSet is used to keep track of a collection of related traits in a module.
  * 
+ *  For example, this class is used inside of Lexicase selection to track the group of
+ *  traits under consideration during optimization.
+ * 
  *  @CAO: Should this class be moved into Empirical proper?
  */
 
@@ -27,7 +30,13 @@ namespace mabe {
   template <typename T>
   class TraitSet {
   private:
+    // Each entry in a trait set can be a single trait (BASE), a series of sequential traits
+    // (MULTI), or an emp::vector of the trait type (VECTOR)
     enum TraitType { BASE=0, MULTI=1, VECTOR=2 };
+
+    // When tracking a trait, we care about its type (see previous), where it is in the layout (id)
+    // how many trait values we are talking about (count), and how many total values are up to
+    // this point (cum_count) to facilitate searches.
     struct TraitData {
       TraitType type;
       size_t id;
@@ -39,10 +48,11 @@ namespace mabe {
     emp::vector<std::string> trait_names;
     emp::vector<TraitData> trait_data;
 
-    emp::Ptr<const emp::DataLayout> layout;
+    emp::Ptr<const emp::DataLayout> layout;  // Layout for the DataMaps that we will access.
 
     size_t num_values = 0;
     std::string error_trait = "";
+    
   public:
     TraitSet() : layout(nullptr) { }
     TraitSet(const emp::DataLayout & in_layout) : layout(&in_layout) { }
