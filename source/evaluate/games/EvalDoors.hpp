@@ -34,50 +34,39 @@ namespace mabe {
     
   /// \brief A collection of all the trait names used in EvalDoors
   struct EvalDoors_TraitNames{
-    std::string score_trait = "score"; ///< Name of trait for organism performance
-    std::string accuracy_trait = "accuracy"; ///< Name of trait for organism accuracy
-    std::string state_trait ="state";  ///< Name of trait that stores the task state
-    std::string door_rooms_trait ="door_rooms"; /**< Name of trait that stores the number of
-                                                     "door rooms" visited */
-    std::string exit_rooms_trait ="exit_rooms"; /**< Name of trait that stores the number of
-                                                     "exit rooms" visited */
-    std::string correct_doors_trait ="correct_doors"; /**< Name of trait that stores the 
-                                                           number of doors correctly taken*/
-    std::string incorrect_doors_trait ="incorrect_doors"; /**< Name of trait that stores the
-                                                           number of doors incorrectly
-                                                           taken*/
-    std::string correct_exits_trait ="correct_exits"; /**< Name of trait that stores the 
-                                                           number of exits correctly taken*/
-    std::string incorrect_exits_trait ="incorrect_exits"; /**< Name of trait that stores the
-                                                         number of exits incorrectly taken*/
-    std::string doors_taken_prefix = "doors_taken_"; /**< Prefix for multiple traits 
-                                                          (one per door) */
-    std::string doors_correct_prefix = "doors_correct_"; /**< Prefix for multiple traits 
-                                                              (one per door)*/
-    emp::vector<std::string> doors_taken_trait_vec; // Names of doors taken traits
-    emp::vector<std::string> doors_correct_trait_vec; // Names of doors correct traits
+    std::string score_trait = "score";                    ///< Trait for organism performance
+    std::string accuracy_trait = "accuracy";              ///< Trait for organism accuracy
+    std::string state_trait ="state";                     ///< Trait for task state
+    std::string door_rooms_trait ="door_rooms";           ///< Trait to count "door rooms" visited
+    std::string exit_rooms_trait ="exit_rooms";           ///< Trait to count "exit rooms" visited
+    std::string correct_doors_trait ="correct_doors";     ///< Trait to count doors correctly taken
+    std::string incorrect_doors_trait ="incorrect_doors"; ///< Trait to count doors incorrectly taken
+    std::string correct_exits_trait ="correct_exits";     ///< Trait to count exits correctly taken
+    std::string incorrect_exits_trait ="incorrect_exits"; ///< Trait to count exits incorrectly taken
+    std::string doors_taken_prefix = "doors_taken_";      ///< Prefix for individual door traits 
+    std::string doors_correct_prefix = "doors_correct_";  ///< Prefix for individual door traits
+    emp::vector<std::string> doors_taken_trait_vec;       ///< Names of doors taken traits
+    emp::vector<std::string> doors_correct_trait_vec;     ///< Names of doors correct traits
   };
 
   /// \brief State of a single organism's progress on the doors task
   struct DoorsState{
     using data_t = uint32_t;
 
-    bool initialized = false;     ///< Flag indicating if this state has been initialized
-    emp::vector<data_t> prev_room_vec;   ///< Vector of cues from rooms previously visited
-    emp::vector<data_t> door_choice_vec; ///< Vector of the doors the org has chosen
-    double score = 0;             ///< Summarized score of the organism 
-    emp::vector<data_t> cue_vec;  ///< Vector containing the value of each cue (random or not)
-    data_t current_cue;           ///< Cue of the current room the organism is in
-    size_t correct_doors_taken = 0;   ///< Number of times the org entered the correct door
-    size_t incorrect_doors_taken = 0; ///< Number of times the org entered the wrong door
-    size_t correct_exits_taken = 0;   /**< Number of times the org took the exit when it 
-                                           should have */
-    size_t incorrect_exits_taken = 0; /**< Number of times the org took the exit when it 
-                                           should *not* have */
-    size_t door_rooms_visited = 0; /// Number of "door" rooms the organism has visited
-    size_t exit_rooms_visited = 0; /// Number of "exit" rooms the organism has visited
-    emp::vector<size_t> doors_taken_vec; /// Number of times each door was taken
-    emp::vector<size_t> doors_correct_vec; /// Number of times each door was taken correctly
+    bool initialized = false;            ///< Has this state been initialized?
+    emp::vector<data_t> prev_room_vec;   ///< Cues from rooms previously visited
+    emp::vector<data_t> door_choice_vec; ///< Doors the org has chosen
+    double score = 0;                    ///< Summarized score of the organism 
+    emp::vector<data_t> cue_vec;         ///< Values of each cue (random or not)
+    data_t current_cue;                  ///< Cue of the current room the organism is in
+    size_t correct_doors_taken = 0;      ///< Num times the org entered the correct door
+    size_t incorrect_doors_taken = 0;    ///< Num times the org entered the wrong door
+    size_t correct_exits_taken = 0;      ///< Num times org took exit when it should have
+    size_t incorrect_exits_taken = 0;    ///< Num times org took exit when it should NOT have
+    size_t door_rooms_visited = 0;       ///< Num "door" rooms the organism has visited
+    size_t exit_rooms_visited = 0;       ///< Num "exit" rooms the organism has visited
+    emp::vector<size_t> doors_taken_vec; ///< Num times each door was taken
+    emp::vector<size_t> doors_correct_vec; ///< Num times each door was taken correctly
 
     DoorsState() { ; }
     DoorsState(const DoorsState&){ // Ignore copy, just reset
