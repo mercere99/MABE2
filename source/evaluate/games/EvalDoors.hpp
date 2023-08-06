@@ -68,15 +68,9 @@ namespace mabe {
     emp::vector<size_t> doors_taken_vec; ///< Num times each door was taken
     emp::vector<size_t> doors_correct_vec; ///< Num times each door was taken correctly
 
-    DoorsState() { ; }
-    DoorsState(const DoorsState&){ // Ignore copy, just reset
-      initialized = false;
-      score = 0;
-    }
-    DoorsState(DoorsState&&){ // Ignore move, just reset
-      initialized = false;
-      score = 0;
-    }
+    DoorsState() { }
+    DoorsState(const DoorsState&) { } // Ignore copy, just reset
+    DoorsState(DoorsState&&) { }      // Ignore move, just reset
     DoorsState& operator=(DoorsState&){ // Ignore copy assignment, just reset
       initialized = false;
       score = 0;
@@ -90,36 +84,35 @@ namespace mabe {
   };
 
   /// \brief Handles all evaluation of the doors task
-  struct DoorsEvaluator{
-    public:
+  class DoorsEvaluator {
+  public:
     using org_t = VirtualCPUOrg;
 
-    protected:
-    emp::Random& rand;  ///< Reference to the main random number generator of MABE
-    emp::vector<int> starting_cue_vec; /**< Vector of set cue values or random cue 
-                                            indicators (-1) */ 
-    const size_t exit_cue_idx = 0; ///< Index of the exit in the cue vector 
+  protected:
+    emp::Random& rand;                 ///< Reference to main MABE random number generator
+    emp::vector<int> starting_cue_vec; ///< Set cue values or random cue indicators (-1)
+    const size_t exit_cue_idx = 0;     ///< Index of the exit in the cue vector 
     
     /// Move the organism through the "exit" door, going back one room  
-    double TakeExit(DoorsState& state){
+    double TakeExit(DoorsState& state) {
       if(!state.initialized) InitializeState(state);
       // Update bookkeeping
       state.prev_room_vec.push_back(state.current_cue);
       state.door_choice_vec.push_back(state.cue_vec[exit_cue_idx]);
       // Update score vars and current cue
-      if(state.current_cue == state.cue_vec[exit_cue_idx]){
+      if (state.current_cue == state.cue_vec[exit_cue_idx]) {
         state.correct_exits_taken++;
         state.current_cue = *(state.prev_room_vec.rbegin() + 1); // Return to previous room
         state.doors_correct_vec[exit_cue_idx]++;
       }
-      else{
+      else {
         state.incorrect_exits_taken++;
         state.current_cue = state.cue_vec[exit_cue_idx];
       }
       return UpdateScore(state);
     }
     
-    public: 
+  public: 
     DoorsEvaluator(emp::Random& _rand) : rand(_rand) { ; } 
 
     /// Fetch the number of doors in each room (includes exit)
