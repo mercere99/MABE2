@@ -56,7 +56,7 @@ namespace mabe {
 
   class MABE : public MABEBase {
   private:
-    const std::string VERSION = "0.0.1";
+    const std::string VERSION = "0.0.2";
 
     // --- Variables to handle configuration, initialization, and error reporting ---
     bool show_help = false;      ///< Should we show "help" before exiting?
