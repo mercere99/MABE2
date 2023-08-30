@@ -21,7 +21,7 @@
 #include "emp/base/Ptr.hpp"
 #include "emp/base/vector.hpp"
 
-#include "../Emplode/EmplodeType.hpp"
+#include "Emplode/EmplodeType.hpp"
 
 #include "Organism.hpp"
 #include "OrgIterator.hpp"

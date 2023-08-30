@@ -124,7 +124,8 @@ namespace mabe {
           }
         };
 
-      return AsScope().LinkFuns<std::string>(name, get_fun, set_fun, desc);
+      return *AsScope().LinkFuns<std::string>(name, get_fun, set_fun, desc)
+        .GetValue().DynamicCast<emplode::Symbol_LinkedFunctions<std::string>>();
     }
 
     /// Link one or more populations (or portions of a population) to a parameter.
@@ -141,7 +142,8 @@ namespace mabe {
           var = control.ToCollection(load_str);
         };
 
-      return AsScope().LinkFuns<std::string>(name, get_fun, set_fun, desc);
+      return *AsScope().LinkFuns<std::string>(name, get_fun, set_fun, desc)
+        .GetValue().DynamicCast<emplode::Symbol_LinkedFunctions<std::string>>();
     }
 
     /// Link another module to this one, by name (track using int ID)
@@ -159,7 +161,8 @@ namespace mabe {
           if (var == -1) emp::notify::Error("Trying to access module '", name, "'; does not exist.");
         };
 
-      return AsScope().LinkFuns<std::string>(name, get_fun, set_fun, desc);
+      return *AsScope().LinkFuns<std::string>(name, get_fun, set_fun, desc)
+        .GetValue().DynamicCast<emplode::Symbol_LinkedFunctions<std::string>>();
     }
 
     /// Link a range of values with a start, stop, and step.
@@ -186,7 +189,8 @@ namespace mabe {
           stop_var = name.size() ? emp::from_string<T>(name) : no_val; // no_val indicates no stop.
         };
 
-      return AsScope().LinkFuns<std::string>(name, get_fun, set_fun, desc);
+      return *AsScope().LinkFuns<std::string>(name, get_fun, set_fun, desc)
+        .GetValue().DynamicCast<emplode::Symbol_LinkedFunctions<std::string>>();
     }
 
     auto LinkRange(UpdateRange & in_range, const std::string & name, const std::string & desc) {

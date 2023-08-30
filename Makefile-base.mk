@@ -4,12 +4,13 @@
 # Identify all directory locations
 # EMP_DIR   = $(MABE_DIR)/source/third-party/empirical
 EMP_DIR   = $(MABE_DIR)/../Empirical
+EMPLODE_DIR = $(MABE_DIR)/source/third-party/Emplode
 CATCH_DIR = $(EMP_DIR)/third-party/Catch/single_include/catch2
 
 # Specify sets of compilation flags to use
 FLAGS_version := -std=c++20
 FLAGS_warn    = -Wall -Wextra -Wno-unused-function -Wno-unused-private-field -Wnon-virtual-dtor -Wcast-align -Woverloaded-virtual -pedantic
-FLAGS_include = -I$(EMP_DIR)/include/ -I$(CATCH_DIR) -I$(MABE_DIR)/source/ -I${EMP_DIR}/third-party/cereal/include/
+FLAGS_include = -I$(EMP_DIR)/include/ -I$(CATCH_DIR) -I$(MABE_DIR)/source/ -I${EMPLODE_DIR}/source -I${EMP_DIR}/third-party/cereal/include/
 FLAGS_main    = $(FLAGS_version) $(FLAGS_warn) $(FLAGS_include) -pthread
 
 FLAGS_QUICK  = $(FLAGS_main) -DNDEBUG
