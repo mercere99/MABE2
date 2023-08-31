@@ -53,6 +53,9 @@
  *  A CollectionIterator will track the current population being iterated through, and the position
  *  currently indicated.  When an iterator reached the end, it's population pointer is set to 
  *  nullptr.
+ * 
+ *  -- TODO ---
+ *  + Add a Remove() function.
  */
 
 #ifndef MABE_COLLECTION_H

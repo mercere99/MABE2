@@ -9,6 +9,9 @@
  *  Organisms in MABE are stored in Population objects.
  *  A single position in a Population object is described by a Population::Position.
  * 
+ *  Populations in MABE cannot be copied or moved as signals must be triggered; all such
+ *  actions must be performed manually..
+ * 
  *  @todo Add a reverse iterator.
  *  @todo Fix operator-- which can go off of the beginning of the world.
  */

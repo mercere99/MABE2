@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019-2022.
+ *  @date 2019-2023.
  *
  *  @file  Organism.hpp
  *  @brief A base class for all organisms in MABE.
@@ -10,7 +10,7 @@
  *  All organism types or organism component types (e.g., brains or genomes) that can be
  *  individually configured in MABE must have mabe::OrgType as its ultimate base class.  A helper
  *  template mabe::OrganismTemplate<ORG_T> is derived from mabe::OrgType and should be used as
- *  the more immeidate base class for any user-defined organism types.  Providing this template
+ *  the more immediate base class for any user-defined organism types.  Providing this template
  *  with your new organism type as ORG_T will setup type-specific return values for ease of use.
  *
  *  All interactions between an organism and its environment are mediated through the Organism's
