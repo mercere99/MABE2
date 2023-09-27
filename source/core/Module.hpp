@@ -108,7 +108,7 @@ namespace mabe {
     // (Other ways of linking variable to config file are in EmplodeType.h)
 
     /// Link a single population to a parameter by name.
-    emplode::Symbol_LinkedFunctions<std::string> & LinkPop(
+    emplode::Var LinkPop(
       int & var,
       const std::string & name,
       const std::string & desc
@@ -124,12 +124,11 @@ namespace mabe {
           }
         };
 
-      return *AsScope().LinkFuns<std::string>(name, get_fun, set_fun, desc)
-        .GetValue().DynamicCast<emplode::Symbol_LinkedFunctions<std::string>>();
+      return AsScope().LinkFuns<std::string>(name, get_fun, set_fun, desc);
     }
 
     /// Link one or more populations (or portions of a population) to a parameter.
-    emplode::Symbol_LinkedFunctions<std::string> & LinkCollection(
+    emplode::Var LinkCollection(
       mabe::Collection & var,
       const std::string & name,
       const std::string & desc
@@ -142,12 +141,11 @@ namespace mabe {
           var = control.ToCollection(load_str);
         };
 
-      return *AsScope().LinkFuns<std::string>(name, get_fun, set_fun, desc)
-        .GetValue().DynamicCast<emplode::Symbol_LinkedFunctions<std::string>>();
+      return AsScope().LinkFuns<std::string>(name, get_fun, set_fun, desc);
     }
 
     /// Link another module to this one, by name (track using int ID)
-    emplode::Symbol_LinkedFunctions<std::string> & LinkModule(
+    emplode::Var LinkModule(
       int & var,
       const std::string & name,
       const std::string & desc
@@ -161,13 +159,12 @@ namespace mabe {
           if (var == -1) emp::notify::Error("Trying to access module '", name, "'; does not exist.");
         };
 
-      return *AsScope().LinkFuns<std::string>(name, get_fun, set_fun, desc)
-        .GetValue().DynamicCast<emplode::Symbol_LinkedFunctions<std::string>>();
+      return AsScope().LinkFuns<std::string>(name, get_fun, set_fun, desc);
     }
 
     /// Link a range of values with a start, stop, and step.
     template <typename T=int>
-    emplode::Symbol_LinkedFunctions<std::string> & LinkRange(
+    emplode::Var LinkRange(
       T & start_var,
       T & step_var,
       T & stop_var,
@@ -189,8 +186,7 @@ namespace mabe {
           stop_var = name.size() ? emp::from_string<T>(name) : no_val; // no_val indicates no stop.
         };
 
-      return *AsScope().LinkFuns<std::string>(name, get_fun, set_fun, desc)
-        .GetValue().DynamicCast<emplode::Symbol_LinkedFunctions<std::string>>();
+      return AsScope().LinkFuns<std::string>(name, get_fun, set_fun, desc);
     }
 
     auto LinkRange(UpdateRange & in_range, const std::string & name, const std::string & desc) {
