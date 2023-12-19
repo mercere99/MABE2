@@ -33,7 +33,7 @@
 #include "emp/math/Random.hpp"
 #include "emp/tools/string_utils.hpp"
 
-#include "../Emplode/Emplode.hpp"
+#include "Emplode/Emplode.hpp"
 
 #include "Batch.hpp"
 #include "Collection.hpp"

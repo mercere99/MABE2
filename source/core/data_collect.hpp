@@ -37,7 +37,7 @@
 
 #include "emp/tools/string_utils.hpp"
 #include "emp/datastructs/vector_utils.hpp"
-#include "../Emplode/Symbol.hpp"
+#include "Emplode/Symbol.hpp"
 
 namespace mabe {
   namespace DataCollect {

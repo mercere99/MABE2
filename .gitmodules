@@ -2,3 +2,6 @@
 	path = source/third-party/empirical
   url = https://github.com/devosoft/Empirical
   branch = MABE_devel
+[submodule "source/third-party/Emplode"]
+	path = source/third-party/Emplode
+	url = https://github.com/tolziplohu/Emplode
