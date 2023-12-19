@@ -2,8 +2,8 @@
 # To use, you must first setup MABE_DIR to indicate the offset of the MABE root directory.
 
 # Identify all directory locations
-# EMP_DIR   = $(MABE_DIR)/source/third-party/empirical
-EMP_DIR   = $(MABE_DIR)/../Empirical
+EMP_DIR   = $(MABE_DIR)/source/third-party/empirical
+#EMP_DIR   = $(MABE_DIR)/../Empirical
 EMPLODE_DIR = $(MABE_DIR)/source/third-party/Emplode
 CATCH_DIR = $(EMP_DIR)/third-party/Catch/single_include/catch2
 
