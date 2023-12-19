@@ -196,6 +196,9 @@ namespace mabe {
         return (pop_ptr == in.pop_ptr) ? (pos <=>  in.pos) : (pop_ptr <=> in.pop_ptr);
     }
 
+    // Without this definition, the compiler would silently use operator bool() for equality comparisons
+    bool operator==(const this_t & in) const = default;
+
     /// Return a reference to the organism pointed to by this iterator; may advance iterator.
     ORG_T & operator*() {
       emp_assert(IsValid(), pop_ptr, pos, PopSize());  // Make sure we're not outside of the vector.

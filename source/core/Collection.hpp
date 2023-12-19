@@ -515,11 +515,11 @@ namespace mabe {
       emp_error("ShiftPosition() not yet implemented for CollectionIterator.");
     }
 
-    CollectionIterator begin() { return CollectionIterator(this); }
+    CollectionIterator begin() { return CollectionIterator(this, pos_map.empty() ? 0 : pos_map.begin()->second.pos_set.FindOne()); }
     CollectionIterator end() { return CollectionIterator(this, nullptr); }
-    ConstCollectionIterator begin() const { return ConstCollectionIterator(this); }
+    ConstCollectionIterator begin() const { return ConstCollectionIterator(this, pos_map.empty() ? 0 : pos_map.begin()->second.pos_set.FindOne()); }
     ConstCollectionIterator end() const { return ConstCollectionIterator(this, nullptr); }
-    ConstCollectionIterator cbegin() const { return ConstCollectionIterator(this); }
+    ConstCollectionIterator cbegin() const { return ConstCollectionIterator(this, pos_map.empty() ? 0 : pos_map.begin()->second.pos_set.FindOne()); }
     ConstCollectionIterator cend() const { return ConstCollectionIterator(this, nullptr); }
 
     /// Remove all entries from a collection.
