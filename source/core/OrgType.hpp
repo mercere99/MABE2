@@ -104,7 +104,7 @@ namespace mabe {
     virtual std::string ToString() const { return "__unknown__"; }
 
     /// By default print an organism by triggering it's ToString() function.
-    std::ostream & Print(std::ostream & os) const {
+    virtual std::ostream & Print(std::ostream & os) const {
       os << ToString();
       return os;
     }
