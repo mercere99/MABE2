@@ -181,8 +181,10 @@ namespace mabe {
     /// Move an organism from one position to another; kill anything that previously occupied
     /// the target position.
     void MoveOrg(OrgPosition from_pos, OrgPosition to_pos) {
-      ClearOrgAt(to_pos);
-      SwapOrgs(from_pos, to_pos);
+      if (from_pos != to_pos) {
+        ClearOrgAt(to_pos);
+        SwapOrgs(from_pos, to_pos);
+      }
     }
 
     /// Inject one or more copies of an organism and return the positions they were placed in.
