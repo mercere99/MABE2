@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of Empirical, https://github.com/devosoft/Empirical
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019-2020.
+ *  @date 2019-2024.
  *
  *  @file  NK.hpp
  *  @brief This file provides code to build NK-based algorithms.
@@ -101,17 +101,17 @@ namespace mabe {
     size_t GetN() const { return N; }
     /// Returns K
     size_t GetK() const { return K; }
-    /// Get the number of posssible states for a given site
+    /// Get the number of possible states for a given site
     size_t GetStateCount() const { return state_count; }
     /// Get the total number of states possible in the landscape
     /// (i.e. the number of different fitness contributions in the table)
     size_t GetTotalCount() const { return total_count; }
 
-    /// Get the fitness contribution of position [n] when it (and its K neighbors) have the value
-    /// [state]
-    double GetFitness(size_t n, size_t state) const {
+    /// Get the fitness contribution of position [gene_id] when it (and its K neighbors) have the
+    /// value [state]
+    double GetFitness(size_t gene_id, size_t state) const {
       emp_assert(state < state_count, state, state_count);
-      return landscape[n][state];
+      return landscape[gene_id][state];
     }
 
     /// Get the fitness of a whole  bitstring
@@ -129,7 +129,7 @@ namespace mabe {
       genome |= (genome << N);
 
       double total = 0.0;
-      size_t mask = emp::MaskLow<size_t>(K+1);
+      const size_t mask = emp::MaskLow<size_t>(K+1);
       for (size_t i = 0; i < N; i++) {
         const size_t cur_val = (genome >> i).GetUInt(0) & mask;
 	      const double cur_fit = GetFitness(i, cur_val);
@@ -137,6 +137,25 @@ namespace mabe {
       }
       return total;
     }
+
+    /// Get the fitness of each gene in a bitstring (pass by value so can be modified.)
+    emp::vector<double> GetGeneFitnesses(emp::BitVector genome) const {
+      emp::vector<double> gene_fitnesses;
+      gene_fitnesses.resize(N);
+
+      // Use a double-length genome to easily handle wrap-around.
+      genome.Resize(N*2);
+      genome |= (genome << N);
+
+      const size_t mask = emp::MaskLow<size_t>(K+1);
+      for (size_t i = 0; i < N; i++) {
+        const size_t cur_val = (genome >> i).GetUInt(0) & mask;
+	      gene_fitnesses[i] = GetFitness(i, cur_val);
+      }
+
+      return gene_fitnesses;
+    }
+
 
     void SetState(size_t n, size_t state, double in_fit) { landscape[n][state] = in_fit; }
 
