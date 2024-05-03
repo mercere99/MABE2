@@ -88,7 +88,7 @@ namespace mabe {
 
   };
 
-  MABE_REGISTER_MODULE(RandomReplacement, "Always appened births to the end of a population.");
+  MABE_REGISTER_MODULE(RandomReplacement, "Always append births to the end of a population.");
 }
 
 #endif

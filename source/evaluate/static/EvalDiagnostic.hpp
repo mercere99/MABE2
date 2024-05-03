@@ -124,7 +124,7 @@ namespace mabe {
           first_active = pos;
           pos++;
 
-          // Use values as long as they are monotonically decreasing.
+          // Use values as long as they are monotonically non-increasing.
           while (pos < vals.size() && vals[pos] <= vals[pos-1]) {
             total_score += (scores[pos] = vals[pos]);
             pos++;
