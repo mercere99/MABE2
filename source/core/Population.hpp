@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019-2021.
+ *  @date 2019-2024.
  *
  *  @file  Population.hpp
  *  @brief Container for a group of arbitrary MABE organisms.
@@ -126,6 +126,8 @@ namespace mabe {
 
     ~Population() { emp_assert(num_orgs==0, "Population should be cleaned up before deletion."); }
 
+    size_t npos = static_cast<size_t>(-1);
+
     std::string GetName() const override { return name; }
     int GetID() const noexcept override { return pop_id; }
     size_t GetSize() const noexcept override { return orgs.size(); }
@@ -145,6 +147,11 @@ namespace mabe {
     bool IsValid(size_t pos) const { return pos < orgs.size(); }
     bool IsEmpty(size_t pos) const { return IsValid(pos) && orgs[pos]->IsEmpty(); }
     bool IsOccupied(size_t pos) const { return IsValid(pos) && !orgs[pos]->IsEmpty(); }
+
+    size_t FindOccupiedPos(size_t start_pos=0) const {
+      for (size_t pos=start_pos; pos < orgs.size(); ++pos) if (!orgs[pos]->IsEmpty()) return pos;
+      return npos;
+    }
 
     void SetName(const std::string & in_name) { name = in_name; }
     void SetID(int in_id) noexcept { pop_id = in_id; }
@@ -222,7 +229,7 @@ namespace mabe {
       return iterator_t(this, pos);
     }
 
-    /// Setup the organism to be used as "empty" (Managed externally, usually by MABE conroller.)
+    /// Setup the organism to be used as "empty" (Managed externally, usually by MABE controller.)
     void SetEmpty(emp::Ptr<Organism> in_empty) { empty_org = in_empty; }
 
   public:
