@@ -148,6 +148,10 @@ namespace mabe {
     bool IsEmpty(size_t pos) const { return IsValid(pos) && orgs[pos]->IsEmpty(); }
     bool IsOccupied(size_t pos) const { return IsValid(pos) && !orgs[pos]->IsEmpty(); }
 
+    size_t FindEmptyPos(size_t start_pos=0) const {
+      for (size_t pos=start_pos; pos < orgs.size(); ++pos) if (orgs[pos]->IsEmpty()) return pos;
+      return npos;
+    }
     size_t FindOccupiedPos(size_t start_pos=0) const {
       for (size_t pos=start_pos; pos < orgs.size(); ++pos) if (!orgs[pos]->IsEmpty()) return pos;
       return npos;
