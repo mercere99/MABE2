@@ -78,14 +78,16 @@ namespace mabe {
       emp::Ptr<Organism> max_org = nullptr;
 
       // Loop through the living organisms in the target collection to evaluate each.
-      mabe::Collection alive_collect( orgs.GetAlive() );
-      for (Organism & org : alive_collect) {        
+      mabe::Collection alive_orgs( orgs.GetAlive() );
+      for (Organism & org : alive_orgs) {        
         // Make sure this organism has its values ready for us to access.
         org.GenerateOutput();
 
         // Get access to the data_map elements that we need.
         std::span<double> vals = vals_trait(org);
         std::span<double> scores = scores_trait(org);
+        emp_assert(vals.size() == scores.size());
+
         double & total_score = total_trait(org);
         size_t & first_active = first_trait(org);
         size_t & active_count = active_count_trait(org);
@@ -97,8 +99,8 @@ namespace mabe {
         // Determine the scores based on the diagnostic type that we're using.
         switch (diagnostic_id) {
         case EXPLOIT:
-          scores = vals;
-          for (double x : scores) total_score += x;
+          std::copy(vals.begin(), vals.end(), scores.begin());
+          total_score = std::accumulate(scores.begin(), scores.end(), 0.0);
           first_active = 0;
           active_count = vals.size();
           break;
@@ -113,12 +115,12 @@ namespace mabe {
           active_count = pos;
 
           // Clear out the remaining values.
-          while (pos < scores.size()) { scores[pos] = 0.0; ++pos; }
+          std::fill(scores.begin()+pos, scores.end(), 0.0);
           break;
         case EXPLORE:
           // Start at highest value (clearing everything before it)
           pos = emp::FindMaxIndex(vals);  // Find the position to start.
-          for (size_t i = 0; i < pos; i++) scores[i] = 0.0;
+          std::fill(scores.begin(), scores.begin()+pos, 0.0);
 
           total_score = scores[pos] = vals[pos];
           first_active = pos;
@@ -132,7 +134,7 @@ namespace mabe {
           active_count = pos - first_active;
 
           // Clear out the remaining values.
-          while (pos < scores.size()) { scores[pos] = 0.0; ++pos; }
+          std::fill(scores.begin()+pos, scores.end(), 0.0);
 
           break;
         case DIVERSITY:
