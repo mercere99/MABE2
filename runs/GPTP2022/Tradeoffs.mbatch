@@ -1,0 +1,25 @@
+# Set of experiments to look at the trade-off between:
+# * N = population size
+# * T = number of test cases
+# * G = number of generations
+#
+# The total number of evaluations in a run is N * T * G
+
+mabe    ../../build/MABE  # Where is the executable?  (default: THIS executable)
+log     Tradeoffs.log     # Where should we log run data?
+
+factor  D  exploit struct_exploit explore diversity weak_diversity  # Diagnostic
+factor  T  10 100 1000                                              # Cardinality
+factor  N  32 64 128 256 512 1024                                   # Population Size
+set     E  2560000                                                  # Number of evaluations
+replicate 10                                                        # Replicates per combination
+
+# Which configuration values should be set?
+config -f Tradeoffs.mabe
+config -s evaluator.diagnostic=${D}
+config -s vals_org.N=${T}
+config -s pop_size=${N}
+config -s num_gens=${E}/pop_size
+config -s out_dir=${D}/${T}/
+config -s out_filename=${D}-T${T}-N${N}-${seed}.csv
+
