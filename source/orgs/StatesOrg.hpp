@@ -38,11 +38,11 @@ namespace mabe {
       size_t genome_size = 100;            ///< Number of positions in this genome.
       double mut_prob = 0.01;              ///< Probability of position mutating on reproduction.
       ChangeType change_type = CHANGE_UNIFORM;
+      bool init_random = true;             ///< Should we randomize ancestor?  (false = all 0.0)
 
       // Helper member variables.
-      emp::Binomial mut_dist;            ///< Distribution of number of mutations to occur.
-      emp::BitVector mut_sites;          ///< A pre-allocated vector for mutation sites. 
-      bool init_random = true;           ///< Should we randomize ancestor?  (false = all 0.0)
+      emp::Binomial mut_dist;              ///< Distribution of number of mutations to occur.
+      emp::BitVector mut_sites;            ///< A pre-allocated vector for mutation sites. 
     };
 
     StatesOrg(OrganismManager<StatesOrg> & _manager)
@@ -59,20 +59,24 @@ namespace mabe {
 
     size_t Mutate(emp::Random & random) override {
       if (SharedData().change_type == CHANGE_NONE) {
-        notify::Warning("Trying to mutate StatesOrg, but no changes allowed.");
+        emp::notify::Warning("Trying to mutate StatesOrg, but no changes allowed.");
         return 0;
       }
 
       // Identify number of and positions for mutations.
       const size_t num_muts = SharedData().mut_dist.PickRandom(random);
+      if (num_muts == 0) return 0;
+
       emp::BitVector & mut_sites = SharedData().mut_sites;
       mut_sites.ChooseRandom(random, num_muts);
       std::span<size_t> genome = GetTrait<size_t>(SharedData().genome_name, SharedData().genome_size);
 
       // Trigger the correct type of mutations at the identified positions.
-      size_t mut_pos = mut_sites.FindOne();
-      while (mut_pos < mut_sizes.GetSize()) {
-        double & locus = genome[mut_pos];      // Identify the next site to mutate.
+      for (size_t mut_pos = mut_sites.FindOne();
+           mut_pos < mut_sites.GetSize();
+           mut_pos = mut_sites.FindOne(mut_pos+1))
+      {
+        size_t & locus = genome[mut_pos];      // Identify the next site to mutate.
         switch (SharedData().change_type) {
         case CHANGE_RING:
           if (random.P(0.5)) {
@@ -86,8 +90,8 @@ namespace mabe {
         case CHANGE_UNIFORM:
           locus = random.GetUInt(SharedData().num_states);
           break;
+        default: break;
         }
-        mut_pos = mut_sites.FindOne(mut_pos+1);  // Move on to the next site to mutate.
       }
 
       return num_muts;
@@ -95,21 +99,14 @@ namespace mabe {
 
     void Randomize(emp::Random & random) override {
       std::span<double> genome = GetTrait<double>(SharedData().genome_name, SharedData().genome_size);
-      double total = 0.0;
-      for (double & x : genome) {
-        x = random.GetDouble(SharedData().min_value, SharedData().max_value);
-        total += x;
-      }
-      SetTrait<double>(SharedData().total_name, total);  // Store total in data map.
+      for (size_t & x : genome) x = random.GetUInt(SharedData().num_states);
     }
 
     void Initialize(emp::Random & random) override {
       if (SharedData().init_random) Randomize(random);
       else { 
-        std::span<double> genome = GetTrait<double>(SharedData().genome_name, SharedData().genome_size);
-        double total = 0.0;
-        for (double & x : genome) x = 0.0;
-        SetTrait<double>(SharedData().total_name, total);  // Store total in data map.
+        std::span<double> genome = GetTrait<size_t>(SharedData().genome_name, SharedData().genome_size);
+        for (size_t & x : genome) x = 0;
       }
     }
 
@@ -121,33 +118,21 @@ namespace mabe {
 
     /// Setup this organism type to be able to load from config.
     void SetupConfig() override {
+      size_t num_states;                   ///< Number of unique states in an organism.
+
       GetManager().LinkVar(SharedData().genome_size, "N", "Number of values in organism");
+      GetManager().LinkVar(SharedData().num_states, "D", "How many states are possible per site?");
       GetManager().LinkVar(SharedData().mut_prob, "mut_prob",
-                      "Probability of each value mutating on reproduction.");
-      GetManager().LinkVar(SharedData().mut_size, "mut_size",
-                      "Standard deviation on size of mutations.");
-      GetManager().LinkVar(SharedData().min_value, "min_value",
-                      "Lower limit for value fields.");
-      GetManager().LinkVar(SharedData().max_value, "max_value",
-                      "Upper limit for value fields.");
+        "Probability of each value mutating on reproduction.");
       GetManager().LinkMenu(
-        SharedData().lower_bound, "lower_bound", "How should the lower limit be enforced?",
-        LIMIT_NONE, "no_limit", "Allow values to be arbitrarily low.",
-        LIMIT_CLAMP, "clamp", "Reduce too-low values to min_value.",
-        LIMIT_WRAP, "wrap", "Make low values loop around to maximum.",
-        LIMIT_REBOUND, "rebound", "Make low values 'bounce' back up." );
-      GetManager().LinkMenu(
-        SharedData().upper_bound, "upper_bound", "How should the upper limit be enforced?",
-        LIMIT_NONE, "no_limit", "Allow values to be arbitrarily high.",
-        LIMIT_CLAMP, "clamp", "Reduce too-high values to max_value.",
-        LIMIT_WRAP, "wrap", "Make high values loop around to minimum.",
-        LIMIT_REBOUND, "rebound", "Make high values 'bounce' back down." );
+        SharedData().change_type, "change_type", "What should a point mutation do?",
+        CHANGE_NONE, "null", "Do not allow mutations; issue warning if attempted.",
+        CHANGE_RING, "ring", "State changes add or subtract one, looping",
+        CHANGE_UNIFORM, "uniform", "Change to another state with equal probability.",
       GetManager().LinkVar(SharedData().genome_name, "genome_name",
-                      "Name of variable to contain set of values.");
-      GetManager().LinkVar(SharedData().total_name, "total_name",
-                      "Name of variable to contain total of all values.");
+        "Name of variable to contain set of values.");
       GetManager().LinkVar(SharedData().init_random, "init_random",
-                      "Should we randomize ancestor?  (0 = all 0.0)");
+        "Should we randomize ancestor?  (0 = all 0.0)");
     }
 
     /// Setup this organism type with the traits it need to track.
@@ -161,12 +146,8 @@ namespace mabe {
       // Setup the output trait.
       GetManager().AddSharedTrait(SharedData().genome_name,
                                   "Value array output from organism.",
-                                  0.0,
+                                  static_cast<size_t>(0),
                                   SharedData().genome_size);
-      // Setup the output trait.
-      GetManager().AddSharedTrait(SharedData().total_name,
-                                  "Total of all organism outputs.",
-                                  0.0);
     }
   };
 
