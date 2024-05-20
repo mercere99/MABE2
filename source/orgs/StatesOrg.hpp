@@ -98,14 +98,14 @@ namespace mabe {
     }
 
     void Randomize(emp::Random & random) override {
-      std::span<double> genome = GetTrait<double>(SharedData().genome_name, SharedData().genome_size);
+      std::span<size_t> genome = GetTrait<size_t>(SharedData().genome_name, SharedData().genome_size);
       for (size_t & x : genome) x = random.GetUInt(SharedData().num_states);
     }
 
     void Initialize(emp::Random & random) override {
       if (SharedData().init_random) Randomize(random);
       else { 
-        std::span<double> genome = GetTrait<size_t>(SharedData().genome_name, SharedData().genome_size);
+        std::span<size_t> genome = GetTrait<size_t>(SharedData().genome_name, SharedData().genome_size);
         for (size_t & x : genome) x = 0;
       }
     }
@@ -118,8 +118,6 @@ namespace mabe {
 
     /// Setup this organism type to be able to load from config.
     void SetupConfig() override {
-      size_t num_states;                   ///< Number of unique states in an organism.
-
       GetManager().LinkVar(SharedData().genome_size, "N", "Number of values in organism");
       GetManager().LinkVar(SharedData().num_states, "D", "How many states are possible per site?");
       GetManager().LinkVar(SharedData().mut_prob, "mut_prob",
@@ -128,7 +126,7 @@ namespace mabe {
         SharedData().change_type, "change_type", "What should a point mutation do?",
         CHANGE_NONE, "null", "Do not allow mutations; issue warning if attempted.",
         CHANGE_RING, "ring", "State changes add or subtract one, looping",
-        CHANGE_UNIFORM, "uniform", "Change to another state with equal probability.",
+        CHANGE_UNIFORM, "uniform", "Change to another state with equal probability.");
       GetManager().LinkVar(SharedData().genome_name, "genome_name",
         "Name of variable to contain set of values.");
       GetManager().LinkVar(SharedData().init_random, "init_random",
@@ -151,60 +149,9 @@ namespace mabe {
     }
   };
 
-  ///////////////////////////////////////////////////////////////////////////////////////////
-  //  Helper functions....
-
-  void StatesOrg::ManagerData::ApplyBounds(double & value) {
-    if (value > max_value) {
-      switch (upper_bound) {
-        case LIMIT_NONE:    break;
-        case LIMIT_CLAMP:   value = max_value; break;
-        case LIMIT_WRAP:    value -= (max_value - min_value); break;
-        case LIMIT_REBOUND: value = 2 * max_value - value; break;
-        case LIMIT_ERROR:   break;  // For now; perhaps do something with error?
-      }
-    }
-    else if (value < min_value) {
-      switch (lower_bound) {
-        case LIMIT_NONE:    break;
-        case LIMIT_CLAMP:   value = min_value; break;
-        case LIMIT_WRAP:    value += (max_value - min_value); break;
-        case LIMIT_REBOUND: value = 2 * min_value - value; break;
-        case LIMIT_ERROR:   break;  // For now; perhaps do something with error?
-      }
-    }
-  }
-
-  void StatesOrg::ManagerData::ApplyBounds(std::span<double> & vals) {
-    const size_t range_size = max_value - min_value;
-
-    switch (upper_bound) {
-    case LIMIT_NONE: break;
-    case LIMIT_CLAMP:
-      for (double & value : vals) {
-        if (value > max_value) value = max_value;
-        else if (value < min_value) value = min_value;        
-      }
-      break;
-    case LIMIT_WRAP:
-      for (double & value : vals) {
-        if (value > max_value) value -= range_size;
-        else if (value < min_value) value += range_size;        
-      }
-      break;
-    case LIMIT_REBOUND:
-      for (double & value : vals) {
-        if (value > max_value) value = 2 * max_value - value;
-        else if (value < min_value) value = 2 * min_value - value;
-      }
-      break;
-    default:
-      break; // Should probably throw error.
-    }
-  }
 
 
-  MABE_REGISTER_ORG_TYPE(StatesOrg, "Organism consisting of a series of N floating-point values.");
+  MABE_REGISTER_ORG_TYPE(StatesOrg, "Organism consisting of a series of N state values.");
 }
 
 #endif
