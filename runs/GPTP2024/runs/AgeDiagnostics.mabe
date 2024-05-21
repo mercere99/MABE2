@@ -1,0 +1,134 @@
+random_seed = 0;                // Seed for random number generator; use 0 to base on time.
+Var pop_size = 500;
+Var num_gens = 200000;
+// Var num_vals = 100;             // Organism size
+Var num_vals = 200;             // Organism size
+Var print_step = 1000;          // Interval for printing...
+
+Var inject_step = 10000;        // Frequency of injecting new random organisms.
+Var inject_count = 50;          // Number of organisms to inject at each interval.
+
+Var elite_count = 0;
+
+Population main_pop;
+Population next_pop;
+
+ValsOrg vals_org {              // Organism consisting of a series of floating-point values.
+  N = num_vals;                 // Number of values in organism
+  // mut_prob = 0.007;             // Probability of each value mutating on reproduction.
+  mut_prob = 0.004;             // Probability of each value mutating on reproduction.
+  mut_size = 1.0;               // Standard deviation on size of mutations.
+  min_value = 0;                // Lower limit for value fields.
+  max_value = 100;              // Upper limit for value fields.
+  lower_bound = "clamp";        // How should the lower limit be enforced?
+                                // - "no_limit": Allow values to be arbitrarily low.
+                                // - "clamp": Reduce too-low values to min_value.
+                                // - "wrap": Make low values loop around to maximum.
+                                // - "rebound": Make low values 'bounce' back up.
+  upper_bound = "rebound";      // How should the upper limit be enforced?
+                                // - "no_limit": Allow values to be arbitrarily high.
+                                // - "clamp": Reduce too-high values to max_value.
+                                // - "wrap": Make high values loop around to minimum.
+                                // - "rebound": Make high values 'bounce' back down.
+  genome_name = "vals";         // Name of variable to contain set of values.
+  total_name = "total";         // Name of variable to contain total of all values.
+};
+
+TrackAncestor track_anc {
+  inject_time_trait = "inject_time"; // Time this lineage was first injected into the population.
+  clade_id_trait = "clade_id";  // Unique id for all members of this clade.
+};
+
+EvalDiagnostic diagnostics {    // Evaluate set of values with a specified diagnostic problem.
+  vals_trait = "vals";          // Which trait stores the values to evaluate?
+  scores_trait = "scores";      // Which trait should we store revised scores in?
+  N = num_vals;                 // How many values are we working with?
+  total_trait = "fitness";      // Which trait should we store the total score in?
+  diagnostic = "explore";       // Which Diagnostic should we use?
+                                // "exploit": Fitness = sum of all values
+                                // "struct_exploit": Fitness = sum of descending values from start
+                                // "explore": Fitness = sum of descending values from max
+                                // "diversity": Fitness = max value minus all others
+                                // "weak_diversity": Fitness = max value
+};
+
+SelectRoulette select_r {       // Choose the top fitness organisms for replication.
+  fitness_fun = "fitness";      // Which trait provides the fitness value to use?
+};
+
+SelectElite select_e {          // Choose the top fitness organisms for replication.
+  fitness_fun = "fitness";      // Which trait provides the fitness value to use?
+  top_count = pop_size/2;       // Number of top-fitness orgs to be replicated
+};
+
+SelectTournament select_t {     // Replicate top fitness organisms from random subgroups.
+  tournament_size = 7;          // Number of orgs in each tournament
+  fitness_fun = "fitness";      // Which trait provides the fitness value to use?
+};
+
+SelectLexicase select_l {       // Shuffle traits each time an organism is chose for replication.
+  // fitness_traits = "scores,inject_time";  // Which traits provide the fitness values to use?
+  fitness_traits = "scores";          // Which traits provide the fitness values to use?
+  // fitness_traits = "inject_time";  // Which traits provide the fitness values to use?
+  epsilon = 0.1;                      // Range from max value to be preserved?
+  sample_traits = 0;                  // How many traits should be sampled each generation? (0 = off)
+  major_trait = "inject_time";
+  major_range = 5;
+  // require_first = 1;                  // Require each test to be first at least once.
+};
+
+DataFile fit_file { filename="fitness.csv"; };
+fit_file.ADD_COLUMN( "Average Fitness", "main_pop.CALC_MEAN('fitness')" );
+fit_file.ADD_COLUMN( "Maximum Fitness", "main_pop.CALC_MAX('fitness')" );
+fit_file.ADD_COLUMN( "Dominant Fitness", "main_pop.CALC_MODE('fitness')" );
+
+OrgList best_org;
+DataFile max_file { filename="max_org.csv"; };
+max_file.ADD_SETUP( "best_org = main_pop.FIND_MAX('fitness')" );
+max_file.ADD_COLUMN( "Fitness", "best_org.TRAIT('fitness')" );
+max_file.ADD_COLUMN( "Genome", "best_org.TRAIT('vals')" );
+max_file.ADD_COLUMN( "Scores", "best_org.TRAIT('scores')" );
+max_file.ADD_COLUMN( "birth", "best_org.TRAIT('inject_time')" );
+
+@START() {
+  PRINT("Beginning DIAGNOSTICS!\nMain config options:");
+  PRINT(" Diagnostic:       '", diagnostics.diagnostic, "'");
+  PRINT(" Num org values:   ", num_vals);
+  PRINT(" Mut Probability:  ", vals_org.mut_prob);
+  PRINT(" Mut Size:         ", vals_org.mut_size);
+  PRINT(" Population size:  ", pop_size);
+  PRINT(" Inject Step:      ", inject_step);
+  PRINT(" Inject Count:     ", inject_count);
+  PRINT(" Random seed:      ", random_seed, "\n");
+  PRINT(" Num Generations:  ", num_gens, "\n");
+ 
+  main_pop.INJECT("vals_org", pop_size);       // Inject starting population.
+}
+
+// Actions to perform every update.
+
+@UPDATE(Var ud) {
+  diagnostics.EVAL(main_pop);
+
+  IF (ud % print_step == 0) {
+     PRINT("UD:", GET_UPDATE(),
+           "  MainPopSize=", main_pop.SIZE(),
+           "  AveFitness=", main_pop.CALC_MEAN("fitness"),
+           "  MaxFitness=", main_pop.CALC_MAX("fitness"),
+     );
+     fit_file.WRITE();
+     max_file.WRITE();
+  }
+  IF (ud == num_gens) EXIT();
+
+  IF (ud % inject_step == 0) {
+    next_pop.INJECT("vals_org", inject_count);
+  }
+  // select_e.SELECT(main_pop, next_pop, elite_count);
+  // select_r.SELECT(main_pop, next_pop, 100);
+  // select_t.SELECT(main_pop, next_pop, 100);
+
+  Var remaining = pop_size - next_pop.NUM_ORGS();
+  select_l.SELECT(main_pop, next_pop, remaining);
+  main_pop.REPLACE_WITH(next_pop);
+}
