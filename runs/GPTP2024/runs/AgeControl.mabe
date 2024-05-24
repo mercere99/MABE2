@@ -1,11 +1,11 @@
 random_seed = 0;                // Seed for random number generator; use 0 to base on time.
-Var pop_size = 500;
-Var num_gens = 200000;
+Var pop_size = 200;
+Var num_gens = 1000000;
 // Var num_vals = 100;             // Organism size
 Var num_vals = 200;             // Organism size
 Var print_step = 1000;          // Interval for printing...
 
-Var inject_step = 10000;        // Frequency of injecting new random organisms.
+Var inject_step = 50000;        // Frequency of injecting new random organisms.
 Var inject_count = 50;          // Number of organisms to inject at each interval.
 
 Var elite_count = 0;
@@ -81,6 +81,8 @@ DataFile fit_file { filename="fitness.csv"; };
 fit_file.ADD_COLUMN( "Average Fitness", "main_pop.CALC_MEAN('fitness')" );
 fit_file.ADD_COLUMN( "Maximum Fitness", "main_pop.CALC_MAX('fitness')" );
 fit_file.ADD_COLUMN( "Dominant Fitness", "main_pop.CALC_MODE('fitness')" );
+fit_file.ADD_COLUMN( "Collective Fitness", "diagnostics.COLLECTIVE_SCORE(main_pop)" );
+fit_file.ADD_COLUMN( "Lowest Active Pos", "diagnostics.LOWEST_ACTIVE(main_pop)" );
 
 OrgList best_org;
 DataFile max_file { filename="max_org.csv"; };
@@ -113,8 +115,9 @@ max_file.ADD_COLUMN( "birth", "best_org.TRAIT('inject_time')" );
   IF (ud % print_step == 0) {
      PRINT("UD:", GET_UPDATE(),
            "  MainPopSize=", main_pop.SIZE(),
-           "  AveFitness=", main_pop.CALC_MEAN("fitness"),
            "  MaxFitness=", main_pop.CALC_MAX("fitness"),
+           "  CollectiveScore=", diagnostics.COLLECTIVE_SCORE(main_pop),
+           "  LowestActive=", diagnostics.LOWEST_ACTIVE(main_pop),
      );
      fit_file.WRITE();
      max_file.WRITE();
