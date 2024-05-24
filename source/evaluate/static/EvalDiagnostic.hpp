@@ -55,6 +55,16 @@ namespace mabe {
         [](EvalDiagnostic & mod, Collection orgs) { return mod.Evaluate(orgs); },
         "Evaluate organisms using the specified diagnostic."
       );
+      info.AddMemberFunction(
+        "COLLECTIVE_SCORE",
+        [](EvalDiagnostic & mod, Collection orgs) { return mod.CalcCollectiveScore(orgs); },
+        "Sum the best scores in the whole population, trait-by-trait."
+      );
+      info.AddMemberFunction(
+        "LOWEST_ACTIVE",
+        [](EvalDiagnostic & mod, Collection orgs) { return mod.FindLowestActive(orgs); },
+        "Determine the earliest active position."
+      );
     }
 
     void SetupConfig() override {
@@ -174,6 +184,32 @@ namespace mabe {
         }
       }
       return max_total;
+    }
+
+    double CalcCollectiveScore(Collection orgs) const {
+      mabe::Collection alive_orgs( orgs.GetAlive() );
+      emp::vector<double> best_scores(num_vals, 0.0);
+      for (Organism & org : alive_orgs) {
+        std::span<double> scores = scores_trait(org);
+        for (size_t i = 0; i < scores.size(); ++i) {
+          if (scores[i] > best_scores[i]) best_scores[i] = scores[i];
+        }
+      }
+      double total_score = std::accumulate(best_scores.begin(), best_scores.end(), 0.0);
+      return total_score;
+    }
+
+    double FindLowestActive(Collection orgs) const {
+      mabe::Collection alive_orgs( orgs.GetAlive() );
+      size_t lowest_active = num_vals;
+      for (Organism & org : alive_orgs) {
+        // Get access to the data_map elements that we need.
+        std::span<double> vals = vals_trait(org);
+        size_t pos = emp::FindMaxIndex(vals);  // Find the first active position
+        if (pos < lowest_active) lowest_active = pos;
+      }
+
+      return lowest_active;
     }
   };
 
