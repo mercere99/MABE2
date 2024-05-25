@@ -683,7 +683,7 @@ namespace mabe {
       return PushEmpty(*new_pop);
     });
     new_pop->SetFindNeighborFun( [this,new_pop](OrgPosition pos) {
-      if (pos.IsInPop(*new_pop)) return OrgPosition(); // Wrong pop!  No neighbor.
+      if (!pos.IsInPop(*new_pop)) return OrgPosition(); // Wrong pop!  No neighbor.
       // Return a random org since no structure to population.
       return OrgPosition(new_pop, GetRandom().GetUInt(new_pop->GetSize()));
     });

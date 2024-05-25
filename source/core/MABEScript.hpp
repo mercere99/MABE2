@@ -56,7 +56,7 @@ namespace mabe {
     auto BuildTraitEquation(const emp::DataLayout & data_layout, std::string equation) {
       auto pp_equ = Preprocess(equation, true);
       auto dm_fun = dm_parser.BuildMathFunction(data_layout, pp_equ.result, pp_equ.values);
-      return [dm_fun](const Organism & org){ return dm_fun(org.GetDataMap()); };
+      return [dm_fun](const Organism & org){ if (!org.IsEmpty()) return dm_fun(org.GetDataMap()); else return emp::Datum(); };
     }
 
     /// Scan an equation and return the names of all traits it is using.
