@@ -68,7 +68,7 @@
 #include "emp/datastructs/map_utils.hpp"
 #include "emp/datastructs/reference_vector.hpp"
 
-#include "../Emplode/Emplode.hpp"
+#include "Emplode/Emplode.hpp"
 
 #include "TraitInfo.hpp"
 

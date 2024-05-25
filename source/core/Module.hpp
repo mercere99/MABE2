@@ -108,7 +108,7 @@ namespace mabe {
     // (Other ways of linking variable to config file are in EmplodeType.h)
 
     /// Link a single population to a parameter by name.
-    emplode::Symbol_LinkedFunctions<std::string> & LinkPop(
+    emplode::Var LinkPop(
       int & var,
       const std::string & name,
       const std::string & desc
@@ -128,7 +128,7 @@ namespace mabe {
     }
 
     /// Link one or more populations (or portions of a population) to a parameter.
-    emplode::Symbol_LinkedFunctions<std::string> & LinkCollection(
+    emplode::Var LinkCollection(
       mabe::Collection & var,
       const std::string & name,
       const std::string & desc
@@ -145,7 +145,7 @@ namespace mabe {
     }
 
     /// Link another module to this one, by name (track using int ID)
-    emplode::Symbol_LinkedFunctions<std::string> & LinkModule(
+    emplode::Var LinkModule(
       int & var,
       const std::string & name,
       const std::string & desc
@@ -164,7 +164,7 @@ namespace mabe {
 
     /// Link a range of values with a start, stop, and step.
     template <typename T=int>
-    emplode::Symbol_LinkedFunctions<std::string> & LinkRange(
+    emplode::Var LinkRange(
       T & start_var,
       T & step_var,
       T & stop_var,
