@@ -1,7 +1,7 @@
 random_seed = 0;                // Seed for random number generator; use 0 to base on time.
 Var pop_size = 1000;            // Number of organisms to evaluate in the population.
 Var max_ud = 10000;             // Number of generations to continue run for.
-Var treatment "Sudoku-control"; // Name of this group of run.
+Var treatment = "Sudoku-control"; // Name of this group of run.
 
 Var elite_count = 0;
 Var print_step = 100;           // Interval for printing...
@@ -69,13 +69,16 @@ OrgList best_org;
 max_file.ADD_SETUP( "best_org = main_pop.FIND_MAX('score')" );
 max_file.ADD_COLUMN( "Generation", "GET_UPDATE()");
 max_file.ADD_COLUMN( "Score", "best_org.TRAIT('score')" );
+max_file.ADD_COLUMN( "Solvable", "best_org.TRAIT('solvable')" );
+max_file.ADD_COLUMN( "Variety", "best_org.TRAIT('puz_variety')" );
+max_file.ADD_COLUMN( "EmptyCells", "best_org.TRAIT('puz_empty')" );
+max_file.ADD_COLUMN( "PuzzleLength", "best_org.TRAIT('puz_length')" );
 max_file.ADD_COLUMN( "Genome", "best_org.TRAIT('states')" );
 max_file.ADD_COLUMN( "birth", "best_org.TRAIT('inject_time')" );
 
 
 @START() {
   PRINT("Beginning ", treatment, "!\nMain config options:");
-  PRINT(" Num org values:   ", pop_size);
   PRINT(" Mut Probability:  ", states_org.mut_prob);
   PRINT(" Population size:  ", pop_size);
   PRINT(" Inject Step:      ", inject_step);
@@ -114,7 +117,7 @@ max_file.ADD_COLUMN( "birth", "best_org.TRAIT('inject_time')" );
   }
 
   IF (ud % inject_step == 0) {
-    next_pop.INJECT("vals_org", inject_count);
+    next_pop.INJECT("states_org", inject_count);
   }
   elite.SELECT(main_pop, next_pop, elite_count);
 
