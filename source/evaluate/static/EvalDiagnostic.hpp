@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2021-2022.
+ *  @date 2021-2024.
  *
  *  @file  EvalDiagnostic.hpp
  *  @brief MABE Evaluation module for counting the number of ones (or zeros) in an output.
@@ -29,7 +29,7 @@ namespace mabe {
     OwnedTrait<size_t> first_trait{this, "first", "Location of first active positions."};
     OwnedTrait<size_t> active_count_trait{this, "active_count", "Number of activation positions."};
 
-    enum Type {
+    enum Diagnostic {
       EXPLOIT,                  // Must drive values as close to 100 as possible.
       STRUCT_EXPLOIT,           // Start at first value; only count values smaller than previous.
       EXPLORE,                  // Start at max value; keep counting values if less than previous.
@@ -39,7 +39,14 @@ namespace mabe {
       UNKNOWN
     };
 
-    Type diagnostic_id;
+    Diagnostic diagnostic_id;
+
+    // The following control valleys in the diagnostic; valley_width = 0.0 means no valleys.
+    double valley_width = 0.0;   // If we have valleys, how far apart should the initial peaks be?
+    double valley_start = 1.0;   // If we have valleys in the diagnostic, where should the first one start?
+    double valley_end = 99.0;    // If we have valleys, where should it return to normal?
+    double valley_slope = -1.0;  // If we have valleys, how much bigger should each be than the previous?
+    // double valley_growth = 0.0;  // If we have valleys, how much bigger should each be than the previous?
 
   public:
     EvalDiagnostic(mabe::MABE & control,
@@ -76,10 +83,40 @@ namespace mabe {
                DIVERSITY,      "diversity",      "Fitness = max value minus all others",
                WEAK_DIVERSITY, "weak_diversity", "Fitness = max value"
       );
+      LinkVar(valley_width,  "valley_width",  "How wide is each valley? (0.0 for no valleys)");
+      LinkVar(valley_start,  "valley_start",  "Value for first valley to appear.");
+      LinkVar(valley_end,    "valley_end",    "Value for linear growth to resume.");
+      LinkVar(valley_slope,  "valley_slope",  "How quickly doe the valleys descend?");
+      // LinkVar(valley_growth, "valley_growth", "How much wider is each valley then the last.");
     }
 
     void SetupModule() override {
       // Nothing needed here yet...
+    }
+
+    /// @brief Take a set of initial scores, clean them up, apply valleys, and return the sum.
+    double FinalizeScores(std::span<double> scores, size_t start, size_t end) const {
+      emp_assert(start <= end);
+      emp_assert(end <= scores.size());
+
+      // Clear out scores outside of the range.
+      if (start > 0) std::fill(scores.begin(), scores.begin()+start, 0.0);
+      if (end < scores.size()) std::fill(scores.begin()+end, scores.end(), 0.0);
+
+      // If we have valleys, apply them.
+      if (valley_width > 0.0) {
+        for (size_t pos = start; pos < end; ++pos) {
+          double & score = scores[pos];
+          if (score <= valley_start || score >= valley_end) continue; // Not near valleys.
+          double valley_offset = score - valley_start;
+          double peak = std::floor(valley_offset / valley_width) * valley_width + valley_start;
+          double decline = (score - peak) * valley_slope;
+          score = peak + decline;
+        }
+      }
+
+      // Return the sum of the scores.
+      return std::accumulate(scores.begin()+start, scores.begin()+end, 0.0);
     }
 
     double Evaluate(Collection orgs) {
@@ -110,47 +147,43 @@ namespace mabe {
         switch (diagnostic_id) {
         case EXPLOIT:
           std::copy(vals.begin(), vals.end(), scores.begin());
-          total_score = std::accumulate(scores.begin(), scores.end(), 0.0);
+          total_score = FinalizeScores(scores, 0, scores.size());
           first_active = 0;
           active_count = vals.size();
           break;
         case STRUCT_EXPLOIT:
-          total_score = scores[0] = vals[0];
+          scores[0] = vals[0];
           first_active = 0;
 
           // Use values as long as they are monotonically decreasing.
           for (pos = 1; pos < vals.size() && vals[pos] <= vals[pos-1]; ++pos) {
-            total_score += (scores[pos] = vals[pos]);
+            scores[pos] = vals[pos];
           }
           active_count = pos;
 
-          // Clear out the remaining values.
-          std::fill(scores.begin()+pos, scores.end(), 0.0);
+          total_score = FinalizeScores(scores, 0, pos);
           break;
         case EXPLORE:
           // Start at highest value (clearing everything before it)
           pos = emp::FindMaxIndex(vals);  // Find the position to start.
-          std::fill(scores.begin(), scores.begin()+pos, 0.0);
 
-          total_score = scores[pos] = vals[pos];
+          scores[pos] = vals[pos];
           first_active = pos;
           pos++;
 
           // Use values as long as they are monotonically non-increasing.
           while (pos < vals.size() && vals[pos] <= vals[pos-1]) {
-            total_score += (scores[pos] = vals[pos]);
+            scores[pos] = vals[pos];
             pos++;
           }
           active_count = pos - first_active;
 
-          // Clear out the remaining values.
-          std::fill(scores.begin()+pos, scores.end(), 0.0);
-
+          total_score = FinalizeScores(scores, first_active, pos);
           break;
         case DIVERSITY:
           // Only count highest value
           pos = emp::FindMaxIndex(vals);  // Find the sole active position.
-          total_score = scores[pos] = vals[pos];
+          scores[pos] = vals[pos];
           first_active = pos;
           active_count = 1;
 
@@ -160,22 +193,21 @@ namespace mabe {
             if (i != pos) total_score += (scores[i] = (vals[pos] - vals[i]) / 2.0);
           }
 
+          total_score = FinalizeScores(scores, 0, scores.size());
+
           break;
         case WEAK_DIVERSITY:
           // Only count highest value
           pos = emp::FindMaxIndex(vals);  // Find the position to start.
-          total_score = scores[pos] = vals[pos];
+          scores[pos] = vals[pos];
           first_active = pos;
           active_count = 1;
 
-          // Clear all other schores.
-          for (size_t i = 0; i < vals.size(); i++) {
-            if (i != pos) scores[i] = 0.0;
-          }
+          total_score = FinalizeScores(scores, first_active, first_active+1);
 
           break;
         default:
-          emp_error("Unknown Diganostic.");
+          emp_error("Unknown Diagnostic.");
         }
 
         if (total_score > max_total || !max_org) {
