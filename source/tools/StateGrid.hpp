@@ -1,9 +1,9 @@
 /**
- *  @note This file is part of Empirical, https://github.com/devosoft/Empirical
+ *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2017-2020.
+ *  @date 2018-2024.
  *
- *  @file  StateGrid.hpp
+ *  @file
  *  @brief StateGrid maintains a rectilinear grid that agents can traverse.
  *
  *  State grids are a matrix of values, representing states of a 2D environment that an organism
@@ -17,8 +17,8 @@
  */
 
 
-#ifndef EMP_EVO_STATE_GRID_H
-#define EMP_EVO_STATE_GRID_H
+#ifndef MABE_TOOLS_STATE_GRID_HPP
+#define MABE_TOOLS_STATE_GRID_HPP
 
 #include <map>
 #include <string>
@@ -34,7 +34,7 @@
 #include "emp/math/math.hpp"
 #include "emp/math/Random.hpp"
 
-namespace emp {
+namespace mabe {
 
   /// Full information about the states available in a state grid and meanings of each state.
   class StateGridInfo {
@@ -65,9 +65,9 @@ namespace emp {
     std::map<char, size_t> symbol_map;       ///< Map of symbols to associated key ID
     std::map<std::string, size_t> name_map;  ///< Map of names to associated key ID
 
-    size_t GetKey(int state_id) const { return Find(state_map, state_id, 0); }
-    size_t GetKey(char symbol) const { return Find(symbol_map, symbol, 0); }
-    size_t GetKey(const std::string & name) const { return Find(name_map, name, 0); }
+    size_t GetKey(int state_id) const { return emp::Find(state_map, state_id, 0); }
+    size_t GetKey(char symbol) const { return emp::Find(symbol_map, symbol, 0); }
+    size_t GetKey(const std::string & name) const { return emp::Find(name_map, name, 0); }
   public:
     StateGridInfo() : states(), state_map(), symbol_map(), name_map() { ; }
     StateGridInfo(const StateGridInfo &) = default;
@@ -192,7 +192,7 @@ namespace emp {
       std::cout << "Loading!" << std::endl;
 
       // Load this data from a stream or a file.
-      File file(std::forward<Ts>(args)...);
+      emp::File file(std::forward<Ts>(args)...);
       file.RemoveWhitespace();
       file.RemoveEmpty();
       if(file.GetNumLines() == 0){
@@ -237,7 +237,7 @@ namespace emp {
     /// Store the current status of the StateGrid to a file.
     template <typename... Ts>
     const StateGrid & Write(Ts &&... args) const {
-      File file;
+      emp::File file;
       std::string out;
       for (size_t i = 0; i < height; i++) {
         out.resize(0);
@@ -281,7 +281,7 @@ namespace emp {
     void MoveX(const StateGrid & grid, int steps=1) {
       emp_assert(grid.GetWidth(), grid.GetWidth());
       if(grid.GetIsToroidal()){
-        cur_state.x = (size_t) Mod(steps + (int) cur_state.x, (int) grid.GetWidth());
+        cur_state.x = (size_t) emp::Mod(steps + (int) cur_state.x, (int) grid.GetWidth());
       }
       else{
         if(steps >= 0){
@@ -299,7 +299,7 @@ namespace emp {
     void MoveY(const StateGrid & grid, int steps=1) {
       emp_assert(grid.GetHeight(), grid.GetHeight());
       if(grid.GetIsToroidal()){
-        cur_state.y = (size_t) Mod(steps + (int) cur_state.y, (int) grid.GetHeight());
+        cur_state.y = (size_t) emp::Mod(steps + (int) cur_state.y, (int) grid.GetHeight());
       }
       else{
         if(steps >= 0){
@@ -395,12 +395,12 @@ namespace emp {
 
     /// Rotate starting from current facing.
     void Rotate(int turns=1) {
-      cur_state.facing = Mod(cur_state.facing + turns, 8);
+      cur_state.facing = emp::Mod(cur_state.facing + turns, 8);
       UpdateHistory();
     }
 
     /// Move the current status to a random position and orientation.
-    void Randomize(const StateGrid & grid, Random & random) {
+    void Randomize(const StateGrid & grid, emp::Random & random) {
       Set(random.GetUInt(grid.GetWidth()), random.GetUInt(grid.GetHeight()), random.GetUInt(8));
     }
 
