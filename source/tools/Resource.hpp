@@ -1,9 +1,9 @@
 /**
- *  @note This file is part of Empirical, https://github.com/devosoft/Empirical
+ *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2018-2020.
+ *  @date 2018-2024.
  *
- *  @file  Resource.hpp
+ *  @file
  *  @brief Implement resource-based selection.
  *
  *
@@ -13,12 +13,12 @@
  */
 
 
-#ifndef EMP_EVO_RESOURCE_H
-#define EMP_EVO_RESOURCE_H
+#ifndef MABE_TOOLS_RESOURCE_HPP
+#define MABE_TOOLS_RESOURCE_HPP
 
 #include "emp/Evolve/World.hpp"
 
-namespace emp {
+namespace mabe {
 
     class Resource {
     private:
