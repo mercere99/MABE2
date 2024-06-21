@@ -28,9 +28,12 @@ namespace mabe {
 
   class EvalSudoku : public Module {
   private:
-    RequiredMultiTrait<size_t> states_trait{this, "states",    "Starting states for Sudoku board", emp::SudokuAnalyzer::GetNumCells()};
-
     emp::SudokuAnalyzer analyzer;
+
+    emp::String target_filename;           // File to load with a target board.
+    emp::array<uint8_t, 81> target_board;  // Fixed positions to target for the final board.
+
+    RequiredMultiTrait<size_t> states_trait{this, "states",    "Starting states for Sudoku board", emp::SudokuAnalyzer::GetNumCells()};
 
     OwnedTrait<double> solve_trait{this,      "solvable",    "Is this game solvable? 0/1"};
     OwnedTrait<double> length_trait{this,     "puz_length",  "How long is the solving profile for this game?"};
@@ -38,6 +41,8 @@ namespace mabe {
     OwnedTrait<double> empty_trait{this,      "puz_empty",   "Empty cell count at start of a SOLVABLE game (0=unsolvable)"};
     OwnedMultiTrait<double> count_trait{this, "move_counts", "number of times is a move type needed (for each move)?", emp::SudokuAnalyzer::GetNumMoveTypes()};
     OwnedTrait<double> score_trait{this,      "score",       "overall score for sudoku board"};
+
+    OwnedTrait<double> match_trait{this,      "puz_match",   "How well does this puzzle match a target?"};
 
 
   public:
@@ -61,12 +66,28 @@ namespace mabe {
     }
 
     void SetupConfig() override {
+      LinkVar(target_filename, "target_file", "File with info about any cell states to target at end.");
       // No other variables to link in to the configuration (e.g., N and K for NK)
     }
 
     void SetupModule() override {
       // Make sure we haven't messed up the number of solution functions.  (@CAO - make better!)
       emp_assert(analyzer.GetNumSolveFuns() == emp::SudokuAnalyzer::GetNumMoveTypes());
+
+      // Load in a target board, if any.
+      if (target_filename.size()) {
+        target_board = analyzer.LoadToArray(target_filename);
+      }
+    }
+
+    template <typename T>
+    uint8_t TestTarget(const T & values) {
+      if (target_filename.size() == 0) return 0; // Nothing to target.
+      uint8_t count = 0;
+      for (size_t i = 0; i < 81; ++i) {
+        if (target_board[0] && target_board[i] == values[i]) ++count;
+      }
+      return count;
     }
 
     double Evaluate(Collection orgs) {
@@ -91,12 +112,13 @@ namespace mabe {
           length_trait(org) = profile.size();
           diverse_trait(org) = profile.CountTypes();
           empty_trait(org) = solved ? std::count(genome.begin(), genome.end(), 0) : 0.0;
+          match_trait(org) = static_cast<double>(TestTarget(analyzer.GetValues()));
 
           for (size_t move_id = 0; move_id < emp::SudokuAnalyzer::GetNumMoveTypes(); ++move_id) {
             count_trait(org)[move_id] = solved ? profile.CountMoves(move_id) : 0.0;
           }
 
-          double score = profile.CalcScore() + (solved ? 100.0 : 0);
+          double score = profile.CalcScore() + (solved ? 1000.0 : 0) + TestTarget(analyzer.GetValues())*75.0 - TestTarget(genome)*25;
           score_trait(org) = score;
 
           if (score > max_score || !max_org) {
@@ -111,6 +133,7 @@ namespace mabe {
           length_trait(org) = 0.0;
           diverse_trait(org) = 0.0;
           empty_trait(org) = 0.0;
+          match_trait(org) = 0.0;
           for (size_t move_id = 0; move_id < emp::SudokuAnalyzer::GetNumMoveTypes(); ++move_id) {
             count_trait(org)[move_id] = 0.0;
           }
@@ -146,12 +169,14 @@ namespace mabe {
           //   count_trait(org)[move_id] = solved ? profile.CountMoves(move_id) : 0.0;
           // }
 
-          double score = profile.CalcScore() + (solved ? 100.0 : 0);
+          double score = profile.CalcScore() + (solved ? 1000.0 : 0) + TestTarget(analyzer.GetValues())*75.0 - TestTarget(genome)*25;
           std::cout << "SCORE = " << score
             << "  solvable=" << solved
             << "  solve length=" << profile.size()
             << "  solve variety=" << profile.CountTypes()
             << "  solve empty=" << std::count(genome.begin(), genome.end(), 0)
+            << "  match = " << TestTarget(analyzer.GetValues())
+            << "  direct_match = " << TestTarget(genome)
             << std::endl;
         }
 
