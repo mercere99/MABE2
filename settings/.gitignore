@@ -1,0 +1,2 @@
+# ignore runs from the settings directory
+*.csv

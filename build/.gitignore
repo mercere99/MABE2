@@ -1,5 +1,6 @@
-# Output csv files
-*.csv  
+# Output data files
+*.csv
+*.dat
 # MABE generator files
 *.gen  
 # MABE config files
