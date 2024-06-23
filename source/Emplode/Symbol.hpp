@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of Emplode, currently within https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019-2022.
+ *  @date 2019-2024.
  *
  *  @file  Symbol.hpp
  *  @brief Manages a single configuration entry (e.g., variables + base for scopes and functions).
@@ -32,7 +32,7 @@
 #include "emp/math/Range.hpp"
 #include "emp/meta/meta.hpp"
 #include "emp/meta/TypeID.hpp"
-#include "emp/tools/string_utils.hpp"
+#include "emp/tools/String.hpp"
 #include "emp/tools/value_utils.hpp"
 
 namespace emplode {
@@ -45,8 +45,8 @@ namespace emplode {
 
   class Symbol {
   protected:
-    std::string name;             ///< Unique name for symbol; empty name implies temporary.
-    std::string desc;             ///< Description to put in comments for this symbol.
+    emp::String name;             ///< Unique name for symbol; empty name implies temporary.
+    emp::String desc;             ///< Description to put in comments for this symbol.
     emp::Ptr<Symbol_Scope> scope; ///< Which scope was this variable defined in?
 
     bool is_temporary = false;    ///< Is this Symbol temporary and should be deleted?
@@ -76,7 +76,7 @@ namespace emplode {
       }
 
       // Break the description at the newlines.
-      emp::vector<std::string> lines = emp::slice(desc);
+      emp::vector<emp::String> lines = desc.Slice();
 
       for (const auto & line : lines) {
         // Find the current line to print.
@@ -87,21 +87,21 @@ namespace emplode {
     }
 
   public:
-    Symbol(const std::string & _name,
-                const std::string & _desc,
+    Symbol(const emp::String & _name,
+                const emp::String & _desc,
                 emp::Ptr<Symbol_Scope> _scope)
       : name(_name), desc(_desc), scope(_scope) { }
     Symbol(const Symbol &) = default;
     virtual ~Symbol() { }
 
-    const std::string & GetName() const noexcept { return name; }
-    const std::string & GetDesc() const noexcept { return desc; }
+    const emp::String & GetName() const noexcept { return name; }
+    const emp::String & GetDesc() const noexcept { return desc; }
     emp::Ptr<Symbol_Scope> GetScope() { return scope; }
     bool IsTemporary() const noexcept { return is_temporary; }
     bool IsBuiltin() const noexcept { return is_builtin; }
     Format GetFormat() const noexcept { return format; }
 
-    virtual std::string GetTypename() const = 0;       ///< Derived classes must provide type info.
+    virtual emp::String GetTypename() const = 0;       ///< Derived classes must provide type info.
 
     virtual bool IsNumeric() const { return false; }   ///< Is symbol any kind of number?
     virtual bool IsString() const { return false; }    ///< Is symbol a string?
@@ -119,13 +119,13 @@ namespace emplode {
     virtual bool HasNumericReturn() const { return false; } ///< Is symbol a function that returns a number?
     virtual bool HasStringReturn() const { return false; }  ///< Is symbol a function that returns a string?
 
-    Symbol & SetName(const std::string & in) { name = in; return *this; }
-    Symbol & SetDesc(const std::string & in) { desc = in; return *this; }
+    Symbol & SetName(const emp::String & in) { name = in; return *this; }
+    Symbol & SetDesc(const emp::String & in) { desc = in; return *this; }
     Symbol & SetTemporary(bool in=true) { is_temporary = in; return *this; }
     Symbol & SetBuiltin(bool in=true) { is_builtin = in; return *this; }
 
     virtual double AsDouble() const { return std::nan("NaN"); }
-    virtual std::string AsString() const { return "[[__INVALID SYMBOL CONVERSION__]]"; }
+    virtual emp::String AsString() const { return "[[__INVALID SYMBOL CONVERSION__]]"; }
     virtual emp::Datum AsDatum() const {
       if (IsNumeric()) return emp::Datum(AsDouble());
       return emp::Datum(AsString());
@@ -134,9 +134,9 @@ namespace emplode {
     virtual void Print(std::ostream & os) const { os << AsString(); }
 
     virtual Symbol & SetValue(double in) { (void) in; emp_assert(false, in); return *this; }
-    virtual Symbol & SetString(const std::string & in) { (void) in; emp_assert(false, in); return *this; }
+    virtual Symbol & SetString(const emp::String & in) { (void) in; emp_assert(false, in); return *this; }
     Symbol & operator=(double in) { return SetValue(in); }
-    Symbol & operator=(const std::string & in) { return SetString(in); }
+    Symbol & operator=(const emp::String & in) { return SetString(in); }
 
     virtual emp::Ptr<Symbol_Function> AsFunctionPtr() { return nullptr; }
     virtual emp::Ptr<const Symbol_Function> AsFunctionPtr() const { return nullptr; }
@@ -181,7 +181,9 @@ namespace emplode {
         return static_cast<T>(AsDouble());
       }
       else if constexpr (std::is_same<T, std::string>() ||
-                         std::is_same<T, const std::string &>()) {
+                         std::is_same<T, const std::string &>() ||
+                         std::is_same<T, emp::String>() ||
+                         std::is_same<T, const emp::String &>()) {
         return AsString();
       }
 
@@ -246,14 +248,14 @@ namespace emplode {
     virtual bool CopyValue(const Symbol & ) { return false; }
 
     /// If this symbol is a scope, we should be able to lookup other entries inside it.
-    virtual symbol_ptr_t LookupSymbol(const std::string & in_name, bool /* scan_scopes */=true) {
+    virtual symbol_ptr_t LookupSymbol(const emp::String & in_name, bool /* scan_scopes */=true) {
       return (in_name == "") ? this : nullptr;
     }
     virtual emp::Ptr<const Symbol>
-    LookupSymbol(const std::string & in_name, bool /* scan_scopes */=true) const {
+    LookupSymbol(const emp::String & in_name, bool /* scan_scopes */=true) const {
       return (in_name == "") ? this : nullptr;
     }
-    virtual bool Has(const std::string & in_name) const { return (bool) LookupSymbol(in_name); }
+    virtual bool Has(const emp::String & in_name) const { return (bool) LookupSymbol(in_name); }
 
     /// If this symbol is a function, we should be able to call it.
     virtual symbol_ptr_t Call(const emp::vector<symbol_ptr_t> & args);
@@ -262,7 +264,7 @@ namespace emplode {
     operator double() const { return AsDouble(); }
     operator int() const { return static_cast<int>(AsDouble()); }
     operator size_t() const { return static_cast<size_t>(AsDouble()); }
-    operator std::string() const { return AsString(); }
+    operator emp::String() const { return AsString(); }
     operator emp::Datum() const { return AsDatum(); }
     operator emp::Ptr<Symbol>() { return this; }
     operator EmplodeType&() { return *GetObjectPtr(); }
@@ -270,16 +272,16 @@ namespace emplode {
     /// Allocate a duplicate of this class.
     virtual symbol_ptr_t Clone() const = 0;
 
-    virtual const Symbol & Write(std::ostream & os=std::cout, const std::string & prefix="",
+    virtual const Symbol & Write(std::ostream & os=std::cout, const emp::String & prefix="",
                                       size_t comment_offset=32) const
     {
       // If this is a built-in symbol, don't print it.
       if (IsBuiltin()) return *this;
 
       // Setup this symbol.
-      std::string cur_line = prefix;
-      if (IsLocal()) cur_line += emp::to_string(GetTypename(), " ", name, " = ");
-      else cur_line += emp::to_string(name, " = ");
+      emp::String cur_line = prefix;
+      if (IsLocal()) cur_line += emp::MakeString(GetTypename(), " ", name, " = ");
+      else cur_line += emp::MakeString(name, " = ");
 
       // Print the current value of this variable; if it's a string make sure to turn it to a literal.
       cur_line += IsString() ? emp::to_literal(AsString()) : AsString();
@@ -293,8 +295,8 @@ namespace emplode {
     }
 
     // Generate a string with information about this symbol.
-    std::string DebugString() const {
-      std::string out = emp::to_string(
+    emp::String DebugString() const {
+      emp::String out = emp::MakeString(
         "Symbol '", GetName(),
         "' type=", GetTypename(),
         " scope=", scope ? scope.Cast<Symbol>()->GetName() : "[none]");
@@ -324,35 +326,38 @@ namespace emplode {
 
     using scope_ptr_t = emp::Ptr<Symbol_Scope>;
   public:
-    Symbol_Var(const std::string & _n, double _v,              const std::string & _d="", scope_ptr_t _s=nullptr)
+    Symbol_Var(const emp::String & _n, double _v,              const emp::String & _d="", scope_ptr_t _s=nullptr)
       : Symbol(_n, _d, _s), value(_v) {}
-    Symbol_Var(const std::string & _n, const std::string & _v, const std::string & _d="", scope_ptr_t _s=nullptr)
+    Symbol_Var(const emp::String & _n, const std::string & _v, const emp::String & _d="", scope_ptr_t _s=nullptr)
       : Symbol(_n, _d, _s), value(_v) {}
-    Symbol_Var(const std::string & _n, const emp::Datum & _v,  const std::string & _d="", scope_ptr_t _s=nullptr)
+    Symbol_Var(const emp::String & _n, const emp::String & _v, const emp::String & _d="", scope_ptr_t _s=nullptr)
       : Symbol(_n, _d, _s), value(_v) {}
-    Symbol_Var(const std::string & _n, const Symbol_Var & _v,  const std::string & _d="", scope_ptr_t _s=nullptr)
+    Symbol_Var(const emp::String & _n, const emp::Datum & _v,  const emp::String & _d="", scope_ptr_t _s=nullptr)
+      : Symbol(_n, _d, _s), value(_v) {}
+    Symbol_Var(const emp::String & _n, const Symbol_Var & _v,  const emp::String & _d="", scope_ptr_t _s=nullptr)
       : Symbol(_n, _d, _s), value(_v.value) {}
 
     Symbol_Var(const Symbol_Var &) = default;
     Symbol_Var(double _val)              : Symbol("__Auto__", "", nullptr), value(_val) {}
+    Symbol_Var(const emp::String & _val) : Symbol("__Auto__", "", nullptr), value(_val) {}
     Symbol_Var(const std::string & _val) : Symbol("__Auto__", "", nullptr), value(_val) {}
     Symbol_Var(const emp::Datum & _val)  : Symbol("__Auto__", "", nullptr), value(_val) {}
 
     Symbol_Var & operator=(const Symbol_Var &) = default;
 
-    std::string GetTypename() const override { return "Var"; }
+    emp::String GetTypename() const override { return "Var"; }
 
     symbol_ptr_t Clone() const override { return emp::NewPtr<Symbol_Var>(*this); }
 
     double AsDouble() const override { return value.AsDouble(); }
-    std::string AsString() const override { return value.AsString(); }
+    emp::String AsString() const override { return value.AsString(); }
     emp::Datum AsDatum() const override { return value; }
     void Print(std::ostream & os) const override {
       if (value.IsDouble()) os << value.NativeDouble();
       else os << value.NativeString();
     }
     Symbol & SetValue(double in) override { value = in; return *this; }
-    Symbol & SetString(const std::string & in) override { value = in; return *this; }
+    Symbol & SetString(const emp::String & in) override { value = in; return *this; }
 
     bool HasValue() const override { return true; }
 
@@ -376,18 +381,18 @@ namespace emplode {
     using this_t = Symbol_Special;
     Type type;
 
-    static std::string ToString(Type in_type) {
+    static emp::String ToString(Type in_type) {
       switch (in_type) {
         case CONTINUE: return "CONTINUE";
         case BREAK: return "BREAK";
         default: return "UNKNOWN";
       }
     }
-    std::string ToString() const { return ToString(type); }
+    emp::String ToString() const { return ToString(type); }
 
   public:
     Symbol_Special(Type in_type) : Symbol("__Special", ToString(in_type), nullptr), type(in_type) {}
-    std::string GetTypename() const override { return emp::to_string("[[Special::", ToString(), "]]"); }
+    emp::String GetTypename() const override { return emp::MakeString("[[Special::", ToString(), "]]"); }
 
     symbol_ptr_t Clone() const override { return emp::NewPtr<this_t>(*this); }
 
@@ -403,9 +408,9 @@ namespace emplode {
   public:
     template <typename... ARGS>
     Symbol_Error(ARGS &&... args)
-      : Symbol("__Error", emp::to_string(args...), nullptr) { is_temporary = true; }
+      : Symbol("__Error", emp::MakeString(args...), nullptr) { is_temporary = true; }
 
-    std::string GetTypename() const override { return "[[Error]]"; }
+    emp::String GetTypename() const override { return "[[Error]]"; }
 
     bool IsError() const override { return true; }
 

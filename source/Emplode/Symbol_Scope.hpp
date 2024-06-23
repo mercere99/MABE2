@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of Emplode, currently within https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019-2021.
+ *  @date 2019-2024.
  *
  *  @file  Symbol_Scope.hpp
  *  @brief Manages a full scope with many internal symbols (including sub-scopes).
@@ -32,10 +32,10 @@ namespace emplode {
   protected:
     using symbol_ptr_t = emp::Ptr<Symbol>;
     using const_symbol_ptr_t = emp::Ptr<const Symbol>;
-    emp::map< std::string, symbol_ptr_t > symbol_map;   ///< Map of names to entries.
+    emp::map< emp::String, symbol_ptr_t > symbol_map;   ///< Map of names to entries.
 
     template <typename T, typename... ARGS>
-    T & Add(const std::string & name, ARGS &&... args) {
+    T & Add(const emp::String & name, ARGS &&... args) {
       auto new_ptr = emp::NewPtr<T>(name, std::forward<ARGS>(args)...);
       emp_assert(!emp::Has(symbol_map, name), "Do not redeclare functions or variables!",
                  name);
@@ -44,14 +44,14 @@ namespace emplode {
     }
 
     template <typename T, typename... ARGS>
-    T & AddBuiltin(const std::string & name, ARGS &&... args) {
+    T & AddBuiltin(const emp::String & name, ARGS &&... args) {
       T & result = Add<T>(name, std::forward<ARGS>(args)...);
       result.SetBuiltin();
       return result;
     }
 
   public:
-    Symbol_Scope(const std::string & _name, const std::string & _desc, emp::Ptr<Symbol_Scope> _scope)
+    Symbol_Scope(const emp::String & _name, const emp::String & _desc, emp::Ptr<Symbol_Scope> _scope)
       : Symbol(_name, _desc, _scope) { }
 
     Symbol_Scope(const Symbol_Scope & in) : Symbol(in) {
@@ -65,12 +65,12 @@ namespace emplode {
       for (auto [name, ptr] : symbol_map) { ptr.Delete(); }
     }
 
-    std::string GetTypename() const override { return "Scope"; }
+    emp::String GetTypename() const override { return "Scope"; }
 
     bool IsScope() const override { return true; }
     bool IsLocal() const override { return true; }  // @CAO, for now assuming all scopes are local!
 
-    std::string AsString() const override { return "[[__SCOPE__]]"; }
+    emp::String AsString() const override { return "[[__SCOPE__]]"; }
 
     /// Set this symbol to be a correctly-typed scope pointer.
     emp::Ptr<Symbol_Scope> AsScopePtr() override { return this; }
@@ -111,10 +111,10 @@ namespace emplode {
 
 
     /// Get a symbol out of this scope; 
-    symbol_ptr_t GetSymbol(std::string name) { return emp::Find(symbol_map, name, nullptr); }
+    symbol_ptr_t GetSymbol(emp::String name) { return emp::Find(symbol_map, name, nullptr); }
 
     /// Lookup a variable, scanning outer scopes if needed
-    symbol_ptr_t LookupSymbol(const std::string & name, bool scan_scopes=true) override {
+    symbol_ptr_t LookupSymbol(const emp::String & name, bool scan_scopes=true) override {
       // See if this next symbol is in the var list.
       auto it = symbol_map.find(name);
 
@@ -129,7 +129,7 @@ namespace emplode {
     }
 
     /// Lookup a variable, scanning outer scopes if needed (in const context!)
-    const_symbol_ptr_t LookupSymbol(const std::string & name, bool scan_scopes=true) const override {
+    const_symbol_ptr_t LookupSymbol(const emp::String & name, bool scan_scopes=true) const override {
       // See if this symbol is in the var list.
       auto it = symbol_map.find(name);
 
@@ -146,9 +146,9 @@ namespace emplode {
     /// Add a configuration symbol that is linked to a variable - the incoming variable sets
     /// the default and is automatically updated when configs are loaded.
     template <typename VAR_T>
-    Symbol_Linked<VAR_T> & LinkVar(const std::string & name,
+    Symbol_Linked<VAR_T> & LinkVar(const emp::String & name,
                                         VAR_T & var,
-                                        const std::string & desc,
+                                        const emp::String & desc,
                                         bool is_builtin = false) {
       if (is_builtin) return AddBuiltin<Symbol_Linked<VAR_T>>(name, var, desc, this);
       return Add<Symbol_Linked<VAR_T>>(name, var, desc, this);
@@ -157,10 +157,10 @@ namespace emplode {
     /// Add a configuration symbol that interacts through a pair of functions - the functions are
     /// automatically called any time the symbol value is accessed (get_fun) or changed (set_fun)
     template <typename VAR_T>
-    Symbol_LinkedFunctions<VAR_T> & LinkFuns(const std::string & name,
+    Symbol_LinkedFunctions<VAR_T> & LinkFuns(const emp::String & name,
                                             std::function<VAR_T()> get_fun,
                                             std::function<void(const VAR_T &)> set_fun,
-                                            const std::string & desc,
+                                            const emp::String & desc,
                                             bool is_builtin = false) {
       if (is_builtin) {
         return AddBuiltin<Symbol_LinkedFunctions<VAR_T>>(name, get_fun, set_fun, desc, this);
@@ -169,19 +169,19 @@ namespace emplode {
     }
 
     /// Add an internal variable of type String.
-    Symbol_Var & AddLocalVar(const std::string & name, const std::string & desc) {
+    Symbol_Var & AddLocalVar(const emp::String & name, const emp::String & desc) {
       return Add<Symbol_Var>(name, 0.0, desc, this);
     }
 
     /// Add an internal scope inside of this one.
-    Symbol_Scope & AddScope(const std::string & name, const std::string & desc) {
+    Symbol_Scope & AddScope(const emp::String & name, const emp::String & desc) {
       return Add<Symbol_Scope>(name, desc, this);
     }
 
     /// Add an internal scope inside of this one (defined in Symbol_Object.hpp)
     Symbol_Object & AddObject(
-      const std::string & name,
-      const std::string & desc,
+      const emp::String & name,
+      const emp::String & desc,
       emp::Ptr<EmplodeType> obj_ptr,
       TypeInfo & type_info,
       bool obj_owned=false
@@ -204,20 +204,20 @@ namespace emplode {
 
     /// Add a new user-defined function.
     template <typename FUN_T>
-    Symbol_Function & AddFunction(const std::string & name,  FUN_T fun,
-                                  const std::string & desc,  emp::TypeID return_type) {
+    Symbol_Function & AddFunction(const emp::String & name,  FUN_T fun,
+                                  const emp::String & desc,  emp::TypeID return_type) {
       return Add<Symbol_Function>(name, fun, desc, this, CountParams<FUN_T>(), return_type);
     }
 
     /// Add a new function that is a standard part of the scripting language.
     template <typename FUN_T>
-    Symbol_Function & AddBuiltinFunction(const std::string & name,  FUN_T fun,
-                                         const std::string & desc,  emp::TypeID return_type) {
+    Symbol_Function & AddBuiltinFunction(const emp::String & name,  FUN_T fun,
+                                         const emp::String & desc,  emp::TypeID return_type) {
       return AddBuiltin<Symbol_Function>(name, fun, desc, this, CountParams<FUN_T>(), return_type);
     }
 
     /// Write out all of the parameters contained in this scope to the provided stream.
-    const Symbol & WriteContents(std::ostream & os=std::cout, const std::string & prefix="",
+    const Symbol & WriteContents(std::ostream & os=std::cout, const emp::String & prefix="",
                                       size_t comment_offset=32) const {
 
       // Loop through all of the entires in this scope and Write them.
@@ -230,15 +230,15 @@ namespace emplode {
     }
 
     /// Write out this scope AND it's contents to the provided stream.
-    const Symbol & Write(std::ostream & os=std::cout, const std::string & prefix="",
+    const Symbol & Write(std::ostream & os=std::cout, const emp::String & prefix="",
                          size_t comment_offset=32) const override
     {
       // If this is a built-in scope, don't print it.
       if (IsBuiltin()) return *this;
 
       // Declare this scope, starting with the type if originally declared locally.
-      std::string cur_line = prefix;
-      if (IsLocal()) cur_line += emp::to_string(GetTypename(), " ");
+      emp::String cur_line = prefix;
+      if (IsLocal()) cur_line.Append(GetTypename(), " ");
       cur_line += name;
 
       bool has_body = emp::AnyOf(symbol_map, [](symbol_ptr_t ptr){ return !ptr->IsBuiltin(); });

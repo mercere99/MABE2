@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of Emplode, currently within https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2021-2022.
+ *  @date 2021-2024.
  *
  *  @file  SymbolTable.hpp
  *  @brief Manages linking names to associated data in the Emplode language.
@@ -28,13 +28,13 @@
 #define EMPLODE_SYMBOL_TABLE_HPP
 
 #include <map>
-#include <string>
 #include <type_traits>
 
 #include "emp/base/Ptr.hpp"
 #include "emp/datastructs/map_utils.hpp"
 #include "emp/io/StreamManager.hpp"
 #include "emp/meta/TypeID.hpp"
+#include "emp/tools/String.hpp"
 
 #include "EventManager.hpp"
 #include "Symbol_Scope.hpp"
@@ -47,12 +47,12 @@ namespace emplode {
   protected:
     Symbol_Scope root_scope;                                        ///< Outermost (global) scope.
     EventManager event_manager;                                     ///< Event setup & tracking
-    std::unordered_map<std::string, emp::Ptr<TypeInfo>> type_map;   ///< Types, lookup by name.
+    std::unordered_map<emp::String, emp::Ptr<TypeInfo>> type_map;   ///< Types, lookup by name.
     std::unordered_map<emp::TypeID, emp::Ptr<TypeInfo>> typeid_map; ///< Types, lookup by TypeID.
     emp::StreamManager file_map;                                    ///< File streams by name.
 
   public:
-    SymbolTable(const std::string & name)
+    SymbolTable(const emp::String & name)
     : root_scope(name, "Global scope", nullptr), event_manager(*this) {
       // Initialize the type map.
       type_map["INVALID"] = emp::NewPtr<TypeInfo>( *this, 0, "/*ERROR*/", "Error, Invalid type!" );
@@ -63,7 +63,7 @@ namespace emplode {
       // Those types 
       typeid_map[emp::GetTypeID<void>()] = type_map["Void"];
       typeid_map[emp::GetTypeID<double>()] = type_map["Var"];
-      typeid_map[emp::GetTypeID<std::string>()] = type_map["Var"];      
+      typeid_map[emp::GetTypeID<emp::String>()] = type_map["Var"];      
 
       file_map.SetOutputDefaultFile();  // Stream manager should default to 'file' output.
     }
@@ -77,17 +77,17 @@ namespace emplode {
     const Symbol_Scope & GetRootScope() const { return root_scope; }
     emp::StreamManager & GetFileManager() { return file_map; }
 
-    bool HasSignal(const std::string & name) const { return event_manager.HasSignal(name); }
-    bool HasType(const std::string & name) const { return emp::Has(type_map, name); }
+    bool HasSignal(const emp::String & name) const { return event_manager.HasSignal(name); }
+    bool HasType(const emp::String & name) const { return emp::Has(type_map, name); }
     bool HasTypeID(emp::TypeID id) const { return emp::Has(typeid_map, id); }
 
-    TypeInfo & GetType(const std::string & type_name) {
+    TypeInfo & GetType(const emp::String & type_name) {
       auto type_it = type_map.find(type_name);
       emp_assert(type_it != type_map.end(), "Type name not found in symbol table.", type_name);
       return *(type_it->second);
     }
 
-    const TypeInfo & GetType(const std::string & type_name) const {
+    const TypeInfo & GetType(const emp::String & type_name) const {
       auto type_it = type_map.find(type_name);
       emp_assert(type_it != type_map.end(), "Type name not found in symbol table.", type_name);
       return *(type_it->second);
@@ -98,7 +98,7 @@ namespace emplode {
     /// converted properly.  For a variadic function, the provided function must take a
     /// vector of ASTNode pointers, but may return any known type.
     template <typename FUN_T>
-    void AddFunction(const std::string & name, FUN_T fun, const std::string & desc) {
+    void AddFunction(const emp::String & name, FUN_T fun, const emp::String & desc) {
       auto emplode_fun = WrapFunction(name, fun);
       using return_t = typename emp::FunInfo<FUN_T>::return_t;
       emp::TypeID return_id = emp::GetTypeID<return_t>();
@@ -110,8 +110,8 @@ namespace emplode {
     /// The function must return a reference to the newly created instance.
     template <typename INIT_FUN_T, typename COPY_FUN_T>
     TypeInfo & AddType(
-      const std::string & type_name,
-      const std::string & desc,
+      const emp::String & type_name,
+      const emp::String & desc,
       INIT_FUN_T init_fun,
       COPY_FUN_T copy_fun,
       emp::TypeID type_id,
@@ -132,8 +132,8 @@ namespace emplode {
     /// it is derived from EmplodeType (as it needs to be...)
     template <typename OBJECT_T, typename INIT_FUN_T, typename COPY_FUN_T>
     TypeInfo & AddType(
-      const std::string & type_name,
-      const std::string & desc,
+      const emp::String & type_name,
+      const emp::String & desc,
       INIT_FUN_T init_fun,
       COPY_FUN_T copy_fun,
       bool is_config_owned=false
@@ -149,8 +149,8 @@ namespace emplode {
     /// If init_fun and copy_fun are not specified in add type, build our own and assume that we
     /// own the object.
     template <typename OBJECT_T>
-    TypeInfo & AddType(const std::string & type_name, const std::string & desc) {
-      auto init_fun = [](const std::string & /*name*/){ return emp::NewPtr<OBJECT_T>(); };
+    TypeInfo & AddType(const emp::String & type_name, const emp::String & desc) {
+      auto init_fun = [](const emp::String & /*name*/){ return emp::NewPtr<OBJECT_T>(); };
       auto copy_fun = DefaultCopyFun<OBJECT_T>();
       return AddType<OBJECT_T>(type_name, desc, init_fun, copy_fun, true);
     }
@@ -158,11 +158,11 @@ namespace emplode {
     /// Make a new Symbol_Object using the provided *TypeInfo*, variable name, and scope.
     Symbol_Object & MakeObjSymbol(
       TypeInfo & type_info,
-      const std::string & var_name,
+      const emp::String & var_name,
       Symbol_Scope & scope
     ) {
       // Retrieve the information about the requested type.
-      const std::string & type_desc = type_info.GetDesc();
+      const emp::String & type_desc = type_info.GetDesc();
       const bool is_config_owned = type_info.GetOwned();
 
       // Use the TypeInfo associated with the provided type name to build an instance.
@@ -179,13 +179,13 @@ namespace emplode {
     }
 
     /// Make a new Symbol_Object using the provided type NAME, variable name, and scope.
-    Symbol_Object & MakeObjSymbol(const std::string & type_name, const std::string & var_name,
+    Symbol_Object & MakeObjSymbol(const emp::String & type_name, const emp::String & var_name,
                                    Symbol_Scope & scope) {
       return MakeObjSymbol(*type_map[type_name], var_name, scope);
     }
 
     /// Make a new Symbol_Object using the provided *TypeID*, variable name, and scope.
-    Symbol_Object & MakeObjSymbol(emp::TypeID type_id, const std::string & var_name,
+    Symbol_Object & MakeObjSymbol(emp::TypeID type_id, const emp::String & var_name,
                                    Symbol_Scope & scope) {
       return MakeObjSymbol(*typeid_map[type_id], var_name, scope);
     }
@@ -211,13 +211,13 @@ namespace emplode {
 
 
     /// Create a new type of event that can be used in the scripting language.
-    bool AddSignal(const std::string & name, size_t num_params=0) {
+    bool AddSignal(const emp::String & name, size_t num_params=0) {
       return event_manager.AddSignal(name, num_params);
     }
 
     /// Add an instance of an event with an action that should be triggered.
     bool AddAction(
-      const std::string & name,
+      const emp::String & name,
       emp::vector< emp::Ptr<ASTNode> > params,
       emp::Ptr<ASTNode_Block> action,
       size_t def_line
@@ -228,7 +228,7 @@ namespace emplode {
 
     /// Trigger all events of a type (ignoring trigger values)
     template <typename... ARG_Ts>
-    bool Trigger(const std::string & signal_name, ARG_Ts... args) {
+    bool Trigger(const emp::String & signal_name, ARG_Ts... args) {
       return event_manager.Trigger(signal_name, std::forward<ARG_Ts>(args)...);
     }
 

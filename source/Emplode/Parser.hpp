@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of Emplode, currently within https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2021-2022.
+ *  @date 2021-2024.
  *
  *  @file  Parser.hpp
  *  @brief Manages parsing of Emplode language input streams.
@@ -41,12 +41,11 @@
 #ifndef EMPLODE_PARSER_HPP
 #define EMPLODE_PARSER_HPP
 
-#include <string>
 #include <utility>
 
 #include "emp/base/Ptr.hpp"
 #include "emp/base/vector.hpp"
-#include "emp/tools/string_utils.hpp"
+#include "emp/tools/String.hpp"
 
 #include "AST.hpp"
 #include "Lexer.hpp"
@@ -98,13 +97,13 @@ namespace emplode {
       emp_assert(scope_stack.size() && scope_stack.back() != nullptr);
       return *scope_stack.back();
     }
-    const std::string & GetScopeName() const { return GetScope().GetName(); }
+    const emp::String & GetScopeName() const { return GetScope().GetName(); }
 
-    std::string AsString() {
-      return emp::to_string("[pos=", pos.GetIndex(),
-                            ",lex='", AsLexeme(),
-                            "',scope='", GetScope().GetName(),
-                            "']");
+    emp::String AsString() {
+      return emp::MakeString("[pos=", pos.GetIndex(),
+                             ",lex='", AsLexeme(),
+                             "',scope='", GetScope().GetName(),
+                             "']");
     }
 
     bool IsKeyword() const { return pos && lexer->IsKeyword(*pos); }    
@@ -123,17 +122,17 @@ namespace emplode {
     emp::Token AsToken() const { return *pos; }
 
     /// Return the lexeme associate with the current state.
-    const std::string & AsLexeme() const { return pos ? pos->lexeme : emp::empty_string(); }
+    const emp::String & AsLexeme() const { return pos ? pos->lexeme : emp::String::Empty(); }
 
     /// Return the lexeme associate with the current state AND advance the token stream.
-    const std::string & UseLexeme() {
-      const std::string & out = AsLexeme();
+    const emp::String & UseLexeme() {
+      const emp::String & out = AsLexeme();
       pos++;
       return out;
     }
 
     /// Return whether the current token is the specified lexeme; if so also advance token stream.
-    bool UseIfLexeme(const std::string & test_str) {
+    bool UseIfLexeme(const emp::String & test_str) {
       if (AsLexeme() != test_str) return false;
       ++pos;
       return true;
@@ -149,10 +148,10 @@ namespace emplode {
     /// Report an error in parsing this file and exit.
     template <typename... Ts>
     void Error(Ts &&... args) const {
-      std::string line_info = pos.AtEnd() ? "end of input" : emp::to_string("line ", pos->line_id);
+      emp::String line_info = pos.AtEnd() ? "end of input" : emp::MakeString("line ", pos->line_id);
       
       emp::notify::Error("(", line_info, " in '", pos.GetTokenStream().GetName(), "'): ",
-                         emp::to_string(std::forward<Ts>(args)...), "\nAborting.");
+                         emp::MakeString(std::forward<Ts>(args)...), "\nAborting.");
       exit(1);
     }
 
@@ -177,7 +176,7 @@ namespace emplode {
       if (AsChar() != req_char) Error(std::forward<Ts>(args)...);
     }
     template <typename... Ts>
-    void RequireLexeme(const std::string & lex, Ts &&... args) const {
+    void RequireLexeme(const emp::String & lex, Ts &&... args) const {
       if (AsLexeme() != lex) Error(std::forward<Ts>(args)...);
     }
 
@@ -190,7 +189,7 @@ namespace emplode {
     void PushScope(Symbol_Scope & _scope) { scope_stack.push_back(&_scope); }
     void PopScope() { scope_stack.pop_back(); }
 
-    Symbol & LookupSymbol(const std::string & var_name, bool scan_scopes) {
+    Symbol & LookupSymbol(const emp::String & var_name, bool scan_scopes) {
       emp::Ptr<Symbol> out_symbol = GetScope().LookupSymbol(var_name, scan_scopes);
       // If we can't find this identifier, throw an error.
       if (out_symbol.IsNull()) {
@@ -200,13 +199,13 @@ namespace emplode {
       return *out_symbol;
     }
 
-    Symbol_Var & AddLocalVar(const std::string & name, const std::string & desc) {
+    Symbol_Var & AddLocalVar(const emp::String & name, const emp::String & desc) {
       return GetScope().AddLocalVar(name, desc);
     }
-    Symbol_Scope & AddScope(const std::string & name, const std::string & desc) {
+    Symbol_Scope & AddScope(const emp::String & name, const emp::String & desc) {
       return GetScope().AddScope(name, desc);
     }
-    Symbol_Object & AddObject(const std::string & type_name, const std::string & var_name) {
+    Symbol_Object & AddObject(const emp::String & type_name, const emp::String & var_name) {
       return symbol_table->MakeObjSymbol(type_name, var_name, GetScope());
     }
 
@@ -219,13 +218,13 @@ namespace emplode {
 
   class Parser {
   private:
-    std::unordered_map<std::string, size_t> precedence_map;  ///< Precedence levels for symbols.
+    std::unordered_map<emp::String, size_t> precedence_map;  ///< Precedence levels for symbols.
 
     /// Print only when debugging.
     /// To activate debugging data, do: emp::notify::SetVerbose("emplode::Parser");
     template <typename... Ts>
     void Debug(Ts... args) const {
-      emp::notify::Verbose("Emplode::Parser", emp::to_string(std::forward<Ts>(args)...));
+      emp::notify::Verbose("Emplode::Parser", emp::MakeString(std::forward<Ts>(args)...));
     }
 
   public:
@@ -330,7 +329,7 @@ namespace emplode {
     // Next, we must have a variable name.
     // @CAO: Or a : ?  E.g., technically "..:size" could give you the parent scope size.
     state.RequireID("Must provide a variable identifier!");
-    std::string var_name = state.UseLexeme();
+    emp::String var_name = state.UseLexeme();
 
     // Lookup this variable.
     Debug("...looking up symbol '", var_name,
@@ -368,15 +367,15 @@ namespace emplode {
     // A literal number should have a temporary created with its value.
     if (state.IsNumber()) {
       Debug("...value is a number: ", state.AsLexeme());
-      double value = emp::from_string<double>(state.UseLexeme()); // Calculate value.
-      return MakeTempLeaf(value);                                 // Return temporary Symbol.
+      double value = state.UseLexeme().AsDouble();        // Calculate value.
+      return MakeTempLeaf(value);                         // Return temporary Symbol.
     }
 
     // A literal string should be converted to a regular string and used.
     if (state.IsString()) {
       Debug("...value is a string: ", state.AsLexeme());
-      std::string str = emp::from_literal_string(state.UseLexeme(), "\"'`"); // Convert literal string.
-      return MakeTempLeaf(str);                                              // Return temporary Symbol.
+      emp::String str = emp::MakeFromLiteral_String(state.UseLexeme(), "\"'");  // Convert literal string.
+      return MakeTempLeaf(str);                                                 // Return temporary Symbol.
     }
 
     // If we have an open parenthesis, process everything inside into a single value...
@@ -396,7 +395,7 @@ namespace emplode {
                                              emp::Ptr<ASTNode> in_node1,
                                              emp::Ptr<ASTNode> in_node2)
   {
-    const std::string symbol = op_token.lexeme;
+    const emp::String symbol = op_token.lexeme;
     emp_assert(!in_node1.IsNull());
     emp_assert(!in_node2.IsNull());
 
@@ -461,7 +460,7 @@ namespace emplode {
     /// Process a value (and possibly more!)
     emp::Ptr<ASTNode> cur_node = ParseValue(state);
     emp::Token op_token = state.AsToken();
-    std::string op = state.AsLexeme();
+    emp::String op = state.AsLexeme();
 
     Debug("...back in ParseExpression; op=`", op, "`; state=", state.AsString());
 
@@ -501,9 +500,9 @@ namespace emplode {
 
   // Parse an the declaration of a variable.
   Symbol & Parser::ParseDeclaration(ParseState & state) {
-    std::string type_name = state.UseLexeme();
+    emp::String type_name = state.UseLexeme();
     state.RequireID("Type name '", type_name, "' must be followed by variable to declare.");
-    std::string var_name = state.UseLexeme();
+    emp::String var_name = state.UseLexeme();
 
     if (type_name == "Var") return state.AddLocalVar(var_name, "Local variable.");
     else if (type_name == "Struct") return state.AddScope(var_name, "Local struct");
@@ -518,7 +517,7 @@ namespace emplode {
     emp::Token start_token = state.AsToken();
     state.UseRequiredChar('@', "All event declarations must being with an '@'.");
     state.RequireID("Events must start by specifying signal name.");
-    const std::string & trigger_name = state.UseLexeme();
+    const emp::String & trigger_name = state.UseLexeme();
     state.UseRequiredChar('(', "Expected parentheses after '", trigger_name, "' for args.");
 
     emp::vector<emp::Ptr<ASTNode>> args;

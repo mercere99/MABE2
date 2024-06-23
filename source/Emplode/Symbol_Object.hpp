@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of Emplode, currently within https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2021-2022.
+ *  @date 2021-2024.
  *
  *  @file  Symbol_Object.hpp
  *  @brief Extension of scope when there is an external object associated with the structure.
@@ -28,8 +28,8 @@ namespace emplode {
     bool obj_owned = false;
 
   public:
-    Symbol_Object(const std::string & _name,
-                  const std::string & _desc,
+    Symbol_Object(const emp::String & _name,
+                  const emp::String & _desc,
                   emp::Ptr<Symbol_Scope> _scope,
                   emp::Ptr<EmplodeType> _obj,
                   TypeInfo & _type_info,
@@ -55,9 +55,9 @@ namespace emplode {
     emp::Ptr<const EmplodeType> GetObjectPtr() const override { return obj_ptr; }  
     emp::Ptr<const TypeInfo> GetTypeInfoPtr() const override { return type_info_ptr; }
 
-    std::string GetTypename() const override {
+    emp::String GetTypename() const override {
       if (type_info_ptr.IsNull()) {
-        return emp::to_string("[Symbol_Object:", GetObjectType(), "]");
+        return emp::MakeString("[Symbol_Object:", GetObjectType(), "]");
       }
       return type_info_ptr->GetTypeName();
     }
@@ -68,7 +68,7 @@ namespace emplode {
       return type_info_ptr->GetTypeID();
     }
 
-    std::string AsString() const override {
+    emp::String AsString() const override {
       if (obj_ptr) { return obj_ptr->ToString(); }
       return "[[__OBJECT__]]";
     }
@@ -106,7 +106,7 @@ namespace emplode {
       emp::Ptr<Symbol_Scope> out_scope = nullptr;               // Unknown scope?
 
       // Construct a unique name for the new object.
-      std::string out_name = emp::to_string(GetName(), "__", (size_t) out_obj);
+      emp::String out_name = emp::MakeString(GetName(), "__", (size_t) out_obj);
 
       // Build the new Symbol_Object.
       auto out = emp::NewPtr<Symbol_Object>(out_name, GetDesc(), out_scope, out_obj,
@@ -122,8 +122,8 @@ namespace emplode {
 
   // Definition needed to add an object to an existing scope.
   Symbol_Object & Symbol_Scope::AddObject(
-    const std::string & name,
-    const std::string & desc,
+    const emp::String & name,
+    const emp::String & desc,
     emp::Ptr<EmplodeType> obj_ptr,
     TypeInfo & type_info,
     bool obj_owned

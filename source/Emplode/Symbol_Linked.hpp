@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of Emplode, currently within https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2021.
+ *  @date 2021-2024.
  *
  *  @file  Symbol_Linked.hpp
  *  @brief Manages a configuration entry linked to another variable or functions.
@@ -29,11 +29,11 @@ namespace emplode {
     using this_t = Symbol_Linked<T>;
 
     template <typename... ARGS>
-    Symbol_Linked(const std::string & in_name, T & in_var, ARGS &&... args)
+    Symbol_Linked(const emp::String & in_name, T & in_var, ARGS &&... args)
       : Symbol(in_name, std::forward<ARGS>(args)...), var(in_var) { ; }
     Symbol_Linked(const this_t &) = default;
 
-    std::string GetTypename() const override {
+    emp::String GetTypename() const override {
       if constexpr (std::is_scalar_v<T>) return "[LinkedValue]";
       else return "[Error:InvalidLinkedType]";
     }
@@ -41,9 +41,9 @@ namespace emplode {
     emp::Ptr<Symbol> Clone() const override { return emp::NewPtr<this_t>(*this); }
 
     double AsDouble() const override { return (double) var; }
-    std::string AsString() const override { return emp::to_string(var); }
+    emp::String AsString() const override { return emp::MakeString(var); }
     Symbol & SetValue(double in) override { var = (T) in; return *this; }
-    Symbol & SetString(const std::string & in) override {
+    Symbol & SetString(const emp::String & in) override {
       var = emp::from_string<T>(in);
       return *this;
     }
@@ -55,7 +55,36 @@ namespace emplode {
     bool CopyValue(const Symbol & in) override { var = in.AsDouble(); return true; }
   };
 
-  /// Specialization for Symbol linked to a string variable.
+  /// Specialization for Symbol linked to an emp::String variable.
+  template <>
+  class Symbol_Linked<emp::String> : public Symbol {
+  private:
+    emp::String & var;
+  public:
+    using this_t = Symbol_Linked<emp::String>;
+
+    template <typename... ARGS>
+    Symbol_Linked(const emp::String & in_name, emp::String & in_var, ARGS &&... args)
+      : Symbol(in_name, std::forward<ARGS>(args)...), var(in_var) { ; }
+    Symbol_Linked(const this_t &) = default;
+
+    emp::String GetTypename() const override { return "[LinkedString]"; }
+
+    emp::Ptr<Symbol> Clone() const override { return emp::NewPtr<this_t>(*this); }
+
+    double AsDouble() const override { return var.AsDouble(); }
+    emp::String AsString() const override { return var; }
+    Symbol & SetValue(double in) override { var.Set(in); return *this; }
+    Symbol & SetString(const emp::String & in) override { var = in; return *this; }
+
+    bool HasValue() const override { return true; }
+
+    bool IsString() const override { return true; }
+
+    bool CopyValue(const Symbol & in) override { var = in.AsString(); return true; }
+  };
+
+  /// Specialization for Symbol linked to an std::string variable.
   template <>
   class Symbol_Linked<std::string> : public Symbol {
   private:
@@ -64,18 +93,18 @@ namespace emplode {
     using this_t = Symbol_Linked<std::string>;
 
     template <typename... ARGS>
-    Symbol_Linked(const std::string & in_name, std::string & in_var, ARGS &&... args)
+    Symbol_Linked(const emp::String & in_name, std::string & in_var, ARGS &&... args)
       : Symbol(in_name, std::forward<ARGS>(args)...), var(in_var) { ; }
     Symbol_Linked(const this_t &) = default;
 
-    std::string GetTypename() const override { return "[LinkedString]"; }
+    emp::String GetTypename() const override { return "[LinkedString]"; }
 
     emp::Ptr<Symbol> Clone() const override { return emp::NewPtr<this_t>(*this); }
 
-    double AsDouble() const override { return emp::from_string<double>(var); }
-    std::string AsString() const override { return var; }
-    Symbol & SetValue(double in) override { var = emp::to_string(in); return *this; }
-    Symbol & SetString(const std::string & in) override { var = in; return *this; }
+    double AsDouble() const override { return std::stod(var); }
+    emp::String AsString() const override { return var; }
+    Symbol & SetValue(double in) override { var = emp::MakeString(in); return *this; }
+    Symbol & SetString(const emp::String & in) override { var = in; return *this; }
 
     bool HasValue() const override { return true; }
 
@@ -95,7 +124,7 @@ namespace emplode {
     using this_t = Symbol_LinkedFunctions<T>;
 
     template <typename... ARGS>
-    Symbol_LinkedFunctions(const std::string & in_name,
+    Symbol_LinkedFunctions(const emp::String & in_name,
                        std::function<T()> in_get,
                        std::function<void(const T &)> in_set,
                        ARGS &&... args)
@@ -105,14 +134,14 @@ namespace emplode {
     { ; }
     Symbol_LinkedFunctions(const this_t &) = default;
 
-    std::string GetTypename() const override { return "[Symbol_LinkedFunctions]"; }
+    emp::String GetTypename() const override { return "[Symbol_LinkedFunctions]"; }
 
     emp::Ptr<Symbol> Clone() const override { return emp::NewPtr<this_t>(*this); }
 
     double AsDouble() const override { return emp::ToDouble( get_fun() ); }
-    std::string AsString() const override { return emp::to_string( get_fun() ); }
+    emp::String AsString() const override { return emp::MakeString( get_fun() ); }
     Symbol & SetValue(double in) override { set_fun(emp::FromDouble<T>(in)); return *this; }
-    Symbol & SetString(const std::string & in) override {
+    Symbol & SetString(const emp::String & in) override {
       set_fun( emp::from_string<T>(in) );
       return *this;
     }
@@ -120,7 +149,7 @@ namespace emplode {
     bool HasValue() const override { return true; }
 
     bool IsNumeric() const override { return std::is_scalar_v<T>; }
-    bool IsString() const override { return std::is_same<std::string, T>(); }
+    bool IsString() const override { return std::is_same<std::string, T>() || std::is_same<emp::String, T>(); }
 
     bool CopyValue(const Symbol & in) override {
       if (in.IsNumeric()) SetValue(in.AsDouble());

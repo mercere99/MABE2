@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of Emplode, currently within https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019-2021.
+ *  @date 2019-2024.
  *
  *  @file  Symbol_Function.hpp
  *  @brief Manages individual functions for config.
@@ -11,13 +11,12 @@
 #ifndef EMPLODE_SYMBOL_FUNCTION_HPP
 #define EMPLODE_SYMBOL_FUNCTION_HPP
 
-#include <string>
-
 #include "emp/base/Ptr.hpp"
 #include "emp/base/notify.hpp"
 #include "emp/base/vector.hpp"
 #include "emp/datastructs/tuple_utils.hpp"
 #include "emp/meta/ValPack.hpp"
+#include "emp/tools/String.hpp"
 
 #include "Symbol.hpp"
 #include "SymbolTableBase.hpp"
@@ -42,9 +41,9 @@ namespace emplode {
     // size_t arg_count;
 
   public:
-    Symbol_Function(const std::string & _name,
+    Symbol_Function(const emp::String & _name,
                     std_fun_t fun,
-                    const std::string & _desc,
+                    const emp::String & _desc,
                     emp::Ptr<Symbol_Scope> _scope,
                     int num_params,
                     emp::TypeID _ret_type)
@@ -56,13 +55,15 @@ namespace emplode {
     Symbol_Function(const Symbol_Function &) = default;
     emp::Ptr<Symbol> Clone() const override { return emp::NewPtr<this_t>(*this); }
 
-    std::string GetTypename() const override { return "[Symbol_Function]"; }
+    emp::String GetTypename() const override { return "[Symbol_Function]"; }
 
     bool IsFunction() const override { return true; }
     bool HasNumericReturn() const override { return return_type.IsArithmetic(); }
-    bool HasStringReturn() const override { return return_type.IsType<std::string>(); }
+    bool HasStringReturn() const override {
+      return return_type.IsType<emp::String>() || return_type.IsType<emp::String>();
+    }
 
-    std::string AsString() const override { return "[[__FUNCTION__]]"; }
+    emp::String AsString() const override { return "[[__FUNCTION__]]"; }
 
     /// Set this symbol to be a correctly-typed scope pointer.
     emp::Ptr<Symbol_Function> AsFunctionPtr() override { return this; }
@@ -90,11 +91,11 @@ namespace emplode {
         if (x.num_params == -1 || x.num_params == (int) args.size()) return x.fun(args);
       }
 
-      std::string msg =
-        emp::to_string("No overload for function '", name, "' that takes ", args.size(),
+      emp::String msg =
+        emp::MakeString("No overload for function '", name, "' that takes ", args.size(),
                        " arguments.\n...", overloads.size(), " options are:");
       for (const auto & x : overloads) {
-        msg += emp::to_string (' ', x.num_params);
+        msg += emp::MakeString(' ', x.num_params);
       }
       emp::notify::Exception("mabe::Symbol_Function::NO_OVERLOAD", msg);
       return nullptr;

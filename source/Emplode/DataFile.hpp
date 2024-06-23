@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of Emplode, currently within https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2021.
+ *  @date 2021-2024.
  *
  *  @file  DataFile.hpp
  *  @brief Manages a DataFile object for config.
@@ -12,11 +12,11 @@
 #define EMPLODE_DATA_FILE_HPP
 
 #include <functional>
-#include <string>
 
 #include "emp/base/Ptr.hpp"
 #include "emp/base/vector.hpp"
 #include "emp/io/StreamManager.hpp"
+#include "emp/tools/String.hpp"
 
 #include "EmplodeType.hpp"
 
@@ -26,30 +26,30 @@ namespace emplode {
   /// dynamically.
   class DataFile : public EmplodeType {
   private:
-    using data_fun_t = std::function<std::string()>;
+    using data_fun_t = std::function<emp::String()>;
     using setup_fun_t = std::function<void()>;
     struct ColumnInfo {
-      std::string header;
+      emp::String header;
       data_fun_t fun;
     };
 
-    std::string name="";                 ///< Unique name for this object.
+    emp::String name="";                 ///< Unique name for this object.
     emp::Ptr<emp::StreamManager> files;  ///< Global file manager.
 
-    std::string filename;                ///< Name of output file.
+    emp::String filename;                ///< Name of output file.
     emp::vector<ColumnInfo> cols;        ///< Data about columns maintainted.
     emp::vector<setup_fun_t> setup;      ///< Commands to run before writing columns.
 
   public:
     DataFile() = delete;
-    DataFile(const std::string & in_name, emp::StreamManager & _files)
+    DataFile(const emp::String & in_name, emp::StreamManager & _files)
       : name(in_name), files(&_files) { }
     DataFile(const DataFile &) = default;
     ~DataFile() { }
 
     DataFile & operator=(const DataFile &) = default;
 
-    std::string GetName() const { return name; }
+    emp::String GetName() const { return name; }
 
     // Setup member functions associated with population.
     static void InitType(TypeInfo & info) {
@@ -65,7 +65,7 @@ namespace emplode {
       LinkVar(filename, "filename", "Name to use for this file.");
     }
 
-    size_t AddColumn(const std::string & header, data_fun_t fun) {
+    size_t AddColumn(const emp::String & header, data_fun_t fun) {
       size_t col_id = cols.size();
       cols.push_back(ColumnInfo{header,fun});
       return col_id;
@@ -103,7 +103,7 @@ namespace emplode {
       return 1;
     }
 
-    static std::string EMPGetTypeName() { return "emplode::DataFile"; }
+    static emp::String EMPGetTypeName() { return "emplode::DataFile"; }
   };
 }
 

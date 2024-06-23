@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of Emplode, currently within https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019-2021.
+ *  @date 2019-2024.
  *
  *  @file  EventManager.hpp
  *  @brief Manages events for configurations.
@@ -25,10 +25,9 @@
 #ifndef EMPLODE_EVENT_MANAGER_HPP
 #define EMPLODE_EVENT_MANAGER_HPP
 
-#include <string>
-
 #include "emp/base/map.hpp"
 #include "emp/base/Ptr.hpp"
+#include "emp/tools/String.hpp"
 
 #include "AST.hpp"
 
@@ -42,16 +41,16 @@ namespace emplode {
     using node_vec_t = emp::vector< node_ptr_t >;
     struct Event;
 
-    std::unordered_map<std::string, emp::Ptr<Event>> event_map;
+    std::unordered_map<emp::String, emp::Ptr<Event>> event_map;
     SymbolTableBase & symbol_table;
 
     struct Action {
-      std::string signal_name;
+      emp::String signal_name;
       node_vec_t params;
       node_ptr_t action;
       size_t def_line;
 
-      Action(const std::string & _signal, node_vec_t _params, node_ptr_t _action, size_t _line)
+      Action(const emp::String & _signal, node_vec_t _params, node_ptr_t _action, size_t _line)
       : signal_name(_signal), params(_params), action(_action), def_line(_line) { }
       ~Action() {
         for (auto x : params) x.Delete();
@@ -100,11 +99,11 @@ namespace emplode {
     };
 
     struct Event {
-      std::string signal_name;
+      emp::String signal_name;
       size_t num_params;
       emp::vector<emp::Ptr<Action>> actions;
 
-      Event(const std::string & _name, size_t _params)
+      Event(const emp::String & _name, size_t _params)
         : signal_name(_name), num_params(_params) { }
       ~Event() { for (auto ptr : actions) ptr.Delete(); }
 
@@ -131,11 +130,11 @@ namespace emplode {
       }
     }
 
-    bool HasSignal(const std::string & signal_name) const {
+    bool HasSignal(const emp::String & signal_name) const {
       return emp::Has(event_map, signal_name);
     }
 
-    bool AddSignal(const std::string & signal_name, size_t num_params) {
+    bool AddSignal(const emp::String & signal_name, size_t num_params) {
       // @CAO Needs to become a user-level error?
       emp_assert(!emp::Has(event_map, signal_name), "Signal reused!", signal_name);
 
@@ -146,7 +145,7 @@ namespace emplode {
 
     /// Add a new event action
     bool AddAction(
-      const std::string & signal_name,  ///< Name of signal to trigger using
+      const emp::String & signal_name,  ///< Name of signal to trigger using
       node_vec_t params,                ///< Parameters to set before taking action
       node_ptr_t action,                ///< Abstract syntax tree to run when triggered
       size_t def_line                   ///< What file line was this defined on?
@@ -161,11 +160,11 @@ namespace emplode {
     }
 
     template <typename... ARG_TS>
-    bool Trigger(const std::string & signal_name, ARG_TS... args) {
+    bool Trigger(const emp::String & signal_name, ARG_TS... args) {
       // @CAO Make into user-level error.
       emp_assert(emp::Has(event_map, signal_name), "Unknown signal being triggered!", signal_name);
 
-      const std::string location = emp::to_string("trigger of ", signal_name);
+      const emp::String location = emp::MakeString("trigger of ", signal_name);
       symbol_vec_t symbol_args = { symbol_table.ValueToSymbol(args, location)... };
       event_map[signal_name]->Trigger(symbol_args);
 

@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of Emplode, currently within https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2021-2022.
+ *  @date 2021-2024.
  *
  *  @file  SymbolTableBase.hpp
  *  @brief Tools for working with Symbol objects, especially for wrapping functions.
@@ -11,14 +11,13 @@
 #ifndef EMPLODE_SYMBOL_TABLE_BASE_HPP
 #define EMPLODE_SYMBOL_TABLE_BASE_HPP
 
-#include <string>
-
 #include "emp/base/Ptr.hpp"
 #include "emp/base/vector.hpp"
 #include "emp/datastructs/tuple_utils.hpp"
 #include "emp/debug/debug.hpp"
 #include "emp/meta/FunInfo.hpp"
 #include "emp/meta/ValPack.hpp"
+#include "emp/tools/String.hpp"
 
 #include "Symbol.hpp"
 
@@ -66,7 +65,7 @@ namespace emplode {
     /// Take in a value of an arbitrary type and convert it to a symbol (likely temporary)
     /// for use in performing a computation.
     template <typename T>
-    symbol_ptr_t ValueToSymbol( T && value, const std::string & location ) {
+    symbol_ptr_t ValueToSymbol( T && value, const emp::String & location ) {
       constexpr bool is_ref = std::is_lvalue_reference<T>();
       using base_t = std::remove_reference_t<T>;
 
@@ -77,6 +76,7 @@ namespace emplode {
 
       // If a return value is a basic type, wrap it in a temporary symbol
       else if constexpr (std::is_same<base_t, std::string>() ||
+                         std::is_same<base_t, emp::String>() ||
                          std::is_arithmetic<base_t>() ||
                          std::is_same<base_t, emp::Datum>() ||
                          std::is_same<base_t, emplode::Symbol_Var>()) {
@@ -113,7 +113,7 @@ namespace emplode {
       static constexpr int ParamCount(bool=false) { return 0; }
 
       template <typename FUN_T>
-      static auto ConvertFun([[maybe_unused]] const std::string & name, FUN_T fun, SymbolTableBase & st) {
+      static auto ConvertFun([[maybe_unused]] const emp::String & name, FUN_T fun, SymbolTableBase & st) {
         return [name=name,fun=fun,&st]([[maybe_unused]] symbol_vector_t args) {
           emp_assert(args.size() == 0, "Too many arguments (expected 0)", name, args.size());
           return st.ValueToSymbol( fun(), name );
@@ -156,7 +156,7 @@ namespace emplode {
 
       // Stand-alone function (with at least one argument)...
       template <typename FUN_T>
-      static auto ConvertFun(const std::string & name, FUN_T fun, SymbolTableBase & st) {        
+      static auto ConvertFun(const emp::String & name, FUN_T fun, SymbolTableBase & st) {        
         using info_t = emp::FunInfo<FUN_T>;
         static_assert(!std::is_same<typename info_t::return_t, void>(),
                       "Currently Emplode functions must provide a return value.");
@@ -190,7 +190,7 @@ namespace emplode {
 
       // Member function (with at least one argument)...
       template <typename FUN_T>
-      static auto ConvertMemberFun(const std::string & name, FUN_T fun, SymbolTableBase & st) {  
+      static auto ConvertMemberFun(const emp::String & name, FUN_T fun, SymbolTableBase & st) {  
         using info_t = emp::FunInfo<FUN_T>;
         static_assert(!std::is_same<typename info_t::return_t, void>(),
                       "Currently Emplode functions must provide a return value.");
@@ -248,7 +248,7 @@ namespace emplode {
     // Wrap a provided function to make it take a vector of Ptr<Symbol> and return a
     // single Ptr<Symbol> representing the result.
     template <typename FUN_T>
-    auto WrapFunction(const std::string & name, FUN_T fun) {
+    auto WrapFunction(const emp::String & name, FUN_T fun) {
       using info_t = emp::FunInfo<FUN_T>;
       using fun_t = typename info_t::fun_t;
       if constexpr (info_t::num_args == 0) {
@@ -263,7 +263,7 @@ namespace emplode {
     // and a vector of Ptr<Symbol> and return a single Ptr<Symbol> representing the result.
     template <typename FUN_T>
     auto WrapMemberFunction([[maybe_unused]] emp::TypeID class_type,
-                                  const std::string & name, FUN_T fun)
+                                  const emp::String & name, FUN_T fun)
     {
       // Do some checks that will produce reasonable errors.
       using info_t = emp::FunInfo<FUN_T>;

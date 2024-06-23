@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of Emplode, currently within https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019-2022.
+ *  @date 2019-2024.
  *
  *  @file  Emplode.hpp
  *  @brief Manages all configuration with Emplode language.
@@ -70,7 +70,6 @@
 
 #include <fstream>
 #include <iostream>
-#include <string>
 #include <utility>
 
 #include "emp/base/assert.hpp"
@@ -78,7 +77,7 @@
 #include "emp/base/notify.hpp"
 #include "emp/data/Datum.hpp"
 #include "emp/meta/TypeID.hpp"
-#include "emp/tools/string_utils.hpp"
+#include "emp/tools/String.hpp"
 
 #include "AST.hpp"
 #include "DataFile.hpp"
@@ -97,13 +96,13 @@ namespace emplode {
     using pos_t = emp::TokenStream::Iterator;
 
   protected:
-    std::string filename;      ///< Source for for code to generate.
+    emp::String filename;      ///< Source for for code to generate.
     SymbolTable symbol_table;  ///< Management of identifiers.
     Lexer lexer;               ///< Lexer to process input code.
     Parser parser;             ///< Parser to transform token stream into an abstract syntax tree.
     ASTNode_Block ast_root;    ///< Abstract syntax tree version of input file.
 
-    std::string ConcatLexemes(pos_t start_pos, pos_t end_pos) const {
+    emp::String ConcatLexemes(pos_t start_pos, pos_t end_pos) const {
       emp_assert(start_pos <= end_pos);
       emp_assert(start_pos.IsValid() && end_pos.IsValid());
       std::stringstream ss;
@@ -117,7 +116,7 @@ namespace emplode {
     }
 
   public:
-    Emplode(std::string in_filename="")
+    Emplode(emp::String in_filename="")
       : filename(in_filename)
       , symbol_table("Emplode")
       , ast_root(symbol_table.GetRootScope())
@@ -127,7 +126,7 @@ namespace emplode {
       // Setup default functions.
 
       // 'EXEC' dynamically executes the contents of a string.
-      auto exec_fun = [this](const std::string & expression) { return Execute(expression); };
+      auto exec_fun = [this](const emp::String & expression) { return Execute(expression); };
       AddFunction("EXEC", exec_fun, "Dynamically execute the string passed in.");
 
       // 'PRINT' is a simple debugging command to output the value of a variable.
@@ -185,7 +184,7 @@ namespace emplode {
                   "Scale arg1 from arg2-arg3 as unit distance" );
 
       // Setup default DataFile type.
-      auto df_init = [this](const std::string & name) {
+      auto df_init = [this](const emp::String & name) {
         return emp::NewPtr<DataFile>(name, symbol_table.GetFileManager());
       };
       auto df_copy = symbol_table.DefaultCopyFun<DataFile>();
@@ -193,10 +192,10 @@ namespace emplode {
                                          df_init, df_copy, true);
       df_type.AddMemberFunction(
         "ADD_COLUMN",
-        [exec_fun](DataFile & file, const std::string & title, const std::string & expression){
+        [exec_fun](DataFile & file, const emp::String & title, const emp::String & expression){
           return file.AddColumn(title, [exec_fun,expression](){
-            std::string out_string = exec_fun(expression);
-            if (!emp::is_number(out_string)) return emp::to_literal(out_string);
+            emp::String out_string = exec_fun(expression);
+            if (!emp::is_number(out_string)) return emp::MakeLiteral(out_string);
             return out_string;
           });
         },
@@ -204,7 +203,7 @@ namespace emplode {
       );
       df_type.AddMemberFunction(
         "ADD_SETUP",
-        [exec_fun](DataFile & file, std::string cmd){
+        [exec_fun](DataFile & file, emp::String cmd){
           return file.AddSetup( [exec_fun,cmd](){ exec_fun(cmd); });
         },
         "Add a command to be run each time before columns are output."
@@ -220,11 +219,11 @@ namespace emplode {
     void PrintAST() { ast_root.PrintAST(); }
 
     /// Create a new type of event that can be used in the scripting language.
-    bool AddSignal(const std::string & name) { return symbol_table.AddSignal(name); }
+    bool AddSignal(const emp::String & name) { return symbol_table.AddSignal(name); }
 
     /// Trigger all actions linked to a signal.
     template <typename... ARG_Ts>
-    void Trigger(const std::string & name, ARG_Ts... args) {
+    void Trigger(const emp::String & name, ARG_Ts... args) {
       symbol_table.Trigger(name, std::forward<ARG_Ts>(args)...);
     }
 
@@ -233,11 +232,11 @@ namespace emplode {
       return symbol_table.AddType<EXTRA_Ts...>( std::forward<ARG_Ts>(args)... );
     }
 
-    TypeInfo & GetType(const std::string & type_name) {
+    TypeInfo & GetType(const emp::String & type_name) {
       return symbol_table.GetType(type_name);
     }
 
-    const TypeInfo & GetType(const std::string & type_name) const {
+    const TypeInfo & GetType(const emp::String & type_name) const {
       return symbol_table.GetType(type_name);
     }
 
@@ -246,7 +245,7 @@ namespace emplode {
     /// converted properly.  For a variadic function, the provided function must take a
     /// vector of ASTNode pointers, but may return any known type.
     template <typename FUN_T>
-    void AddFunction(const std::string & name, FUN_T fun, const std::string & desc) {
+    void AddFunction(const emp::String & name, FUN_T fun, const emp::String & desc) {
       symbol_table.AddFunction(name, fun, desc);
     }
 
@@ -254,7 +253,7 @@ namespace emplode {
     const SymbolTable & GetSymbolTable() const { return symbol_table; }
 
     /// Load a single, specified configuration from a stream.
-    void Load(std::istream & is, const std::string & stream_name) {
+    void Load(std::istream & is, const emp::String & stream_name) {
       emp::TokenStream tokens = lexer.Tokenize(is, stream_name); // Convert to more-usable tokens.
       pos_t pos = tokens.begin();                                // Start at beginning of input.
 
@@ -270,22 +269,22 @@ namespace emplode {
     }
 
     /// Load a single, specified configuration file.
-    void Load(const std::string & filename) {
+    void Load(const emp::String & filename) {
       std::ifstream file(filename);  // Open the provided file.
       Load(file, filename);          // Load contents
       file.close();                  // Close the file (now that it's loaded)
     }
 
     /// Sequentially load a series of configuration files.
-    void Load(const emp::vector<std::string> & filenames) {
-      for ( const std::string & fn : filenames) Load(fn);
+    void Load(const emp::vector<emp::String> & filenames) {
+      for ( const emp::String & fn : filenames) Load(fn);
     }
 
     /// Load a single, specified configuration file.
-    /// @param statements Statement (std::string) or vector of statements to be parsed.
+    /// @param statements Statement (emp::String) or vector of statements to be parsed.
     /// @param name Name of statement group (for error messages)
     template <typename STATEMENT_T>
-    void LoadStatements(const STATEMENT_T & statements, const std::string & name) {
+    void LoadStatements(const STATEMENT_T & statements, const emp::String & name) {
       emp::TokenStream tokens = lexer.Tokenize(statements, name);    // Convert to tokens.
       pos_t pos = tokens.begin();
 
@@ -333,7 +332,7 @@ namespace emplode {
     }
 
     /// Write out the code for this script to a file of the provided name.
-    Emplode & Write(const std::string & filename) {
+    Emplode & Write(const emp::String & filename) {
       // If the filename is empty or "_", output to standard out.
       if (filename == "" || filename == "_") return Write();
 
@@ -343,9 +342,9 @@ namespace emplode {
     }
 
     /// Look up the specified symbol and write it's config to the provided stream.
-    bool WriteSymbol(const std::string & symbol_name,
+    bool WriteSymbol(const emp::String & symbol_name,
                      std::ostream & os=std::cout,
-                     const std::string & prefix = "",
+                     const emp::String & prefix = "",
                      size_t comment_offset = 32UL) {
       auto symbol_ptr = symbol_table.GetRootScope().GetSymbol(symbol_name);
       if (!symbol_ptr) {

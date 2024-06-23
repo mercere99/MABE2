@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of Emplode, currently within https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019-2022.
+ *  @date 2019-2024.
  *
  *  @file  AST.hpp
  *  @brief Manages Abstract Syntax Tree nodes for Emplode.
@@ -14,6 +14,7 @@
 #include "emp/base/assert.hpp"
 #include "emp/base/Ptr.hpp"
 #include "emp/base/vector.hpp"
+#include "emp/tools/String.hpp"
 
 #include "Symbol.hpp"
 #include "Symbol_Scope.hpp"
@@ -41,7 +42,7 @@ namespace emplode {
     int GetLine() const { return line_id; }
     void SetLine(int in_line) { line_id = in_line; }
 
-    virtual const std::string & GetName() const = 0;
+    virtual const emp::String & GetName() const = 0;
 
     virtual bool IsNumeric() const { return false; } // Can node be represented as a number?
     virtual bool IsString() const { return false; }  // Can node be represented as a string?
@@ -63,7 +64,7 @@ namespace emplode {
     virtual symbol_ptr_t Process() = 0;
 
     virtual void Write(std::ostream & /* os */=std::cout,
-                       const std::string & /* offset */="") const { }
+                       const emp::String & /* offset */="") const { }
 
     // Helper alternatives for Process()
 
@@ -89,16 +90,16 @@ namespace emplode {
   /// An ASTNode representing an internal node.
   class ASTNode_Internal : public ASTNode {
   protected:
-    std::string name;
+    emp::String name;
     node_vector_t children;
 
   public:
-    ASTNode_Internal(const std::string & _name="") : name (_name) { }
+    ASTNode_Internal(const emp::String & _name="") : name (_name) { }
     ~ASTNode_Internal() { 
       for (auto child : children) child.Delete();
     }
 
-    const std::string & GetName() const override { return name; }
+    const emp::String & GetName() const override { return name; }
 
     bool IsInternal() const override { return true; }
 
@@ -126,7 +127,7 @@ namespace emplode {
     }
     ~ASTNode_Leaf() { if (own_symbol) symbol_ptr.Delete(); }
 
-    const std::string & GetName() const override { return symbol_ptr->GetName(); }
+    const emp::String & GetName() const override { return symbol_ptr->GetName(); }
     Symbol & GetSymbol() { return *symbol_ptr; }
 
     bool IsNumeric() const override { return symbol_ptr->IsNumeric(); }
@@ -141,15 +142,15 @@ namespace emplode {
       #ifndef NDEBUG
       emp::notify::Verbose(
         "Emplode::AST",
-        "AST: Calling leaf '", symbol_ptr ? symbol_ptr->AsString() : std::string("[null]")
+        "AST: Calling leaf '", symbol_ptr ? symbol_ptr->AsString() : emp::String("[null]")
       );
       #endif
       return symbol_ptr;
     };
 
-    void Write(std::ostream & os, const std::string &) const override {
+    void Write(std::ostream & os, const emp::String &) const override {
       // If this is a variable, print the variable name,
-      std::string output = symbol_ptr->GetName();
+      emp::String output = symbol_ptr->GetName();
 
       // If it is a literal, print the value.
       if (output == "") {
@@ -174,7 +175,7 @@ namespace emplode {
     return emp::NewPtr<ASTNode_Leaf>(symbol_ptr, line_id);
   }
 
-  emp::Ptr<ASTNode_Leaf> MakeTempLeaf(const std::string & val, int line_id=-1) {
+  emp::Ptr<ASTNode_Leaf> MakeTempLeaf(const emp::String & val, int line_id=-1) {
     auto symbol_ptr = emp::NewPtr<Symbol_Var>("__Temp", val, "Temporary string", nullptr);
     symbol_ptr->SetTemporary();
     return emp::NewPtr<ASTNode_Leaf>(symbol_ptr, line_id);
@@ -227,7 +228,7 @@ namespace emplode {
       return nullptr;
     }
 
-    void Write(std::ostream & os, const std::string & offset) const override { 
+    void Write(std::ostream & os, const emp::String & offset) const override { 
       for (auto child_ptr : children) {
         child_ptr->Write(os, offset+"  ");
         os << ";\n" << offset;
@@ -247,7 +248,7 @@ namespace emplode {
     // A unary operator take in a double and returns another one.
     std::function< double(double) > fun;
   public:
-    ASTNode_Op1(const std::string & name, int _line=-1) : ASTNode_Internal(name) { 
+    ASTNode_Op1(const emp::String & name, int _line=-1) : ASTNode_Internal(name) { 
       line_id = _line;
     }
 
@@ -268,7 +269,7 @@ namespace emplode {
       return GetSymbolTable().MakeTempSymbol(result);
     }
 
-    void Write(std::ostream & os, const std::string & offset) const override { 
+    void Write(std::ostream & os, const emp::String & offset) const override { 
       os << name;
       children[0]->Write(os, offset);
     }
@@ -285,7 +286,7 @@ namespace emplode {
   protected:
     std::function< emp::Datum(emp::Datum, emp::Datum) > fun;
   public:
-    ASTNode_Op2(const std::string & name, int _line=-1) : ASTNode_Internal(name) {
+    ASTNode_Op2(const emp::String & name, int _line=-1) : ASTNode_Internal(name) {
       line_id = _line;
     }
 
@@ -309,7 +310,7 @@ namespace emplode {
       return GetSymbolTable().MakeTempSymbol(out_val);
     }
 
-    void Write(std::ostream & os, const std::string & offset) const override { 
+    void Write(std::ostream & os, const emp::String & offset) const override { 
       children[0]->Write(os, offset);
       os << " " << name << " ";
       children[1]->Write(os, offset);
@@ -393,7 +394,7 @@ namespace emplode {
       return nullptr;
     }
 
-    void Write(std::ostream & os, const std::string & offset) const override { 
+    void Write(std::ostream & os, const emp::String & offset) const override { 
       os << "IF (";
       children[0]->Write(os, offset);
       os << ") ";
@@ -439,7 +440,7 @@ namespace emplode {
       return nullptr;
     }
 
-    void Write(std::ostream & os, const std::string & offset) const override { 
+    void Write(std::ostream & os, const emp::String & offset) const override { 
       os << "WHILE (";
       children[0]->Write(os, offset);
       os << ") ";
@@ -497,7 +498,7 @@ namespace emplode {
       return result;
     }
 
-    void Write(std::ostream & os, const std::string & offset) const override { 
+    void Write(std::ostream & os, const emp::String & offset) const override { 
       children[0]->Write(os, offset);  // Function name
       os << "(";
       for (size_t i=1; i < children.size(); i++) {
@@ -521,7 +522,7 @@ namespace emplode {
 
   public:
     ASTNode_Event(
-      const std::string & event_name,
+      const emp::String & event_name,
       node_ptr_t action,
       const node_vector_t & args,
       setup_fun_t in_fun,
@@ -552,7 +553,7 @@ namespace emplode {
       return nullptr;
     }
 
-    void Write(std::ostream & os, const std::string & offset) const override { 
+    void Write(std::ostream & os, const emp::String & offset) const override { 
       os << "@" << GetName() << "(";
       for (size_t i = 1; i < children.size(); i++) {
         if (i>1) os << ", ";

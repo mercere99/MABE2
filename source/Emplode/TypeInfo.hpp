@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of Emplode, currently within https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2021.
+ *  @date 2021-2024.
  *
  *  @file  TypeInfo.hpp
  *  @brief Manages all of the information about a particular type in the config language.
@@ -15,7 +15,7 @@
 
 #include "emp/base/assert.hpp"
 #include "emp/meta/TypeID.hpp"
-#include "emp/tools/string_utils.hpp"
+#include "emp/tools/String.hpp"
 
 #include "Symbol.hpp"
 #include "SymbolTableBase.hpp"
@@ -27,27 +27,27 @@ namespace emplode {
     using symbol_ptr_t = emp::Ptr<Symbol>;
     using fun_t = std::function<symbol_ptr_t(EmplodeType &, const emp::vector<symbol_ptr_t> &)>;
 
-    std::string name;
-    std::string desc;
+    emp::String name;
+    emp::String desc;
     fun_t fun;
     emp::TypeID return_type;
 
-    MemberFunInfo(const std::string & in_name, const std::string & in_desc,
+    MemberFunInfo(const emp::String & in_name, const emp::String & in_desc,
                   fun_t in_fun, emp::TypeID in_rtype)
       : name(in_name), desc(in_desc), fun(in_fun), return_type(in_rtype) {}
   };
 
-  // TypeInfo tracks a particular type to be used in the configuration langauge.
+  // TypeInfo tracks a particular type to be used in the configuration language.
   class TypeInfo {
   private:
-    using init_fun_t = std::function<emp::Ptr<EmplodeType> (const std::string &)>;
+    using init_fun_t = std::function<emp::Ptr<EmplodeType> (const emp::String &)>;
     using copy_fun_t = std::function<bool (const EmplodeType &, EmplodeType &)>;
 
     SymbolTableBase & symbol_table; // Which symbol table are we part of?
 
     size_t index;
-    std::string type_name;
-    std::string desc;
+    emp::String type_name;
+    emp::String desc;
     emp::TypeID type_id;
 
     init_fun_t init_fun;
@@ -58,14 +58,14 @@ namespace emplode {
 
   public:
     // Constructor to allow a simple new configuration type
-    TypeInfo(SymbolTableBase & _st, size_t _id, const std::string & _name, const std::string & _desc)
+    TypeInfo(SymbolTableBase & _st, size_t _id, const emp::String & _name, const emp::String & _desc)
       : symbol_table(_st), index(_id), type_name(_name), desc(_desc)
     {
       emp_assert(type_name != "");
     }
 
     // Constructor to allow a new configuration type whose objects require initialization.
-    TypeInfo(SymbolTableBase & _st, size_t _id, const std::string & _name, const std::string & _desc,
+    TypeInfo(SymbolTableBase & _st, size_t _id, const emp::String & _name, const emp::String & _desc,
              init_fun_t _init, copy_fun_t _copy, bool _config_owned=false)
       : symbol_table(_st), index(_id), type_name(_name), desc(_desc),
         init_fun(_init), copy_fun(_copy), config_owned(_config_owned)
@@ -74,13 +74,13 @@ namespace emplode {
     }
 
     size_t GetIndex() const { return index; }
-    const std::string & GetTypeName() const { return type_name; }
-    const std::string & GetDesc() const { return desc; }
+    const emp::String & GetTypeName() const { return type_name; }
+    const emp::String & GetDesc() const { return desc; }
     emp::TypeID GetTypeID() const { return type_id; }
     bool GetOwned() const { return config_owned; }
     const emp::vector<MemberFunInfo> & GetMemberFunctions() const { return member_funs; }
 
-    emp::Ptr<EmplodeType> MakeObj(const std::string & name="__temp__") const {
+    emp::Ptr<EmplodeType> MakeObj(const emp::String & name="__temp__") const {
       emp_assert(init_fun, "No initialization function exists for type.", type_name);
       return init_fun(name);
     }
@@ -96,9 +96,9 @@ namespace emplode {
     // Add a member function that can be called on objects of this type.
     template <typename FUN_T>
     void AddMemberFunction(
-      const std::string & name,
+      const emp::String & name,
       FUN_T fun,
-      const std::string & desc
+      const emp::String & desc
     ) {
       // std::cout << "Adding member function '" << name
       //           << "' to type '" << type_name << "'."

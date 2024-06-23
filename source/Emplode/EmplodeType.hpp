@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of Emplode, currently within https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019-2021.
+ *  @date 2019-2024.
  *
  *  @file  EmplodeType.hpp
  *  @brief Setup types for use in scripting.
@@ -45,7 +45,7 @@ namespace emplode {
 
     virtual ~EmplodeType() { }
 
-    virtual std::string ToString() const { return "[[__EMPLODE_OBJECT__]]"; }
+    virtual emp::String ToString() const { return "[[__EMPLODE_OBJECT__]]"; }
 
     /// Optional function to override to add configuration options associated with an object.
     virtual void SetupConfig() { }
@@ -102,8 +102,8 @@ namespace emplode {
     /// variables current value, but be updated when configs are loaded.
     template <typename VAR_T>
     Symbol_Linked<VAR_T> & LinkVar(VAR_T & var,
-                                        const std::string & name,
-                                        const std::string & desc,
+                                        const emp::String & name,
+                                        const emp::String & desc,
                                         bool is_builtin = false) {
       return AsScope().LinkVar<VAR_T>(name, var, desc, is_builtin);
     }
@@ -113,8 +113,8 @@ namespace emplode {
     template <typename VAR_T>
     Symbol_LinkedFunctions<VAR_T> & LinkFuns(std::function<VAR_T()> get_fun,
                                             std::function<void(const VAR_T &)> set_fun,
-                                            const std::string & name,
-                                            const std::string & desc,
+                                            const emp::String & name,
+                                            const emp::String & desc,
                                             bool is_builtin = false) {
       return AsScope().LinkFuns<VAR_T>(name, get_fun, set_fun, desc, is_builtin);
     }
@@ -123,10 +123,10 @@ namespace emplode {
     template <typename VAR_T>
     struct MenuEntry {
       VAR_T value;
-      std::string name;
-      std::string desc;
+      emp::String name;
+      emp::String desc;
 
-      MenuEntry(VAR_T v, const std::string & n, const std::string & d)
+      MenuEntry(VAR_T v, const emp::String & n, const emp::String & d)
         : value(v), name(n), desc(d) {}
     };
 
@@ -134,24 +134,24 @@ namespace emplode {
     /// Each option should include three arguments:
     /// The return value, the option name, and the option description.
     template <typename VAR_T, typename... Ts>
-    Symbol_LinkedFunctions<std::string> & LinkMenu(VAR_T & var,
-                                                  const std::string & name,
-                                                  const std::string & desc,
+    Symbol_LinkedFunctions<emp::String> & LinkMenu(VAR_T & var,
+                                                  const emp::String & name,
+                                                  const emp::String & desc,
                                                   const Ts &... entries) {
       auto menu = emp::BuildObjVector<MenuEntry<VAR_T>, 3>(entries...);
 
       // Build the "get" function: take the current value of the menu and return the name.
-      std::function<std::string()> get_fun =
+      std::function<emp::String()> get_fun =
         [&var,menu](){
           for (const MenuEntry<VAR_T> & entry : menu) {
             if (var == entry.value) return entry.name;
           }
-          return std::string("UNKNOWN");
+          return emp::String("UNKNOWN");
         };
 
       // Build the "set" function: take the name of the menu option and update variable..
-      std::function<void(std::string)> set_fun =
-        [&var,name,menu](const std::string & entry_name){
+      std::function<void(emp::String)> set_fun =
+        [&var,name,menu](const emp::String & entry_name){
           for (const MenuEntry<VAR_T> & entry : menu) {
             if (entry_name == entry.name) { var = entry.value; return; }
           };
@@ -167,7 +167,7 @@ namespace emplode {
         new_desc << "\n " << entry.name << ": " << entry.desc;
       }
 
-      return AsScope().LinkFuns<std::string>(name, get_fun, set_fun, new_desc.str());
+      return AsScope().LinkFuns<emp::String>(name, get_fun, set_fun, new_desc.str());
     }
   };
 }
