@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019-2021.
+ *  @date 2019-2024.
  *
  *  @file  EvalCountBits.hpp
  *  @brief MABE Evaluation module for counting the number of ones (or zeros) in an output.
@@ -14,6 +14,7 @@
 #include "../../core/Module.hpp"
 
 #include "emp/datastructs/reference_vector.hpp"
+#include "emp/tools/String.hpp"
 
 namespace mabe {
 
@@ -26,8 +27,8 @@ namespace mabe {
 
   public:
     EvalCountBits(mabe::MABE & control,
-                  const std::string & name="EvalCountBits",
-                  const std::string & desc="Evaluate bitstrings by counting ones (or zeros).")
+                  emp::String name="EvalCountBits",
+                  emp::String desc="Evaluate bitstrings by counting ones (or zeros).")
       : Module(control, name, desc)
     {
       SetEvaluateMod(true);

@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2021-2022.
+ *  @date 2021-2024.
  *
  *  @file  EvalRandom.h
  *  @brief Evaluator that gives each organism a random score between 0 and a specified maximum
@@ -18,18 +18,14 @@ namespace mabe {
   /// \brief Evaluator that assigns each organism a random score between 0 and a given maximum
   class EvalRandom : public Module {
   private:
-    double max_score;
-    std::string output_trait;
+    double max_score=1000;
+    emp::String output_trait="fitness";
 
   public:
     EvalRandom(mabe::MABE & control,
-           const std::string & name="EvalRandom",
-           const std::string & desc=
-              "Gives each organism a random score between 0 and a specified max",
-           double _max_score=1000, const std::string & _trait="fitness")
+           emp::String name="EvalRandom",
+           emp::String desc="Gives each organism a random score between 0 and a specified max")
       : Module(control, name, desc)
-      , max_score(_max_score) 
-      , output_trait(_trait)
     {
       SetEvaluateMod(true);
     }
@@ -76,7 +72,7 @@ namespace mabe {
     double Evaluate(Population & pop) { return Evaluate( Collection(pop) ); }
 
     /// Convert string to a collection and evaluate all the organisms in it
-    double Evaluate(const std::string & in) { return Evaluate( control.ToCollection(in) ); }
+    double Evaluate(const emp::String & in) { return Evaluate( control.ToCollection(in) ); }
 
   };
 

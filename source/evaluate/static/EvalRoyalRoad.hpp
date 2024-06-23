@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2021-2022.
+ *  @date 2021-2024.
  *
  *  @file  EvalRoyalRoad.hpp
  *  @brief MABE Evaluation module for evaluating the royal road problem.
@@ -22,16 +22,16 @@ namespace mabe {
 
   class EvalRoyalRoad : public Module {
   private:
-    std::string bits_trait;
-    std::string fitness_trait;
+    emp::String bits_trait;
+    emp::String fitness_trait;
 
     size_t brick_size = 8;
     double extra_bit_cost = 0.5;
 
   public:
     EvalRoyalRoad(mabe::MABE & control,
-                  const std::string & name="EvalRoyalRoad",
-                  const std::string & desc="Evaluate bitstrings by counting ones (or zeros).")
+                  emp::String name="EvalRoyalRoad",
+                  emp::String desc="Evaluate bitstrings by counting ones (or zeros).")
       : Module(control, name, desc)
       , bits_trait("bits")
       , fitness_trait("fitness")

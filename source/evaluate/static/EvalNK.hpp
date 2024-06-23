@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019-2022.
+ *  @date 2019-2024.
  *
  *  @file  EvalNK.hpp
  *  @brief MABE Evaluation module for NK Landscapes
@@ -22,22 +22,25 @@ namespace mabe {
     // MABE_REQUIRED_TRAIT(bits, emp::BitVector, "Bit-sequence to evaluate.");
     RequiredTrait<emp::BitVector> bits_trait{this, "bits", "Bit-sequence to evaluate."};
     OwnedTrait<double> fitness_trait{this, "fitness", "NK fitness value"};
+    // OwnedTrait<emp::vector<double>> gene_fitness{this, "gene_fitness", "Individual gene fitnesses"};
 
     // ConfigVar<size_t> N {this, "N", 100, "Total number of bits required in sequence"};
     size_t N = 100;
     size_t K = 2;    
     NKLandscape landscape;
+    // bool track_gene_fitness = false;
 
   public:
     EvalNK(mabe::MABE & control,
-           const std::string & name="EvalNK",
-           const std::string & desc="Evaluate bitstrings on an NK Fitness Landscape")
+           emp::String name="EvalNK",
+           emp::String desc="Evaluate bitstrings on an NK Fitness Landscape")
       : EvalModule(control, name, desc) { }
     ~EvalNK() { }
 
     void SetupConfig() override {
       LinkVar(N, "N", "Total number of bits required in sequence");
       LinkVar(K, "K", "Number of bits used in each gene");
+      // LinkVar(track_gene_fitness, "track_gene_fitness", "Should we track the fitness contribution of each gene?");
     }
 
     void SetupModule() override {
@@ -58,6 +61,10 @@ namespace mabe {
                              N, " bits needed for NK landscape.",
                              "\nOrg: ", org.ToString());
         }
+
+        // if (track_gene_fitness) {
+        //   gene_fitness(org) = landscape.GetGeneFitnesses(bits);
+        // }
         const double fitness = landscape.GetFitness(bits);
         fitness_trait(org) = fitness;
 

@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2021-2022.
+ *  @date 2021-2024.
  *
  *  @file  EvalPacking.hpp
  *  @brief MABE Evaluation module for counting the number of successful packages that have been packed.
@@ -38,15 +38,15 @@ namespace mabe {
   /// \brief Evaluation module that counts the number of packages successfully packed.
   class EvalPacking : public Module {
   protected:
-    std::string bits_trait;    ///< Name of the trait containing the bitstring to evaluate
-    std::string fitness_trait; ///< Name of the trait that stores the resulting fitness
+    emp::String bits_trait;    ///< Name of the trait containing the bitstring to evaluate
+    emp::String fitness_trait; ///< Name of the trait that stores the resulting fitness
     size_t package_size = 6;   ///< Number of ones expected in a package
     size_t padding_size = 3;   ///< Number of zeros expected on each side of a package
 
   public:
     EvalPacking(mabe::MABE & control,
-        const std::string & name="EvalPacking",
-        const std::string & desc="Evaluate bitstrings by counting correctly packed bricks.")
+                emp::String name="EvalPacking",
+                emp::String desc="Evaluate bitstrings by counting correctly packed bricks.")
       : Module(control, name, desc) , bits_trait("bits") , fitness_trait("fitness")
     {
       SetEvaluateMod(true);

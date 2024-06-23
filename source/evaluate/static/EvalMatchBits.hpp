@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2020-2021.
+ *  @date 2020-2024.
  *
  *  @file  EvalMatchBits.hpp
  *  @brief MABE Evaluation module for counting the number of bits that MATCH with another organism.
@@ -18,6 +18,7 @@
 #include "../../core/Module.hpp"
 
 #include "emp/datastructs/reference_vector.hpp"
+#include "emp/tools/String.hpp"
 
 namespace mabe {
 
@@ -29,16 +30,16 @@ namespace mabe {
       UNKNOWN
     };
 
-    std::string bits_trait = "bits";
-    std::string score_trait = "bit_matches";
+    emp::String bits_trait = "bits";
+    emp::String score_trait = "bit_matches";
     Type match_type = Type::MATCH_COUNT;
     bool record_both = false;             // Save result on both organisms? (vs. first only)
     double empty_score = 0.0;             // Score to give orgs matched with empty positions.
 
   public:
     EvalMatchBits(mabe::MABE & control,
-                  const std::string & name="EvalMatchBits",
-                  const std::string & desc="Evaluate org bitstring by counting matches with another org's bisstring.")
+                  emp::String name="EvalMatchBits",
+                  emp::String desc="Evaluate org bitstring by counting matches with another org's bitstring.")
       : Module(control, name, desc)
     {
       SetEvaluateMod(true);

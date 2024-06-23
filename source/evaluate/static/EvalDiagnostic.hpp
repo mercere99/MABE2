@@ -14,6 +14,7 @@
 #define MABE_EVAL_DIAGNOSTIC_H
 
 #include <emp/math/constants.hpp>
+#include <emp/tools/String.hpp>
 
 #include "../../core/MABE.hpp"
 #include "../../core/Module.hpp"
@@ -50,8 +51,8 @@ namespace mabe {
 
   public:
     EvalDiagnostic(mabe::MABE & control,
-                   const std::string & name="EvalDiagnostic",
-                   const std::string & desc="Evaluate value sets using a specified diagnostic.")
+                   emp::String name="EvalDiagnostic",
+                   emp::String desc="Evaluate value sets using a specified diagnostic.")
       : Module(control, name, desc) { SetEvaluateMod(true); }
     ~EvalDiagnostic() { }
 
