@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2020-2023.
+ *  @date 2020-2024.
  *
  *  @file  data_collect.hpp
  *  @brief Functions to collect data from containers.
@@ -12,7 +12,7 @@
  *  it should expect (CONTAIN_T), and be provided a function that will take a container element and
  *  return the appropriate value of type DATA_T.
  * 
- *  BuildCollectFun(std::string action, FUN_T get_fun) will return a the correct parse function.
+ *  BuildCollectFun(emp::String action, FUN_T get_fun) will return a the correct parse function.
  *
  *  Options are an index value for a supplied container or:
  *    "unique" || "richness"
@@ -33,10 +33,10 @@
 #define EMP_DATA_COLLECT_H
 
 #include <functional>
-#include <string>
 
-#include "emp/tools/string_utils.hpp"
 #include "emp/datastructs/vector_utils.hpp"
+#include "emp/tools/String.hpp"
+
 #include "../Emplode/Symbol.hpp"
 
 namespace mabe {
@@ -46,7 +46,7 @@ namespace mabe {
     // Return the value at a specified index.
     template <typename CONTAIN_T, typename FUN_T>
     Symbol_Var Index(const CONTAIN_T & container, FUN_T get_fun, const size_t index) {
-      if (container.size() <= index) return std::string{"nan"};
+      if (container.size() <= index) return emp::String{"nan"};
       return get_fun( container.At(index) );
     }
 
@@ -87,6 +87,9 @@ namespace mabe {
       else if constexpr (std::is_same_v<std::string, DATA_T>) {
         min = std::string('~',22);   // '~' is ascii char 126 (last printable one.)
       }
+      else if constexpr (std::is_same_v<emp::String, DATA_T>) {
+        min = emp::String('~',22);   // '~' is ascii char 126 (last printable one.)
+      }
       for (const auto & entry : container) {
         const DATA_T cur_val = get_fun(entry);
         if (cur_val < min) min = cur_val;
@@ -113,7 +116,7 @@ namespace mabe {
       if constexpr (std::is_arithmetic_v<DATA_T>) {
         min_val = std::numeric_limits<DATA_T>::max();
       }
-      else if constexpr (std::is_same_v<std::string, DATA_T>) {
+      else if constexpr (std::is_same_v<std::string, DATA_T> || std::is_same_v<emp::String, DATA_T>) {
         min_val = std::string('~',22);   // '~' is ascii char 126 (last printable one.)
       }
       size_t id = 0;
@@ -153,7 +156,7 @@ namespace mabe {
         }
         return total / count;
       }
-      return std::string{"nan"};
+      return emp::String{"nan"};
     }
 
     template <typename DATA_T, typename CONTAIN_T, typename FUN_T>
@@ -184,7 +187,7 @@ namespace mabe {
 
         return var_total / (N-1);
       }
-      return std::string{"nan"};
+      return emp::String{"nan"};
     }
 
     template <typename DATA_T, typename CONTAIN_T, typename FUN_T>
@@ -204,7 +207,7 @@ namespace mabe {
 
         return sqrt(var_total / (N-1));
       }
-      return std::string{"nan"};
+      return emp::String{"nan"};
     }
 
     template <typename DATA_T, typename CONTAIN_T, typename FUN_T>
@@ -216,7 +219,7 @@ namespace mabe {
         }
         return total;
       }
-      return std::string{"nan"};
+      return emp::String{"nan"};
     }
 
     template <typename DATA_T, typename CONTAIN_T, typename FUN_T>
@@ -237,7 +240,7 @@ namespace mabe {
 
   template <typename DATA_T, typename CONTAIN_T, typename FUN_T>
   std::function<emplode::Symbol_Var(const CONTAIN_T &)>
-  BuildCollectFun(std::string action, FUN_T get_fun) {
+  BuildCollectFun(emp::String action, FUN_T get_fun) {
     // ### DEFAULT
     // If no trait function is specified, assume that we should use the first index.
     if (action == "") action = "0";

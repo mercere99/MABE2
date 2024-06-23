@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2021-2022.
+ *  @date 2021-2024.
  *
  *  @file  OrgType.hpp
  *  @brief A base class for all organism components, with facilities for replication.
@@ -101,7 +101,7 @@ namespace mabe {
     /// Convert this organism into a string of characters.
     /// @note Required if we are going to print organisms to screen or to file).  If this function
     /// is not overridden, try to the equivalent function in the organism manager.
-    virtual std::string ToString() const { return "__unknown__"; }
+    virtual emp::String ToString() const { return "__unknown__"; }
 
     /// By default print an organism by triggering it's ToString() function.
     virtual std::ostream & Print(std::ostream & os) const {
@@ -123,7 +123,7 @@ namespace mabe {
     /// Run the organisms a single time step; only implemented for continuous execution organisms.
     virtual bool ProcessStep() { return false; }
  
-    // virtual bool AddEvent(const std::string & event_name, int event_id) { return false; }
+    // virtual bool AddEvent(const emp::String & event_name, int event_id) { return false; }
     // virtual void TriggerEvent(int) { ; }
 
 

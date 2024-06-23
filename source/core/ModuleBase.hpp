@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019-2022.
+ *  @date 2019-2024.
  *
  *  @file  ModuleBase.hpp
  *  @brief Base class for Module, which (in turn) is the base class for all MABE modules
@@ -59,7 +59,6 @@
 #define MABE_MODULE_BASE_H
 
 #include <set>
-#include <string>
 
 #include "emp/base/map.hpp"
 #include "emp/base/notify.hpp"
@@ -67,6 +66,7 @@
 #include "emp/base/vector.hpp"
 #include "emp/datastructs/map_utils.hpp"
 #include "emp/datastructs/reference_vector.hpp"
+#include "emp/tools/String.hpp"
 
 #include "../Emplode/Emplode.hpp"
 
@@ -95,8 +95,8 @@ namespace mabe {
     friend MABE;
     friend BaseTrait;
   protected:
-    std::string name;          ///< Unique name for this module.
-    std::string desc;          ///< Description for this module.
+    emp::String name;          ///< Unique name for this module.
+    emp::String desc;          ///< Description for this module.
     mabe::MABE & control;      ///< Reference to main mabe controller using module
     bool is_builtin=false;     ///< Is this a built-in module not for config?
 
@@ -110,16 +110,16 @@ namespace mabe {
     ///   "Placement"   : Identifies where new organisms should be placed in the population.
     ///   "Select"      : Chooses organisms to act as parents in for the next generation.
     ///   "Visualize"   : Displays data for the user.
-    std::set<std::string> action_tags; ///< Informative tags about this model
+    std::set<emp::String> action_tags; ///< Informative tags about this model
 
     /// Set of traits that this module is working with.
-    emp::map<std::string, emp::Ptr<TraitInfo>> trait_map;
+    emp::map<emp::String, emp::Ptr<TraitInfo>> trait_map;
 
     /// Other variables that we want to hook on to this Module externally.
     emp::DataMap data_map;
 
     using value_fun_t = std::function<double(emp::DataMap &)>;
-    using string_fun_t = std::function<std::string(emp::DataMap &)>;
+    using string_fun_t = std::function<emp::String(emp::DataMap &)>;
 
   public:
     // Setup each signal with a unique ID number
@@ -163,7 +163,7 @@ namespace mabe {
     }
 
   public:
-    ModuleBase(MABE & in_control, const std::string & in_name, const std::string & in_desc="")
+    ModuleBase(MABE & in_control, const emp::String & in_name, const emp::String & in_desc="")
       : name(in_name), desc(in_desc), control(in_control)
     {
       has_signal.SetAll(); // Default all signals to on until base class version is run.
@@ -183,10 +183,10 @@ namespace mabe {
     /// By DEFAULT modules do not do anything to setup configurations.
     void SetupConfig() override { }
 
-    const std::string & GetName() const noexcept { return name; }
-    const std::string & GetDesc() const noexcept { return desc; }
+    const emp::String & GetName() const noexcept { return name; }
+    const emp::String & GetDesc() const noexcept { return desc; }
 
-    virtual std::string GetTypeName() const { return "ModuleBase"; }
+    virtual emp::String GetTypeName() const { return "ModuleBase"; }
     virtual emp::Ptr<ModuleBase> Clone() { return nullptr; }
 
     bool IsBuiltIn() const { return is_builtin; }
@@ -201,7 +201,7 @@ namespace mabe {
     bool IsSelectMod() const { return emp::Has(action_tags, "Select"); }
     bool IsVisualizeMod() const { return emp::Has(action_tags, "Visualize"); }
 
-    ModuleBase & SetActionTag(const std::string & name, bool setting=true) {
+    ModuleBase & SetActionTag(const emp::String & name, bool setting=true) {
       if (setting) action_tags.insert(name);
       else action_tags.erase(name);
       return *this;
@@ -295,17 +295,17 @@ namespace mabe {
   };
 
   struct ModuleInfo {
-    std::string name;
-    std::string brief_desc;
-    emp::vector<std::string> full_desc;
-    std::function<emp::Ptr<EmplodeType>(MABE &, const std::string &)> obj_init_fun;
+    emp::String name;
+    emp::String brief_desc;
+    emp::vector<emp::String> full_desc;
+    std::function<emp::Ptr<EmplodeType>(MABE &, const emp::String &)> obj_init_fun;
     std::function<void(emplode::TypeInfo &)> type_init_fun;
     emp::TypeID type_id;
     bool operator<(const ModuleInfo & in) const { return name < in.name; }
   };
 
-  static std::map<std::string,ModuleInfo> & GetModuleMap() {
-    static std::map<std::string,ModuleInfo> mod_type_map;
+  static std::map<emp::String,ModuleInfo> & GetModuleMap() {
+    static std::map<emp::String,ModuleInfo> mod_type_map;
     return mod_type_map;
   }
 

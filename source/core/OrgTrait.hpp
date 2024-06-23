@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2022.
+ *  @date 2022-2024.
  *
  *  @file  OrgTrait.hpp
  *  @brief Handles organism trait accessing for modules.
@@ -10,10 +10,9 @@
 #ifndef MABE_ORG_TRAIT_HPP
 #define MABE_ORG_TRAIT_HPP
 
-#include <string>
-
 #include "emp/base/Ptr.hpp"
 #include "emp/base/vector.hpp"
+#include "emp/tools/String.hpp"
 
 #include "ModuleBase.hpp"
 #include "TraitInfo.hpp"
@@ -38,20 +37,20 @@ namespace mabe {
     bool multi = false;                       ///< Can this trait have multiple values?
     emp::Ptr<ModuleBase> module_ptr=nullptr;  ///< Track which module owns this trait object.
     emp::Ptr<TraitHolder> held_ptr=nullptr;   ///< Track which object created this trait.
-    std::string name;                         ///< Name of this trait in a DataMap
-    std::string desc;                         ///< Description of this trait
+    emp::String name;                         ///< Name of this trait in a DataMap
+    emp::String desc;                         ///< Description of this trait
     size_t count = 0;                         ///< Number of entries used for this trait.
     emp::Ptr<size_t> count_ref=nullptr;       ///< If count determined by config var, store here.
 
-    std::string config_name;                  ///< Trait name in config file.
-    std::string config_desc;                  ///< Description for trait name in config file.
+    emp::String config_name;                  ///< Trait name in config file.
+    emp::String config_desc;                  ///< Description for trait name in config file.
     size_t id = emp::MAX_SIZE_T;              ///< ID of this trait in the DataMap.
 
   public:
-    BaseTrait(Access _a, bool _m, emp::Ptr<TraitHolder> _hp, const std::string & _n,
-              const std::string & _d="", size_t _c=1)
+    BaseTrait(Access _a, bool _m, emp::Ptr<TraitHolder> _hp, const emp::String & _n,
+              const emp::String & _d="", size_t _c=1)
       : access(_a), multi(_m), held_ptr(_hp), name(_n), desc(_d), count(_c),
-        config_name(name + "_trait"), config_desc(std::string("Trait name for ") + _d)
+        config_name(name + "_trait"), config_desc(emp::String("Trait name for ") + _d)
     {
       emp_assert(multi == true || count == 1, multi, count);
       emp_assert(held_ptr);
@@ -63,8 +62,8 @@ namespace mabe {
 
     /// Constructor for when trait count is determined by a different config variable.
     /// Trait treated as a multi-trait, but we don't know specific count until after configuration.
-    BaseTrait(Access _a, bool _m, emp::Ptr<TraitHolder> _hp, const std::string & _n,
-              const std::string & _d, ConfigPlaceholder<size_t> _cr)
+    BaseTrait(Access _a, bool _m, emp::Ptr<TraitHolder> _hp, const emp::String & _n,
+              const emp::String & _d, ConfigPlaceholder<size_t> _cr)
       : BaseTrait(_a, _m, _hp, _n, _d, 0) { count_ref = &_cr.var; }
 
 
@@ -72,20 +71,20 @@ namespace mabe {
 
     Module & GetModule() { return *(module_ptr.DynamicCast<Module>()); }
     Access GetAccess() const { return access; }
-    const std::string & GetName() const { return name; }
-    const std::string & GetDesc() const { return desc; }
+    const emp::String & GetName() const { return name; }
+    const emp::String & GetDesc() const { return desc; }
     size_t GetCount() const { return count_ref ? *count_ref : count; }
-    const std::string & GetConfigName() const { return config_name; }
-    const std::string & GetConfigDesc() const { return config_desc; }
+    const emp::String & GetConfigName() const { return config_name; }
+    const emp::String & GetConfigDesc() const { return config_desc; }
     size_t GetID() const { return id; }
 
-    std::string & GetNameVar() { return name; }
+    emp::String & GetNameVar() { return name; }
 
     virtual void AddTrait() = 0;
     void SetModule(emp::Ptr<ModuleBase> in_mod) { module_ptr = in_mod; }
-    void SetName(const std::string & _name) { name = _name; }
-    void SetConfigName(const std::string & _name) { config_name = _name; }
-    void SetConfigDesc(const std::string & _desc) { config_desc = _desc; }
+    void SetName(const emp::String & _name) { name = _name; }
+    void SetConfigName(const emp::String & _name) { config_name = _name; }
+    void SetConfigDesc(const emp::String & _desc) { config_desc = _desc; }
     void SetupDataMap(const emp::DataMap & dm) { id = dm.GetID(name); }
 
     virtual bool ReadOK() const = 0;
@@ -174,20 +173,20 @@ namespace mabe {
   /// Special-case trait that can have any base type, but get's converted to string when accessed.
   struct RequiredTraitAsString : public BaseTrait {
     template<typename... Ts>
-    RequiredTraitAsString(emp::Ptr<TraitHolder> held_ptr, const std::string & name, const std::string & desc="")
+    RequiredTraitAsString(emp::Ptr<TraitHolder> held_ptr, const emp::String & name, const emp::String & desc="")
       : BaseTrait(TraitInfo::Access::REQUIRED, false, held_ptr, name, desc) { }
 
     /// Get() takes an organism and returns the trait reference for that organism.
-    std::string Get(mabe::Organism & org) const { return org.GetTraitAsString(id); }
+    emp::String Get(mabe::Organism & org) const { return org.GetTraitAsString(id); }
 
     /// A trait supplied with an organism converts to the trait reference for that organism.
-    inline std::string operator()(mabe::Organism & org) const { return Get(org); }
+    inline emp::String operator()(mabe::Organism & org) const { return Get(org); }
 
     /// If a trait is supplied a collection it returns a vector of values, one for each
     /// organism in the collection.
-    emp::vector<std::string> operator()(mabe::Collection & collect) const {
+    emp::vector<emp::String> operator()(mabe::Collection & collect) const {
       const size_t num_orgs = collect.GetSize();
-      emp::vector<std::string> out_v;
+      emp::vector<emp::String> out_v;
       out_v.reserve(num_orgs);
       for (auto & org : collect) {
         out_v.push_back(org.GetTraitAsString(id));

@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2020-2023.
+ *  @date 2020-2024.
  *
  *  @file  Collection.hpp
  *  @brief A collection of organisms or whole populations; not owner.
@@ -62,12 +62,12 @@
 #define MABE_COLLECTION_H
 
 #include <set>
-#include <string>
 #include <sstream>
 
 #include "emp/base/Ptr.hpp"
 #include "emp/base/vector.hpp"
 #include "emp/bits/BitVector.hpp"
+#include "emp/tools/String.hpp"
 
 #include "Population.hpp"
 
@@ -358,7 +358,7 @@ namespace mabe {
         // Currently, no other EmplodeTypes to convert from...
       }
       // Conversion from string requires MABE controller...
-      // else if constexpr (std::is_same<decay_T, std::string>()) {
+      // else if constexpr (std::is_same<decay_T, emp::String>()) {
       // }
       // Cannot convert from double.
       // else if constexpr (std::is_same<decay_T, double>()) {
@@ -440,7 +440,7 @@ namespace mabe {
 
     // Convert this Collection into a string that can be used in configuration files.  For example:
     //   main_pop,special_pop[0-99],next_pop
-    std::string ToString() const override {
+    emp::String ToString() const override {
       std::stringstream ss;
       bool first = true;
       for (auto [pop_ptr, pop_info] : pos_map) {
@@ -685,7 +685,7 @@ namespace mabe {
       return *this;
     }
 
-    static std::string EMPGetTypeName() { return "mabe::Collection"; }
+    static emp::String EMPGetTypeName() { return "mabe::Collection"; }
   };
 
   // -------------------------------------------------------

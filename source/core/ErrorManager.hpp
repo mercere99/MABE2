@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2021.
+ *  @date 2021-2024.
  *
  *  @file  ErrorManager.hpp
  *  @brief Handles errors during a run.
@@ -13,44 +13,42 @@
 #ifndef MABE_ERROR_MANAGER_HPP
 #define MABE_ERROR_MANAGER_HPP
 
-#include <string>
-
 #include "emp/base/assert.hpp"
 #include "emp/base/error.hpp"
 #include "emp/base/Ptr.hpp"
 #include "emp/base/vector.hpp"
-#include "emp/tools/string_utils.hpp"
+#include "emp/tools/String.hpp"
 
 namespace mabe {
 
   class ErrorManager {
   private:
-    emp::vector<std::string> errors;                           ///< Log of errors
-    emp::vector<std::string> warnings;                         ///< Log of warnings
-    std::function<void(const std::string &)> error_callback;   ///< Function to call on errors
-    std::function<void(const std::string &)> warning_callback; ///< Function to call on warnings
+    emp::vector<emp::String> errors;                           ///< Log of errors
+    emp::vector<emp::String> warnings;                         ///< Log of warnings
+    std::function<void(const emp::String &)> error_callback;   ///< Function to call on errors
+    std::function<void(const emp::String &)> warning_callback; ///< Function to call on warnings
     bool active = false;                                       ///< Print immediately or hold?
     size_t next_error = 0;                                     ///< ID of next error to notify
     size_t next_warning = 0;                                   ///< ID of next warning to notify
 
   public:
-    ErrorManager(std::function<void(const std::string &)> _error_cb,
-                 std::function<void(const std::string &)> _warning_cb)
+    ErrorManager(std::function<void(const emp::String &)> _error_cb,
+                 std::function<void(const emp::String &)> _warning_cb)
     : error_callback(_error_cb)
     , warning_callback(_warning_cb)
     { }
 
-    const emp::vector<std::string> & GetErrors() const { return errors; }
-    const emp::vector<std::string> & GetWarnings() const { return warnings; }
+    const emp::vector<emp::String> & GetErrors() const { return errors; }
+    const emp::vector<emp::String> & GetWarnings() const { return warnings; }
     size_t GetNumErrors() const { return errors.size(); }
     size_t GetNumWarnings() const { return warnings.size(); }
     bool IsActive() const { return active; }
 
-    void SetErrorCallback(std::function<void(const std::string &)> in_cb) {
+    void SetErrorCallback(std::function<void(const emp::String &)> in_cb) {
       error_callback = in_cb;
     }
 
-    void SetWarningCallback(std::function<void(const std::string &)> in_cb) {
+    void SetWarningCallback(std::function<void(const emp::String &)> in_cb) {
       warning_callback = in_cb;
     }
 
@@ -62,7 +60,7 @@ namespace mabe {
         emp_error(args...);
       #endif
       // Otherwise store it to deal with it when requested.
-      errors.push_back( emp::to_string( std::forward<Ts>(args)... ));
+      errors.push_back( emp::MakeString( std::forward<Ts>(args)... ));
 
       // If active, deal with it immediately.
       if (active) {
@@ -78,7 +76,7 @@ namespace mabe {
       //emp_warning(args...);
 
       // Otherwise store it to deal with it when requested.
-      warnings.push_back( emp::to_string( std::forward<Ts>(args)... ));
+      warnings.push_back( emp::MakeString( std::forward<Ts>(args)... ));
 
       // If active, deal with it immediately.
       if (active) {

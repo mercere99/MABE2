@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019-2022.
+ *  @date 2019-2024.
  *
  *  @file  Module.hpp
  *  @brief Base class for all MABE modules.
@@ -21,14 +21,13 @@
 #ifndef MABE_MODULE_H
 #define MABE_MODULE_H
 
-#include <string>
-
 #include "emp/base/assert.hpp"
 #include "emp/base/map.hpp"
 #include "emp/base/Ptr.hpp"
 #include "emp/base/vector.hpp"
 #include "emp/datastructs/map_utils.hpp"
 #include "emp/datastructs/reference_vector.hpp"
+#include "emp/tools/String.hpp"
 
 #include "MABE.hpp"
 #include "ModuleBase.hpp"
@@ -40,7 +39,7 @@ namespace mabe {
 
   class Module : public ModuleBase {
   public:
-    Module(MABE & in_control, const std::string & in_name, const std::string & in_desc="")
+    Module(MABE & in_control, const emp::String & in_name, const emp::String & in_desc="")
       : ModuleBase(in_control, in_name, in_desc) { }
     Module(const Module &) = delete;
     Module(Module &&) = delete;
@@ -108,88 +107,88 @@ namespace mabe {
     // (Other ways of linking variable to config file are in EmplodeType.h)
 
     /// Link a single population to a parameter by name.
-    emplode::Symbol_LinkedFunctions<std::string> & LinkPop(
+    emplode::Symbol_LinkedFunctions<emp::String> & LinkPop(
       int & var,
-      const std::string & name,
-      const std::string & desc
+      const emp::String & name,
+      const emp::String & desc
     ) {
-      std::function<std::string()> get_fun =
+      std::function<emp::String()> get_fun =
         [this,&var](){ return control.GetPopulation(var).GetName(); };
 
-      std::function<void(std::string)> set_fun =
-        [this,&var](const std::string & name){
+      std::function<void(emp::String)> set_fun =
+        [this,&var](const emp::String & name){
           var = control.GetPopID(name);
           if (var == -1) {
             emp::notify::Error("Trying to access population '", name, "'; does not exist.");
           }
         };
 
-      return AsScope().LinkFuns<std::string>(name, get_fun, set_fun, desc);
+      return AsScope().LinkFuns<emp::String>(name, get_fun, set_fun, desc);
     }
 
     /// Link one or more populations (or portions of a population) to a parameter.
-    emplode::Symbol_LinkedFunctions<std::string> & LinkCollection(
+    emplode::Symbol_LinkedFunctions<emp::String> & LinkCollection(
       mabe::Collection & var,
-      const std::string & name,
-      const std::string & desc
+      const emp::String & name,
+      const emp::String & desc
     ) {
-      std::function<std::string()> get_fun =
+      std::function<emp::String()> get_fun =
         [this,&var](){ return control.ToString(var); };
 
-      std::function<void(std::string)> set_fun =
-        [this,&var](const std::string & load_str){
+      std::function<void(emp::String)> set_fun =
+        [this,&var](const emp::String & load_str){
           var = control.ToCollection(load_str);
         };
 
-      return AsScope().LinkFuns<std::string>(name, get_fun, set_fun, desc);
+      return AsScope().LinkFuns<emp::String>(name, get_fun, set_fun, desc);
     }
 
     /// Link another module to this one, by name (track using int ID)
-    emplode::Symbol_LinkedFunctions<std::string> & LinkModule(
+    emplode::Symbol_LinkedFunctions<emp::String> & LinkModule(
       int & var,
-      const std::string & name,
-      const std::string & desc
+      const emp::String & name,
+      const emp::String & desc
     ) {
-      std::function<std::string()> get_fun =
+      std::function<emp::String()> get_fun =
         [this,&var](){ return control.GetModule(var).GetName(); };
 
-      std::function<void(std::string)> set_fun =
-        [this,&var](const std::string & name){
+      std::function<void(emp::String)> set_fun =
+        [this,&var](const emp::String & name){
           var = control.GetModuleID(name);
           if (var == -1) emp::notify::Error("Trying to access module '", name, "'; does not exist.");
         };
 
-      return AsScope().LinkFuns<std::string>(name, get_fun, set_fun, desc);
+      return AsScope().LinkFuns<emp::String>(name, get_fun, set_fun, desc);
     }
 
     /// Link a range of values with a start, stop, and step.
     template <typename T=int>
-    emplode::Symbol_LinkedFunctions<std::string> & LinkRange(
+    emplode::Symbol_LinkedFunctions<emp::String> & LinkRange(
       T & start_var,
       T & step_var,
       T & stop_var,
-      const std::string & name,
-      const std::string & desc
+      const emp::String & name,
+      const emp::String & desc
     ) {
       constexpr T no_val = ((T) 0) - 1;
-      std::function<std::string()> get_fun =
+      std::function<emp::String()> get_fun =
         [&start_var,&step_var,&stop_var]() {
           // If stop_var is no_val, don't bother printing it (i.e. NO stop)
-          if (stop_var == no_val) return emp::to_string(start_var, ':', step_var);
-          return emp::to_string(start_var, ':', step_var, ':', stop_var);
+          if (stop_var == no_val) return emp::MakeString(start_var, ':', step_var);
+          return emp::MakeString(start_var, ':', step_var, ':', stop_var);
         };
 
-      std::function<void(std::string)> set_fun =
-        [&start_var,&step_var,&stop_var](std::string name){
+      std::function<void(emp::String)> set_fun =
+        [&start_var,&step_var,&stop_var](emp::String name){
           start_var = emp::from_string<T>(emp::string_pop(name, ':'));
           step_var = emp::from_string<T>(emp::string_pop(name, ':'));
           stop_var = name.size() ? emp::from_string<T>(name) : no_val; // no_val indicates no stop.
         };
 
-      return AsScope().LinkFuns<std::string>(name, get_fun, set_fun, desc);
+      return AsScope().LinkFuns<emp::String>(name, get_fun, set_fun, desc);
     }
 
-    auto LinkRange(UpdateRange & in_range, const std::string & name, const std::string & desc) {
+    auto LinkRange(UpdateRange & in_range, const emp::String & name, const emp::String & desc) {
       return LinkRange(in_range.start, in_range.step, in_range.stop, name, desc);
     }
   public:
@@ -216,8 +215,8 @@ namespace mabe {
     /// AND its default value.
     template <typename T, typename... ALT_Ts>
     TraitInfo & AddTrait(Access access,
-                         const std::string & name,
-                         const std::string & desc="",
+                         const emp::String & name,
+                         const emp::String & desc="",
                          const T & default_val=T(),
                          size_t count=1
     ) {
@@ -228,56 +227,56 @@ namespace mabe {
     /// Add trait that this module can READ & WRITE this trait.  Others cannot use it.
     /// Must provide name, description, and a default value to start at.
     template <typename T, typename... ALT_Ts>
-    TraitInfo & AddPrivateTrait(const std::string & name, const std::string & desc, const T & default_val, size_t count=1) {
+    TraitInfo & AddPrivateTrait(const emp::String & name, const emp::String & desc, const T & default_val, size_t count=1) {
       return AddTrait<T,ALT_Ts...>(Access::PRIVATE, name, desc, default_val, count);
     }
 
     /// Add trait that this module can READ & WRITE to; other modules can only read.
     /// Must provide name, description, and a default value to start at.
     template <typename T, typename... ALT_Ts>
-    TraitInfo & AddOwnedTrait(const std::string & name, const std::string & desc, const T & default_val, size_t count=1) {
+    TraitInfo & AddOwnedTrait(const emp::String & name, const emp::String & desc, const T & default_val, size_t count=1) {
       return AddTrait<T,ALT_Ts...>(Access::OWNED, name, desc, default_val, count);
     }
    
     /// Add trait that this module can READ & WRITE to; at least one other module MUST read it.
     /// Must provide name, description, and a default value to start at.
     template <typename T, typename... ALT_Ts>
-    TraitInfo & AddGeneratedTrait(const std::string & name, const std::string & desc, const T & default_val, size_t count=1) {
+    TraitInfo & AddGeneratedTrait(const emp::String & name, const emp::String & desc, const T & default_val, size_t count=1) {
       return AddTrait<T,ALT_Ts...>(Access::GENERATED, name, desc, default_val, count);
     }
    
     /// Add trait that this module can READ & WRITE; other modules can too.
     template <typename T, typename... ALT_Ts>
-    TraitInfo & AddSharedTrait(const std::string & name, const std::string & desc, const T & default_val, size_t count=1) {
+    TraitInfo & AddSharedTrait(const emp::String & name, const emp::String & desc, const T & default_val, size_t count=1) {
       return AddTrait<T,ALT_Ts...>(Access::SHARED, name, desc, default_val, count);
     }
    
     /// Add trait that this module will use if it exists, but only if another module is also
     /// going to use it.
     template <typename T, typename... ALT_Ts>
-    TraitInfo & AddOptionalTrait(const std::string & name, const std::string & desc, size_t count=1) {
+    TraitInfo & AddOptionalTrait(const emp::String & name, const emp::String & desc, size_t count=1) {
       return AddTrait<T,ALT_Ts...>(Access::OPTIONAL, name, desc, T(), count);
     }
 
     /// Add trait that this module can READ, but another module must WRITE to it.
     /// That other module should also provide the description for the trait.
     template <typename T, typename... ALT_Ts>
-    TraitInfo & AddRequiredTrait(const std::string & name, size_t count=1) {
+    TraitInfo & AddRequiredTrait(const emp::String & name, size_t count=1) {
       return AddTrait<T,ALT_Ts...>(Access::REQUIRED, name, "", T(), count);
     }
     
     /// Add trait that this module can READ, but is not required 
     template <typename T, typename... ALT_Ts>
-    TraitInfo & AddOptionalTrait(const std::string & name) {
+    TraitInfo & AddOptionalTrait(const emp::String & name) {
       return AddTrait<T,ALT_Ts...>(TraitInfo::Access::OPTIONAL, name);
     }
 
     /// Add all of the traits that that this module needs to be able to READ, in order to
     /// computer the provided equation.  Another module must WRITE these traits and provide the
     /// descriptions.
-    void AddRequiredEquation(const std::string & equation) {
-      const std::set<std::string> & traits = control.GetEquationTraits(equation);
-      for (const std::string & name : traits) AddRequiredTrait<double,int,size_t>(name);
+    void AddRequiredEquation(const emp::String & equation) {
+      const std::set<emp::String> & traits = control.GetEquationTraits(equation);
+      for (const emp::String & name : traits) AddRequiredTrait<double,int,size_t>(name);
     }
 
 
@@ -448,13 +447,13 @@ namespace mabe {
   /// Build a class that will automatically register modules when created (globally)
   template <typename T>
   struct ModuleRegistrar {
-    ModuleRegistrar(const std::string & type_name, const std::string & desc) {
+    ModuleRegistrar(const emp::String & type_name, const emp::String & desc) {
       emp_assert(!emp::Has(GetModuleMap(), type_name), "Module name used multiple times.", type_name);
       ModuleInfo new_info;
       new_info.name = type_name;
-      new_info.full_desc = emp::slice(desc, '\n');
+      new_info.full_desc = desc.Slice(desc, '\n');
       new_info.brief_desc = new_info.full_desc.size() ? new_info.full_desc[0] : "(no description available)";
-      new_info.obj_init_fun = [desc](MABE & control, const std::string & name) -> emp::Ptr<EmplodeType> {
+      new_info.obj_init_fun = [desc](MABE & control, const emp::String & name) -> emp::Ptr<EmplodeType> {
         return &control.AddModule<T>(name, desc);
       };
       new_info.type_init_fun = [](emplode::TypeInfo & info){ T::InitType(info); };

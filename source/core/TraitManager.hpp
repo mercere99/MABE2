@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2021-2022.
+ *  @date 2021-2024.
  *
  *  @file  TraitManager.hpp
  *  @brief Handling of multiple traits and how they relate to users.
@@ -14,12 +14,12 @@
 #ifndef MABE_TRAIT_MANAGER_HPP
 #define MABE_TRAIT_MANAGER_HPP
 
-#include <string>
 #include <unordered_map>
 
 #include "emp/base/Ptr.hpp"
 #include "emp/meta/type_traits.hpp"
 #include "emp/base/notify.hpp"
+#include "emp/tools/String.hpp"
 
 #include "TraitInfo.hpp"
 
@@ -34,7 +34,7 @@ namespace mabe {
     /// Information about organism traits.  TraitInfo specifies which modules are allowed to
     /// (or expected to) access each trait, as well as how that trait should be initialized,
     /// archived, and summarized.
-    std::unordered_map<std::string, emp::Ptr<TraitInfo>> trait_map;
+    std::unordered_map<emp::String, emp::Ptr<TraitInfo>> trait_map;
 
     /// Configuration should happen BEFORE traits are created, so this calls starts locked.
     bool locked = true;
@@ -81,12 +81,12 @@ namespace mabe {
     template <typename T, typename... ALT_Ts>
     TraitInfo & AddTrait(emp::Ptr<MOD_T> mod_ptr,
                          TraitInfo::Access access,
-                         const std::string & trait_name,
-                         const std::string & desc,
+                         const emp::String & trait_name,
+                         const emp::String & desc,
                          const T & default_val,
                          size_t count)
     {
-      const std::string & mod_name = mod_ptr->GetName();
+      const emp::String & mod_name = mod_ptr->GetName();
 
       // Traits must be added in the SetupModule() function for the given modules;
       // afterward the trait manager is locked and additional new traits are not allowed.
@@ -146,7 +146,7 @@ namespace mabe {
             emp::notify::Error("Module ", mod_name, " is trying to use trait '",
                                 trait_name, " with value count ", count,
                                 ", but previously defined in module(s) ",
-                                emp::to_english_list(cur_trait->GetModuleNames()),
+                                emp::MakeEnglishList(cur_trait->GetModuleNames()),
                                 " with value count ", cur_trait->GetValueCount());
           }
         }
@@ -171,7 +171,7 @@ namespace mabe {
             emp::notify::Error("Module ", mod_name, " is trying to use trait '",
                                trait_name, "' of type ", emp::GetTypeID<T>(),
                                "; Previously defined in module(s) ",
-                               emp::to_english_list(cur_trait->GetModuleNames()),
+                               emp::MakeEnglishList(cur_trait->GetModuleNames()),
                                " as type ", cur_trait->GetType());
           }
         }
@@ -192,9 +192,9 @@ namespace mabe {
      *  @param mod_ptr Pointer to the module that uses this trait.
      *  @param trait_name String with the unique name for this trait.
      */
-    TraitInfo & AddTraitAsString(emp::Ptr<MOD_T> mod_ptr, const std::string & trait_name)
+    TraitInfo & AddTraitAsString(emp::Ptr<MOD_T> mod_ptr, const emp::String & trait_name)
     {
-      const std::string & mod_name = mod_ptr->GetName();
+      const emp::String & mod_name = mod_ptr->GetName();
 
       // Traits must be added in the SetupModule() function for the given modules;
       // afterward the trait manager is locked and additional new traits are not allowed.
@@ -232,18 +232,18 @@ namespace mabe {
     //  --- Trait verification functions ---
 
     /// Make sure that all traits have valid settings..
-    bool VerifyValid(const std::string & trait_name, emp::Ptr<TraitInfo> trait_ptr) {
+    bool VerifyValid(const emp::String & trait_name, emp::Ptr<TraitInfo> trait_ptr) {
       // NO traits should be of UNKNOWN access.
       if (trait_ptr->GetUnknownCount()) {
         emp::notify::Error("Unknown access mode for trait '", trait_name,
-                            "' in module(s) ", emp::to_english_list(trait_ptr->GetUnknownNames()),
+                            "' in module(s) ", emp::MakeEnglishList(trait_ptr->GetUnknownNames()),
                             " (internal error!)");
         return false;
       }
 
       if (trait_ptr->GetValueCount() == TraitInfo::ANY_COUNT) {
         emp::notify::Error("No count specified for '", trait_name,
-                            "' in module(s) ", emp::to_english_list(trait_ptr->GetModuleNames()),
+                            "' in module(s) ", emp::MakeEnglishList(trait_ptr->GetModuleNames()),
                             " (internal error!)");
         return false;
       }
@@ -252,12 +252,12 @@ namespace mabe {
     }
 
     /// Verify that modules are handling private access of a trait correctly.
-    bool VerifyPrivacy(const std::string & trait_name, emp::Ptr<TraitInfo> trait_ptr) {
+    bool VerifyPrivacy(const emp::String & trait_name, emp::Ptr<TraitInfo> trait_ptr) {
       // Only one module can be involved for PRIVATE access.
       if (trait_ptr->GetPrivateCount() > 1) {
         std::stringstream error_msg;
         error_msg << "Multiple modules declaring trait '" << trait_name
-                  << "' as private: " << emp::to_english_list(trait_ptr->GetPrivateNames()) << ".\n"
+                  << "' as private: " << emp::MakeEnglishList(trait_ptr->GetPrivateNames()) << ".\n"
                   << "[Suggestion: if traits are supposed to be distinct, prepend names with a\n"
                   << " module-specific prefix.  Otherwise modules need to be edited to not have\n"
                   << " trait private.]";
@@ -279,7 +279,7 @@ namespace mabe {
     }
 
     /// Verify that modules are allowing only a single owner of a trait.
-    bool VerifyOwnership(const std::string & trait_name, emp::Ptr<TraitInfo> trait_ptr) {
+    bool VerifyOwnership(const emp::String & trait_name, emp::Ptr<TraitInfo> trait_ptr) {
       // A trait that is OWNED or GENERATED cannot have other modules writing to it.
       const size_t claim_count = trait_ptr->GetOwnedCount() + trait_ptr->GetGeneratedCount();
 
@@ -287,7 +287,7 @@ namespace mabe {
         auto mod_names = emp::Concat(trait_ptr->GetOwnedNames(), trait_ptr->GetGeneratedNames());
         std::stringstream error_msg;
         error_msg << "Multiple modules declaring ownership of trait '" << trait_name << "': "
-                  << emp::to_english_list(mod_names) << ".\n"
+                  << emp::MakeEnglishList(mod_names) << ".\n"
                   << "[Suggestion: if traits are supposed to be distinct, prepend names with a\n"
                   << " module-specific prefix.  Otherwise modules should be edited to change trait\n"
                   << " to be SHARED (and all can modify) or have all but one shift to REQUIRED.]";
@@ -300,7 +300,7 @@ namespace mabe {
         emp::notify::Error("Trait '", trait_name,
           "' is fully OWNED by module '", mod_names[0],
           "'; it cannot be SHARED (written to) by other modules:",
-          emp::to_english_list(trait_ptr->GetSharedNames()),
+          emp::MakeEnglishList(trait_ptr->GetSharedNames()),
           "[Suggestion: if traits are supposed to be distinct, prepend private name with a\n",
           " module-specific prefix.  Otherwise module needs to be edited to make trait\n",
           " SHARED or have all but one shift to REQUIRED.]");
@@ -311,12 +311,12 @@ namespace mabe {
     }
 
     /// Verify that modules use traits the ways other modules require.
-    bool VerifyRequirements(const std::string & trait_name, emp::Ptr<TraitInfo> trait_ptr) {
+    bool VerifyRequirements(const emp::String & trait_name, emp::Ptr<TraitInfo> trait_ptr) {
       // A REQUIRED trait must have another module write to it (i.e. OWNED, GENERATED or SHARED).
       if (trait_ptr->IsRequired() &&
               !trait_ptr->IsOwned() && !trait_ptr->IsShared() && !trait_ptr->IsGenerated()) {
         emp::notify::Error("Trait '", trait_name, "' marked REQUIRED by module(s) '",
-                emp::to_english_list(trait_ptr->GetRequiredNames()),
+                emp::MakeEnglishList(trait_ptr->GetRequiredNames()),
                 "'; must be written to by other modules.\n",
                 "[Suggestion: set another module to write to this trait (where it is either\n",
                 " SHARED or OWNED).]");
@@ -326,7 +326,7 @@ namespace mabe {
       // A GENERATED trait requires another module to read (REQUIRE) it.
       else if (trait_ptr->IsGenerated() && !trait_ptr->IsRequired()) {
         emp::notify::Error("Trait '", trait_name, "' marked GENERATED by module(s) ",
-                emp::to_english_list(trait_ptr->GetGeneratedNames()),
+                emp::MakeEnglishList(trait_ptr->GetGeneratedNames()),
                 "'; must be read by other modules.");
         return false;
       }

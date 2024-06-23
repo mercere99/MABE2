@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2021-2022.
+ *  @date 2021-2024.
  *
  *  @file  MABEBase.hpp
  *  @brief Signal and population management for the master controller object in a MABE run.
@@ -10,12 +10,11 @@
 #ifndef MABE_MABE_BASE_H
 #define MABE_MABE_BASE_H
 
-#include <string>
-
 #include "emp/base/array.hpp"
 #include "emp/base/notify.hpp"
 #include "emp/base/Ptr.hpp"
 #include "emp/base/vector.hpp"
+#include "emp/tools/String.hpp"
 
 #include "ModuleBase.hpp"
 #include "Population.hpp"
@@ -186,7 +185,7 @@ namespace mabe {
     // Interface function for MABEScript
     virtual size_t GetRandomSeed() const = 0;
     virtual void SetRandomSeed(size_t in_seed) = 0;
-    virtual Population & AddPopulation(const std::string & name, size_t pop_size=0) = 0;
+    virtual Population & AddPopulation(const emp::String & name, size_t pop_size=0) = 0;
     virtual void CopyPop(const Population & from_pop, Population & to_pop) = 0;
     virtual void MoveOrgs(Population & from_pop, Population & to_pop, bool reset_to) = 0;
   };

@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2021.
+ *  @date 2021-2024.
  *
  *  @file  TraitSet.hpp
  *  @brief A collection of traits with the same type (or collections of that type).
@@ -17,13 +17,11 @@
 #ifndef MABE_TRAIT_SET_H
 #define MABE_TRAIT_SET_H
 
-#include <string>
-
 #include "emp/base/vector.hpp"
 #include "emp/data/DataMap.hpp"
 #include "emp/meta/TypeID.hpp"
-#include "emp/tools/string_utils.hpp"
 #include "emp/datastructs/vector_utils.hpp"
+#include "emp/tools/String.hpp"
 
 namespace mabe {
 
@@ -45,20 +43,20 @@ namespace mabe {
       TraitData(TraitType _t=BASE, size_t _id=0, size_t _c=1) : type(_t), id(_id), count(_c) { }
     };
 
-    emp::vector<std::string> trait_names;
+    emp::vector<emp::String> trait_names;
     emp::vector<TraitData> trait_data;
 
     emp::Ptr<const emp::DataLayout> layout;  // Layout for the DataMaps that we will access.
 
     size_t num_values = 0;
-    std::string error_trait = "";
+    emp::String error_trait = "";
     
   public:
     TraitSet() : layout(nullptr) { }
     TraitSet(const emp::DataLayout & in_layout) : layout(&in_layout) { }
     ~TraitSet() = default;
 
-    emp::vector<std::string> GetNames() const { return trait_names; }
+    emp::vector<emp::String> GetNames() const { return trait_names; }
 
     const emp::DataLayout & GetLayout() const { return *layout; }
     void SetLayout(const emp::DataLayout & in_layout) { layout = &in_layout; }
@@ -70,7 +68,7 @@ namespace mabe {
     }
 
     /// Add a single trait.
-    bool AddTrait(const std::string & name) {
+    bool AddTrait(const emp::String & name) {
       if (!layout->HasName(name)) {
         error_trait = name;
         return false;
@@ -94,11 +92,11 @@ namespace mabe {
     }
 
     /// Add any number of traits, separated by commas.
-    bool AddTraits(const std::string & in_names) {
+    bool AddTraits(const emp::String & in_names) {
       emp_assert(!layout.IsNull());
 
-      auto names = emp::slice(in_names, ',');
-      for (const std::string & name : names) {
+      auto names = in_names.Slice(",");
+      for (const emp::String & name : names) {
         if (AddTrait(name) == false) return false;
       }
       return true;
@@ -106,7 +104,7 @@ namespace mabe {
 
     /// Add groups of traits; each string can have multiple trait names separated by commas.
     template <typename... Ts>
-    bool AddTraits(const std::string & in_names, const std::string & next_names, Ts &... extras) {
+    bool AddTraits(const emp::String & in_names, const emp::String & next_names, Ts &... extras) {
       return AddTraits(in_names) && AddTraits(next_names, extras...);
     }
 

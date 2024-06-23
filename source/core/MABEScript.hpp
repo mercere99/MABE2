@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2021-2022.
+ *  @date 2021-2024.
  *
  *  @file  MABEScript.hpp
  *  @brief Customized Emplode scripting language instance for MABE runs.
@@ -11,7 +11,6 @@
 #define MABE_MABE_SCRIPT_HPP
 
 #include <limits>
-#include <string>
 #include <sstream>
 
 #include "emp/base/array.hpp"
@@ -22,7 +21,7 @@
 #include "emp/data/Datum.hpp"
 #include "emp/datastructs/vector_utils.hpp"
 #include "emp/math/Random.hpp"
-#include "emp/tools/string_utils.hpp"
+#include "emp/tools/String.hpp"
 
 #include "../Emplode/Emplode.hpp"
 
@@ -46,26 +45,26 @@ namespace mabe {
     using Symbol_Var = emplode::Symbol_Var;
 
     struct PreprocessResults {
-      std::string result;             // Updated string
+      emp::String result;             // Updated string
       emp::vector<emp::Datum> values; // Numerical values kept aside, if preserve_nums=true;
     };
 
   public:
     /// Build a function to scan a data map, run a provided equation on its entries,
     /// and return the result.
-    auto BuildTraitEquation(const emp::DataLayout & data_layout, std::string equation) {
+    auto BuildTraitEquation(const emp::DataLayout & data_layout, emp::String equation) {
       auto pp_equ = Preprocess(equation, true);
       auto dm_fun = dm_parser.BuildMathFunction(data_layout, pp_equ.result, pp_equ.values);
       return [dm_fun](const Organism & org){ return dm_fun(org.GetDataMap()); };
     }
 
     /// Scan an equation and return the names of all traits it is using.
-    const std::set<std::string> & GetEquationTraits(const std::string & equation) {
+    const std::set<emp::String> & GetEquationTraits(const emp::String & equation) {
       return dm_parser.GetNamesUsed(equation);
     }
 
     /// Find any instances of ${X} and eval the X.
-    PreprocessResults Preprocess(const std::string & in_string, bool preserve_nums=false) {
+    PreprocessResults Preprocess(const emp::String & in_string, bool preserve_nums=false) {
       PreprocessResults pp_out;
       pp_out.result = in_string;
 
@@ -89,15 +88,15 @@ namespace mabe {
         emp::Datum replacement = Execute(emp::view_string_range(pp_out.result, i+2, end_pos));
         // Test if we should drop the replacement results directly in-line.
         if (!preserve_nums || replacement.IsString()) {
-          std::string new_str = replacement.AsString();   // Get new text.
+          emp::String new_str = replacement.AsString();   // Get new text.
           pp_out.result.replace(i, end_pos-i+1, new_str); // Put into place.
           i += new_str.size();                            // Continue at the next position...
         }
         else { // Replacement is numerical and needs to be preserved...
-          std::string new_str = emp::to_string("$",pp_out.values.size()); // Generate the '$#'
-          pp_out.result.replace(i, end_pos-i+1, new_str);                 // Put it in place.
-          pp_out.values.push_back(replacement.NativeDouble());            // Store associated value
-          i += new_str.size();                                            // Find continue pos
+          emp::String new_str = emp::MakeString("$",pp_out.values.size()); // Generate the '$#'
+          pp_out.result.replace(i, end_pos-i+1, new_str);                  // Put it in place.
+          pp_out.values.push_back(replacement.NativeDouble());             // Store associated value
+          i += new_str.size();                                             // Find continue pos
         }
       }
 
@@ -131,8 +130,8 @@ namespace mabe {
 
     template <typename FROM_T=Collection>
     std::function<Symbol_Var(const FROM_T &)> BuildTraitSummary(
-      std::string trait_fun,         // Function to calculate on each organism
-      std::string summary_type,      // Method to combine organism results ("max", "mean", etc.)
+      emp::String trait_fun,         // Function to calculate on each organism
+      emp::String summary_type,      // Method to combine organism results ("max", "mean", etc.)
       emp::DataLayout & data_layout  // DataLayout to assume for this summary
     ) {
       static_assert( std::is_same<FROM_T,Collection>() ||  std::is_same<FROM_T,Population>(),
@@ -161,7 +160,7 @@ namespace mabe {
         auto get_fun = [trait_id, result_type, trait_count](const Organism & org) {
           return org.GetTraitAsString(trait_id, result_type, trait_count);
         };
-        auto fun = BuildCollectFun<std::string, Collection>(summary_type, get_fun);
+        auto fun = BuildCollectFun<emp::String, Collection>(summary_type, get_fun);
 
         // If we are coming from a Population, first convert to a collection.
         if constexpr (std::is_same<FROM_T,Population>()) {
@@ -194,8 +193,8 @@ namespace mabe {
     /// Build a function that takes a trait equation, builds it, and runs it on a container.
     /// Output is a function in the form:  TO_T(const FROM_T &, string equation, TO_T default)
     template <typename FROM_T=Collection> 
-    auto BuildTraitFunction(const std::string & fun_type) {
-      return [this,fun_type](FROM_T & group, const std::string & equation) {
+    auto BuildTraitFunction(const emp::String & fun_type) {
+      return [this,fun_type](FROM_T & group, const emp::String & equation) {
         auto trait_fun = BuildTraitSummary<FROM_T>(equation, fun_type, group.GetDataLayout());
         return trait_fun(group);
       };
@@ -231,7 +230,7 @@ namespace mabe {
         "Determine the entropy of values for a trait (or equation).");
 
       type_info.AddMemberFunction("FIND_MIN",
-        [this](GROUP_T & group, const std::string & trait_equation) -> Collection {
+        [this](GROUP_T & group, const emp::String & trait_equation) -> Collection {
           if (group.IsEmpty()) Collection{};
           auto trait_fun =
             BuildTraitSummary<GROUP_T>(trait_equation, "min_id", group.GetDataLayout());
@@ -239,7 +238,7 @@ namespace mabe {
         },
         "Produce OrgList with just the org with the minimum value of the provided function.");
       type_info.AddMemberFunction("FIND_MAX",
-        [this](GROUP_T & group, const std::string & trait_equation) -> Collection {
+        [this](GROUP_T & group, const emp::String & trait_equation) -> Collection {
           if (group.IsEmpty()) Collection{};
           auto trait_fun =
             BuildTraitSummary<GROUP_T>(trait_equation, "max_id", group.GetDataLayout());
@@ -261,7 +260,7 @@ namespace mabe {
                               "Seed for random number generator; use 0 to base on time.");
 
       // Setup "Population" as a type in the config file.
-      auto pop_init_fun = [this](const std::string & name) { return &control.AddPopulation(name); };
+      auto pop_init_fun = [this](const emp::String & name) { return &control.AddPopulation(name); };
       auto pop_copy_fun = [this](const EmplodeType & from, EmplodeType & to) {
         emp::Ptr<const Population> from_pop = dynamic_cast<const Population *>(&from);
         emp::Ptr<Population> to_pop = dynamic_cast<Population *>(&to);
@@ -288,7 +287,7 @@ namespace mabe {
         }, "Move all organisms organisms from another population, adding after current orgs." );
 
       pop_type.AddMemberFunction("FILTER",
-        [this](Population & pop, const std::string & trait_equation) -> Collection {
+        [this](Population & pop, const emp::String & trait_equation) -> Collection {
           Collection out_collect;
           if (pop.GetNumOrgs() > 0) { // Only do this work if we actually have organisms!
             auto filter = BuildTraitEquation(pop.GetDataLayout(), trait_equation);
@@ -312,8 +311,8 @@ namespace mabe {
       AddFunction("GET_VERBOSE", [this](){ return control.GetVerbose(); }, "Has the verbose flag been set?");
       AddFunction("DEBUG_AST", [this](){ control.PrintAST(); return 0; }, "Print the current state of the Abstract Syntax Tree.");
 
-      std::function<std::string(const std::string &)> preprocess_fun =
-        [this](const std::string & str) { return Preprocess(str).result; };
+      std::function<emp::String(const emp::String &)> preprocess_fun =
+        [this](const emp::String & str) { return Preprocess(str).result; };
       AddFunction("PP", preprocess_fun, "Preprocess a string (replacing any ${...} with result.)");
 
       // Add in built-in event triggers; these are used to indicate when events should happen.
@@ -322,14 +321,14 @@ namespace mabe {
     }
 
 
-    void Deprecate(const std::string & old_name, const std::string & new_name) {
+    void Deprecate(const emp::String & old_name, const emp::String & new_name) {
       auto dep_fun = [this,old_name,new_name](const emp::vector<emp::Ptr<emplode::Symbol>> &){
           std::cerr << "Function '" << old_name << "' deprecated; use '" << new_name << "'\n";
           control.RequestExit();
           return 0;      
         };
 
-      AddFunction(old_name, dep_fun, std::string("Deprecated.  Use: ") + new_name);
+      AddFunction(old_name, dep_fun, emp::String("Deprecated.  Use: ") + new_name);
     }
     
   public:

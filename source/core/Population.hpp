@@ -19,10 +19,9 @@
 #ifndef MABE_POPULATION_H
 #define MABE_POPULATION_H
 
-#include <string>
-
 #include "emp/base/Ptr.hpp"
 #include "emp/base/vector.hpp"
+#include "emp/tools/String.hpp"
 
 #include "../Emplode/EmplodeType.hpp"
 
@@ -89,7 +88,7 @@ namespace mabe {
   class Population : public OrgContainer {
     friend class MABEBase;
   private:
-    std::string name="";                   ///< Unique name for this population.
+    emp::String name="";                   ///< Unique name for this population.
     size_t pop_id = (size_t) -1;           ///< Position in world of this population.
     emp::vector<emp::Ptr<Organism>> orgs;  ///< Info on all organisms in this population.
     size_t num_orgs = 0;                   ///< How many LIVING organisms are in this population?
@@ -109,7 +108,7 @@ namespace mabe {
     using const_iterator_t = ConstPopIterator;
 
     Population() { emp_assert(false, "Do not use default constructor on Population!"); }
-    Population(const std::string & in_name,
+    Population(const emp::String & in_name,
                size_t in_id,
                size_t pop_size=0,
                emp::Ptr<Organism> in_empty=nullptr)
@@ -128,7 +127,7 @@ namespace mabe {
 
     size_t npos = static_cast<size_t>(-1);
 
-    std::string GetName() const override { return name; }
+    emp::String GetName() const override { return name; }
     int GetID() const noexcept override { return pop_id; }
     size_t GetSize() const noexcept override { return orgs.size(); }
     size_t GetNumOrgs() const noexcept { return num_orgs; }
@@ -157,7 +156,7 @@ namespace mabe {
       return npos;
     }
 
-    void SetName(const std::string & in_name) { name = in_name; }
+    void SetName(const emp::String & in_name) { name = in_name; }
     void SetID(int in_id) noexcept { pop_id = in_id; }
 
     template <typename FUN_T> void SetPlaceBirthFun(FUN_T fun) { place_birth_fun = fun; }
@@ -300,7 +299,7 @@ namespace mabe {
       return true;
     }
 
-    static std::string EMPGetTypeName() { return "mabe::Population"; }
+    static emp::String EMPGetTypeName() { return "mabe::Population"; }
   };
 
 
