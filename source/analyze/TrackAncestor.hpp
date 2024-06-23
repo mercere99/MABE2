@@ -25,8 +25,8 @@ namespace mabe {
 
   public:
     TrackAncestor(mabe::MABE & control,
-                const std::string & name="TrackAncestor",
-                const std::string & desc="Module to choose the top fitness organisms for replication.")
+                const emp::String & name="TrackAncestor",
+                const emp::String & desc="Module to choose the top fitness organisms for replication.")
       : Module(control, name, desc)
     { SetAnalyzeMod(true); } 
     ~TrackAncestor() { }

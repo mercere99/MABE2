@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2021-2022.
+ *  @date 2021-2024.
  *
  *  @file  SystematicsModule.hpp
  *  @brief MABE systematic tracking module.
@@ -24,19 +24,19 @@ private:
     bool store_outside = false;                        ///< Track extinct non-ancestor taxa?
     bool store_ancestors = true;                       ///< Track extinct ancestor taxa?
     RequiredTraitAsString taxon_trait{this,"genome"};  ///< Which trait should taxa be based on?
-    emp::Systematics <Organism, std::string> sys;      ///< The systematics manager.
+    emp::Systematics <Organism, emp::String> sys;      ///< The systematics manager.
 
     // Output
     UpdateRange snapshot_range;            ///< Updates to start and stop snapshots + frequency.
-    std::string snapshot_file_root_name;   ///< Root name of the snapshot files.
+    emp::String snapshot_file_root_name;   ///< Root name of the snapshot files.
     UpdateRange data_range;                ///< Updates to start and stop data output + frequency.
-    std::string data_file_name;            ///< Name of the data file.
+    emp::String data_file_name;            ///< Name of the data file.
     emp::DataFile data;                    ///< Data file object.
 
 public:
     AnalyzeSystematics(mabe::MABE & control,
-               const std::string & name="AnalyzeSystematics",
-               const std::string & desc="Module to track the population's phylogeny.")
+               const emp::String & name="AnalyzeSystematics",
+               const emp::String & desc="Module to track the population's phylogeny.")
       : Module(control, name, desc)
       , sys([this](Organism& org){
               org.GenerateOutput();
@@ -78,7 +78,7 @@ public:
       data.SetTimingRange(data_range.start, data_range.step, data_range.stop);    
 
       // Setup the snapshot file
-      std::function<std::string(const emp::Taxon<std::string> &)> snapshot_fun = [](const emp::Taxon<std::string> & taxon){return taxon.GetInfo();};
+      std::function<emp::String(const emp::Taxon<emp::String> &)> snapshot_fun = [](const emp::Taxon<emp::String> & taxon){return taxon.GetInfo();};
       sys.AddSnapshotFun(snapshot_fun, "taxon_info", "The string representation of the information that is used to delineate what counts as a different taxon.");
     }
       
@@ -86,13 +86,13 @@ public:
       sys.Update();
 
       if (snapshot_range.IsValid(update)) {
-        sys.Snapshot(snapshot_file_root_name + "_" + emp::to_string(update) + ".csv");
+        sys.Snapshot(snapshot_file_root_name + "_" + emp::MakeString(update) + ".csv");
       }
       data.Update(update);      
     }
     
     void TakeManualSnapshot(){
-      sys.Snapshot(snapshot_file_root_name + "_manual_" + emp::to_string(control.GetUpdate()) + ".csv");
+      sys.Snapshot(snapshot_file_root_name + "_manual_" + emp::MakeString(control.GetUpdate()) + ".csv");
     }
     
     static void InitType(emplode::TypeInfo & info) {
