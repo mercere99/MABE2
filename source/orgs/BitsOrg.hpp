@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019-2022.
+ *  @date 2019-2024.
  *
  *  @file  BitsOrg.hpp
  *  @brief An organism consisting of a series of bits.
@@ -38,14 +38,13 @@ namespace mabe {
 
     struct ManagerData : public Organism::ManagerData {
       double mut_prob = 0.01;            ///< Probability of each bit mutating on reproduction.
-      std::string output_name = "bits";  ///< Name of trait that should be used to access bits.
+      emp::String output_name = "bits";  ///< Name of trait that should be used to access bits.
       emp::Binomial mut_dist;            ///< Distribution of number of mutations to occur.
       emp::BitVector mut_sites;          ///< A pre-allocated vector for mutation sites. 
       bool init_random = true;           ///< Should we randomize ancestor?  (false = all zeros)
     };
 
-    /// Use "to_string" to convert.
-    std::string ToString() const override { return emp::to_string(bits); }
+    emp::String ToString() const override { return emp::MakeString(bits); }
 
     size_t Mutate(emp::Random & random) override {
       const size_t num_muts = SharedData().mut_dist.PickRandom(random);

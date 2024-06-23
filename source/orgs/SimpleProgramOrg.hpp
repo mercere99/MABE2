@@ -91,8 +91,8 @@ namespace mabe {
     memory_t mem;             // Memory for program to manipulate
 
     // Find the instruction with the provided name.
-    Inst GetInst(const std::string & name) const {
-      const emp::vector<std::string> & inst_names = SharedData().inst_names;
+    Inst GetInst(const emp::String & name) const {
+      const emp::vector<emp::String> & inst_names = SharedData().inst_names;
       for (size_t i = 0; i < inst_names.size(); i++) {
         if (inst_names[i] == name) return (Inst) i;
       }
@@ -100,7 +100,7 @@ namespace mabe {
     }
 
     // Find the name associated with a given instruction.
-    const std::string & GetName(Inst inst) const {
+    const emp::String & GetName(Inst inst) const {
       return SharedData().inst_names[(size_t) inst];
     }
 
@@ -337,7 +337,7 @@ namespace mabe {
 
   public:
     struct ManagerData : public Organism::ManagerData {
-      std::string output_name = "vals";  ///< Name of trait that should be used to access values.
+      emp::String output_name = "vals";  ///< Name of trait that should be used to access values.
       double mut_prob = 0.01;            ///< Probability of position mutating on reproduction.
 
       // Helper member variables.
@@ -345,7 +345,7 @@ namespace mabe {
       emp::BitVector mut_sites;          ///< A pre-allocated vector for mutation sites.
 
       // Instruction Set
-      emp::vector<std::string> inst_names;  ///< Names of all instructions in use.
+      emp::vector<emp::String> inst_names;  ///< Names of all instructions in use.
       size_t num_regs;                      ///< Number of registers in the CPU.
       size_t num_indirect_args;             ///< Number of indirect args for each group.
       size_t const_shift;                   ///< How far should constant arguments be shifted?
@@ -364,8 +364,7 @@ namespace mabe {
       : OrganismTemplate<SimpleProgramOrg>(_manager) { }
     ~SimpleProgramOrg() { ; }
 
-    /// Use "to_string" to convert.
-    std::string ToString() const override { } // return emp::to_string(vals, ":(TOTAL=", total, ")"); }
+    emp::String ToString() const override { } // return emp::MakeString(vals, ":(TOTAL=", total, ")"); }
 
     size_t Mutate(emp::Random & random) override {
       // Identify number of and positions for mutations.

@@ -134,7 +134,7 @@ namespace mabe {
       SharedTrait<data_vec_t> output_trait{this, "output", "Value map output from organism."};
       SharedTrait<double> merit_trait{this, "merit", "Value representing fitness of organism"};
       SharedTrait<double> offspring_merit_trait{this, "offspring_merit", "Fitness passed on to offspring"};
-      OwnedTrait<std::string> genome_trait{this, "genome", "Organism's genome"};
+      OwnedTrait<emp::String> genome_trait{this, "genome", "Organism's genome"};
       SharedTrait<genome_t> offspring_genome_trait{this, "offspring_genome", "Latest genome copied"};
       OwnedTrait<genome_t> original_genome_trait{this, "original_genome", "Genome as passed from parent"};
       SharedTrait<OrgPosition> position_trait{this, "position", "Organism's position"};
@@ -152,12 +152,12 @@ namespace mabe {
       bool copy_influences_merit = true;  /**<  Does the number of instructions copied 
                                                   influence merit passed to offspring? */
       bool verbose = false;     ///< Flag that indicates whether to print additional info
-      std::string initial_genome_filename = "ancestor.org"; /**< If init_random is false, this
+      emp::String initial_genome_filename = "ancestor.org"; /**< If init_random is false, this
                                                                  indicates a file that 
                                                                  contains the ancestor's 
                                                                  genome */
-      std::string inst_set_input_filename = ""; /// File to load for the instruction set
-      std::string inst_set_output_filename = ""; /**< If not empty, writes instruction set
+      emp::String inst_set_input_filename = ""; /// File to load for the instruction set
+      emp::String inst_set_output_filename = ""; /**< If not empty, writes instruction set
                                                       (in order) to the specified file **/
       bool expanded_nop_args = false; /**< Flag that indicates whether to use the "expanded
                                            nop" syntax. If true, instructions like and can 
@@ -244,12 +244,12 @@ namespace mabe {
       if (SharedData().init_random) {
         FillRandom(SharedData().init_length, random);
       } else {
-        const std::string filename = SharedData().initial_genome_filename;
+        const emp::String filename = SharedData().initial_genome_filename;
         if (filename.size() == 0) {
           emp::notify::Error("Cannot initialize genome; "
                              "Must set init_random to true OR set initial_genome_filename");
         }
-        else if (!std::filesystem::exists(filename)) {
+        else if (!std::filesystem::exists(filename.str())) {
           emp::notify::Error("Cannot initialize genome; no such file '", filename, "'.");
         }
         else {
@@ -397,7 +397,7 @@ namespace mabe {
     }
 
     /// Write the instructions in the instruction set (in order) to the specified file
-    void WriteInstructionSetFile(const std::string& filename){
+    void WriteInstructionSetFile(const emp::String& filename){
       std::cout << "Writing instruction set to file: " << filename << std::endl;
       emp::File file;
       std::stringstream ss;
@@ -440,7 +440,7 @@ namespace mabe {
       if(SharedData().use_speculative_execution) non_speculative_inst_vec.Clear();
       // All instructions are stored in the populations ActionMap
       ActionMap& action_map = GetManager().GetControl().GetActionMap(0);
-      std::unordered_map<std::string, mabe::Action>& typed_action_map =
+      std::unordered_map<emp::String, mabe::Action>& typed_action_map =
         action_map.GetFuncs<void, VirtualCPUOrg&, const inst_t&>();
       // Print the number of instructions found and each of their names
       std::cout << "Found " << typed_action_map.size() << " external functions!";
@@ -451,7 +451,7 @@ namespace mabe {
 
       const emp::vector<emp::String> name_vec = LoadInstSetFromFile();
       for(size_t inst_idx = 0; inst_idx < name_vec.size(); ++inst_idx){
-        const std::string& name = name_vec[inst_idx];
+        const emp::String& name = name_vec[inst_idx];
         if(typed_action_map.find(name) == typed_action_map.end()){
           emp_error("Instruction '" + name + "' not found. Make sure the VirtualCPUOrg"
              " module comes after all instruction modules in the config file"); 
@@ -482,9 +482,9 @@ namespace mabe {
           }
         }
         // Grab description
-        const std::string desc = 
+        const emp::String desc = 
           (action.data.HasName("description") ? 
-            action.data.Get<std::string>("description") : "No description provided");
+            action.data.Get<emp::String>("description") : "No description provided");
         const size_t num_args = 
           (action.data.HasName("num_args") ?  action.data.Get<size_t>("num_args") : 0);
         inst_lib.AddInst(
@@ -498,7 +498,7 @@ namespace mabe {
             desc,                              // Description 
             emp::ScopeType::NONE,              // No scope type, but must provide
             (size_t) -1,                       // Scope arg, must provide 
-            std::unordered_set<std::string>(), // Instruction properties
+            std::unordered_set<emp::String>(), // Instruction properties
             inst_idx);                          // Instruction ID
       }
     }

@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2022.
+ *  @date 2022-2024.
  *
  *  @file  BitSummaryOrg.hpp
  *  @brief An organism consisting of bit counts, but not orderings.
@@ -43,15 +43,14 @@ namespace mabe {
       double mut_prob = 0.01;                ///< Probability of each bit mutating on reproduction.
       double one_prob = 0.5;                 ///< Probability of each mutation producing a one.
       emp::BinomialSet binomials;            ///< Store pre-calculated binomials.
-      std::string output_name = "num_ones";  ///< Name of trait that should be used to access bits.
+      emp::String output_name = "num_ones";  ///< Name of trait that should be used to access bits.
       bool init_random = true;               ///< Should we randomize ancestor? (false = all zeros)
     };
 
-    /// Use "to_string" to convert.
-    std::string ToString() const override {
+    emp::String ToString() const override {
       size_t num_ones = GetTrait<size_t>(SharedData().output_name);
       const size_t num_zeros = SharedData().num_bits - num_ones;
-      return emp::to_string("[0:", num_zeros, ",1:", num_ones, "]");
+      return emp::MakeString("[0:", num_zeros, ",1:", num_ones, "]");
     }
 
     size_t Mutate(emp::Random & random) override {

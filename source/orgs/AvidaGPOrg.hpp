@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2021.
+ *  @date 2021-2024.
  *
  *  @file  AvidaGPOrg.hpp
  *  @brief An organism consisting of lineaer code.
@@ -39,16 +39,15 @@ namespace mabe {
       size_t init_length = 100;            ///< Length of new organisms.
       bool init_random = true;             ///< Should we randomize ancestor?  (false = all zeros)
       size_t eval_time = 500;              ///< How long should the CPU be given on each evaluate?
-      std::string input_name = "input";    ///< Name of trait that should be used load input values
-      std::string output_name = "output";  ///< Name of trait that should be used store output values
+      emp::String input_name = "input";    ///< Name of trait that should be used load input values
+      emp::String output_name = "output";  ///< Name of trait that should be used store output values
 
       // Internal use
       emp::Binomial mut_dist;            ///< Distribution of number of mutations to occur.
       emp::BitVector mut_sites;            ///< A pre-allocated vector for mutation sites. 
     };
 
-    /// Use "to_string" to convert.
-    std::string ToString() const override { return hardware.ToString(); }
+    emp::String ToString() const override { return hardware.ToString(); }
 
     size_t Mutate(emp::Random & random) override {
       const size_t num_muts = SharedData().mut_dist.PickRandom(random);

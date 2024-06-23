@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2021-2022.
+ *  @date 2021-2024.
  *
  *  @file ValsOrg.hpp
  *  @brief An organism consisting of a fixed-size series of values of type double.
@@ -41,8 +41,8 @@ namespace mabe {
 
   public:
     struct ManagerData : public Organism::ManagerData {
-      std::string genome_name = "vals";  ///< Name of trait that should be used to access values.
-      std::string total_name = "total";  ///< Name of trait that indicate total of all values.
+      emp::String genome_name = "vals";  ///< Name of trait that should be used to access values.
+      emp::String total_name = "total";  ///< Name of trait that indicate total of all values.
       size_t num_vals = 100;             ///< Number of values in this genome.
       double mut_prob = 0.01;            ///< Probability of position mutating on reproduction.
       double mut_size = 1.0;             ///< Standard deviation of mutations.
@@ -67,11 +67,10 @@ namespace mabe {
     ValsOrg(ValsOrg &&) = default;
     ~ValsOrg() { ; }
 
-    /// Use "to_string" to convert.
-    std::string ToString() const override {
+    emp::String ToString() const override {
       std::span<const double> vals = GetTrait<double>(SharedData().genome_name, SharedData().num_vals);
       const double total = GetTrait<double>(SharedData().total_name);
-      return emp::to_string(vals, ":(TOTAL=", total, ")");
+      return emp::MakeString(vals, ":(TOTAL=", total, ")");
     }
 
     size_t Mutate(emp::Random & random) override {
