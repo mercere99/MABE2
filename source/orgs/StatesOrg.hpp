@@ -33,7 +33,7 @@ namespace mabe {
 
   public:
     struct ManagerData : public Organism::ManagerData {
-      std::string genome_name = "states";  ///< Name of trait that should be used to access values.
+      emp::String genome_name = "states";  ///< Name of trait that should be used to access values.
       size_t num_states;                   ///< Number of unique states in an organism.
       size_t genome_size = 100;            ///< Number of positions in this genome.
       double mut_prob = 0.01;              ///< Probability of position mutating on reproduction.
@@ -51,10 +51,9 @@ namespace mabe {
     StatesOrg(StatesOrg &&) = default;
     ~StatesOrg() { ; }
 
-    /// Use "to_string" to convert.
-    std::string ToString() const override {
+    emp::String ToString() const override {
       std::span<const size_t> vals = GetTrait<size_t>(SharedData().genome_name, SharedData().genome_size);
-      return emp::to_string(vals);
+      return emp::MakeString(vals);
     }
 
     size_t Mutate(emp::Random & random) override {
