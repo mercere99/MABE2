@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2021.
+ *  @date 2021-2024.
  *
  *  @file  EvalMancala.hpp
  *  @brief MABE Evaluation module that has organisms play Mancala.
@@ -38,8 +38,8 @@ namespace mabe {
 
   public:
     EvalMancala(mabe::MABE & control,
-                const std::string & name="EvalMancala",
-                const std::string & desc="Evaluate organisms by having them play Mancala.")
+                emp::String name="EvalMancala",
+                emp::String desc="Evaluate organisms by having them play Mancala.")
       : Module(control, name, desc)
     {
       SetEvaluateMod(true);
@@ -52,7 +52,7 @@ namespace mabe {
                              [](EvalMancala & mod, Collection orgs) { return mod.Evaluate(orgs); },
                              "Evaluate organism's ability to play the game Mancala.");
       info.AddMemberFunction("TRACE",
-                             [](EvalMancala & mod, Collection orgs, const std::string & filename) {
+                             [](EvalMancala & mod, Collection orgs, const emp::String & filename) {
                                 std::ofstream file(filename);
                                 mod.TraceEval(orgs, file);
                                 return orgs.GetSize();
@@ -262,7 +262,7 @@ namespace mabe {
     double Evaluate(Population & pop) { return Evaluate( Collection(pop) ); }
 
     // If a string is provided to Evaluate, convert it to a Collection.
-    double Evaluate(const std::string & in) { return Evaluate( control.ToCollection(in) ); }
+    double Evaluate(const emp::String & in) { return Evaluate( control.ToCollection(in) ); }
   };
 
   MABE_REGISTER_MODULE(EvalMancala, "Evaluate organisms on their ability to play Mancala.");

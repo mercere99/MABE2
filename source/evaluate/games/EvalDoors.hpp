@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2022-2022.
+ *  @date 2022-2024.
  *
  *  @file  EvalDoors.hpp
  *  @brief MABE Evaluation module that places the organism in a room with N doors. 
@@ -28,25 +28,25 @@
 
 #include "emp/bits/BitVector.hpp"
 #include "emp/io/File.hpp"
-#include "emp/tools/string_utils.hpp"
+#include "emp/tools/String.hpp"
 
 namespace mabe {
     
   /// \brief A collection of all the trait names used in EvalDoors
   struct EvalDoors_TraitNames{
-    std::string score_trait = "score";                    ///< Trait for organism performance
-    std::string accuracy_trait = "accuracy";              ///< Trait for organism accuracy
-    std::string state_trait ="state";                     ///< Trait for task state
-    std::string door_rooms_trait ="door_rooms";           ///< Trait to count "door rooms" visited
-    std::string exit_rooms_trait ="exit_rooms";           ///< Trait to count "exit rooms" visited
-    std::string correct_doors_trait ="correct_doors";     ///< Trait to count doors correctly taken
-    std::string incorrect_doors_trait ="incorrect_doors"; ///< Trait to count doors incorrectly taken
-    std::string correct_exits_trait ="correct_exits";     ///< Trait to count exits correctly taken
-    std::string incorrect_exits_trait ="incorrect_exits"; ///< Trait to count exits incorrectly taken
-    std::string doors_taken_prefix = "doors_taken_";      ///< Prefix for individual door traits 
-    std::string doors_correct_prefix = "doors_correct_";  ///< Prefix for individual door traits
-    emp::vector<std::string> doors_taken_trait_vec;       ///< Names of doors taken traits
-    emp::vector<std::string> doors_correct_trait_vec;     ///< Names of doors correct traits
+    emp::String score_trait = "score";                    ///< Trait for organism performance
+    emp::String accuracy_trait = "accuracy";              ///< Trait for organism accuracy
+    emp::String state_trait ="state";                     ///< Trait for task state
+    emp::String door_rooms_trait ="door_rooms";           ///< Trait to count "door rooms" visited
+    emp::String exit_rooms_trait ="exit_rooms";           ///< Trait to count "exit rooms" visited
+    emp::String correct_doors_trait ="correct_doors";     ///< Trait to count doors correctly taken
+    emp::String incorrect_doors_trait ="incorrect_doors"; ///< Trait to count doors incorrectly taken
+    emp::String correct_exits_trait ="correct_exits";     ///< Trait to count exits correctly taken
+    emp::String incorrect_exits_trait ="incorrect_exits"; ///< Trait to count exits incorrectly taken
+    emp::String doors_taken_prefix = "doors_taken_";      ///< Prefix for individual door traits 
+    emp::String doors_correct_prefix = "doors_correct_";  ///< Prefix for individual door traits
+    emp::vector<emp::String> doors_taken_trait_vec;       ///< Names of doors taken traits
+    emp::vector<emp::String> doors_correct_trait_vec;     ///< Names of doors correct traits
   };
 
   /// \brief State of a single organism's progress on the doors task
@@ -159,15 +159,15 @@ namespace mabe {
 
     /** Extract cues from the given string. Can either be non-negative (used as is) or
             -1 (randomized for each trial) */
-    void ParseCues(const std::string& input_str){ 
-      std::string s(input_str);
+    void ParseCues(const emp::String& input_str){ 
+      emp::String s(input_str);
       // Remove all trailing ;
       while(s[s.length() - 1] == ';') s = s.substr(0, s.length() - 1); 
       starting_cue_vec.clear();
-      emp::vector<std::string> sliced_str_vec;
+      emp::vector<emp::String> sliced_str_vec;
       emp::slice(s, sliced_str_vec, ';');
       std::cout << "Eval doors starting cue values: " << std::endl << "\t"; 
-      for(std::string& slice : sliced_str_vec){
+      for(emp::String& slice : sliced_str_vec){
         const int cue = std::stoi(slice);
         if(cue < -1) emp_error("Error! ParseCues expects values of -1 or greater!");
         if(cue == -1) std::cout << "[random] ";
@@ -273,15 +273,15 @@ namespace mabe {
                                             computation and bookkeeping for the task*/
     int pop_id = 0;                    /**< ID of the population to evaluate and provide 
                                             instructions to */
-    std::string cues_str; /**< String version of a vector of cue values. Non-negative values 
+    emp::String cues_str; /**< String version of a vector of cue values. Non-negative values 
                                are used as is, while -1 gives a random value for each trial */
     EvalDoors_TraitNames trait_names;   /**<  Struct holding all of the trait names to keep 
                                               things tidy */
     
   public:
     EvalDoors(mabe::MABE & control,
-                const std::string & name="EvalDoors",
-                const std::string & desc="Evaluate organisms by how well they can associate symbols to doors.")
+                const emp::String & name="EvalDoors",
+                const emp::String & desc="Evaluate organisms by how well they can associate symbols to doors.")
       : Module(control, name, desc)
       , evaluator(control.GetRandom())
     {
@@ -335,13 +335,13 @@ namespace mabe {
       AddOwnedTrait<size_t>(trait_names.incorrect_exits_trait, "Incorrect exits taken", 0);
       for(size_t door_idx = 0; door_idx < evaluator.GetNumDoors(); ++door_idx){
         trait_names.doors_taken_trait_vec.push_back(
-            trait_names.doors_taken_prefix + emp::to_string(door_idx));
+            trait_names.doors_taken_prefix + emp::MakeString(door_idx));
         trait_names.doors_correct_trait_vec.push_back(
-            trait_names.doors_correct_prefix + emp::to_string(door_idx));
+            trait_names.doors_correct_prefix + emp::MakeString(door_idx));
         AddOwnedTrait<size_t>(trait_names.doors_taken_trait_vec[door_idx], 
-            "Number of times door #" + emp::to_string(door_idx) + "was taken", 0);
+            "Number of times door #" + emp::MakeString(door_idx) + "was taken", 0);
         AddOwnedTrait<size_t>(trait_names.doors_correct_trait_vec[door_idx], 
-            "Number of times door #" + emp::to_string(door_idx) + "was correctly taken", 0);
+            "Number of times door #" + emp::MakeString(door_idx) + "was correctly taken", 0);
 
       }
       SetupInstructions();

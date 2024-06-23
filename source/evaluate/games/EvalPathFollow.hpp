@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2021-2022.
+ *  @date 2021-2024.
  *
  *  @file  EvalPathFollow.hpp
  *  @brief MABE Evaluation module that places organisms on the start of a nutrient-cued path 
@@ -27,6 +27,7 @@
 
 #include "emp/io/File.hpp"
 #include "emp/bits/BitVector.hpp"
+#include "emp/tools/String.hpp"
 
 namespace mabe {
 
@@ -35,7 +36,7 @@ namespace mabe {
     bool initialized;             ///< Flag indicating if this state has been initialized
     size_t cur_map_idx;           ///< Index of the map being traversed 
     emp::BitVector visited_tiles; ///< A mask showing which tiles have been previously visited
-    emp::StateGridStatus status;  ///< Stores position, direction, and interfaces with grid 
+    StateGridStatus status;  ///< Stores position, direction, and interfaces with grid 
     double raw_score;             /**< Number of unique valid tiles visited minus the number
                                        of steps taken off the path (not unique) */
     uint32_t empty_cue;           /**< Value of empty cues for this state, potentially 
@@ -72,7 +73,7 @@ namespace mabe {
 
   /// \brief Information of a single path that was loaded from file
   struct PathData{
-    emp::StateGrid grid;  ///< The tile data of the path and surrounding emptiness 
+    StateGrid grid;  ///< The tile data of the path and surrounding emptiness 
     size_t start_x;       ///< X coordinate of starting position
     size_t start_y;       ///< Y coordinate of starting position
     int start_facing;     /**< Facing direction for new organisms. 
@@ -82,7 +83,7 @@ namespace mabe {
 
     PathData() : 
       start_x(0), start_y(0), start_facing(0), path_length(0){;} 
-    PathData(emp::StateGrid& _grid, size_t _start_x, size_t _start_y, 
+    PathData(StateGrid & _grid, size_t _start_x, size_t _start_y, 
         int _start_facing, size_t _path_length) 
         : grid(_grid)
         , start_x(_start_x)
@@ -204,9 +205,8 @@ namespace mabe {
     }
 
     /// Load a semi-colon-separated list of maps from disk
-    void LoadAllMaps(const std::string& map_filenames_str){
-      emp::vector<std::string> map_filename_vec;
-      emp::slice(map_filenames_str, map_filename_vec, ';');
+    void LoadAllMaps(emp::String map_filenames_str){
+      auto map_filename_vec = map_filenames_str.Slice(';');
       for(auto filename : map_filename_vec){
         LoadMap(filename);
       }
@@ -343,9 +343,9 @@ namespace mabe {
     using inst_func_t = VirtualCPUOrg::inst_func_t;
 
   private:
-    std::string score_trait = "score"; ///< Name of trait for organism performance
-    std::string state_trait ="state";  ///< Name of trait that stores the path follow state
-    std::string map_filenames="";      ///< ;-separated list map filenames to load.
+    emp::String score_trait = "score"; ///< Name of trait for organism performance
+    emp::String state_trait ="state";  ///< Name of trait that stores the path follow state
+    emp::String map_filenames="";      ///< ;-separated list map filenames to load.
     PathFollowEvaluator evaluator;     /**< The evaluator that does all of the actually 
                                             computing and bookkeeping for the path follow 
                                             task */
@@ -354,8 +354,8 @@ namespace mabe {
 
   public:
     EvalPathFollow(mabe::MABE & control,
-                const std::string & name="EvalPathFollow",
-                const std::string & desc="Evaluate organisms by how well they can follow a path.")
+                   emp::String name="EvalPathFollow",
+                   emp::String desc="Evaluate organisms by how well they can follow a path.")
       : Module(control, name, desc)
       , evaluator(control.GetRandom())
     {

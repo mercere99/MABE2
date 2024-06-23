@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2024
+ *  @date 2024.
  *
  *  @file  EvalSudoku.hpp
  *  @brief Evaluation module to determine the quality of a sudoku board.
@@ -20,6 +20,7 @@
 #define MABE_EVAL_SUDOKU_H
 
 #include "emp/games/SudokuAnalyzer.hpp"
+#include "emp/tools/String.hpp"
 
 #include "../../core/MABE.hpp"
 #include "../../core/Module.hpp"
@@ -47,8 +48,8 @@ namespace mabe {
 
   public:
     EvalSudoku(mabe::MABE & control,
-                  const std::string & name="EvalSudoku",
-                  const std::string & desc="Evaluate states for the qualities of the Sudoku game they produce.")
+               emp::String name="EvalSudoku",
+               emp::String desc="Evaluate states for the qualities of the Sudoku game they produce.")
       : Module(control, name, desc)
     {
       SetEvaluateMod(true);
