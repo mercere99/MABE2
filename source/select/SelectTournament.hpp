@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019-2022.
+ *  @date 2019-2024.
  *
  *  @file  SelectTournament.hpp
  *  @brief MABE module to enable tournament selection (choose T random orgs and return "best")
@@ -18,7 +18,7 @@ namespace mabe {
   /// Add elite selection with the current population.
   class SelectTournament : public Module {
   private:
-    std::string fit_equation;  ///< Trait function that we should select on
+    emp::String fit_equation;  ///< Trait function that we should select on
     size_t tourny_size;        ///< Number of organisms in each tournament
 
     Collection Select(Population & select_pop, Population & birth_pop, size_t num_births) {
@@ -63,9 +63,9 @@ namespace mabe {
 
   public:
     SelectTournament(mabe::MABE & control,
-                     const std::string & name="SelectTournament",
-                     const std::string & desc="Replicate most fit organisms from random subgroups.",
-                     const std::string & in_fit="fitness",
+                     const emp::String & name="SelectTournament",
+                     const emp::String & desc="Replicate most fit organisms from random subgroups.",
+                     const emp::String & in_fit="fitness",
                      size_t t_size=7)
       : Module(control, name, desc)
       , fit_equation(in_fit), tourny_size(t_size)

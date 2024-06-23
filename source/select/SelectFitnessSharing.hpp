@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2021-2022.
+ *  @date 2021-2024.
  *
  *  @file  SelectFitnessSharing.hpp
  *  @brief MABE module to enable tournament selection (choose T random orgs and return "best")
@@ -20,16 +20,16 @@ namespace mabe {
   /// Add elite selection with the current population.
   class SelectFitnessSharing : public Module {
   private:
-    std::string trait = "fitness";      ///< Which trait should we select on?
-    std::string sharing_trait = "vals"; ///< Which trait should we use for sharing?
+    emp::String trait = "fitness";      ///< Which trait should we select on?
+    emp::String sharing_trait = "vals"; ///< Which trait should we use for sharing?
     size_t tourny_size = 7;             ///< How big should each tournament be?
     double sharing_threshold;           ///< How similar to organisms need to be for fitness sharing?
     double alpha = 1;                   ///< Fitness sharing shape parameter
 
   public:
     SelectFitnessSharing(mabe::MABE & control,
-                     const std::string & name="SelectFitnessSharing",
-                     const std::string & desc="Module to select the top fitness organisms from random subgroups for replication.")
+                     const emp::String & name="SelectFitnessSharing",
+                     const emp::String & desc="Module to select the top fitness organisms from random subgroups for replication.")
       : Module(control, name, desc)
     {
       SetSelectMod(true);              ///< Mark this module as a selection module.
@@ -87,7 +87,7 @@ namespace mabe {
           double dist = emp::EuclideanDistance(org1.GetTrait<emp::vector<double> >(sharing_trait), org2.GetTrait<emp::vector<double> >(sharing_trait));
           niche_count += std::max(1.0 - std::pow(dist/sharing_threshold, alpha), 0.0);
         }
-        // std::cout <<  emp::to_string(org1.GetTrait<emp::vector<double>>("scores")) << " " << niche_count << " " << org1.GetTrait<double>(trait) << " " <<  org1.GetTrait<double>(trait)/niche_count << " " << std::endl;        
+        // std::cout <<  emp::MakeString(org1.GetTrait<emp::vector<double>>("scores")) << " " << niche_count << " " << org1.GetTrait<double>(trait) << " " <<  org1.GetTrait<double>(trait)/niche_count << " " << std::endl;        
         org1.SetTrait("shared_fitness", org1.GetTrait<double>(trait)/niche_count);
       }    
 

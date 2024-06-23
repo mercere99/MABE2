@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2021-2022.
+ *  @date 2021-2024.
  *
  *  @file  SchedulerProbabilistic.h
  *  @brief Rations out updates to organisms based on a specified attribute, using a method akin to roulette selection. 
@@ -19,8 +19,8 @@ namespace mabe {
   /// Rations out updates to organisms based on a specified attribute, using a method akin to roulette selection  
   class SchedulerProbabilistic : public Module {
   private:
-    std::string trait = "merit";  ///< Which trait should we select on?
-    std::string reset_self_trait = "reset_self";  ///< What should we call the trait used to track resetting?
+    emp::String trait = "merit";  ///< Which trait should we select on?
+    emp::String reset_self_trait = "reset_self";  ///< What should we call the trait used to track resetting?
     double avg_updates = 0; ///< How many updates should organisms receive on average?
     int pop_id = 0;     ///< Which population are we selecting from?
     emp::UnorderedIndexMap weight_map; ///< Data structure storing all organism fitnesses
@@ -28,9 +28,9 @@ namespace mabe {
     double merit_scale_factor = 1; ///< Fitness = base_value + (merit * this value)
   public:
     SchedulerProbabilistic(mabe::MABE & control,
-                     const std::string & name="SchedulerProbabilistic",
-                     const std::string & desc="Rations out updates to organisms based on a specified attribute, using a method akin to roulette wheel selection",
-                     const std::string & in_trait="merit",
+                     const emp::String & name="SchedulerProbabilistic",
+                     const emp::String & desc="Rations out updates to organisms based on a specified attribute, using a method akin to roulette wheel selection",
+                     const emp::String & in_trait="merit",
                      size_t in_avg_updates = 30)
       : Module(control, name, desc)
       , trait(in_trait), avg_updates(in_avg_updates)

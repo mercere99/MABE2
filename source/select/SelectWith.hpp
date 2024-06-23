@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2020-2021.
+ *  @date 2020-2024.
  *
  *  @file  SelectWith.hpp
  *  @brief MABE module to link selection in one population to that of another.
@@ -39,8 +39,8 @@ namespace mabe {
 
   public:
     SelectWith(mabe::MABE & control,
-               const std::string & name="SelectWith",
-               const std::string & desc="Mimic reproduction events in another selection module.")
+               const emp::String & name="SelectWith",
+               const emp::String & desc="Mimic reproduction events in another selection module.")
       : Module(control, name, desc)
     {
       SetSelectMod(true);                ///< Mark this module as a selection module.

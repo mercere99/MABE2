@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2021.
+ *  @date 2021-2024.
  *
  *  @file  SelectRoulette.hpp
  *  @brief MABE module to enable roulette selection.
@@ -20,7 +20,7 @@ namespace mabe {
   /// \brief Selects organisms with roulette (fitness-proportional) selection
   class SelectRoulette : public Module {
   private:
-    std::string fit_equation;    ///< Which equation should we select on?
+    emp::String fit_equation;    ///< Which equation should we select on?
 
     /// Select num_births organisms from select_pop and replicate them into birth_pop
     Collection Select(Population & select_pop, Population & birth_pop, size_t num_births) {
@@ -51,8 +51,8 @@ namespace mabe {
   public:
     SelectRoulette(
       mabe::MABE & control,
-      const std::string & name="SelectRoulette",
-      const std::string & desc="Module to choose random organisms for replication, proportional to their fitness."
+      const emp::String & name="SelectRoulette",
+      const emp::String & desc="Module to choose random organisms for replication, proportional to their fitness."
     ) : Module(control, name, desc)
     {
       SetSelectMod(true);               ///< Mark this module as a selection module.

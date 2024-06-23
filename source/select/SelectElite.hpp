@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2019-2021.
+ *  @date 2019-2024.
  *
  *  @file  SelectElite.hpp
  *  @brief MABE module to enable elite selection (flexible to handle mu-lambda selection)
@@ -20,7 +20,7 @@ namespace mabe {
   /// Add elite selection with the current population.
   class SelectElite : public Module {
   private:
-    std::string fit_equation;    ///< Which equation should we select on?
+    emp::String fit_equation;    ///< Which equation should we select on?
     size_t top_count=1;          ///< Top how-many should we select?
 
     Collection Select(Population & select_pop, Population & birth_pop, size_t num_births) {
@@ -44,9 +44,9 @@ namespace mabe {
 
   public:
     SelectElite(mabe::MABE & control,
-                const std::string & name="SelectElite",
-                const std::string & desc="Module to choose the top fitness organisms for replication.",
-                const std::string & in_fit_equation="fitness", size_t tcount=1)
+                const emp::String & name="SelectElite",
+                const emp::String & desc="Module to choose the top fitness organisms for replication.",
+                const emp::String & in_fit_equation="fitness", size_t tcount=1)
       : Module(control, name, desc)
       , fit_equation(in_fit_equation), top_count(tcount)
     {
