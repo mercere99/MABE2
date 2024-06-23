@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2021-2022.
+ *  @date 2021-2024.
  *
  *  @file  EvalTaskAnd.h
  *  @brief Tests organism output for bitwise AND operation
@@ -19,8 +19,8 @@ namespace mabe {
 
   public:
     EvalTaskAnd(mabe::MABE & control,
-                  const std::string & name="EvalTaskAnd",
-                  const std::string & desc="Evaluate organism on AND logic task")
+                  emp::String name="EvalTaskAnd",
+                  emp::String desc="Evaluate organism on AND logic task")
       : EvalTaskBase(control, name, "and", desc){;}
 
     ~EvalTaskAnd() { }

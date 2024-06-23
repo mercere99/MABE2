@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2021-2022.
+ *  @date 2021-2024.
  *
  *  @file  EvalTaskOrnot.h
  *  @brief Tests organism output for bitwise ORNOT operation
@@ -22,8 +22,8 @@ namespace mabe {
 
   public:
     EvalTaskOrnot(mabe::MABE & control,
-                  const std::string & name="EvalTaskOrnot",
-                  const std::string & desc="Evaluate organism on ORNOT logic task")
+                  emp::String name="EvalTaskOrnot",
+                  emp::String desc="Evaluate organism on ORNOT logic task")
       : EvalTaskBase(control, name, "ornot", desc){;}
 
     ~EvalTaskOrnot() { }

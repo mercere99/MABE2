@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2021-2022.
+ *  @date 2021-2024.
  *
  *  @file  EvalTaskNor.h
  *  @brief Tests organism output for bitwise NOR operation
@@ -19,8 +19,8 @@ namespace mabe {
 
   public:
     EvalTaskNor(mabe::MABE & control,
-                  const std::string & name="EvalTaskNor",
-                  const std::string & desc="Evaluate organism on NOR logic task")
+                emp::String name="EvalTaskNor",
+                emp::String desc="Evaluate organism on NOR logic task")
       : EvalTaskBase(control, name, "nor", desc){;}
 
     ~EvalTaskNor() { }

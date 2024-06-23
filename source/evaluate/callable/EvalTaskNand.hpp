@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2021-2022.
+ *  @date 2021-2024.
  *
  *  @file  EvalTaskNand.h
  *  @brief Tests organism output for bitwise NAND operation
@@ -18,8 +18,8 @@ namespace mabe {
   class EvalTaskNand : public EvalTaskBase<EvalTaskNand, 2> {
   public:
     EvalTaskNand(mabe::MABE & control,
-                  const std::string & name="EvalTaskNand",
-                  const std::string & desc="Evaluate organism on NAND logic task")
+                emp::String name="EvalTaskNand",
+                emp::String desc="Evaluate organism on NAND logic task")
       : EvalTaskBase(control, name, "nand", desc){;}
 
     /// Check if the passed output is equal to input_a NAND input_b  

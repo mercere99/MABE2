@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2021-2022.
+ *  @date 2021-2024.
  *
  *  @file  EvalTaskBase.h
  *  @brief Generic base class for evaluating an organism on a binary logic task. 
@@ -32,21 +32,21 @@ namespace mabe {
     };
 
   protected:
-    std::string inputs_trait = "input";   ///< Name of trait for organism's inputs  (required)
-    std::string outputs_trait = "output"; ///< Name of trait for organism's outputs (required)
-    std::string fitness_trait = "merit";  ///< Name of trait for organism's fitness (required)
+    emp::String inputs_trait = "input";   ///< Name of trait for organism's inputs  (required)
+    emp::String outputs_trait = "output"; ///< Name of trait for organism's outputs (required)
+    emp::String fitness_trait = "merit";  ///< Name of trait for organism's fitness (required)
     int pop_id = 0;                       ///< ID of the population to be evaluated
-    std::string task_name;                ///< Name of the task (used to derive trait names)
-    std::string performed_trait = "unnamed_performed"; /**< Name of the trait tracking if the
+    emp::String task_name;                ///< Name of the task (used to derive trait names)
+    emp::String performed_trait = "unnamed_performed"; /**< Name of the trait tracking if the
                                                             trait was performed */
     double reward_value = 1;          ///< Magnitude of the reward bestowed for completion of the task 
     RewardType reward_type = ADD; /// How do we apply the reward to the organism's merit?
 
   public:
     EvalTaskBase(mabe::MABE & _control,
-                  const std::string & _mod_name="EvalTaskBase",
-                  const std::string & _task_name = "unnamed",
-                  const std::string & _desc="Evaluate organism on BASE logic task")
+                 emp::String _mod_name="EvalTaskBase",
+                 emp::String _task_name = "unnamed",
+                 emp::String _desc="Evaluate organism on BASE logic task")
       : Module(_control, _mod_name, _desc)
       , task_name(_task_name)
       , performed_trait(_task_name + "_performed"){;}
