@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2022.
+ *  @date 2020-2024.
  *
  *  @file  EvalModule.hpp
  *  @brief A module base class to simplify the creation of evaluation modules.
@@ -21,8 +21,8 @@ namespace mabe {
   class EvalModule : public Module {
   public:
     EvalModule(mabe::MABE & control,
-           const std::string & name,
-           const std::string & desc)
+               emp::String name,
+               emp::String desc)
       : Module(control, name, desc)
     {
       SetEvaluateMod(true);
@@ -49,7 +49,7 @@ namespace mabe {
     double Evaluate(Population & pop) { return Evaluate( Collection(pop) ); }
 
     /// If a string is provided to Evaluate, convert it to a Collection.
-    double Evaluate(const std::string & in) { return Evaluate( control.ToCollection(in) ); }
+    double Evaluate(const emp::String & in) { return Evaluate( control.ToCollection(in) ); }
 
     /// Re-randomize all of the entries.
     virtual double Reset() { emp::notify::Message("Module '", name, "' cannot be reset."); return 0.0;  }
