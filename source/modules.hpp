@@ -15,6 +15,7 @@
 #include "evaluate/games/EvalMancala.hpp"
 #include "evaluate/games/EvalPathFollow.hpp"
 #include "evaluate/games/EvalDoors.hpp"
+#include "evaluate/games/EvalSudoku.hpp"
 #include "evaluate/static/EvalCountBits.hpp"
 #include "evaluate/static/EvalDiagnostic.hpp"
 #include "evaluate/static/EvalMatchBits.hpp"
@@ -48,6 +49,7 @@
 // Organism Types
 #include "orgs/BitsOrg.hpp"
 #include "orgs/BitSummaryOrg.hpp"
+#include "orgs/StatesOrg.hpp"
 #include "orgs/ValsOrg.hpp"
 #include "orgs/AvidaGPOrg.hpp"
 #include "orgs/VirtualCPUOrg.hpp"
