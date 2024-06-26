@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2021.
+ *  @date 2021-2024.
  *
  *  @file  SigListener.hpp
  *  @brief Tool to trigger a specified member function on other classes when triggered.
@@ -26,12 +26,11 @@ namespace mabe {
     using mod_ptr_t = emp::Ptr<MODULE_T>;
     using id_t = typename MODULE_T::SignalID;
 
-    std::string name;          ///< Name of this signal type.
+    emp::String name;          ///< Name of this signal type.
     id_t id;   ///< ID of this signal
     mod_ptr_t cur_mod;         ///< Which module is currently running?
 
-    SigListenerBase(const std::string & _name="",
-                    id_t _id=MODULE_T::SIG_UNKNOWN)
+    SigListenerBase(emp::String _name="", id_t _id=MODULE_T::SIG_UNKNOWN)
       : name(_name), id(_id) {;}
     SigListenerBase(const SigListenerBase &) = default;
     SigListenerBase(SigListenerBase &&) = default;
@@ -54,7 +53,7 @@ namespace mabe {
 
     /// A SigListener constructor takes both the member function that its supposed to call
     /// and a master list of module vectors that it should put itself it.
-    SigListener(const std::string & _name,
+    SigListener(emp::String _name,
                 typename MODULE_T::SignalID _id,
                 ModMemFun _fun,
                 emp::array< emp::Ptr<base_t>, (size_t) MODULE_T::NUM_SIGNALS> & signal_ptrs)

@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2021.
+ *  @date 2021-2024.
  *
  *  @file  Genome.hpp
  *  @brief Base genome representation for organisms.
@@ -46,8 +46,8 @@ namespace mabe {
     virtual size_t Mutate(emp::Random & random) = 0;
 
     // Human-readable (if not easily understandable) shorthand representations.
-    virtual std::string ToString() const { return "[unknown]"; }
-    virtual void FromString(std::string & in) { emp_error("Cannot read genome from string."); }
+    virtual emp::String ToString() const { return "[unknown]"; }
+    virtual void FromString(emp::String & in) { emp_error("Cannot read genome from string."); }
 
     // Potentially more compressed or structured formats for saving/loading genomes.
     // TODO:
@@ -191,8 +191,8 @@ namespace mabe {
 
     // Human-readable (if not easily understandable) shorthand representations.
     // @CAO... needs to be done properly!
-    std::string ToString() const override { return "[unknown]"; }
-    void FromString(std::string & in) override { emp_error("Cannot read genome from string."); }
+    emp::String ToString() const override { return "[unknown]"; }
+    void FromString(emp::String in) override { emp_error("Cannot read genome from string."); }
 
     // Potentially more compressed or structured formats for saving/loading genomes.
     // TODO:

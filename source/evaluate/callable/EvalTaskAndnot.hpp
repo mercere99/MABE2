@@ -22,8 +22,8 @@ namespace mabe {
 
   public:
     EvalTaskAndnot(mabe::MABE & control,
-                  const std::string & name="EvalTaskAndnot",
-                  const std::string & desc="Evaluate organism on ANDNOT logic task")
+                  emp::String name="EvalTaskAndnot",
+                  emp::String desc="Evaluate organism on ANDNOT logic task")
       : EvalTaskBase(control, name, "andnot", desc){;}
 
     ~EvalTaskAndnot() { }

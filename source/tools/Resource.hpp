@@ -110,7 +110,7 @@ namespace mabe {
         //    std::cout << "Fit before:  = " << base_fitness[org_id] << "   Res: " << pools[ex_id].GetAmount();
            base_fitness[org_id] *= emp::Pow2(cur_fit);
            pools[ex_id].Dec(std::abs(cur_fit));
-        //    std::cout << "   Bonus " << ex_id << " = " << extra_funs[ex_id](world[org_id]) << " "<< emp::Pow(2.0,cur_fit) << " " << emp::to_string(world[org_id])
+        //    std::cout << "   Bonus " << ex_id << " = " << extra_funs[ex_id](world[org_id]) << " "<< emp::Pow(2.0,cur_fit) << " " << emp::MakeString(world[org_id])
         // //              << "   fitnes = " << base_fitness[org_id]
         //              << std::endl;
 
@@ -118,8 +118,8 @@ namespace mabe {
        }
 
     //    std::cout << "Resource allocations" << std::endl;
-    //    std::cout << emp::to_string(base_fitness) << std::endl;
-    //    std::cout << emp::to_string(world[0]) << std::endl;
+    //    std::cout << emp::MakeString(base_fitness) << std::endl;
+    //    std::cout << emp::MakeString(world[0]) << std::endl;
     //    std::cout << world.CalcFitnessID(0);
 
     //    for (size_t ex_id = 0; ex_id < extra_funs.size(); ex_id++) {

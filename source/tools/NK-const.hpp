@@ -1,17 +1,18 @@
 /**
- *  @note This file is part of Empirical, https://github.com/devosoft/Empirical
+ *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2016-2020.
+ *  @date 2016-2024.
  *
- *  @file  NK-const.hpp
- *  @brief This file provides code to build NK landscapes, setup at compile time..
+ *  @file
+ *  @brief This file provides code to build NK landscapes, setup at compile time. 
  *
  *  Knowing the size of N and K at compile time allow for slightly more optimized code, at the
  *  expense of flexibility.
- */
+ **/
 
-#ifndef EMP_EVO_NK_CONST_H
-#define EMP_EVO_NK_CONST_H
+
+#ifndef MABE_TOOLS_NK_CONST_HPP
+#define MABE_TOOLS_NK_CONST_HPP
 
 #include <array>
 
@@ -20,9 +21,7 @@
 #include "emp/math/math.hpp"
 #include "emp/math/Random.hpp"
 
-namespace emp {
-namespace evo {
-
+namespace mabe {
 
   /// An NK Landscape is a popular tool for studying theoretical questions about evolutionary
   /// dynamics. It is a randomly generated fitness landscape on which bitstrings can evolve.
@@ -106,7 +105,6 @@ namespace evo {
     }
   };
 
-}
 }
 
 #endif

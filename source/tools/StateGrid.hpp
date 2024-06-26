@@ -21,12 +21,12 @@
 #define MABE_TOOLS_STATE_GRID_HPP
 
 #include <map>
-#include <string>
 
 #include "emp/base/assert.hpp"
 #include "emp/base/error.hpp"
 #include "emp/base/Ptr.hpp"
 #include "emp/base/vector.hpp"
+#include "emp/tools/String.hpp"
 
 #include "emp/bits/BitVector.hpp"
 #include "emp/datastructs/map_utils.hpp"
@@ -45,11 +45,11 @@ namespace mabe {
       int state_id;        ///< Ordinal id for this state.
       char symbol;         ///< Symbol for printing this state.
       double score_change; ///< Change amount for organism score by stepping on this square.
-      std::string name;    ///< Name of this state.
-      std::string desc;    ///< Explanation of this state.
+      emp::String name;    ///< Name of this state.
+      emp::String desc;    ///< Explanation of this state.
 
       StateInfo(int _id, char _sym, double _change,
-                const std::string & _name, const std::string & _desc)
+                const emp::String & _name, const emp::String & _desc)
       : state_id(_id), symbol(_sym), score_change(_change), name(_name), desc(_desc) { ; }
       StateInfo(const StateInfo &) = default;
       StateInfo(StateInfo &&) = default;
@@ -63,11 +63,11 @@ namespace mabe {
 
     std::map<int, size_t> state_map;         ///< Map of state_id to key ID (state_id can be < 0)
     std::map<char, size_t> symbol_map;       ///< Map of symbols to associated key ID
-    std::map<std::string, size_t> name_map;  ///< Map of names to associated key ID
+    std::map<emp::String, size_t> name_map;  ///< Map of names to associated key ID
 
     size_t GetKey(int state_id) const { return emp::Find(state_map, state_id, 0); }
     size_t GetKey(char symbol) const { return emp::Find(symbol_map, symbol, 0); }
-    size_t GetKey(const std::string & name) const { return emp::Find(name_map, name, 0); }
+    size_t GetKey(const emp::String & name) const { return emp::Find(name_map, name, 0); }
   public:
     StateGridInfo() : states(), state_map(), symbol_map(), name_map() { ; }
     StateGridInfo(const StateGridInfo &) = default;
@@ -82,17 +82,17 @@ namespace mabe {
     // Convert from state ids...
     char GetSymbol(int state_id) const { return states[ GetKey(state_id) ].symbol; }
     double GetScoreChange(int state_id) const { return states[ GetKey(state_id) ].score_change; }
-    const std::string & GetName(int state_id) const { return states[ GetKey(state_id) ].name; }
-    const std::string & GetDesc(int state_id) const { return states[ GetKey(state_id) ].desc; }
+    const emp::String & GetName(int state_id) const { return states[ GetKey(state_id) ].name; }
+    const emp::String & GetDesc(int state_id) const { return states[ GetKey(state_id) ].desc; }
 
     // Convert to state ids...
     int GetState(char symbol) const {
       emp_assert( states.size() > GetKey(symbol), states.size(), symbol, (int) symbol );
       return states[ GetKey(symbol) ].state_id;
     }
-    int GetState(const std::string & name) const { return states[ GetKey(name) ].state_id; }
+    int GetState(const emp::String & name) const { return states[ GetKey(name) ].state_id; }
 
-    void AddState(int id, char symbol, double mult=1.0, std::string name="", std::string desc="") {
+    void AddState(int id, char symbol, double mult=1.0, emp::String name="", emp::String desc="") {
       size_t key_id = states.size();
       states.emplace_back(id, symbol, mult, name, desc);
       state_map[id] = key_id;
@@ -120,7 +120,7 @@ namespace mabe {
         int init_val=0, bool _is_toroidal=false)
       : width(_w), height(_h), states(_w*_h,init_val), info(_i), 
         is_toroidal(_is_toroidal) { ; }
-    StateGrid(StateGridInfo & _i, const std::string & filename)
+    StateGrid(StateGridInfo & _i, const emp::String & filename)
       : width(1), height(1), states(), info(_i), is_toroidal(false) { Load(filename); }
     StateGrid(const StateGrid &) = default;
     StateGrid(StateGrid && in) = default;
@@ -167,7 +167,7 @@ namespace mabe {
       emp_assert(y < height, y, height);
       return info.GetScoreChange(GetState(x,y));
     }
-    const std::string & GetName(size_t x, size_t y) const {
+    const emp::String & GetName(size_t x, size_t y) const {
       emp_assert(x < width, x, width);
       emp_assert(y < height, y, height);
       return info.GetName(GetState(x,y));
@@ -223,7 +223,7 @@ namespace mabe {
     /// Print the current status of the StateGrid to an output stream.
     template <typename... Ts>
     const StateGrid & Print(std::ostream & os=std::cout) const {
-      std::string out(width*2-1, ' ');
+      emp::String out(width*2-1, ' ');
       for (size_t i = 0; i < height; i++) {
         out[0] = info.GetSymbol( states[i*width] );
         for (size_t j = 1; j < width; j++) {
@@ -238,7 +238,7 @@ namespace mabe {
     template <typename... Ts>
     const StateGrid & Write(Ts &&... args) const {
       emp::File file;
-      std::string out;
+      emp::String out;
       for (size_t i = 0; i < height; i++) {
         out.resize(0);
         out += info.GetSymbol( states[i*width] );
@@ -420,7 +420,7 @@ namespace mabe {
       emp_assert(history.size(), "You can only print history of a StateGrid if you track it!");
       const size_t width = grid.GetWidth();
       const size_t height = grid.GetHeight();
-      std::string out(width*2-1, ' ');
+      emp::String out(width*2-1, ' ');
       for (size_t i = 0; i < height; i++) {
         for (size_t j = 1; j < width; j++) {
           out[j*2] = grid.GetSymbol(j,i);

@@ -1,7 +1,7 @@
 /**
  *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
- *  @date 2022.
+ *  @date 2022-2024.
  *
  *  @file  EvalFunction.hpp
  *  @brief MABE Evaluation module rates organism's ability to perform a specified math function.
@@ -27,10 +27,10 @@ namespace mabe {
   private:
     static const constexpr size_t MAX_INPUTS = 5;
 
-    std::string input_traits = "input1,input2"; ///< Traits to put input value(s) for organism.
-    std::string output_trait = "output";        ///< Trait to find output values from organism.
-    std::string errors_trait = "errors";        ///< Trait for each test's deviation from target.
-    std::string fitness_trait = "fitness";      ///< Trait for combined fitness (#tests - error sum)
+    emp::String input_traits = "input1,input2"; ///< Traits to put input value(s) for organism.
+    emp::String output_trait = "output";        ///< Trait to find output values from organism.
+    emp::String errors_trait = "errors";        ///< Trait for each test's deviation from target.
+    emp::String fitness_trait = "fitness";      ///< Trait for combined fitness (#tests - error sum)
 
     // Track the DataMap ID for each trait or trait set.
 
@@ -39,14 +39,14 @@ namespace mabe {
     size_t errors_id = emp::MAX_SIZE_T;
     size_t fitness_id = emp::MAX_SIZE_T;
 
-    std::string function = "input1 * 3 + 5*input2"; ///< Function to specify target output.
+    emp::String function = "input1 * 3 + 5*input2"; ///< Function to specify target output.
 
     /// Test values of each input in order, separated by a ';'
-    //std::string test_summary = "0:100; 100:-1:0"
-    std::string case_ids = 0:100;
-    std::string test_summary = "case_id; (case_id*7)%100";
+    //emp::String test_summary = "0:100; 100:-1:0"
+    emp::String case_ids = 0:100;
+    emp::String test_summary = "case_id; (case_id*7)%100";
 
-    emp::vector<std::string> input_names;   ///< Names of individual input traits.
+    emp::vector<emp::String> input_names;   ///< Names of individual input traits.
     std::function<emp::Datum( const emp::DataMap & )> fit_fun;
     emp::vector<emp::vector<double>> test_values;
     emp::vector<double> target_results;
@@ -54,8 +54,8 @@ namespace mabe {
 
   public:
     EvalFunction(mabe::MABE & control,
-                const std::string & name="EvalFunction",
-                const std::string & desc="Evaluate organisms by having them solve a function.")
+                 emp::String name="EvalFunction",
+                 emp::String desc="Evaluate organisms by having them solve a function.")
       : Module(control, name, desc)
     {
       SetEvaluateMod(true);
@@ -85,7 +85,7 @@ namespace mabe {
         emp::notify::Error("EvalFunction does not allow more than ", MAX_INPUTS, " inputs. ",
                            input_names.size(), " inputs, requested.");
       }
-      for (const std::string & name : input_names) {
+      for (const emp::String & name : input_names) {
         AddOwnedTrait<double>(name, "Input value", 0.0);
       }
       AddRequiredTrait<double>(output_trait); // Output values
@@ -94,7 +94,7 @@ namespace mabe {
 
       // Prepare the test values to use.
       emp::remove_whitespace(test_summary);
-      emp::vector<std::string> test_sets = emp::slice(test_summary, ';');
+      emp::vector<emp::String> test_sets = emp::slice(test_summary, ';');
 
       if (test_sets.size() != input_names.size()) {
         emp::notify::Error("EvalFunction requires one test set for each input.  Found ",
@@ -112,7 +112,7 @@ namespace mabe {
         }
       }
 
-      // Build a DataMap to detemine expected results for each test case.
+      // Build a DataMap to determine expected results for each test case.
       emp::DataMap test_map;
       for (size_t i = 0; i < input_names.size(); ++i) {
         test_map.AddVar<double>(input_names[0]);
@@ -171,7 +171,7 @@ namespace mabe {
     double Evaluate(Population & pop) { return Evaluate( Collection(pop) ); }
 
     // If a string is provided to Evaluate, convert it to a Collection.
-    double Evaluate(const std::string & in) { return Evaluate( control.ToCollection(in) ); }
+    double Evaluate(const emp::String & in) { return Evaluate( control.ToCollection(in) ); }
   };
 
   MABE_REGISTER_MODULE(EvalFunction, "Evaluate organisms on their ability to produce a target function.");

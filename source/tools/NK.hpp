@@ -1,11 +1,11 @@
 /**
- *  @note This file is part of Empirical, https://github.com/devosoft/Empirical
+ *  @note This file is part of MABE, https://github.com/mercere99/MABE2
  *  @copyright Copyright (C) Michigan State University, MIT Software license; see doc/LICENSE.md
  *  @date 2019-2024.
  *
- *  @file  NK.hpp
+ *  @file
  *  @brief This file provides code to build NK-based algorithms.
- *  @note This file was originally Evolve/NK.h in Epirical.
+ *  @note This file was originally Evolve/NK.h in Empirical.
  *
  *  Two version of landscapes are provided.  NKLandscape pre-calculates the entire landscape, for
  *  easy lookup.  NKLandscapeMemo does lazy evaluation, memorizing values when they're first used.
@@ -16,8 +16,8 @@
  *    Based on K value, we should be able to do this automatically, so we could merge the two.
  */
 
-#ifndef MABE_TOOL_NK_H
-#define MABE_TOOL_NK_H
+#ifndef MABE_TOOLS_NK_HPP
+#define MABE_TOOLS_NK_HPP
 
 #include "emp/base/vector.hpp"
 #include "emp/bits/BitVector.hpp"
