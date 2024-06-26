@@ -5,8 +5,8 @@ Var treatment = "Sudoku-Age-Inject"; // Name of this group of run.
 
 Var elite_count = 0;
 Var print_step = 100;           // Interval for printing...
-Var inject_step = 500;         // Frequency of injecting new random organisms.
-Var inject_count = 100;         // Number of organisms to inject at each interval.
+Var inject_step = 1000;          // Frequency of injecting new random organisms.
+Var inject_count = 200;         // Number of organisms to inject at each interval.
 
 Population main_pop;            // Main population for managing candidate solutions.
 Population next_pop;            // Temp. population while constructing the next generation.
@@ -49,7 +49,7 @@ SelectTournament tournament {   // Select the top fitness organisms from random 
 };
 
 SelectLexicase select_lex {       // Shuffle traits each time an organism is chose for replication.
-  fitness_traits = "move_counts,score,solvable,puz_variety,puz_empty,puz_length";    // Which traits provide the fitness values to use?
+  fitness_traits = "move_counts,score,solvable,puz_variety,puz_empty,puz_length,puz_match";    // Which traits provide the fitness values to use?
   epsilon = 0.0;                // Range from max value to be preserved? (fraction of max)
   sample_traits = 0;            // How many traits should be sampled each generation? (0 = off)
 
@@ -73,6 +73,7 @@ max_file.ADD_COLUMN( "Solvable", "best_org.TRAIT('solvable')" );
 max_file.ADD_COLUMN( "Variety", "best_org.TRAIT('puz_variety')" );
 max_file.ADD_COLUMN( "EmptyCells", "best_org.TRAIT('puz_empty')" );
 max_file.ADD_COLUMN( "PuzzleLength", "best_org.TRAIT('puz_length')" );
+max_file.ADD_COLUMN( "PuzzleMatch", "best_org.TRAIT('puz_match')" );
 max_file.ADD_COLUMN( "Genome", "best_org.TRAIT('states')" );
 max_file.ADD_COLUMN( "birth", "best_org.TRAIT('inject_time')" );
 
@@ -104,7 +105,8 @@ max_file.ADD_COLUMN( "birth", "best_org.TRAIT('inject_time')" );
           "\nAny Solvable=", main_pop.CALC_MAX("solvable"),
           "  Max PuzVariety=", main_pop.CALC_MAX("puz_variety"),
           "  Max PuzLength=", main_pop.CALC_MAX("puz_length"),
-          "  Max Empty=", main_pop.CALC_MAX("puz_empty")
+          "  Max Empty=", main_pop.CALC_MAX("puz_empty"),
+	  "  Match=", main_pop.CALC_MAX("puz_match")
         );
     fit_file.WRITE();
     max_file.WRITE();
