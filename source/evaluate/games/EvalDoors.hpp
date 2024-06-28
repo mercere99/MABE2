@@ -165,7 +165,7 @@ namespace mabe {
       while(s[s.length() - 1] == ';') s = s.substr(0, s.length() - 1); 
       starting_cue_vec.clear();
       emp::vector<emp::String> sliced_str_vec;
-      emp::slice(s, sliced_str_vec, ';');
+      s.Slice(sliced_str_vec, ';');
       std::cout << "Eval doors starting cue values: " << std::endl << "\t"; 
       for(emp::String& slice : sliced_str_vec){
         const int cue = std::stoi(slice);
