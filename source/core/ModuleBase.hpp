@@ -112,9 +112,6 @@ namespace mabe {
     ///   "Visualize"   : Displays data for the user.
     std::set<emp::String> action_tags; ///< Informative tags about this model
 
-    /// Set of traits that this module is working with.
-    emp::map<emp::String, emp::Ptr<TraitInfo>> trait_map;
-
     /// Other variables that we want to hook on to this Module externally.
     emp::DataMap data_map;
 
@@ -170,10 +167,7 @@ namespace mabe {
     }
     ModuleBase(const ModuleBase &) = default;
     ModuleBase(ModuleBase &&) = default;
-    virtual ~ModuleBase() {
-      // Clean up trait information.
-      for (auto & x : trait_map) x.second.Delete();
-    }
+    virtual ~ModuleBase() { }
 
     virtual TraitManager<ModuleBase> & GetTraitManager() =  0;
 
