@@ -1,11 +1,12 @@
 random_seed = 0;                // Seed for random number generator; use 0 to base on time.
+
 Var pop_size = 1000;            // Number of organisms to evaluate in the population.
 Var max_ud = 10000;             // Number of generations to continue run for.
 Var treatment = "Sudoku-Age-Inject"; // Name of this group of run.
 
 Var elite_count = 0;
 Var print_step = 100;           // Interval for printing...
-Var inject_step = 1000;          // Frequency of injecting new random organisms.
+Var inject_step = 1000;         // Frequency of injecting new random organisms.
 Var inject_count = 200;         // Number of organisms to inject at each interval.
 
 Population main_pop;            // Main population for managing candidate solutions.

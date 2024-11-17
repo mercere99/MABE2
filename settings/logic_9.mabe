@@ -1,11 +1,13 @@
-random_seed = 0;       // Seed for random number generator; use 0 to base on time.
-Var pop_size = 3600;   // Local value variable.
-Var max_updates = 1000; // Local value variable.
-Var task_reward_type = "mult"; 
-Population main_pop;   // Collection of organisms
+random_seed = 0;        // Seed for random number generator; use 0 to base on time.
+
+Var pop_size = 3600;              // Local value variable.
+Var max_updates = 1000;           // Local value variable.
+Var task_reward_type = "mult";
+
+Population main_pop;              // Collection of organisms
 MaxSizePlacement place_max_size { // Grow population to a given size then maintain
-  target = "main_pop";          // Population(s) to manage.
-  max_pop_size = pop_size;      // Maximum size of the population.
+  target = "main_pop";            // Population(s) to manage.
+  max_pop_size = pop_size;        // Maximum size of the population.
 };
 AnnotatePlacement_Position pos_annotater { // Store org's position as trait on placement.
   target = "main_pop";    // Population(s) to annotate
@@ -18,30 +20,31 @@ SchedulerProbabilistic scheduler { // Rations out updates to organisms based on 
   base_value = 1;               // What value should the scheduler use for organisms that have performed no tasks?
   merit_scale_factor = 1;       // How should the scheduler scale merit?
 };
+
 VirtualCPU_Inst_Nop inst_lib_nop { // Nop instructions for VirtualCPUOrg
-  target_pop = "main_pop";      // Population(s) to manage.
-  num_nops = 3;                 // Number of nops to include.
+  target_pop = "main_pop";         // Population(s) to manage.
+  num_nops = 3;                    // Number of nops to include.
 };
 VirtualCPU_Inst_Math inst_lib_math { // Math instructions for VirtualCPUOrg
-  target_pop = "main_pop"; // Population(s) to manage.
+  target_pop = "main_pop";           // Population(s) to manage.
 };
 VirtualCPU_Inst_IO inst_lib_io { // IO instructions for VirtualCPUOrg
-  target_pop = "main_pop";      // Population(s) to manage.
-  input_name = "input";         // Name of variable to store inputs
-  output_name = "output";       // Name of variable to store outputs
-  input_idx_name = "input_idx"; // Index of next input to be loaded
+  target_pop = "main_pop";       // Population(s) to manage.
+  input_name = "input";          // Name of variable to store inputs
+  output_name = "output";        // Name of variable to store outputs
+  input_idx_name = "input_idx";  // Index of next input to be loaded
 };
 VirtualCPU_Inst_Flow inst_lib_flow { // Flow control instructions for VirtualCPUOrg
-  target_pop = "main_pop";  // Population(s) to manage.
+  target_pop = "main_pop";           // Population(s) to manage.
 };
 VirtualCPU_Inst_Manipulation inst_lib_manip { // Manipulation instructions for VirtualCPUOrg
-  target_pop = "main_pop"; // Population(s) to manage.
+  target_pop = "main_pop";                    // Population(s) to manage.
 };
-VirtualCPU_Inst_Replication inst_lib_repl { // Replication instructions for VirtualCPUOrg
-  target_pop = "main_pop";      // Population(s) to manage.
-  pos_trait = "org_pos";        // Name of trait that holds organism's position
+VirtualCPU_Inst_Replication inst_lib_repl {    // Replication instructions for VirtualCPUOrg
+  target_pop = "main_pop";                     // Population(s) to manage.
+  pos_trait = "org_pos";                       // Name of trait that holds organism's position
   offspring_genome_trait = "offspring_genome"; // Name of trait that holds the offspring organism's genome
-  req_count_inst_executed = -1; // Minimum number of instructions that the organism must 
+  req_count_inst_executed = -1;   // Minimum number of instructions that the organism must 
                                   // execute before its allowed to reproduce. Otherwise 
                                   // reproduction instructions do nothing.  Takes priority 
                                   // over `req_frac_inst_executed`; -1 to use fraction instead
@@ -50,17 +53,17 @@ VirtualCPU_Inst_Replication inst_lib_repl { // Replication instructions for Virt
                                   // instructions do nothing. 
                                   // Overruled by `req_count_inst_executed`
 };
-EvalTaskNot task_not {          // Organism-triggered evaluation of NOT operation
-  target_pop = "main_pop";      // Population to evaluate.
-  inputs_trait = "input";       // Which trait contains the organism's inputs?
-  outputs_trait = "output";     // Which trait contains the organism's outputs?
-  fitness_trait = "child_merit";// Which trait should we increase if BASE was executed?
-  performed_trait = "not_performed";// Which trait should track if BASE was executed?
-  reward_value = 2;             // How large is the reward for performing this task?
-  reward_type = task_reward_type;// How to apply the reward to the organism's merit?
-                                //  add: Additive. New merit = old merit + reward
-                                //  mult: Multiplicative. New merit = old merit * reward
-                                //  pow: Power. New merit = old merit * (2 ^ reward)
+EvalTaskNot task_not {               // Organism-triggered evaluation of NOT operation
+  target_pop = "main_pop";           // Population to evaluate.
+  inputs_trait = "input";            // Which trait contains the organism's inputs?
+  outputs_trait = "output";          // Which trait contains the organism's outputs?
+  fitness_trait = "child_merit";     // Which trait should we increase if BASE was executed?
+  performed_trait = "not_performed"; // Which trait should track if BASE was executed?
+  reward_value = 2;                  // How large is the reward for performing this task?
+  reward_type = task_reward_type;    // How to apply the reward to the organism's merit?
+                                     //  add: Additive. New merit = old merit + reward
+                                     //  mult: Multiplicative. New merit = old merit * reward
+                                     //  pow: Power. New merit = old merit * (2 ^ reward)
 };
 EvalTaskNand task_nand {        // Organism-triggered evaluation of NAND operation
   target_pop = "main_pop";      // Population to evaluate.
