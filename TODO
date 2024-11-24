@@ -17,6 +17,8 @@ MAJOR PROJECTS
   to call them.  Ideally with a caching option as well...  For computationally
   intensive evaluations, this will allow them to only be called when needed.
 
+
+
 == NEW VERSION OF MABEScript ==
 
 Key ideas:
@@ -25,8 +27,22 @@ Key ideas:
 - Modules will have a main function associated with them.
   For example, and instance the EliteSelect module 'elite_select' will can be called as
   elite_select(main_pop, 10) and would return the 10 selected individuals.
-- Each module / function / config parameter works with labels in "name: value" format.
-  The "desc:" label is used for the description.
-  The "type:" label specified the type name something resolves to.
-  The "default:" label gives a default value.
-  Any other labels are allowed.  They areconst Datum type (strings or values that can't be changed)
+
+== Signals ==
+Signals will be easy to name and to provide relevant information.
+By default signals will only trigger modules listening to a particular population.
+
+Signals are triggered with the "trigger" keyword.  For example:
+  trigger "BeforeDeath" (position=target_org.GetPosition());
+
+Modules specify what trigger names they are paying attention to.
+  on "BeforeDeath" { ... actions that can use "position" as an input variable ... }
+
+== Labels ==
+Each module / function / config parameter works with labels in "name: value" format.
+
+The "desc:" label is used for the description.
+The "type:" label specified the type name something resolves to.
+The "default:" label gives a default value.
+
+Any other labels are allowed.  They are const Datum type (strings or values that can't be changed)
