@@ -46,3 +46,15 @@ The "type:" label specified the type name something resolves to.
 The "default:" label gives a default value.
 
 Any other labels are allowed.  They are const Datum type (strings or values that can't be changed)
+
+== Types ==
+Built in types should include:
+- Int (must be a numeric integer value) (Do we need more specifics for compilation to C++?)
+- Float
+- Char
+- String
+- TraitEquation (automatically assumes all traits used are "required")
+- Population: A natural grouping of organisms.
+- OrgSet: A set of organisms (by position); no duplicates or ordering
+- OrgList: A list of organisms in order, potentially with repeats
+- IndexMap: A weighted map
