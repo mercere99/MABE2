@@ -55,6 +55,14 @@ Built in types should include:
 - String
 - TraitEquation (automatically assumes all traits used are "required")
 - Population: A natural grouping of organisms.
+   .FindMax(trait_fun, count=1)
+   .FindMin(trait_fun, count=1)
+   .Weights(trait_fun) use function to place orgs in a WeightedSet (OrgWeights) object
 - OrgSet: A set of organisms (by position); no duplicates or ordering
+   .Size()
 - OrgList: A list of organisms in order, potentially with repeats
-- IndexMap: A weighted map
+   .Size()
+   .Resize(new_size)  - New orgs are empty of new size > old size
+- OrgWeights: A map of organisms to weight levels
+   .SelectSet(count) - select count orgs (no duplications)
+   .SelectList(count) - select count independent organisms from container
