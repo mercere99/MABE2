@@ -41,9 +41,13 @@ Modules specify what trigger names they are paying attention to.
 == Labels ==
 Each module / function / config parameter works with labels in "name: value" format.
 
-The "desc:" label is used for the description.
-The "type:" label specified the type name something resolves to.
-The "default:" label gives a default value.
+  desc: is used for the description.
+  type: specified the type name something resolves to.
+  default: gives a default value.
+  min_value: sets a lower limit, below which an out-of-range error should occur.
+  max_value: sets an upper limit, above which an out-of-range error should occur.
+  min_adjust: a soft lower limit that will adjust automatically without error.
+  max_adjust: a soft upper limit that will adjust automatically without error.
 
 Any other labels are allowed.  They are const Datum type (strings or values that can't be changed)
 
@@ -53,11 +57,22 @@ Built in types should include:
 - Float
 - Char
 - String
-- TraitEquation (automatically assumes all traits used are "required")
+- TraitEquation:
+    automatically assumes all traits used are "required"
+    if treated as a function, converts to the resulting value
+    requires all traits are convertible to Float (unless a more restrictive "convert_to:" is set)
+- TraitSet:
+    automatically assumes all traits used are "required"
+    if "convert_to:" is specified, limits the traits allowed
 - Population: A natural grouping of organisms.
    .FindMax(trait_fun, count=1)
    .FindMin(trait_fun, count=1)
    .Weights(trait_fun) use function to place orgs in a WeightedSet (OrgWeights) object
+   .At(position) return the organism at the specified position
+   .TraitValues(String trait_name)
+      return a vector of trait values corresponding to population position
+   .TraitValues(TraitSet trait_set)
+      return a 2D matrix of trait values; row = population position, col = trait ID
 - OrgSet: A set of organisms (by position); no duplicates or ordering
    .Size()
 - OrgList: A list of organisms in order, potentially with repeats
