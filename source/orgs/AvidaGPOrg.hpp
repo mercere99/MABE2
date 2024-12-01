@@ -42,8 +42,8 @@ namespace mabe {
       emp::String input_name = "input";    ///< Name of trait that should be used load input values
       emp::String output_name = "output";  ///< Name of trait that should be used store output values
 
-      // Internal use
-      emp::Binomial mut_dist;            ///< Distribution of number of mutations to occur.
+      // Internal use (shared by all orgs)
+      emp::Binomial mut_dist;              ///< Distribution of number of mutations to occur.
       emp::BitVector mut_sites;            ///< A pre-allocated vector for mutation sites. 
     };
 

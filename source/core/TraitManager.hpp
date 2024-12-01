@@ -36,7 +36,7 @@ namespace mabe {
     /// archived, and summarized.
     std::unordered_map<emp::String, emp::Ptr<TraitInfo>> trait_map;
 
-    /// Configuration should happen BEFORE traits are created, so this calls starts locked.
+    /// Configuration should happen BEFORE traits are created, so manager starts locked.
     bool locked = true;
 
     /// Count the total number of errors encountered.
