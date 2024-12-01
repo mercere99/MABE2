@@ -81,3 +81,22 @@ Built in types should include:
 - OrgWeights: A map of organisms to weight levels
    .SelectSet(count) - select count orgs (no duplications)
    .SelectList(count) - select count independent organisms from container
+
+== Keywords ==
+
+`function` - about to define a new function.
+`mutable` - vars are const unless preceded by this keyword
+`return`
+`while`
+
+== Built-in functions ==
+
+Random(...) - Generate a random value.
+  no args: Float in range 0.0 to 1.0
+  one arg: Must be numerical type; output same type, from 0 to value
+  two args (min / max): Must be numerical type; output common type, from min to max
+
+Range(...)
+  one arg: generate Int[] or UInt[] (depending on arg) from 0 to target value (exclusive)
+  two args: generate array from min to max in steps of 1 (or 1.0) in common type
+  three args: Generate array using min,step,max in common type 
