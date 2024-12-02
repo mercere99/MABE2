@@ -200,4 +200,61 @@ namespace mabe {
   MABE_REGISTER_MODULE(SelectLexicase, "Shuffle traits each time an organism is chose for replication.");
 }
 
-#endif
+/*
+== New Version:
+
+module SelectLexicase {
+  desc: "Use lexicase parent selection to choose a set of organism.",
+  module_type: "selection"
+
+  config trait_set : TraitSet {
+    default: "fitness";
+    desc: "Traits to use for selection";
+    convert_to: "Float";  // All traits must be convertible to type Float.
+  }
+  config epsilon : Float {
+    default: 0.0;
+    desc: "Fraction below max to still preserve";
+    min_value: 0.0;          // Give error if epsilon < 0
+    max_value: 1.0;          // Give error if epsilon > 1
+    min_adjust: 0.000000001; // Auto raise epsilon to minimum to handle mathematical imprecision.
+  }
+  config sample_size : UInt { default: 0; "Number of traits to use in selection (0=no sampling)" }
+
+  function(Population select_pop, Int count) : OrgList
+    desc: "Select random organisms, weighted based on score.";
+
+    TraitSet traits_used = sample_size ? trait_set.Sample(sample_size) : trait_set;
+    Float[,] trait_vals = select_pop.TraitValues(traits_used);
+
+    mutable UInt[] trait_ids = Range(0, traits_used.Size()); // Trait order to be shuffled.
+    OrgSet start_orgs = select_pop.Alive();                  // Start with all living orgs.
+    OrgList selected;                                        // Place to collect selected orgs.
+
+    for (size_t count = 0; count < num_births; ++count) {
+      trait_ids.Shuffle();                                   // Randomize order of traits.
+      mutable OrgSet cur_orgs = start_orgs.Clone();          // Start with full population
+
+      foreach trait_id in trait_ids {
+        if (cur_orgs.size() == 1) break;  // One organism left -- stop early!
+
+        Float max_value = trait_vals[trait_id].FindMax();
+        Float threshold = max_value - epsilon;
+
+        Float min_value = trait_vals[trait_id].FindMin();
+        if (min_value  >= threshold) continue; // If not enough variation; continue to next trait.
+
+        // Eliminate orgs with a trait score below threshold.
+        foreach org_id in cur_orgs {
+          if (trait_scores[trait_id][org_id] < threshold) cur_orgs.Remove(org_id);
+        }
+      }
+
+      selected += cur_orgs.GetRandom();   // Pick a random org from those remaining.
+    }
+
+    return selected;
+  }
+}
+
+*/#endif
