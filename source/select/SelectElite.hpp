@@ -84,15 +84,8 @@ module SelectElite {
   desc: "Module to choose a set of top scoring organisms."
   module_type: "selection"
 
-  config fit_fun : TraitEquation {
-    default: "fitness";
-    desc: "Function to use for selection";
-  }
-
-  config top_count : Int {
-    default: 1;
-    desc: "Number of top-scoring orgs to select";
-  }
+  config fit_fun : TraitEquation { default: "fitness"; desc: "Function to use for selection"; }
+  config top_count : Int { default: 1; desc: "Number of top-scoring orgs to select"; }
 
   function(Population select_pop, Int count) : PositionList
     desc: "Select the top scoring organisms from the population.";
