@@ -27,6 +27,7 @@ Key ideas:
 - Modules will have a main function associated with them.
   For example, and instance the EliteSelect module 'elite_select' will can be called as
   elite_select(main_pop, 10) and would return the 10 selected individuals.
+- Member function calls are interchangeable with stand-alone function that have type as first argument.
 
 == Signals ==
 Signals will be easy to name and to provide relevant information.
@@ -64,15 +65,18 @@ Built in types should include:
 - TraitSet:
     automatically assumes all traits used are "required"
     if "convert_to:" is specified, limits the traits allowed
+    .Insert(...) add the organism or organisms provided to this set.
+    .Remove(...) remove the organism or organisms provided from this set.
 - Population: A natural grouping of organisms.
    .FindMax(trait_fun, count=1)
    .FindMin(trait_fun, count=1)
    .Weights(trait_fun) use function to place orgs in a WeightedSet (OrgWeights) object
    .At(position) return the organism at the specified position
+   .Alive() return an OrgSet of the living orgs in the population 
    .TraitValues(String trait_name)
       return a vector of trait values corresponding to population position
    .TraitValues(TraitSet trait_set)
-      return a 2D matrix of trait values; row = population position, col = trait ID
+      return a 2D matrix of trait values; row = trait ID, col = population position
 - OrgSet: A set of organisms (by position); no duplicates or ordering
    .Size()
 - OrgList: A list of organisms in order, potentially with repeats
@@ -84,7 +88,10 @@ Built in types should include:
 
 == Keywords ==
 
+`if`
+`foreach`
 `function` - about to define a new function.
+`in` - with `foreach`, specifies container.  with `if`, tests inclusion
 `mutable` - vars are const unless preceded by this keyword
 `return`
 `while`
