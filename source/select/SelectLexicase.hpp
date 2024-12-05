@@ -221,8 +221,10 @@ module SelectLexicase {
   }
   config sample_size : UInt { default: 0; "Number of traits to use in selection (0=no sampling)" }
 
-  function(Population select_pop, Int count) : OrgList
+  function(Population select_pop {desc: "Population to select from."},
+           Int count {desc: "Number of organisms to select"; default: 1}) : OrgList {
     desc: "Select random organisms, weighted based on score.";
+    require(select_pop.Size() > 0);
 
     TraitSet traits_used = sample_size ? trait_set.Sample(sample_size) : trait_set;
     Float[,] trait_vals = select_pop.TraitValues(traits_used);
@@ -231,7 +233,7 @@ module SelectLexicase {
     OrgSet start_orgs = select_pop.Alive();                  // Start with all living orgs.
     OrgList selected;                                        // Place to collect selected orgs.
 
-    for (size_t count = 0; count < num_births; ++count) {
+    for (size_t i = 0; i < count; ++i) {
       trait_ids.Shuffle();                                   // Randomize order of traits.
       mutable OrgSet cur_orgs = start_orgs.Clone();          // Start with full population
 
