@@ -98,4 +98,36 @@ namespace mabe {
   MABE_REGISTER_MODULE(SelectTournament, "Replicate top fitness organisms from random subgroups.");
 }
 
+/*
+== New Version:
+
+module SelectTournament {
+  desc: "Select highest scoring organisms from random subgroups.",
+  module_type: "selection"
+
+  config fit_fun : TraitEquation { default: "fitness";  desc: "Function to use for selection"; }
+  config tourny_size : UInt {
+    default: "7";
+    desc: "Number of organisms in each tournament";
+    min_value: 1;
+  }
+
+  function(Population select_pop {desc: "Population to select from."},
+           Int count {desc: "Number of organisms to select"; default: 1}) : OrgList {
+    desc: "Select highest scoring organisms from random subgroups.";
+    require(select_pop.Size() >= tourny_size);
+
+    OrgList selected;
+
+    for (size_t i = 0; i < count; ++i) {
+      OrgSet tourny = select_pop.SelectSet(tourny_size);
+      selected += tourny.FindMax(fit_fun);
+    }
+
+    return selected;
+  }
+}
+
+*/
+
 #endif
