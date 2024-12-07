@@ -68,6 +68,7 @@ Built in types should include:
     .Insert(...) add the organism or organisms provided to this set.
     .Remove(...) remove the organism or organisms provided from this set.
 - Population: A natural grouping of organisms.
+   .Size()
    .FindMax(trait_fun, count=1)
    .FindMin(trait_fun, count=1)
    .Weights(trait_fun) use function to place orgs in a WeightedSet (OrgWeights) object
@@ -77,14 +78,16 @@ Built in types should include:
       return a vector of trait values corresponding to population position
    .TraitValues(TraitSet trait_set)
       return a 2D matrix of trait values; row = trait ID, col = population position
+   .SelectSet(count) build a random OrgSet of the desired size (no replacement)
+   .SelectList(count) build a random OrgList of the desired size (with replacement)
 - OrgSet: A set of organisms (by position); no duplicates or ordering
-   .Size()
+   Same member functions as Population.
 - OrgList: A list of organisms in order, potentially with repeats
-   .Size()
+   Same member functions as Population.
    .Resize(new_size)  - New orgs are empty of new size > old size
 - OrgWeights: A map of organisms to weight levels
-   .SelectSet(count) - select count orgs (no duplications)
-   .SelectList(count) - select count independent organisms from container
+   .SelectSet(count) - select count orgs with proper weights (no duplications)
+   .SelectList(count) - select count independent organisms from container with weights
 
 == Keywords ==
 
