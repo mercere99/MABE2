@@ -85,4 +85,42 @@ namespace mabe {
   MABE_REGISTER_MODULE(EvalCountBits, "Evaluate bitstrings by counting ones (or zeros).");
 }
 
+/*
+== New Version:
+
+module EvalCountBits {
+  desc: "Count the number of ones in a bitsequence.",
+  module_type: "evaluation"
+
+  trait bits : BitSet {
+    access: "required";
+    default_name: "bits";
+    desc: "bit sequence to evaluate";
+  }
+  trait score : UInt {
+    access: "owned";
+    default: 0;
+    default_name: "score";
+    desc: "Count of the number of specified bits";
+  }
+  config count_type : Bool {
+    default: 1;
+    desc: "Which type of bit should we count? (0 or 1)";
+  }
+
+  function(OrgSet orgs {desc: "Organisms to evaluate"}) : UInt {
+    desc: "Count the number of ones in each organism's bitsequence.";
+
+    UInt max_score = 0;
+    for org in orgs {
+      org.GenerateOutput();
+      score(org) = count_type ? bits(org).CountOnes() : bits(org).CountZeros();
+      if (score(org) > max_score) max_score = score(org);
+    }
+    return max_score;
+  }
+}
+
+*/
+
 #endif
