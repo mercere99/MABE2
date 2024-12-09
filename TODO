@@ -55,9 +55,14 @@ Any other labels are allowed.  They are const Datum type (strings or values that
 == Types ==
 Built in types should include:
 - Int (must be a numeric integer value) (Do we need more specifics for compilation to C++?)
+- UInt
 - Float
 - Char
+- Bool
+
 - String
+- BitSet
+
 - TraitEquation:
     automatically assumes all traits used are "required"
     if treated as a function, converts to the resulting value
@@ -67,6 +72,8 @@ Built in types should include:
     if "convert_to:" is specified, limits the traits allowed
     .Insert(...) add the organism or organisms provided to this set.
     .Remove(...) remove the organism or organisms provided from this set.
+
+- Organism
 - Population: A natural grouping of organisms.
    .Size()
    .FindMax(trait_fun, count=1)
@@ -80,6 +87,7 @@ Built in types should include:
       return a 2D matrix of trait values; row = trait ID, col = population position
    .SelectSet(count) build a random OrgSet of the desired size (no replacement)
    .SelectList(count) build a random OrgList of the desired size (with replacement)
+   .GenerateOutput()
 - OrgSet: A set of organisms (by position); no duplicates or ordering
    Same member functions as Population.
 - OrgList: A list of organisms in order, potentially with repeats
@@ -98,6 +106,10 @@ Built in types should include:
 `mutable` - vars are const unless preceded by this keyword
 `return`
 `while`
+
+`config`
+`module`
+`trait`
 
 == Built-in functions ==
 
