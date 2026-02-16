@@ -18,7 +18,7 @@
 #ifndef MABE_ORG_ITERATOR_H
 #define MABE_ORG_ITERATOR_H
 
-#include "emp/base/error.hpp"
+#include "emp/base/notify.hpp"
 #include "emp/base/Ptr.hpp"
 #include "emp/base/vector.hpp"
 #include "emp/meta/type_traits.hpp"
@@ -237,11 +237,11 @@ namespace mabe {
   protected:
     using base_t = OrgIterator_Interface<OrgPosition>;
 
-    void IncPosition() override { emp_error("IncPosition(shift_size) not defined in OrgPosition."); }
-    void DecPosition() override { emp_error("DecPosition(shift_size) not defined in OrgPosition."); }
-    void ShiftPosition(int=1) override { emp_error("ShiftPosition(shift_size) not defined in OrgPosition."); }
-    void ToBegin() override { emp_error("ToBegin() not defined in OrgPosition."); }
-    void ToEnd() override { emp_error("ToEnd() not defined in OrgPosition."); }
+    void IncPosition() override { emp::notify::Error("IncPosition(shift_size) not defined in OrgPosition."); }
+    void DecPosition() override { emp::notify::Error("DecPosition(shift_size) not defined in OrgPosition."); }
+    void ShiftPosition(int=1) override { emp::notify::Error("ShiftPosition(shift_size) not defined in OrgPosition."); }
+    void ToBegin() override { emp::notify::Error("ToBegin() not defined in OrgPosition."); }
+    void ToEnd() override { emp::notify::Error("ToEnd() not defined in OrgPosition."); }
 
   public:
     /// Constructor where you can optionally supply population pointer and position.
@@ -263,11 +263,11 @@ namespace mabe {
   protected:
     using base_t = OrgIterator_Interface<ConstOrgPosition, const Organism>;
 
-    void IncPosition() override { emp_error("IncPosition(shift_size) not defined in ConstOrgPosition."); }
-    void DecPosition() override { emp_error("DecPosition(shift_size) not defined in ConstOrgPosition."); }
-    void ShiftPosition(int=1) override { emp_error("ShiftPosition(shift_size) not defined in ConstOrgPosition."); }
-    void ToBegin() override { emp_error("ToBegin() not defined in ConstOrgPosition."); }
-    void ToEnd() override { emp_error("ToEnd() not defined in ConstOrgPosition."); }
+    void IncPosition() override { emp::notify::Error("IncPosition(shift_size) not defined in ConstOrgPosition."); }
+    void DecPosition() override { emp::notify::Error("DecPosition(shift_size) not defined in ConstOrgPosition."); }
+    void ShiftPosition(int=1) override { emp::notify::Error("ShiftPosition(shift_size) not defined in ConstOrgPosition."); }
+    void ToBegin() override { emp::notify::Error("ToBegin() not defined in ConstOrgPosition."); }
+    void ToEnd() override { emp::notify::Error("ToEnd() not defined in ConstOrgPosition."); }
 
   public:
     /// Constructor where you can optionally supply population pointer and position.

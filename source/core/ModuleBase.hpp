@@ -60,7 +60,6 @@
 
 #include <set>
 
-#include "emp/base/map.hpp"
 #include "emp/base/notify.hpp"
 #include "emp/base/Ptr.hpp"
 #include "emp/base/vector.hpp"

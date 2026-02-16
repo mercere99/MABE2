@@ -64,6 +64,7 @@
 #include <set>
 #include <sstream>
 
+#include "emp/base/notify.hpp"
 #include "emp/base/Ptr.hpp"
 #include "emp/base/vector.hpp"
 #include "emp/bits/BitVector.hpp"
@@ -348,23 +349,13 @@ namespace mabe {
     static OUT_T MakeRValueFrom(IN_T && in) {
       static_assert(std::is_same<OUT_T, Collection>(),
                     "Internal error: type mis-match for MakeRValueFrom()");
-      // using decay_T = std::decay_t<IN_T>;
       if constexpr (std::is_same<IN_T, EmplodeType&>()) {
-        // Test if we are converting from a population!
         emp::Ptr<EmplodeType> in_ptr = &in;
         auto pop_ptr = in_ptr.DynamicCast<Population>();
-        if (pop_ptr) return Collection(*pop_ptr);
-
-        // Currently, no other EmplodeTypes to convert from...
+        emp_assert(pop_ptr, "failed to convert from Population!");
+        return Collection(*pop_ptr);
       }
-      // Conversion from string requires MABE controller...
-      // else if constexpr (std::is_same<decay_T, emp::String>()) {
-      // }
-      // Cannot convert from double.
-      // else if constexpr (std::is_same<decay_T, double>()) {
-      // }
-      emp_error("Cannot convert provided input to requested RValue", emp::GetTypeID<OUT_T>());
-      return *((OUT_T *) &in);
+      else return Collection{};
     }
 
     /// Calculate the total number of positions represented in this collection.
@@ -511,11 +502,11 @@ namespace mabe {
 
     template <typename T>
     void DecPosition(T & /* it */) const {
-      emp_error("DecPosition() not yet implemented for CollectionIterator.");
+      emp::notify::Error("DecPosition() not yet implemented for CollectionIterator.");
     }
     template <typename T>
     void ShiftPosition(T & /* it */, int /* shift */) const {
-      emp_error("ShiftPosition() not yet implemented for CollectionIterator.");
+      emp::notify::Error("ShiftPosition() not yet implemented for CollectionIterator.");
     }
 
     CollectionIterator begin() { return CollectionIterator(this); }

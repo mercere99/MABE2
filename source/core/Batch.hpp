@@ -143,7 +143,7 @@ namespace mabe {
 
           // Substitute in variables.
           emp::String exe_string(ss.str());
-          exe_string.ReplaceVars(var_set);
+          exe_string.SetReplaceVars(var_set);
 
           // And run the executable
           emp::notify::Message("BATCH COMMAND: ", exe_string);
