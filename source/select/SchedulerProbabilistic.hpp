@@ -100,14 +100,15 @@ namespace mabe {
       if(weight_map.GetSize() < N){
         weight_map.Resize(N, 1);
       }
-      size_t org_idx = placement_pos.Pos();
-      weight_map.Adjust(org_idx, 
-          base_value + merit_scale_factor * placement_pos.Pop()[org_idx].GetTrait<double>(trait));
+      const size_t org_idx = placement_pos.Pos();
+      const double merit = placement_pos.Pop()[org_idx].GetTrait<double>(trait);
+      const double weight = base_value + merit_scale_factor * merit;
+      weight_map.Set(org_idx, weight);
       placement_pos.Pop()[org_idx].SetTrait<bool>(reset_self_trait, false);
     }
   };
 
-  MABE_REGISTER_MODULE(SchedulerProbabilistic, "Rations out updates to organisms based on a specified attribute, using a method akin to roulette wheel selection.");
+  MABE_REGISTER_MODULE(SchedulerProbabilistic, "Doles out updates to organisms based on a specified attribute, using a method akin to roulette wheel selection.");
 }
 
 #endif

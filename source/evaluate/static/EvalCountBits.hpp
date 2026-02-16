@@ -99,8 +99,8 @@ module EvalCountBits {
   }
   trait score : UInt {
     access: "owned";
-    default: 0;
     default_name: "score";
+    default: 0;
     desc: "Count of the number of specified bits";
   }
   config count_type : Bool {

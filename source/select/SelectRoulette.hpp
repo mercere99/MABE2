@@ -91,7 +91,7 @@ module SelectRoulette {
   desc: "Module to randomly choose organisms, weighted based on score.",
   module_type: "selection"
 
-  config fit_fun : TraitEquation {  default: "fitness";  desc: "Function to use for selection"; }
+  config fit_fun : TraitEquation {  default:"fitness";  desc:"Function to use for selection"; }
 
   function(Population select_pop {desc: "Population to select from."},
            Int count {desc: "Number of organisms to select"; default: 1}) : OrgList {

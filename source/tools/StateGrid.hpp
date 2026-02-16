@@ -23,7 +23,7 @@
 #include <map>
 
 #include "emp/base/assert.hpp"
-#include "emp/base/error.hpp"
+#include "emp/base/notify.hpp"
 #include "emp/base/Ptr.hpp"
 #include "emp/base/vector.hpp"
 #include "emp/tools/String.hpp"
@@ -196,7 +196,7 @@ namespace mabe {
       file.RemoveWhitespace();
       file.RemoveEmpty();
       if(file.GetNumLines() == 0){
-        emp_error("Error! StateGrid attempting to load file that empty or missing!"); 
+        emp::notify::Error("Error! StateGrid attempting to load file that empty or missing!"); 
       }
 
       // Determine the size of the new grid.
