@@ -122,7 +122,7 @@ namespace emplode {
     emp::Token AsToken() const { return *pos; }
 
     /// Return the lexeme associate with the current state.
-    const emp::String & AsLexeme() const { return pos ? pos->lexeme : emp::String::Empty(); }
+    const emp::String & AsLexeme() const { return pos ? pos->lexeme : emp::String::StaticEmpty(); }
 
     /// Return the lexeme associate with the current state AND advance the token stream.
     const emp::String & UseLexeme() {
@@ -374,7 +374,7 @@ namespace emplode {
     // A literal string should be converted to a regular string and used.
     if (state.IsString()) {
       Debug("...value is a string: ", state.AsLexeme());
-      emp::String str = emp::MakeFromLiteral_String(state.UseLexeme(), "\"'");  // Convert literal string.
+      emp::String str = emp::MakeStringFromLiteral(state.UseLexeme(), "\"'");  // Convert literal string.
       return MakeTempLeaf(str);                                                 // Return temporary Symbol.
     }
 

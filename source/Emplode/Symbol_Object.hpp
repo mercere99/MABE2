@@ -11,8 +11,7 @@
 #ifndef EMPLODE_SYMBOL_OBJECT_HPP
 #define EMPLODE_SYMBOL_OBJECT_HPP
 
-#include "emp/base/error.hpp"
-#include "emp/base/map.hpp"
+#include "emp/base/notify.hpp"
 
 #include "EmplodeType.hpp"
 #include "Symbol_Scope.hpp"
@@ -82,7 +81,7 @@ namespace emplode {
         std::cerr << "Trying to assign `" << in.GetName() << "' to '" << GetName()
                   << "', but " << in.GetName() << " is not an Object." << std::endl;
         std::cerr << "Target: " << in.DebugString() << std::endl;
-        emp_error("Assignment failed.");
+        emp::notify::Error("Assignment failed.");
         return false;   // Mis-matched types; failed to copy.
       }
 

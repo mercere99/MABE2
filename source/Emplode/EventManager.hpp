@@ -25,7 +25,6 @@
 #ifndef EMPLODE_EVENT_MANAGER_HPP
 #define EMPLODE_EVENT_MANAGER_HPP
 
-#include "emp/base/map.hpp"
 #include "emp/base/Ptr.hpp"
 #include "emp/tools/String.hpp"
 

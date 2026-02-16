@@ -14,8 +14,8 @@
 #ifndef EMPLODE_SYMBOL_SCOPE_HPP
 #define EMPLODE_SYMBOL_SCOPE_HPP
 
-#include "emp/base/map.hpp"
 #include "emp/datastructs/map_utils.hpp"
+#include "emp/datastructs/RobinHoodMap.hpp"
 
 #include "Symbol.hpp"
 #include "Symbol_Function.hpp"
@@ -32,13 +32,12 @@ namespace emplode {
   protected:
     using symbol_ptr_t = emp::Ptr<Symbol>;
     using const_symbol_ptr_t = emp::Ptr<const Symbol>;
-    emp::map< emp::String, symbol_ptr_t > symbol_map;   ///< Map of names to entries.
+    emp::RobinHoodMap< emp::String, symbol_ptr_t > symbol_map;   ///< Map of names to entries.
 
     template <typename T, typename... ARGS>
     T & Add(const emp::String & name, ARGS &&... args) {
       auto new_ptr = emp::NewPtr<T>(name, std::forward<ARGS>(args)...);
-      emp_assert(!emp::Has(symbol_map, name), "Do not redeclare functions or variables!",
-                 name);
+      emp_assert(!symbol_map.contains(name), "Do not redeclare functions or variables!", name);
       symbol_map[name] = new_ptr;
       return *new_ptr;
     }
@@ -56,7 +55,7 @@ namespace emplode {
 
     Symbol_Scope(const Symbol_Scope & in) : Symbol(in) {
       // Copy all defined variables/scopes/functions
-      for (auto [name, ptr] : symbol_map) { symbol_map[name] = ptr->Clone(); }
+      for (auto [name, ptr] : in.symbol_map) { symbol_map[name] = ptr->Clone(); }
     }
     Symbol_Scope(Symbol_Scope &&) = default;
 
@@ -89,7 +88,7 @@ namespace emplode {
       // Do not delete other existing entries.
       for (const auto & [name, ptr] : in_scope.symbol_map) {
         // If entry does not exist fail the copy.
-        if (!emp::Has(symbol_map, name)) {
+        if (!symbol_map.contains(name)) {
           std::cerr << "Trying to assign `" << in.GetName() << "' to '" << GetName()
                     << "', but " << GetName() << "." << name << " does not exist." << std::endl;
           return false;
@@ -111,7 +110,7 @@ namespace emplode {
 
 
     /// Get a symbol out of this scope; 
-    symbol_ptr_t GetSymbol(emp::String name) { return emp::Find(symbol_map, name, nullptr); }
+    symbol_ptr_t GetSymbol(emp::String name) { return symbol_map.FindValue(name); }
 
     /// Lookup a variable, scanning outer scopes if needed
     symbol_ptr_t LookupSymbol(const emp::String & name, bool scan_scopes=true) override {
@@ -125,7 +124,7 @@ namespace emplode {
       }
 
       // Otherwise we found it!
-      return it->second;
+      return it->Value();
     }
 
     /// Lookup a variable, scanning outer scopes if needed (in const context!)
@@ -140,7 +139,7 @@ namespace emplode {
       }
 
       // Otherwise we found it!
-      return it->second;
+      return it->Value();
     }
 
     /// Add a configuration symbol that is linked to a variable - the incoming variable sets

@@ -25,7 +25,7 @@
 #include <type_traits>
 
 #include "emp/base/assert.hpp"
-#include "emp/base/error.hpp"
+#include "emp/base/notify.hpp"
 #include "emp/base/Ptr.hpp"
 #include "emp/base/vector.hpp"
 #include "emp/data/Datum.hpp"
@@ -214,7 +214,7 @@ namespace emplode {
             }
 
             // If both options fail, report an error.
-            emp_error("Cannot convert symbol to target object type.  Symbol: ",
+            emp::notify::Error("Cannot convert symbol to target object type.  Symbol: ",
                       DebugString(), "  Target: ", emp::GetTypeID<T>());
           }
 
@@ -227,7 +227,8 @@ namespace emplode {
           return decay_T::template MakeRValueFrom<decay_T>(AsString());
         }
 
-        emp_error("Cannot convert symbol to target object type.", DebugString(), emp::GetTypeID<T>());
+        emp::notify::Error("Cannot convert symbol to target object type.",
+                           DebugString(), emp::GetTypeID<T>());
         auto out = emp::NewPtr<std::remove_reference_t<decay_T>>();
         return (T) *out;
       }
@@ -235,7 +236,7 @@ namespace emplode {
       // Oh no! We don't know this type...
       else {
         static_assert(emp::dependent_false<T>(), "Invalid conversion for Symbol::As()");
-        emp_error(emp::GetTypeID<T>());  // Print more info when above line is commented out.
+        emp::notify::Error(emp::GetTypeID<T>());  // Print more info when above line is commented out.
         auto out = emp::NewPtr<std::remove_reference_t<decay_T>>();
         return (T) *out;
       }

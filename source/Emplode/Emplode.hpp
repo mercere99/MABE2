@@ -73,7 +73,6 @@
 #include <utility>
 
 #include "emp/base/assert.hpp"
-#include "emp/base/map.hpp"
 #include "emp/base/notify.hpp"
 #include "emp/data/Datum.hpp"
 #include "emp/meta/TypeID.hpp"
