@@ -31,7 +31,8 @@ namespace mabe {
   private:
     emp::SudokuAnalyzer analyzer;
 
-    emp::String target_filename;           // File to load with a target board.
+    emp::String symbol_set="123456789";    // The 9 symbols to use (defaults to standard sudoku)
+    emp::String target_filename="";        // File to load with a target board.
     emp::array<uint8_t, 81> target_board;  // Fixed positions to target for the final board.
 
     RequiredMultiTrait<size_t> states_trait{this, "states",    "Starting states for Sudoku board", emp::SudokuAnalyzer::GetNumCells()};
@@ -67,6 +68,7 @@ namespace mabe {
     }
 
     void SetupConfig() override {
+      LinkVar(symbol_set, "symbol_set", "Set of Sudoku symbols to use (default is \"123456789\").");
       LinkVar(target_filename, "target_file", "File with info about any cell states to target at end.");
       // No other variables to link in to the configuration (e.g., N and K for NK)
     }
@@ -74,6 +76,9 @@ namespace mabe {
     void SetupModule() override {
       // Make sure we haven't messed up the number of solution functions.  (@CAO - make better!)
       emp_assert(analyzer.GetNumSolveFuns() == emp::SudokuAnalyzer::GetNumMoveTypes());
+
+      // Load in the symbols we should use.
+      if (symbol_set.size()) analyzer.SetSymbols(symbol_set);
 
       // Load in a target board, if any.
       if (target_filename.size()) {
